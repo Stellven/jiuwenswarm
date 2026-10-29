@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jiuwenswarm"
+version = "0.2.5b1"
+description = "Controlled installation compatibility for the existing WorkSwarm distribution"
+requires-python = ">=3.11,<3.14"
+license = {text = "Apache-2.0"}
+dependencies = ["workswarm[codex,tui]==0.2.5b1"]
+
+[tool.setuptools]
+packages = []
+py-modules = []

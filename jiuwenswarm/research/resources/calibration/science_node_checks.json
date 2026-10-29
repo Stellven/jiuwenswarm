@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "evaluation_verdict.json",
+    "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+  },
+  "check_plan_ref": {
+    "id": "science_node_check_plan.json",
+    "sha256": "1fc790265ba1dd1c9ac9d826ff4b652c5ca337a2ab72763ae069165b90e89d95"
+  },
+  "results": [
+    {
+      "check_id": "internal_acceptance",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of required aggregate obligation; no measured execution",
+      "evidence_refs": [
+        {
+          "id": "gate_science_pass.json",
+          "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+        }
+      ]
+    },
+    {
+      "check_id": "external_output",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of required aggregate obligation; no measured execution",
+      "evidence_refs": [
+        {
+          "id": "gate_science_pass.json",
+          "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+        }
+      ]
+    },
+    {
+      "check_id": "aggregate_limits",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of required aggregate obligation; no measured execution",
+      "evidence_refs": [
+        {
+          "id": "gate_science_pass.json",
+          "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+        }
+      ]
+    }
+  ]
+}

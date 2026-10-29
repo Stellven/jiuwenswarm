@@ -1,0 +1,224 @@
+{
+  "schema": "ai4r-source-overlay-checkpoint:1",
+  "name": "hybrid-v5-20261026",
+  "base_commit": "0fa35ee38e636e594f9252bc7fcb98e79d45d1b0",
+  "created_at": "2026-10-26T23:25:53.169879+00:00",
+  "archive": "source-overlay.zip",
+  "archive_sha256": "769c112115a471e1398393cb3a416d5b4373c0a463af4c0bb0b7a1288bfc93a8",
+  "files": [
+    {
+      "path": "benchmarks/README.md",
+      "sha256": "d776e65f259fee94c4051de106e24b141fbfa6d9081d68539c4e9d319b1a5ebd",
+      "bytes": 630
+    },
+    {
+      "path": "benchmarks/local_routing/README.md",
+      "sha256": "56489175fb8f516eccd7163a6fab27962d87b9d9e08769e11838020ccf6ac8d2",
+      "bytes": 11481
+    },
+    {
+      "path": "benchmarks/local_routing/__init__.py",
+      "sha256": "c2354951d9b4a6fab7a88e29cb109bd6b6a595c8cf7eb83908ecbf6155a913c3",
+      "bytes": 85
+    },
+    {
+      "path": "benchmarks/local_routing/protocol.py",
+      "sha256": "09e26e6a57c2bd52cf664870bb4970351c01b141a6937f3048243d19de808899",
+      "bytes": 7948
+    },
+    {
+      "path": "benchmarks/local_routing/runtime.py",
+      "sha256": "30d1596b6f484b8808b8b6880d4f894a44dab5c9a9a92668785f0b140770adae",
+      "bytes": 19105
+    },
+    {
+      "path": "benchmarks/local_routing/score.py",
+      "sha256": "d0e9e08e004d273b556f54bb6528c2acc216cca961baabee2e38b2534ebdf62c",
+      "bytes": 12647
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/SHA256SUMS.txt",
+      "sha256": "a71f08d7e235c4456a2d9962c1febdec623cc66e0596da864f6fb288fa348481",
+      "bytes": 1098
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/benchmark-report.html",
+      "sha256": "028228195e6916ae3fd21a1460647e294e1d6be5c8b3bcabda66a8da312b2424",
+      "bytes": 651601
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/benchmark-report.md",
+      "sha256": "49469ddc45fc704c306dc6d56941b23291ede47b5f0d17e1a09038b5a1ec7490",
+      "bytes": 19321
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/build_report.py",
+      "sha256": "8fe5099c514f57136b29f010c5ed42f8b29e9a73178bdeb701fec4d93e09d1d0",
+      "bytes": 30018
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/collect_spark.py",
+      "sha256": "e7312cbfa2f4a63229e0903342b59483de1b7f0b415077bcde282ea715d6f5e2",
+      "bytes": 10891
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/data/measurements.json",
+      "sha256": "42b35231a1c5149df454b989bfe179f57f1d59ee83b3e01cc616c306dc1adf4d",
+      "bytes": 172544
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/data/observations.csv",
+      "sha256": "001e56807827fef96bd00fcfd9ca0ef588fbd1b2db8a965e050d80acc0104a8d",
+      "bytes": 34925
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/data/runtime.json",
+      "sha256": "48978d063664299ac8c2008dc4691b0882f7ea3aa95ff621324e6cf1f49eced1",
+      "bytes": 432
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/figures/01-correctness.png",
+      "sha256": "c5ca8cee60cbbad557a8af37fe5a2ceb362ef58e72bd4ac308704332d4267ab1",
+      "bytes": 90071
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/figures/02-token-budget.png",
+      "sha256": "4dab490308d017005eefe6174be5eaad4f0fbc31d0f5259f390b381d231cbd71",
+      "bytes": 91864
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/figures/03-domain-results.png",
+      "sha256": "b19841f20df5dafdafd229d7a85b172e54be481c6cd5060e90ee34a33bd387b5",
+      "bytes": 103223
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/figures/04-routing-and-gates.png",
+      "sha256": "52ec250980417ce120f8a106cd02505bd706a15c5564ae521ca2c507342cf9c6",
+      "bytes": 96138
+    },
+    {
+      "path": "benchmarks/reports/2026-10-26-hybrid-router/figures/05-quality-token-tradeoff.png",
+      "sha256": "dfefc27d448ea18fd91079f210ac4a1a6710a5cbd669f61095959c9c12b643b7",
+      "bytes": 89237
+    },
+    {
+      "path": "benchmarks/reports/README.md",
+      "sha256": "39f8ea3a75decaddef6c28660a5d13ce746ecea8fd6f5b2563ffbc10b31589fb",
+      "bytes": 778
+    },
+    {
+      "path": "deploy/m1/chatgpt_baseline.py",
+      "sha256": "3f2424758b04a0e6a3523b4f9c2856095f2c69704bddc21feb465d346f444f01",
+      "bytes": 11015
+    },
+    {
+      "path": "deploy/m1/local_routing_benchmark.py",
+      "sha256": "57e5d64fd0e79a7905804abf6609ce6ab2bc45175391dde1249b8e0702c56846",
+      "bytes": 7817
+    },
+    {
+      "path": "docs/code/Missions/docs/source/Architecture_Design/method/decisions.md",
+      "sha256": "84fb4046faefe44238e543381bea5062973b573e87dd7337d8efd3d635dff9e8",
+      "bytes": 49249
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/features/settings/modules/models/ResearchModelsSettings.tsx",
+      "sha256": "8e24aa973a0f49ace29caa7b35a04b7c1bc43ad2db6dd187cf3ea7deea330bc1",
+      "bytes": 7111
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/i18n/locales/en.json",
+      "sha256": "1a53c64b0ee33c5b9b24c03582bf2f36b886541e666c71198dfba8c8a724aaa5",
+      "bytes": 220425
+    },
+    {
+      "path": "jiuwenswarm/channels/web/frontend/src/i18n/locales/zh.json",
+      "sha256": "547299ceff92e88af652bdd0812e12ebb8ce8c2311ba48325678876f91b7c707",
+      "bytes": 212964
+    },
+    {
+      "path": "jiuwenswarm/research/automatic_routing.py",
+      "sha256": "e375899ea2d8613b9f6fde5467b098118f41a7bf410c612e88d961cc74173d2e",
+      "bytes": 32299
+    },
+    {
+      "path": "jiuwenswarm/research/bridge.py",
+      "sha256": "263c584e97e0d7204da48d5b4a46e769b3432807670e849d83b342c8a2276c6b",
+      "bytes": 49674
+    },
+    {
+      "path": "jiuwenswarm/research/contracts/validators.py",
+      "sha256": "c35cb82a57fb400b0ff8a90fa0f917db9408dd51e8ecfce3f726b6b8f58c896a",
+      "bytes": 10605
+    },
+    {
+      "path": "jiuwenswarm/research/hybrid_benchmark.py",
+      "sha256": "4fb7c474030e835d0a0dc1855d162ca5dd0de94d546a4147e66a83600795f82f",
+      "bytes": 8600
+    },
+    {
+      "path": "jiuwenswarm/research/model_settings.py",
+      "sha256": "0497863b24dbce8ab4c652008b71529a22c0ff03232730ecbb7002f6801b98f4",
+      "bytes": 27482
+    },
+    {
+      "path": "jiuwenswarm/research/native_ports.py",
+      "sha256": "6770bcb6ff61c5616687f1151bd1498e541bc849b01ec98ca0a7a68a0f2236b7",
+      "bytes": 41089
+    },
+    {
+      "path": "jiuwenswarm/research/routing_component.py",
+      "sha256": "3450f70b222318db06a276a2897188298bb462b644b3298c0e26f4a522fe3ef2",
+      "bytes": 5307
+    },
+    {
+      "path": "jiuwenswarm/research/runner.py",
+      "sha256": "5b1022300e461bdb5a3f1b64a6b696c797002db1b53d4f3044a53efa51706bf6",
+      "bytes": 103071
+    },
+    {
+      "path": "jiuwenswarm/research/subscription_baseline.py",
+      "sha256": "5d58cd380cbee12cc5d1b6a6dc331477ab75454dd4ffd9d8d9a76cc8c29d6c30",
+      "bytes": 6195
+    },
+    {
+      "path": "jiuwenswarm/research_contracts/schemas/hybrid-route-record.schema.json",
+      "sha256": "9179e73d4c441ff4ae4867eb8435b222fd05a3e6f9c050eaee950709754c67be",
+      "bytes": 2250
+    },
+    {
+      "path": "jiuwenswarm/research_records/contracts.py",
+      "sha256": "696968af3ccb14a7d98a1200b2fea49b7da96b5844467484b50a9c9e94f5f42d",
+      "bytes": 2556
+    },
+    {
+      "path": "jiuwenswarm/server/runtime/codex_subscription/service.py",
+      "sha256": "c43f1502b0c5464de342d5b518f9fbeebf14a152fe1dd922d146e805c3299b94",
+      "bytes": 32988
+    },
+    {
+      "path": "tests/unit_tests/harbor_suite/test_local_routing.py",
+      "sha256": "d87185e8e800b0e03babc0c77e300eb8a775ee661882c687ee07d47931f5dfba",
+      "bytes": 5636
+    },
+    {
+      "path": "tests/unit_tests/research/test_automatic_routing.py",
+      "sha256": "9f0b2cabaa796e5c7e9161d3b29917a2b6f3ad9ede0b8d195e5dbccaa22580e5",
+      "bytes": 18833
+    },
+    {
+      "path": "tests/unit_tests/research/test_hybrid_component.py",
+      "sha256": "b387ba56321f786595781f6403bca5f23bd5cf506f65fcfd7286d6b73843cc09",
+      "bytes": 3072
+    },
+    {
+      "path": "tests/unit_tests/research/test_subscription_baseline.py",
+      "sha256": "e8d8d1cd691c074400ac84634af9881615001663e9c5e9fae7bf18d465d0cf8b",
+      "bytes": 2354
+    }
+  ],
+  "deleted_paths": [],
+  "deployment_manifest": "deployment.json",
+  "report": "../../reports/2026-10-26-hybrid-router/benchmark-report.html",
+  "note": "Overlay onto the base commit in a separate worktree. No credentials, model weights, or full Docker image tar included. Existing worktree and Git index were not changed."
+}

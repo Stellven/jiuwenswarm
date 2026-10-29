@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "Opportunity_Card",
+  "candidate_ref": {
+    "id": "Candidate_Set.json",
+    "sha256": "413e13a0787827b271f46234b3eeba67d85e0905a0b14d8f8e2dded493688970"
+  },
+  "screening_ref": {
+    "id": "Screening_Result.json",
+    "sha256": "0a908c1a145e8b9f958378a780b2b9aa178014a17768ca22772ecf5aab2a081b"
+  },
+  "brief_ref": {
+    "id": "Lifecycle_Research_Brief.json",
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+  },
+  "idea_id": "idea:001",
+  "title": "Bounded index lookup",
+  "opportunity_statement": "Repeated lookup may be a retrieval bottleneck; test whether indexing reduces latency without changing answer quality.",
+  "citation_ids": [
+    "citation:index"
+  ],
+  "constraints": [
+    "Preserve answer quality",
+    "One GPU"
+  ],
+  "assumptions": [
+    "Lookup work is material"
+  ],
+  "risks": [
+    "Index maintenance overhead"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

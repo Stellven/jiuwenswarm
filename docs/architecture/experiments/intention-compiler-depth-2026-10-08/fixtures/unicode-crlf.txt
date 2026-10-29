@@ -1,0 +1,2 @@
+Investigate lower latency for Café 🔬 on the supplied baseline.
+Return a research report; do not use cloud services.

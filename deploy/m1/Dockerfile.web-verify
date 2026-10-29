@@ -1,0 +1,20 @@
+# syntax=docker/dockerfile:1.7
+FROM node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392 AS web-verify
+LABEL ai4r.component=web-verify
+WORKDIR /workspace/jiuwenswarm/channels/web/frontend
+COPY jiuwenswarm/channels/web/frontend/package.json jiuwenswarm/channels/web/frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY scripts/ /workspace/scripts/
+COPY jiuwenswarm/scripts/ /workspace/jiuwenswarm/scripts/
+COPY jiuwenswarm/resources/agent/ /workspace/jiuwenswarm/resources/agent/
+COPY jiuwenswarm/channels/web/frontend/ ./
+CMD ["sh", "-c", "npm run test:research-shell && npm run build"]
+
+FROM node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392 AS tui-verify
+LABEL ai4r.component=tui-verify
+WORKDIR /workspace/jiuwenswarm/channels/tui/frontend
+COPY jiuwenswarm/channels/tui/frontend/package.json jiuwenswarm/channels/tui/frontend/package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci
+COPY jiuwenswarm/channels/tui/frontend/ ./
+COPY tests/unit_tests/tui/ /workspace/tests/unit_tests/tui/
+CMD ["sh", "-c", "npm run build && node --test tests/research-client.test.mjs"]

@@ -1,0 +1,24 @@
+{
+  "files": {
+    "table_normalize_v2/__init__.py": "456a99a19d9e88b0d4436ccb475e67484aea9a089fa2a28c99896b847dfdbb9f",
+    "table_normalize_v2/checks.py": "8cc4139e2460c19fa960ea7b4f61d66c1a8608b59b06ce3743de99c44890c597",
+    "table_normalize_v2/release.py": "3ad82ceda204af7f9b74c11552dca0e05b83449ebc681d4ce1a2866471e03de0",
+    "table_normalize_v2/worker.py": "0166ce88e8d62e74e319f8a7a353944056ab875ed87e5fa95f7581b83e04fd90"
+  },
+  "module": "table_normalize_v2",
+  "name": "utility.table_normalize",
+  "shared_dependencies": [
+    {
+      "path": "table_normalize/worker.py",
+      "sha256": "1793760181576dbe635d615f2d5cea67aed62f4a1662b180c2a705197d079314"
+    },
+    {
+      "path": "table_normalize/checks.py",
+      "sha256": "1c5e16d40b3e7393bbbba4e0a6b3a2a3fc78555872feb41b6a551881e9481111"
+    }
+  ],
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}

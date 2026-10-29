@@ -1,0 +1,36 @@
+# syntax=docker/dockerfile:1.7
+# Root supplies the immutable qualified app image digest. Reusing its native
+# runtime preserves the existing audited bridge and pinned OpenJiuwen closure.
+ARG APP_IMAGE
+FROM ${APP_IMAGE} AS production
+USER root
+RUN /usr/sbin/groupadd --gid 13000 rsi_capture_read \
+    && /usr/sbin/groupadd --gid 12001 rsi_controller && /usr/sbin/useradd --uid 12001 --gid 12001 --groups rsi_capture_read --no-create-home rsi_controller \
+    && /usr/sbin/groupadd --gid 12002 rsi_custodian && /usr/sbin/useradd --uid 12002 --gid 12002 --groups rsi_capture_read --no-create-home rsi_custodian \
+    && /usr/sbin/groupadd --gid 12003 rsi_worker && /usr/sbin/useradd --uid 12003 --gid 12003 --no-create-home rsi_worker \
+    && mkdir -p /var/lib/ai4r-rsi/controller /var/lib/ai4r-rsi/custodian /var/lib/ai4r-rsi/work \
+    && chown 12001:12001 /var/lib/ai4r-rsi/controller \
+    && chown 12002:12002 /var/lib/ai4r-rsi/custodian \
+    && chown 12003:12003 /var/lib/ai4r-rsi/work \
+    && chmod 0700 /var/lib/ai4r-rsi/controller /var/lib/ai4r-rsi/custodian /var/lib/ai4r-rsi/work
+COPY jiuwenswarm/research_rsi/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_rsi/
+COPY jiuwenswarm/research_records/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_records/
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/opt/ai4r
+WORKDIR /var/lib/ai4r-rsi/controller
+USER 12001:12001
+ENTRYPOINT ["python", "-m", "jiuwenswarm.research_rsi"]
+
+# This root broker contains the core confined executor but no custody/account
+# directories or mounts. Compose gives it only the fixed helper input/public
+# stores, dedicated cgroup delegation and its two private worker sockets.
+FROM ${APP_IMAGE} AS worker-broker
+USER root
+RUN rmdir /var/lib/ai4r/native /var/lib/ai4r /var/lib/ai4r-accounts /run/ai4r /workspace/poc \
+    && /usr/sbin/groupadd --gid 12001 rsi_controller && /usr/sbin/groupadd --gid 12002 rsi_custodian \
+    && /usr/sbin/groupadd --gid 12003 rsi_worker && /usr/sbin/useradd --uid 12003 --gid 12003 --no-create-home rsi_worker \
+    && mkdir -p /var/lib/ai4r-rsi-worker && chmod 0711 /var/lib/ai4r-rsi-worker
+COPY jiuwenswarm/research_rsi/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_rsi/
+COPY jiuwenswarm/research_records/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_records/
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/opt/ai4r
+WORKDIR /var/lib/ai4r-rsi-worker
+ENTRYPOINT ["python", "-m", "jiuwenswarm.research_rsi", "serve-worker-broker"]

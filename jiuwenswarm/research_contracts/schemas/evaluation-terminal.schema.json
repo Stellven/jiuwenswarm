@@ -1,0 +1,148 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-terminal:1",
+  "title": "evaluation-terminal",
+  "x-owning-interface": "M1-IF-016@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-terminal:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "scope_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "state": {
+      "enum": [
+        "completed",
+        "failed",
+        "cancelled",
+        "outcome_unknown"
+      ]
+    },
+    "measurement_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "result_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "failure_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "through_event_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "containment_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "recorded_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "request_ref",
+    "scope_ref",
+    "state",
+    "measurement_refs",
+    "result_ref",
+    "failure_ref",
+    "through_event_ref",
+    "containment_ref",
+    "recorded_unix_ns",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "state": {
+            "const": "completed"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "result_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "measurement_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            },
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

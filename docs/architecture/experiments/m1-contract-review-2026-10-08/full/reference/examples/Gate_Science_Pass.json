@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "id": "decision:science",
+  "recorded_at": "2026-10-07T12:00:00Z",
+  "run_id": "run:science",
+  "node_id": "evaluation",
+  "attempt_id": "attempt:science",
+  "contract_ref": {
+    "id": "Science_Node_Contract.json",
+    "sha256": "1ecfe66dfdf25b616e98eb2cbd9d5ff591193e793d7a02cced2bdd65f96900c5"
+  },
+  "invocation_refs": [
+    {
+      "id": "Science_Observation.json",
+      "sha256": "6831a26d29768fee02430ffd00f0e110a40fdfe1cff8f3b063b4070cd34c6b83"
+    }
+  ],
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "4b762dbfe55846e3d407d0d835bca4e3db84f0fac8f9767faa15471c83a3d45b"
+  },
+  "check_plan_ref": {
+    "id": "Science_Check_Plan.json",
+    "sha256": "9fdfa5520be0e5a5241c2c19115c2e0ffbcdc125fcde283e6adfce899ed6872b"
+  },
+  "input_refs": [
+    {
+      "id": "Lifecycle_Research_Brief.json",
+      "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+    },
+    {
+      "id": "Hypothesis_Blueprint.json",
+      "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+    },
+    {
+      "id": "Benchmark_Payload.json",
+      "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "Evaluation_Verdict.json",
+      "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+    }
+  ],
+  "deterministic_result_ref": {
+    "id": "Science_Checks.json",
+    "sha256": "1866a91bbb95185668724d0cb8ab2debf4f9154b6bc09e01c7ddc2ffe6e167b2"
+  },
+  "assessment_ref": {
+    "id": "Science_Assessment.json",
+    "sha256": "6313c02da70ba18d59ce76d19dc224998f9f3e304dfa6bff68de202d39a63726"
+  },
+  "verdict": "PASS",
+  "reasons": [
+    {
+      "code": "VALID_NEGATIVE",
+      "message": "Infrastructure acceptance permits delivery of the scientific FAIL",
+      "criterion_ids": [
+        "registered_rule_applied"
+      ],
+      "evidence_refs": [
+        {
+          "id": "Science_Assessment.json",
+          "sha256": "6313c02da70ba18d59ce76d19dc224998f9f3e304dfa6bff68de202d39a63726"
+        }
+      ]
+    }
+  ],
+  "action": "advance",
+  "accepted_refs": [
+    {
+      "id": "Evaluation_Verdict.json",
+      "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+    }
+  ]
+}

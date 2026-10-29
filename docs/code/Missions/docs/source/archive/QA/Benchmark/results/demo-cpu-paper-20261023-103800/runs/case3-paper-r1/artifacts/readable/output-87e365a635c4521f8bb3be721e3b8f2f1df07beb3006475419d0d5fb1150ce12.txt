@@ -1,0 +1,50 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, references, nodes, coverage, topic_hints, limits and notes satisfy the declared required fields, types, patterns and bounds, with no extra fields."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "nodes.node_id values are unique; predecessors, inputs.future and coverage.node_ids resolve consistently. coverage exactly inverts requirement_ids and deliverable_ids, and limits are coherent."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "nodes.objective describes prospective handling of uncertainty, qualifications and author-stated limitations; notes is empty and suggested_checks contains no conflicting claims."
+    },
+    {
+      "criterion_id": "graph_self_consistent",
+      "outcome": "PASS",
+      "reason": "nodes.predecessors and inputs.future declare only the resolved dependency from summary to delivery, with no cycle."
+    },
+    {
+      "criterion_id": "output_ports_named",
+      "outcome": "PASS",
+      "reason": "delivery.inputs.future names producer_node summary and port summary; both its artifact_type and the consuming input's artifact_type match the producer's outputs.artifact_type paper_summary."
+    },
+    {
+      "criterion_id": "coverage_tags_present",
+      "outcome": "PASS",
+      "reason": "Both nodes have nonempty requirement_ids; delivery also has a nonempty deliverable_ids array."
+    },
+    {
+      "criterion_id": "coverage_map_consistent",
+      "outcome": "PASS",
+      "reason": "coverage maps each of the three requirement_ids to summary and delivery, and the sole deliverable_ids value to delivery, exactly matching nodes tags. No evidence_obligation entries occur."
+    },
+    {
+      "criterion_id": "no_authority_claims",
+      "outcome": "PASS",
+      "reason": "nodes.objective states intended results without commands or authority claims; notes is empty and nodes.suggested_checks arrays are empty."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "brief_ref, library_snapshot_ref, resource_inventory_ref and policy_ref cannot be resolved from this pair.",
+    "nodes.cc membership, external input availability and suggested_checks registry membership cannot be verified from this pair."
+  ],
+  "required_correction": null
+}

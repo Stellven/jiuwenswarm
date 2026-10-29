@@ -140,6 +140,8 @@ export interface ChatRuntime {
   /** The Team session's bound AgentGroup was deleted or uninstalled. */
   agentGroupUnavailable: boolean;
   isThinking: boolean;
+  /** Display-only actual research stage; never an execution or readiness decision. */
+  researchStage?: string | null;
   isLoadingHistory: boolean;
   historyPagerMeta: HistoryPagerMeta | null;
   evolutionStatus: EvolutionStatusPayload | null;
@@ -276,6 +278,7 @@ interface ChatState {
   removeRuntime: (sessionId: string) => void;
 
   addMessage: (sessionId: string, message: Message) => void;
+  upsertResearchMessage: (sessionId: string, message: Message) => void;
   replaceHistoryMessages: (sessionId: string, messages: Message[]) => void;
   updateMessage: (sessionId: string, id: string, updates: Partial<Message>) => void;
   appendStreamContent: (sessionId: string, content: string, streamKey?: string) => void;
@@ -318,6 +321,7 @@ interface ChatState {
   setProcessing: (sessionId: string, status: boolean) => void;
   setActiveExecutionId: (sessionId: string, executionId: string) => void;
   setThinking: (sessionId: string, status: boolean) => void;
+  setResearchStage: (sessionId: string, stage: string | null) => void;
   setLoadingHistory: (sessionId: string, status: boolean) => void;
   setHistoryPagerMeta: (sessionId: string, meta: HistoryPagerMeta | null) => void;
   setEvolutionStatus: (sessionId: string, status: EvolutionStatusPayload | null) => void;
@@ -472,6 +476,24 @@ export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get)
           },  
         },
       };
+    });
+  },
+
+  upsertResearchMessage: (sessionId, message) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime) return state;
+      const existing = runtime.messages.find((item) => item.id === message.id);
+      if (existing?.researchAccepted && !message.researchAccepted) return state;
+      const merged = (existing
+        ? runtime.messages.map((item) => item.id === message.id ? { ...item, ...message } : item)
+        : [...runtime.messages, message]).filter((item) =>
+          message.role !== 'user' || !item.id.startsWith('history-restore-empty-'));
+      merged.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+      const assigned = assignMessageRenderKeys(runtime, merged);
+      return { runtimes: { ...state.runtimes, [sessionId]: {
+        ...runtime, messages: assigned.messages, messageRenderKeySeq: assigned.messageRenderKeySeq,
+      } } };
     });
   },
 
@@ -934,6 +956,7 @@ export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get)
           [sessionId]: {
             ...runtime,
             isProcessing: status,
+            ...(!status || turnStart ? { researchStage: null } : {}),
             ...(!status ? {
               activeExecutionId: null,
               reasoningInputBoundaryPending: false,
@@ -961,6 +984,14 @@ export const useChatStore = create<ChatState>()(subscribeWithSelector((set, get)
           [sessionId]: { ...runtime, error },
         },
       };
+    });
+  },
+
+  setResearchStage: (sessionId, stage) => {
+    set((state) => {
+      const runtime = state.runtimes[sessionId];
+      if (!runtime || runtime.researchStage === stage) return state;
+      return { runtimes: { ...state.runtimes, [sessionId]: { ...runtime, researchStage: stage } } };
     });
   },
 

@@ -1,0 +1,74 @@
+{
+  "schema": "m1-visible-source-manifest:1",
+  "source_authority": "registered TASK and IF r1",
+  "sources": [
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/model-routing.md",
+      "sha256": "3b1d86b16c1167f7a83e32bcde26e125c1c28045efe986934884f22586c9b6cb"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/model-catalog.md",
+      "sha256": "6fd1d4612b946d4c833db59dee6496a7c7006dec83cdc9201ce636a7a16993c7"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/router-design.md",
+      "sha256": "341964bb21e25c9479c05963cda72e79802afb2f1a1d05613088599d0dae3644"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/side-systems/routing-acceptance.md",
+      "sha256": "d63b5fc9fa3fe4a2ee6d22fb08454cc2793ce8dcedffb4106c87db3f51758a4f"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/reference/model-routing-contract.md",
+      "sha256": "98b3df9d0387f45886dc24c9ea5b53c033edbf7e240e44081e325573f3e889a2"
+    },
+    {
+      "path": "docs/code/Missions/M1/source/Architecture_Design/reference/import-boundary.md",
+      "sha256": "13bf16413cbfaac091820aed1fa01dd074af6e070b4a0e09b2b5eba815dd5fc7"
+    }
+  ],
+  "fixture_mode": "visible development only; no protected labels or operational credentials",
+  "runtime_qualification": "NOT_RUN",
+  "acceptance_allocation": {
+    "A01": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A02": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A03": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A04": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A05": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A06": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A07": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A08": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A09": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A10": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A11": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A12": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A13": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A14": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A15": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A16": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A17": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A18": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A19": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A20": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A21": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A22": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A23": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A24": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A25": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A26": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A27": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A28": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A29": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A30": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A31": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A32": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A33": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A34": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A35": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A36": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A37": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A38": "later campaign or other owning TASK; M1 source-invariant subset retained in plan",
+    "A39": "applicable M1 behavior; see M1-007 plan V matrix",
+    "A40": "applicable M1 behavior; see M1-007 plan V matrix"
+  }
+}

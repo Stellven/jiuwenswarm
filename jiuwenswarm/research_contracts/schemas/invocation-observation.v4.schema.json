@@ -1,0 +1,400 @@
+{
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "4.0.0"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"
+    },
+    "run_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.:-]{0,63}$"
+    },
+    "attempt_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_.:-]{0,63}$"
+    },
+    "node_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,31}$"
+    },
+    "subnode_id": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{0,31}(\\.[a-z][a-z0-9_]{0,31}){0,2}$"
+        }
+      ]
+    },
+    "cc_name": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    },
+    "cc_version": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,31}$"
+    },
+    "declaration_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "route_id": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{0,63}$"
+        }
+      ]
+    },
+    "measurement_status": {
+      "type": "string",
+      "enum": [
+        "observed",
+        "unavailable"
+      ]
+    },
+    "contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "binding_id": {
+      "type": "string"
+    },
+    "input_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "output_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 16
+    },
+    "model_identity": {
+      "$ref": "#/$defs/ModelIdentity"
+    },
+    "started_at": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        }
+      ]
+    },
+    "ended_at": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+        }
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "success",
+        "failed",
+        "budget_exhausted",
+        "interrupted",
+        "synthetic_example"
+      ]
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 32
+    },
+    "duration_s": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "minimum": 0
+    },
+    "model_calls": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "minimum": 0
+    },
+    "trace_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 64
+    },
+    "unavailable_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "observed_runtime": {
+      "type": "boolean"
+    },
+    "usage": {
+      "$ref": "#/$defs/Usage"
+    },
+    "node_contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "body_files_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decision_source": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "router",
+            "codex_router_disabled",
+            "codex_router_failed",
+            "user_api"
+          ]
+        }
+      ]
+    },
+    "failure_class": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "enum": [
+            "capsule",
+            "input",
+            "infrastructure",
+            "scientific",
+            "none"
+          ]
+        }
+      ]
+    },
+    "failure_reason_code": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "error_fingerprint": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      ]
+    },
+    "check_result_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      },
+      "maxItems": 64
+    },
+    "verifier_assessment_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "human_answer_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "run_id",
+    "attempt_id",
+    "node_id",
+    "subnode_id",
+    "cc_name",
+    "cc_version",
+    "declaration_sha256",
+    "route_id",
+    "measurement_status",
+    "contract_ref",
+    "binding_id",
+    "input_refs",
+    "output_refs",
+    "model_identity",
+    "started_at",
+    "ended_at",
+    "outcome",
+    "effects",
+    "duration_s",
+    "model_calls",
+    "trace_refs",
+    "unavailable_reasons",
+    "observed_runtime",
+    "usage",
+    "node_contract_ref",
+    "body_files_sha256",
+    "decision_source",
+    "failure_class",
+    "failure_reason_code",
+    "error_fingerprint",
+    "check_result_refs",
+    "verifier_assessment_ref",
+    "human_answer_ref"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "ModelIdentity": {
+      "type": "object",
+      "properties": {
+        "requested": {
+          "type": "string"
+        },
+        "effective": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "basis": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "requested",
+        "effective",
+        "basis"
+      ],
+      "additionalProperties": false
+    },
+    "Usage": {
+      "type": "object",
+      "properties": {
+        "input_tokens": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "integer"
+            }
+          ]
+        },
+        "cost_amount": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "currency": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "unavailable_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "input_tokens",
+        "output_tokens",
+        "cost_amount",
+        "currency",
+        "unavailable_reasons"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$id": "urn:ai4r:invocation-observation:4.0.0"
+}

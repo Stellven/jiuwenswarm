@@ -1,0 +1,6 @@
+{
+  "services": {
+    "ai4r": {"image": "ai4r-spark:hybrid-v5-20261026"},
+    "benchmark-runner": {"image": "ai4r-benchmark-runner:hybrid-v5-20261026"}
+  }
+}

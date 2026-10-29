@@ -1,0 +1,35 @@
+# Explicit operational-resource overlay. The base app remains available for
+# diagnostics when these external policy/credential/kernel resources are absent.
+services:
+  app:
+    cgroup: host
+    environment:
+      JIUWENSWARM_M1_BOOTSTRAP_BINDINGS: /etc/ai4r/bootstrap-bindings.json
+      JIUWENSWARM_M1_SCIENCE_BINDINGS: /etc/ai4r/science-bindings.json
+      JIUWENSWARM_M1_BUILDER_BINDINGS: /etc/ai4r/builder-bindings.json
+      AI4R_EXECUTOR_CGROUP_ROOT: /run/ai4r-cgroups
+    volumes:
+      - type: bind
+        source: ${AI4R_BOOTSTRAP_BINDINGS:?Supply the protected captured bootstrap locator}
+        target: /etc/ai4r/bootstrap-bindings.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_SCIENCE_BINDINGS:?Supply the protected exact science-runtime locator}
+        target: /etc/ai4r/science-bindings.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BUILDER_BINDINGS:?Supply the root-private exact Builder-runtime locator}
+        target: /etc/ai4r/builder-bindings.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BUILDER_CREDENTIAL_ROOT:?Supply only the dedicated root-private Builder credential directory}
+        target: /var/lib/ai4r-builder-credentials
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_EXECUTOR_CGROUP_HOST:?Supply the bounded job-owned host cgroup-v2 branch}
+        target: /run/ai4r-cgroups
+        bind: {create_host_path: false}

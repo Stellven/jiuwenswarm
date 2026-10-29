@@ -1,3 +1,4 @@
+import { useCodexSubscription } from '../features/codexSubscription/state';
 import {
   WebConnectOptions,
   WebConnectionState,
@@ -7,12 +8,17 @@ import {
   WsEvent,
   WsRequest,
   WsResponse,
+  FileDownloadItem,
 } from '../types';
 import { getWsBase } from '../utils/env';
 import { resolveUserId } from '../utils/userId';
 import i18n from '../i18n';
 import { GoalRecord } from '../types/goal';
 import { createSessionEventGate } from './sessionEventGate';
+import { requestSettingsModule } from '../features/settings/settingsNavigation';
+import { bootstrapResearchSession, hasResearchSession, hasLocalChat, researchRequest, submitResearchIntake, captureResearchInputs, consumeResearchInputs, migrateResearchInputs, researchWorkspace, researchAccount, rememberResearchRun, type ResearchRef } from '../utils/researchClient';
+import { projectResearchWorkflow, type ResearchStatus } from '../components/teamArea/researchWorkflow';
+import { hasResearchConfiguration, researchInteraction, refreshResearchRuntime, researchRunRequest } from '../utils/researchClient';
 
 type EventHandler = (event: WsEvent) => void;
 type TypedEventHandler<TPayload> = (event: WsEvent & { payload: TPayload }) => void;
@@ -61,7 +67,10 @@ function logDevWsTraffic(entry: DevWsLogEntry): void {
   }
 
   const body = {
-    ...entry,
+    direction: entry.direction,
+    messageType: entry.messageType,
+    // Payloads can contain short-lived login material or user content.
+    data: undefined,
     at: new Date().toISOString(),
   };
 
@@ -87,8 +96,18 @@ class WebClient {
   private reconnectAttempts = 0;
   private manualClose = false;
   private connectPromise: Promise<void> | null = null;
+  private connectionGeneration = 0;
+  private cancelConnect: (() => void) | null = null;
   private lastConnectOptions: WebConnectOptions = {};
   private requestSeq = 0;
+  private researchPolls = new Map<string, number>();
+  private researchRevisions = new Map<string, number>();
+  private researchSubmissions = new Map<string, { sessionId: string; requestId: string; resolvedRunId?: string; updatedAt?: string }>();
+  private researchRecoveries = new Map<string, Promise<void>>();
+  private researchActivity = new Map<string, { sessionId: string; stage: string }>();
+  private researchReplies = new Set<string>();
+  private completedResearchReplies = new Set<string>();
+  private codexRequests = new Map<string, string>();
   private readonly sessionEventGate = createSessionEventGate((event) => {
     this.dispatchEventNow(event);
   });
@@ -139,75 +158,96 @@ class WebClient {
 
     this.lastConnectOptions = options;
     this.manualClose = false;
-    this.updateState(this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting');
-
-    const url = this.buildWsUrl(options);
-
-    this.connectPromise = new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(url);
-      this.ws = ws;
-
-      ws.onopen = () => {
-        logDevWsTraffic({
-          direction: 'lifecycle',
-          data: { event: 'open', url },
-        });
-        this.reconnectAttempts = 0;
-        this.updateState('ready');
+    this.clearReconnectTimer();
+    const generation = ++this.connectionGeneration;
+    let resolveAttempt!: () => void;
+    let rejectAttempt!: (reason: unknown) => void;
+    const attempt = new Promise<void>((resolve, reject) => {
+      resolveAttempt = resolve;
+      rejectAttempt = reject;
+    });
+    const clearAttempt = () => {
+      if (this.connectPromise === attempt) {
         this.connectPromise = null;
-        resolve();
-      };
+        this.cancelConnect = null;
+      }
+    };
+    // Publish ownership before the first await: reload may have several callers.
+    this.connectPromise = attempt;
+    this.cancelConnect = () => {
+      clearAttempt();
+      rejectAttempt(this.createWebError(i18n.t('network.connectionClosed'), 'WS_CLOSED', undefined, false));
+    };
 
-      ws.onmessage = (event) => {
-        this.handleIncoming(event.data);
-      };
-
-      ws.onerror = () => {
-        logDevWsTraffic({
-          direction: 'lifecycle',
-          data: { event: 'error' },
-        });
-        const error = this.createWebError(
-          i18n.t('network.wsError'),
-          'WS_ERROR',
-          undefined,
-          true
-        );
-        this.connectPromise = null;
-        if (this.state !== 'ready') {
-          reject(error);
+    void (async () => {
+      try {
+        await bootstrapResearchSession();
+        if (generation !== this.connectionGeneration || this.manualClose) {
+          return;
         }
-      };
+        this.updateState(this.reconnectAttempts > 0 ? 'reconnecting' : 'connecting');
+        const url = this.buildWsUrl(options);
+        const previous = this.ws;
+        const ws = new WebSocket(url);
+        this.ws = ws;
+        if (previous && previous.readyState !== WebSocket.CLOSED) {
+          previous.close(1000, 'Superseded connection');
+        }
+        const ownsSocket = () => generation === this.connectionGeneration && this.ws === ws;
 
-      ws.onclose = (closeEvent) => {
-        logDevWsTraffic({
-          direction: 'lifecycle',
-          data: {
-            event: 'close',
-            code: closeEvent.code,
-            reason: closeEvent.reason,
-            wasClean: closeEvent.wasClean,
-          },
-        });
-        this.ws = null;
-        this.connectPromise = null;
-        this.rejectAllPending(
-          this.createWebError(
+        ws.onopen = () => {
+          if (!ownsSocket()) return;
+          logDevWsTraffic({ direction: 'lifecycle', data: { event: 'open', url } });
+          this.reconnectAttempts = 0;
+          this.updateState('ready');
+          clearAttempt();
+          resolveAttempt();
+        };
+        ws.onmessage = (event) => {
+          if (ownsSocket()) this.handleIncoming(event.data);
+        };
+        ws.onerror = () => {
+          if (!ownsSocket()) return;
+          logDevWsTraffic({ direction: 'lifecycle', data: { event: 'error' } });
+          if (this.state !== 'ready') {
+            clearAttempt();
+            rejectAttempt(this.createWebError(i18n.t('network.wsError'), 'WS_ERROR', undefined, true));
+          }
+        };
+        ws.onclose = (closeEvent) => {
+          if (!ownsSocket()) return;
+          logDevWsTraffic({
+            direction: 'lifecycle',
+            data: {
+              event: 'close',
+              code: closeEvent.code,
+              reason: closeEvent.reason,
+              wasClean: closeEvent.wasClean,
+            },
+          });
+          this.ws = null;
+          clearAttempt();
+          const error = this.createWebError(
             i18n.t('network.connectionClosedWithCode', { code: closeEvent.code }),
             'WS_DISCONNECTED',
             undefined,
-            true
-          )
-        );
-        if (this.manualClose || closeEvent.code === 1000) {
-          this.updateState('closed');
-          return;
-        }
-        this.scheduleReconnect();
-      };
-    });
-
-    return this.connectPromise;
+            true,
+          );
+          rejectAttempt(error);
+          this.rejectAllPending(error);
+          if (this.manualClose || closeEvent.code === 1000) {
+            this.updateState('closed');
+            return;
+          }
+          this.scheduleReconnect();
+        };
+      } catch (error) {
+        clearAttempt();
+        if (!this.manualClose && generation === this.connectionGeneration) this.scheduleReconnect();
+        rejectAttempt(error);
+      }
+    })();
+    return attempt;
   }
 
   /**
@@ -226,6 +266,11 @@ class WebClient {
 
   disconnect(reason = 'User disconnect'): Promise<void> {
     this.manualClose = true;
+    this.connectionGeneration += 1;
+    this.cancelConnect?.();
+    this.cancelConnect = null;
+    for (const timer of this.researchPolls.values()) window.clearTimeout(timer);
+    this.researchPolls.clear();
     this.clearReconnectTimer();
     this.rejectAllPending(
       this.createWebError(i18n.t('network.connectionClosed'), 'WS_CLOSED', undefined, false)
@@ -267,33 +312,107 @@ class WebClient {
     params?: Record<string, unknown>,
     options: WebRequestOptions = {}
   ): Promise<T> {
+    const interactionSession = typeof params?.session_id === 'string' ? params.session_id : 'new';
+    const explicitUploads = Array.isArray(params?.upload_refs)
+      && params.upload_refs.every((value) => typeof value === 'string') ? [...params.upload_refs] as string[] : undefined;
+    const capturedInputs = method === 'chat.send' || method === 'session.create'
+      ? options.researchInputSnapshot ?? captureResearchInputs(interactionSession, explicitUploads)
+      : undefined;
+    const inputSnapshot = capturedInputs ? { ...capturedInputs,
+      uploadRefs: [...capturedInputs.uploadRefs], selectionVersions: { ...capturedInputs.selectionVersions },
+      files: capturedInputs.files?.map((file) => ({ ...file })) } : undefined;
+    const uploadRefs = explicitUploads ?? inputSnapshot?.uploadRefs ?? [];
     await this.ensureReady();
 
+    const research = hasResearchSession() && method === 'chat.send' && (!hasLocalChat() || (inputSnapshot?.interaction ?? researchInteraction(interactionSession)) === 'research');
+    if (research) {
+      const runtime = await refreshResearchRuntime();
+      if (!hasResearchConfiguration()) {
+        requestSettingsModule('agent');
+        throw this.createWebError(i18n.t('researchWorkflow.setupRequired'), 'RESEARCH_NOT_CONFIGURED');
+      }
+      if (!runtime.ready) {
+        requestSettingsModule('agent');
+        throw this.createWebError(i18n.t('researchWorkflow.blocked'), 'RESEARCH_NOT_READY');
+      }
+    }
+    const localChat = hasLocalChat() && method === 'chat.send' && !research;
+    if (localChat) {
+      if (['signed_out', 'subscription_required'].includes(useCodexSubscription.getState().state)) {
+        requestSettingsModule('models');
+        throw this.createWebError(i18n.t('codexSubscription.signInFirst'), 'SIGN_IN_REQUIRED');
+      }
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      method = 'codex.chat';
+      params = { ...params, session_id: sessionId, upload_refs: uploadRefs, codex_model: useCodexSubscription.getState().model || undefined, capsule_id: useCodexSubscription.getState().capsule || undefined };
+    }
+
+    if (hasResearchSession() && method === 'command.workflows') {
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      if (params?.action === 'list') {
+        await this.recoverResearchConversation(sessionId);
+        // Reconnect the real background requests without adding their backend
+        // execution graph to the normal conversation's workflow panel.
+        return { workflows: [], total: 0, has_more: false } as T;
+      }
+      const status = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(String(params?.workflow_id))}`);
+      this.followResearchRun(status, sessionId);
+      const workflow = projectResearchWorkflow(status);
+      if (params?.action === 'get_workflow') return { workflow, has_more: false } as T;
+      if (params?.action === 'get_phase') return { phase: workflow.phases?.find((phase) => phase.id === params?.phase_id), has_more: false } as T;
+      if (params?.action === 'get_agent') return { agent: workflow.phases?.flatMap((phase) => phase.agents ?? []).find((agent) => agent.id === params?.agent_id) } as T;
+      throw new Error('Research workflow inspection is read-only');
+    }
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
       throw this.createWebError(i18n.t('network.connectionUnavailable'), 'WS_NOT_READY', undefined, true);
     }
 
     const id = this.generateRequestId();
-    const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    const subscription = useCodexSubscription.getState();
+    if (subscription.enabled && !hasResearchSession()) {
+      const sid = String(params?.session_id || '');
+      if (method === 'chat.send') {
+        if (subscription.state !== 'ready') {
+          throw this.createWebError(i18n.t('codexSubscription.signInFirst'), 'SIGN_IN_REQUIRED', id, false);
+        }
+        params = { ...params, codex_model: subscription.model || undefined };
+        this.codexRequests.set(sid, id);
+      } else if (method === 'chat.interrupt') {
+        params = { ...params, target_request_id: this.codexRequests.get(sid) };
+      }
+    }
+    const timeoutMs = localChat ? 250_000 : research ? Math.max(60_000, options.timeoutMs ?? 0)
+      : options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+    if (research) {
+      params = { ...params, workspace_id: researchWorkspace(), upload_refs: uploadRefs };
+    }
     const message: WsRequest = {
       type: 'req',
       id,
       method,
       params: params ?? {},
-      ...(options.isStream ? { is_stream: true } : {}),
+      ...(!localChat && options.isStream ? { is_stream: true } : {}),
     };
 
-    return new Promise<T>((resolve, reject) => {
+    const response = await new Promise<T>((resolve, reject) => {
       const timeoutId = window.setTimeout(() => {
         this.pending.delete(id);
-        reject(this.createWebError(i18n.t('network.requestTimeout'), 'REQUEST_TIMEOUT', id, true));
+        const action = method === 'session.create' ? 'createConversation'
+          : method === 'chat.send' ? 'submitResearch'
+          : method === 'codex.chat' ? 'receiveReply'
+          : method === 'document.persist' || method === 'media.persist' ? 'attachFiles'
+          : /^(config\.|locale\.|research\.preferences\.|models\.)/.test(method) ? 'loadSettings'
+          : 'request';
+        const message = research ? i18n.t('network.researchSubmitTimeout')
+          : i18n.t('network.requestTimeoutAction', { action: i18n.t(`network.requestActions.${action}`) });
+        reject(this.createWebError(message, 'REQUEST_TIMEOUT', id, true));
       }, timeoutMs);
 
       const pending: PendingRequest = {
         resolve: (value) => resolve(value as T),
         reject,
         timeoutId,
-        awaitRuntimeAccepted: options.awaitRuntimeAccepted === true,
+        awaitRuntimeAccepted: options.awaitRuntimeAccepted === true && !hasResearchSession() && !localChat,
       };
       this.pending.set(id, pending);
 
@@ -327,6 +446,181 @@ class WebClient {
         reject(error);
       }
     });
+    if ((hasLocalChat() || hasResearchSession()) && method === 'session.create' && inputSnapshot) {
+      const created = response as { session_id?: string };
+      if (created.session_id) {
+        migrateResearchInputs(created.session_id, inputSnapshot);
+      }
+    }
+    if (localChat) {
+      const reply = response as { content?: string; session_id?: string; model?: string };
+      if (typeof reply?.content !== 'string' || !reply.content) throw new Error('Codex returned no reply');
+      const sessionId = String(params?.session_id || 'new');
+      this.dispatchEventNow({ type: 'event', event: 'chat.final', payload: {
+        session_id: sessionId, content: reply.content, request_id: id,
+        final_mode: 'replace_turn', model: reply.model,
+      } });
+      this.dispatchEventNow({ type: 'event', event: 'chat.processing_status', payload: {
+        session_id: sessionId, is_processing: false,
+      } });
+      if (inputSnapshot) consumeResearchInputs(sessionId, { ...inputSnapshot, uploadRefs });
+      return response;
+    }
+    if (research) {
+      const qualified = response as { intake_ref?: ResearchRef };
+      if (!qualified?.intake_ref) throw new Error('Native research intake was not qualified');
+      const submitted = await submitResearchIntake(qualified.intake_ref, id) as unknown as ResearchStatus;
+      const sessionId = typeof params?.session_id === 'string' ? params.session_id : 'new';
+      if (!submitted?.run_id) throw new Error('Native research delivery could not be reconciled');
+      if (inputSnapshot) consumeResearchInputs(sessionId, { ...inputSnapshot, uploadRefs });
+      this.researchSubmissions.set(submitted.run_id, { sessionId, requestId: id });
+      this.followResearchRun(submitted, sessionId);
+      return submitted as T;
+    }
+    return response;
+  }
+
+  async recoverResearchConversation(sessionId: string): Promise<void> {
+    if (!hasResearchSession() || sessionId === 'new') return;
+    const account = researchAccount();
+    const workspace = researchWorkspace();
+    const key = JSON.stringify([account, workspace, sessionId]);
+    const prior = this.researchRecoveries.get(key);
+    if (prior) return prior;
+    const recovery = (async () => {
+      const value = await researchRequest<{ schema: string; session_id: string; workspace_id: string; runs: {
+        run_id: string; client_request_id: string; updated_at: string; resolved_run_id: string; resolved_updated_at: string;
+        request: { content: string; timestamp: string; files: { id: string; filename: string }[] }; status: ResearchStatus;
+      }[] }>(`/api/v1/sessions/${encodeURIComponent(sessionId)}/research?workspace_id=${encodeURIComponent(workspace)}`);
+      if (researchAccount() !== account || researchWorkspace() !== workspace
+          || value.schema !== 'ai4r-native-session-research:1' || value.session_id !== sessionId
+          || value.workspace_id !== workspace || !Array.isArray(value.runs)) throw new Error('Owned conversation history unavailable');
+      for (const entry of value.runs) {
+        if (!entry.run_id || !entry.client_request_id || entry.status?.run_id !== entry.run_id
+            || entry.status.client_request_id !== entry.client_request_id || typeof entry.request?.content !== 'string'
+            || !Number.isFinite(Date.parse(entry.request.timestamp)) || !Array.isArray(entry.request.files)
+            || !entry.request.files.every((file) => typeof file.id === 'string' && typeof file.filename === 'string'))
+          throw new Error('Original conversation request unavailable');
+        this.sessionEventGate.dispatch({ type: 'event', event: 'chat.research_message', payload: {
+          session_id: sessionId, request_id: entry.client_request_id, role: 'user',
+          content: entry.request.content, timestamp: entry.request.timestamp, research_files: entry.request.files,
+        } });
+        this.researchSubmissions.set(entry.run_id, { sessionId, requestId: entry.client_request_id,
+          resolvedRunId: entry.resolved_run_id, updatedAt: entry.resolved_updated_at });
+        this.followResearchRun(entry.status, sessionId);
+      }
+    })();
+    this.researchRecoveries.set(key, recovery);
+    try { await recovery; } finally { if (this.researchRecoveries.get(key) === recovery) this.researchRecoveries.delete(key); }
+  }
+
+  private followResearchRun(value: ResearchStatus, sessionId: string): void {
+    const pending = this.researchSubmissions.get(value.run_id) ?? researchRunRequest(value.run_id);
+    if (pending && !this.completedResearchReplies.has(value.run_id)) this.researchSubmissions.set(value.run_id, pending);
+    rememberResearchRun(sessionId, value.run_id, pending?.requestId);
+    const publish = (status: ResearchStatus) => {
+      if (status.revision < (this.researchRevisions.get(status.run_id) ?? -1)) return;
+      this.researchRevisions.set(status.run_id, status.revision);
+      if (status.status === 'in_progress') {
+        const submission = this.researchSubmissions.get(status.run_id);
+        if (submission?.updatedAt) this.researchSubmissions.set(status.run_id, { ...submission, updatedAt: undefined });
+      }
+      if (status.status === 'in_progress') this.researchActivity.set(status.run_id, { sessionId, stage: status.stage });
+      else this.researchActivity.delete(status.run_id);
+      const active = [...this.researchActivity.values()].find((entry) => entry.sessionId === sessionId);
+      this.dispatchEventNow({ type: 'event', event: 'chat.processing_status',
+        payload: { session_id: sessionId, is_processing: Boolean(active), research_stage: active?.stage ?? '' } });
+      if (status.status !== 'in_progress' && status.status !== 'paused') void this.finishResearchReply(status);
+    };
+    publish(value);
+    if (this.researchPolls.has(value.run_id) || value.status !== 'in_progress') return;
+    const poll = async () => {
+      if (this.manualClose) { this.researchPolls.delete(value.run_id); return; }
+      try {
+        const current = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(value.run_id)}`);
+        publish(current);
+        if (current.status !== 'in_progress') { this.researchPolls.delete(value.run_id); return; }
+      } catch {
+        // Inspection reconnects using GET only. A local network interruption
+        // never cancels, replays or resubmits accepted work.
+        if (!hasResearchSession()) { this.researchPolls.delete(value.run_id); return; }
+      }
+      if (!this.manualClose) this.researchPolls.set(value.run_id, window.setTimeout(() => { void poll(); }, 1500));
+    };
+    this.researchPolls.set(value.run_id, window.setTimeout(() => { void poll(); }, 0));
+  }
+
+  private async finishResearchReply(status: ResearchStatus): Promise<void> {
+    const pending = this.researchSubmissions.get(status.run_id);
+    if (!pending || this.researchReplies.has(status.run_id)) return;
+    this.researchReplies.add(status.run_id);
+    const needsConfigurationRepair = status.reasons.some((reason) =>
+      reason === 'check_asset_unqualified' || reason.startsWith('check_asset_unqualified:'));
+    let content = i18n.t(needsConfigurationRepair
+      ? 'researchWorkflow.configurationRepair'
+      : 'researchWorkflow.requestIncomplete');
+    let hasAcceptedReport = false;
+    if (status.status !== 'completed') {
+      let noContinuation = false;
+      try {
+        const next = await researchRequest<{ run_id: string; continuation_run_id: string | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/continuation`);
+        if (next.run_id !== status.run_id || next.continuation_run_id === status.run_id) throw new Error('Invalid continuation');
+        if (next.continuation_run_id) {
+          const child = await researchRequest<ResearchStatus>(`/api/v1/runs/${encodeURIComponent(next.continuation_run_id)}`);
+          if (child.run_id !== next.continuation_run_id) throw new Error('Continuation identity differs');
+          this.researchSubmissions.set(child.run_id, pending);
+          this.researchSubmissions.delete(status.run_id);
+          this.researchReplies.delete(status.run_id);
+          this.completedResearchReplies.add(status.run_id);
+          this.followResearchRun(child, pending.sessionId);
+          return;
+        }
+        noContinuation = true;
+      } catch {
+        content += `\n\n${i18n.t('researchWorkflow.continuationUnavailable')}`;
+      }
+      if (noContinuation && status.reasons.some((reason) =>
+        reason === 'plan_infeasible' || reason === 'compiler_did_not_release')) {
+        try {
+          const result = await researchRequest<{ run_id: string;
+            plan_outcome?: { outcome: string; reasons: string[] };
+            compiler_outcome?: { outcome: string; reasons: string[] } }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
+          const compilerHalted = status.reasons.includes('compiler_did_not_release');
+          const outcome = compilerHalted ? result.compiler_outcome : result.plan_outcome;
+          if (result.run_id !== status.run_id || outcome?.outcome !== (compilerHalted ? 'compiler_halted' : 'plan_infeasible')
+              || !Array.isArray(outcome.reasons) || outcome.reasons.length < 1 || outcome.reasons.length > 20
+              || !outcome.reasons.every((reason) => typeof reason === 'string' && reason.trim() && reason.length <= 300))
+            throw new Error('Public halt explanation unavailable');
+          const prefix = i18n.t(compilerHalted ? 'researchWorkflow.compilerHalted' : 'researchWorkflow.planInfeasible');
+          content = `${prefix}\n\n${outcome.reasons.join('\n\n')}\n\n${i18n.t('researchWorkflow.planFilesRetained')}`;
+        } catch { /* Keep the truthful generic failure when the owned explanation is unavailable. */ }
+      }
+    }
+    try {
+      if (status.status === 'completed') {
+        const result = await researchRequest<{ run_id: string; report: { content: string; redacted: boolean } | null }>(`/api/v1/runs/${encodeURIComponent(status.run_id)}/result`);
+        if (result.run_id !== status.run_id || !result.report?.content) throw new Error('Accepted report unavailable');
+        content = result.report.redacted ? `${i18n.t('researchWorkflow.redactedReport')}\n\n${result.report.content}` : result.report.content;
+        hasAcceptedReport = true;
+      }
+    } catch {
+      content = i18n.t('researchWorkflow.reportUnavailable');
+    }
+    const timestamp = pending.resolvedRunId === status.run_id && pending.updatedAt
+      && Number.isFinite(Date.parse(pending.updatedAt)) ? pending.updatedAt : new Date().toISOString();
+    const files: FileDownloadItem[] = [];
+    if (hasAcceptedReport) {
+      const exportPath = `/api/v1/runs/${encodeURIComponent(status.run_id)}/export?audience=researcher`;
+      files.push({ name: 'run_export.zip', size: 0, mime_type: 'application/zip',
+        download_url: exportPath, download_token: '', path: exportPath });
+    }
+    this.sessionEventGate.dispatch({ type: 'event', event: 'chat.research_message', payload: {
+      session_id: pending.sessionId, request_id: pending.requestId, role: 'assistant',
+      content, timestamp, accepted: hasAcceptedReport, files,
+    } });
+    this.researchSubmissions.delete(status.run_id);
+    this.researchReplies.delete(status.run_id);
+    this.completedResearchReplies.add(status.run_id);
   }
 
   /**
@@ -545,7 +839,9 @@ class WebClient {
         : 2000; // 每 2 秒持续尝试
 
     this.reconnectTimer = window.setTimeout(() => {
-      void this.connect(this.lastConnectOptions);
+      void this.connect(this.lastConnectOptions).catch(() => {
+        // connect owns the next bounded retry, including bootstrap failures.
+      });
     }, delay);
   }
 
@@ -577,6 +873,10 @@ class WebClient {
     const host = window.location.host;
     const base = wsBase || `${protocol}//${host}`;
     const path = base.endsWith('/ws') || base.endsWith('/ws/gateway') ? '' : '/ws';
+    if (hasResearchSession()) {
+      const sameOrigin = `${protocol}//${host}`;
+      return `${sameOrigin}/ws`;
+    }
     const params = new URLSearchParams();
     if (options.provider) params.set('provider', options.provider);
     if (options.apiKey) params.set('api_key', options.apiKey);

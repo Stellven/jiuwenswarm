@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-executor-inspection-response:1",
+  "x-owning-interface": "M1-IF-016@r2",
+  "type": "object",
+  "properties": {
+    "contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "invocation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "execution_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "state": {
+      "enum": [
+        "nonterminal",
+        "completed",
+        "failed",
+        "cancelled",
+        "outcome_unknown"
+      ]
+    },
+    "request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "scope_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "assignment_grant_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "terminal_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "containment_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "cancel_id": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "contract_ref",
+    "invocation_id",
+    "execution_id",
+    "state",
+    "request_ref",
+    "scope_ref",
+    "assignment_grant_ref",
+    "terminal_ref",
+    "containment_ref",
+    "cancel_id"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Registered original typed data only; implementation remains pending/unbuilt. Actual live prepared/active owner, custody kind/hash/joins, deadlines/cancellation, global lease and actual service/kernel evidence are independent mandatory checks; this data grants no authority."
+}

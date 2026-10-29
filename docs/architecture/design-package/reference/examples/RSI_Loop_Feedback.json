@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0.0",
+  "id": "RSI_Loop_Feedback",
+  "passed": 20,
+  "total": 20,
+  "queries_left": 29,
+  "ext": {
+    "example.synthetic": true
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "id": "Environment_Lock",
+  "platform": "synthetic CPython environment on Linux",
+  "requirements_ref": {
+    "id": "Approved_requirements.txt",
+    "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f"
+  },
+  "package_refs": [],
+  "approval_ref": {
+    "id": "Environment_Approval.txt",
+    "sha256": "036a5e2c0c7aadafa43aee121e4882516960fe375c86412335ae0dd16cf98bf6"
+  },
+  "ext": {
+    "example.synthetic": true
+  }
+}

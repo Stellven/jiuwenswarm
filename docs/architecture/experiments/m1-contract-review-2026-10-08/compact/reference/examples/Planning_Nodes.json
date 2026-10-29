@@ -1,0 +1,102 @@
+{
+  "nodes": [
+    {
+      "node_id": "discovery",
+      "objective": "Discover grounded candidates",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "capsule_refs": [
+        {
+          "id": "Discovery_Capsule.json",
+          "sha256": "da7e2dc4df56d3f09bcc9db4e04d2ada68aee6f6713de50cf18febf79d273a9f"
+        }
+      ],
+      "predecessors": [],
+      "inputs": [
+        {
+          "name": "brief",
+          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+          "version": "1.0.0",
+          "required": true,
+          "artifact_refs": [
+            {
+              "id": "Lifecycle_Research_Brief.json",
+              "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+            }
+          ],
+          "future_bindings": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "candidates",
+          "contract_id": "candidate-set:field-contract:1",
+          "version": "1.0.0",
+          "required": true
+        }
+      ]
+    },
+    {
+      "node_id": "screening",
+      "objective": "Screen candidates",
+      "requirement_ids": [
+        "requirement:latency",
+        "requirement:quality"
+      ],
+      "capsule_refs": [
+        {
+          "id": "Screening_Capsule.json",
+          "sha256": "cc277a7deaaef2e4e7de7594de80902047556689ae1ce260691861d6768d5999"
+        }
+      ],
+      "predecessors": [
+        "discovery"
+      ],
+      "inputs": [
+        {
+          "name": "brief",
+          "contract_id": "urn:jiuwenswarm:m1-design:research-brief:1.0.0",
+          "version": "1.0.0",
+          "required": true,
+          "artifact_refs": [
+            {
+              "id": "Lifecycle_Research_Brief.json",
+              "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+            }
+          ],
+          "future_bindings": []
+        },
+        {
+          "name": "candidates",
+          "contract_id": "candidate-set:field-contract:1",
+          "version": "1.0.0",
+          "required": true,
+          "artifact_refs": [],
+          "future_bindings": [
+            {
+              "producer_node": "discovery",
+              "port": "candidates",
+              "contract_id": "candidate-set:field-contract:1",
+              "version": "1.0.0"
+            }
+          ]
+        }
+      ],
+      "outputs": [
+        {
+          "name": "screening",
+          "contract_id": "screening-result:field-contract:1",
+          "version": "1.0.0",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "synthetic": true,
+  "brief_ref": {
+    "id": "Lifecycle_Research_Brief.json",
+    "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+  }
+}

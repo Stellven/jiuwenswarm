@@ -2,6 +2,7 @@ import { requestSettingsModule } from '../../features/settings/settingsNavigatio
 import { useChatStore } from '../../stores/chatStore';
 import { resolveChatModelSelection, useSessionStore } from '../../stores/sessionStore';
 import ModelPicker from '../ModelPicker';
+import { useCodexSubscription } from '../../features/codexSubscription/state';
 
 function openModelSettings(): void {
   requestSettingsModule('models');
@@ -15,9 +16,10 @@ export default function ChatModelSelector({ disabled = false }: { disabled?: boo
   );
   const defaultModelName = useSessionStore((state) => state.defaultModelName);
   const setSelectedModelName = useSessionStore((state) => state.setSelectedModelName);
+  const subscriptionMode = useCodexSubscription((state) => state.enabled);
   // Preserve the chat.send model resolution; the shared picker does not choose defaults.
   const selected = resolveChatModelSelection(models, selectedModelName, defaultModelName);
-  if (!selected) return null;
+  if (subscriptionMode || !selected) return null;
 
   return (
     <ModelPicker

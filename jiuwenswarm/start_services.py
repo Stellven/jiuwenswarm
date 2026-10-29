@@ -28,38 +28,44 @@ import sys
 import time
 from pathlib import Path
 
-# --- Early --dotenv parsing (before jiuwenswarm imports) ---
-from jiuwenswarm.dotenv_early import parse_dotenv_early
-parse_dotenv_early("jiuwenswarm-start")
+from jiuwenswarm.research.native_profile import M1_PROFILE
 
-# --- Now safe to import jiuwenswarm modules ---
-from jiuwenswarm.common.utils import get_env_file, get_root_dir, get_user_workspace_dir, is_package_installation
-from jiuwenswarm.instance_manager import (
-    InstanceConfig,
-    InstanceLock,
-    InstanceStatus,
-    calculate_instance_ports,
-    create_bootstrap_env,
-    find_available_ports,
-    format_status_line,
-    get_default_instance_status,
-    get_instance_config,
-    get_instance_status,
-    is_port_available,
-    list_all_instances,
-    stop_instance_process,
-    stop_process_by_pid,
-    validate_instance_name,
-    write_pid_file,
-    PORT_TYPES,
-    PORT_ENV_NAMES,
-    compute_auto_port,
-)
+if not M1_PROFILE:
+    # --- Early --dotenv parsing (before jiuwenswarm imports) ---
+    from jiuwenswarm.dotenv_early import parse_dotenv_early
+    parse_dotenv_early("jiuwenswarm-start")
 
-# Runtime data root:
-# - source mode: repository root
-# - package mode: ~/.jiuwenswarm
-DATA_ROOT = get_root_dir()
+    # --- Now safe to import jiuwenswarm modules ---
+    from jiuwenswarm.common.utils import get_env_file, get_root_dir, get_user_workspace_dir, is_package_installation
+    from jiuwenswarm.instance_manager import (
+        InstanceConfig,
+        InstanceLock,
+        InstanceStatus,
+        calculate_instance_ports,
+        create_bootstrap_env,
+        find_available_ports,
+        format_status_line,
+        get_default_instance_status,
+        get_instance_config,
+        get_instance_status,
+        is_port_available,
+        list_all_instances,
+        stop_instance_process,
+        stop_process_by_pid,
+        validate_instance_name,
+        write_pid_file,
+        PORT_TYPES,
+        PORT_ENV_NAMES,
+        compute_auto_port,
+    )
+
+    # Runtime data root:
+    # - source mode: repository root
+    # - package mode: ~/.jiuwenswarm
+    DATA_ROOT = get_root_dir()
+
+else:
+    DATA_ROOT = Path(os.environ.get("JIUWENSWARM_DATA_DIR", "/var/lib/ai4r/native"))
 
 # Package source root:
 # - source mode: <repo>/jiuwenswarm
@@ -1157,6 +1163,10 @@ def _dispatch_action(args: argparse.Namespace) -> int:
 
 def main() -> None:
     """CLI entry point."""
+    if M1_PROFILE:
+        from jiuwenswarm.research.bootstrap import main as m1_main
+        raise SystemExit(m1_main())
+
     signal.signal(signal.SIGTERM, signal.default_int_handler)
 
     # Configure logging here (inside the entry point, not at module import time)

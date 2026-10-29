@@ -170,6 +170,8 @@ export interface WorkflowPhase {
 }
 
 export interface WorkflowRun {
+  /** Read-only projection of the authenticated protected research service. */
+  research?: import('./researchWorkflow').ResearchStatus;
   id: string;
   name: string;
   summary: string;

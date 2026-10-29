@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:planner-catalog:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "library_snapshot_ref",
+    "capsules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "library_snapshot_ref": {
+      "$ref": "#/$defs/ref"
+    },
+    "capsules": {
+      "type": "array",
+      "maxItems": 128,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "cc",
+          "declaration_ref",
+          "declaration"
+        ],
+        "properties": {
+          "cc": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "cc_name",
+              "cc_version",
+              "declaration_sha256"
+            ],
+            "properties": {
+              "cc_name": {
+                "type": "string"
+              },
+              "cc_version": {
+                "type": "string"
+              },
+              "declaration_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "declaration_ref": {
+            "$ref": "#/$defs/ref"
+          },
+          "declaration": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

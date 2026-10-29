@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:isolated-evaluation-result:1",
+  "x-owner": "M1-002/TASK.md M1-IF-011@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-isolated-evaluation-result:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trial_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "session_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "target_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "parent_declaration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "child_declaration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "status": {
+      "enum": [
+        "completed",
+        "rejected",
+        "failed",
+        "interrupted"
+      ]
+    },
+    "outputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "contract_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name",
+          "artifact_ref",
+          "contract_id"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "mandatory_tests_passed": {
+      "type": "boolean"
+    },
+    "deterministic_result_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "assessment_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "observation_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "trace_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "minLength": 1
+            },
+            "evidence_refs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/Ref"
+              }
+            }
+          },
+          "required": [
+            "code",
+            "evidence_refs"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "accepted": {
+      "const": false
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "trial_ref",
+    "session_ref",
+    "target_ref",
+    "parent_declaration_ref",
+    "child_declaration_ref",
+    "status",
+    "outputs",
+    "mandatory_tests_passed",
+    "deterministic_result_ref",
+    "assessment_refs",
+    "observation_refs",
+    "trace_refs",
+    "failure",
+    "accepted"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

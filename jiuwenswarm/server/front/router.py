@@ -6,9 +6,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from typing import Any
 
-from jiuwenswarm.common.schema.agent import AgentRequest, AgentResponseChunk
+from jiuwenswarm.common.schema.agent import AgentRequest, AgentResponse, AgentResponseChunk
 from jiuwenswarm.common.schema.message import ReqMethod
 from jiuwenswarm.server.control.health_service import handle_readiness
 from jiuwenswarm.server.control.methods import (
@@ -121,6 +122,35 @@ class MethodRouter:
         request: AgentRequest,
         send_lock: Any,
     ) -> None:
+        if (os.environ.get('JIUWENSWARM_M1_PROFILE') == '1'
+                and request.req_method is not None and (
+                    request.req_method.value == 'codex.chat' or (
+                        os.environ.get('JIUWENSWARM_M1_LOCAL_CHAT') == '1' and
+                        request.req_method.value in {'session.create', 'session.switch', 'session.rename'}))):
+            from jiuwenswarm.research.local_chat import reply, conversation_session
+            from jiuwenswarm.research.contracts import ResearchError
+            try:
+                payload = (await reply(request.user_id, request.session_id, request.params or {})
+                           if request.req_method.value == 'codex.chat' else
+                           conversation_session(request.user_id, request.req_method.value, request.params or {}))
+                response = AgentResponse(request_id=request.request_id, channel_id=request.channel_id,
+                                         ok=True, payload=payload, metadata=request.metadata)
+            except ResearchError as error:
+                response = build_error_response(request, error.message, error.code)
+            except Exception:
+                response = build_error_response(request, 'The conversation could not complete. Check ChatGPT login and retry.', 'LOCAL_CHAT_FAILED')
+            response.agent_ref = request.agent_ref
+            await self._send(ws, send_lock, encode_response(response, response_id=request.request_id))
+            return
+        if (os.environ.get('JIUWENSWARM_M1_PROFILE') == '1'
+                and os.environ.get('JIUWENSWARM_AGENT_SDK') == 'codex_subscription'
+                and request.req_method is not None
+                and request.req_method.value in {'codex.auth.status', 'codex.auth.login',
+                    'codex.auth.cancel', 'codex.auth.logout', 'codex.models.list'}):
+            from jiuwenswarm.server.runtime.gateway_adapter.codex_adapter import CodexAccountAdapter
+            response = await CodexAccountAdapter().handle(request)
+            await self._send(ws, send_lock, encode_response(response, response_id=request.request_id))
+            return
         if is_control_method(request):
             if request.req_method == ReqMethod.HEALTH_CHECK_GET_CONF:
                 await self._dispatch_health(ws, request, send_lock)

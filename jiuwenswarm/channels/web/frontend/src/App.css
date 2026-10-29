@@ -222,6 +222,9 @@
 }
 
 .app-connection-toast {
+  max-width: min(88vw, 560px);
+  line-height: 1.5;
+  text-align: center;
   border-radius: 0.5rem;
   background: var(--color-feedback-danger);
   padding: 0.5rem 1rem;

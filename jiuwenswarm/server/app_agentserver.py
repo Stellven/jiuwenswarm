@@ -20,6 +20,8 @@ import os
 import sys
 import time
 
+from jiuwenswarm.research.native_profile import M1_PROFILE
+
 
 # Include entry-module import/configuration work in later startup phase logs.
 # PyInstaller boot time is intentionally outside this boundary.
@@ -209,6 +211,10 @@ def _spawn_teammate_bootstrap(stop_event: asyncio.Event, server: object) -> asyn
 
 def _preload_runtime_backend() -> None:
     """OpenJiuwen-touching imports and workspace work. Must not run on Front loop."""
+    if M1_PROFILE:
+        from pathlib import Path
+        from jiuwenswarm.research.native_logging import configure_native_logging
+        configure_native_logging(Path(os.environ["JIUWENSWARM_DATA_DIR"]) / "logs" / "agentserver")
     if os.environ.get("JIUWENSWARM_RUNTIME_WORKSPACE_READY") != "1":
         from jiuwenswarm.common.utils import prepare_runtime_workspace
 
@@ -222,7 +228,8 @@ def _preload_runtime_backend() -> None:
     from jiuwenswarm.common.model_migration import migrate_legacy_model_selections
 
     migrate_legacy_model_selections()
-    _configure_openjiuwen_logging()
+    if not M1_PROFILE:
+        _configure_openjiuwen_logging()
     _apply_runtime_entry_patches()
     import openjiuwen.core.runner  # noqa: F401
     import jiuwenswarm.extensions.manager  # noqa: F401
@@ -232,6 +239,10 @@ def _preload_runtime_backend() -> None:
 
 async def _start_runtime_backend(front: object, host: str, port: int) -> object:
     """Load OpenJiuwen / extensions / AgentWebSocketServer after Front listen."""
+    from jiuwenswarm.research.native_profile import M1_REFUSAL_REASON
+    if M1_PROFILE and M1_REFUSAL_REASON:
+        front.readiness.mark_failed('Mandatory operator configuration is unavailable; inspection only')
+        return None
     await asyncio.sleep(0)
     startup_t0 = time.monotonic()
 
@@ -284,7 +295,14 @@ async def _start_runtime_backend(front: object, host: str, port: int) -> object:
             on_warmup_retry=getattr(readiness, "note_warmup_retry", None),
             on_failed=getattr(readiness, "mark_failed", None),
         )
+    if M1_PROFILE:
+        from pathlib import Path
+        from jiuwenswarm.research.trajectory import start_native_capture
+        start_native_capture(Path(os.environ["JIUWENSWARM_DATA_DIR"]) / "trajectory" / "agentserver")
     await server.start(bind_transport=False)
+    if M1_PROFILE:
+        from jiuwenswarm.research.native_ports import start_agent_ports
+        server._m1_agent_ports = await start_agent_ports()
     attach = getattr(front, "attach_runtime_backend", None)
     if callable(attach):
         attach(server)
@@ -294,6 +312,12 @@ async def _start_runtime_backend(front: object, host: str, port: int) -> object:
 
     install_subagent_observability_hook()
     log_startup_stage("observability_installed")
+
+    if M1_PROFILE or os.environ.get("JIUWENSWARM_AGENT_SDK") == "codex_subscription":
+        # M1 supports explicit ordinary-chat turns only. Native provider probes,
+        # alternate model catalogs and proactive agents are not subscription ports.
+        log_startup_stage("ready")
+        return server
 
     schedule_warmup = getattr(server, "schedule_image_modality_warmup", None)
     if callable(schedule_warmup):
@@ -399,7 +423,8 @@ async def _run(host: str, port: int) -> None:
         if server is None:
             return
         try:
-            teammate_bootstrap_task = _spawn_teammate_bootstrap(stop_event, server)
+            if not M1_PROFILE:
+                teammate_bootstrap_task = _spawn_teammate_bootstrap(stop_event, server)
         except Exception as exc:  # noqa: BLE001
             logger.warning("[AgentServer] teammate bootstrap daemon start failed: %s", exc)
         logger.info(
@@ -479,6 +504,9 @@ async def _run(host: str, port: int) -> None:
         except Exception as exc:  # noqa: BLE001
             logger.warning("[AgentServer] trajectory hint bridge unbind failed: %s", exc)
         if server is not None:
+            m1_ports = getattr(server, "_m1_agent_ports", None)
+            if m1_ports is not None:
+                await m1_ports.close()
             stop = getattr(server, "stop", None)
             if callable(stop):
                 await stop()
@@ -495,6 +523,9 @@ async def _run(host: str, port: int) -> None:
         except Exception as exc:
             logger.warning("[AgentServer] agent observability shutdown failed: %s", exc)
         await front.stop()
+        if M1_PROFILE:
+            from jiuwenswarm.research.trajectory import stop_native_capture
+            stop_native_capture()
         logger.info("[AgentServer] stopped")
 
 

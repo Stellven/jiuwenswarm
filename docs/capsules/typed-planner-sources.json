@@ -1,0 +1,12 @@
+{
+  "captured_date": "2026-10-23",
+  "source": "Maintained modified AI4Research design-owner checkout; not pristine upstream",
+  "files": {
+    "README.md": "736558f7afb66842f673577ae66b85a27685451f112828a42da567a0a19f20bb",
+    "platform/planning-and-freeze.md": "97117cc67d7813442860bcac213a7aa44277ceb0ce35c33833568dc30ea305bc",
+    "reference/capsules/planner.md": "f518e4018741f24c8d90a7a1d4310f0219f3e6984bd63ffba66cfd285226693d",
+    "reference/run-plan.md": "7c3867f8914d32a49be90c2f30fea58275e1a7b64548b130b20d643280c7ba7a",
+    "method/decisions.md": "609825aef49d7d5c040485726cf73600a7bd52ebab0562774eeca0564ccaaa71"
+  },
+  "historical_optional_note_sha256": "7b2f391f438dee6fc9f8773c36d389dcd435d026ba5d10a9cd094d8b32b729c2"
+}

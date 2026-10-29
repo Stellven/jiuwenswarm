@@ -50,6 +50,8 @@ import ChatModelSelector from './ChatModelSelector';
 import { FileIcon } from '../FileIcon';
 import { getEvolutionPillLabel } from './evolution-status';
 import { webRequest } from '../../services/webClient';
+import { ResearchInputs } from './ResearchInputs';
+import { hasResearchSession } from '../../utils/researchClient';
 import {
   parseSlashLine,
   parseGoalSlashArgs,
@@ -1245,7 +1247,7 @@ export const InputArea = forwardRef<InputAreaHandle, InputAreaProps>(function In
   const isDesktopBridgeReady = useDesktopLocalFilePickerReady();
   // "+" 触发按钮本身不跟图片/目标的可用性挂钩：菜单以后可能挂其他跟图片/目标无关的功能，
   // 触发按钮只要不在录音就该能点开；具体某一项能不能选，交给菜单里每一项各自的禁用态处理。
-  const attachTriggerDisabled = isListening || isTranscribing || composerDisabled;
+  const attachTriggerDisabled = isListening || isTranscribing || composerDisabled || hasResearchSession();
   const readyAttachments = useMemo(
     () =>
       attachments.filter(
@@ -3280,6 +3282,7 @@ export const InputArea = forwardRef<InputAreaHandle, InputAreaProps>(function In
           )}
 
           <div className="chat-input-body" data-testid="chat-panel-input-body">
+            <ResearchInputs sessionId={activeSessionId || 'new'} />
             {attachments.length > 0 && (
               <div className="chat-input-attachment-panel" data-testid="chat-panel-input-attachment-panel">
                 <div

@@ -1,0 +1,50 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, nodes, coverage, references, topic_hints, limits and notes satisfy the declared fields, types, patterns and size constraints."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "nodes.node_id values are unique; predecessors, inputs.future and coverage.node_ids resolve internally. Top-level limits.time_s and limits.model_calls equal the node totals of 5820 and 19."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "notes is empty; nodes.objective describes prospective work and includes supported conclusions and limitations without claiming completed results."
+    },
+    {
+      "criterion_id": "graph_self_consistent",
+      "outcome": "PASS",
+      "reason": "nodes.predecessors and inputs.future.producer_node resolve to existing nodes and form an acyclic graph; every future producer is a listed predecessor."
+    },
+    {
+      "criterion_id": "output_ports_named",
+      "outcome": "PASS",
+      "reason": "Every inputs.future.port matches a producer outputs.name, and inputs.artifact_type, inputs.future.artifact_type and producer outputs.artifact_type agree."
+    },
+    {
+      "criterion_id": "coverage_tags_present",
+      "outcome": "PASS",
+      "reason": "Every nodes entry has a nonempty requirement_ids array; benchmark and delivery also have nonempty deliverable_ids arrays."
+    },
+    {
+      "criterion_id": "coverage_map_consistent",
+      "outcome": "PASS",
+      "reason": "coverage.node_ids exactly invert nodes.requirement_ids and nodes.deliverable_ids for every corresponding item_id. coverage contains no evidence_obligation entries."
+    },
+    {
+      "criterion_id": "no_authority_claims",
+      "outcome": "PASS",
+      "reason": "notes is empty, nodes.suggested_checks arrays are empty, and nodes.objective contains declarative descriptions without commands or authority claims."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Assessment is limited to the supplied declaration and output; brief_ref, library_snapshot_ref, resource_inventory_ref and policy_ref cannot be resolved.",
+    "nodes.cc membership, external inputs.run_input_key bindings and coverage agreement with the hidden Brief cannot be established from this pair."
+  ],
+  "required_correction": null
+}

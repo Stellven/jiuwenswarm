@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-request:1",
+  "title": "evaluation-request",
+  "x-owning-interface": "M1-IF-016@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-request:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runtime_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "slot_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "entry_point": {
+      "enum": [
+        "E2",
+        "E3"
+      ]
+    },
+    "case_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "original_request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "normalized_request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "started_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "deadline_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "runtime_ref",
+    "slot_id",
+    "request_id",
+    "entry_point",
+    "case_id",
+    "original_request_ref",
+    "normalized_request_ref",
+    "fingerprint",
+    "started_unix_ns",
+    "deadline_unix_ns",
+    "limits",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "time_s",
+        "model_calls",
+        "memory_mb"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

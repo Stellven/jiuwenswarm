@@ -1,7 +1,6 @@
 import { settingsNavigationIcons } from '../../../../assets/settings';
 import type { SettingsModuleDefinition } from '../../registry/types';
-import { FreeModelsSettings } from './FreeModelsSettings';
-import { ModelsSettings } from './ModelsSettings';
+import { ResearchModelsSettings } from './ResearchModelsSettings';
 
 export const modelsModule: SettingsModuleDefinition = {
   id: 'models',
@@ -10,14 +9,9 @@ export const modelsModule: SettingsModuleDefinition = {
   source: 'config',
   sections: [
     {
-      id: 'limited-free-models',
+      id: 'research-model-choice',
       separatedRows: true,
-      items: [{ id: 'limited-free-models', component: 'custom', render: FreeModelsSettings }],
-    },
-    {
-      id: 'model-manager',
-      separatedRows: true,
-      items: [{ id: 'model-manager', component: 'custom', render: ModelsSettings }],
+      items: [{ id: 'research-model-choice', component: 'custom', render: ResearchModelsSettings }],
     },
   ],
 };

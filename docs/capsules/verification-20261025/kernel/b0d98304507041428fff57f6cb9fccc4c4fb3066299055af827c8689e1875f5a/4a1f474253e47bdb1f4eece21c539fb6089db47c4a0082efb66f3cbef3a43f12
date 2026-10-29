@@ -1,0 +1,1 @@
+{"profile":"builder-parent","executor_uid":10002,"executor_gid":10002,"network_namespace":"net:[4026531833]","network":null,"denied_paths":{"/var/lib/ai4r":true,"/var/lib/ai4r-accounts":true,"/run/ai4r":true,"/hidden-fixtures":true,"/var/run/docker.sock":true},"ready":true,"cap_effective":"0000000000000000","no_new_privileges":"1"}

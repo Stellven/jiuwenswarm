@@ -1,0 +1,45 @@
+{
+  "schema": "ai4r-hybrid-checkpoint:1",
+  "saved_at": "2026-10-26T23:25:23.974633+00:00",
+  "host": "gx10-004d",
+  "app_image": "sha256:dcb5f77624f9f57d3eb595339a0eb2a0b647d1e58e3e63bf93aa64a83af58f3e",
+  "app_tag": "ai4r-spark:hybrid-v5-20261026",
+  "runner_image": "sha256:754ba564cad9bfb5b8196c16721f14fb8b0ba201c272d81aef341cde2fd167c3",
+  "runner_tag": "ai4r-benchmark-runner:hybrid-v5-20261026",
+  "policy": {
+    "schema": "ai4r-hybrid-bounded-routing:5",
+    "selector_preset": "qwen",
+    "selection_calls_per_capsule_invocation": 1,
+    "selection_time_s": 15,
+    "selection_output_tokens": 256,
+    "verifier_policy": "fixed_independent_qwen",
+    "failure_policy": "compatible_chatgpt_before_dispatch_only",
+    "run_call_ceiling": "unchanged_includes_selection_calls",
+    "executor_ids": [
+      "local:qwen",
+      "subscription:gpt-6.1-sol"
+    ],
+    "max_subscription_invocations_per_run": 4,
+    "objective": "reduce_total_tokens_relative_to_all_chatgpt_preserve_quality",
+    "selector_schema": "task_operations:1",
+    "reasoning_capsules": [
+      "research.planner",
+      "research.hypothesis",
+      "research.builder",
+      "research.evaluation"
+    ],
+    "routine_capsules": [
+      "intent.compiler",
+      "requirements.compiler",
+      "research.search",
+      "research.delivery"
+    ]
+  },
+  "benchmark_source": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001",
+  "raw_correct": 21,
+  "observations": 24,
+  "gate_advanced_correct": 11,
+  "reported_tokens": 198698,
+  "token_reduction_vs_chatgpt": 0.12462442617606373,
+  "scope": "MR01 public development component benchmark; highest observed hybrid raw accuracy, not best gate result or validated full workflow"
+}

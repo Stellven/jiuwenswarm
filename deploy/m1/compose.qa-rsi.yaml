@@ -1,0 +1,12 @@
+# Add after compose.sidecar.yaml only for an explicitly granted RSI QA job.
+# The runner receives the controller's finite job socket, never custody ports,
+# worker ports, hidden fixtures, account roots, signing keys or product DBs.
+services:
+  sidecar:
+    group_add: ['12001']
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_JOB_IPC:?Supply the separately authorized workbench job socket directory}
+        target: /run/ai4r-rsi/jobs
+        read_only: true
+        bind: {create_host_path: false}

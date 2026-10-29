@@ -1,0 +1,6 @@
+{
+  "status": "superseded-before-participant-trials",
+  "reason": "Independent review exposed named planning inputs/outputs, optional-port checking, exact source spans and RSI custody/clearance representation gaps. User confirmed one work CC per M1 node; composition and merging deferred. Identical corrected contracts/decisions in both conditions. No participant trials exist.",
+  "prior_manifest_sha256": "ef8e25fb8a2b72cfb7cfae4ffd4bad2c4fb0548cfc9fbf1bf392ac2c4cbd1031",
+  "replacement_revision": 4
+}

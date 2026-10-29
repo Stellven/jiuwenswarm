@@ -1,0 +1,86 @@
+{
+  "schema_version": "2.0.0",
+  "id": "candidate_set",
+  "brief_ref": {
+    "id": "lifecycle_research_brief.json",
+    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+  },
+  "scope_ref": {
+    "id": "search_scope.json",
+    "sha256": "9f1de539a40c309b73f9124905c1aa1e9a02fe896515a540f8ad664727e5908f"
+  },
+  "queries": [
+    "indexed lookup retrieval latency",
+    "repeated retrieval work baseline"
+  ],
+  "connector_outcomes": [
+    {
+      "connector": "local_documents",
+      "status": "used",
+      "reason": "Searched 1 local document",
+      "citations_captured": 1
+    },
+    {
+      "connector": "arxiv",
+      "status": "unavailable",
+      "reason": "Connector timed out after 3 attempts",
+      "citations_captured": 0
+    },
+    {
+      "connector": "semantic_scholar",
+      "status": "unavailable",
+      "reason": "Connector timed out after 3 attempts",
+      "citations_captured": 0
+    }
+  ],
+  "citations": [
+    {
+      "id": "citation:index",
+      "source_ref": {
+        "id": "academic_source.txt",
+        "sha256": "da0a79d39f34aad640bd62b1f23b91887ad60f36c62f5f653e9df0889e031c2d"
+      },
+      "connector": "local_documents",
+      "query": "indexed lookup retrieval latency",
+      "title": "Synthetic academic fixture",
+      "locator": "academic_source.txt, sentence 1",
+      "char_start": 28,
+      "char_end": 77,
+      "excerpt": "indexed lookup may reduce repeated retrieval work",
+      "excerpt_sha256": "6095a79007fa06e87b5449f3d6a6fe686907fc789ede7ca0874d37070c5b9857"
+    }
+  ],
+  "ideas": [
+    {
+      "idea_id": "idea:001",
+      "title": "Bounded index lookup",
+      "summary": "Test an index over repeated lookups in the supplied baseline to cut retrieval work.",
+      "citation_ids": [
+        "citation:index"
+      ],
+      "assumptions": [
+        "Baseline overhead includes repeated lookup"
+      ],
+      "risks": [
+        "Index maintenance could offset lookup gains"
+      ]
+    },
+    {
+      "idea_id": "idea:002",
+      "title": "Learned lookup ranker",
+      "summary": "Reorder lookups with a learned ranker that requires a proprietary model hosted by a third party.",
+      "citation_ids": [
+        "citation:index"
+      ],
+      "assumptions": [
+        "Lookup order affects latency"
+      ],
+      "risks": [
+        "Depends on an external model the user cannot run locally"
+      ]
+    }
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

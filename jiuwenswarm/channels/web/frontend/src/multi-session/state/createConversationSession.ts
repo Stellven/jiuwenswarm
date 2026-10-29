@@ -1,6 +1,7 @@
 /** session.create: AgentServer allocates the ID; timeout retries use create_token. */
 
 import type { WorkMode } from '../../features/workspace/projectTypes';
+import type { WebRequestOptions, ResearchInputSnapshot } from '../../types/websocket';
 
 export const SESSION_CREATE_TIMEOUT_MS = 60_000;
 /** Kept under the old export names for source compatibility. */
@@ -10,7 +11,7 @@ export const SESSION_CREATE_METADATA_POLL_INTERVAL_MS = 500;
 export type SessionCreateRequestFn = <T = unknown>(
   method: string,
   params?: Record<string, unknown>,
-  options?: { timeoutMs?: number },
+  options?: WebRequestOptions,
 ) => Promise<T>;
 
 export interface SessionCreatePayload {
@@ -35,6 +36,7 @@ export interface CreatedConversationSession {
 }
 
 export interface CreateConversationSessionOptions {
+  researchInputSnapshot?: ResearchInputSnapshot;
   metadataPollAttempts?: number;
   metadataPollIntervalMs?: number;
   sleep?: (ms: number) => Promise<void>;
@@ -102,9 +104,11 @@ function defaultSleep(ms: number): Promise<void> {
 async function invokeSessionCreate(
   request: SessionCreateRequestFn,
   createParams: Record<string, unknown>,
+  researchInputSnapshot?: ResearchInputSnapshot,
 ): Promise<CreatedConversationSession> {
   const payload = await request<SessionCreatePayload>('session.create', createParams, {
     timeoutMs: SESSION_CREATE_TIMEOUT_MS,
+    researchInputSnapshot,
   });
   return normalizeCreatedSession(payload);
 }
@@ -126,7 +130,7 @@ export async function createConversationSession(
   for (let attempt = 0; attempt < attempts; attempt += 1) {
     if (attempt > 0 && intervalMs > 0) await sleep(intervalMs);
     try {
-      return await invokeSessionCreate(request, createParams);
+      return await invokeSessionCreate(request, createParams, options.researchInputSnapshot);
     } catch (error) {
       if (!isRequestTimeoutError(error) || attempt === attempts - 1) throw error;
     }

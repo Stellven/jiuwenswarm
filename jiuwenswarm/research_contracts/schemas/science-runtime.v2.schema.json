@@ -1,0 +1,216 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-science-runtime:2"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "build_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "asset_root": {
+          "const": "/var/lib/ai4r-executor/assets"
+        },
+        "environment_root": {
+          "const": "/var/lib/ai4r-executor/environments"
+        },
+        "memory_mb": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "pids_max": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "run_timeout_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "provision_timeout_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "baseline_arguments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[^\u0000]*$"
+          }
+        },
+        "treatment_arguments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[^\u0000]*$"
+          }
+        },
+        "uv_path": {
+          "const": "/usr/local/bin/uv"
+        },
+        "python_path": {
+          "type": "string",
+          "pattern": "^/[^\u0000]+$"
+        }
+      },
+      "required": [
+        "asset_root",
+        "environment_root",
+        "memory_mb",
+        "pids_max",
+        "run_timeout_s",
+        "provision_timeout_s",
+        "baseline_arguments",
+        "treatment_arguments",
+        "uv_path",
+        "python_path"
+      ],
+      "additionalProperties": false
+    },
+    "approved_environments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lock_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "approval_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "platform_fact": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "wheel_filenames": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "lock_ref",
+          "approval_ref",
+          "platform_fact",
+          "wheel_filenames"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "gpu_required": {
+      "type": "boolean"
+    },
+    "execution_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "configuration_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "policy_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "resource_inventory_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "declaration_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "implementation_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            },
+            "uniqueItems": true
+          },
+          "dependency_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            },
+            "uniqueItems": true
+          },
+          "admission_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "provision",
+                "hardware_inventory",
+                "measure_job",
+                "run",
+                "collect_builder",
+                "builder_observation",
+                "invoke_builder",
+                "builder_test",
+                "builder_action"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "configuration_ref",
+          "policy_ref",
+          "resource_inventory_ref",
+          "declaration_ref",
+          "implementation_refs",
+          "dependency_refs",
+          "admission_ref",
+          "operations"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "build_id",
+    "profile",
+    "approved_environments",
+    "gpu_required",
+    "execution_bindings"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:science-runtime:2",
+  "x-owning-interface": "M1-IF-001@r2",
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Registered neutral schema; implementation remains pending/unbuilt. Original six-field profile/environment meanings are pinned to current executor_bootstrap.py54-102 and execution_jobs.py54-73/124-133. Historical :1 data/decoder remains untouched. Schema-valid data is never installed capability, physical-resource identity, live acknowledgment or service/qualification proof. Current installed build, fixed interpreter path, root custody, exact immutable admitted/source/resource/operation matching and real bounds/factory/kernel predicates are mandatory. New execution_bindings is root captured only; empty grants no scientific host operation. Original positive numeric profile allowance is preserved; actual integer kernel limits and effective per-invocation narrowing remain existing execution validation."
+}

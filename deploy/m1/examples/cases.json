@@ -1,0 +1,12 @@
+{
+  "schema_version": "sequential-cases:1",
+  "cases": [
+    {
+      "id": "public-summary-smoke",
+      "plan_source": "planned",
+      "task": "Summarize the supplied reference document and save the summary as a downloadable artifact. Identify the reference used and any limitations.",
+      "inputs": [{"path": "note.pdf", "kind": "docs"}],
+      "repeats": 1
+    }
+  ]
+}

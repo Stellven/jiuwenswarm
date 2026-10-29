@@ -127,10 +127,15 @@ def register_http_routes(app: FastAPI, channel: WebChannel) -> None:
     attach_trajectory_routes(app, channel)
     # register auth http routes for huawei account login
     register_auth_routes(app)
+    from jiuwenswarm.gateway.channel_manager.web.research_http import mount_research_routes
+
+    mount_research_routes(app, channel)
 
 
 async def _serve_channel_websocket(channel: WebChannel, websocket: WebSocket) -> None:
-    if await _reject_disallowed_origin(websocket):
+    # Protected research uses its required exact Origin/Host grant hook. The
+    # ordinary native allowlist remains unchanged for other installations.
+    if not bool(getattr(channel, "research_profile", False)) and await _reject_disallowed_origin(websocket):
         return
     denied, authenticated_user_id = await _reject_unauthorized_handshake(channel, websocket)
     if denied:
@@ -209,6 +214,11 @@ async def _reject_unauthorized_handshake(
         channel="web",
     )
     if result is None:
+        if bool(getattr(channel, "research_profile", False)):
+            await websocket.send_denial_response(
+                PlainTextResponse(_UNAUTHORIZED_BODY, status_code=401),
+            )
+            return True, None
         return False, None
     if bool(getattr(result, "success", True)):
         return False, str(getattr(result, "user_id", "") or "").strip()

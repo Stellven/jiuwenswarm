@@ -1,0 +1,12 @@
+{
+  "files": {
+    "assets.py": "f78f05dbeb5cfa1dd41080e242fa6a62fc8c8e6d3989c9038642b7a954e7dac2",
+    "calculate/__init__.py": "c5325e2f685c19c7f8797d78018601491dcdfca50a4da3dfeabc00489fa53b51",
+    "calculate/checks.py": "8caa2d4c6ecc7c291894060688c599cd6656fb73ec0a598684240845598a5348",
+    "calculate/release.py": "7f725a9f2cf5dd96a564e8dc25c9b5e277bce112e70027a9b0762ebdc64bdef2",
+    "calculate/worker.py": "22e37d0e3045d46c8b689ab56d699c09f08d0f6bdb045f93fd997b202256ae49",
+    "packet.py": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  },
+  "module": "calculate",
+  "name": "utility.calculate"
+}

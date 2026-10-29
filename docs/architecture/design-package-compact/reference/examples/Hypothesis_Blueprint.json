@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "id": "Hypothesis_Blueprint",
+  "brief_ref": {
+    "id": "Lifecycle_Research_Brief.json",
+    "sha256": "5b806d4f44f7a0879d264d11a1b2c8d4af0f9b6c6764c04c59a3617c0ad8133c"
+  },
+  "opportunity_ref": {
+    "id": "Opportunity_Card.json",
+    "sha256": "7226c32731eabd2f6ee65632f7598f65b2091e171e96d6eafec4090ab1ed1602"
+  },
+  "claim": "Indexing lowers retrieval latency by at least 10% with no answer-quality loss",
+  "mechanism": "Avoid repeated lookup work",
+  "independent_variable": "Bounded index lookup patch",
+  "dependent_variables": [
+    "latency_ms",
+    "quality"
+  ],
+  "resource_refs": [
+    {
+      "id": "Baseline_Resource.json",
+      "sha256": "2b6d4163b9d6691c52d3efeaf1efef14eac069b363d20816038d350f3bceb0fb"
+    },
+    {
+      "id": "Validation_Resource.json",
+      "sha256": "1d62ec86c4ed555a9d15caa8e886d8bdce2971c6c9f87a2cb184682baddc4406"
+    }
+  ],
+  "environment_ref": {
+    "id": "Environment_Lock.json",
+    "sha256": "555a6e2f528de31102e0345ac64bcc209337427dec73455bbc6b57ccc6ca60a1"
+  },
+  "metrics": [
+    {
+      "metric_id": "latency_ms",
+      "unit": "ms",
+      "measurement": "elapsed retrieval time on frozen data",
+      "aggregation": "median",
+      "success": {
+        "operand": "treatment",
+        "comparator": "le",
+        "reference": "baseline",
+        "factor": 0.9,
+        "offset": 0
+      },
+      "falsification": {
+        "operand": "treatment",
+        "comparator": "ge",
+        "reference": "baseline",
+        "factor": 1,
+        "offset": 0
+      },
+      "middle": "INCONCLUSIVE"
+    },
+    {
+      "metric_id": "quality",
+      "unit": "fraction",
+      "measurement": "unchanged approved answer-quality metric",
+      "aggregation": "mean",
+      "success": {
+        "operand": "treatment",
+        "comparator": "ge",
+        "reference": "baseline",
+        "factor": 1,
+        "offset": 0
+      },
+      "falsification": {
+        "operand": "treatment",
+        "comparator": "lt",
+        "reference": "baseline",
+        "factor": 1,
+        "offset": 0
+      },
+      "middle": "INCONCLUSIVE"
+    }
+  ],
+  "repeat_count": 3,
+  "seed": 42,
+  "implementation_scope": "Only lookup patch; baseline/data/measurement remain immutable",
+  "constraints": [
+    "One GPU",
+    "Preserve answer quality"
+  ],
+  "verification_plan": [
+    "Matched resources and seed",
+    "All metrics/repeats retained",
+    "Rules registered before execution"
+  ],
+  "ext": {
+    "example.synthetic": true
+  }
+}

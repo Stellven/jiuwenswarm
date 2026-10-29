@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "id": "upload:validation",
+  "user_id": "user:example",
+  "scope_id": "proj1",
+  "kind": "datasets",
+  "resource_type": "validation_data",
+  "filename": "validation_resource.json",
+  "size_bytes": 784,
+  "stored_path": "workspace/input/datasets/proj1/validation_resource.json",
+  "content_sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89",
+  "text_sha256": null,
+  "status": "uploaded",
+  "uploaded_at": "2026-10-15T09:00:00Z",
+  "deleted_at": null
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:metric-protocol:1.0.0",
+  "type": "object",
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "protocol_id": {"type": "string", "minLength": 1},
+    "prediction_protocol": {"type": "string", "minLength": 1},
+    "scoring_schema": {"type": "string", "minLength": 1},
+    "metrics": {
+      "type": "array", "minItems": 1, "maxItems": 8,
+      "items": {
+        "type": "object",
+        "properties": {
+          "metric_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "unit": {"type": "string", "minLength": 1},
+          "measurement": {"type": "string", "minLength": 1},
+          "direction": {"enum": ["higher_better", "lower_better"]},
+          "valid_min": {"type": ["number", "null"]},
+          "valid_max": {"type": ["number", "null"]}
+        },
+        "required": ["metric_id", "unit", "measurement", "direction", "valid_min", "valid_max"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["schema_version", "protocol_id", "prediction_protocol", "scoring_schema", "metrics"],
+  "additionalProperties": false
+}

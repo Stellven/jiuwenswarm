@@ -1,0 +1,74 @@
+[
+  {
+    "id": "deepseek-pro",
+    "name": "DeepSeek V4 Pro",
+    "model_name": "deepseek/deepseek-v4-pro-0813",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/deepseek/deepseek-v4-pro-0813"
+  },
+  {
+    "id": "deepseek-flash",
+    "name": "DeepSeek Flash (V4.1)",
+    "model_name": "deepseek/deepseek-v4.1-flash-1017",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/deepseek/deepseek-v4.1-flash-1017"
+  },
+  {
+    "id": "qwen-max",
+    "name": "Qwen3.8 Max",
+    "model_name": "qwen/qwen3.8-max-0902",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/qwen/qwen3.8-max-0902"
+  },
+  {
+    "id": "qwen-plus",
+    "name": "Qwen Plus",
+    "model_name": "qwen/qwen-plus",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/qwen/qwen-plus"
+  },
+  {
+    "id": "kimi",
+    "name": "Kimi K2.5",
+    "model_name": "moonshotai/kimi-k2.5",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/moonshotai/kimi-k2.5"
+  },
+  {
+    "id": "grok",
+    "name": "Grok 4.7",
+    "model_name": "x-ai/grok-4.7",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/x-ai/grok-4.7"
+  },
+  {
+    "id": "gemini",
+    "name": "Gemini 4 Argon",
+    "model_name": "google/gemini-4-argon",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/google/gemini-4-argon"
+  },
+  {
+    "id": "claude-fable",
+    "name": "Claude Fable 5",
+    "model_name": "anthropic/claude-fable-5",
+    "base_url": "https://openrouter.ai/api/v1",
+    "platform_id": "openrouter",
+    "platform_name": "OpenRouter",
+    "docs_url": "https://openrouter.ai/anthropic/claude-fable-5"
+  }
+]

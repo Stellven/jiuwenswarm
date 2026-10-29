@@ -199,6 +199,7 @@ from jiuwenswarm.server.runtime.gateway_adapter import (
     SessionAdapter,
     WorkspaceFileAdapter,
 )
+from jiuwenswarm.server.runtime.gateway_adapter.codex_adapter import CodexAccountAdapter
 
 logger = logging.getLogger(__name__)
 _MANUAL_COMPACT_PROCESSOR_TYPES = [
@@ -1131,6 +1132,7 @@ class AgentWebSocketServer:
         # dispatch occurs before the legacy handler chain below.
         self._adapter_registry = AdapterRegistry()
         for adapter in (
+            CodexAccountAdapter(),
             VoiceTaskServerAdapter(),
             SessionAdapter(),
             WorkspaceFileAdapter(),
@@ -1458,12 +1460,15 @@ class AgentWebSocketServer:
             "[AgentWebSocketServer] 已启动: ws://%s:%s", self._host, self._port
         )
 
-        self._asset_start_task = asyncio.create_task(self._start_asset_services())
+        subscription_mode = os.environ.get("JIUWENSWARM_AGENT_SDK") == "codex_subscription"
+        if not subscription_mode:
+            self._asset_start_task = asyncio.create_task(self._start_asset_services())
 
         # The port is already listening. Remote tokenizer downloads must not
         # delay startup; ContextEngine is local-only and uses string fallback
         # if this task has not completed when the first context is created.
-        self._schedule_tokenizer_warmup(get_config(), reason="startup")
+        if not subscription_mode:
+            self._schedule_tokenizer_warmup(get_config(), reason="startup")
 
         # 端口已 listen, 后台预热 checkpointer, 不阻塞启动与握手.
         # _checkpointer_warmup_task 供 shutdown 时 cancel, 避免任务悬挂.
@@ -1472,7 +1477,8 @@ class AgentWebSocketServer:
             while True:
                 try:
                     await self._runtime.start()
-                    await self._heartbeat_runtime.start()
+                    if not subscription_mode:
+                        await self._heartbeat_runtime.start()
                 except Exception as exc:  # noqa: BLE001
                     logger.warning(
                         "[AgentWebSocketServer] Runtime warmup failed; "
@@ -1489,12 +1495,17 @@ class AgentWebSocketServer:
                 ready = self._on_runtime_ready
                 if callable(ready):
                     ready()
-                await self._start_symphony_recovery()
+                if not subscription_mode:
+                    await self._start_symphony_recovery()
                 return
 
         self._checkpointer_warmup_task = asyncio.create_task(
             _start_runtime(), name="runtime-start"
         )
+
+        if subscription_mode:
+            # Background/native model capabilities remain explicit M1 gaps.
+            return
 
         async def _warmup_mcp_connections() -> None:
             try:
@@ -1543,6 +1554,8 @@ class AgentWebSocketServer:
             reason: 传给 warm/refresh 的日志标签（"startup" / "model config change"）。
             reset_cache: True 时先清空旧结论再探（配置变更场景），False 仅补探。
         """
+        if os.environ.get("JIUWENSWARM_AGENT_SDK") == "codex_subscription":
+            return
         from jiuwenswarm.server.runtime.image_modality_warmup import (
             refresh_image_modality_cache,
             warm_image_modality_cache,
@@ -1879,6 +1892,8 @@ class AgentWebSocketServer:
 
     async def _stop_main_services(self) -> None:
         """Stop AgentServer-owned services before optional host cleanup."""
+        from jiuwenswarm.server.runtime.codex_subscription.service import close_services
+        await close_services()
         task = getattr(self, "_asset_start_task", None)
         if task is not None:
             task.cancel()

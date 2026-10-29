@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:admitted-measurement-binding:1",
+  "x-owner": "M1-002/TASK.md M1-IF-012@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-admitted-measurement-binding:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "session_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "target_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "parent_admission_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "parent_declaration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "parent_contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "configuration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "model_selection_profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "deployment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "reservation_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "contract_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "artifact_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "contract_id",
+          "artifact_refs"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "limits": {
+      "type": "object",
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "time_s",
+        "model_calls",
+        "memory_mb"
+      ],
+      "additionalProperties": false
+    },
+    "phase": {
+      "enum": [
+        "development",
+        "platform",
+        "hidden_loop",
+        "hidden_final"
+      ]
+    },
+    "repeat_index": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 2
+    },
+    "parent_check_plan_ref": {
+      "$ref": "#/$defs/Ref"
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "session_ref",
+    "target_ref",
+    "parent_admission_ref",
+    "parent_declaration_ref",
+    "parent_contract_ref",
+    "configuration_ref",
+    "model_selection_profile_ref",
+    "deployment_ref",
+    "reservation_ref",
+    "inputs",
+    "limits",
+    "phase",
+    "repeat_index",
+    "parent_check_plan_ref"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

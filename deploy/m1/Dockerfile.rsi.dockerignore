@@ -1,0 +1,13 @@
+**
+!jiuwenswarm/
+!jiuwenswarm/research_rsi/
+!jiuwenswarm/research_rsi/**
+!jiuwenswarm/research_records/
+!jiuwenswarm/research_records/**
+**/__pycache__/**
+**/.env*
+**/*.key
+**/*.pem
+**/private/**
+**/protected/**
+**/evidence/**

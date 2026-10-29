@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "id": "RSI_Target_Profile",
+  "parent_ref": {
+    "id": "Ranking_Parent.txt",
+    "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+  },
+  "frozen_contract_ref": {
+    "id": "Ranking_Contract.txt",
+    "sha256": "8670cfe4a282f3597fff60bee52d18528eeadf3a2dd82f149218a50e48e7c4c9"
+  },
+  "required_test_refs": [
+    {
+      "id": "Ranking_Visible_Tests.txt",
+      "sha256": "ea6f8e79e8ad9fff7dbfaf1f19cf4eb37c5345b0ce4db4dd1f55d201782a3b74"
+    }
+  ],
+  "mutable_paths": [
+    "screening/rank_opportunities.py"
+  ],
+  "protected_refs": [
+    {
+      "id": "Ranking_Contract.txt",
+      "sha256": "8670cfe4a282f3597fff60bee52d18528eeadf3a2dd82f149218a50e48e7c4c9"
+    }
+  ],
+  "splits": {
+    "development": "development:fixture-v1",
+    "hidden_loop": "custodian:loop-v1",
+    "hidden_final": "custodian:final-v1",
+    "platform": "platform:held-out-v1"
+  },
+  "scoring": {
+    "primary": "passed_test_count",
+    "secondary": "paired_time_at_equal_counts",
+    "warmup_batches": 5,
+    "paired_rounds": 7,
+    "min_relative_gain": 0.1,
+    "noise_multiplier": 3,
+    "batch_iterations": 1000,
+    "calibrated_relative_noise": 0.02
+  },
+  "calibration_ref": {
+    "id": "RSI_Calibration.txt",
+    "sha256": "f5a53318a4245294385f4c4cb057a1652ae0ada1a8a181d4e77379362ff06d10"
+  },
+  "session_query_limit": 30,
+  "lifetime_query_limit": 90,
+  "limits": {
+    "time_s": 600,
+    "model_calls": 5,
+    "memory_mb": 512
+  },
+  "ext": {
+    "example.synthetic": true
+  },
+  "scoring_adapter_ref": {
+    "id": "RSI_Scoring_Adapter.txt",
+    "sha256": "7762160b24aff7441bb230fcbb98fc472ea44a085cdbfc857b2b3c50e059ad5c"
+  },
+  "improver_ref": {
+    "id": "RSI_Improver_Policy.txt",
+    "sha256": "ee424d8b228b6415978175c4d53af1ffe8c8ea3f93e026402038e7c6b94d27aa"
+  },
+  "configuration_ref": {
+    "id": "Run_Configuration.json",
+    "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+  }
+}

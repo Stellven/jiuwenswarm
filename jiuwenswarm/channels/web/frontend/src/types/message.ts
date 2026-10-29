@@ -6,6 +6,7 @@ import type { SkillTreePath } from './skillTree';
 import type { BeamSearchProgress } from './beamSearch';
 import type { HeartbeatAutomationMetadata } from './heartbeat';
 import type { CrossSessionMessageMetadata } from '../utils/crossSessionMessage';
+import type { ResearchInputSnapshot } from './websocket';
 
 export type MessageRole = 'user' | 'assistant' | 'system' | 'tool';
 
@@ -120,6 +121,10 @@ export interface Message {
   audioBase64?: string;
   audioMime?: string;
   mediaItems?: MediaItem[];
+  /** Exact uploaded filenames captured for this user turn; no download or execution claim. */
+  researchAttachments?: { id: string; filename: string }[];
+  /** Display provenance from an accepted owned research result; never execution authority. */
+  researchAccepted?: boolean;
   fileItems?: FileDownloadItem[];
   // 工具调用相关
   toolCall?: ToolCall;
@@ -173,7 +178,8 @@ export interface Message {
 
 /** Selected queued message sent by the existing non-interrupting send button. */
 export interface ChatSendOptions {
-  queuedTaskId: string;
+  queuedTaskId?: string;
+  researchInputSnapshot?: ResearchInputSnapshot;
 }
 
 export interface MessageForkPoint {

@@ -1,6 +1,7 @@
 import { settingsNavigationIcons } from '../../../../assets/settings';
 import type { SettingsModuleDefinition } from '../../registry/types';
 import { ConnectionStatusSetting } from './GeneralSettings';
+import { ResearchPreferences } from './ResearchPreferences';
 
 export const generalModule: SettingsModuleDefinition = {
   id: 'general',
@@ -21,6 +22,7 @@ export const generalModule: SettingsModuleDefinition = {
           ],
         },
         { id: 'connection-status', component: 'custom', render: ConnectionStatusSetting },
+        { id: 'research-preferences', component: 'custom', render: ResearchPreferences },
       ],
     },
   ],

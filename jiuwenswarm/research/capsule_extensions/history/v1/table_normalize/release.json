@@ -1,0 +1,12 @@
+{
+  "files": {
+    "assets.py": "f78f05dbeb5cfa1dd41080e242fa6a62fc8c8e6d3989c9038642b7a954e7dac2",
+    "packet.py": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16",
+    "table_normalize/__init__.py": "4ff9c713a87b7237aec2d3cc5963ce868ee452ab9e5a43938502165a28ddbf25",
+    "table_normalize/checks.py": "1c5e16d40b3e7393bbbba4e0a6b3a2a3fc78555872feb41b6a551881e9481111",
+    "table_normalize/release.py": "f4b3fac10c4426f53d091256b2923947856a8199e834f455cec502441ba5bcaa",
+    "table_normalize/worker.py": "1793760181576dbe635d615f2d5cea67aed62f4a1662b180c2a705197d079314"
+  },
+  "module": "table_normalize",
+  "name": "utility.table_normalize"
+}

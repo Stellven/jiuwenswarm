@@ -1,4 +1,16 @@
 # Python
+# Generated local test output and execution evidence stay on this machine.
+/.test_logs/
+
+# User-selected benchmark cases, inputs and collected results stay local.
+/benchmarks/harbor_suite/cases/
+# Generated benchmark output and internal reports stay local, outside releases.
+/benchmarks/output/
+/benchmarks/**/internal/
+# Machine-specific endpoint inventory is an operator handoff, not public source.
+/benchmarks/harbor_suite/SPARK_MODEL_INVENTORY.md
+/docs/code/Missions/docs/source/QA/Benchmark/
+/docs/code/**/evidence/
 __pycache__/
 *.py[cod]
 *.pyo
@@ -10,6 +22,13 @@ venv/
 env/
 ENV/
 .pytest_cache/
+# Disposable Linux test workspaces can contain links Windows Git cannot read.
+/.test_logs/**/pytest-work/
+# Isolated test repositories are fixtures, not project submodules.
+/.test_logs/m1/resume-20261019-01/isolated-e1/
+/.test_logs/m1/resume-20261019-01/isolated-http/
+/.test_logs/m1/resume-20261019-01/isolated-qa/
+/.test_logs/m1/resume-20261019-01/isolated-router/
 .mypy_cache/
 .ruff_cache/
 *.egg-info/
@@ -106,3 +125,33 @@ report/index.html
 /sub_agents/
 /context/
 /.plans/
+
+# Local Obsidian pane/session state; shared vault settings remain tracked.
+**/.obsidian/workspace*.json
+
+# Local Obsidian working notes and intent context; never part of main delivery.
+/docs/architecture/notes/
+
+# Canonical architecture references are maintained design inputs.
+!docs/architecture/design-package/reference/
+!docs/architecture/design-package/reference/**
+
+# Portable contracts in the pinned full-M1 compression experiment
+!docs/architecture/experiments/m1-cut-down/reference/
+!docs/architecture/experiments/m1-cut-down/reference/**
+
+# Versioned architecture experiment contract input
+!docs/architecture/experiments/m1-full-baseline/reference/
+!docs/architecture/experiments/m1-full-baseline/reference/**
+
+# Versioned architecture experiment contract input
+!docs/architecture/experiments/m1-contract-review-2026-10-08/full/reference/
+!docs/architecture/experiments/m1-contract-review-2026-10-08/full/reference/**
+
+# Versioned architecture experiment contract input
+!docs/architecture/experiments/m1-contract-review-2026-10-08/compact/reference/
+!docs/architecture/experiments/m1-contract-review-2026-10-08/compact/reference/**
+
+# Matched compact design contracts
+!docs/architecture/design-package-compact/reference/
+!docs/architecture/design-package-compact/reference/**

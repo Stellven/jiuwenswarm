@@ -1,0 +1,124 @@
+{
+  "schema": "ai4r-m1-process-verification:1",
+  "source_commit": "522c0c53d749b7dc11d476e0aff3620c296646f3",
+  "implementation_commit": "2663ed82095e6bce4cdd875a510fc8e3a818e1f1",
+  "remote_baseline": "809351f8993661a9fdc6e4e635d48f3d262f991b",
+  "branch": "m1/all-features-20261025",
+  "source_fingerprint_sha256": "60f2d6ac764deb51830b7317cca3a5c4a4ab3d4ac7ed8e1538f9a634bf95f611",
+  "source_files": 552,
+  "sdk_commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+  "images": {
+    "ai4r:local": {
+      "id": "sha256:df2ef57055266feb949c4c83a28e7c1206743123f338a476515224ebb42200d1",
+      "os": "linux",
+      "architecture": "amd64"
+    },
+    "benchmark-runner:local": {
+      "id": "sha256:3aa1fb6cb5c84dcef993d6b2dc96ed66444ffb15b9faf76f6771bb4ade293957",
+      "os": "linux",
+      "architecture": "amd64"
+    },
+    "ai4r-verify:20261025": {
+      "id": "sha256:09979a044c9eace8e3ef17cd142eb26a27306e14ea80939c0628356eaca2e97a",
+      "os": "linux",
+      "architecture": "amd64"
+    }
+  },
+  "app_build_id": "8b15c60f368db82fba4f2f073ca0a3c418791b10c7d48c13164af04c8b2dfc5d",
+  "startup": {
+    "project": "ai4r-local",
+    "url": "http://127.0.0.1:5175",
+    "http_status": 200,
+    "execution_mode": "m1_app_process",
+    "host_cgroup_setup_required": false,
+    "private_reference_directory": "root:root 0700 persistent named volume",
+    "runner_result_write_probe": "Actual UID11001 wrote successfully to a fresh named volume"
+  },
+  "tests": {
+    "focused": {
+      "passed": 219,
+      "subtests_passed": 4,
+      "failed": 0,
+      "log": "core.log"
+    },
+    "boundary": {
+      "passed": 64,
+      "failed": 0,
+      "junit": "boundary.xml",
+      "log": "boundary.log",
+      "scope": "5 actual M1 process cases, actual pinned Codex feature config, native controlled-model runtime and completion/custody tests"
+    },
+    "operator": {
+      "passed": 31,
+      "failed": 0,
+      "log": "operator.log",
+      "environment": "Windows host Python; tests Docker operator/rendering, not host product dependency"
+    },
+    "isolated_replay": {
+      "passed": 8,
+      "failed": 0,
+      "log": "replay.log",
+      "model": "Controlled governed responses; not live semantic quality"
+    },
+    "capability_and_planner_followup": {
+      "passed": 45,
+      "log": "isolated-initial.log",
+      "overlap": "Included in prior focused scope; not added to its total",
+      "initial_replay_setup_failures": 7,
+      "correction": "Qualified original request added; separate replay run all8 passed"
+    },
+    "legacy_status_followup": {
+      "passed": 1,
+      "failed": 1,
+      "remaining_not_run": 36,
+      "log": "status-followup.log",
+      "reason": "First current history check passed after fixture correction; next legacy finite-segment fixture expected dispatch interception but did not reach it. Stopped at first failure."
+    }
+  },
+  "test_conditions": [
+    "Docker verify image with pinned project dependencies",
+    "Read-only source bind; ephemeral writable SDK log directory",
+    "Filter upstream Python SyntaxWarning invalid escape sequence; no deselection"
+  ],
+  "live_acceptance": {
+    "authentication": "User confirmed Signed in; finite runner grant issued",
+    "authenticated_inference": true,
+    "accepted_pi_candidate": false,
+    "independent_pi_measurement": false,
+    "full_system_campaign": false,
+    "observed_model": "gpt-6.1-sol",
+    "first_smoke": {
+      "campaign_id": "m1-smoke-20261026-001",
+      "run_id": "run:14122923f054451f9158bf67bc2bd59f",
+      "completed_calls": 4,
+      "verifier_calls": 2,
+      "status": "halted",
+      "reason": "Static scientific plan missing scientific resources; bundled case corrected to planned PDF workflow",
+      "collection_verified_members": 8248
+    },
+    "pdf_smoke": {
+      "campaign_id": "m1-summary-20261026-002",
+      "run_id": "run:67c206c472b74ed39a7548607dbffa09",
+      "status": "completed",
+      "completed_calls": 11,
+      "worker_calls": 5,
+      "verifier_calls": 6,
+      "terminal_stage": "delivery",
+      "original_campaign_collection": "Paused on old build; preserved unchanged",
+      "recovered_archive_sha256": "ddc425ec2435c99db9ad8b67e209e4e295f03f926319bf089f7bca84554474fa",
+      "verified_members": 19769,
+      "total_uncompressed_bytes": 23085765
+    },
+    "readiness": true,
+    "read_only_workflow": true
+  },
+  "limitations": [
+    "M1 processes share app container namespaces/network; no nested sandbox or per-job cgroup claim",
+    "Local development builtins are NOT_RUN for model-based catalog qualification",
+    "Scientific demonstrations still require exact task/scorer/runtime binding and activation",
+    "Retained old CLI Builder failures and interrupted broad suite are not represented as passing",
+    "One legacy finite-segment status test remains failing; broader follow-up was stopped, not counted as passing"
+  ],
+  "runtime_image_source_commit": "bee219bb794def3aa1985d7f83906817c142cf47",
+  "fingerprint_method": "SHA256 of sorted tracked relative path + NUL + raw file SHA256 bytes; listed source roots, excluding Markdown"
+}

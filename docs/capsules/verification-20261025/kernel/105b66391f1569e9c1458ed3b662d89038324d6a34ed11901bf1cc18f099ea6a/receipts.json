@@ -1,0 +1,67 @@
+{
+  "test": "tests/integration/research/test_executor.py::test_actual_wall_timeout_kills_own_process_tree",
+  "scope": "Controlled actual Linux kernel mechanics; no installed app or model acceptance",
+  "results": [
+    {
+      "job_id": "probe-a48f2a8dac114fd49f2feaa466a6fccf",
+      "contract_ref": {
+        "id": "controlled-fixture",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "invocation_id": "controlled-invocation",
+      "argv": [
+        "/usr/local/bin/python3",
+        "-c",
+        "import time; time.sleep(60)"
+      ],
+      "started_at": "2026-10-26T02:46:57Z",
+      "ended_at": "2026-10-26T02:46:57Z",
+      "wall_time_s": 0.5076824359999819,
+      "timeout_s": 0.5,
+      "exit_code": -9,
+      "termination_reason": "timeout",
+      "stdout_ref": {
+        "id": "blob:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr_ref": {
+        "id": "blob:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "identity": {
+        "executor_uid": 10002,
+        "executor_gid": 10002
+      },
+      "observed_limits": {
+        "memory_max": "67108864",
+        "pids_max": "16",
+        "network": "none",
+        "isolation_probe_ref": {
+          "id": "blob:b8a0b6c024133c1ed6978fb73390c796086933bd37105ef8b9138810953ad700",
+          "sha256": "b8a0b6c024133c1ed6978fb73390c796086933bd37105ef8b9138810953ad700"
+        },
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "pids_events": "max 0\n",
+      "observed_runtime": true
+    }
+  ]
+}

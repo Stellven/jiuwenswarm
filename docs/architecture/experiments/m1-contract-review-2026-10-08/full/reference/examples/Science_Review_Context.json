@@ -1,0 +1,49 @@
+{
+  "id": "review:science",
+  "subject_ref": {
+    "id": "Evaluation_Verdict.json",
+    "sha256": "94f2b579a14ccd8e6d0f8a106fc9f306c3d2fe7bbde727d2b2ec26b3d3ce9305"
+  },
+  "criteria": [
+    "registered_rule_applied"
+  ],
+  "input_refs": [
+    {
+      "id": "Lifecycle_Research_Brief.json",
+      "sha256": "85d1e74264bf11656b8d40d88b5a509f33b0451adf6d6370c0497e797aa98904"
+    },
+    {
+      "id": "Hypothesis_Blueprint.json",
+      "sha256": "e8639062794bb5917eaf726a0a39b517843fd963c318fb2d60e7a0471ad83aae"
+    },
+    {
+      "id": "Benchmark_Payload.json",
+      "sha256": "302f881151d8c63086d2f3f4af487b89c525ac81f9aecea6d1855ef573344676"
+    }
+  ],
+  "contract_ref": {
+    "id": "Science_Node_Contract.json",
+    "sha256": "1ecfe66dfdf25b616e98eb2cbd9d5ff591193e793d7a02cced2bdd65f96900c5"
+  },
+  "check_plan_ref": {
+    "id": "Science_Check_Plan.json",
+    "sha256": "9fdfa5520be0e5a5241c2c19115c2e0ffbcdc125fcde283e6adfce899ed6872b"
+  },
+  "deterministic_result_ref": {
+    "id": "Science_Checks.json",
+    "sha256": "1866a91bbb95185668724d0cb8ab2debf4f9154b6bc09e01c7ddc2ffe6e167b2"
+  },
+  "observations": [
+    {
+      "id": "Science_Observation.json",
+      "sha256": "6831a26d29768fee02430ffd00f0e110a40fdfe1cff8f3b063b4070cd34c6b83"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "evidence_classes": [
+    "protected policy",
+    "accepted input",
+    "observed evidence",
+    "untrusted producer content"
+  ]
+}

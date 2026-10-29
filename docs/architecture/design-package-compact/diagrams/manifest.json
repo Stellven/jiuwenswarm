@@ -1,0 +1,115 @@
+{
+  "renderer": "mermaid-cli 12.0.0",
+  "diagrams": [
+    {
+      "source": "automation.md",
+      "title": "Local Compose topology",
+      "anchor": "local-compose-topology",
+      "mermaid_sha256": "0d79ca94afc94d5dc3a51f499f871ed78c0120005c399c53be6060146b2b5ad9",
+      "svg": "diagrams/automation-1.svg",
+      "png": "diagrams/automation-1.png",
+      "svg_sha256": "79c1af9eddb595a32992f195467b23bd03e097bd9f28d225782c8212e57c8a1f",
+      "png_sha256": "84aaa81452c2b2856553fa21fc01f7f0f6cebb1cff2cd97b9828f217ded94bb1"
+    },
+    {
+      "source": "development-tools/sidecar/README.md",
+      "title": "Purpose and composition",
+      "anchor": "purpose-and-composition",
+      "mermaid_sha256": "c7a89e81c56a5cfe85a731632c59523919882c95f4941125d58da60ea598e172",
+      "svg": "development-tools/sidecar/composition.svg",
+      "png": "development-tools/sidecar/composition.png",
+      "svg_sha256": "b43b841b5ad040e0149eaf6d9bbf0b9cc3d14ee2814b17fd141a787ead7c63cc",
+      "png_sha256": "dcf67c4cabf0c6fae1cab189a291e1da16b46995b6e6b3d6f487d03a87acefff"
+    },
+    {
+      "source": "development-tools/test-runner/README.md",
+      "title": "AI4Research sidecar: client-validation runner",
+      "anchor": "ai4research-sidecar-client-validation-runner",
+      "mermaid_sha256": "c7190da7ac9756c54416ac66b7075345de2052410938e1e0f604d6d161b2a2b4",
+      "svg": "diagrams/development-tools-test-runner-README-1.svg",
+      "png": "diagrams/development-tools-test-runner-README-1.png",
+      "svg_sha256": "7f847432429acae581b627c4ead3d69b7390ae3f857cc9fd8bce11df67b64093",
+      "png_sha256": "d32630e56a7d440651598968054cd5425637112a2dd6a715d6f34eaa2a01f638"
+    },
+    {
+      "source": "immediate-plan.md",
+      "title": "What to build",
+      "anchor": "what-to-build",
+      "mermaid_sha256": "54c0c38c67b6ed1bea5d412e4dbb3d88fd106bd74fdfb788f2790d38f18bee63",
+      "svg": "diagrams/immediate-plan-1.svg",
+      "png": "diagrams/immediate-plan-1.png",
+      "svg_sha256": "f09ac708d95490a5aac40ba64419fa62567831800f17c6b8e0707d86cedadac9",
+      "png_sha256": "18531d51aff29f6d2ac115fc8e49b13fb56b8517637d7a0a01c10792e212dee6"
+    },
+    {
+      "source": "intent-design.md",
+      "title": "Deterministic boundary",
+      "anchor": "deterministic-boundary",
+      "mermaid_sha256": "92f2afbd0c24ecb9db8b186baaab907dc336e7527f4b14a04a18907bd1474230",
+      "svg": "diagrams/intent-design-1.svg",
+      "png": "diagrams/intent-design-1.png",
+      "svg_sha256": "e97deb6cfabe2f34f2505db65f89cc815b083cb4da466ba296af54a906dad635",
+      "png_sha256": "1adc7d6236a8dd6112eb0521ab4f9a2db2d579c5076e9495d845413180927ca0"
+    },
+    {
+      "source": "intent-design.md",
+      "title": "Requirements CC and the second boundary",
+      "anchor": "requirements-cc-and-the-second-boundary",
+      "mermaid_sha256": "51b42262973522f1d410df5c2179efdec50fe25da40e875b90297db4432766fc",
+      "svg": "diagrams/intent-design-2.svg",
+      "png": "diagrams/intent-design-2.png",
+      "svg_sha256": "18411f1f60bd6e027b2ef44eaf5f3dfa6857bbefd4d9172113af803ab8c54352",
+      "png_sha256": "1288db63df2126acf4b5beccdc0d6e81a9aa72b59ede468cbf50d281972a01ef"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "From meaning to a governed research program",
+      "anchor": "from-meaning-to-a-governed-research-program",
+      "mermaid_sha256": "c266423761e4d15bddd1053c5dc4cf599012c97b91a47bd359080d252789f86a",
+      "svg": "diagrams/m1-design-1.svg",
+      "png": "diagrams/m1-design-1.png",
+      "svg_sha256": "f291575b09d44a7b86bd0990a4ee52a693352d0ad27960fba03096b0a5164cd7",
+      "png_sha256": "22e841f30de6c2f60fbf7fda108353d172701bf950b6d98f647a1484c8816d05"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Execution and model routing",
+      "anchor": "execution-and-model-routing",
+      "mermaid_sha256": "82af21bff9d63f986fa1b5cd7d6d84e3639a36a82a6a4edda88bf282a98bd350",
+      "svg": "diagrams/m1-design-2.svg",
+      "png": "diagrams/m1-design-2.png",
+      "svg_sha256": "12e6ac49f6a3cd65242acc0fbce0ad6e7ebdd998da1b4cb86a69985cebb7db3d",
+      "png_sha256": "d2ee736f345034e004b9933a97a843fec6a531a0e27934bf57bd27f94f89af40"
+    },
+    {
+      "source": "m1-design.md",
+      "title": "Where RSI connects",
+      "anchor": "where-rsi-connects",
+      "mermaid_sha256": "5e6954816b65f9e5981dddaf6a9e38ae61591e1c89414874b5cfc984f5c61749",
+      "svg": "diagrams/m1-design-3.svg",
+      "png": "diagrams/m1-design-3.png",
+      "svg_sha256": "46eca5b7c5b55d3c901288a72f1539e616646326ec092a42a98ba34298d656b1",
+      "png_sha256": "9da6058c3ec2c7fdc1ce3a812b547f3ea6e820c7c5b13a41e8349923d3aba36c"
+    },
+    {
+      "source": "README.md",
+      "title": "System picture",
+      "anchor": "system-picture",
+      "mermaid_sha256": "f133f1a4082251d7cbe082296c8eee9a176fa6ebfc84ed2deca9c76391acfe71",
+      "svg": "diagrams/README-1.svg",
+      "png": "diagrams/README-1.png",
+      "svg_sha256": "bfb2eac27821f2a27beb87335faa66d219d6c62af0634e247e1143f180947e78",
+      "png_sha256": "e664db1b0207649f978351515d5fd5f37b2fb47468e3be13e9c176571fa78797"
+    },
+    {
+      "source": "reference/capsule-model-routing.md",
+      "title": "Shared flow",
+      "anchor": "shared-flow",
+      "mermaid_sha256": "5b90f7d189a5286accdf42a93e38899fb62e8f74e238d9d2ee32cf4cf25b4cef",
+      "svg": "diagrams/reference-capsule-model-routing-1.svg",
+      "svg_sha256": "5fd2058203be8029635963b2245769430045028ec915285f1b27b36f11827d95",
+      "png": "diagrams/reference-capsule-model-routing-1.png",
+      "png_sha256": "d5c8156df112cf2d17d2628df13d1510c538d21a622171cbc9667b5acd536cde"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+.............................F.                                          [100%]
+=================================== FAILURES ===================================
+__ test_status_stage_paused_original_child_must_match_exact_assigned_template __
+tests/unit_tests/research/test_status_stage.py:435: in test_status_stage_paused_original_child_must_match_exact_assigned_template
+    with pytest.raises(ResearchError) as error:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'jiuwenswarm.research.contracts.types.ResearchError'>
+=========================== short test summary info ============================
+FAILED tests/unit_tests/research/test_status_stage.py::test_status_stage_paused_original_child_must_match_exact_assigned_template
+1 failed, 30 passed in 154.52s (0:02:34)

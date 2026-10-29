@@ -201,6 +201,16 @@ export function TurnElapsed({
 }) {
   const { t } = useTranslation();
   const active = isLastTurn && isProcessing;
+  const researchStage = useChatStore((s) => s.runtimes[s.activeSessionId ?? '']?.researchStage);
+  const researchProgressKey = researchStage
+    ? /intention_compiler|(^|[^a-z])(intent|requirements)([^a-z]|$)/i.test(researchStage)
+      ? 'understanding'
+      : /(^|[^a-z])(search|screening)([^a-z]|$)/i.test(researchStage)
+        ? 'sources'
+        : /(^|[^a-z])(evaluation|delivery)([^a-z]|$)/i.test(researchStage)
+          ? 'results'
+          : 'working'
+    : null;
   const now = useNow(active);
   const end = active ? now : endMs;
   const rawElapsed = Math.max(0, end - startMs);
@@ -223,10 +233,10 @@ export function TurnElapsed({
       data-variant={showActive ? 'active' : 'finished'}
     >
       {showActive && <LoaderCircle className="turn-elapsed__spinner" size={12} strokeWidth={2.2} aria-hidden="true" />}
-      <span className="turn-elapsed__label" data-testid="chat-panel-turn-elapsed-label">
-        {showActive ? t('chatUi.turnRunning') : t('chatUi.turnElapsed')}
+      <span className="turn-elapsed__label" data-testid="chat-panel-turn-elapsed-label" aria-live={researchProgressKey ? 'polite' : undefined}>
+        {showActive ? researchProgressKey ? t(`researchWorkflow.progress.${researchProgressKey}`) : t('chatUi.turnRunning') : t('chatUi.turnElapsed')}
       </span>
-      <span className="turn-elapsed__value" data-testid="chat-panel-turn-elapsed-value">
+      <span className="turn-elapsed__value" data-testid="chat-panel-turn-elapsed-value" hidden={showActive && Boolean(researchProgressKey)}>
         {showActive ? formatElapsedCoarse(elapsed) : formatDurationPrecise(elapsed)}
       </span>
     </div>

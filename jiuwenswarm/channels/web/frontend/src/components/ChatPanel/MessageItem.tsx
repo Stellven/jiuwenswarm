@@ -52,6 +52,7 @@ import { openFileInDesktopBrowser } from '../../features/desktopBrowserFile';
 import { executeDesktopSave, type DesktopSaveApiResult } from '../../utils/desktopSave';
 import { FileIcon } from '../FileIcon';
 import { webRequest } from '../../services/webClient';
+import { downloadResearchExport } from '../../utils/researchClient';
 import { useChatStore } from '../../stores/chatStore';
 import { useSessionStore } from '../../stores/sessionStore';
 import type { AgentGroupIdentity } from '../../features/agentManagement';
@@ -369,6 +370,7 @@ export const MessageItem = memo(function MessageItem({
     audioBase64,
     audioMime,
     mediaItems,
+    researchAttachments,
     fileItems,
     isGoalObjectiveMessage,
     isCommandOutput,
@@ -744,7 +746,10 @@ export const MessageItem = memo(function MessageItem({
   );
   const showCopy = Boolean(isUser ? displayContent : content) && !isStreaming;
   const isPlaying = audioBase64 ? isAudioPlaying : isSpeaking;
-  const visibleMediaItems = mediaItems?.length ? mediaItems : null;
+  const attachedItems = [...(mediaItems ?? []), ...(researchAttachments ?? []).map((file) => ({
+    type: 'document' as const, filename: file.filename, mimeType: 'application/octet-stream',
+  }))];
+  const visibleMediaItems = attachedItems.length ? attachedItems : null;
   const visibleFileItems = fileItems?.length ? fileItems : null;
   const hasDisplayText = Boolean(displayContent);
   const hasBubbleContent = isUser
@@ -1011,6 +1016,16 @@ function getFileExtension(name: string): string {
   return parts[parts.length - 1].toUpperCase();
 }
 
+function researchExportRunId(downloadUrl: string): string | null {
+  const match = /^\/api\/v1\/runs\/([^/?#]+)\/export\?audience=researcher$/.exec(downloadUrl);
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]) || null;
+  } catch {
+    return null;
+  }
+}
+
 function FileDownloadList({
   files,
   className,
@@ -1031,7 +1046,9 @@ function FileDownloadList({
   useEffect(() => {
     let cancelled = false;
     files.forEach((file, index) => {
-      if (!file.download_url) return;
+      // Protected research exports use the current authenticated fetch on
+      // demand. A token-free HEAD request cannot establish their availability.
+      if (!file.download_url || researchExportRunId(file.download_url)) return;
       fetch(file.download_url, { method: 'HEAD' })
         .then((res) => {
           if (!cancelled && !res.ok) {
@@ -1061,6 +1078,16 @@ function FileDownloadList({
 
   const handleDownload = async (file: FileDownloadItem, index: number) => {
     if (expiredSet.has(index) || !file.download_url) return;
+
+    const researchRunId = researchExportRunId(file.download_url);
+    if (researchRunId) {
+      try {
+        await downloadResearchExport(researchRunId);
+      } catch {
+        window.alert(t('artifacts.downloadFailed', { name: file.name }));
+      }
+      return;
+    }
 
     const pywebviewApi = (window as Window & { pywebview?: { api?: { download_file?: (url: string, filename: string) => DesktopSaveApiResult } } }).pywebview?.api;
     if (pywebviewApi?.download_file) {
@@ -1131,6 +1158,8 @@ function FileDownloadList({
     className={clsx('mt-2 space-y-2', className)}>
       {files.map((file, index) => {
         const ext = getFileExtension(file.name);
+        const isResearchExport = researchExportRunId(file.download_url) !== null;
+        const canPreview = Boolean(onPreview) && !isResearchExport;
         const expired = expiredSet.has(index);
         const isSkill = isSkillPackageFile(file);
         const displayName = isSkill ? skillPackageDisplayName(file) : file.name;
@@ -1152,10 +1181,10 @@ function FileDownloadList({
               showPreview && 'chat-panel-file-download-item--with-preview',
               expired
                 ? 'chat-panel-file-download-item--expired'
-                : !onPreview && 'chat-panel-file-download-item--no-preview',
+                : !canPreview && 'chat-panel-file-download-item--no-preview',
             )}
             onClick={() => {
-              if (!expired) onPreview?.(index);
+              if (!expired && canPreview) onPreview?.(index);
             }}
           >
             <div className="chat-panel-file-download-item__row">
@@ -1163,13 +1192,13 @@ function FileDownloadList({
               type="button"
               data-testid="chat-panel-file-download-preview"
               className="flex min-w-0 flex-1 items-center gap-3 text-left"
-              disabled={expired || !onPreview}
+              disabled={expired || !canPreview}
               onClick={(event) => {
                 event.stopPropagation();
-                onPreview?.(index);
+                if (canPreview) onPreview?.(index);
               }}
-              title={onPreview ? t('artifacts.openPreview', { name: displayName }) : undefined}
-              aria-label={onPreview ? t('artifacts.openPreview', { name: displayName }) : undefined}
+              title={canPreview ? t('artifacts.openPreview', { name: displayName }) : undefined}
+              aria-label={canPreview ? t('artifacts.openPreview', { name: displayName }) : undefined}
             >
               {isSkill ? (
                 <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-accent-subtle flex items-center justify-center">
@@ -1188,7 +1217,7 @@ function FileDownloadList({
                       {ext || 'FILE'}
                     </span>
                   )}
-                  <span className="text-xs text-text-muted" data-testid="chat-panel-file-download-size">{formatFileSize(file.size)}</span>
+                  {!isResearchExport && <span className="text-xs text-text-muted" data-testid="chat-panel-file-download-size">{formatFileSize(file.size)}</span>}
                   {expired && (
                     <span className="inline-flex items-center px-1 py-px rounded text-[10px] font-mono font-medium text-danger bg-danger/10 leading-none" data-testid="chat-panel-file-download-expired">
                       {t('chatUi.fileExpired')}

@@ -1,7 +1,7 @@
 # Slash Command Architecture
 
 > **Document type**: Architecture and evolution conventions — describes "single source of truth", layering boundaries, and implementation principles.
-> **Relationship to other docs**: See [`SlashCommands.md`](./SlashCommands.md) for the command reference table; [`CLI.md`](./CLI.md) for the CLI command list. This document does **not** enumerate all commands — it defines **how they are organized and how to prevent drift**.
+> **Relationship to other docs**: See [`SlashCommands.md`](SlashCommands.md) for the command reference table; [`CLI.md`](CLI.md) for the CLI command list. This document does **not** enumerate all commands — it defines **how they are organized and how to prevent drift**.
 
 ---
 
@@ -50,7 +50,7 @@ Without clear layering and a single source of truth, the project risks: **semant
 
 **Definition**: Commands parsed and executed **locally** in CLI TUI, Web REPL, etc., or commands that should NOT be semantically intercepted by the Gateway.
 
-**Typical commands**: UI toggles, `/resume`, `/model` (if purely local config), help/diagnostic stubs — per [`CLI.md`](./CLI.md).
+**Typical commands**: UI toggles, `/resume`, `/model` (if purely local config), help/diagnostic stubs — per [`CLI.md`](CLI.md).
 
 **Requirements**:
 
@@ -102,7 +102,7 @@ Without clear layering and a single source of truth, the project risks: **semant
 | **Gateway `MessageHandler`** | Before controlled-channel user text enters unified control logic, use SSOT for decisions. |
 | **`im_inbound` etc.** | If pre-filtering or statistics are needed, **import the same constants/functions** — no independent `frozenset` subsets. |
 | **Feishu / WeCom etc.** | If lightweight pre-checking is needed at the Channel layer, **reuse SSOT** or only do coarse "might be a control command" filtering. Final semantics always per Gateway. If dual-point checking exists, document in registry `notes` and load-test to avoid duplicate prompts. |
-| **CLI** | Continue maintaining the TS `registry`; align names with Category A per [`CLI.md`](./CLI.md) and §3.3 above. Do NOT duplicate Category B logic in the Gateway. |
+| **CLI** | Continue maintaining the TS `registry`; align names with Category A per [`CLI.md`](CLI.md) and §3.3 above. Do NOT duplicate Category B logic in the Gateway. |
 
 ---
 
@@ -140,4 +140,4 @@ Without clear layering and a single source of truth, the project risks: **semant
 
 ## 10. Current Command Status (based on `gateway/slash_command.py`)
 
-The current command list has been split into a separate document: [`SlashCommands.md`](./SlashCommands.md).
+The current command list has been split into a separate document: [`SlashCommands.md`](SlashCommands.md).

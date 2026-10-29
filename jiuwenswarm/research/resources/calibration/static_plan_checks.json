@@ -1,0 +1,134 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "static_template.json",
+    "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+  },
+  "check_plan_ref": {
+    "id": "static_plan_check_plan.json",
+    "sha256": "15f4e96f20f86fc35626104064a16deafbdbb5da05867989f6abba1865d5bb68"
+  },
+  "results": [
+    {
+      "check_id": "template_structure",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "brief_coverage",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "library_membership",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "port_type_compatibility",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "dependency_closure",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "acyclicity",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "delivery_leaf_coverage",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "mandatory_check_bundle_present",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "effects_within_policy",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "resource_feasibility",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    },
+    {
+      "check_id": "budget_ceilings",
+      "outcome": "PASS",
+      "reason": "Synthetic illustration of a binder host check on the static template",
+      "evidence_refs": [
+        {
+          "id": "static_template.json",
+          "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+﻿case_id,repeat_index,run_id,request_id,app_run_id,execution_state,collection_state,created_at,submitted_at,ended_at,artifact_count,errors,assessment,evidence_references,review_notes
+case1-cpu,1,case1-cpu-r1,request-8ffc1f13bc2d4153818c47d9aa4a7361,run:ed6087d37f4742aaba2b0435a1f91841,partial,complete,2026-10-23T18:12:50Z,2026-10-23T18:12:56Z,2026-10-23T18:21:32Z,35,[],,,

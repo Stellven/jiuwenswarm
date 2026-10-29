@@ -20,25 +20,11 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from typing import Optional
 
-from jiuwenswarm.common.utils import get_user_home, init_user_workspace, get_user_workspace_dir
-from jiuwenswarm.instance_manager import (
-    create_bootstrap_env,
-    get_default_instance_status,
-    get_instance_config,
-    get_instance_status,
-    get_instance_workspace_path,
-    get_instance_index,
-    calculate_instance_ports,
-    find_available_ports,
-    is_port_available,
-    collect_all_ports,
-    update_instances_yaml,
-    validate_instance_name,
-    InstanceConfig,
-)
+
 
 
 def run_init(force: bool = False, name: Optional[str] = None) -> int:
@@ -48,6 +34,23 @@ def run_init(force: bool = False, name: Optional[str] = None) -> int:
         force: Force clean initialization, delete entire workspace before init
         name: Named instance name (e.g., alice, bob)
     """
+    from jiuwenswarm.common.utils import get_user_home, init_user_workspace, get_user_workspace_dir
+    from jiuwenswarm.instance_manager import (
+        create_bootstrap_env,
+        get_default_instance_status,
+        get_instance_config,
+        get_instance_status,
+        get_instance_workspace_path,
+        get_instance_index,
+        calculate_instance_ports,
+        find_available_ports,
+        is_port_available,
+        collect_all_ports,
+        update_instances_yaml,
+        validate_instance_name,
+        InstanceConfig,
+    )
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -152,6 +155,9 @@ def run_init(force: bool = False, name: Optional[str] = None) -> int:
 
 
 def main() -> int:
+    if os.environ.get('JIUWENSWARM_M1_PROFILE')=='1':
+        from jiuwenswarm.research.initialize import main as initialize_research
+        return initialize_research()
     parser = argparse.ArgumentParser(
         description="Initialize jiuwenswarm workspace directory (~/.jiuwenswarm)"
     )

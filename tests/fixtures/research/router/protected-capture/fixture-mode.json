@@ -1,0 +1,1 @@
+{"mode": "source-derived disposable BLOCK and transport fixture", "observed_runtime": false, "operational_admission": false, "sources": ["docs\\code\\Missions\\M1\\source\\Architecture_Design\\reference\\examples\\route_request.json"], "changes": ["Replace synthetic teaching admission with canonical disposable admission and update exact subnode/context refs."]}

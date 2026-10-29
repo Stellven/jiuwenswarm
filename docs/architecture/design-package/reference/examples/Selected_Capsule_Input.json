@@ -1,0 +1,289 @@
+{
+  "schema_version": "1.0.0",
+  "declaration": {
+    "schema_version": "1.0.0",
+    "identity": {
+      "name": "intent.compiler",
+      "version_label": "example-1",
+      "kind": "agent",
+      "summary": "Extract faithful, coherent user meaning with explicit uncertainty",
+      "carrier": {
+        "ref": "Intent_Implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      "body": [
+        {
+          "path": "Intent_Implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        }
+      ]
+    },
+    "ports": {
+      "inputs": [
+        {
+          "name": "request",
+          "artifact_type": "qualified_intake",
+          "schema_ref": "qualified-intake:field-contract:2",
+          "required": true,
+          "description": "Exact qualified request and permitted context",
+          "check_ids": []
+        }
+      ],
+      "outputs": [
+        {
+          "name": "intent",
+          "artifact_type": "intent-ir",
+          "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+          "required": true,
+          "description": "Attributed interpretation, not Requirements",
+          "check_ids": [
+            "intent_schema"
+          ]
+        }
+      ]
+    },
+    "needs": {
+      "when": [],
+      "external": [],
+      "network": {
+        "mode": "none",
+        "direction": "none",
+        "allowlist": []
+      },
+      "resources": [
+        {
+          "resource_key": "original_request",
+          "mode": "read"
+        }
+      ],
+      "injects": [
+        {
+          "service_key": "audited_model_bridge",
+          "interface_version_range": "1.x"
+        }
+      ],
+      "model": {
+        "tool_calling": false,
+        "modalities": [
+          "text"
+        ]
+      }
+    },
+    "changes": {
+      "effect_class": "read_only",
+      "effects": [
+        {
+          "id": "model-disclosure",
+          "resource_key": "approved_model_bridge",
+          "op": "model_invoke",
+          "scope": "bound permitted request context",
+          "idempotent": false,
+          "reversibility": "none",
+          "undo": null,
+          "risk": {
+            "severity": "bounded",
+            "blast_radius": "one approved context",
+            "irreversibility": true
+          },
+          "assurance": "protected bridge enforces scope and limits"
+        }
+      ],
+      "provides": [],
+      "invariants": []
+    },
+    "guarantees": {
+      "checks": [
+        {
+          "id": "intent_schema",
+          "kind": "deterministic",
+          "target": "outputs.intent",
+          "runner": {
+            "ref": "Intent_Implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          },
+          "anchor": "exact output bytes",
+          "over": [
+            "outputs"
+          ],
+          "author": "independent schema owner",
+          "written_before_body": true,
+          "held_out": false,
+          "signal_source": "captured output",
+          "owner": "protected profile registry",
+          "assurance": "structure only"
+        }
+      ],
+      "acceptance": [
+        "intent_schema"
+      ],
+      "evals": [],
+      "unanchored": [
+        "Semantic fidelity/usability require independently assigned runtime verification"
+      ]
+    },
+    "budget": {
+      "per_call": {
+        "wall_s": 60,
+        "invocations": 1,
+        "tool_calls": 0
+      },
+      "enforcement": {
+        "wall_s": "hard",
+        "invocations": "hard",
+        "tool_calls": "hard"
+      },
+      "on_exhaust": "fail"
+    },
+    "evolution": {
+      "frozen": [
+        "/ports",
+        "/needs",
+        "/changes",
+        "/guarantees",
+        "/budget"
+      ],
+      "notes_for_builder": []
+    },
+    "coverage": {
+      "undeclared_notes": [
+        "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+      ]
+    }
+  },
+  "declaration_ref": {
+    "id": "Capsule_Declaration.json",
+    "sha256": "402e70710244fdff27e4488f41036bb250a4e31ecb0eafa99bfb418649aae1ec"
+  },
+  "node_contract_ref": {
+    "id": "Intention_Node_Contract.json",
+    "sha256": "a7efc03ae33441be12a38fcfba0741935f5c4c3ad50be138c98545b0f22f52d4"
+  },
+  "subnode_contract_ref": {
+    "id": "Intention_Subnode_Contract.json",
+    "sha256": "da6242e2d7818e4f0da5373e9977e278f3a2740c709a3d9d1b7e829a2e8d5aa8"
+  },
+  "bound_context": {
+    "runtime": {
+      "run_id": "run:example",
+      "node_id": "intention.compiler",
+      "subnode_id": "intention",
+      "attempt_id": "attempt:1",
+      "invocation_id": "invocation:routing-teaching-example"
+    },
+    "binding_id": "binding:intent.compiler",
+    "role": "intent.compiler",
+    "objective": "Produce faithful and usable Intent",
+    "inputs": [
+      {
+        "name": "request",
+        "contract_id": "qualified-intake:field-contract:2",
+        "version": "2.0.0",
+        "required": true,
+        "artifact_refs": [
+          {
+            "id": "Qualified_Intake.json",
+            "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "intent",
+        "contract_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0",
+        "version": "1.0.0",
+        "required": true
+      }
+    ],
+    "implementation_refs": [
+      {
+        "id": "Intent_Implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      }
+    ],
+    "overlay_refs": [],
+    "dependency_refs": [],
+    "admission_ref": {
+      "id": "Synthetic_Admission.json",
+      "sha256": "ad6b207f1e9419c4f7605c16cd8ce4baa659546259aa3bbe56a2789c669c99ff"
+    },
+    "eligibility": "eligible",
+    "prerequisite_results": [],
+    "effective_authority": {
+      "network": "none",
+      "network_allowlist": [],
+      "resource_reads": [
+        {
+          "id": "Qualified_Intake.json",
+          "sha256": "a21a5094fbaab09f9f61e31a34f7d9113645c35299af8e49190a165fc5d28880"
+        }
+      ],
+      "write_roots": [
+        "candidate-output"
+      ],
+      "tools": [
+        "audited-model-bridge"
+      ]
+    },
+    "invocation_limits": {
+      "time_s": 120,
+      "model_calls": 1,
+      "memory_mb": 512
+    },
+    "subnode_limits": {
+      "time_s": 120,
+      "model_calls": 1,
+      "memory_mb": 512
+    },
+    "node_limits": {
+      "time_s": 360,
+      "model_calls": 4,
+      "memory_mb": 1024
+    },
+    "budget_snapshot": {
+      "node_remaining": {
+        "time_s": 360,
+        "model_calls": 4,
+        "memory_mb": 1024
+      },
+      "subnode_remaining": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 512
+      },
+      "verifier_reserved": {
+        "time_s": 120,
+        "model_calls": 2,
+        "memory_mb": 512
+      },
+      "routing_reserved": {
+        "time_s": 0,
+        "model_calls": 0,
+        "memory_mb": 512
+      },
+      "other_work_reserved": {
+        "time_s": 120,
+        "model_calls": 1,
+        "memory_mb": 512
+      },
+      "tokens_remaining": null,
+      "cost_remaining": null,
+      "cost_currency": null,
+      "unavailable_reasons": [
+        "Synthetic example: no measured ledger, token usage or monetary balance"
+      ],
+      "snapshot_ref": {
+        "id": "Routing_Budget_Snapshot.json",
+        "sha256": "25f58c9f7a9c9aa9c97413b02bfeda4640190a9c7725c40b4a0bdf080510bd0f"
+      }
+    },
+    "policy_ref": {
+      "id": "Default_Policy.json",
+      "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+    },
+    "configuration_ref": {
+      "id": "Run_Configuration.json",
+      "sha256": "73986166bce89a44950b5fea962af99e56e86f0f1ef41f881dc523d6c51bee72"
+    }
+  }
+}

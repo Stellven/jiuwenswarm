@@ -1,0 +1,2 @@
+﻿case_id,repeat_index,run_id,request_id,app_run_id,execution_state,collection_state,created_at,submitted_at,ended_at,artifact_count,errors,assessment,evidence_references,review_notes
+case1-cpu,1,case1-cpu-r1,request-2beee70ae4ac46c6ac0859090163bb9a,run:6cfba611e7ef4f42b3fa3451a8573245,halted,complete,2026-10-23T16:07:50Z,2026-10-23T16:10:03Z,2026-10-23T16:14:32Z,17,"[{""at"": ""2026-10-23T16:07:56Z"", ""category"": ""app_access_failure"", ""detail"": ""product HTTP refused operation: 409""}]",,,

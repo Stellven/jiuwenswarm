@@ -1,0 +1,1 @@
+Synthetic fixed proposer policy identity; allowed helper-only mutation under target limits. No proposal calls were observed.

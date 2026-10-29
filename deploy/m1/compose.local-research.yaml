@@ -1,0 +1,12 @@
+services:
+  app:
+    # Only this explicitly owned local branch is writable. The root broker
+    # moves its finite supervised child into it before opening the child gate.
+    cgroup: host
+    environment:
+      AI4R_EXECUTOR_CGROUP_ROOT: /run/ai4r-cgroups
+    volumes:
+      - type: bind
+        source: ${AI4R_EXECUTOR_CGROUP_HOST:?Prepare the local executor delegation first}
+        target: /run/ai4r-cgroups
+        bind: {create_host_path: false}

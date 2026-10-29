@@ -1,0 +1,62 @@
+[
+  {
+    "id": "e4b",
+    "name": "Nemotron 3.5 Bolt E4B",
+    "weights": "nvidia/NVIDIA-Nemotron-3.5-Bolt-E4B-4GB",
+    "precision": "Q4_K_M",
+    "family": "nvidia",
+    "selector": true,
+    "verifier": false,
+    "description": "Small local model for routing, extraction, classification and simple capsule work. Also eligible as an executor."
+  },
+  {
+    "id": "qwen",
+    "name": "Qwen3.8 27B",
+    "weights": "ggml-org/Qwen3.8-27B-GGUF",
+    "precision": "Q4_K_M",
+    "family": "qwen",
+    "selector": false,
+    "verifier": true,
+    "description": "General local model for bounded routine text work, task assessment and independent declaration/output verification. Not the default for optimization or threshold decisions."
+  },
+  {
+    "id": "bolt",
+    "name": "Nemotron 3.5 Bolt 74B",
+    "weights": "nvidia/NVIDIA-Nemotron-3.5-Bolt-74B-A9B-24GB-GGUF",
+    "precision": "IQ2_XXS (official 24GB release)",
+    "family": "nvidia",
+    "selector": false,
+    "verifier": false,
+    "description": "Larger local MoE model for harder planning, reasoning and code tasks. Not a measured performance ranking."
+  },
+  {
+    "id": "lightning",
+    "name": "Nemotron 3.5 Lightning 30B-A3B",
+    "weights": "ggml-org/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-GGUF",
+    "precision": "Q4_0",
+    "family": "nvidia",
+    "selector": false,
+    "verifier": false,
+    "description": "Local MoE reasoning executor for bounded multi-step transformations and technical work; benchmark qualification is separate."
+  },
+  {
+    "id": "gptoss",
+    "name": "gpt-oss-120b",
+    "weights": "ggml-org/gpt-oss-120b-GGUF",
+    "precision": "MXFP4",
+    "family": "openai-local",
+    "selector": false,
+    "verifier": false,
+    "description": "Larger local reasoning executor for aggregation, constraints and numerical analysis; native MXFP4 weights. Critical or uncertain tasks still require ChatGPT."
+  },
+  {
+    "id": "gptoss20",
+    "name": "gpt-oss-20b",
+    "weights": "ggml-org/gpt-oss-20b-GGUF",
+    "precision": "MXFP4",
+    "family": "openai-local",
+    "selector": true,
+    "verifier": true,
+    "description": "Compact local reasoning executor and bounded routing assessor. Separate declaration/output-only verifier call; no input facts or reviewer answers enter verification."
+  }
+]

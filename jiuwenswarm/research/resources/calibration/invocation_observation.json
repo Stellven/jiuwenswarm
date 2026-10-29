@@ -1,0 +1,67 @@
+{
+  "schema_version": "3.0.0",
+  "id": "invocation:intent",
+  "run_id": "run:example",
+  "attempt_id": "intention_compiler-a1",
+  "node_id": "intention_compiler",
+  "subnode_id": "intention",
+  "cc_name": "intent.compiler",
+  "cc_version": "example-1",
+  "declaration_sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390",
+  "route_id": null,
+  "measurement_status": "unavailable",
+  "contract_ref": {
+    "id": "intention_subnode_contract.json",
+    "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
+  },
+  "binding_id": "binding:intent.compiler",
+  "input_refs": [
+    {
+      "id": "qualified_intake.json",
+      "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "intent_ir.json",
+      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  },
+  "node_contract_ref": {
+    "id": "intention_node_contract.json",
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+  },
+  "body_files_sha256": "ddd8ba007139fc1e8985352fc173533bfb2ad5ff03f0a37695bc070cc885fb01",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
+}

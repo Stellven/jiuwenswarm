@@ -1,0 +1,1 @@
+Reduce retrieval latency for my supplied data lake baseline on one GPU while preserving answer quality. Return a reproducible comparison report.

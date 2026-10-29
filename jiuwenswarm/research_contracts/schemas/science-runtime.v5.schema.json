@@ -1,0 +1,337 @@
+{
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-science-runtime:5"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "build_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile": {
+      "type": "object",
+      "properties": {
+        "asset_root": {
+          "const": "/var/lib/ai4r-executor/assets"
+        },
+        "environment_root": {
+          "const": "/var/lib/ai4r-executor/environments"
+        },
+        "memory_mb": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "pids_max": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "run_timeout_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "provision_timeout_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "baseline_arguments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[^\u0000]*$"
+          }
+        },
+        "treatment_arguments": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[^\u0000]*$"
+          }
+        },
+        "uv_path": {
+          "const": "/usr/local/bin/uv"
+        },
+        "python_path": {
+          "type": "string",
+          "pattern": "^/[^\u0000]+$"
+        }
+      },
+      "required": [
+        "asset_root",
+        "environment_root",
+        "memory_mb",
+        "pids_max",
+        "run_timeout_s",
+        "provision_timeout_s",
+        "baseline_arguments",
+        "treatment_arguments",
+        "uv_path",
+        "python_path"
+      ],
+      "additionalProperties": false
+    },
+    "approved_environments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lock_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "approval_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "platform_fact": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 3,
+            "maxItems": 3
+          },
+          "wheel_filenames": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "lock_ref",
+          "approval_ref",
+          "platform_fact",
+          "wheel_filenames"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "gpu_required": {
+      "type": "boolean"
+    },
+    "execution_bindings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "configuration_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "policy_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "resource_inventory_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "declaration_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "implementation_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            },
+            "uniqueItems": true
+          },
+          "dependency_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Ref"
+            },
+            "uniqueItems": true
+          },
+          "admission_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "provision",
+                "hardware_inventory",
+                "measure_job",
+                "run",
+                "collect_builder",
+                "builder_observation",
+                "invoke_builder",
+                "builder_test",
+                "builder_action"
+              ]
+            },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "configuration_ref",
+          "policy_ref",
+          "resource_inventory_ref",
+          "declaration_ref",
+          "implementation_refs",
+          "dependency_refs",
+          "admission_ref",
+          "operations"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "scoring_profile": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "const": "ai4r-blind-classification:1"
+            },
+            "public_dataset_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "public_file": {
+              "const": "data.json"
+            },
+            "holdout_path": {
+              "const": "/run/ai4r-private-qa/holdout.json"
+            },
+            "max_stdout_bytes": {
+              "const": 8388608,
+              "type": "integer"
+            },
+            "public_data_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "holdout_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "scorer_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "protocol",
+            "public_dataset_ref",
+            "public_file",
+            "holdout_path",
+            "max_stdout_bytes",
+            "public_data_sha256",
+            "holdout_sha256",
+            "scorer_sha256"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "protocol": {
+              "const": "ai4r-pi:1"
+            },
+            "public_dataset_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "reference_path": {
+              "type": "string",
+              "pattern": "^/run/ai4r-private-qa/"
+            },
+            "reference_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "source_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "methods": {
+              "const": [
+                "decimal-gauss-legendre",
+                "integer-chudnovsky-binary-splitting"
+              ]
+            },
+            "unseen_precisions": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 20000,
+                "maximum": 100000
+              },
+              "minItems": 3,
+              "maxItems": 3,
+              "uniqueItems": true
+            },
+            "measured_precisions": {
+              "const": [
+                10000,
+                100000
+              ]
+            },
+            "repetitions": {
+              "const": 5
+            },
+            "max_stdout_bytes": {
+              "const": 1048576
+            }
+          },
+          "required": [
+            "protocol",
+            "public_dataset_ref",
+            "reference_path",
+            "reference_sha256",
+            "source_sha256",
+            "methods",
+            "unseen_precisions",
+            "measured_precisions",
+            "repetitions",
+            "max_stdout_bytes"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "execution_mode": {
+      "const": "m1_app_process"
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "build_id",
+    "profile",
+    "approved_environments",
+    "gpu_required",
+    "execution_bindings",
+    "scoring_profile",
+    "execution_mode"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:science-runtime:5",
+  "x-owning-interface": "M1-IF-001@r2",
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Explicit M1 ordinary app-container process execution. No namespace or delegated-cgroup proof is implied; original bindings, budgets, custody and independent scoring remain mandatory."
+}

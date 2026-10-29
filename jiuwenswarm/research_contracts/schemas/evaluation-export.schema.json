@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-export:1",
+  "title": "evaluation-export",
+  "x-owning-interface": "M1-IF-016@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-export:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "scope_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "request_state": {
+      "enum": [
+        "started",
+        "completed",
+        "failed",
+        "cancelled",
+        "outcome_unknown"
+      ]
+    },
+    "through_event_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "source_binding_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "original_request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "normalized_request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "result_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "failure_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "measurement_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "audience": {
+      "enum": [
+        "researcher",
+        "reviewer"
+      ]
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ExportFile"
+      }
+    },
+    "required_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/RequiredEvidence"
+      }
+    },
+    "redactions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "request_ref",
+    "scope_ref",
+    "request_state",
+    "through_event_ref",
+    "source_binding_ref",
+    "original_request_ref",
+    "normalized_request_ref",
+    "result_ref",
+    "failure_ref",
+    "measurement_refs",
+    "audience",
+    "files",
+    "required_evidence",
+    "redactions",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "ExportFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_ref": {
+          "$ref": "#/$defs/Ref"
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "audience": {
+          "enum": [
+            "researcher",
+            "reviewer"
+          ]
+        },
+        "byte_length": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "artifact_ref",
+        "kind",
+        "media_type",
+        "audience",
+        "byte_length"
+      ],
+      "additionalProperties": false
+    },
+    "RequiredEvidence": {
+      "type": "object",
+      "properties": {
+        "evidence_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "present",
+            "unavailable",
+            "withheld",
+            "not_produced"
+          ]
+        },
+        "artifact_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reason": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "evidence_id",
+        "kind",
+        "status",
+        "artifact_ref",
+        "path",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "present"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "artifact_ref": {
+                "$ref": "#/$defs/Ref"
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reason": {
+                "const": null
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "artifact_ref": {
+                "const": null
+              },
+              "path": {
+                "const": null
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:pi-benchmark-payload:1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "blueprint_ref", "poc_ref", "environment_lock_ref", "execution_receipt_ref", "provisioning_receipt_ref", "cases", "primary_case", "speedup", "raw_evidence_refs"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"const": "pi_benchmark_payload"},
+    "blueprint_ref": {"$ref": "#/$defs/ref"},
+    "poc_ref": {"$ref": "#/$defs/ref"},
+    "environment_lock_ref": {"$ref": "#/$defs/ref"},
+    "execution_receipt_ref": {"$ref": "#/$defs/ref"},
+    "provisioning_receipt_ref": {"$ref": "#/$defs/ref"},
+    "primary_case": {"const": "pi-100000"},
+    "speedup": {"type": ["number", "null"], "minimum": 0},
+    "cases": {"type": "array", "minItems": 9, "maxItems": 9, "items": {"$ref": "#/$defs/case"}},
+    "raw_evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref"}}
+  },
+  "$defs": {
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "measurement": {"type": "object", "additionalProperties": false, "required": ["repeats", "median", "spread", "correct", "runs"], "properties": {"repeats": {"type": "integer", "enum": [1, 5]}, "median": {"type": ["number", "null"], "minimum": 0}, "spread": {"type": ["number", "null"], "minimum": 0}, "correct": {"type": "boolean"}, "runs": {"type": "array", "minItems": 1, "maxItems": 5, "items": {"type": "object", "additionalProperties": false, "required": ["sequence", "score_ref", "elapsed_s", "correct"], "properties": {"sequence": {"type": "integer", "minimum": 1}, "score_ref": {"anyOf": [{"$ref": "#/$defs/ref"}, {"type": "null"}]}, "elapsed_s": {"type": ["number", "null"], "minimum": 0}, "correct": {"type": "boolean"}}}}}},
+    "case": {"type": "object", "additionalProperties": false, "required": ["case_id", "digits", "treatment"], "properties": {"case_id": {"enum": ["pi-10000", "pi-100000", "pi-unseen-1", "pi-unseen-2", "pi-unseen-3", "pi-boundary-0", "pi-boundary-1", "pi-boundary-2", "pi-boundary-17"]}, "digits": {"type": ["integer", "null"], "minimum": 0, "maximum": 100000}, "baseline": {"$ref": "#/$defs/measurement"}, "treatment": {"$ref": "#/$defs/measurement"}}}
+  }
+}

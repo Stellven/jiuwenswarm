@@ -1,0 +1,28 @@
+{
+  "files": {
+    "generalist_v2/__init__.py": "f999bde251748ea407577eecf281227d20536747020ae5732f01e417754df143",
+    "generalist_v2/checks.py": "055b15955899f1c281708e1a1a5e9eeaad0c95fb445c575d68ce0930d4c44996",
+    "generalist_v2/release.py": "ca64322a5fa7df79c65da1da816979521ddc6c898f9d63f5a324bab15415e4cd",
+    "generalist_v2/worker.py": "a192ba7a4342490d133bcc0919993636c53d8721120f207e9e6ac6f9572f7022"
+  },
+  "module": "generalist_v2",
+  "name": "research.generalist",
+  "shared_dependencies": [
+    {
+      "path": "generalist/worker.py",
+      "sha256": "59828922f1cdd8d992844865b955880c7c62a4f7fa55c917fa8c3fff9571c79d"
+    },
+    {
+      "path": "generalist/checks.py",
+      "sha256": "fb55eb23e840f7e2771857880622eb391e19c732ceeee8859041a4aada1ce3bf"
+    },
+    {
+      "path": "generalist/expression.py",
+      "sha256": "a7f17cfcc5b0a00b5d2723fa619446823319ecc3cb16765e991c925f394647cc"
+    }
+  ],
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}

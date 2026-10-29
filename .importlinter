@@ -1,0 +1,36 @@
+[importlinter]
+root_package = jiuwenswarm
+
+[importlinter:contract:hot-path-no-side-systems]
+name = Hot path imports no side system
+type = forbidden
+source_modules =
+    jiuwenswarm.research
+    jiuwenswarm.gateway.channel_manager.web.research_http
+    jiuwenswarm.gateway.app_gateway
+    jiuwenswarm.channels.web.app_web
+forbidden_modules =
+    jiuwenswarm.research_router
+    jiuwenswarm.research_rsi
+    jiuwenswarm.research_sidecar
+    jiuwenswarm.research_records
+
+[importlinter:contract:router-client-is-ipc-only]
+name = The router client module is an IPC client only
+type = forbidden
+source_modules =
+    jiuwenswarm.research.router_client
+forbidden_modules =
+    jiuwenswarm.research_router
+    jiuwenswarm.research_rsi
+    jiuwenswarm.research_sidecar
+    jiuwenswarm.research_records
+
+[importlinter:contract:router-no-hot-path]
+name = Router implementation imports no hot path
+type = forbidden
+source_modules =
+    jiuwenswarm.research_router
+forbidden_modules =
+    jiuwenswarm.research
+    jiuwenswarm.gateway.channel_manager.web.research_http

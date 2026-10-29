@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 globalThis.window = globalThis;
-globalThis.window.location = { protocol: 'http:', host: 'localhost:18180' };
+globalThis.window.location = { protocol: 'http:', host: 'localhost:18180', hash: '' };
 
 class FakeWebSocket {
   static OPEN = 1;

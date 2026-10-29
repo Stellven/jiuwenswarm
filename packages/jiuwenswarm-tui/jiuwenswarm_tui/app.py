@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import importlib.util
 import platform
 import shutil
 import stat
@@ -45,7 +46,18 @@ def _resource_binary_path() -> Path:
 
 
 def _source_dist_entry_path() -> Path | None:
-    """Return the repo-built TUI entry when this package is installed from source."""
+    """Resolve compiled assets in an installed native package or source tree.
+
+    Finding a package spec does not import the product or initialize services.
+    The container installs its frozen JS and dependencies alongside that package.
+    """
+    for package_dir in ("jiuwenswarm", "jiuwenclaw"):
+        spec = importlib.util.find_spec(package_dir)
+        if spec is not None and spec.submodule_search_locations:
+            for location in spec.submodule_search_locations:
+                entry = Path(location) / "channels" / "tui" / "frontend" / "dist" / "index.js"
+                if entry.is_file():
+                    return entry
     root = Path(__file__).resolve().parents[3]
     for package_dir in ("jiuwenswarm", "jiuwenclaw"):
         entry = root / package_dir / "channels" / "tui" / "frontend" / "dist" / "index.js"

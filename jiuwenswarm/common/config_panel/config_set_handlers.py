@@ -1530,6 +1530,9 @@ async def config_get_handler(
         payload.setdefault("proactive_recommendation_max_recommend_per_day", "10")
         payload.setdefault("proactive_recommendation_max_rounds_per_tick", "20")
         payload.setdefault("enable_free_models", "false")
+    if os.environ.get("JIUWENSWARM_AGENT_SDK") == "codex_subscription":
+        payload["runtime_mode"] = "codex_subscription"
+        payload["setup_guide_enabled"] = False
     await channel.send_response(ws, req_id, ok=True, payload=payload)
 
 

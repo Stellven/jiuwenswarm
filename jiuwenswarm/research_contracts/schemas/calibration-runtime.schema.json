@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:calibration-runtime:1",
+  "x-owner": "M1-002/TASK.md M1-IF-014@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-calibration-runtime:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "configuration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "model_selection_profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "deployment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "verifier_declaration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "approved_profile_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "case_context_refs": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[0-9a-f]{64}$"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "propertyNames": {
+          "type": "string",
+          "minLength": 1
+        },
+        "additionalProperties": {
+          "$ref": "#/$defs/Ref"
+        }
+      }
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits"
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "configuration_ref",
+    "model_selection_profile_ref",
+    "deployment_ref",
+    "verifier_declaration_ref",
+    "approved_profile_refs",
+    "case_context_refs",
+    "limits"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "time_s",
+        "model_calls",
+        "memory_mb"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The protected owner independently validates original bytes, registered identities, time ordering, policy narrowing, deadlines, prompt authority and once-only claims."
+}

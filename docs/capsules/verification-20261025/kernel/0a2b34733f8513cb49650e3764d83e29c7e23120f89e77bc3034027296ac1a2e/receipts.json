@@ -1,0 +1,67 @@
+{
+  "test": "tests/integration/research/test_executor.py::test_actual_pid_exhaustion_is_observed_without_leaving_children",
+  "scope": "Controlled actual Linux kernel mechanics; no installed app or model acceptance",
+  "results": [
+    {
+      "job_id": "probe-160c4fa1046a4de2afd3ad5b6f32fd5a",
+      "contract_ref": {
+        "id": "controlled-fixture",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "invocation_id": "controlled-invocation",
+      "argv": [
+        "/usr/local/bin/python3",
+        "-c",
+        "import os, time\ntry:\n    while True:\n        if os.fork() == 0:\n            time.sleep(30)\n            os._exit(0)\nexcept BlockingIOError:\n    print(\"pid limit observed\", flush=True)\n"
+      ],
+      "started_at": "2026-10-26T02:46:58Z",
+      "ended_at": "2026-10-26T02:46:58Z",
+      "wall_time_s": 0.09669147600004635,
+      "timeout_s": 2,
+      "exit_code": 0,
+      "termination_reason": "resource_limit_exceeded",
+      "stdout_ref": {
+        "id": "blob:6ebce9c59b7641192a4e2aa8dd1dc5d8d775741b167e9d05db34bd61ac33f1e8",
+        "sha256": "6ebce9c59b7641192a4e2aa8dd1dc5d8d775741b167e9d05db34bd61ac33f1e8"
+      },
+      "stderr_ref": {
+        "id": "blob:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "identity": {
+        "executor_uid": 10002,
+        "executor_gid": 10002
+      },
+      "observed_limits": {
+        "memory_max": "67108864",
+        "pids_max": "8",
+        "network": "none",
+        "isolation_probe_ref": {
+          "id": "blob:5c091309e6ad917697812f1f3be0c740101dafcc9a778c993e7f24d7832d5b1b",
+          "sha256": "5c091309e6ad917697812f1f3be0c740101dafcc9a778c993e7f24d7832d5b1b"
+        },
+        "cpu_affinity": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15
+        ]
+      },
+      "memory_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\n",
+      "pids_events": "max 1\n",
+      "observed_runtime": true
+    }
+  ]
+}

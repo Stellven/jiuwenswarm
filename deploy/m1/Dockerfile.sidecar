@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1.7
+ARG PYTHON_IMAGE=python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1
+FROM ${UV_IMAGE} AS uv
+FROM ${PYTHON_IMAGE} AS dependencies
+COPY --from=uv /uv /usr/local/bin/uv
+COPY uv.lock /build/uv.lock
+COPY jiuwenswarm/research_sidecar/lock_requirements.py /build/lock_requirements.py
+RUN python /build/lock_requirements.py /build/uv.lock /build/requirements.txt httpx jsonschema psutil cryptography pyyaml ruamel-yaml
+RUN uv pip install --system --require-hashes --only-binary=:all: -r /build/requirements.txt
+
+FROM dependencies AS router
+RUN groupadd --gid 10011 ai4r_router && useradd --uid 10011 --gid 10011 --no-create-home ai4r_router
+WORKDIR /opt/ai4r
+COPY jiuwenswarm/research_router/ ./jiuwenswarm/research_router/
+COPY jiuwenswarm/research_records/ ./jiuwenswarm/research_records/
+COPY jiuwenswarm/research_contracts/ ./jiuwenswarm/research_contracts/
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/opt/ai4r
+USER 10011:10011
+ENTRYPOINT ["python", "-m", "jiuwenswarm.research_router"]
+
+FROM dependencies AS production
+RUN groupadd --gid 11001 benchmark_runner && useradd --uid 11001 --gid 11001 --no-create-home benchmark_runner \
+    && groupadd --gid 11002 benchmark_referee && useradd --uid 11002 --gid 11002 --groups benchmark_runner --no-create-home benchmark_referee \
+    && mkdir -p /results && chown 11001:11001 /results
+WORKDIR /opt/ai4r
+COPY jiuwenswarm/research_sidecar/ ./jiuwenswarm/research_sidecar/
+COPY jiuwenswarm/research_records/ ./jiuwenswarm/research_records/
+COPY jiuwenswarm/research_contracts/ ./jiuwenswarm/research_contracts/
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PYTHONPATH=/opt/ai4r
+RUN python -m jiuwenswarm.research_sidecar.install_cli
+USER 11001:11001
+ENTRYPOINT ["python", "-m", "jiuwenswarm.research_sidecar"]
+
+# The sequential client is one CLI process; legacy referee mode stays available.
+FROM production AS benchmark-runner
+USER root
+RUN printf '#!/usr/local/bin/python\nfrom jiuwenswarm.research_sidecar.sequential import main\nraise SystemExit(main())\n' > /usr/local/bin/benchmark-runner \
+    && chmod 0755 /usr/local/bin/benchmark-runner
+USER 11001:11001
+ENTRYPOINT ["benchmark-runner"]
+CMD ["--help"]

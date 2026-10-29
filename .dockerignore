@@ -45,3 +45,5 @@ _pptx_selftest_tmp/
 .research_cache/
 .ai_research/
 .learnings/
+# Development benchmark sources and protected pilot bundles never enter app images.
+benchmarks/

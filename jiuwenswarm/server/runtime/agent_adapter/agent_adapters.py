@@ -112,7 +112,7 @@ def resolve_sdk_choice() -> str:
         logger.debug("[SDK] %s not set, using default: %s", _SDK_ENV_VAR, _DEFAULT_SDK)
         return _DEFAULT_SDK
 
-    valid_sdks = {"harness", "pi"}
+    valid_sdks = {"harness", "pi", "codex_subscription"}
     if raw in valid_sdks:
         logger.info("[SDK] Resolved SDK: %s", raw)
         return raw
@@ -140,6 +140,10 @@ def create_adapter(sdk: str | None = None, *, mode: str = "agent") -> AgentAdapt
         RuntimeError: If SDK is unknown.
     """
     sdk_name = sdk or resolve_sdk_choice()
+
+    if sdk_name == "codex_subscription":
+        from jiuwenswarm.server.runtime.agent_adapter.interface_codex import CodexSubscriptionAdapter
+        return CodexSubscriptionAdapter()
 
     if sdk_name == "harness":
         if mode == "code":

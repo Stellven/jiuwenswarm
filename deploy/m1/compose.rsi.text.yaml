@@ -1,0 +1,33 @@
+# Explicit conditional Screening text-trial overlay after compose.rsi.yaml.
+# All three host paths must already exist with the documented exact custody.
+# Neither app, sidecar nor worker receives these sockets or legitimate inputs.
+services:
+  rsi-workbench:
+    environment:
+      AI4R_RSI_TRIAL_BINDING_FILE: /run/ai4r-rsi/trial-binding.json
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_TRIAL_BINDING_FILE:?Supply the root-owned read-only text-runtime locator}
+        target: /run/ai4r-rsi/trial-binding.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_TRIAL_IPC:?Supply the UID12001 GID12002 mode2750 trial socket root}
+        target: /run/ai4r-rsi-trial
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_TRIAL_INPUT_ROOT:?Supply the UID12002 GID13000 mode2750 legitimate-input publication root}
+        target: /var/lib/ai4r-rsi-trial-inputs
+        read_only: true
+        bind: {create_host_path: false}
+  rsi-custodian:
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_TRIAL_IPC:?Supply the UID12001 GID12002 mode2750 trial socket root}
+        target: /run/ai4r-rsi-trial
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_RSI_TRIAL_INPUT_ROOT:?Supply the UID12002 GID13000 mode2750 legitimate-input publication root}
+        target: /var/lib/ai4r-rsi-trial-inputs
+        bind: {create_host_path: false}

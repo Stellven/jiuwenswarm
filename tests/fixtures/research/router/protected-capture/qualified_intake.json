@@ -1,0 +1,44 @@
+{
+  "schema_version": "2.0.0",
+  "id": "intake:example",
+  "request_ref": {
+    "id": "request.txt",
+    "sha256": "c44e28f3cd7468a35cae6b204a801884ddf56b88d7c0e4f3602ec984498944bf"
+  },
+  "source_refs": [],
+  "offset_basis": "Unicode code points",
+  "resource_refs": [
+    {
+      "id": "baseline_resource.json",
+      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+    },
+    {
+      "id": "validation_resource.json",
+      "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+    }
+  ],
+  "upload_refs": [
+    {
+      "id": "client_upload_baseline.json",
+      "sha256": "844076cc2fa32682b455d50c94b4a4443d3fe38987707456a75d57834be7907d"
+    },
+    {
+      "id": "client_upload_validation.json",
+      "sha256": "c956ba86951d0273e4cc77d81eac27538f48ef39ec828c7da85cc379d5c4eaea"
+    }
+  ],
+  "rejected_inputs": [],
+  "user_id": "user:example",
+  "profile_ref": {
+    "id": "local_profile.json",
+    "sha256": "c000f23e9d5e6fdeeca31b63a2bcd0897eae47d61bc352604544ea96c296a57c"
+  },
+  "workspace_ref": {
+    "id": "workspace.json",
+    "sha256": "ef1126beeb8d8b872b0d756e148b7ce2fab7cfa6627c1991e64dafd8bd304eca"
+  },
+  "input_directory_ref": {
+    "id": "qualified_input_directory.json",
+    "sha256": "85172dc64bf4fe8cae3dd3b4a0bd54b4ced83c9303a5c4b4a747c8feeea9b33d"
+  }
+}

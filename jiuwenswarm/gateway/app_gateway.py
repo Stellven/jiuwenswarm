@@ -28,6 +28,9 @@ from dataclasses import dataclass, field
 from typing import Any, Awaitable, Callable
 from urllib.parse import parse_qs, urlparse
 
+# Freeze the protected profile before a legacy dotenv/config can alter it.
+from jiuwenswarm.research.native_profile import M1_PROFILE, native_channel_config
+
 
 # Include entry-module import/configuration work in later startup phase logs.
 # PyInstaller boot time is intentionally outside this boundary.
@@ -96,11 +99,11 @@ from jiuwenswarm.server.runtime.attachments.media_attachments import (
 _mark_startup_import_phase("gateway_core_imports_loaded")
 
 _logging_yaml = get_root_dir() / "config" / "logging.yaml"
-if _logging_yaml.exists():
+if not M1_PROFILE and _logging_yaml.exists():
     from openjiuwen.core.common.logging.log_config import configure_log
 
     configure_log(str(_logging_yaml))
-else:
+elif not M1_PROFILE:
     # Reduce openjiuwen internal logs (keep Gateway logs)
     for _lg in LogManager.get_all_loggers().values():
         _lg.set_level(logging.CRITICAL)
@@ -125,6 +128,8 @@ def _agent_prewarm_enabled() -> bool:
     Prewarming is opt-in via JIUWENSWARM_AGENT_PREWARM; when off the Gateway
     must not emit agent.prewarm.sync requests or related log noise.
     """
+    if M1_PROFILE:
+        return False
     from jiuwenswarm.server.runtime.agent_warm_pool import prewarm_enabled_by_env
 
     return prewarm_enabled_by_env()
@@ -1960,7 +1965,8 @@ async def _run(
         heartbeat_config,
         message_handler=message_handler,
     )
-    await heartbeat_service.start()
+    if not M1_PROFILE:
+        await heartbeat_service.start()
     log_startup_stage("heartbeat_started")
 
     _cleanup_task = start_background_cleanup()
@@ -2168,6 +2174,16 @@ async def _run(
         path=web_path,
     )
     web_channel = WebChannel(web_config, _DummyBus(), agent_client=client)
+    research_ports = research_attachment = None
+    if M1_PROFILE:
+        from jiuwenswarm.research.bootstrap_gateway import attach_native_research
+        from jiuwenswarm.research.native_ports import create_gateway_ports
+        research_ports = await create_gateway_ports()
+        try:
+            research_attachment = await attach_native_research(web_channel, research_ports)
+        except BaseException:
+            await research_ports.close()
+            raise
 
     # 注入 Git diff 监控注册表(设计文档阶段10):
     # 1. 让 ``_mark_git_watcher_dirty`` 能通过 ``channel.git_watcher_registry`` 唤醒轮询
@@ -2276,7 +2292,8 @@ async def _run(
 
     await channel_manager.start_dispatch()
     log_startup_stage("message_dispatch_started")
-    await cron_scheduler.start()
+    if not M1_PROFILE:
+        await cron_scheduler.start()
     log_startup_stage("cron_scheduler_started")
 
     # Give the browser event loop a chance to complete its pending WebSocket
@@ -2341,6 +2358,8 @@ async def _run(
             )
         ),
     ]
+    if M1_PROFILE:
+        route_bindings = [binding for binding in route_bindings if binding.path == "/tui"]
 
     gateway_server_config = GatewayServerConfig(
         enabled=True,
@@ -2371,7 +2390,7 @@ async def _run(
     }
     a2a_channel = None
     a2a_task: asyncio.Task | None = None
-    if a2a_server_enabled:
+    if a2a_server_enabled and not M1_PROFILE:
         # A2A is disabled in the normal Desktop path.  Avoid importing its
         # protocol server and dependencies unless this optional listener is on.
         from jiuwenswarm.gateway.channel_manager.protocol.a2a.a2a_connect import (
@@ -2536,6 +2555,10 @@ async def _run(
         nonlocal ssh_channel, ssh_task
         nonlocal _last_channels_conf
         nonlocal feishu_enterprise_channels, feishu_enterprise_tasks
+
+        # Filter before any external channel constructor, including hot config
+        # reload/restart callbacks. Legacy enabled settings confer no M1 port.
+        conf = native_channel_config(conf)
 
         # === 新增：入口归一化（必须在 _should_restart_channel 之前） ===
         if isinstance(conf, dict):
@@ -3128,43 +3151,44 @@ async def _run(
     # 后台重试自动恢复；models.list 在完成前返回已有配置模型，不影响主链路。
     # shutdown 时 cancel（见本函数 finally）。
     zen_free_models_task: asyncio.Task | None = None
-    try:
-        from jiuwenswarm.server.runtime.opencode_zen import (
-            warm_zen_free_models,
-            set_main_event_loop,
-            register_models_ready_callback,
-        )
-        # 注册 event loop，供后台重试线程通过 call_soon_threadsafe 调度回调
-        set_main_event_loop(asyncio.get_running_loop())
+    if not M1_PROFILE:
+        try:
+            from jiuwenswarm.server.runtime.opencode_zen import (
+                warm_zen_free_models,
+                set_main_event_loop,
+                register_models_ready_callback,
+            )
+            # 注册 event loop，供后台重试线程通过 call_soon_threadsafe 调度回调
+            set_main_event_loop(asyncio.get_running_loop())
 
-        # 注册回调：后台重试成功后广播 models.updated 事件，前端自动刷新模型列表
-        async def _on_zen_models_ready():
-            try:
-                web_channel = channel_manager.get_channel("web")
-                if web_channel:
-                    await web_channel.broadcast_event("models.updated", {})
-                    logger.info("[App] broadcasted models.updated: zen free models ready")
-            except Exception as e:  # noqa: BLE001
-                logger.debug("[App] broadcast models.updated failed: %s", e)
+            # 注册回调：后台重试成功后广播 models.updated 事件，前端自动刷新模型列表
+            async def _on_zen_models_ready():
+                try:
+                    web_channel = channel_manager.get_channel("web")
+                    if web_channel:
+                        await web_channel.broadcast_event("models.updated", {})
+                        logger.info("[App] broadcasted models.updated: zen free models ready")
+                except Exception as e:  # noqa: BLE001
+                    logger.debug("[App] broadcast models.updated failed: %s", e)
 
-        def _models_ready_cb():
-            asyncio.create_task(_on_zen_models_ready())
+            def _models_ready_cb():
+                asyncio.create_task(_on_zen_models_ready())
 
-        register_models_ready_callback(_models_ready_cb)
-        zen_free_models_task = asyncio.create_task(
-            warm_zen_free_models(reason="gateway-startup"),
-            name="zen-free-models-warmup",
-        )
-    except Exception as e:  # noqa: BLE001 - 兜底
-        logger.warning("[App] zen free models warm failed (non-fatal): %s", e)
+            register_models_ready_callback(_models_ready_cb)
+            zen_free_models_task = asyncio.create_task(
+                warm_zen_free_models(reason="gateway-startup"),
+                name="zen-free-models-warmup",
+            )
+        except Exception as e:  # noqa: BLE001 - 兜底
+            logger.warning("[App] zen free models warm failed (non-fatal): %s", e)
 
-    # 主动推荐：按 config 自动注册/删除 proactive.tick 定时 job
-    try:
-        from jiuwenswarm.gateway.cron.proactive_cron_sync import sync_proactive_tick_job
-        await sync_proactive_tick_job(cron_controller, get_config())
-    except Exception as e:  # noqa: BLE001  # 兜底：启动时 proactive job 注册失败不阻断 Gateway 启动
-        logger.warning("[App] proactive.tick auto-register failed (non-fatal): %s", e)
-    # 先同步完成监听绑定，避免 IDE/ACP 子进程在端口尚未就绪时连接导致多次重试。
+        # 主动推荐：按 config 自动注册/删除 proactive.tick 定时 job
+        try:
+            from jiuwenswarm.gateway.cron.proactive_cron_sync import sync_proactive_tick_job
+            await sync_proactive_tick_job(cron_controller, get_config())
+        except Exception as e:  # noqa: BLE001  # 兜底：启动时 proactive job 注册失败不阻断 Gateway 启动
+            logger.warning("[App] proactive.tick auto-register failed (non-fatal): %s", e)
+        # 先同步完成监听绑定，避免 IDE/ACP 子进程在端口尚未就绪时连接导致多次重试。
     await gateway_server.start()
     logger.info(
         "[App] gateway server listening (elapsed %.2fs)",
@@ -3396,6 +3420,10 @@ async def _run(
                 pass
         if web_channel is not None:
             await web_channel.stop()
+        if research_ports is not None:
+            await research_ports.close()
+        if research_attachment is not None:
+            research_attachment.close()
 
         if feishu_channel is not None and feishu_task is not None:
             feishu_task.cancel()

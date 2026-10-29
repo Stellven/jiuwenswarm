@@ -1,0 +1,98 @@
+# Job-only benchmark overlay. No dependency from app to these optional clients.
+services:
+  sidecar:
+    profiles: [benchmark]
+    image: ${AI4R_SIDECAR_IMAGE:?Supply the immutable benchmark image identity}
+    build:
+      context: ../..
+      dockerfile: deploy/m1/Dockerfile.sidecar
+      target: production
+      platforms: [linux/amd64, linux/arm64]
+    user: '11001:11001'
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      AI4R_QA_ROOT: /bench
+      AI4R_QA_JOB: /run/ai4r-qa/job.json
+    volumes:
+      - type: bind
+        source: ${AI4R_BENCH_VISIBLE_ROOT:?Supply the frozen visible benchmark root}
+        target: /bench/campaigns
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_RESULTS:?Supply the job-owned results directory}
+        target: /bench/results
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_SCORES:?Supply the job-owned referee scores directory}
+        target: /bench/scores
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_REPORTS:?Supply the job-owned referee reports directory}
+        target: /bench/reports
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_JOB:?Supply the protected job grant}
+        target: /run/ai4r-qa/job.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_TOKEN:?Supply only the job-scoped product token}
+        target: /run/ai4r-qa/token
+        read_only: true
+        bind: {create_host_path: false}
+    tmpfs: ['/tmp:rw,nosuid,nodev,size=32m,uid=11001,gid=11001']
+    networks: [private]
+    labels:
+      ai4r.owner: ${AI4R_JOB_ID:?Supply a unique owned job ID}
+      ai4r.component: sidecar
+    command: [--help]
+
+  referee:
+    profiles: [benchmark-referee]
+    image: ${AI4R_SIDECAR_IMAGE:?Supply the immutable benchmark image identity}
+    user: '11002:11002'
+    group_add: ['11001']
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    network_mode: none
+    environment:
+      AI4R_QA_ROOT: /bench
+      AI4R_QA_LABELS: /bench-private/labels
+    volumes:
+      - type: bind
+        source: ${AI4R_BENCH_VISIBLE_ROOT:?Supply the frozen visible benchmark root}
+        target: /bench/campaigns
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_RESULTS:?Supply the job-owned results directory}
+        target: /bench/results
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_LABELS:?Supply the separately protected labels directory}
+        target: /bench-private/labels
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_SCORES:?Supply the job-owned referee scores directory}
+        target: /bench/scores
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_REPORTS:?Supply the job-owned referee reports directory}
+        target: /bench/reports
+        bind: {create_host_path: false}
+    tmpfs: ['/tmp:rw,nosuid,nodev,size=32m,uid=11002,gid=11002']
+    labels:
+      ai4r.owner: ${AI4R_JOB_ID:?Supply a unique owned job ID}
+      ai4r.component: referee
+    entrypoint: [benchmark-referee]
+    command: [--help]
+
+networks:
+  private: {}

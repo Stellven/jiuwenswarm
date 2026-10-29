@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "id": "Validation_Resource",
+  "kind": "supplied validation data",
+  "origin": "synthetic user-supplied data",
+  "revision": "fixture-v1",
+  "files": [
+    {
+      "path": "Example_Data.txt",
+      "artifact_ref": {
+        "id": "Example_Data.txt",
+        "sha256": "afea8e2428f79aadc732a59df07198b24a22f99675b60ab656630878dab9a9e1"
+      },
+      "media_type": "text/plain",
+      "audience": "authorized researcher"
+    }
+  ],
+  "access": "read-only experiment",
+  "license": "synthetic fixture",
+  "availability": "available",
+  "environment_ref": {
+    "id": "Environment_Lock.json",
+    "sha256": "555a6e2f528de31102e0345ac64bcc209337427dec73455bbc6b57ccc6ca60a1"
+  },
+  "ext": {
+    "example.synthetic": true
+  }
+}

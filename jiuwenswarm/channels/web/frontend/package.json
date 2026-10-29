@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "test:codex-subscription": "esbuild src/features/codexSubscription/CodexSubscriptionPanel.tsx --bundle --packages=external --platform=node --format=esm --outfile=node_modules/.cache/codex-subscription/CodexSubscriptionPanel.mjs --loader:.css=empty && node --test tests/codexSubscription.test.mjs tests/codexSubscriptionWire.test.mjs",
     "test:browser-agent-activity": "esbuild src/features/browserAgentActivity.ts src/stores/sessionStore.ts src/stores/subagentStore.ts --bundle --splitting --packages=external --platform=node --format=esm --outdir=node_modules/.cache/browser-agent-activity --define:import.meta.env={} && node --test tests/browserAgentActivity.test.mjs",
     "test:rsi-presentation": "esbuild src/features/rsi/rsiPresentation.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/rsi-presentation/rsiPresentation.mjs && node --test tests/rsiPresentation.test.mjs",
     "test:rsi-stage-tree": "esbuild src/features/rsi/rsiStore.ts --bundle --platform=node --format=esm --packages=external --outfile=node_modules/.cache/rsi-stage/rsiStore.mjs --define:import.meta.env.DEV=false && node --test tests/rsiStageTree.test.mjs",
@@ -17,6 +18,7 @@
     "test:qwen-barge-in": "esbuild ../../../extensions/video_duplex/frontend/VideoLivePanel/qwenOmniSession.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/realtime-duplex/realtimeDuplex.mjs --define:import.meta.env.DEV=false && esbuild src/utils/speechDetection/speechGate.ts src/utils/speechDetection/sileroVad.ts --bundle --platform=node --format=esm --outdir=node_modules/.cache/realtime-duplex --out-extension:.js=.mjs && esbuild ../../../extensions/video_duplex/frontend/VideoLivePanel/qwenOmniProtocol.ts --bundle --platform=node --format=esm --outfile=node_modules/.cache/realtime-duplex/replyLanguageProtocol.mjs && node --test ../../../extensions/video_duplex/tests/frontend/disconnectNotice.test.mjs ../../../extensions/video_duplex/tests/frontend/replyLanguage.test.mjs ../../../extensions/video_duplex/tests/frontend/realtimeDuplex.test.mjs ../../../extensions/video_duplex/tests/frontend/speechDetection.test.mjs",
     "test:i18n-locales": "node --test tests/i18nLocales.test.mjs",
     "test:auth-store": "node --test tests/authStore.test.mjs",
+    "test:research-shell": "esbuild src/utils/researchClient.ts src/components/teamArea/researchWorkflow.ts --bundle --platform=node --format=esm --outbase=src --outdir=node_modules/.cache/research-shell --out-extension:.js=.js && node --test tests/researchClient.test.mjs tests/researchWorkflow.test.mjs",
     "test:chat-error": "node --test tests/chatError.test.mjs",
     "test:quota-reset": "node --test tests/quotaReset.test.mjs",
     "test:frontend-platform": "tsc src/utils/frontendPlatform.ts --target ES2020 --module ES2020 --moduleResolution Bundler --rootDir src --outDir node_modules/.cache/frontend-platform --skipLibCheck --noEmitOnError && node --test tests/frontendPlatform.test.mjs",

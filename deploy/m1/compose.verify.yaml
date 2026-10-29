@@ -1,0 +1,67 @@
+# The caller must supply a unique -p ai4r-verify-<job-id>. This override never
+# mounts operator/main/Builder credentials or private oracle assets by default.
+services:
+  app:
+    image: ${AI4R_VERIFY_IMAGE:-ai4r-m1-verify:20261016}
+    build:
+      target: verify
+      platforms: !override [linux/amd64]
+    entrypoint: !override [python]
+    command: !override [-m, pytest, tests/unit_tests/research, -q]
+    working_dir: /workspace
+    read_only: true
+    # Unit/IPC/kernel checks use local fixtures. This also avoids allocating a
+    # bridge subnet for every disposable test. Real target checks declare their
+    # required network explicitly in their job-owned override.
+    networks: !reset []
+    network_mode: none
+    environment:
+      JIUWENSWARM_M1_PROFILE: '0'
+      PYTHONPATH: /opt/ai4r
+      PYTHONDONTWRITEBYTECODE: '1'
+      # Focused verification uses read-only source. Repository-wide coverage
+      # defaults write into the checkout; dedicated coverage runs must supply
+      # explicit owned output paths instead.
+      PYTEST_ADDOPTS: --no-cov
+      JIUWENSWARM_DATA_DIR: /tmp/ai4r-native-verify
+      JIUWENSWARM_HOME: /tmp/ai4r-native-home
+    ports: !reset []
+    cap_add: !reset []
+    volumes: !override
+      - type: bind
+        source: ../../jiuwenswarm
+        target: /opt/ai4r/jiuwenswarm
+        read_only: true
+      - type: bind
+        source: ../../tests
+        target: /workspace/tests
+        read_only: true
+      - type: bind
+        source: ../../scripts
+        target: /workspace/scripts
+        read_only: true
+      - type: bind
+        source: ../../pytest.ini
+        target: /workspace/pytest.ini
+        read_only: true
+      - type: bind
+        source: ../../.importlinter
+        target: /workspace/.importlinter
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ./install_codex.py
+        target: /workspace/deploy/m1/install_codex.py
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_EVIDENCE_DIR:-../../.test_logs/m1}
+        target: /evidence
+    tmpfs: !override
+      - /tmp:rw,nosuid,nodev,size=256m
+      # Trusted build-time native ELF probe only. The generated-work executor
+      # never receives this mount. The amd64 pinned binary is 298553392 bytes.
+      - /var/lib/ai4r-install-probe:rw,exec,nosuid,nodev,size=512m,mode=0700
+      - /workspace/.pytest_cache:rw,nosuid,nodev,size=16m
+    labels:
+      ai4r.component: verify

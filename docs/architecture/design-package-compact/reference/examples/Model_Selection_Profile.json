@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "id": "model-profile:static-example",
+  "mode": "static_codex",
+  "approved_model_ids": [
+    "codex.static.example"
+  ],
+  "extra_requirements": {},
+  "judge_allowance": {
+    "enabled": false,
+    "deployment_ref": null,
+    "model_calls": 0,
+    "time_s": 0,
+    "output_tokens": 0,
+    "disclosure_scope": []
+  },
+  "fallback_model_id": null,
+  "policy_ref": {
+    "id": "Default_Policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  }
+}

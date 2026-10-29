@@ -1,0 +1,81 @@
+{
+  "schema": "ai4r-ml-readiness-checkpoint:1",
+  "recorded_at": "2026-10-26T13:43:04.646551+00:00",
+  "source_commit": "a138e435fe0f6e33a0684ac0458404e3d3d1700b",
+  "source_parent": "e1ca360c087cf612f34056a3f137c86300a79e5f",
+  "verification_image_id": "sha256:09979a044c9eace8e3ef17cd142eb26a27306e14ea80939c0628356eaca2e97a",
+  "verification_image_tag": "ai4r-verify:20261025",
+  "final": {
+    "counts": {
+      "errors": 0,
+      "failures": 0,
+      "passed": 319,
+      "skipped": 0,
+      "tests": 319
+    },
+    "status": "passed",
+    "source_changes": [],
+    "source_manifest_sha256": "a8b4912574f360eb69a4576029d3e1f12207c638080ddb68e9c849cfb142eaaa",
+    "result_path": "final/result.json",
+    "command": "./deploy/m1/check-capsules.ps1 -Group all -Image ai4r-verify:20261025 -Output C:/Temp/ai4r-ml-readiness-publish-20261026 -TimeoutSeconds 900"
+  },
+  "fresh_git_archive": {
+    "passed": 28,
+    "errors": 0,
+    "failures": 0,
+    "skipped": 0,
+    "planner_pin_check": "passed",
+    "receipt": "fresh-archive/receipt.json",
+    "overlaps_final": true
+  },
+  "historical_finite": {
+    "baseline_commit": "e1ca360c087cf612f34056a3f137c86300a79e5f",
+    "image_id": "sha256:09979a044c9eace8e3ef17cd142eb26a27306e14ea80939c0628356eaca2e97a",
+    "passed": 11,
+    "failures": 2,
+    "test_file": "tests/unit_tests/research/test_finite_startup.py",
+    "failure_cases": [
+      "test_exact_native_finite_scope_can_be_ready_without_compiler_or_builder",
+      "test_actual_gateway_attachment_preserves_exact_finite_readiness"
+    ],
+    "current_branch_comparison": "preflight-02/junit.xml",
+    "baseline": "historical-finite-baseline/junit.xml",
+    "reason": "Both failures reproduce on the pristine parent with the same image; kept separate from current-release check groups."
+  },
+  "preflights": [
+    {
+      "path": "preflight-01/result.json",
+      "passed": 254,
+      "failures": 3,
+      "status": "source_changed"
+    },
+    {
+      "path": "preflight-02/result.json",
+      "passed": 328,
+      "failures": 2,
+      "status": "source_changed"
+    }
+  ],
+  "interruption": "interrupted-portability/supervisor-note.json",
+  "live_campaign": {
+    "started": false,
+    "completion_attempts": 0,
+    "acceptance": "not_run",
+    "count_basis": "No authenticated live completion was issued for this campaign; Docker development checks used no networking and controlled transports."
+  },
+  "limits": {
+    "new_app_deployment": "not_performed",
+    "ml_live_poc": "not_run",
+    "independent_ml_benchmark": "not_run",
+    "full_ml_journey": "not_run",
+    "raw_upstream_comparison": "not_run",
+    "evidence_aware_E2": "blocked_before_model_call",
+    "official_benchmark_acceptance": "not_claimed",
+    "general_accuracy_gain": "not_claimed"
+  },
+  "prd_v10": {
+    "owner_commit": "889682f0afc3d06c2ad88e71534483a31d2eb560",
+    "path": "docs/product/received-prds/prd-m1-v10-2026-10-15.txt",
+    "sha256": "6d85972cdc8cf586a3d76b80d56510d695f03bfcf7838661afc7f71c35f4b3fc"
+  }
+}

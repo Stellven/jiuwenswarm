@@ -1,4 +1,34 @@
 {
+  "codexSubscription": {
+    "capsuleTitle": "Conversation style",
+    "capsuleDescription": "Choose how the assistant responds in ordinary conversations, such as analysing documents or preparing a research brief.",
+    "capsuleGeneral": "General conversation",
+    "capsuleDocument": "Document Analyst — summary, evidence and limitations",
+    "capsuleBrief": "Research Brief — questions, approach and next steps",
+    "localChat": "Use GPT-6.1 Sol with your ChatGPT subscription. No API key is required.",
+    "setupRequired": "ChatGPT sign-in connects your account. Local file uploads are available; research execution requires operator/runtime resources.",
+    "title": "ChatGPT subscription",
+    "scope": "Preview: ordinary text chat. Teams, tools and media are pending integration. After a restart or sign-out, start a new conversation; saved history remains available.",
+    "model": "Subscription model",
+    "defaultModel": "Account default model",
+    "login": "Sign in with ChatGPT",
+    "logout": "Sign out and stop tasks",
+    "openLogin": "Open secure sign-in",
+    "deviceCode": "Enter this code on the sign-in page:",
+    "cancel": "Cancel sign-in",
+    "refresh": "Refresh status",
+    "error": "The connection or action could not be confirmed. Check your connection and refresh status before trying again. No API key is required.",
+    "signInFirst": "Open Settings → Models and sign in with ChatGPT before sending a message.",
+    "states": {
+      "checking": "Checking connection…",
+      "ready": "Signed in",
+      "signing_in": "Complete sign-in in your browser",
+      "signed_out": "Not signed in",
+      "subscription_required": "A ChatGPT subscription account is required",
+      "unavailable": "Runtime unavailable",
+      "disconnected": "Disconnected"
+    }
+  },
   "common": {
     "noData": "No data",
     "confirm": "Confirm",
@@ -66,17 +96,60 @@
   "videoLive": {
     "modelFallback": "Video model",
     "subtitle": "Real-time multi-screen audio and video Q&A",
-    "status": { "connecting": "Connecting to the Full-duplex model and requesting microphone access…", "speaking": "The model is responding…" },
-    "coreAgent": { "startFailed": "Jiuwen Core Agent could not start the task: {{message}}", "startFailedSummary": "The task could not start. The error is shown in the interface." },
-    "errors": { "startFailed": "Failed to start the Full-duplex session.", "joyaiTextNotAccepted": "The text input was not accepted by the JoyAI session.", "qwenTextNotAccepted": "The text input was not accepted by the Qwen Realtime session.", "textSendFailed": "Failed to send the text input." },
-    "empty": { "title": "Open a real-time view", "description": "Use a camera, local video, or add multiple screens", "listening": "Listening continuously", "waiting": "Waiting to start Full-duplex", "hint": "Speak after starting; no need to click for each sentence" },
-    "sources": { "camera": "Camera", "localVideo": "Local video", "addScreen": "Add screen", "shareScreen": "Share screen", "stopCamera": "Stop camera", "stopScreens": "Stop all screens" },
-    "actions": { "closeVideo": "Close video", "starting": "Starting Full-duplex session", "stopSession": "End Full-duplex session", "startSession": "Start Full-duplex session" },
+    "status": {
+      "connecting": "Connecting to the Full-duplex model and requesting microphone access…",
+      "speaking": "The model is responding…"
+    },
+    "coreAgent": {
+      "startFailed": "Jiuwen Core Agent could not start the task: {{message}}",
+      "startFailedSummary": "The task could not start. The error is shown in the interface."
+    },
+    "errors": {
+      "startFailed": "Failed to start the Full-duplex session.",
+      "joyaiTextNotAccepted": "The text input was not accepted by the JoyAI session.",
+      "qwenTextNotAccepted": "The text input was not accepted by the Qwen Realtime session.",
+      "textSendFailed": "Failed to send the text input."
+    },
+    "empty": {
+      "title": "Open a real-time view",
+      "description": "Use a camera, local video, or add multiple screens",
+      "listening": "Listening continuously",
+      "waiting": "Waiting to start Full-duplex",
+      "hint": "Speak after starting; no need to click for each sentence"
+    },
+    "sources": {
+      "camera": "Camera",
+      "localVideo": "Local video",
+      "addScreen": "Add screen",
+      "shareScreen": "Share screen",
+      "stopCamera": "Stop camera",
+      "stopScreens": "Stop all screens"
+    },
+    "actions": {
+      "closeVideo": "Close video",
+      "starting": "Starting Full-duplex session",
+      "stopSession": "End Full-duplex session",
+      "startSession": "Start Full-duplex session"
+    },
     "frameWindow": "Rolling window: {{count}}/{{max}} frames",
     "audioOnly": "Audio only; no video frames sent",
-    "chat": { "coreResult": "Tool result · Jiuwen Core Agent", "user": "You", "search": "Jiuwen Search", "assistant": "Assistant", "searchCompleted": "Jiuwen Search Agent completed" },
-    "search": { "ready": "Preparing search", "selectHistory": "Select search history", "latest": "Latest search (automatic)" },
-    "input": { "activePlaceholder": "You can also type in this session…", "inactivePlaceholder": "Start Full-duplex first…", "send": "Send question" }
+    "chat": {
+      "coreResult": "Tool result · Jiuwen Core Agent",
+      "user": "You",
+      "search": "Jiuwen Search",
+      "assistant": "Assistant",
+      "searchCompleted": "Jiuwen Search Agent completed"
+    },
+    "search": {
+      "ready": "Preparing search",
+      "selectHistory": "Select search history",
+      "latest": "Latest search (automatic)"
+    },
+    "input": {
+      "activePlaceholder": "You can also type in this session…",
+      "inactivePlaceholder": "Start Full-duplex first…",
+      "send": "Send question"
+    }
   },
   "settingsPanel": {
     "title": "Settings",
@@ -424,15 +497,37 @@
         "title": "Browser run mode",
         "description": "Show the browser window in the foreground or run in headless mode."
       },
-      "model_name": { "title": "Model name", "placeholder": "e.g. glm-4.7" },
-      "alias": { "title": "Custom alias", "placeholder": "e.g. GLM-4.7 Production" },
-      "api_base": { "title": "API URL", "placeholder": "e.g. https://api.openai.com/v1" },
-      "api_key": { "title": "API key", "placeholder": "e.g. sk-..." },
-      "model_provider": { "title": "Model provider" },
-      "reasoning_level": { "title": "Reasoning" },
-      "embed_api_base": { "title": "API URL" },
-      "embed_api_key": { "title": "API key" },
-      "embed_model": { "title": "Model name" },
+      "model_name": {
+        "title": "Model name",
+        "placeholder": "e.g. glm-4.7"
+      },
+      "alias": {
+        "title": "Custom alias",
+        "placeholder": "e.g. GLM-4.7 Production"
+      },
+      "api_base": {
+        "title": "API URL",
+        "placeholder": "e.g. https://api.openai.com/v1"
+      },
+      "api_key": {
+        "title": "API key",
+        "placeholder": "e.g. sk-..."
+      },
+      "model_provider": {
+        "title": "Model provider"
+      },
+      "reasoning_level": {
+        "title": "Reasoning"
+      },
+      "embed_api_base": {
+        "title": "API URL"
+      },
+      "embed_api_key": {
+        "title": "API key"
+      },
+      "embed_model": {
+        "title": "Model name"
+      },
       "asr_api_base": {
         "title": "Speech transcription API URL",
         "description": "Enter an OpenAI-compatible base URL or the full /audio/transcriptions URL.",
@@ -472,38 +567,101 @@
         "title": "DuckDuckGo search",
         "description": "Enable the free DuckDuckGo search source."
       },
-      "free_search_bing_enabled": { "title": "Bing search", "description": "Enable the free Bing search source." },
-      "jina_api_key": { "title": "Jina API key" },
-      "bocha_api_key": { "title": "Bocha API key" },
-      "perplexity_api_key": { "title": "Perplexity API key" },
-      "serper_api_key": { "title": "Serper API key" },
-      "github_token": { "title": "GitHub access token" },
-      "vision_api_base": { "title": "API URL" },
-      "vision_api_key": { "title": "API key" },
-      "vision_model": { "title": "Model name" },
-      "vision_provider": { "title": "Model provider" },
-      "audio_api_base": { "title": "API URL" },
-      "audio_api_key": { "title": "API key" },
-      "audio_model": { "title": "Model name" },
-      "audio_provider": { "title": "Model provider" },
-      "video_api_base": { "title": "API URL" },
-      "video_api_key": { "title": "API key" },
-      "video_model": { "title": "Model name" },
-      "video_provider": { "title": "Model provider" },
-      "video_gen_provider": { "title": "Model provider" },
-      "video_gen_protocol": { "title": "Protocol" },
-      "video_gen_api_base": { "title": "API URL", "placeholder": "e.g. https://openrouter.ai/api/v1" },
-      "video_gen_api_key": { "title": "API key", "placeholder": "e.g. sk-..." },
-      "video_gen_model": { "title": "Model name", "placeholder": "e.g. bytedance/seedance-2.0-fast" },
+      "free_search_bing_enabled": {
+        "title": "Bing search",
+        "description": "Enable the free Bing search source."
+      },
+      "jina_api_key": {
+        "title": "Jina API key"
+      },
+      "bocha_api_key": {
+        "title": "Bocha API key"
+      },
+      "perplexity_api_key": {
+        "title": "Perplexity API key"
+      },
+      "serper_api_key": {
+        "title": "Serper API key"
+      },
+      "github_token": {
+        "title": "GitHub access token"
+      },
+      "vision_api_base": {
+        "title": "API URL"
+      },
+      "vision_api_key": {
+        "title": "API key"
+      },
+      "vision_model": {
+        "title": "Model name"
+      },
+      "vision_provider": {
+        "title": "Model provider"
+      },
+      "audio_api_base": {
+        "title": "API URL"
+      },
+      "audio_api_key": {
+        "title": "API key"
+      },
+      "audio_model": {
+        "title": "Model name"
+      },
+      "audio_provider": {
+        "title": "Model provider"
+      },
+      "video_api_base": {
+        "title": "API URL"
+      },
+      "video_api_key": {
+        "title": "API key"
+      },
+      "video_model": {
+        "title": "Model name"
+      },
+      "video_provider": {
+        "title": "Model provider"
+      },
+      "video_gen_provider": {
+        "title": "Model provider"
+      },
+      "video_gen_protocol": {
+        "title": "Protocol"
+      },
+      "video_gen_api_base": {
+        "title": "API URL",
+        "placeholder": "e.g. https://openrouter.ai/api/v1"
+      },
+      "video_gen_api_key": {
+        "title": "API key",
+        "placeholder": "e.g. sk-..."
+      },
+      "video_gen_model": {
+        "title": "Model name",
+        "placeholder": "e.g. bytedance/seedance-2.0-fast"
+      },
       "video_gen_enabled": {
         "title": "Video generation",
         "description": "Enable video generation tools (text-to-video); disabling it keeps the saved model configuration."
       },
-      "visual_gen_provider": { "title": "Model provider" },
-      "visual_gen_protocol": { "title": "Protocol" },
-      "visual_gen_api_base": { "title": "API URL", "placeholder": "e.g. https://openrouter.ai/api/v1" },
-      "visual_gen_api_key": { "title": "API key", "placeholder": "e.g. sk-..." },
-      "visual_gen_model": { "title": "Model name", "placeholder": "e.g. google/gemini-3.1-flash-image" },
+      "visual_gen_provider": {
+        "title": "Model provider"
+      },
+      "visual_gen_protocol": {
+        "title": "Protocol"
+      },
+      "visual_gen_api_base": {
+        "title": "API URL",
+        "placeholder": "e.g. https://openrouter.ai/api/v1"
+      },
+      "visual_gen_api_key": {
+        "title": "API key",
+        "placeholder": "e.g. sk-..."
+      },
+      "visual_gen_model": {
+        "title": "Model name",
+        "placeholder": "e.g. google/gemini-3.1-flash-image"
+      },
       "visual_gen_enabled": {
         "title": "Visual generation",
         "description": "Enable image generation tools (text-to-image); disabling it keeps the saved model configuration."
@@ -512,7 +670,10 @@
         "title": "Global permission mode",
         "description": "Choose the shared guardrail mode for ordinary Agents and Teams."
       },
-      "a2ui_enabled": { "title": "Enable A2UI", "description": "Render supported results as interactive interfaces." },
+      "a2ui_enabled": {
+        "title": "Enable A2UI",
+        "description": "Render supported results as interactive interfaces."
+      },
       "rsi_enabled": {
         "title": "Enable RSI",
         "description": "Show the Experiments entry in the sidebar for Harness optimization and artifact optimization (papers and programs). Turn it off to hide the entry."
@@ -1055,7 +1216,8 @@
     "connected": "Connected",
     "disconnected": "Disconnected",
     "connecting": "Connecting...",
-    "loadingConfig": "Loading config..."
+    "loadingConfig": "Loading config...",
+    "failedHint": "Unable to connect. Check that the app is running. If you received a private login link, open its complete URL in this browser."
   },
   "toolPanel": {
     "status": "Status",
@@ -2768,8 +2930,19 @@
     "title": "Expert Management",
     "subtitle": "Create and manage reusable Expert assets",
     "tabsLabel": "Expert management categories",
-    "tabs": { "catalog": "Expert marketplace", "teams": "Expert Team marketplace", "mine": "My Experts", "mineAgent": "Experts", "mineGroup": "Expert Teams", "mineLabel": "My asset type" },
-    "source": { "builtin": "Official", "local": "Mine", "hub": "Hub" },
+    "tabs": {
+      "catalog": "Expert marketplace",
+      "teams": "Expert Team marketplace",
+      "mine": "My Experts",
+      "mineAgent": "Experts",
+      "mineGroup": "Expert Teams",
+      "mineLabel": "My asset type"
+    },
+    "source": {
+      "builtin": "Official",
+      "local": "Mine",
+      "hub": "Hub"
+    },
     "categoryLabel": "Expert categories",
     "categoryAll": "All",
     "categoryOther": "Other",
@@ -3001,7 +3174,10 @@
         "delete": "Delete",
         "saving": "Saving…"
       },
-      "card": { "open": "Open {{name}} details", "actions": "Actions for {{name}}" },
+      "card": {
+        "open": "Open {{name}} details",
+        "actions": "Actions for {{name}}"
+      },
       "states": {
         "loadError": "Unable to load the Expert Team list. Try again.",
         "detailError": "Unable to load Expert Team details. Try again.",
@@ -3028,7 +3204,10 @@
         "noDetails": "No additional details",
         "filesUnavailable": "Install the Expert Team to view its files."
       },
-      "files": { "loadError": "Unable to load Expert Team files. Try again.", "readError": "Unable to read the Expert Team file. Try again." },
+      "files": {
+        "loadError": "Unable to load Expert Team files. Try again.",
+        "readError": "Unable to read the Expert Team file. Try again."
+      },
       "form": {
         "title": "Create manually",
         "createAgentTab": "Create Expert",
@@ -3355,6 +3534,16 @@
     "connectionClosed": "Connection closed",
     "connectionUnavailable": "Connection unavailable",
     "requestTimeout": "Request timed out",
+    "requestTimeoutAction": "Timed out while {{action}}. The request outcome could not be confirmed.",
+    "researchSubmitTimeout": "Submitting your request timed out. Your uploaded files are retained.",
+    "requestActions": {
+      "createConversation": "creating the conversation",
+      "submitResearch": "submitting your research request",
+      "receiveReply": "waiting for the reply",
+      "attachFiles": "attaching your files",
+      "loadSettings": "loading settings",
+      "request": "contacting the app"
+    },
     "requestAborted": "Request aborted",
     "requestFailed": "Request failed",
     "sendMessageFailed": "Failed to send message",
@@ -4000,8 +4189,15 @@
       "expired": "Expired"
     },
     "schedule": {
-      "tab": { "interval": "Interval", "cron": "Cron expression", "once": "Once" },
-      "interval": { "label": "Every", "unit": "minutes, return to this session" },
+      "tab": {
+        "interval": "Interval",
+        "cron": "Cron expression",
+        "once": "Once"
+      },
+      "interval": {
+        "label": "Every",
+        "unit": "minutes, return to this session"
+      },
       "cron": {
         "hint": "Supports 5 fields (minute hour day month weekday) or the same 7-field format used by Cron tasks (second minute hour day month weekday year)."
       },
@@ -4313,7 +4509,7 @@
       "candidateError": "Candidate {{index}}/{{total}} generation failed",
       "scoreSuffix": " · {{score}}"
     }
-    },
+  },
   "swarmflow": {
     "statusPlanned": "Planned",
     "statusPending": "Pending",
@@ -4356,26 +4552,251 @@
     "budgetPanelHint": "Set the Token limit for this session.",
     "budgetPlaceholder": "Enter number",
     "budgetActualHint": "Configured limit: {{count}} tokens",
-    "workflowList": "Workflow List",
-    "verifyReviewing": "Reviewing…",
-    "verifyReviewingShort": "Reviewing",
-    "verifyPass": "✓ Pass",
-    "verifyFail": "✗ Fail",
-    "verifyUndecided": "? Undecided",
-    "verifyThreshold": "Threshold {{count}}",
-    "verifyUndecidedHint": "Some reviewer(s) did not vote (undecided); retry recommended",
-    "verifyVotesMissing": "{{count}} vote(s) missing · retry recommended",
-    "verifyVoteUndecided": "? No vote",
-    "verifyScore": "{{score}} pts",
-    "verifyRound": "Round {{count}} · {{verdict}}",
-    "verifyGroupTitle": "verify · {{label}}",
-    "verifyReviewersPending": "{{names}} reviewing…",
-    "sectionInput": "Input",
-    "sectionOutput": "Output",
-    "sectionHumanPrompt": "Human question",
-    "sectionHumanReply": "Human reply",
-    "sectionError": "Error",
-    "charUnit": "chars",
-    "clickToViewDetail": "Click to view details"
+    "workflowList": "Workflow List"
+  },
+  "researchShell": {
+    "status": "Research status: {{status}}",
+    "artifactCounts": "Accepted artifacts: {{accepted}}; candidates awaiting acceptance: {{candidates}}",
+    "inspect": "Inspect evidence",
+    "export": "Download original files",
+    "cancel": "Cancel research",
+    "cancelRequested": "Cancellation requested",
+    "operationFailed": "This operation is unavailable. Check authentication, scope and readiness.",
+    "artifact": "Evidence file",
+    "currentOrLastStage": "Current or last stage",
+    "stageUnavailable": "The original status did not identify a stage.",
+    "executionReasons": "Run execution reasons",
+    "reasonUnavailable": "No reason was supplied in the original status.",
+    "readableView": "Readable view",
+    "sourceView": "View source",
+    "sourceDetails": "Provenance and details",
+    "fileIdentity": "Original file identity",
+    "noneRecorded": "None recorded",
+    "standing": {
+      "accepted": "Accepted artifact",
+      "candidate": "Candidate artifact",
+      "evidence": "Captured evidence"
+    },
+    "documents": {
+      "brief": "Research Brief",
+      "intent": "Interpreted research request",
+      "measurements": "Recorded experiment measurements",
+      "verdict": "Scientific evaluation"
+    },
+    "sections": {
+      "objective": "Objective",
+      "domain_lane": "Research domain",
+      "problem": "Problem",
+      "desired_change": "Desired change",
+      "requested_result": "Requested result",
+      "context": "Context",
+      "in_scope": "In scope",
+      "out_of_scope": "Out of scope",
+      "mandatory_requirements": "Required outcomes",
+      "optional_preferences": "Preferences",
+      "preferences": "Preferences",
+      "constraints": "Constraints",
+      "target_metrics": "Targets",
+      "user_targets": "User targets",
+      "deliverables": "Deliverables",
+      "acceptance_expectations": "Acceptance expectations",
+      "evidence_obligations": "Required evidence",
+      "assumptions": "Assumptions and defaults",
+      "unresolved_items": "Unresolved items",
+      "uncertainties": "Uncertainties",
+      "readiness": "Readiness",
+      "confirmation": "Confirmation basis",
+      "repeat_count": "Requested repeats",
+      "seed": "Requested seed",
+      "run_order": "Recorded run order",
+      "classification": "Recorded scientific verdict",
+      "completeness": "Evidence completeness",
+      "plausibility": "Plausibility review",
+      "blockers": "Blockers",
+      "residual_risks": "Residual risks",
+      "followups": "Suggested follow-ups"
+    },
+    "measurements": {
+      "metric": "Metric",
+      "baseline": "Baseline",
+      "treatment": "Treatment",
+      "delta": "Recorded difference",
+      "classification": "Recorded verdict",
+      "details": "Details",
+      "unavailable": "Unmeasured / unavailable",
+      "recordedOnly": "Values and verdicts are copied from this artifact. Missing measurements remain unavailable.",
+      "reasons": {
+        "run_failed": "Run failed",
+        "timeout": "Run timed out",
+        "metric_not_emitted": "No metric was emitted",
+        "non_finite_value": "The emitted value was not finite",
+        "resource_limit_exceeded": "A resource limit was exceeded"
+      }
+    }
+  },
+  "researchPreferences": {
+    "title": "Research preferences",
+    "nextStart": "Account, host and project preferences apply in that order at the next application start. Active research keeps its frozen configuration. Separate multiple paths or extensions with commas.",
+    "scopeLabel": "Preference scope",
+    "scope": {
+      "account": "Account",
+      "host": "Host",
+      "project": "Project"
+    },
+    "saveTitle": "Save research preferences",
+    "discard": "Discard changes",
+    "save": "Save for next start",
+    "fields": {
+      "display_name": "Display name",
+      "timezone": "Time zone",
+      "runtime_choice": "Runtime preference",
+      "workspace_input": "Input directory",
+      "workspace_poc": "POC directory",
+      "knowledge_paths": "Knowledge paths",
+      "search_options": "Search preferences",
+      "reasoning_options": "Reasoning preferences",
+      "ui_behavior": "Interface preferences",
+      "ingestion_extensions": "Document extensions",
+      "single_gpu": "Use one GPU"
+    }
+  },
+  "researchInputs": {
+    "savedAs": "Saved as {{name}}. A safe storage name was generated automatically.",
+    "documentType": "Choose a TXT, Markdown (.md/.markdown), or text-layer PDF document.",
+    "repositoryType": "Choose a ZIP file for a repository upload.",
+    "tooLarge": "This file exceeds the local 20 MB limit. Choose a smaller file.",
+    "authFailed": "Your local session could not be authorized. Reopen your saved full login link, then upload again.",
+    "conflict": "A file with this name already exists, or the file is in use. Select the saved file, or rename the new file.",
+    "unreadable": "The file could not be read. TXT/Markdown must be UTF-8; PDF must be unencrypted and contain selectable text. Scanned images require text extraction first.",
+    "setupRequired": "Local file storage is not enabled. Update the app and launch with bash deploy/m1/start-local.sh --build.",
+    "title": "Research inputs",
+    "kind": "Input type",
+    "docs": "Reference document",
+    "repo": "Repository ZIP",
+    "datasets": "Validation dataset",
+    "upload": "Upload",
+    "attachSaved": "Attach a saved file…",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "hint": "Files are saved locally. Selected documents accompany your next message. Up to 20 MB per file; names with spaces or non-Latin characters are converted to safe storage names automatically.",
+    "failed": "The file operation could not complete. Check the connection and try again."
+  },
+  "researchWorkflow": {
+    "progress": {
+      "understanding": "Understanding your request…",
+      "sources": "Reviewing sources…",
+      "working": "Working on your request…",
+      "results": "Preparing results…"
+    },
+    "title": "Research workflow and Capsules",
+    "mode": "Interaction mode",
+    "conversation": "Direct chat (opt-in)",
+    "research": "AI4R workflow",
+    "researchHint": "Attach reference documents and describe your request. Your report and files will appear here when ready.",
+    "setupRequired": "Research execution needs an initialized operator configuration and admitted Capsule library. See Settings → Agent for the current prerequisites.",
+    "stopped": "Research stopped at {{stage}}. {{reasons}}",
+    "incomplete": "Your request could not be completed. {{reasons}}",
+    "configurationRepair": "Research could not continue because its runtime configuration needs repair. Your uploaded documents are retained.",
+    "requestIncomplete": "The research could not be completed. Your uploaded documents are retained.",
+    "planInfeasible": "I could not create a research plan for this request:",
+    "compilerHalted": "I could not finalize the research requirements for this request:",
+    "planFilesRetained": "Your uploaded documents are retained. You can clarify the request in a new message.",
+    "connectionTimeout": "Connecting to the app timed out. Check that the app is running, then try again.",
+    "runtimeTimeout": "The app's availability could not be loaded in time. Please try again.",
+    "redactedReport": "Some report content was withheld by the workspace disclosure policy.",
+    "reportUnavailable": "Your request finished, but its report could not be loaded. Check the connection and try again.",
+    "ready": "The governed runtime is ready. Research requests use the installed Capsules and protected gates.",
+    "blocked": "Configuration is captured; required runtime resources are still unavailable.",
+    "planMode": "Planning mode: {{mode}}",
+    "unconfigured": "not configured",
+    "admitted": "Active and eligible",
+    "notInstalled": "Not eligible for execution",
+    "checkCounts": "{{checks}} deterministic checks · {{criteria}} verifier criteria",
+    "showChecks": "Show work, checks and gates",
+    "hideChecks": "Hide work, checks and gates",
+    "gate": "Gate",
+    "noChecks": "No invocation or gate has been recorded yet.",
+    "modelCall": "Model call: {{outcome}}",
+    "modelRoute": "{{model}} · route: {{route}}",
+    "modelUnobserved": "Effective model unavailable",
+    "continuationUnavailable": "The follow-up attempt could not be inspected. Open the run details before submitting again.",
+    "tryExample": "Try a complete research example",
+    "examplePreparing": "Preparing the research example…",
+    "exampleFailed": "The example could not be prepared. Check the connection and try again.",
+    "stages": {
+      "intent": "Intent Capsule",
+      "requirements": "Requirements Capsule",
+      "planner": "DAG Planner",
+      "search": "Search and ideation",
+      "screening": "Opportunity screening",
+      "hypothesis": "Hypothesis and protocol",
+      "builder": "POC Builder",
+      "benchmark": "POC Benchmark",
+      "evaluation": "Scientific evaluation",
+      "delivery": "Report and evidence delivery",
+      "verifier": "Independent verifier"
+    }
+  },
+  "researchModels": {
+    "localDescription": "Use three local models and your ChatGPT subscription in the same AI4R workflow. No API key required.",
+    "executionMode": "Execution mode",
+    "localModeHint": "Quality-first routing across gpt-oss-20b, Nemotron Lightning, gpt-oss-120b and ChatGPT 6.1 Sol. Critical derived decisions require ChatGPT. Verification uses a separate local call.",
+    "localMode": "AI4R · automatic model routing",
+    "chatgptBaseline": "ChatGPT · manual model choice",
+    "chatgptModel": "ChatGPT model",
+    "baselineHint": "Manual ChatGPT choice retains its original behavior. For a controlled comparison with automatic routing, select the AI4R fixed-worker reference above.",
+    "localRole": {
+      "e4b": "Retired from the current pool",
+      "bolt": "Retired from the current pool",
+      "qwen": "Retired from the current pool",
+      "lightning": "Efficient local reasoning executor",
+      "gptoss": "Larger local reasoning executor",
+      "gptoss20": "Compact reasoning executor, routing assessor and separate verifier"
+    },
+    "localReady": "Connected",
+    "localUnavailable": "Unavailable",
+    "localStatus": {
+      "not_configured": "Not configured",
+      "disabled": "Disabled",
+      "service_unavailable": "Service unavailable",
+      "model_not_served": "Model not loaded",
+      "configuration_invalid": "Configuration needs attention"
+    },
+    "localPrerequisite": "Start the required local assessor and verifier service on your Spark, then refresh. Model endpoints are configured on the server.",
+    "applyMode": "Use this mode",
+    "frozenPool": "Applies to new research. Running work keeps its original model pool and decisions.",
+    "localError": "Could not save or load the local model. Check your app connection and refresh the model list. If the problem persists, contact your administrator.",
+    "modeSaved": "Saved. New research will use this execution mode.",
+    "chatgptDescription": "This subscription serves automatic routing and the fixed-worker AI4R reference, both pinned to GPT-6.1-Sol. Manual mode uses your selected ChatGPT model. No API key is required.",
+    "chatgptOption": "{{model}} (ChatGPT subscription)",
+    "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",
+    "option": "{{model}} ({{platform}} API key)",
+    "localOption": "{{model}} (Local endpoint)",
+    "localEndpoint": "Local endpoint",
+    "localManaged": "Model: {{model}}. This endpoint is approved and managed by your administrator. No API key is required; save to use it for new research runs.",
+    "platformKey": "{{platform}} API key",
+    "claudeKeyHint": "Use an Anthropic workspace-scoped API key. Personal or service-account keys that require a separate workspace header are not supported here yet.",
+    "authenticationRequired": "Open this app with the local launcher login link to load and save your model settings; a plain address in a new tab does not carry that login.",
+    "title": "Research model",
+    "description": "Choose the model used by the AI4R research workflow.",
+    "model": "Model",
+    "codex": "ChatGPT (subscription default)",
+    "current": "Currently selected: {{model}}",
+    "apiKey": "API key",
+    "keyPrivacy": "Save one OpenRouter API key to use all eight API models. Stored privately on this machine; never included in prompts or run exports.",
+    "keySaved": "Key saved; leave blank to keep it",
+    "keyPlaceholder": "Enter your provider API key",
+    "showKey": "Show entered key",
+    "hideKey": "Hide entered key",
+    "modelName": "Model name",
+    "apiAddress": "API address",
+    "addressHint": "Use the endpoint for your API key's provider and region.",
+    "apply": "Use this model",
+    "newRuns": "Applies to new research runs. Running work keeps its original model.",
+    "saveUse": "Save and use",
+    "refresh": "Refresh",
+    "error": "Could not save or load the model. Check your app connection and refresh the model list. If the problem persists, contact your administrator or check the selected provider's credentials.",
+    "saved": "Saved. New research runs will use this model.",
+    "ai4rReference": "ChatGPT 6.1 Sol · fixed worker in AI4R"
   }
 }

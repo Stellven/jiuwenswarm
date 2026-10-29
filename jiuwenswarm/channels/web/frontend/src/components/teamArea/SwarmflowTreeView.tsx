@@ -69,6 +69,7 @@ import {
   type DetailSection,
 } from './AgentDetailModal';
 import { Toast } from '../ConnectorMarket/Toast';
+import { ResearchRunControls } from './ResearchRunControls';
 
 // ── 状态图标映射 ──────────────────────────────────────────
 
@@ -1501,7 +1502,7 @@ function RunNode({
             )}
           </span>
         )}
-        {(run.status === 'running' || run.status === 'paused') && (
+        {!run.research && (run.status === 'running' || run.status === 'paused') && (
           <div
             className="flex items-center gap-1 shrink-0"
             onClick={(e) => e.stopPropagation()}
@@ -1572,6 +1573,7 @@ function RunNode({
         )}
       </div>
 
+      {run.research && <ResearchRunControls run={run.research} />}
       {controlError && (
         <Toast message={controlError} onClose={() => setControlError(null)} variant="error" />
       )}

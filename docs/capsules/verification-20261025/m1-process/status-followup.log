@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.15, pytest-9.0.3, pluggy-1.6.0 -- /opt/venv/bin/python
+metadata: {'Python': '3.12.15', 'Platform': 'Linux-6.18.33.2-microsoft-standard-WSL2-x86_64-with-glibc2.36', 'Packages': {'pytest': '9.0.3', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.13.0', 'metadata': '3.1.1', 'cov': '7.1.0', 'html': '4.2.0', 'asyncio': '1.3.0', 'mock': '3.15.1'}}
+rootdir: /workspace
+configfile: pytest.ini
+plugins: anyio-4.13.0, metadata-3.1.1, cov-7.1.0, html-4.2.0, asyncio-1.3.0, mock-3.15.1
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 38 items
+
+tests/unit_tests/research/test_status_stage.py::test_status_stage_actual_single_node_history_needs_no_current_owner PASSED [  2%]
+tests/unit_tests/research/test_status_stage.py::test_status_stage_real_finite_freeze_pending_placeholders_are_not_execution FAILED [  5%]
+
+=================================== FAILURES ===================================
+_ test_status_stage_real_finite_freeze_pending_placeholders_are_not_execution __
+tests/unit_tests/research/test_status_stage.py:95: in test_status_stage_real_finite_freeze_pending_placeholders_are_not_execution
+    with pytest.raises(ResearchError, match='controlled_before_dispatch'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE <class 'jiuwenswarm.research.contracts.types.ResearchError'>
+=========================== short test summary info ============================
+FAILED tests/unit_tests/research/test_status_stage.py::test_status_stage_real_finite_freeze_pending_placeholders_are_not_execution - Failed: DID NOT RAISE <class 'jiuwenswarm.research.contracts.types.ResearchError'>
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+========================= 1 failed, 1 passed in 21.79s =========================

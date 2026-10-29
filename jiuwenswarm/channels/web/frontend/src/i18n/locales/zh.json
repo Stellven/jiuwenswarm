@@ -1,4 +1,34 @@
 {
+  "codexSubscription": {
+    "capsuleTitle": "对话风格",
+    "capsuleDescription": "选择普通对话中助手的回答方式，例如分析文档或整理研究简报。",
+    "capsuleGeneral": "普通对话",
+    "capsuleDocument": "文档分析 — 总结、证据与局限",
+    "capsuleBrief": "研究简报 — 问题、方法与下一步",
+    "localChat": "通过 ChatGPT 订阅使用 GPT-6.1 Sol，无需 API Key。",
+    "setupRequired": "ChatGPT 登录用于连接账户。本地工作区支持文件上传；执行研究仍需要研究运行资源。",
+    "title": "ChatGPT 订阅",
+    "scope": "预览阶段：普通文字聊天。团队、工具和媒体仍待接入。重启或退出账号后请新建会话，已保存的历史仍可查看。",
+    "model": "订阅模型",
+    "defaultModel": "账号默认模型",
+    "login": "使用 ChatGPT 登录",
+    "logout": "退出账号并停止任务",
+    "openLogin": "打开安全登录页面",
+    "deviceCode": "请在登录页面输入此验证码：",
+    "cancel": "取消登录",
+    "refresh": "刷新状态",
+    "error": "暂时无法确认连接或操作结果。请检查网络并刷新状态后再试，无需填写 API Key。",
+    "signInFirst": "请到设置 → 模型中登录 ChatGPT，再发送消息。",
+    "states": {
+      "checking": "正在检查连接…",
+      "ready": "已登录",
+      "signing_in": "请在浏览器中完成登录",
+      "signed_out": "尚未登录",
+      "subscription_required": "需要使用 ChatGPT 订阅账号",
+      "unavailable": "运行服务不可用",
+      "disconnected": "连接已断开"
+    }
+  },
   "common": {
     "noData": "暂无数据",
     "confirm": "确认",
@@ -66,17 +96,60 @@
   "videoLive": {
     "modelFallback": "视频模型",
     "subtitle": "实时多屏音视频问答",
-    "status": { "connecting": "正在连接 Full-duplex 模型并申请麦克风权限…", "speaking": "模型正在回答…" },
-    "coreAgent": { "startFailed": "Jiuwen Core Agent 未能启动任务：{{message}}", "startFailedSummary": "任务未能启动，错误信息已经显示在界面中。" },
-    "errors": { "startFailed": "Full-duplex 会话启动失败。", "joyaiTextNotAccepted": "文字输入未进入 JoyAI 会话", "qwenTextNotAccepted": "文字输入未进入千问 Realtime 会话", "textSendFailed": "文字输入发送失败" },
-    "empty": { "title": "打开一个实时画面", "description": "使用摄像头、本地视频，或添加多个屏幕", "listening": "正在持续听取", "waiting": "等待开启 Full-duplex", "hint": "开启后直接说话，无需逐句点击" },
-    "sources": { "camera": "摄像头", "localVideo": "本地视频", "addScreen": "添加屏幕", "shareScreen": "共享屏幕", "stopCamera": "停止摄像头", "stopScreens": "停止全部屏幕" },
-    "actions": { "closeVideo": "关闭视频", "starting": "正在启动 Full-duplex 会话", "stopSession": "结束 Full-duplex 会话", "startSession": "开启 Full-duplex 会话" },
+    "status": {
+      "connecting": "正在连接 Full-duplex 模型并申请麦克风权限…",
+      "speaking": "模型正在回答…"
+    },
+    "coreAgent": {
+      "startFailed": "Jiuwen Core Agent 未能启动任务：{{message}}",
+      "startFailedSummary": "任务未能启动，错误信息已经显示在界面中。"
+    },
+    "errors": {
+      "startFailed": "Full-duplex 会话启动失败。",
+      "joyaiTextNotAccepted": "文字输入未进入 JoyAI 会话",
+      "qwenTextNotAccepted": "文字输入未进入千问 Realtime 会话",
+      "textSendFailed": "文字输入发送失败"
+    },
+    "empty": {
+      "title": "打开一个实时画面",
+      "description": "使用摄像头、本地视频，或添加多个屏幕",
+      "listening": "正在持续听取",
+      "waiting": "等待开启 Full-duplex",
+      "hint": "开启后直接说话，无需逐句点击"
+    },
+    "sources": {
+      "camera": "摄像头",
+      "localVideo": "本地视频",
+      "addScreen": "添加屏幕",
+      "shareScreen": "共享屏幕",
+      "stopCamera": "停止摄像头",
+      "stopScreens": "停止全部屏幕"
+    },
+    "actions": {
+      "closeVideo": "关闭视频",
+      "starting": "正在启动 Full-duplex 会话",
+      "stopSession": "结束 Full-duplex 会话",
+      "startSession": "开启 Full-duplex 会话"
+    },
     "frameWindow": "滚动窗口：{{count}}/{{max}} 帧",
     "audioOnly": "纯语音不发送画面",
-    "chat": { "coreResult": "工具结果 · Jiuwen Core Agent", "user": "你", "search": "九问搜索", "assistant": "助手", "searchCompleted": "九问搜索 Agent 搜索完成" },
-    "search": { "ready": "准备搜索", "selectHistory": "选择搜索记录", "latest": "最新搜索（自动）" },
-    "input": { "activePlaceholder": "也可以在当前会话中输入文字……", "inactivePlaceholder": "先开启 Full-duplex……", "send": "发送问题" }
+    "chat": {
+      "coreResult": "工具结果 · Jiuwen Core Agent",
+      "user": "你",
+      "search": "九问搜索",
+      "assistant": "助手",
+      "searchCompleted": "九问搜索 Agent 搜索完成"
+    },
+    "search": {
+      "ready": "准备搜索",
+      "selectHistory": "选择搜索记录",
+      "latest": "最新搜索（自动）"
+    },
+    "input": {
+      "activePlaceholder": "也可以在当前会话中输入文字……",
+      "inactivePlaceholder": "先开启 Full-duplex……",
+      "send": "发送问题"
+    }
   },
   "settingsPanel": {
     "title": "设置",
@@ -424,15 +497,37 @@
         "title": "浏览器运行方式",
         "description": "选择在前台显示浏览器窗口或以无头模式运行。"
       },
-      "model_name": { "title": "模型名称", "placeholder": "例如：glm-4.7" },
-      "alias": { "title": "自定义别名", "placeholder": "例如：GLM-4.7 生产环境" },
-      "api_base": { "title": "API 地址", "placeholder": "例如：https://api.openai.com/v1" },
-      "api_key": { "title": "API 密钥", "placeholder": "例如：sk-..." },
-      "model_provider": { "title": "模型提供商" },
-      "reasoning_level": { "title": "推理" },
-      "embed_api_base": { "title": "API 地址" },
-      "embed_api_key": { "title": "API 密钥" },
-      "embed_model": { "title": "模型名称" },
+      "model_name": {
+        "title": "模型名称",
+        "placeholder": "例如：glm-4.7"
+      },
+      "alias": {
+        "title": "自定义别名",
+        "placeholder": "例如：GLM-4.7 生产环境"
+      },
+      "api_base": {
+        "title": "API 地址",
+        "placeholder": "例如：https://api.openai.com/v1"
+      },
+      "api_key": {
+        "title": "API 密钥",
+        "placeholder": "例如：sk-..."
+      },
+      "model_provider": {
+        "title": "模型提供商"
+      },
+      "reasoning_level": {
+        "title": "推理"
+      },
+      "embed_api_base": {
+        "title": "API 地址"
+      },
+      "embed_api_key": {
+        "title": "API 密钥"
+      },
+      "embed_model": {
+        "title": "模型名称"
+      },
       "asr_api_base": {
         "title": "语音转写 API 地址",
         "description": "填写 OpenAI 兼容 Base URL 或完整的 /audio/transcriptions 地址。",
@@ -452,7 +547,10 @@
         "title": "语音转写",
         "description": "开启后，任务对话可以使用麦克风进行语音转写。"
       },
-      "skill_evolution": { "title": "本地技能自动演进与沉淀", "description": "控制本地技能的自动演进和沉淀" },
+      "skill_evolution": {
+        "title": "本地技能自动演进与沉淀",
+        "description": "控制本地技能的自动演进和沉淀"
+      },
       "symphony_evolution_enabled": {
         "title": "发现技能包",
         "description": "任务结束后从执行经验中沉淀技能组合，自动发现技能包"
@@ -465,45 +563,117 @@
         "title": "本地环境事实与任务经验自动演进",
         "description": "控制智能体对于环境事实和任务经验学习"
       },
-      "free_search_ddg_enabled": { "title": "DuckDuckGo 搜索", "description": "启用 DuckDuckGo 免费搜索来源。" },
-      "free_search_bing_enabled": { "title": "Bing 搜索", "description": "启用 Bing 免费搜索来源。" },
-      "jina_api_key": { "title": "Jina API 密钥" },
-      "bocha_api_key": { "title": "博查 API 密钥" },
-      "perplexity_api_key": { "title": "Perplexity API 密钥" },
-      "serper_api_key": { "title": "Serper API 密钥" },
-      "github_token": { "title": "GitHub 访问令牌" },
-      "vision_api_base": { "title": "API 地址" },
-      "vision_api_key": { "title": "API 密钥" },
-      "vision_model": { "title": "模型名称" },
-      "vision_provider": { "title": "模型提供商" },
-      "audio_api_base": { "title": "API 地址" },
-      "audio_api_key": { "title": "API 密钥" },
-      "audio_model": { "title": "模型名称" },
-      "audio_provider": { "title": "模型提供商" },
-      "video_api_base": { "title": "API 地址" },
-      "video_api_key": { "title": "API 密钥" },
-      "video_model": { "title": "模型名称" },
-      "video_provider": { "title": "模型提供商" },
-      "video_gen_provider": { "title": "模型提供商" },
-      "video_gen_protocol": { "title": "协议" },
-      "video_gen_api_base": { "title": "API 地址", "placeholder": "例如 https://openrouter.ai/api/v1" },
-      "video_gen_api_key": { "title": "API 密钥", "placeholder": "例如 sk-..." },
-      "video_gen_model": { "title": "模型名称", "placeholder": "例如 bytedance/seedance-2.0-fast" },
+      "free_search_ddg_enabled": {
+        "title": "DuckDuckGo 搜索",
+        "description": "启用 DuckDuckGo 免费搜索来源。"
+      },
+      "free_search_bing_enabled": {
+        "title": "Bing 搜索",
+        "description": "启用 Bing 免费搜索来源。"
+      },
+      "jina_api_key": {
+        "title": "Jina API 密钥"
+      },
+      "bocha_api_key": {
+        "title": "博查 API 密钥"
+      },
+      "perplexity_api_key": {
+        "title": "Perplexity API 密钥"
+      },
+      "serper_api_key": {
+        "title": "Serper API 密钥"
+      },
+      "github_token": {
+        "title": "GitHub 访问令牌"
+      },
+      "vision_api_base": {
+        "title": "API 地址"
+      },
+      "vision_api_key": {
+        "title": "API 密钥"
+      },
+      "vision_model": {
+        "title": "模型名称"
+      },
+      "vision_provider": {
+        "title": "模型提供商"
+      },
+      "audio_api_base": {
+        "title": "API 地址"
+      },
+      "audio_api_key": {
+        "title": "API 密钥"
+      },
+      "audio_model": {
+        "title": "模型名称"
+      },
+      "audio_provider": {
+        "title": "模型提供商"
+      },
+      "video_api_base": {
+        "title": "API 地址"
+      },
+      "video_api_key": {
+        "title": "API 密钥"
+      },
+      "video_model": {
+        "title": "模型名称"
+      },
+      "video_provider": {
+        "title": "模型提供商"
+      },
+      "video_gen_provider": {
+        "title": "模型提供商"
+      },
+      "video_gen_protocol": {
+        "title": "协议"
+      },
+      "video_gen_api_base": {
+        "title": "API 地址",
+        "placeholder": "例如 https://openrouter.ai/api/v1"
+      },
+      "video_gen_api_key": {
+        "title": "API 密钥",
+        "placeholder": "例如 sk-..."
+      },
+      "video_gen_model": {
+        "title": "模型名称",
+        "placeholder": "例如 bytedance/seedance-2.0-fast"
+      },
       "video_gen_enabled": {
         "title": "视频生成",
         "description": "启用视频生成工具（文生视频）；关闭后仍保留已保存的模型配置。"
       },
-      "visual_gen_provider": { "title": "模型提供商" },
-      "visual_gen_protocol": { "title": "协议" },
-      "visual_gen_api_base": { "title": "API 地址", "placeholder": "例如 https://openrouter.ai/api/v1" },
-      "visual_gen_api_key": { "title": "API 密钥", "placeholder": "例如 sk-..." },
-      "visual_gen_model": { "title": "模型名称", "placeholder": "例如 google/gemini-3.1-flash-image" },
+      "visual_gen_provider": {
+        "title": "模型提供商"
+      },
+      "visual_gen_protocol": {
+        "title": "协议"
+      },
+      "visual_gen_api_base": {
+        "title": "API 地址",
+        "placeholder": "例如 https://openrouter.ai/api/v1"
+      },
+      "visual_gen_api_key": {
+        "title": "API 密钥",
+        "placeholder": "例如 sk-..."
+      },
+      "visual_gen_model": {
+        "title": "模型名称",
+        "placeholder": "例如 google/gemini-3.1-flash-image"
+      },
       "visual_gen_enabled": {
         "title": "图像生成",
         "description": "启用图像生成工具（文生图）；关闭后仍保留已保存的模型配置。"
       },
-      "permissions_mode": { "title": "全局权限模式", "description": "为普通 Agent 与 Team 选择统一的安全护栏模式。" },
-      "a2ui_enabled": { "title": "启用 A2UI", "description": "允许将支持的结果渲染成交互式界面。" },
+      "permissions_mode": {
+        "title": "全局权限模式",
+        "description": "为普通 Agent 与 Team 选择统一的安全护栏模式。"
+      },
+      "a2ui_enabled": {
+        "title": "启用 A2UI",
+        "description": "允许将支持的结果渲染成交互式界面。"
+      },
       "rsi_enabled": {
         "title": "启用 RSI",
         "description": "显示侧边栏「实验」入口，可创建并查看 Harness 优化和产物优化（论文、程序）实验；关闭后隐藏该入口。"
@@ -1046,7 +1216,8 @@
     "connected": "已连接",
     "disconnected": "未连接",
     "connecting": "正在连接服务器...",
-    "loadingConfig": "加载配置中..."
+    "loadingConfig": "加载配置中...",
+    "failedHint": "暂时无法连接，请确认应用正在运行。如果使用私人登录链接，请在当前浏览器中打开完整网址。"
   },
   "toolPanel": {
     "status": "状态",
@@ -2759,8 +2930,19 @@
     "title": "专家管理",
     "subtitle": "创建并管理专家，快速复用专家资产",
     "tabsLabel": "专家管理分类",
-    "tabs": { "catalog": "专家广场", "teams": "专家团广场", "mine": "我的专家", "mineAgent": "专家", "mineGroup": "专家团", "mineLabel": "我的资产类型" },
-    "source": { "builtin": "官方", "local": "我的", "hub": "Hub" },
+    "tabs": {
+      "catalog": "专家广场",
+      "teams": "专家团广场",
+      "mine": "我的专家",
+      "mineAgent": "专家",
+      "mineGroup": "专家团",
+      "mineLabel": "我的资产类型"
+    },
+    "source": {
+      "builtin": "官方",
+      "local": "我的",
+      "hub": "Hub"
+    },
     "categoryLabel": "专家分类",
     "categoryAll": "全部",
     "categoryOther": "其他",
@@ -2812,7 +2994,11 @@
     "confirm": {
       "deleteMessage": "确定要删除专家「{{name}}」吗？此操作不可恢复。"
     },
-    "card": { "open": "查看 {{name}} 详情", "actions": "{{name}} 操作", "moreTagsTooltip": "更多标签：{{tags}}" },
+    "card": {
+      "open": "查看 {{name}} 详情",
+      "actions": "{{name}} 操作",
+      "moreTagsTooltip": "更多标签：{{tags}}"
+    },
     "states": {
       "installed": "已安装",
       "loadError": "专家列表加载失败，请重试。",
@@ -2988,7 +3174,10 @@
         "delete": "删除",
         "saving": "保存中…"
       },
-      "card": { "open": "查看 {{name}} 详情", "actions": "{{name}} 操作" },
+      "card": {
+        "open": "查看 {{name}} 详情",
+        "actions": "{{name}} 操作"
+      },
       "states": {
         "loadError": "专家团列表加载失败，请重试。",
         "detailError": "专家团详情加载失败，请重试。",
@@ -3015,7 +3204,10 @@
         "noDetails": "暂无更多详情",
         "filesUnavailable": "安装后即可查看该专家团的文件。"
       },
-      "files": { "loadError": "专家团文件列表加载失败，请重试。", "readError": "专家团文件读取失败，请重试。" },
+      "files": {
+        "loadError": "专家团文件列表加载失败，请重试。",
+        "readError": "专家团文件读取失败，请重试。"
+      },
       "form": {
         "title": "手动创建",
         "createAgentTab": "创建专家",
@@ -3342,6 +3534,16 @@
     "connectionClosed": "连接已关闭",
     "connectionUnavailable": "连接不可用",
     "requestTimeout": "请求超时",
+    "requestTimeoutAction": "{{action}}超时，暂时无法确认请求结果。",
+    "researchSubmitTimeout": "提交请求超时，你上传的文件已保留。",
+    "requestActions": {
+      "createConversation": "创建对话",
+      "submitResearch": "提交研究请求",
+      "receiveReply": "等待回复",
+      "attachFiles": "附加文件",
+      "loadSettings": "加载设置",
+      "request": "连接应用"
+    },
     "requestAborted": "请求已取消",
     "requestFailed": "请求失败",
     "sendMessageFailed": "发送消息失败",
@@ -3987,9 +4189,18 @@
       "expired": "已过期"
     },
     "schedule": {
-      "tab": { "interval": "按间隔", "cron": "Cron 表达式", "once": "单次" },
-      "interval": { "label": "每隔", "unit": "分钟回到当前会话" },
-      "cron": { "hint": "支持 5 段（分 时 日 月 周）或与普通 Cron 任务相同的 7 段格式（秒 分 时 日 月 周 年）。" },
+      "tab": {
+        "interval": "按间隔",
+        "cron": "Cron 表达式",
+        "once": "单次"
+      },
+      "interval": {
+        "label": "每隔",
+        "unit": "分钟回到当前会话"
+      },
+      "cron": {
+        "hint": "支持 5 段（分 时 日 月 周）或与普通 Cron 任务相同的 7 段格式（秒 分 时 日 月 周 年）。"
+      },
       "once": {
         "hint": "选择具体日期和时间，到点后回到当前会话触发一次，之后自动标记为已完成",
         "dateLabel": "日期",
@@ -4298,7 +4509,7 @@
       "candidateError": "候选 {{index}}/{{total}} 生成失败",
       "scoreSuffix": " · 得分 {{score}}"
     }
-    },
+  },
   "swarmflow": {
     "statusPlanned": "已规划",
     "statusPending": "等待中",
@@ -4341,26 +4552,251 @@
     "budgetPanelHint": "设置本次会话的 Token 上限。",
     "budgetPlaceholder": "输入数字",
     "budgetActualHint": "本次配置上限：{{count}} tokens",
-    "workflowList": "工作流列表",
-    "verifyReviewing": "评审中…",
-    "verifyReviewingShort": "评审中",
-    "verifyPass": "✓ 通过",
-    "verifyFail": "✗ 不通过",
-    "verifyUndecided": "? 未裁决",
-    "verifyThreshold": "阈值 {{count}}",
-    "verifyUndecidedHint": "有 reviewer 未投票（undecided），建议重试",
-    "verifyVotesMissing": "{{count}} 票缺失 · 建议重试",
-    "verifyVoteUndecided": "? 未投",
-    "verifyScore": "{{score}} 分",
-    "verifyRound": "第{{count}}轮 · {{verdict}}",
-    "verifyGroupTitle": "verify 组 · {{label}}",
-    "verifyReviewersPending": "{{names}} 评审中…",
-    "sectionInput": "输入",
-    "sectionOutput": "输出",
-    "sectionHumanPrompt": "人工提问",
-    "sectionHumanReply": "人工回复",
-    "sectionError": "错误",
-    "charUnit": "字符",
-    "clickToViewDetail": "点击查看详情"
+    "workflowList": "工作流列表"
+  },
+  "researchShell": {
+    "status": "研究状态：{{status}}",
+    "artifactCounts": "已接受产物：{{accepted}}；等待接受的候选：{{candidates}}",
+    "inspect": "查看证据",
+    "export": "下载原始文件",
+    "cancel": "取消研究",
+    "cancelRequested": "已请求取消",
+    "operationFailed": "此操作不可用。请检查身份验证、授权范围和运行就绪情况。",
+    "artifact": "证据文件",
+    "currentOrLastStage": "当前或最近阶段",
+    "stageUnavailable": "原始状态未提供阶段信息。",
+    "executionReasons": "运行原因",
+    "reasonUnavailable": "原始状态未提供原因说明。",
+    "readableView": "易读视图",
+    "sourceView": "查看原始内容",
+    "sourceDetails": "来源与详细信息",
+    "fileIdentity": "原始文件标识",
+    "noneRecorded": "未记录",
+    "standing": {
+      "accepted": "已接受的产物",
+      "candidate": "候选产物",
+      "evidence": "已捕获的证据"
+    },
+    "documents": {
+      "brief": "研究简报",
+      "intent": "研究请求解读",
+      "measurements": "已记录的实验测量",
+      "verdict": "科学评估"
+    },
+    "sections": {
+      "objective": "研究目标",
+      "domain_lane": "研究领域",
+      "problem": "问题",
+      "desired_change": "期望的改进",
+      "requested_result": "期望结果",
+      "context": "背景",
+      "in_scope": "研究范围",
+      "out_of_scope": "范围之外",
+      "mandatory_requirements": "必需结果",
+      "optional_preferences": "偏好",
+      "preferences": "偏好",
+      "constraints": "约束",
+      "target_metrics": "目标指标",
+      "user_targets": "用户目标",
+      "deliverables": "交付物",
+      "acceptance_expectations": "验收期望",
+      "evidence_obligations": "必需证据",
+      "assumptions": "假设与默认值",
+      "unresolved_items": "待解决事项",
+      "uncertainties": "不确定事项",
+      "readiness": "就绪情况",
+      "confirmation": "确认依据",
+      "repeat_count": "请求的重复次数",
+      "seed": "请求的随机种子",
+      "run_order": "已记录的运行顺序",
+      "classification": "已记录的科学结论",
+      "completeness": "证据完整性",
+      "plausibility": "合理性审查",
+      "blockers": "阻塞项",
+      "residual_risks": "剩余风险",
+      "followups": "后续建议"
+    },
+    "measurements": {
+      "metric": "指标",
+      "baseline": "基线",
+      "treatment": "干预结果",
+      "delta": "已记录的差值",
+      "classification": "已记录的结论",
+      "details": "详细信息",
+      "unavailable": "未测量／不可用",
+      "recordedOnly": "数值和结论直接来自此产物。缺失的测量仍显示为不可用。",
+      "reasons": {
+        "run_failed": "运行失败",
+        "timeout": "运行超时",
+        "metric_not_emitted": "未输出指标",
+        "non_finite_value": "输出值不是有限数值",
+        "resource_limit_exceeded": "超出资源限制"
+      }
+    }
+  },
+  "researchPreferences": {
+    "title": "研究偏好",
+    "nextStart": "账户、主机和项目偏好按此顺序在下次应用启动时生效。活动研究保留其冻结配置。多个路径或扩展名以逗号分隔。",
+    "scopeLabel": "偏好范围",
+    "scope": {
+      "account": "账户",
+      "host": "主机",
+      "project": "项目"
+    },
+    "saveTitle": "保存研究偏好",
+    "discard": "放弃更改",
+    "save": "保存并于下次启动生效",
+    "fields": {
+      "display_name": "显示名称",
+      "timezone": "时区",
+      "runtime_choice": "运行时偏好",
+      "workspace_input": "输入目录",
+      "workspace_poc": "POC 目录",
+      "knowledge_paths": "知识路径",
+      "search_options": "搜索偏好",
+      "reasoning_options": "推理偏好",
+      "ui_behavior": "界面偏好",
+      "ingestion_extensions": "文档扩展名",
+      "single_gpu": "使用单个 GPU"
+    }
+  },
+  "researchInputs": {
+    "savedAs": "已保存为 {{name}}，系统已自动生成安全的存储文件名。",
+    "documentType": "请选择 TXT、Markdown（.md/.markdown）或带文字层的 PDF 文档。",
+    "repositoryType": "代码仓库请上传 ZIP 文件。",
+    "tooLarge": "文件超过本地 20 MB 限制，请选择较小的文件。",
+    "authFailed": "本地会话验证失败，请重新打开已保存的完整登录链接，再上传文件。",
+    "conflict": "已有同名文件，或文件正在使用中。请选择已保存的文件，或给新文件重命名。",
+    "unreadable": "无法读取文件内容。TXT/Markdown 须为 UTF-8 编码；PDF 须未加密且包含可选中的文字。扫描图片请先提取文字。",
+    "setupRequired": "本地文件存储尚未启用。请更新应用并运行 bash deploy/m1/start-local.sh --build。",
+    "title": "研究输入",
+    "kind": "输入类型",
+    "docs": "参考文档",
+    "repo": "代码仓库 ZIP",
+    "datasets": "验证数据集",
+    "upload": "上传",
+    "attachSaved": "添加已上传文件…",
+    "refresh": "刷新",
+    "delete": "删除",
+    "hint": "文件保存在本地，勾选的文档会随下一条消息发送。每个文件最多 20 MB；含中文或空格的文件名会自动转换为安全的存储名。",
+    "failed": "文件操作未能完成，请检查连接后重试。"
+  },
+  "researchWorkflow": {
+    "progress": {
+      "understanding": "正在理解你的需求…",
+      "sources": "正在阅读参考资料…",
+      "working": "正在处理你的请求…",
+      "results": "正在整理结果…"
+    },
+    "title": "研究流程与能力胶囊",
+    "mode": "交互模式",
+    "conversation": "直接对话（手动选择）",
+    "research": "AI4R 工作流",
+    "researchHint": "添加参考文档并说明你的需求，完成后的报告和文件会显示在这里。",
+    "setupRequired": "研究运行需要初始化配置和可执行的胶囊库。请前往设置 → 智能体查看准备情况。",
+    "stopped": "研究在{{stage}}阶段停止。{{reasons}}",
+    "incomplete": "未能完成你的请求。{{reasons}}",
+    "configurationRepair": "研究暂时无法继续，运行配置需要修复。你上传的文档已保留。",
+    "requestIncomplete": "本次研究未能完成，你上传的文档已保留。",
+    "planInfeasible": "暂时无法为这个请求制定研究计划，具体原因是：",
+    "compilerHalted": "暂时无法确定本次研究的完整需求，具体原因是：",
+    "planFilesRetained": "你上传的文档已保留。你可以补充或调整需求，再发送一条消息。",
+    "connectionTimeout": "连接应用超时，请确认应用正在运行后重试。",
+    "runtimeTimeout": "暂时无法获取应用可用状态，请稍后重试。",
+    "redactedReport": "工作区披露策略隐藏了报告的部分内容。",
+    "reportUnavailable": "请求已结束，但暂时无法加载报告。请检查连接后重试。",
+    "ready": "研究运行环境已就绪，将使用已安装的胶囊和受保护门控。",
+    "blocked": "配置已保存，运行所需资源尚未就绪。",
+    "planMode": "规划模式：{{mode}}",
+    "unconfigured": "未配置",
+    "admitted": "已启用且具备执行资格",
+    "notInstalled": "尚不具备执行资格",
+    "checkCounts": "{{checks}} 项确定性检查 · {{criteria}} 项验证标准",
+    "showChecks": "显示工作、检查和门控",
+    "hideChecks": "收起工作、检查和门控",
+    "gate": "门控",
+    "noChecks": "尚未记录调用或门控结果。",
+    "modelCall": "模型调用：{{outcome}}",
+    "modelRoute": "{{model}} · 路由：{{route}}",
+    "modelUnobserved": "尚未观测到实际模型",
+    "continuationUnavailable": "暂时无法查看后续尝试。再次提交前，请先打开运行详情。",
+    "tryExample": "体验一次完整研究",
+    "examplePreparing": "正在准备研究示例…",
+    "exampleFailed": "暂时无法准备示例，请检查连接后重试。",
+    "stages": {
+      "intent": "意图胶囊",
+      "requirements": "需求胶囊",
+      "planner": "DAG 规划器",
+      "search": "检索与构思",
+      "screening": "研究机会筛选",
+      "hypothesis": "假设与实验协议",
+      "builder": "POC 构建",
+      "benchmark": "POC 基准运行",
+      "evaluation": "科学评估",
+      "delivery": "报告与证据交付",
+      "verifier": "独立验证胶囊"
+    }
+  },
+  "researchModels": {
+    "localDescription": "在同一 AI4R 流程中使用三个本地模型和 ChatGPT 订阅，无需 API Key。",
+    "executionMode": "执行模式",
+    "localModeHint": "在 gpt-oss-20b、Nemotron Lightning、gpt-oss-120b 和 ChatGPT 6.1 Sol 之间优先保障质量。关键派生指标决策要求 ChatGPT；验证保持独立本地调用。",
+    "localMode": "AI4R · 自动模型路由",
+    "chatgptBaseline": "ChatGPT · 手动选择模型",
+    "chatgptModel": "ChatGPT 模型",
+    "baselineHint": "手动选择保持原有行为。与自动路由公平对比时，请选择上方 AI4R 内固定执行模型。",
+    "localRole": {
+      "e4b": "已退出当前候选池",
+      "bolt": "已退出当前候选池",
+      "qwen": "已退出当前候选池",
+      "lightning": "高效本地推理执行模型",
+      "gptoss": "较强的本地推理执行模型",
+      "gptoss20": "紧凑推理模型、路由评估与独立验证"
+    },
+    "localReady": "已连接",
+    "localUnavailable": "未就绪",
+    "localStatus": {
+      "not_configured": "尚未配置",
+      "disabled": "已停用",
+      "service_unavailable": "服务不可用",
+      "model_not_served": "指定模型未加载",
+      "configuration_invalid": "模型配置需要检查"
+    },
+    "localPrerequisite": "请启动 Spark 上必需的本地路由评估和验证服务后刷新。模型地址由服务端配置。",
+    "applyMode": "使用此模式",
+    "frozenPool": "仅应用于新研究；运行中的研究保留原模型池及已作出的选择。",
+    "localError": "无法保存或加载本地模型。请检查应用连接并刷新模型列表。如果问题仍然存在，请联系管理员。",
+    "modeSaved": "已保存，新研究将使用此执行模式。",
+    "chatgptDescription": "同一订阅用于自动路由和 AI4R 内固定执行模型对照，均固定使用 GPT-6.1-Sol。手动模式使用你选择的 ChatGPT 型号。无需 API Key。",
+    "chatgptOption": "{{model}}（ChatGPT 订阅）",
+    "chatgptError": "无法保存或加载 ChatGPT 模型。请登录后刷新模型列表。",
+    "option": "{{model}}（{{platform}} API key）",
+    "localOption": "{{model}}（本地端点）",
+    "localEndpoint": "本地端点",
+    "localManaged": "模型：{{model}}。此端点由管理员批准并管理，无需 API 密钥。保存后将用于新的研究请求。",
+    "platformKey": "{{platform}} API key",
+    "claudeKeyHint": "请使用绑定 Anthropic 工作区的 API key。此处暂不支持需要额外工作区请求头的个人或服务账户 key。",
+    "authenticationRequired": "请使用本地启动器打开带登录信息的应用链接，才能加载和保存模型设置；在新标签页直接输入地址不会携带该登录信息。",
+    "title": "研究模型",
+    "description": "选择 AI4R 研究流程使用的模型。",
+    "model": "模型",
+    "codex": "ChatGPT（订阅默认模型）",
+    "current": "当前使用：{{model}}",
+    "apiKey": "API 密钥",
+    "keyPrivacy": "保存一份 OpenRouter API key 即可切换使用全部八个 API 模型。密钥仅在本机私密保存，不会写入提示词或运行导出文件。",
+    "keySaved": "密钥已保存；留空即可保留",
+    "keyPlaceholder": "输入模型提供商的 API 密钥",
+    "showKey": "显示输入的密钥",
+    "hideKey": "隐藏输入的密钥",
+    "modelName": "模型名称",
+    "apiAddress": "API 地址",
+    "addressHint": "请使用与你的密钥所属提供商及地区一致的接口地址。",
+    "apply": "使用此模型",
+    "newRuns": "应用于新的研究请求。正在运行的任务保持原来的模型。",
+    "saveUse": "保存并使用",
+    "refresh": "刷新",
+    "error": "无法保存或加载模型。请检查应用连接并刷新模型列表。如果问题仍然存在，请联系管理员或检查所选提供商的凭据。",
+    "saved": "已保存。新的研究请求将使用此模型。",
+    "ai4rReference": "ChatGPT 6.1 Sol · AI4R 内固定执行模型"
   }
 }

@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-scope:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "runtime_build_ref",
+    "environment_ref",
+    "worker_driver_ref",
+    "executor_ref",
+    "probe_ref",
+    "kernel_release",
+    "platform",
+    "worker_profile_refs"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-scope:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "runtime_build_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "environment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "worker_driver_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "executor_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "probe_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "kernel_release": {
+      "type": "string",
+      "minLength": 1
+    },
+    "platform": {
+      "type": "string",
+      "minLength": 1
+    },
+    "worker_profile_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    }
+  },
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

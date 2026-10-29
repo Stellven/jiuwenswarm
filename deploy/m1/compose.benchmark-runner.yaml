@@ -1,0 +1,129 @@
+# One final app plus one optional sequential CLI container. No replica service.
+services:
+  ai4r:
+    image: ${AI4R_APP_IMAGE:-ai4r:local}
+    build:
+      context: ../..
+      dockerfile: deploy/m1/Dockerfile.app
+      target: production
+    init: true
+    mem_limit: 4g
+    pids_limit: 256
+    read_only: true
+    cap_drop: [ALL]
+    # The fixed native supervisor/broker retains these to isolate UID10002 work;
+    # all application workers remain UID10001. Do not replace with user:10001.
+    cap_add: [SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=${AI4R_SECCOMP_PROFILE:-./seccomp/executor.json}
+    environment:
+      JIUWENSWARM_M1_PROFILE: '1'
+      JIUWENSWARM_M1_REUSABLE_BOOTSTRAP: ${AI4R_REUSABLE_LOGIN:-1}
+      JIUWENSWARM_M1_LOCAL_WORKSPACE: ${AI4R_LOCAL_WORKSPACE:-0}
+      JIUWENSWARM_M1_LOCAL_CHAT: ${AI4R_LOCAL_CHAT:-0}
+      JIUWENSWARM_M1_LOCAL_RESEARCH: ${AI4R_LOCAL_RESEARCH:-1}
+      AI4R_EXECUTION_MODE: m1_app_process
+      AI4R_PILOT_BUDGET_DIRECTORY: ${AI4R_PILOT_BUDGET_DIRECTORY:-}
+      JIUWENSWARM_M1_ORIGIN: http://127.0.0.1:5175
+      JIUWENSWARM_M1_BIND_ADDRESS: '127.0.0.1'
+      JIUWENSWARM_M1_CONFIG: ${AI4R_OPERATOR_CONFIG:-/var/lib/ai4r/operator/local-research-unified-v5/config.json}
+      JIUWENSWARM_M1_BOOTSTRAP_BINDINGS: ${AI4R_BOOTSTRAP_BINDINGS:-}
+      JIUWENSWARM_M1_STATE: /var/lib/ai4r
+      JIUWENSWARM_M1_ACCOUNTS: /var/lib/ai4r-accounts
+      JIUWENSWARM_DATA_DIR: /var/lib/ai4r/native
+      FRONTEND_HOST: 0.0.0.0
+      FRONTEND_PORT: '5173'
+      JIUWENSWARM_AGENT_SDK: codex_subscription
+    ports: ['127.0.0.1:5175:5173']
+    volumes:
+      - state:/var/lib/ai4r
+      - accounts:/var/lib/ai4r-accounts
+      - ipc:/run/ai4r
+      - poc:/workspace/poc
+      - inputs:/workspace/input
+      - executor:/var/lib/ai4r-executor
+      - private_qa:/run/ai4r-private-qa
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+      - /home/ai4r/.cache:rw,nosuid,nodev,size=64m,uid=10001,gid=10001
+      - /run/ai4r-supervisor:rw,nosuid,nodev,size=1m,mode=0700
+      - /run/ai4r-executor:rw,nosuid,nodev,size=8m,mode=0710,gid=10001
+      - /run/ai4r-store:rw,nosuid,nodev,size=64m,mode=0710,gid=10001
+      - /resources:rw,nosuid,nodev,size=128m,mode=0711,uid=0,gid=0
+    networks: [private]
+    labels:
+      ai4r.owner: ${COMPOSE_PROJECT_NAME:?Use an explicit Compose project}
+      ai4r.component: ai4r
+    stop_grace_period: 45s
+
+  benchmark-runner:
+    profiles: [benchmark]
+    image: ${AI4R_RUNNER_IMAGE:-benchmark-runner:local}
+    build:
+      context: ../..
+      dockerfile: deploy/m1/Dockerfile.sidecar
+      target: benchmark-runner
+    init: true
+    user: '11001:11001'
+    read_only: true
+    pids_limit: 128
+    mem_limit: 2g
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # Keep exactly one container available for `exec benchmark-runner ...`.
+    # The CLI itself is never executed on the Docker host.
+    entrypoint: [python, -c, 'import signal; signal.pause()']
+    environment:
+      AI4R_ENDPOINT: ${AI4R_ENDPOINT:-http://ai4r:5173}
+      AI4R_TOKEN_FILE: /run/benchmark-runner/token
+      AI4R_EXPECTED_BUILD: ${AI4R_EXPECTED_BUILD:-unconfigured}
+      AI4R_HTTP_AUTHORITY: ${AI4R_HTTP_AUTHORITY:-127.0.0.1:5175}
+    volumes:
+      - type: bind
+        source: ${AI4R_BENCH_CASES:-/__ai4r_unconfigured_cases}
+        target: /cases
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_BENCH_INPUTS:-/__ai4r_unconfigured_inputs}
+        target: /inputs
+        read_only: true
+        bind: {create_host_path: false}
+      - type: volume
+        source: results
+        target: /results
+        volume: {nocopy: false}
+      - type: volume
+        source: runner_credentials
+        target: /run/benchmark-runner
+        read_only: true
+        volume: {nocopy: true}
+    tmpfs: ['/tmp:rw,nosuid,nodev,size=128m,uid=11001,gid=11001']
+    networks: [private]
+    labels:
+      ai4r.owner: ${COMPOSE_PROJECT_NAME:?Use an explicit Compose project}
+      ai4r.component: benchmark-runner
+    stop_grace_period: 45s
+
+networks:
+  private: {}
+volumes:
+  state:
+    name: ${AI4R_STATE_VOLUME:-${COMPOSE_PROJECT_NAME}_state}
+  accounts:
+    name: ${AI4R_ACCOUNTS_VOLUME:-${COMPOSE_PROJECT_NAME}_accounts}
+  ipc:
+    name: ${AI4R_IPC_VOLUME:-${COMPOSE_PROJECT_NAME}_ipc}
+  poc:
+    name: ${AI4R_POC_VOLUME:-${COMPOSE_PROJECT_NAME}_poc}
+  inputs:
+    name: ${AI4R_INPUTS_VOLUME:-${COMPOSE_PROJECT_NAME}_inputs}
+  executor:
+    name: ${AI4R_EXECUTOR_VOLUME:-${COMPOSE_PROJECT_NAME}_executor}
+  private_qa:
+    name: ${COMPOSE_PROJECT_NAME}_private_qa
+  runner_credentials:
+    name: ${AI4R_RUNNER_CREDENTIALS_VOLUME:-${COMPOSE_PROJECT_NAME}_runner_credentials}
+  results:
+    name: ${AI4R_RESULTS_VOLUME:-${COMPOSE_PROJECT_NAME}_results}

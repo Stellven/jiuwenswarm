@@ -1,6 +1,7 @@
 import { settingsNavigationIcons } from '../../../../assets/settings';
 import type { SettingsModuleDefinition } from '../../registry/types';
 import { AgentMediaSettings, AgentSearchSettings, VideoGenSettings, VisualGenSettings } from './AgentSettings';
+import { ConversationCapsuleSettings } from './ConversationSettings';
 
 export const agentModule: SettingsModuleDefinition = {
   id: 'agent',
@@ -8,6 +9,7 @@ export const agentModule: SettingsModuleDefinition = {
   icon: settingsNavigationIcons.agent,
   source: 'config',
   sections: [
+    { id: 'conversation-capsules', items: [{ id: 'conversation-capsule', component: 'custom', render: ConversationCapsuleSettings }] },
     {
       id: 'skills',
       titleKey: 'settingsPanel.agent.skills',

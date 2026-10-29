@@ -1,2 +1,78 @@
 *.mp4 filter=lfs diff=lfs merge=lfs -text
+# Deployment entrypoints execute across Windows, WSL and Linux.
+deploy/m1/*.sh text eol=lf
+deploy/m1/*.py text eol=lf
+# Local evidence contains byte-pinned artifacts; preserve exact bytes in Git.
+/.test_logs/** -text
 jiuwenswarm/server/runtime/agent_adapter/browser_runtime_network_guard.js text eol=lf
+docs/architecture/**/*.md text eol=lf
+# Received source bytes are pinned by the source-freeze manifest.
+docs/product/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+docs/product/*.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+docs/product/README.md text eol=lf whitespace=blank-at-eol,blank-at-eof,space-before-tab
+docs/product/SOURCE_FREEZE.md text eol=lf whitespace=blank-at-eol,blank-at-eof,space-before-tab
+docs/product/*.json text eol=lf
+docs/architecture/model_router_design_en.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+docs/architecture/data-foundation/capsule-run-records.md -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+docs/architecture/**/*.py text eol=lf
+docs/architecture/**/*.json text eol=lf
+
+# PDF artifacts contain structured binary streams; never normalize or text-diff them.
+output/pdf/*.pdf binary
+
+# Preserve received architecture source bytes across checkout.
+docs/architecture/design-package/sources/product/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+docs/architecture/design-package/sources/capsule.schema.json -text
+docs/architecture/design-package/sources/policy-m1.json -text
+docs/architecture/design-package/sources/capsule-semantic-v2.10b.md -text
+
+# Preserve frozen compression experiment input bytes, including content-hash examples
+docs/architecture/experiments/m1-cut-down/** -text
+
+# Architecture manifests pin exact input/projection bytes for portable comparisons.
+docs/architecture/design-package/** -text
+
+# Preserve paired compact design bytes and exact reference identities.
+docs/architecture/design-package-compact/** -text
+
+# Received PRDs preserve intentional Markdown spacing and exact frozen bytes.
+docs/architecture/**/sources/product/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+# Frozen field catalogs retain original formatting as comparison evidence.
+docs/architecture/experiments/**/reference/field-catalog.md whitespace=cr-at-eol,-blank-at-eof
+
+# Experimental receipts/manifests also pin exact pre-change bytes.
+docs/architecture/experiments/** -text
+
+# Received PRDs live outside architecture packages; preserve their original bytes.
+docs/product/received-prds/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+
+# Capsule releases hash source bytes; Windows checkouts must preserve LF.
+jiuwenswarm/research/**/*.py text eol=lf
+jiuwenswarm/research/**/*.txt text eol=lf
+jiuwenswarm/research/**/*.json text eol=lf
+jiuwenswarm/research_assets/** text eol=lf
+jiuwenswarm/research_contracts/**/*.json text eol=lf
+# Legacy frozen review profiles were authored with CRLF instruction bytes.
+jiuwenswarm/research/resources/capsules/verifier_implementation.txt text eol=crlf
+
+# Incoming V3 compiler releases pin CRLF bytes; reproduce them on every host.
+jiuwenswarm/research_assets/compiler/intent.declaration.json text eol=crlf
+jiuwenswarm/research_assets/compiler/requirements.declaration.json text eol=crlf
+jiuwenswarm/research_assets/compiler/verifier.declaration.json text eol=crlf
+jiuwenswarm/research_assets/compiler/requirements.txt text eol=crlf
+
+# Upstream target-comparison and Hypothesis closures also pin CRLF bytes.
+jiuwenswarm/research/target_comparisons.py text eol=crlf
+jiuwenswarm/research/capsules/hypothesis.py text eol=crlf
+jiuwenswarm/research/checks/builder_text.py text eol=crlf
+
+# Preserve received benchmark source and its intentional Markdown line breaks.
+"docs/code/Missions/docs/source/BENCHMARK_REQUIREMENTS (3).md" -text whitespace=-blank-at-eol,-blank-at-eof
+
+# Historical records retain exact pre-edit bytes.
+docs/capsules/history/** -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
+
+docs/capsules/verification-20261025/** -text
+deploy/m1/examples/inputs/*.pdf -text
+deploy/m1/*.ps1 text eol=lf
+docs/capsules/verification-20261026/** -text

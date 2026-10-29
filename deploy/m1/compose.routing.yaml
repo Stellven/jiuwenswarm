@@ -1,0 +1,33 @@
+# Explicit optional overlay. Omit this file for the mandatory fixed Codex route.
+# All three records are operator-provisioned; their contents are never defaults.
+services:
+  app:
+    environment:
+      JIUWENSWARM_M1_ROUTER_CONFIG: /etc/ai4r/router.json
+      JIUWENSWARM_M1_ROUTING_BINDINGS: /etc/ai4r/routing-authority.json
+    env_file:
+      - path: ${AI4R_API_CREDENTIAL_ENV:?Supply the approved private API credential environment file}
+        required: true
+    volumes:
+      - type: bind
+        source: ${AI4R_ROUTER_CONFIG:?Supply the protected selector config}
+        target: /etc/ai4r/router.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_ROUTING_BINDINGS:?Supply the exact captured authority locator}
+        target: /etc/ai4r/routing-authority.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${AI4R_DEPLOYMENT_STATUS:?Supply the protected current deployment status record}
+        target: /etc/ai4r/deployment-status.json
+        read_only: true
+        bind: {create_host_path: false}
+      - router-audit:/var/lib/ai4r-router
+    tmpfs:
+      - /run/ai4r-routing:rw,nosuid,nodev,size=64m,mode=0711
+      - /run/ai4r-router:rw,nosuid,nodev,size=8m,mode=0711
+
+volumes:
+  router-audit: {}

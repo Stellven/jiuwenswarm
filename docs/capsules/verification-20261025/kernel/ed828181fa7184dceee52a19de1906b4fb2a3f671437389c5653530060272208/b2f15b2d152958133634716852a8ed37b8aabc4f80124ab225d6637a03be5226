@@ -1,0 +1,1 @@
+{"/var/lib/ai4r": "denied", "/var/lib/ai4r-accounts": "denied", "/run/ai4r": "denied", "/var/run/docker.sock": "denied", "/hidden-fixtures": "denied", "network_error": 101}

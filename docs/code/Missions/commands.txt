@@ -1,0 +1,5 @@
+cd D:\research\ai_for_research\runs\jiuwenswarm
+python "$env:LOCALAPPDATA\AI4Research\runtime\poc-clean-isolation.py" open
+
+
+

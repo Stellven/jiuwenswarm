@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:paper-report:1.0.0",
+  "type": "string",
+  "minLength": 1,
+  "maxLength": 50000,
+  "description": "Actual UTF-8 Markdown decoded text, with a title and exactly five nonempty H2 sections Problem, Method, Results, Contributions, Limitations. No JSON wrapper is required."
+}

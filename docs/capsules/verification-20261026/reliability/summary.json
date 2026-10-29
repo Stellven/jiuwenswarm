@@ -1,0 +1,162 @@
+{
+  "schema": "ai4r-reliability-verification:1",
+  "source_commit": "176a0ae864250053b1921e7e5fcd94741b81ad8c",
+  "previous_m1": "4b70bb4b37ec4c968d7531698df82dc53dda7ee4",
+  "verification_image_id": "sha256:09979a044c9eace8e3ef17cd142eb26a27306e14ea80939c0628356eaca2e97a",
+  "app_image_id": "sha256:973d0b5c9e5b68c174e38fd66527edc238889807555f89f698edbc9afaba53c8",
+  "app_build_id": "d0e550ed55098aad805262be36b57468d2416041e282eec57831dc67e63b5680",
+  "python": "3.12.15 (main, Oct  6 2026, 02:02:31) [GCC 12.2.0]",
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 215,
+    "skipped": 0,
+    "tests": 215
+  },
+  "groups": {
+    "capabilities": {
+      "tests": 38,
+      "passed": 38,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "replay": {
+      "tests": 8,
+      "passed": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "status": {
+      "tests": 31,
+      "passed": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "planner": {
+      "tests": 26,
+      "passed": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "builder": {
+      "tests": 42,
+      "passed": 42,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "benchmark": {
+      "tests": 32,
+      "passed": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "completion": {
+      "tests": 28,
+      "passed": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "executor": {
+      "tests": 10,
+      "passed": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "source_manifest_sha256": "ac25427d03762dd05861d9f5974c07b76becc7001d72ff68a7884b8cb88298d0",
+  "source_changes": [],
+  "elapsed_s": 254.18200493599943,
+  "combined_status": "passed",
+  "live_post_restart": {
+    "ready": true,
+    "build_id": "d0e550ed55098aad805262be36b57468d2416041e282eec57831dc67e63b5680",
+    "run_id": "run:67c206c472b74ed39a7548607dbffa09",
+    "status": "completed",
+    "stage": "delivery",
+    "node_statuses": [
+      {
+        "node_id": "delivery",
+        "attempt_id": "delivery-a1",
+        "lifecycle_status": "Completed",
+        "skipped_because": null
+      },
+      {
+        "node_id": "intention_compiler",
+        "attempt_id": "intention_compiler-a1",
+        "lifecycle_status": "Completed",
+        "skipped_because": null
+      },
+      {
+        "node_id": "planner",
+        "attempt_id": "planner-a1",
+        "lifecycle_status": "Completed",
+        "skipped_because": null
+      },
+      {
+        "node_id": "summary",
+        "attempt_id": "summary-a1",
+        "lifecycle_status": "Completed",
+        "skipped_because": null
+      }
+    ]
+  },
+  "repetition": "Two earlier 38-case capability runs passed on identical source bytes; not 76 unique tests. Their source snapshot predates the final custody fix and is separately retained.",
+  "negative_controls": {
+    "timeout": {
+      "expected_status": "timeout",
+      "expected_exit_code": 124,
+      "result": "timeout-control/result.json"
+    },
+    "source_change": {
+      "expected_status": "source_changed",
+      "expected_exit_code": 2,
+      "probe": "Known temporary nonexecutable file deploy/m1/.reliability-source-change-probe changed from before to after; removed afterward",
+      "result": "source-change-control/result.json"
+    }
+  },
+  "auth_ordering": "A grant issued before app initialization finished was revoked during native session replacement (HTTP401). Issued a fresh scoped grant after startup, kept credentials inside private Docker volume; readiness and completed-run status passed.",
+  "limitations": [
+    "Controlled model responses; no live semantic quality claim",
+    "No protected local E2/E3 evaluation profile authoring path yet",
+    "No accepted live Pi artifact, independent Pi times or full scientific acceptance",
+    "215 covers the explicit selected groups, not all repository tests; older overlapping counts are not added"
+  ],
+  "evidence_sha256": {
+    "app-build.log": "e9ca41eb0af01e7b3b2826e608c58ab26dd94c7d2e4e62c167bcf4b1cad0f042",
+    "before-custody-fix.log": "56135a9f761883834cc30d24e7fe54ed5372872857174f35649ac1bdeaeba3c6",
+    "live-status.json": "dcdfe41e12a96608f6d5eb7f35a027460cb7db516e71d41acb12c8d52db0c6b2",
+    "runner-doctor.json": "6647dfa60fd4ced56f96f1dd63a7122a9fb112ec3419d548701daa4b7eedabb3",
+    "capabilities-repeat-01/junit.xml": "7409d20c258d82049d9398f0b50a29ae4fd6661aeaf0bb52aa4782d1a2a9e39f",
+    "capabilities-repeat-01/launch.json": "0d12441feeaa484d7209b2e35cf25dc741f9482b24392d57e858d7e16c24ea66",
+    "capabilities-repeat-01/pytest.log": "f7a91a6ee5cf0ea5ef0edc4763d4947f353fdd3d0f4e077c0a28a71320a6ecd9",
+    "capabilities-repeat-01/result.json": "31aa23fea085f4473a72a87ce2c1e8b13ce70ff49c927143facd713439b95e8a",
+    "capabilities-repeat-01/source-manifest.json": "fe66eb86279a85488216a6d0c8a4cc3617a1084cf12e2868155c3a1f5d245fd2",
+    "capabilities-repeat-02/junit.xml": "dfc58a9e9b84a876cdbd010284203c8a2e22383ef104c1b1b914924ba77a2fee",
+    "capabilities-repeat-02/launch.json": "dfe7c7cb2e795249a2fe8766cea6f47172b802939a690cf57d23faa47fc3dedd",
+    "capabilities-repeat-02/pytest.log": "757bbc66fa6c7e5b0a9f35168a4545f75ea229a5a10bbf28670cdf45d4aa1b49",
+    "capabilities-repeat-02/result.json": "1f61e45f5106597b352d487e190b80cc68d97294a48cc3295654a828a031a30c",
+    "capabilities-repeat-02/source-manifest.json": "fe66eb86279a85488216a6d0c8a4cc3617a1084cf12e2868155c3a1f5d245fd2",
+    "combined/junit.xml": "b34d5878ed77a65bd50fc34cca8052a56a72f2514f0847196c140b01afc1f3e4",
+    "combined/launch.json": "7ed9d76dd523fcaab17cb4f99c7a10c4689a3412e85b5b451ea8f2a709ddce1d",
+    "combined/pytest.log": "3de6961b900401a9cfe1a55342d7feddc77495a91562cc7abdfbf2788ac5db14",
+    "combined/result.json": "f94b732d93b2ea0ff1b92a2d84a0c13ef2426a57b77d1d4eb1c930c733597ee6",
+    "combined/source-manifest.json": "494d0b3550f81e699eba89308c24c2b0e60df0ad1c9392d8fb0390a0e50a74dc",
+    "source-change-control/junit.xml": "1c98bd0c4553e69abebde5012fa62eefa6cfb4d24bb483a29aba5a69a2708dea",
+    "source-change-control/launch.json": "1ebfcd44679f968d7ff2c5ab4bfbe82f84f2a24a930ce9b643e561a669b22a00",
+    "source-change-control/pytest.log": "58abf72897ef9d4af09b5383469277526b602d9d2dec7665a0910a9a8a4e68e4",
+    "source-change-control/result.json": "f02aef4be7b142d59d6e7120c88527b8b592b301fd2f79c33b2bed24f992cf4d",
+    "source-change-control/source-manifest.json": "1dd1887deb1be430f9d88419e47ef4842807431f920f97637dfcd4985f923def",
+    "timeout-control/launch.json": "855488f493707fbda2c023810e551ab8cc80837c08cae960a2bda0a59fdf4fb2",
+    "timeout-control/pytest.log": "cdb4ee2aea69cc6a83331bbe96dc2caa9a299d21329efb0336fc02a82e1839a8",
+    "timeout-control/result.json": "8203a1fbfa9740505c160fbde90fae0d38db2dbf823a79f44e445e81f2dc9449",
+    "timeout-control/source-manifest.json": "494d0b3550f81e699eba89308c24c2b0e60df0ad1c9392d8fb0390a0e50a74dc"
+  }
+}

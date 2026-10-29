@@ -1,0 +1,1 @@
+Investigate lower retrieval latency for the supplied baseline and validation data. Produce a report describing a reproducible experiment and its limitations. I have not selected hardware, a method or a numeric target.

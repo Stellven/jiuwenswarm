@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-tool-claim:1",
+  "title": "evaluation-tool-claim",
+  "x-owning-interface": "M1-IF-016@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-tool-claim:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "request_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "scope_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "assignment_grant_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "execution_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "invocation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "tool_ordinal": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "operation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "claimed_unix_ns": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "request_ref",
+    "scope_ref",
+    "assignment_grant_ref",
+    "execution_id",
+    "invocation_id",
+    "tool_ordinal",
+    "operation",
+    "contract_ref",
+    "claimed_unix_ns",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

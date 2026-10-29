@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-qualification:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "id",
+    "scope_ref",
+    "verification_receipt_ref",
+    "artifact_refs",
+    "case_evidence_refs"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-qualification:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scope_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "verification_receipt_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "artifact_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "ref"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"
+          },
+          "ref": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      }
+    },
+    "case_evidence_refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "RSIV-1",
+        "RSIV-2",
+        "RSIV-3",
+        "RSIV-4",
+        "RSIV-5",
+        "RSIV-6",
+        "RSIV-7",
+        "RSIV-8",
+        "RSIV-9",
+        "RSIV-10",
+        "RSIV-11",
+        "RSIV-12",
+        "RSIV-13"
+      ],
+      "properties": {
+        "RSIV-1": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-2": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-3": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-4": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-5": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-6": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-7": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-8": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-9": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-10": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-11": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-12": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        },
+        "RSIV-13": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    }
+  }
+}

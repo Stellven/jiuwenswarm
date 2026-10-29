@@ -1,0 +1,250 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.app
+#1 transferring dockerfile: 8.73kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#2 ...
+
+#3 [auth] docker/dockerfile:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#2 DONE 0.5s
+
+#4 docker-image://docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
+#4 resolve docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e 0.0s done
+#4 CACHED
+
+#5 [internal] load metadata for docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392
+#5 ...
+
+#6 [auth] library/node:pull token for registry-1.docker.io
+#6 DONE 0.0s
+
+#7 [auth] library/python:pull token for registry-1.docker.io
+#7 DONE 0.0s
+
+#8 [internal] load metadata for docker.io/library/python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+#8 DONE 0.3s
+
+#9 [internal] load metadata for ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1
+#9 ...
+
+#5 [internal] load metadata for docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392
+#5 DONE 0.3s
+
+#9 [internal] load metadata for ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1
+#9 DONE 0.4s
+
+#10 [uv 1/1] FROM ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1
+#10 resolve ghcr.io/astral-sh/uv:0.12.5@sha256:e85be844203885286c60ffad8a858d48afb6c5a5c237ca0e67f12e74b8f174b1 0.0s done
+#10 DONE 0.0s
+
+#11 [runtime-tools 1/5] FROM docker.io/library/python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258
+#11 resolve docker.io/library/python:3.12-slim-bookworm@sha256:34386ef0cb081344d7ec1c103ba398e6e9f64e9ab3a1509accc92a4e24a07258 0.0s done
+#11 DONE 0.0s
+
+#12 [node 1/1] FROM docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392
+#12 resolve docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392 0.0s done
+#12 DONE 0.0s
+
+#13 [internal] load build context
+#13 transferring context: 109.21kB 0.1s
+#13 transferring context: 377.92kB 0.3s done
+#13 DONE 0.3s
+
+#14 [runtime-tools 3/5] RUN apt-get update && apt-get install -y --no-install-recommends     git ca-certificates bubblewrap tmux procps iproute2 util-linux     libgomp1 libglib2.0-0 libgl1 gcc g++     && dpkg-query -W > /usr/local/share/ai4r-os-packages.txt     && rm -rf /var/lib/apt/lists/*
+#14 CACHED
+
+#15 [dependencies 1/4] COPY pyproject.toml uv.lock LICENSE OPEN_SOURCE_SOFTWARE_NOTICE.md ./
+#15 CACHED
+
+#16 [dependencies 3/4] COPY jiuwenbox/ ./jiuwenbox/
+#16 CACHED
+
+#17 [runtime-tools 5/5] WORKDIR /opt/ai4r
+#17 CACHED
+
+#18 [runtime-tools 2/5] COPY --from=uv /uv /uvx /usr/local/bin/
+#18 CACHED
+
+#19 [dependencies 2/4] COPY packages/jiuwenswarm-tui/ ./packages/jiuwenswarm-tui/
+#19 CACHED
+
+#20 [runtime-tools 4/5] RUN groupadd --gid 10001 ai4r && useradd --uid 10001 --gid 10001 --create-home ai4r     && groupadd --gid 10002 executor && useradd --uid 10002 --gid 10002 --no-create-home executor     && groupadd --gid 13100 routing_public     && groupadd --gid 10011 router && useradd --uid 10011 --gid 13100 --no-create-home router     && usermod --append --groups routing_public ai4r
+#20 CACHED
+
+#21 [dependencies 4/4] RUN --mount=type=cache,target=/root/.cache/uv     uv sync --frozen --no-default-groups --extra codex --extra tui --no-install-project
+#21 CACHED
+
+#22 [frontend  9/11] COPY jiuwenswarm/channels/web/frontend/ ./jiuwenswarm/channels/web/frontend/
+#22 CACHED
+
+#23 [frontend  4/11] WORKDIR /build
+#23 CACHED
+
+#24 [frontend  8/11] COPY jiuwenswarm/research_contracts/ ./jiuwenswarm/research_contracts/
+#24 CACHED
+
+#25 [frontend 10/11] WORKDIR /build/jiuwenswarm/channels/web/frontend
+#25 CACHED
+
+#26 [frontend  2/11] COPY jiuwenswarm/channels/web/frontend/package.json jiuwenswarm/channels/web/frontend/package-lock.json ./
+#26 CACHED
+
+#27 [frontend  7/11] COPY jiuwenswarm/resources/agent/ ./jiuwenswarm/resources/agent/
+#27 CACHED
+
+#28 [frontend  6/11] COPY jiuwenswarm/scripts/ ./jiuwenswarm/scripts/
+#28 CACHED
+
+#29 [frontend  1/11] WORKDIR /build/jiuwenswarm/channels/web/frontend
+#29 CACHED
+
+#30 [frontend  5/11] COPY scripts/ ./scripts/
+#30 CACHED
+
+#31 [frontend  3/11] RUN --mount=type=cache,target=/root/.npm npm ci
+#31 CACHED
+
+#32 [frontend 11/11] RUN npm run build
+#32 CACHED
+
+#33 [tui 4/6] COPY jiuwenswarm/channels/tui/frontend/src/ ./src/
+#33 CACHED
+
+#34 [tui 3/6] RUN npm ci
+#34 CACHED
+
+#35 [tui 1/6] WORKDIR /build/jiuwenswarm/channels/tui/frontend
+#35 CACHED
+
+#36 [tui 5/6] COPY jiuwenswarm/channels/tui/frontend/tsconfig.json ./
+#36 CACHED
+
+#37 [tui 2/6] COPY jiuwenswarm/channels/tui/frontend/package.json jiuwenswarm/channels/tui/frontend/package-lock.json ./
+#37 CACHED
+
+#38 [tui 6/6] RUN npm run build && npm prune --omit=dev --offline
+#38 CACHED
+
+#39 [application-build  1/14] COPY jiuwenswarm/ ./jiuwenswarm/
+#39 DONE 0.9s
+
+#40 [application-build  2/14] COPY --from=frontend /build/jiuwenswarm/channels/web/frontend/dist ./jiuwenswarm/channels/web/frontend/dist
+#40 DONE 0.2s
+
+#41 [application-build  3/14] COPY --from=tui /build/jiuwenswarm/channels/tui/frontend/dist/ ./jiuwenswarm/channels/tui/frontend/dist/
+#41 DONE 0.1s
+
+#42 [application-build  4/14] COPY --from=tui /build/jiuwenswarm/channels/tui/frontend/node_modules/ ./jiuwenswarm/channels/tui/frontend/node_modules/
+#42 DONE 0.3s
+
+#43 [application-build  5/14] COPY --from=tui /build/jiuwenswarm/channels/tui/frontend/package.json ./jiuwenswarm/channels/tui/frontend/package.json
+#43 DONE 0.0s
+
+#44 [application-build  6/14] RUN uv build --wheel --python /opt/venv/bin/python --offline --no-cache --no-build-isolation --no-build-logs --out-dir /opt/ai4r-wheels packages/jiuwenswarm-tui     && uv pip install --python /opt/venv/bin/python --offline --no-deps --reinstall /opt/ai4r-wheels/workswarm_tui-*.whl     && uv build --wheel --python /opt/venv/bin/python --offline --no-cache --no-build-isolation --no-build-logs --out-dir /opt/ai4r-wheels     && uv pip install --python /opt/venv/bin/python --offline --no-deps --reinstall /opt/ai4r-wheels/workswarm-*.whl
+#44 0.371 Building wheel...
+#44 1.376 Successfully built /opt/ai4r-wheels/workswarm_tui-0.2.5b1-py3-none-linux_x86_64.whl
+#44 1.523 Using Python 3.12.15 environment at: /opt/venv
+#44 1.529 Resolved 1 package in 3ms
+#44 1.536 Prepared 1 package in 5ms
+#44 1.540 Uninstalled 1 package in 3ms
+#44 1.543 Installed 1 package in 3ms
+#44 1.543  - workswarm-tui==0.2.5b1 (from file:///opt/ai4r/packages/jiuwenswarm-tui)
+#44 1.543  + workswarm-tui==0.2.5b1 (from file:///opt/ai4r-wheels/workswarm_tui-0.2.5b1-py3-none-linux_x86_64.whl)
+#44 1.693 Building wheel...
+#44 7.388 Successfully built /opt/ai4r-wheels/workswarm-0.2.5b1-py3-none-any.whl
+#44 7.531 Using Python 3.12.15 environment at: /opt/venv
+#44 7.537 Resolved 1 package in 5ms
+#44 7.828 Prepared 1 package in 290ms
+#44 8.424 Installed 1 package in 595ms
+#44 8.424  + workswarm==0.2.5b1 (from file:///opt/ai4r-wheels/workswarm-0.2.5b1-py3-none-any.whl)
+#44 DONE 8.5s
+
+#45 [application-build  7/14] COPY scripts/research_compat_wheel.py /tmp/research_compat_wheel.py
+#45 DONE 0.1s
+
+#46 [application-build  8/14] RUN python /tmp/research_compat_wheel.py --output /opt/ai4r-wheels --license /opt/ai4r/LICENSE     && uv pip install --python /opt/venv/bin/python --offline --no-deps /opt/ai4r-wheels/jiuwenswarm-*.whl
+#46 0.441 {"wheel": "/opt/ai4r-wheels/jiuwenswarm-0.2.5b1-py3-none-any.whl", "name": "jiuwenswarm", "version": "0.2.5b1", "native_dependency": "workswarm[codex,tui]==0.2.5b1", "sha256": "c742ba0094ad6a080ea0860160240361c60247d6e823483603532f3e44997dfd", "code_files": 0, "publication": "NOT_REQUESTED"}
+#46 0.460 Using Python 3.12.15 environment at: /opt/venv
+#46 0.479 Resolved 1 package in 1ms
+#46 0.484 Prepared 1 package in 5ms
+#46 0.486 Installed 1 package in 1ms
+#46 0.486  + jiuwenswarm==0.2.5b1 (from file:///opt/ai4r-wheels/jiuwenswarm-0.2.5b1-py3-none-any.whl)
+#46 DONE 0.5s
+
+#47 [application-build  9/14] COPY scripts/research_offline_assets.py /tmp/research_offline_assets.py
+#47 DONE 0.0s
+
+#48 [application-build 10/14] RUN python /tmp/research_offline_assets.py --wheelhouse /opt/ai4r-wheels --project /opt/ai4r/pyproject.toml --lock /opt/ai4r/uv.lock --generated-root /opt/ai4r/jiuwenswarm/channels/tui/frontend --output /usr/local/share/ai4r-wheel-assets.json
+#48 1.793 {"schema": "ai4r-delivered-wheel-assets:1", "output": "/usr/local/share/ai4r-wheel-assets.json", "sha256": "08b5a1864af0e9ed32efd4c67df4da83f4c7b9a9249dd2b34c00e5471942f053", "generated_files": 1092, "complete_offline_dependency_closure": false}
+#48 DONE 1.8s
+
+#49 [application-build 11/14] COPY deploy/m1/build_identity.py /tmp/build_identity.py
+#49 DONE 0.0s
+
+#50 [application-build 12/14] COPY deploy/m1/install_codex.py /tmp/install_codex.py
+#50 DONE 0.0s
+
+#51 [application-build 13/14] RUN python /tmp/install_codex.py
+#51 DONE 1.1s
+
+#52 [application-build 14/14] RUN python /tmp/build_identity.py --lock /opt/ai4r/uv.lock --project /opt/ai4r/pyproject.toml --source /opt/ai4r/jiuwenswarm --tui-source /opt/ai4r/packages/jiuwenswarm-tui/jiuwenswarm_tui --output /usr/local/share/ai4r-build-identity.json
+#52 2.012 {"build_id": "8b15c60f368db82fba4f2f073ca0a3c418791b10c7d48c13164af04c8b2dfc5d", "installed_files": 3134, "source_files_checked": 3136}
+#52 DONE 2.0s
+
+#17 [runtime-tools 5/5] WORKDIR /opt/ai4r
+#17 CACHED
+
+#53 [production  1/10] COPY --from=application-build /opt/venv/ /opt/venv/
+#53 ...
+
+#12 [node 1/1] FROM docker.io/library/node:22-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392
+#12 CACHED
+
+#53 [production  1/10] COPY --from=application-build /opt/venv/ /opt/venv/
+#53 DONE 7.1s
+
+#54 [production  2/10] COPY --from=application-build /opt/ai4r-wheels/ /usr/local/share/ai4r-wheels/
+#54 DONE 0.3s
+
+#55 [production  3/10] COPY --from=application-build /usr/local/share/ai4r-build-identity.json /usr/local/share/ai4r-build-identity.json
+#55 DONE 0.0s
+
+#56 [production  4/10] COPY --from=application-build /usr/local/share/ai4r-wheel-assets.json /usr/local/share/ai4r-wheel-assets.json
+#56 DONE 0.1s
+
+#57 [production  5/10] COPY --from=application-build /usr/local/bin/codex /usr/local/bin/codex
+#57 DONE 0.3s
+
+#58 [production  6/10] COPY --from=application-build /usr/local/share/ai4r-codex-runtime.json /usr/local/share/ai4r-codex-runtime.json
+#58 DONE 0.2s
+
+#59 [production  7/10] COPY --from=node /usr/local/bin/node /usr/local/bin/node
+#59 DONE 0.2s
+
+#60 [production  8/10] COPY deploy/m1/entrypoint.sh /usr/local/bin/ai4r-entrypoint
+#60 DONE 0.0s
+
+#61 [production  9/10] RUN chmod 0755 /usr/local/bin/ai4r-entrypoint     && mkdir -p /var/lib/ai4r /var/lib/ai4r-accounts /run/ai4r /workspace/poc     && mkdir -p /run/ai4r-private-qa && chmod 0700 /run/ai4r-private-qa     && chown ai4r:ai4r /var/lib/ai4r /var/lib/ai4r-accounts /run/ai4r
+#61 DONE 0.2s
+
+#62 [production 10/10] WORKDIR /var/lib/ai4r/native
+#62 DONE 0.0s
+
+#63 exporting to image
+#63 exporting layers
+#63 exporting layers 54.9s done
+#63 exporting manifest sha256:dc96da15ab6176765cf11d95ba1d56656592f71e67e981271d00a9f7084939c6 done
+#63 exporting config sha256:18a3863fdfc5a823390af4507832cda37faeaccf0a059814b878bb872ce67624 done
+#63 exporting attestation manifest sha256:5eee0132d475e17d83c6a4d986a6aa0a73b6427efc81e83d5ef518c61b743666 done
+#63 exporting manifest list sha256:df2ef57055266feb949c4c83a28e7c1206743123f338a476515224ebb42200d1 done
+#63 naming to docker.io/library/ai4r:local done
+#63 unpacking to docker.io/library/ai4r:local
+#63 unpacking to docker.io/library/ai4r:local 12.1s done
+#63 DONE 67.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/rvkcw7mgjsd2okkibaz6tlo06

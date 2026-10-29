@@ -1,0 +1,300 @@
+{
+  "schema_version": "1.0.0",
+  "source_package": "docs/code/Missions/docs/source/Architecture_Design",
+  "interfaces": {
+    "M1-IF-001": "r3",
+    "M1-IF-002": "r2",
+    "M1-IF-003": "r3",
+    "M1-IF-004": "r1",
+    "M1-IF-005": "r1",
+    "M1-IF-006": "r1",
+    "M1-IF-007": "r1",
+    "M1-IF-008": "r1",
+    "M1-IF-009": "r2",
+    "M1-IF-010": "r1",
+    "M1-IF-011": "r3",
+    "M1-IF-012": "r3",
+    "M1-IF-013": "r1",
+    "M1-IF-014": "r1",
+    "M1-IF-015": "r1",
+    "M1-IF-016": "r2"
+  },
+  "sources": [
+    {
+      "path": "reference/catalog.json",
+      "sha256": "15a7d998184ab1109a0c5544f08ca8c965af6fe087ef18e5b2e38ac59131ab9f"
+    },
+    {
+      "path": "reference/field-contracts.json",
+      "sha256": "dd5dad9dea440446ee25baf7f08189ffad4e71bd96103856e06663a718d8370a"
+    },
+    {
+      "path": "reference/schemas/capsule-declaration.schema.json",
+      "sha256": "e41e1d9d4e800be37262ebcccdd8174961c29f72d0ac5a53ae6aab331df6e71e"
+    },
+    {
+      "path": "reference/schemas/common.schema.json",
+      "sha256": "4fd39bf2e4c58f15dfd4e1bca0727d02d3b62ea5352c28ab3a46cdc9b456a30f"
+    },
+    {
+      "path": "reference/schemas/deterministic-check-result.schema.json",
+      "sha256": "c2d7d92f70546fbd33435f8c5a1b8975475597f08b594c010950801f41ca90e3"
+    },
+    {
+      "path": "reference/schemas/gate-decision.schema.json",
+      "sha256": "59d1a0a0faed27b29c840f59252dccf3ca97e68ad8619527f63d000a12e4cd41"
+    },
+    {
+      "path": "reference/schemas/intent-ir.schema.json",
+      "sha256": "abb60f17afa5dd91fdd2bc06f51ec4d679c29bbcbe41b2e3634a00dabfa39262"
+    },
+    {
+      "path": "reference/schemas/research-brief.schema.json",
+      "sha256": "97c69a7820bda2e879d520900db3f55c7df5d72c16645195f1297cad18e146a2"
+    },
+    {
+      "path": "reference/schemas/subnode-execution-contract.schema.json",
+      "sha256": "fa5f8efb7d9a43e6795f503e21a1a6ff8ddb98e998b7c87f7ac09161f69d5eae"
+    },
+    {
+      "path": "reference/schemas/verifier-assessment.schema.json",
+      "sha256": "d565d6771c78255c40913fda90173a994f97d84106f09b4bbfbfe848c00a945e"
+    },
+    {
+      "path": "reference/schemas/research-brief-v3.schema.json",
+      "sha256": "1a55206facbd9594b2d3839208049a823d8b684310b4acb3dbc77aeb978ac317"
+    }
+  ],
+  "amendments": [
+    {
+      "id": "M1-C002",
+      "owner": "M1-004/TASK.md",
+      "sha256": "5c28ee6a3b08925dabe0a50ae05bcf90c521c0f7e8eb57d2bd35145b32bc266b",
+      "contract": "empirical-results:field-contract:2"
+    },
+    {
+      "id": "M1-I001",
+      "owner": "M1-001/TASK.md",
+      "contract": "route-record:field-contract:1",
+      "meaning": "Protected fixed_baseline call authorization; prose-owned no_route/router_halt_code",
+      "sha256": "7bb9db0cd3c8374661698089e4e5e04ed18aa5ad308f0b0c627badc368faa1ae"
+    },
+    {
+      "id": "M1-C008",
+      "owner": "M1-002/TASK.md",
+      "sha256": "f351e9cf837adce78f79ebee7f0164d50e68335d6bf197116fc8c4da2677c95f",
+      "meaning": "Aggregate worker plus pinned independent per-output verifier library ceilings; record shapes unchanged"
+    },
+    {
+      "id": "M1-C006/C007",
+      "owner": "M1-008/TASK.md",
+      "sha256": "950bf3f31e99ac1a273aacc0fd4fe079ce089f651a9115ab9d33d4f289e68e11",
+      "meaning": "Four current RSI v2 records; fractional means and explicit rejected attempts; v1 preserved historically"
+    },
+    {
+      "id": "M1-I015",
+      "owner": "M1-002/TASK.md",
+      "sha256": "f351e9cf837adce78f79ebee7f0164d50e68335d6bf197116fc8c4da2677c95f",
+      "interface": "M1-IF-011@r1",
+      "meaning": "Private reservation-bound isolated child trials; accepted false, no production admission/standing/accepted-output writes"
+    },
+    {
+      "id": "M1-I021",
+      "owner": "M1-002/TASK.md",
+      "sha256": "f351e9cf837adce78f79ebee7f0164d50e68335d6bf197116fc8c4da2677c95f",
+      "interface": "M1-IF-012@r1",
+      "meaning": "Private signed-reservation original admitted-parent measurements; original measurement bytes, accepted false, no authoritative writes"
+    },
+    {
+      "id": "M1-I022",
+      "owner": "M1-002/TASK.md",
+      "sha256": "f351e9cf837adce78f79ebee7f0164d50e68335d6bf197116fc8c4da2677c95f",
+      "interfaces": [
+        "M1-IF-011@r2",
+        "M1-IF-012@r2"
+      ],
+      "meaning": "Version2 private bindings/reservations hash external legitimate inputs only; core derives exact subject-owned Screening rubric, v1 bytes retained"
+    },
+    {
+      "id": "M1-I023",
+      "owner": "M1-001/TASK.md",
+      "sha256": "7bb9db0cd3c8374661698089e4e5e04ed18aa5ad308f0b0c627badc368faa1ae",
+      "interfaces": [
+        "M1-IF-013@r1"
+      ],
+      "meaning": "Distinct private candidate self-test requests/jobs/kernel driver/candidate/result evidence; no admitted invocation grant"
+    },
+    {
+      "id": "M1-I025",
+      "owner": "M1-002/TASK.md",
+      "sha256": "f351e9cf837adce78f79ebee7f0164d50e68335d6bf197116fc8c4da2677c95f",
+      "interfaces": [
+        "M1-IF-011@r3",
+        "M1-IF-012@r3"
+      ],
+      "meaning": "Finite signed timing-slot IDs and normalized cross-version score once-claims; immutable historical binding/reservation meanings retained"
+    },
+    {
+      "id": "M1-I026",
+      "owner": "M1-002/TASK.md",
+      "sha256": "f351e9cf837adce78f79ebee7f0164d50e68335d6bf197116fc8c4da2677c95f",
+      "interface": "M1-IF-014@r1",
+      "meaning": "Private preregistered checking-asset calibration authority, payload-bound separate call ledger, original whole deadline and independent asset admissions; no product invocation or standing"
+    },
+    {
+      "id": "M1-I028",
+      "owner": "M1-008/TASK.md",
+      "sha256": "950bf3f31e99ac1a273aacc0fd4fe079ce089f651a9115ab9d33d4f289e68e11",
+      "interface": "M1-IF-015@r1",
+      "meaning": "Mandatory full thirteen-case RSI security qualification and exact actual producer scope before operational use or RSI-lineage admission/activation"
+    },
+    {
+      "id": "M1-I030",
+      "owner": "M1-002/TASK.md",
+      "sha256": "332f4787fe4fa808eed044f5a3d5e0d283f87b4c269a8bf4687368510b9062d0",
+      "interface": "M1-IF-003@r2",
+      "meaning": "Delegated finite E1 exact protected binding and qualified original imports; genuine finite RunPlan/checks/Scheduler/Gate, explicit ordinary r1 compatibility and invalid_for_product exclusion."
+    },
+    {
+      "id": "M1-I031",
+      "owner": "M1-002/TASK.md",
+      "sha256": "332f4787fe4fa808eed044f5a3d5e0d283f87b4c269a8bf4687368510b9062d0",
+      "interface": "M1-IF-016@r1",
+      "meaning": "Delegated fresh private E2/E3 runtime/request/slot/claims/journal/export with explicit private node/subnode/checking-basis projections (twelve closed records), registered native/executor authorization and containment, original canonical source provenance only; no ordinary product state authority."
+    },
+    {
+      "id": "M1-I032",
+      "owners": [
+        "M1-001/TASK.md",
+        "M1-002/TASK.md"
+      ],
+      "interfaces": [
+        "M1-IF-001@r2",
+        "M1-IF-003@r3",
+        "M1-IF-016@r2"
+      ],
+      "meaning": "Registered internal pre-worker preparation/activation, source whole-attempt lease and finite nonauthorizing original terminal proof. IF001r2 has sole owner M1-001/TASK.md; IF003r3 and IF016r2 each have sole owner M1-002/TASK.md. Historical decoders/records remain; implementation and actual resource/runtime qualification remain pending/unbuilt."
+    },
+    {
+      "id": "M1-I033",
+      "owner": "M1-001/TASK.md",
+      "sha256": "07e6e6a3677d241d1869849fcf9c7d7fbc6e3654ce82803d429090b78d583932",
+      "interface": "M1-IF-001@r3",
+      "meaning": "Fixed root-installed per-original-run input-inventory mapping after exact canonical plan/run-input/base recomputation. Only immutable request/document aliases and inventory ID may differ; strict frozen equality, original installed base/build/factory/admission/operations, all scientific resources/permissions/limits and lease/current-owner requirements remain. Finite original Store proof is nonauthorizing. Public/private data schemas and all original schema bytes remain unchanged; x-owning-interface@r2 on unchanged schemas records the original compatible data definition, while this current r3 interface versions installed construction only. Current owner/register pins are refreshed, historical amendments and supplied sources are preserved. New runtime checks NOT_RUN user-directed C010."
+    },
+    {
+      "id": "M1-I034",
+      "owner": "M1-002/TASK.md",
+      "sha256": "5fe5489478bd61e6904a1ad58134afd8cccb55532349e8af6a6d2f38f0414845",
+      "interface": "M1-IF-003@r3 (unchanged)",
+      "meaning": "Existing ordinary original-start interruption producer procedure: exact consumed claim/template/parent/check/frozen-plan proof, no whole Gate/acceptance, append-only dispatch2 null unknowns, atomic node Failed/run paused/claims paused. Missing/inert/legacy/private scopes remain unknown. No replay, release, effect cessation or new field/authority; existing inspection physical outcome_unknown retained. Procedure only; runtime NOT_RUN user-directed C010."
+    },
+    {
+      "id": "M1-I035",
+      "owner": "M1-002/TASK.md",
+      "sha256": "a4af7c4bd63c9629022163a1212ff8de784255e4aa87661d1f024ce45294d045",
+      "interface": "M1-IF-003@r3 (unchanged)",
+      "meaning": "Existing canonical Running/Evaluating state producer at actual work return/check and subsequent consumed work-start boundaries, original claim/parent/preparation/dispatch/active-node CAS. No private Run, replay, terminal override, Gate/acceptance or lease/permission; source fields unchanged. Definition only; C010 behavior NOT_RUN."
+    },
+    {
+      "id": "M1-I036",
+      "owner": "M1-002/TASK.md",
+      "sha256": "8ec70dadba1e331f8ee690da92b31492e6c79da9fe5d8804507e74a82f17b88b",
+      "interface": "M1-IF-003@r3 (unchanged)",
+      "meaning": "Original bounded depth1-to-depth2 PlanOutcome allocation custody supports existing interrupted restart history without fabricated creation/client events or new authority; exact original lineage/intake/request/uploads/input/parent proof only. Existing direct branches retained, missing proof unknown, no replay or lease release. Definition only; C010 behavior NOT_RUN."
+    },
+    {
+      "id": "M1-I037",
+      "owner": "M1-002/TASK.md",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b",
+      "interface": "M1-IF-003@r3 (unchanged)",
+      "meaning": "Read-only original ordinary attempt inspection consumes existing actual direct/linked allocation custody; exact legacy create_run identity retained. No creation fabrication, write/replay/current callback, field or cessation/lease-release authority. Definition only; C010 runtime NOT_RUN."
+    }
+  ],
+  "interface_owners": {
+    "M1-IF-001": {
+      "owner": "M1-001/TASK.md",
+      "revision": "r3",
+      "sha256": "07e6e6a3677d241d1869849fcf9c7d7fbc6e3654ce82803d429090b78d583932"
+    },
+    "M1-IF-002": {
+      "owner": "M1-002/TASK.md",
+      "revision": "r2",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b"
+    },
+    "M1-IF-003": {
+      "owner": "M1-002/TASK.md",
+      "revision": "r3",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b"
+    },
+    "M1-IF-004": {
+      "owner": "M1-003/TASK.md",
+      "revision": "r1",
+      "sha256": "bfb4a601ea375ee651e39e3fcab61785e0daebf0edb3f5e78ab62e0067bd2f85"
+    },
+    "M1-IF-005": {
+      "owner": "M1-004/TASK.md",
+      "revision": "r1",
+      "sha256": "7281041d0d93ded527420a488ff06e489754da139b9c8286eeba82e6a867c9aa"
+    },
+    "M1-IF-006": {
+      "owner": "M1-005/TASK.md",
+      "revision": "r1",
+      "sha256": "d579d85ce423f21010634f6a7ce4a6f13f3e0a7fd1b830c45fb9bdf312cffa32"
+    },
+    "M1-IF-007": {
+      "owner": "M1-006/TASK.md",
+      "revision": "r1",
+      "sha256": "72b54c8083a9cb17670150a1ead5e6e4e5449992e14ff151a64228730b8a982c"
+    },
+    "M1-IF-008": {
+      "owner": "M1-007/TASK.md",
+      "revision": "r1",
+      "sha256": "02d605b10e22c61f168667a35438b06e1d8552182b8a8b02f84d64935a8250ca"
+    },
+    "M1-IF-009": {
+      "owner": "M1-008/TASK.md",
+      "revision": "r2",
+      "sha256": "5c76e5f709ea2b120672c8cf5faf00c4d13de359e648eee3383b293b44d0c548"
+    },
+    "M1-IF-010": {
+      "owner": "M1-QA/TASK.md",
+      "revision": "r1",
+      "sha256": "5bd92ab362b352872d1a57e3183897592acca18db5cda5ca84aaab81e27fc94f"
+    },
+    "M1-IF-011": {
+      "owner": "M1-002/TASK.md",
+      "revision": "r3",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b"
+    },
+    "M1-IF-012": {
+      "owner": "M1-002/TASK.md",
+      "revision": "r3",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b"
+    },
+    "M1-IF-013": {
+      "owner": "M1-001/TASK.md",
+      "revision": "r1",
+      "sha256": "07e6e6a3677d241d1869849fcf9c7d7fbc6e3654ce82803d429090b78d583932"
+    },
+    "M1-IF-014": {
+      "owner": "M1-002/TASK.md",
+      "revision": "r1",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b"
+    },
+    "M1-IF-015": {
+      "owner": "M1-008/TASK.md",
+      "revision": "r1",
+      "sha256": "5c76e5f709ea2b120672c8cf5faf00c4d13de359e648eee3383b293b44d0c548"
+    },
+    "M1-IF-016": {
+      "owner": "M1-002/TASK.md",
+      "revision": "r2",
+      "sha256": "6f8812da00885c61ae44488234689346137425ac0bd0b45917c0ef6a8cc2965b"
+    }
+  },
+  "interface_register": {
+    "path": "docs/code/Missions/M1/TASKS.md",
+    "sha256": "d5989193d2c143a315d46ae916268e36002258f9936fabb2c3447e8bbed77804"
+  }
+}

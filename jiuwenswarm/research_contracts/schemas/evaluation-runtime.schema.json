@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:evaluation-runtime:1",
+  "title": "evaluation-runtime",
+  "x-owning-interface": "M1-IF-016@r1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "ai4r-evaluation-runtime:1"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "account_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "campaign_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "assets_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "configuration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "model_selection_profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "deployment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "policy_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "library_snapshot_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "schedule_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "account_model_selection_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "slots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Slot"
+      }
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "schema",
+    "id",
+    "account_id",
+    "workspace_id",
+    "campaign_id",
+    "profile_ref",
+    "assets_ref",
+    "configuration_ref",
+    "model_selection_profile_ref",
+    "deployment_ref",
+    "policy_ref",
+    "library_snapshot_ref",
+    "schedule_ref",
+    "slots",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Limits": {
+      "type": "object",
+      "properties": {
+        "time_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "model_calls": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "memory_mb": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "required": [
+        "time_s",
+        "model_calls",
+        "memory_mb"
+      ],
+      "additionalProperties": false
+    },
+    "Slot": {
+      "type": "object",
+      "properties": {
+        "slot_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entry_point": {
+          "enum": [
+            "E2",
+            "E3"
+          ]
+        },
+        "case_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "config_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repeat_index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "limits": {
+          "$ref": "#/$defs/Limits"
+        }
+      },
+      "required": [
+        "slot_id",
+        "request_id",
+        "entry_point",
+        "case_id",
+        "config_id",
+        "repeat_index",
+        "request_sha256",
+        "limits"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$comment": "Data structure only. The installed M1-002 owner independently validates exact indexed kinds and hashes, durable ownership and provenance joins, approved source pins, uniqueness, authority narrowing, budgets and original deadlines. Shape validation grants no execution or product authority."
+}

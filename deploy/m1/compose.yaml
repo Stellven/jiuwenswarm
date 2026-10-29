@@ -1,0 +1,69 @@
+services:
+  app:
+    image: ${AI4R_APP_IMAGE:-ai4r-m1-app:local}
+    build:
+      context: ../..
+      dockerfile: deploy/m1/Dockerfile.app
+      target: production
+      platforms: [linux/amd64, linux/arm64]
+    init: true
+    mem_limit: 4g
+    pids_limit: 256
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [SETUID, SETGID, CHOWN, FOWNER, DAC_OVERRIDE, KILL]
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=${AI4R_SECCOMP_PROFILE:-./seccomp/executor.json}
+    environment:
+      JIUWENSWARM_M1_PROFILE: '1'
+      JIUWENSWARM_M1_REUSABLE_BOOTSTRAP: ${AI4R_REUSABLE_LOGIN:-0}
+      JIUWENSWARM_M1_LOCAL_WORKSPACE: ${AI4R_LOCAL_WORKSPACE:-0}
+      JIUWENSWARM_M1_LOCAL_CHAT: ${AI4R_LOCAL_CHAT:-0}
+      JIUWENSWARM_M1_LOCAL_RESEARCH: ${AI4R_LOCAL_RESEARCH:-1}
+      AI4R_EXECUTION_MODE: m1_app_process
+      JIUWENSWARM_M1_ORIGIN: ${JIUWENSWARM_M1_ORIGIN:-http://127.0.0.1:5173}
+      JIUWENSWARM_M1_BIND_ADDRESS: ${AI4R_BIND_ADDRESS:-127.0.0.1}
+      JIUWENSWARM_M1_CONFIG: /var/lib/ai4r/operator/local-research-unified-v5/config.json
+      JIUWENSWARM_M1_STATE: /var/lib/ai4r
+      JIUWENSWARM_M1_ACCOUNTS: /var/lib/ai4r-accounts
+      JIUWENSWARM_DATA_DIR: /var/lib/ai4r/native
+      FRONTEND_HOST: 0.0.0.0
+      FRONTEND_PORT: '5173'
+      JIUWENSWARM_AGENT_SDK: codex_subscription
+    ports:
+      - target: 5173
+        published: '5173'
+        host_ip: ${AI4R_BIND_ADDRESS:-127.0.0.1}
+        protocol: tcp
+    volumes:
+      - state:/var/lib/ai4r
+      - accounts:/var/lib/ai4r-accounts
+      - ipc:/run/ai4r
+      - poc:/workspace/poc
+      - inputs:/workspace/input
+      - executor:/var/lib/ai4r-executor
+      - private_qa:/run/ai4r-private-qa
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+      - /home/ai4r/.cache:rw,nosuid,nodev,size=64m,uid=10001,gid=10001
+      - /run/ai4r-supervisor:rw,nosuid,nodev,size=1m,mode=0700
+      - /run/ai4r-executor:rw,nosuid,nodev,size=8m,mode=0710,gid=10001
+      - /run/ai4r-store:rw,nosuid,nodev,size=64m,mode=0710,gid=10001
+      - /resources:rw,nosuid,nodev,size=128m,mode=0711,uid=0,gid=0
+    networks: [private]
+    labels:
+      ai4r.owner: ${AI4R_JOB_ID:-operator-m1}
+      ai4r.component: app
+    stop_grace_period: 45s
+
+networks:
+  private: {}
+volumes:
+  state: {}
+  accounts: {}
+  ipc: {}
+  poc: {}
+  executor: {}
+  private_qa: {}
+  inputs: {}

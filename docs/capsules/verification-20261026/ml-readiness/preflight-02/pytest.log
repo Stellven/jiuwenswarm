@@ -1,0 +1,28 @@
+........................................................................ [ 21%]
+...............................................F...........F............ [ 43%]
+........................................................................ [ 65%]
+........................................................................ [ 87%]
+..........................................                               [100%]
+=================================== FAILURES ===================================
+___ test_exact_native_finite_scope_can_be_ready_without_compiler_or_builder ____
+tests/unit_tests/research/test_finite_startup.py:70: in test_exact_native_finite_scope_can_be_ready_without_compiler_or_builder
+    assert report['ready'] is True, report['prerequisites']
+E   AssertionError: [{'name': 'build_identity', 'reason': 'Captured build matches the verified installed closure', 'status': 'ready'}, {'n...roved finite stages and shared verifier are selected; full workflow readiness is not claimed', 'status': 'ready'}, ...]
+E   assert False is True
+_______ test_actual_gateway_attachment_preserves_exact_finite_readiness ________
+tests/unit_tests/research/test_finite_startup.py:160: in test_actual_gateway_attachment_preserves_exact_finite_readiness
+    attachment = await gateway.attach_native_research(channel, runtime_ports=ports)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+jiuwenswarm/research/bootstrap_gateway.py:205: in attach_native_research
+    if inspect.isawaitable(bound):await bound
+                                  ^^^^^^^^^^^
+jiuwenswarm/research/native_ports.py:219: in bind_runner
+    if callable(register_start):register_start(self)
+                                ^^^^^^^^^^^^^^^^^^^^
+jiuwenswarm/research/runner.py:621: in _register_native_start_port
+    raise ResearchError('executor_preparation_authorization','An installed exact root-peer native start carrier is required')
+E   jiuwenswarm.research.contracts.types.ResearchError: executor_preparation_authorization: An installed exact root-peer native start carrier is required
+=========================== short test summary info ============================
+FAILED tests/unit_tests/research/test_finite_startup.py::test_exact_native_finite_scope_can_be_ready_without_compiler_or_builder
+FAILED tests/unit_tests/research/test_finite_startup.py::test_actual_gateway_attachment_preserves_exact_finite_readiness
+2 failed, 328 passed in 525.81s (0:08:45)

@@ -1,0 +1,28 @@
+# syntax=docker/dockerfile:1.7
+# Bounded offline rebuild using an operator-pinned, complete M1 runtime.
+# The final scratch stage contains a new sanitized filesystem, not old layers.
+ARG DEPENDENCY_IMAGE=ai4r-m1-app:20261021-workflow-development-3
+FROM ${DEPENDENCY_IMAGE} AS rebuild
+USER root
+WORKDIR /build
+COPY pyproject.toml uv.lock LICENSE OPEN_SOURCE_SOFTWARE_NOTICE.md ./
+COPY jiuwenswarm/ ./jiuwenswarm/
+COPY packages/jiuwenswarm-tui/ ./packages/jiuwenswarm-tui/
+COPY jiuwenbox/ ./jiuwenbox/
+COPY deploy/m1/rebuild_cached.py /build/rebuild_cached.py
+COPY deploy/m1/build_identity.py /build/build_identity.py
+COPY scripts/research_compat_wheel.py /build/research_compat_wheel.py
+COPY scripts/research_offline_assets.py /build/research_offline_assets.py
+ARG DEPENDENCY_IMAGE_ID
+RUN test -n "$DEPENDENCY_IMAGE_ID" \
+    && python /build/rebuild_cached.py --dependency-image-id "$DEPENDENCY_IMAGE_ID"
+
+FROM scratch AS production
+COPY --from=rebuild / /
+ENV UV_LINK_MODE=copy UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
+    PATH=/opt/venv/bin:/usr/local/bin:/usr/bin:/bin \
+    JIUWENSWARM_M1_PROFILE=1 FRONTEND_HOST=0.0.0.0 FRONTEND_PORT=5173
+WORKDIR /var/lib/ai4r/native
+EXPOSE 5173
+ENTRYPOINT ["/usr/local/bin/ai4r-entrypoint"]

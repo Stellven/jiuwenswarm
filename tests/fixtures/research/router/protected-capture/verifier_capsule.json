@@ -1,0 +1,153 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.verifier",
+    "version_label": "example-1",
+    "kind": "agent",
+    "summary": "Check one CC output against its pinned declaration under fixed profile criteria. Reads only the declaration and the output.",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "verifier_implementation.txt",
+        "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "subject_declaration",
+        "schema_ref": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+        "required": true,
+        "artifact_type": "capsule_declaration",
+        "description": "Exact pinned declaration of the CC under review",
+        "check_ids": [
+          "declaration_pin_matches"
+        ]
+      },
+      {
+        "name": "subject_output",
+        "schema_ref": "opaque-bytes",
+        "required": true,
+        "artifact_type": "subject_output",
+        "description": "Exact output bytes of the CC under review, unchanged",
+        "check_ids": [
+          "output_hash_matches"
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "verifier_assessment",
+        "schema_ref": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+        "required": true,
+        "artifact_type": "verifier_assessment",
+        "description": "Host-assembled assessment from the untrusted model reply",
+        "check_ids": [
+          "assessment_schema",
+          "criterion_coverage_exact"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": false,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "read_only",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "pinned declaration and exact output only",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "assessment_schema",
+        "kind": "deterministic",
+        "target": "outputs.verifier_assessment",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      }
+    ],
+    "acceptance": [
+      "assessment_schema"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Reduced assurance: no input fidelity, source support or scientific validity is established"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 60,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "Fixed instructions and criteria come from the pinned checking profile, not from this declaration."
+    ]
+  }
+}

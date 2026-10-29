@@ -1,0 +1,7 @@
+{
+  "schema_version": "1.0.0",
+  "id": "admission:teaching",
+  "eligible": true,
+  "synthetic": true,
+  "limitation": "Illustrates protected eligibility only; no real capability admission or execution is claimed"
+}

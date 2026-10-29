@@ -330,6 +330,10 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
     }
     _WS_LOG_MAX_CHARS = 2000
     _HTTP_PROXY_TIMEOUT = 30
+    # Transport allowance for an authenticated finite evaluation, including
+    # completion serialization after a 600-second native slot. Native frozen
+    # runtime/policy deadlines still own execution; this is not a worker limit.
+    _EVALUATION_PROXY_TIMEOUT = 660
     _WS_CONNECT_TIMEOUT = 10
     _WS_HANDSHAKE_TIMEOUT = 10
     _WS_SELECT_TIMEOUT = 60
@@ -495,7 +499,20 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
             )
 
     def _is_api_route(self) -> bool:
-        return urlparse(self.path).path.startswith("/api")
+        path = urlparse(self.path).path
+        return path.startswith("/api") or (
+            os.getenv("JIUWENSWARM_M1_PROFILE") == "1" and path.startswith("/auth/research/")
+        )
+
+    def _research_origin_allowed(self, outer_host: str) -> bool:
+        if os.getenv("JIUWENSWARM_M1_PROFILE") != "1":
+            return True
+        expected = urlparse(os.getenv("JIUWENSWARM_M1_ORIGIN", ""))
+        if expected.scheme not in ("http", "https") or not expected.netloc:
+            return False
+        origin = self.headers.get("Origin")
+        canonical = f"{expected.scheme}://{expected.netloc}"
+        return outer_host == expected.netloc and (origin is None or origin == canonical)
 
     def _is_ws_route(self) -> bool:
         return urlparse(self.path).path.startswith("/ws")
@@ -594,22 +611,41 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
         if outer_host is None:
             self._write_proxy_error(400, "invalid Host header")
             return
+        if not self._research_origin_allowed(outer_host):
+            self._write_proxy_error(403, "native origin is not authorized")
+            return
+        # Original-byte downloads may hash retained evidence before responding.
+        # Stream this versioned boundary end to end with bounded proxy memory.
+        request_path = urlparse(self.path).path
+        authorization = self.headers.get("Authorization", "").split(None, 1)
+        bearer_request = len(authorization) == 2 and authorization[0].lower() == "bearer" and bool(authorization[1].strip())
+        evaluation_path = re.fullmatch(r"/api/v1/evaluation/requests/[^/]+", request_path) is not None
+        evaluation_archive = (bearer_request and evaluation_path
+                              and self.headers.get("Accept", "").split(";", 1)[0].strip().lower() == "application/zip")
+        download_request = self.command in {"GET", "HEAD"} and (
+            re.fullmatch(r"/api/v1/runs/[^/]+/(?:export|artifacts/[^/]+)", request_path) is not None
+            or evaluation_archive)
+        finite_evaluation = (bearer_request and self.command == "POST"
+                             and request_path in {"/api/v1/evaluation/single-cc", "/api/v1/evaluation/node-replay"})
+        proxy_timeout = (self._EVALUATION_PROXY_TIMEOUT if finite_evaluation
+                         else 300 if download_request else self._HTTP_PROXY_TIMEOUT)
         parsed = urlparse(self.api_target)
         if parsed.scheme == "https":
             ssl_ctx = None if _get_ssl_verify() else _get_insecure_ssl_context()
             conn: http.client.HTTPConnection = http.client.HTTPSConnection(
                 parsed.hostname,
                 parsed.port or self._DEFAULT_HTTPS_PORT,
-                timeout=self._HTTP_PROXY_TIMEOUT,
+                timeout=proxy_timeout,
                 context=ssl_ctx,
             )
         else:
             conn = http.client.HTTPConnection(
                 parsed.hostname,
                 parsed.port or self._DEFAULT_HTTP_PORT,
-                timeout=self._HTTP_PROXY_TIMEOUT,
+                timeout=proxy_timeout,
             )
 
+        response_started = False
         try:
             body = b""
             if self.command not in ("GET", "HEAD"):
@@ -630,23 +666,46 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
 
             conn.request(self.command, self.path, body=body, headers=forward_headers)
             resp = conn.getresponse()
-            resp_body = resp.read()
+            # Other API replies retain their existing buffering/error behavior.
+            resp_body = None if download_request else resp.read()
 
+            response_started = True
             self.send_response(resp.status, resp.reason)
             for key, value in resp.getheaders():
                 if key.lower() in self._HOP_BY_HOP_HEADERS:
                     continue
                 self.send_header(key, value)
+            if download_request and resp.getheader("Content-Length") is None:
+                # http.client decodes upstream chunk framing. A close-delimited
+                # downstream response must not be reused as a persistent one.
+                self.close_connection = True
+                self.send_header("Connection", "close")
             self.end_headers()
             if self.command != "HEAD":
-                self.wfile.write(resp_body)
+                if download_request:
+                    while chunk := resp.read(64 * 1024):
+                        self.wfile.write(chunk)
+                else:
+                    self.wfile.write(resp_body)
+        except (BrokenPipeError, ConnectionResetError):
+            # Stop reading the upstream as soon as the collector disconnects.
+            self.close_connection = True
         except Exception as exc:  # noqa: BLE001
             self.log_error("proxy http error: %s", exc)
-            self._write_proxy_error(502, "proxy http error")
+            if response_started:
+                # A truncated artifact remains truncated; never append an error
+                # document after original bytes or send a second status line.
+                self.close_connection = True
+            else:
+                self._write_proxy_error(502, "proxy http error")
         finally:
             conn.close()
 
     def _proxy_websocket_tunnel(self) -> None:
+        outer_host = self._clean_outer_host()
+        if outer_host is None or not self._research_origin_allowed(outer_host):
+            self._write_proxy_error(403, "native origin is not authorized")
+            return
         parsed = urlparse(self.ws_target)
         if parsed.scheme not in ("ws", "wss", "http", "https"):
             self.send_error(500, "ws proxy target must be ws/wss/http/https")
@@ -710,7 +769,8 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
                 if self.ws_disable_compress and key.lower() == "sec-websocket-extensions":
                     continue
                 if key.lower() == "host":
-                    request_lines.append(f"Host: {upstream_host}:{upstream_port}")
+                    target_host = outer_host if os.getenv("JIUWENSWARM_M1_PROFILE") == "1" else f"{upstream_host}:{upstream_port}"
+                    request_lines.append(f"Host: {target_host}")
                 else:
                     request_lines.append(f"{key}: {value}")
             if not any(line.lower().startswith("host:") for line in request_lines[1:]):

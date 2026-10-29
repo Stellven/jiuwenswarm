@@ -1,0 +1,30 @@
+{
+  "schema": "ai4r-local-model-catalog:1",
+  "gateway_id": "example-local-gateway",
+  "backend": {
+    "kind": "ssh-loopback-openai",
+    "target": "gpu-user@gpu-host",
+    "base_url": "http://127.0.0.1:8000/v1"
+  },
+  "transport": {
+    "socket_path": "/run/ai4r-local-model/model.sock",
+    "session_file": "/run/ai4r-local-model-config/session.json",
+    "peer_uid": 1000,
+    "socket_mode": 432
+  },
+  "models": [
+    {
+      "id": "local-example",
+      "name": "Operator-approved local model",
+      "model_name": "REPLACE_WITH_VERIFIED_MODEL_ID",
+      "revision": "REPLACE_WITH_CHECKPOINT_OR_REVIEWED_SERVER_REVISION",
+      "enabled": false,
+      "context_window": 16384,
+      "max_output_tokens": 2048,
+      "max_prompt_bytes": 32768,
+      "timeout_s": 120,
+      "temperature": 0,
+      "enable_thinking": false
+    }
+  ]
+}

@@ -66,6 +66,9 @@ dependencies = [
     "playwright>=1.40,<2",
     "uv>=0.4.0,<0.13",
     "gitcode-cli==0.12.0",
+    # M1 contract validation and custody signatures; already in the frozen closure.
+    "jsonschema==4.26.0",
+    "cryptography==47.0.0",
 ]
 
 [project.optional-dependencies]
@@ -129,6 +132,7 @@ test = [
     "pytest-cov>=7.0.0",
     "coverage>=7.7.1",
     "pyyaml>=6.0",
+    "import-linter>=2,<3",
 ]
 
 [project.scripts]
@@ -157,7 +161,7 @@ package-dir = {"jiuwenbox" = "jiuwenbox/src/jiuwenbox"}
 [tool.setuptools.packages.find]
 where = [".", "jiuwenbox/src"]
 include = ["jiuwenswarm*", "jiuwenbox*"]
-exclude = ["jiuwenswarm.web*"]
+exclude = ["jiuwenswarm.web*", "jiuwenswarm.research_sidecar*"]
 namespaces = false
 
 [tool.setuptools.package-data]
@@ -165,6 +169,15 @@ namespaces = false
 jiuwenswarm = [
     "channels/web/frontend/dist/**/*",
     "channels/web/frontend/dist/*",
+    # Frozen Node22 TUI output and the complete pruned, locked npm tree.
+    # Hidden npm metadata/bin directories must survive a clean wheel install.
+    "channels/tui/frontend/package.json",
+    "channels/tui/frontend/dist/*",
+    "channels/tui/frontend/dist/**/*",
+    "channels/tui/frontend/node_modules/**/*",
+    "channels/tui/frontend/node_modules/**/.*",
+    "channels/tui/frontend/node_modules/.bin/*",
+    "channels/tui/frontend/node_modules/.package-lock.json",
     "agents/harness/common/rsi/harness_config.yaml",
     # config / env 模板放在 resources 目录
     "resources/**/*",
@@ -177,6 +190,10 @@ jiuwenswarm = [
     "extensions/**/*.yaml",
     "extensions/**/*.yml",
     "extensions/**/*.md",
+    "research_contracts/**/*.json",
+    "research_assets/**/*",
+    "research/resources/**/*",
+    "research/capsule_extensions/**/*.json",
 ]
 jiuwenbox = [
     "configs/**/*",
@@ -210,6 +227,7 @@ test = [
     "pytest-cov>=7.0.0",
     "coverage>=7.7.1",
     "pyyaml>=6.0",
+    "import-linter>=2,<3",
 ]
 # Linting & formatting
 lint = [

@@ -1,0 +1,14 @@
+{
+  "files": {
+    "summary_to_packet/__init__.py": "5bc3b2fd947a4a05aea90db6bae0daf7d63ea92d7d74c2ded97b68795300d12f",
+    "summary_to_packet/checks.py": "c8c1584bec28b1a1f03b7f13607cb281cd2ae7b889999da035dc70b276030326",
+    "summary_to_packet/release.py": "58985fd60d51e1dfbcf778c22533ad68c20080c8ac6de7a8644156b62cefd6fd",
+    "summary_to_packet/worker.py": "7824c65990951570e193c9d52faf888e936844bd4d6d2735a2a2ce96f6dad1e5"
+  },
+  "module": "summary_to_packet",
+  "name": "utility.summary_to_packet",
+  "shared_runtime": {
+    "path": "packet.py",
+    "sha256": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+  }
+}

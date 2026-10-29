@@ -1,0 +1,157 @@
+{
+  "schema": "ai4r-demo-manifest:1",
+  "demo": "case3-paper",
+  "campaign_id": "demo-cpu-paper-20261023-103800",
+  "runner_case_file": "/cases/demos-20261023/case3-paper.json",
+  "case_sha256": "e9e49fd0fc43dd35deee35df6da885152168f7f64f1e2f7476affd1ca2b1da4f",
+  "checkout_commit": "f7b31c6796191c5a80804a9484b031bc671bc6db",
+  "app_build_id": "db45a807a314ef5aab1f69090b1a5bd8d0f7c1eed878cc857885518ef4780ca4",
+  "app_image": "sha256:c8eeba69e0d45968d1e18dfe281f6c66f91053ff8e258d231295eb552dd1a613",
+  "runner_image": "sha256:193c0ae0cffb95557424faec618bc944fb87d2b08cac78921f1190f8e0358992",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "model_requested": "gpt-6.1-sol",
+  "model_observed": [
+    "gpt-6.1-sol"
+  ],
+  "status": "COMPLETED",
+  "reason": null,
+  "reviewer_material_sent_to_app": false,
+  "quality_assessment": null,
+  "runtime_metadata_source": "host-preflight.json and per-run runtime-environment.json; actual model must be read from saved events",
+  "collection_state": "complete",
+  "app_run_id": "run:b2f47b0438ab476a9bbee1dc2c8d6c14",
+  "request_id": "request-ad2a783353e04f588b13ae3ae9a1649d",
+  "submitted_at": "2026-10-23T14:42:13Z",
+  "ended_at": "2026-10-23T14:48:23Z",
+  "runner_hostname": "12ac8accaf15",
+  "observed_nodes": [
+    {
+      "attempt_id": "delivery-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "delivery",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "intention_compiler-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "intention_compiler",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "planner-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "planner",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "summary-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "summary",
+      "skipped_because": null
+    }
+  ],
+  "run_record": "../../results/demo-cpu-paper-20261023-103800/runs/case3-paper-r1/run_record.json",
+  "original_archive": "../../results/demo-cpu-paper-20261023-103800/runs/case3-paper-r1/artifacts/originals.zip",
+  "archive_sha256": "2158e6ccf73e5ccad3d8f5b87b443de9ee22956ac17ddc2e0cf28343361d9851",
+  "readable_output": "../../results/demo-cpu-paper-20261023-103800/runs/case3-paper-r1/artifacts/readable/paper_summary.md",
+  "output_sha256": "eb43ccdff4bca1f66893b23de94199b40cfb291107e5b9bc7683047ac2654ced",
+  "submitted_inputs": [
+    {
+      "path": "demos-20261023/case3-paper/chunk-recomputation-2610.31019.pdf",
+      "sha256": "7fcebd072e0a7b128736ae0b30b31dc35aaff471e1766006b2e2881ed0ac1fe9",
+      "upload_id": "upload:69d007eed376c0be86c82318dc943c3c"
+    }
+  ],
+  "gate_observations": [
+    {
+      "node": "delivery",
+      "subnode": "delivery",
+      "scope": "subnode",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-0c6947abdb818fe1b8807b1adfd10d131811655ea40f0d1923d662fcddb4faf2.json"
+    },
+    {
+      "node": "delivery",
+      "subnode": null,
+      "scope": "node",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-21f22587a58c38208162885e91f5b61750a40018b0f07b1e7c633290c2c6e5ed.json"
+    },
+    {
+      "node": "planner",
+      "subnode": "planner",
+      "scope": "subnode",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-3d7976cf60da1225f7e8463851030c01b247f6602f9600e7f68f04d8b4db6d62.json"
+    },
+    {
+      "node": "planner",
+      "subnode": null,
+      "scope": "node",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-490e54b2613c62caf4d93a1477c69fe16c37065379fa0590cdfc2137c9230c45.json"
+    },
+    {
+      "node": "summary",
+      "subnode": null,
+      "scope": "node",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-4a5ad237eaf01ec344c6b59d8da27eef9bb5deba07ce3ab9d15067341998b54c.json"
+    },
+    {
+      "node": "intention_compiler",
+      "subnode": null,
+      "scope": "node",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-66ed3acfce935455b8394af13f8d8e90314037a9e70554d244b7409dd39b9bc9.json"
+    },
+    {
+      "node": "intention_compiler",
+      "subnode": "intent",
+      "scope": "subnode",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-87142098feeef50c830a6e85acf65d545dab705b8f8f8c33edac0a53093bc8be.json"
+    },
+    {
+      "node": "summary",
+      "subnode": "summary",
+      "scope": "subnode",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-880711ecbae03145b7669707e32efb466b7fe1aedf557724046c7a91a5744eea.json"
+    },
+    {
+      "node": "intention_compiler",
+      "subnode": "requirements",
+      "scope": "subnode",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-8e1905ff40902d4317e486b41d8b22cfc01311d10cbbce62ae3095a41e2f80a2.json"
+    },
+    {
+      "node": "delivery",
+      "subnode": "delivery",
+      "scope": "subnode",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-d5b686a69272c818e48df6faa48d3f6a69858d0d3a9dced71f3bf2820d45247d.json"
+    },
+    {
+      "node": "planner",
+      "subnode": null,
+      "scope": "node",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS",
+      "action": "advance",
+      "evidence": "evidence/gate-decision-e57688fffaed1eb39dc2172c118b3e3c78648d1f4821cad21d9275f207d10aac.json"
+    }
+  ],
+  "manual_review_status": "Requested numeric answers compared with PDF; full human assessment remains open.",
+  "provenance_note": "Checkout commit is reviewer-captured; installed app build/image are recorded separately. Actual model is from saved native events, not inferred from the requested model. Runner does not natively store physical hostname or checkout commit."
+}

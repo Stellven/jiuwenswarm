@@ -1,0 +1,227 @@
+{
+  "explanatory_files": [
+    "README.md",
+    "principles.md",
+    "m1-design.md",
+    "delivery-phases.md",
+    "immediate-plan.md",
+    "intent-design.md",
+    "research-design.md",
+    "workflow.md",
+    "capsules.md",
+    "guard-design.md",
+    "placement.md",
+    "model-routing.md",
+    "automation.md",
+    "offline-rsi.md",
+    "failure-and-human.md",
+    "artifact-inspection.md",
+    "phase-details.md",
+    "contracts-and-native-reuse.md",
+    "capsule/authoring.md",
+    "usage-scenarios.md"
+  ],
+  "omissions": {
+    "principles.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 7,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "m1-design.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 10,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "delivery-phases.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 4,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "immediate-plan.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 6,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "intent-design.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 7,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "research-design.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 15,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "workflow.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 17,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "capsules.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 18,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "guard-design.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 19,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "placement.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 24,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "model-routing.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 5,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "automation.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 10,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "offline-rsi.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 8,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "failure-and-human.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 12,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "artifact-inspection.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 5,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "phase-details.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 8,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    },
+    "contracts-and-native-reuse.md": {
+      "kind": "Deeper explanatory paragraphs and unselected views; retained real headings, initial component explanation, tables, rules and selected diagrams",
+      "initially_omitted_blocks": 6,
+      "note": "Construction log before connected summaries and final consistency polishing; not a claim that all those meanings are omitted."
+    }
+  },
+  "retained_exact_sections": [
+    [
+      "workflow.md",
+      "Concrete execution boundary"
+    ],
+    [
+      "placement.md",
+      "Dependency preparation and provisioning"
+    ],
+    [
+      "offline-rsi.md",
+      "Target 1 scoring and headroom"
+    ],
+    [
+      "guard-design.md",
+      "Two tiers and evidence"
+    ],
+    [
+      "guard-design.md",
+      "Tradeoffs and evolution"
+    ]
+  ],
+  "retained_diagram_sources": [
+    "README.md",
+    "automation.md",
+    "intent-design.md",
+    "m1-design.md"
+  ],
+  "method": "Retain real topic headings, first explanations, rules/tables and selected views; supplement concise connected behavior; keep current repairs exact. No contract/example or scope reduction.",
+  "retained_exact_explanatory_files": [
+    "principles.md",
+    "capsule/authoring.md",
+    "usage-scenarios.md"
+  ],
+  "final_words": {
+    "README.md": {
+      "full": 1014,
+      "cut": 856
+    },
+    "principles.md": {
+      "full": 794,
+      "cut": 794
+    },
+    "m1-design.md": {
+      "full": 1103,
+      "cut": 614
+    },
+    "delivery-phases.md": {
+      "full": 661,
+      "cut": 468
+    },
+    "immediate-plan.md": {
+      "full": 635,
+      "cut": 474
+    },
+    "intent-design.md": {
+      "full": 969,
+      "cut": 692
+    },
+    "research-design.md": {
+      "full": 3475,
+      "cut": 2509
+    },
+    "workflow.md": {
+      "full": 1633,
+      "cut": 647
+    },
+    "capsules.md": {
+      "full": 1470,
+      "cut": 568
+    },
+    "guard-design.md": {
+      "full": 2134,
+      "cut": 1231
+    },
+    "placement.md": {
+      "full": 2322,
+      "cut": 877
+    },
+    "model-routing.md": {
+      "full": 545,
+      "cut": 301
+    },
+    "automation.md": {
+      "full": 1250,
+      "cut": 557
+    },
+    "offline-rsi.md": {
+      "full": 1478,
+      "cut": 1183
+    },
+    "failure-and-human.md": {
+      "full": 1556,
+      "cut": 995
+    },
+    "artifact-inspection.md": {
+      "full": 499,
+      "cut": 211
+    },
+    "phase-details.md": {
+      "full": 1681,
+      "cut": 1139
+    },
+    "contracts-and-native-reuse.md": {
+      "full": 676,
+      "cut": 374
+    },
+    "capsule/authoring.md": {
+      "full": 447,
+      "cut": 447
+    },
+    "usage-scenarios.md": {
+      "full": 212,
+      "cut": 212
+    }
+  }
+}

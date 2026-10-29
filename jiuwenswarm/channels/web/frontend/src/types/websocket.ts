@@ -33,8 +33,20 @@ export interface WsEvent {
 
 export type WebMessage = WsRequest | WsResponse | WsEvent;
 
+/** UI selection captured at Send; server authentication and input ownership remain authoritative. */
+export interface ResearchInputSnapshot {
+  sourceSessionId: string;
+  uploadRefs: string[];
+  selectionVersions: Record<string, number>;
+  interaction: 'conversation' | 'research';
+  interactionExplicit?: boolean;
+  ownerScope?: string;
+  files?: { id: string; filename: string }[];
+}
+
 export interface WebRequestOptions {
   timeoutMs?: number;
+  researchInputSnapshot?: ResearchInputSnapshot;
   signal?: AbortSignal;
   /** 对应协议里请求消息的顶层 is_stream 字段（如 command.goal 的 set/resume） */
   isStream?: boolean;

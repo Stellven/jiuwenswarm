@@ -1,0 +1,27 @@
+{
+  "schema": "ai4r-agentic-builder-live-preflight:1",
+  "sdk_commit": "9e3390195a9ea15235b2b5f7412cb2aa440622cc",
+  "native_runtime": "native_unavailable",
+  "bubblewrap_available": true,
+  "cgroup_v2_present": true,
+  "service_endpoints": {
+    "model": {
+      "path": "/run/ai4r/model.sock",
+      "socket_present": false,
+      "qualified": false
+    },
+    "executor": {
+      "path": "/run/ai4r-executor/executor.sock",
+      "socket_present": false,
+      "qualified": false
+    }
+  },
+  "status": "blocked",
+  "reasons": [
+    "native_unavailable",
+    "model_service_unavailable",
+    "executor_service_unavailable"
+  ],
+  "authenticated_build_performed": false,
+  "benchmark_performed": false
+}

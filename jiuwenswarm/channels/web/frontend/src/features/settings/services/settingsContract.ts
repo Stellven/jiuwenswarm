@@ -212,6 +212,7 @@ export const OPENAI_ACCOUNT_RPC = {
 } as const;
 
 export const OPEN_SOURCE_SETTINGS_REQUEST_METHODS = [
+  'codex.auth.status', 'codex.auth.login', 'codex.auth.cancel', 'codex.auth.logout', 'codex.models.list',
   'config.get',
   'config.save_all',
   'config.validate_model',

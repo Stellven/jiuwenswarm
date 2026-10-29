@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+  "title": "Verifier assessment",
+  "description": "Read-only semantic verdict about the submitted artifact. Contains no workflow action or replacement artifact.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "subject_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "review_context_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+    },
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "PASS_WITH_KNOWN_LIMITATIONS",
+        "FAIL",
+        "ENVIRONMENT_BLOCKED",
+        "INCONCLUSIVE"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "criterion_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "ENVIRONMENT_BLOCKED",
+              "INCONCLUSIVE"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence_refs": {
+            "type": "array",
+            "items": {
+              "$ref": "urn:jiuwenswarm:m1-design:common:1.0.0#/$defs/Ref"
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "criterion_id",
+          "outcome",
+          "reason",
+          "evidence_refs"
+        ],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0
+    },
+    "required_correction": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "ext": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9]*(?:[._-][a-z0-9]+)+$"
+      },
+      "additionalProperties": true,
+      "description": "Namespaced diagnostic data; does not modify required meaning, permissions or acceptance."
+    }
+  },
+  "required": [
+    "schema_version",
+    "subject_ref",
+    "review_context_ref",
+    "verdict",
+    "findings",
+    "uncertainties",
+    "limitations",
+    "required_correction"
+  ],
+  "additionalProperties": false
+}

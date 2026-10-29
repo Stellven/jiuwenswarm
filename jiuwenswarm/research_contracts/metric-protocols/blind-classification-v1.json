@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0.0",
+  "protocol_id": "ai4r-blind-classification:1",
+  "prediction_protocol": "ai4r-predictions:1",
+  "scoring_schema": "urn:ai4r:private:classification-scoring-receipt:1",
+  "metrics": [
+    {
+      "metric_id": "accuracy",
+      "unit": "fraction",
+      "measurement": "correct_count / sample_count on the private held-out test split, computed by the protected scorer after sandbox exit",
+      "direction": "higher_better",
+      "valid_min": 0,
+      "valid_max": 1
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+import { CodexSubscriptionConnection } from './features/codexSubscription/CodexSubscriptionPanel';
+import { captureResearchInputs } from './utils/researchClient';
+import { useCodexSubscription } from './features/codexSubscription/state';
 import { AssetPublishHost } from './components/AssetPublishDrawer';
 // Copyright (c) Huawei Technologies Co., Ltd. 2025-2026. All rights reserved.
 
@@ -67,7 +70,7 @@ import {
 import { readAgentTemplateName } from './features/agentIdentity';
 import { normalizeTeamLeaderIdentity } from './features/teamLeaderIdentity';
 import { useWebSocket, mergePersistedGoalCompletionMessages, stampGoalObjectiveMessages, useResponsiveLayout, useResponsivePanelResize } from './hooks';
-import { webRequest } from './services/webClient';
+import { webRequest, webClient } from './services/webClient';
 import type { WorkflowRun } from './components/teamArea/workflowTypes';
 import { useTeamPanelState } from './features/teamPanelState';
 import { useSingleAgentPanelState } from './features/singleAgentPanelState';
@@ -402,6 +405,7 @@ function AppContent({
   const [serverConfig, setServerConfig] = useState<Record<string, unknown> | null>(null);
   const trajectoryUiEnabled = useTrajectoryUiEnabled();
   const [configError, setConfigError] = useState<string | null>(null);
+  const [connectionFailed, setConnectionFailed] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
   const [restartModalOpen, setRestartModalOpen] = useState(false);
   const [restartSuccess, setRestartSuccess] = useState(false);
@@ -1023,6 +1027,7 @@ function AppContent({
   } = useWebSocket({
     activeSessionId: sessionId,
     onConnect: () => {
+      setConnectionFailed(false);
       console.log('Connected');
       // 连接建立/断线重连后重拉侧边栏定时任务列表（useCronStore）：web 先行
       // 导航时首屏挂载早于 gateway 就绪，挂载期的 cron.job.list 会失败并被
@@ -1034,6 +1039,7 @@ function AppContent({
       console.log('Disconnected');
     },
     onError: (error) => {
+      setConnectionFailed(true);
       console.error('WebSocket error:', error);
     },
     onConfigChanged: () => {
@@ -1722,10 +1728,11 @@ function AppContent({
       setRSIFeatureEnabled(normalizeRSIEnabled(config.rsi_enabled));
       setTrajectoryUiEnabled(normalizeTrajectoryUiEnabled(config.trajectory_ui_enabled));
       setServerConfig(config);
+      useCodexSubscription.getState().set({ enabled: config.runtime_mode === 'codex_subscription' });
       setConfigError(null);
       if (!modelSetupGuideEvaluatedRef.current) {
         modelSetupGuideEvaluatedRef.current = true;
-        if (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled)) {
+        if (config.runtime_mode !== 'codex_subscription' && (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled))) {
           setActiveNav('chat');
           setModelSetupGuideStep(1);
         }
@@ -2131,6 +2138,19 @@ function AppContent({
       // 静默；未配置时后端返回投影，拉取失败不影响主流程
     });
   }, [isConnected, loadPersonalContextConfig]);
+
+  // Native owned research history also recovers when a cached conversation is revisited.
+  useEffect(() => {
+    if (!isConnected || !sessionId || sessionId === NEW_CONVERSATION_ID) return;
+    let current = true;
+    queueMicrotask(() => {
+      if (!current || useChatStore.getState().getRuntime(sessionId)?.isLoadingHistory) return;
+      void webClient.recoverResearchConversation(sessionId).catch(() => {
+        // A failed read never resubmits the original request or fabricates a reply.
+      });
+    });
+    return () => { current = false; };
+  }, [isConnected, sessionId, isLoadingHistory]);
 
   // 当会话 ID 变化或页面加载时，自动加载历史会话
   useEffect(() => {
@@ -2853,7 +2873,8 @@ function AppContent({
       useChatStore.getState().setProcessing(NEW_CONVERSATION_ID, false);
       useChatStore.getState().setThinking(NEW_CONVERSATION_ID, false);
       console.error('Failed to create application plugin conversation:', error);
-      window.alert(t('multiSession.errors.create'));
+      window.alert(error instanceof Error && 'code' in error && error.code === 'REQUEST_TIMEOUT'
+        ? error.message : t('multiSession.errors.create'));
       return null;
     } finally {
       creatingSessionRef.current = false;
@@ -2877,6 +2898,14 @@ function AppContent({
       await sendMessage(content, currentSessionId, mediaItems, options);
       return;
     }
+    let researchInputSnapshot;
+    try {
+      researchInputSnapshot = options?.researchInputSnapshot ?? captureResearchInputs(currentSessionId);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : t('network.sendMessageFailed'));
+      return;
+    }
+    const sendOptions = { ...options, researchInputSnapshot };
     if (currentSessionId === NEW_CONVERSATION_ID) {
       const persistCommand = parsePersistSessionCommand(content);
       if (persistCommand.persistSession && !persistCommand.content) {
@@ -2941,7 +2970,7 @@ function AppContent({
         if (workContext.project_dir) {
           createParams.project_dir = workContext.project_dir;
         }
-        const created = await createConversationSession(request, createParams);
+        const created = await createConversationSession(request, createParams, { researchInputSnapshot });
         const newSid = created.session_id;
         const createdSession = registerCreatedConversation(
           created.session_id,
@@ -3022,7 +3051,7 @@ function AppContent({
           queueOrAddGoalObjectiveMessage(newSid, messageContent);
           setGoalObjective(newSid, messageContent);
         } else {
-          const sent = await sendMessage(messageContent, newSid, mediaItems);
+          const sent = await sendMessage(messageContent, newSid, mediaItems, sendOptions);
           if (!sent) {
             useChatStore.getState().setInputValue(newSid, messageContent);
           }
@@ -3037,14 +3066,15 @@ function AppContent({
         useChatStore.getState().setThinking(NEW_CONVERSATION_ID, false);
         useChatStore.getState().setInputValue(NEW_CONVERSATION_ID, content);
         console.error('Failed to create conversation:', error);
-        window.alert(t('multiSession.errors.create'));
+        window.alert(error instanceof Error && 'code' in error && error.code === 'REQUEST_TIMEOUT'
+          ? error.message : t('multiSession.errors.create'));
       } finally {
         creatingSessionRef.current = false;
       }
       return;
     }
     disposeInFlightHistoryHandles(currentSessionId);
-    const sent = await sendMessage(content, currentSessionId, mediaItems);
+    const sent = await sendMessage(content, currentSessionId, mediaItems, sendOptions);
     if (sent) {
       const sessionState = useSessionStore.getState();
       const session =
@@ -3640,6 +3670,9 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
 
       {/* Main Content */}
       <main className={`content ${activeNav === 'chat' ? 'content--chat' : ''} ${effectiveTeamAreaExpanded ? 'content--team-expanded' : ''}`}>
+        {serverConfig?.runtime_mode === 'codex_subscription' && (
+          <CodexSubscriptionConnection connected={isConnected} request={request} />
+        )}
         {configError && (
           <div className="card mb-4" data-testid="app-config-error">
             <div className="text-sm text-text-muted">
@@ -4007,8 +4040,16 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       {/* 连接状态提示 */}
       {!isConnected && (
         <div className="app-toast-wrapper app-toast-wrapper--top" data-testid="app-connection-toast">
-          <div className="app-connection-toast animate-rise" data-testid="app-connection-toast-message" data-variant={serverConfig ? 'connecting' : 'loadingConfig'}>
-            {serverConfig ? t('connection.connecting') : t('connection.loadingConfig')}
+          <div
+            className="app-connection-toast animate-rise"
+            data-testid="app-connection-toast-message"
+            data-variant={connectionFailed ? 'error' : serverConfig ? 'connecting' : 'loadingConfig'}
+          >
+            {connectionFailed
+              ? t('connection.failedHint')
+              : serverConfig
+                ? t('connection.connecting')
+                : t('connection.loadingConfig')}
           </div>
         </div>
       )}

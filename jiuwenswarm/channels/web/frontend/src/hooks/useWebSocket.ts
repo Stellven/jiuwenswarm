@@ -5,6 +5,8 @@
  */
 
 import { readOutputOrder } from '../features/sessionOutput';
+import { captureResearchInputs, consumeResearchInputs, restoreResearchInputs, hasResearchSession } from '../utils/researchClient';
+import { useCodexSubscription } from '../features/codexSubscription/state';
 import { handleTaskInputReceipt, sendQueuedTaskInput, handleSessionOutputBoundary, shouldIgnoreSessionOutput } from '../features/sessionInput';
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -1889,6 +1891,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       // Attachment-only payloads are allowed when mediaItems are present.
       // 【上传文档】-only text without any mediaItems is still blocked.
       if (!stripUploadDocumentBlocks(content).trim() && !hasMedia) return false;
+      let researchInputSnapshot: ReturnType<typeof captureResearchInputs>;
+      try {
+        researchInputSnapshot = options?.researchInputSnapshot ?? captureResearchInputs(sessionId);
+      } catch (error) {
+        onErrorRef.current?.(error instanceof Error ? error.message : t('network.sendMessageFailed'));
+        return false;
+      }
 
       const currentMode = useSessionStore.getState().getRuntime(sessionId)?.mode;
       const unsupportedEvolutionMode = unsupportedEvolutionModeMessage(content, currentMode ?? 'agent');
@@ -1945,14 +1954,17 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       // pruneEnabledExtensions）兜底重新核对一遍"我的插件/我的MCP里已连接的"，避免把早就失效的
       // 名字发给后端；被摘掉的项同步从 sessionStore 里移除，让"+"扩展面板的开关同步变回关闭。
       const extensionPayload = buildExtensionSendPayload(sessionId);
+      const userMessageId = prefixedMessageId('user-');
       useChatStore.getState().addMessage(sessionId, {
-        id: prefixedMessageId('user-'),
+        id: userMessageId,
         role: 'user',
         content: stripUploadDocumentBlocks(content) || content.replace(/\n*【上传文档[\s\S]*$/, '').trim() || content,
         mediaItems,
+        researchAttachments: researchInputSnapshot.files,
         timestamp: new Date().toISOString(),
         ...(selectedSkillsForRequest.length > 0 ? { skills: selectedSkillsForRequest } : {}),
       });
+      consumeResearchInputs(sessionId, researchInputSnapshot);
       // 发送后清空输入栏已选技能（一次性语义）；插件/MCP 是会话期间持续启用，不在这里清
       if (selectedSkills.length > 0) {
         useSessionStore.getState().clearSelectedSkills(sessionId);
@@ -1979,6 +1991,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         closeActiveTeamLeaderMessages(sessionId);
         useChatStore.getState().closeReasoning(sessionId);
       }
+      let requestDispatched = false;
       try {
         let outgoingContent = content.replace(/\{\{skill:([^}]+)\}\}/g, '$1');
         let outgoingMediaItems: Record<string, unknown>[] | undefined;
@@ -2050,7 +2063,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           ...(sessionRt?.enableSwarmflow && sessionRt.swarmflowBudget != null
             ? { swarmflow_budget: sessionRt.swarmflowBudget }
             : {}),
-        });
+        }, { researchInputSnapshot, onRequestId: (id) => {
+          requestDispatched = true;
+          if (hasResearchSession() && researchInputSnapshot.interaction === 'research') {
+            useChatStore.getState().updateMessage(sessionId, userMessageId, { id: `research-user:${id}` });
+          }
+        } });
         clearConnectionPresentationForUserAction(sessionId);
         if (sessionMetadata) {
           useSessionStore.getState().setSessionMetadata(sessionId, null);
@@ -2063,6 +2081,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         return true;
       } catch (error) {
         const webError = error as WebError;
+        const status = (error as { status?: number })?.status;
+        const uncertain = ['REQUEST_TIMEOUT', 'REQUEST_ABORTED', 'WS_DISCONNECTED', 'WS_CLOSED', 'WS_NOT_READY', 'WS_ERROR'];
+        if (!requestDispatched || (webError.code && !uncertain.includes(webError.code))
+            || (status !== undefined && status >= 400 && status < 500)) {
+          restoreResearchInputs(sessionId, researchInputSnapshot);
+        }
         localSendPendingRef.current.delete(sessionId);
         if (agentGroupSelectionPayload.agent_group_name) {
           clearFailedAgentGroupBinding(sessionId, agentGroupSelectionPayload.agent_group_name);
@@ -3151,6 +3175,24 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
             ...(agentTemplateName ? { agentTemplateName } : {}),
           });
         }
+      }),
+      webClient.on('chat.research_message', ({ payload }) => {
+        const sessionId = resolveEventSessionId(payload);
+        const requestId = typeof payload.request_id === 'string' ? payload.request_id : '';
+        const role = payload.role;
+        if (!sessionId || !requestId || (role !== 'user' && role !== 'assistant') || typeof payload.content !== 'string') return;
+        ensureSessionRuntimes(sessionId);
+        const files = Array.isArray(payload.research_files)
+          ? payload.research_files.filter((file): file is { id: string; filename: string } =>
+            Boolean(file) && typeof file.id === 'string' && typeof file.filename === 'string') : [];
+        useChatStore.getState().upsertResearchMessage(sessionId, {
+          id: `research-${role}:${requestId}`, role, content: payload.content,
+          timestamp: normalizeEventTimestampIso(payload.timestamp), isStreaming: false,
+          ...(role === 'user' ? { researchAttachments: files } : {
+            researchAccepted: payload.accepted === true,
+            ...(Array.isArray(payload.files) ? { fileItems: payload.files as FileDownloadItem[] } : {}),
+          }),
+        });
       }),
       webClient.on('chat.final', ({ payload }) => {
         if (shouldIgnoreSessionOutput(payload)) return;
@@ -4424,6 +4466,9 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
           flushPendingStreamDelta(sessionId);
         }
         useChatStore.getState().setProcessing(sessionId, isProcessingNow);
+        if (typeof payload.research_stage === 'string') {
+          useChatStore.getState().setResearchStage(sessionId, isProcessingNow ? payload.research_stage : null);
+        }
         const sessionPatch: Partial<Session> = {
           is_processing: isProcessingNow,
           updated_at: new Date().toISOString(),
@@ -4747,6 +4792,10 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         if (useChatStore.getState().getRuntime(sessionId)?.switchingMode) return;
         flushPendingStreamDelta(sessionId);
         const resultPayload = payload as unknown as InterruptResultPayload;
+        if (useCodexSubscription.getState().enabled && resultPayload.success === false) {
+          onErrorRef.current?.(t('network.cancelFailed'));
+          return;
+        }
         useChatStore.getState().setInterruptResult(sessionId, resultPayload);
         // has_active_task 为 false 表示没有活跃任务（任务已完成）
         const hasActiveTask = resultPayload.has_active_task !== false;

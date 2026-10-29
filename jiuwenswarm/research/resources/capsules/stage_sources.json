@@ -1,0 +1,3018 @@
+{
+  "search": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.search",
+        "version_label": "example-2",
+        "kind": "agent",
+        "summary": "Runs the plan-bound queries over permitted connectors, captures exact excerpts and proposes 1 to 3 grounded ideas",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "brief",
+            "artifact_type": "research_brief",
+            "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+            "required": true,
+            "description": "Accepted Research Brief",
+            "check_ids": []
+          },
+          {
+            "name": "search_scope",
+            "artifact_type": "search_scope",
+            "schema_ref": "search-scope:field-contract:1",
+            "required": true,
+            "description": "Plan-bound bounds only: permitted connectors, local document refs, query and hit limits, optional topic hints. It holds no queries",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "candidate_set",
+            "artifact_type": "candidate_set",
+            "schema_ref": "candidate-set:field-contract:2",
+            "required": true,
+            "description": "Captured citations and 1 to 3 grounded ideas",
+            "check_ids": [
+              "candidate_set_schema",
+              "brief_binding",
+              "scope_binding",
+              "queries_within_bounds",
+              "connector_outcomes",
+              "idea_count",
+              "idea_ids_unique",
+              "idea_citations_resolve",
+              "citation_source_resolves",
+              "excerpt_matches_source",
+              "excerpt_hash",
+              "citation_query_ran",
+              "hit_limit",
+              "idea_states_mechanism",
+              "ideas_are_distinct",
+              "assumptions_and_risks_specific"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [
+          {
+            "kind": "operator",
+            "identifier": "deepsearch",
+            "floating": {
+              "purpose": "Keyword search over local documents and bounded academic connectors",
+              "role": "retrieval",
+              "contracts": [
+                "deepsearch:connectors:1"
+              ]
+            }
+          }
+        ],
+        "network": {
+          "mode": "allowlist",
+          "direction": "egress",
+          "allowlist": [
+            "export.arxiv.org",
+            "api.semanticscholar.org"
+          ]
+        },
+        "resources": [
+          {
+            "resource_key": "original_request",
+            "mode": "read"
+          },
+          {
+            "resource_key": "local_document_buffer",
+            "mode": "read"
+          }
+        ],
+        "injects": [
+          {
+            "service_key": "audited_model_bridge",
+            "interface_version_range": "1.x"
+          }
+        ],
+        "model": {
+          "tool_calling": false,
+          "modalities": [
+            "text"
+          ]
+        }
+      },
+      "changes": {
+        "effect_class": "read_only",
+        "effects": [
+          {
+            "id": "model-disclosure",
+            "resource_key": "approved_model_bridge",
+            "op": "model_invoke",
+            "scope": "bound permitted request context",
+            "idempotent": false,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one approved context",
+              "irreversibility": true
+            },
+            "assurance": "protected bridge enforces scope and limits"
+          },
+          {
+            "id": "external-query",
+            "resource_key": "academic_connectors",
+            "op": "network_egress",
+            "scope": "queries that Search wrote within the bounds of the bound search_scope, sent to permitted connectors only",
+            "idempotent": true,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "query text leaves the host",
+              "irreversibility": true
+            },
+            "assurance": "network allowlist enforced by the runner"
+          }
+        ],
+        "provides": [],
+        "invariants": []
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "candidate_set_schema",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "brief_binding",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "scope_binding",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "queries_within_bounds",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "connector_outcomes",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "idea_count",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "idea_ids_unique",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "idea_citations_resolve",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "citation_source_resolves",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "excerpt_matches_source",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "excerpt_hash",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "citation_query_ran",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "hit_limit",
+            "kind": "deterministic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "idea_states_mechanism",
+            "kind": "semantic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "pinned declaration and exact output",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent verifier owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "verifier assessment",
+            "owner": "protected profile registry",
+            "assurance": "reduced assurance: declaration and output only"
+          },
+          {
+            "id": "ideas_are_distinct",
+            "kind": "semantic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "pinned declaration and exact output",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent verifier owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "verifier assessment",
+            "owner": "protected profile registry",
+            "assurance": "reduced assurance: declaration and output only"
+          },
+          {
+            "id": "assumptions_and_risks_specific",
+            "kind": "semantic",
+            "target": "outputs.candidate_set",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "pinned declaration and exact output",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent verifier owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "verifier assessment",
+            "owner": "protected profile registry",
+            "assurance": "reduced assurance: declaration and output only"
+          }
+        ],
+        "acceptance": [
+          "candidate_set_schema",
+          "brief_binding",
+          "scope_binding",
+          "queries_within_bounds",
+          "connector_outcomes",
+          "idea_count",
+          "idea_ids_unique",
+          "idea_citations_resolve",
+          "citation_source_resolves",
+          "excerpt_matches_source",
+          "excerpt_hash",
+          "citation_query_ran",
+          "hit_limit",
+          "idea_states_mechanism",
+          "ideas_are_distinct",
+          "assumptions_and_risks_specific"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Whether each idea is supported by its cited excerpts is not established by checks or the verifier"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 300,
+          "invocations": 2,
+          "tool_calls": 20
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "none",
+        "may_change": [],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`candidate_set_schema`",
+        "Output parses and matches the field tables, including enums and lengths",
+        "reject"
+      ],
+      [
+        "`brief_binding`",
+        "`brief_ref` equals the accepted Brief",
+        "reject"
+      ],
+      [
+        "`scope_binding`",
+        "`scope_ref` equals the bound scope",
+        "reject"
+      ],
+      [
+        "`queries_within_bounds`",
+        "`queries` has 1 to `max_queries` items, each 3 to 200 characters, no duplicates",
+        "reject"
+      ],
+      [
+        "`connector_outcomes`",
+        "One row per scope connector, none outside the scope. `citations_captured` matches the citation count. `unavailable` rows have no citations",
+        "reject"
+      ],
+      [
+        "`idea_count`",
+        "`ideas` has 1 to 3 items",
+        "reject"
+      ],
+      [
+        "`idea_ids_unique`",
+        "No two ideas share an `idea_id`. No two citations share an `id`",
+        "reject"
+      ],
+      [
+        "`idea_citations_resolve`",
+        "Every idea has at least one `citation_ids` entry and every entry names a citation in the set",
+        "reject"
+      ],
+      [
+        "`citation_source_resolves`",
+        "Every `source_ref` exists in the capture store and its bytes hash to `sha256`. Local sources are among `local_document_refs`",
+        "reject"
+      ],
+      [
+        "`excerpt_matches_source`",
+        "The decoded source text from `char_start` to `char_end` equals `excerpt`",
+        "reject"
+      ],
+      [
+        "`excerpt_hash`",
+        "`excerpt_sha256` equals the SHA-256 of the excerpt bytes",
+        "reject"
+      ],
+      [
+        "`citation_query_ran`",
+        "Each citation `query` is in `queries` and its `connector` has status `used`",
+        "reject"
+      ],
+      [
+        "`hit_limit`",
+        "For each external connector and query, distinct sources do not exceed `max_hits_per_query`",
+        "reject"
+      ]
+    ],
+    "criteria": [
+      [
+        "`idea_states_mechanism`",
+        "Does each idea summary state a concrete change and a reason it may help, rather than only a topic?",
+        "yes"
+      ],
+      [
+        "`ideas_are_distinct`",
+        "Do the ideas differ in mechanism, rather than restating one idea?",
+        "yes"
+      ],
+      [
+        "`assumptions_and_risks_specific`",
+        "Are the assumptions and risks specific to the idea, rather than generic statements?",
+        "no"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/search.md",
+      "sha256": "d4faef4b0d01603d89f22e15dc11a40306b73149c17cdeb664af416cb2a8a9fc"
+    }
+  },
+  "screening": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.screening",
+        "version_label": "example-2",
+        "kind": "agent",
+        "summary": "Scores each candidate on three fixed dimensions, filters forbidden dependencies, ranks with a pure helper and selects one opportunity",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          },
+          {
+            "path": "screening_rubric.json",
+            "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+          },
+          {
+            "path": "ranking_parent.txt",
+            "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+          },
+          {
+            "path": "screening_prompt.txt",
+            "sha256": "11336f6ccbf243bd1d7dc3b719bdb1ee77a7cc07472e61d36ccd78657aa586e2"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "brief",
+            "artifact_type": "research_brief",
+            "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+            "required": true,
+            "description": "Accepted Research Brief",
+            "check_ids": []
+          },
+          {
+            "name": "candidate_set",
+            "artifact_type": "candidate_set",
+            "schema_ref": "candidate-set:field-contract:2",
+            "required": true,
+            "description": "Accepted candidate set",
+            "check_ids": []
+          },
+          {
+            "name": "screening_rubric",
+            "artifact_type": "screening_rubric",
+            "schema_ref": "screening-rubric:field-contract:1",
+            "required": true,
+            "description": "Pinned rubric: dimensions, anchors, tie rule and forbidden dependencies",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "screening_result",
+            "artifact_type": "screening_result",
+            "schema_ref": "screening-result:field-contract:2",
+            "required": true,
+            "description": "All scores with reasons, ranking and the selected idea",
+            "check_ids": [
+              "screening_result_schema",
+              "scores_cover_candidates",
+              "score_range",
+              "score_total_sum",
+              "score_citations_in_idea",
+              "dependency_filter",
+              "disposition_consistency",
+              "ranking_deterministic",
+              "selected_is_top1"
+            ]
+          },
+          {
+            "name": "opportunity_card",
+            "artifact_type": "opportunity_card",
+            "schema_ref": "opportunity-card:field-contract:2",
+            "required": true,
+            "description": "Exactly one selected idea with scores and dispositions",
+            "check_ids": [
+              "opportunity_card_schema",
+              "selected_in_candidates",
+              "card_matches_selection",
+              "card_constraints_carried",
+              "card_dispositions_complete"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [],
+        "network": {
+          "mode": "none",
+          "direction": "none",
+          "allowlist": []
+        },
+        "resources": [
+          {
+            "resource_key": "original_request",
+            "mode": "read"
+          }
+        ],
+        "injects": [
+          {
+            "service_key": "audited_model_bridge",
+            "interface_version_range": "1.x"
+          }
+        ],
+        "model": {
+          "tool_calling": false,
+          "modalities": [
+            "text"
+          ]
+        }
+      },
+      "changes": {
+        "effect_class": "read_only",
+        "effects": [
+          {
+            "id": "model-disclosure",
+            "resource_key": "approved_model_bridge",
+            "op": "model_invoke",
+            "scope": "bound permitted request context",
+            "idempotent": false,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one approved context",
+              "irreversibility": true
+            },
+            "assurance": "protected bridge enforces scope and limits"
+          }
+        ],
+        "provides": [],
+        "invariants": []
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "screening_result_schema",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "opportunity_card_schema",
+            "kind": "deterministic",
+            "target": "outputs.opportunity_card",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "candidate_binding",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "rubric_pinned",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "scores_cover_candidates",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "score_range",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "score_total_sum",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "score_citations_in_idea",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "dependency_filter",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "disposition_consistency",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "ranking_deterministic",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "selected_is_top1",
+            "kind": "deterministic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "selected_in_candidates",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "card_matches_selection",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "card_constraints_carried",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "card_dispositions_complete",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "deterministic host check"
+          },
+          {
+            "id": "reasons_address_dimension",
+            "kind": "semantic",
+            "target": "outputs.screening_result",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "pinned declaration and exact output",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent verifier owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "verifier assessment",
+            "owner": "protected profile registry",
+            "assurance": "reduced assurance: declaration and output only"
+          },
+          {
+            "id": "opportunity_statement_complete",
+            "kind": "semantic",
+            "target": "outputs.opportunity_card",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "pinned declaration and exact output",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent verifier owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "verifier assessment",
+            "owner": "protected profile registry",
+            "assurance": "reduced assurance: declaration and output only"
+          },
+          {
+            "id": "disposition_reasons_specific",
+            "kind": "semantic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "pinned declaration and exact output",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent verifier owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "verifier assessment",
+            "owner": "protected profile registry",
+            "assurance": "reduced assurance: declaration and output only"
+          }
+        ],
+        "acceptance": [
+          "screening_result_schema",
+          "opportunity_card_schema",
+          "candidate_binding",
+          "rubric_pinned",
+          "scores_cover_candidates",
+          "score_range",
+          "score_total_sum",
+          "score_citations_in_idea",
+          "dependency_filter",
+          "disposition_consistency",
+          "ranking_deterministic",
+          "selected_is_top1",
+          "selected_in_candidates",
+          "card_matches_selection",
+          "card_constraints_carried",
+          "card_dispositions_complete",
+          "reasons_address_dimension",
+          "opportunity_statement_complete",
+          "disposition_reasons_specific"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Whether the scores are right for the candidates is not established by checks or the verifier"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 120,
+          "invocations": 1,
+          "tool_calls": 0
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "propose",
+        "may_change": [
+          "files:ranking_*.txt",
+          "files:screening_prompt.txt",
+          "files:screening_rubric.json"
+        ],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`screening_result_schema`",
+        "The `screening_result` parses and matches its table, including enums, ranges and lengths",
+        "reject"
+      ],
+      [
+        "`opportunity_card_schema`",
+        "The `opportunity_card` parses and matches its table, including enums, ranges and lengths",
+        "reject"
+      ],
+      [
+        "`candidate_binding`",
+        "`candidate_ref` and `brief_ref` in both outputs equal the inputs",
+        "reject"
+      ],
+      [
+        "`rubric_pinned`",
+        "`rubric_ref` equals the rubric pinned in the declaration",
+        "reject"
+      ],
+      [
+        "`scores_cover_candidates`",
+        "One `scores` row for each candidate idea, no missing, duplicate or extra row",
+        "reject"
+      ],
+      [
+        "`score_range`",
+        "Each dimension score is an integer from 1 to 5",
+        "reject"
+      ],
+      [
+        "`score_total_sum`",
+        "Each `total` equals the sum. Each ranking `total` equals the score row `total`",
+        "reject"
+      ],
+      [
+        "`score_citations_in_idea`",
+        "Each score row cites only citations that its idea cites",
+        "reject"
+      ],
+      [
+        "`dependency_filter`",
+        "The host finds each rubric term in the idea text. Every hit is in `dependency_flags`. `eligible` is `false` exactly when flags exist",
+        "reject"
+      ],
+      [
+        "`disposition_consistency`",
+        "Exactly one `selected`. `rejected` matches `eligible` false. `ranking` rows are exactly the `selected` and `eligible` ideas",
+        "reject"
+      ],
+      [
+        "`ranking_deterministic`",
+        "The host recomputes order by `total` descending then `idea_id` ascending. It must equal `ranking`",
+        "reject"
+      ],
+      [
+        "`selected_is_top1`",
+        "`selected_idea_id` equals `ranking[0].idea_id`",
+        "reject"
+      ],
+      [
+        "`selected_in_candidates`",
+        "`selected_idea_id` and the card `idea_id` are ideas in the candidate set",
+        "reject"
+      ],
+      [
+        "`card_matches_selection`",
+        "Card `idea_id`, `title`, `scores`, `rank`, `citation_ids`, `assumptions` and `risks` equal the selected idea's values. `screening_ref` is the produced result",
+        "reject"
+      ],
+      [
+        "`card_constraints_carried`",
+        "Card `constraints` contains each Brief constraint and mandatory requirement text verbatim",
+        "reject"
+      ],
+      [
+        "`card_dispositions_complete`",
+        "`other_dispositions` covers every non-selected idea once and equals the screening dispositions and reasons",
+        "reject"
+      ]
+    ],
+    "criteria": [
+      [
+        "`reasons_address_dimension`",
+        "`screening_result`",
+        "Does each score reason speak to its own dimension and give a basis, rather than repeating the score or another dimension?",
+        "yes"
+      ],
+      [
+        "`opportunity_statement_complete`",
+        "`opportunity_card`",
+        "Does `opportunity_statement` name a bottleneck and the mechanism that addresses it?",
+        "yes"
+      ],
+      [
+        "`disposition_reasons_specific`",
+        "`screening_result`",
+        "Does each disposition reason name a cause specific to its idea?",
+        "no"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/screening.md",
+      "sha256": "93999f90516eae1465b6979a861411ea3631f639e542b343d9a7cb08a86daedd"
+    }
+  },
+  "hypothesis": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.hypothesis",
+        "version_label": "example-1",
+        "kind": "agent",
+        "summary": "Synthetic declaration: opportunity card to frozen hypothesis blueprint",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          },
+          {
+            "path": "screening_rubric.json",
+            "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+          },
+          {
+            "path": "ranking_parent.txt",
+            "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "brief",
+            "artifact_type": "research_brief",
+            "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+            "required": true,
+            "description": "Accepted Brief",
+            "check_ids": []
+          },
+          {
+            "name": "opportunity",
+            "artifact_type": "opportunity_card",
+            "schema_ref": "opportunity-card:field-contract:2",
+            "required": true,
+            "description": "Selected opportunity",
+            "check_ids": []
+          },
+          {
+            "name": "baseline_resource",
+            "artifact_type": "resource_snapshot",
+            "schema_ref": "resource-snapshot:field-contract:1",
+            "required": true,
+            "description": "Captured baseline",
+            "check_ids": []
+          },
+          {
+            "name": "validation_resource",
+            "artifact_type": "resource_snapshot",
+            "schema_ref": "resource-snapshot:field-contract:1",
+            "required": true,
+            "description": "Captured validation data",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "blueprint",
+            "artifact_type": "hypothesis_blueprint",
+            "schema_ref": "hypothesis-blueprint:field-contract:2",
+            "required": true,
+            "description": "Frozen experiment protocol",
+            "check_ids": [
+              "blueprint_schema",
+              "rules_reference_declared_metrics",
+              "boundaries_disjoint"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [],
+        "network": {
+          "mode": "none",
+          "direction": "none",
+          "allowlist": []
+        },
+        "resources": [],
+        "injects": [
+          {
+            "service_key": "audited_model_bridge",
+            "interface_version_range": "1.x"
+          }
+        ],
+        "model": {
+          "tool_calling": false,
+          "modalities": [
+            "text"
+          ]
+        }
+      },
+      "changes": {
+        "effect_class": "read_only",
+        "effects": [
+          {
+            "id": "model-disclosure",
+            "resource_key": "approved_model_bridge",
+            "op": "model_invoke",
+            "scope": "bound permitted request context",
+            "idempotent": false,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one approved context",
+              "irreversibility": true
+            },
+            "assurance": "protected bridge enforces scope and limits"
+          }
+        ],
+        "provides": [],
+        "invariants": []
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "blueprint_schema",
+            "kind": "deterministic",
+            "target": "outputs.blueprint",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "structure only"
+          },
+          {
+            "id": "rules_reference_declared_metrics",
+            "kind": "deterministic",
+            "target": "outputs.blueprint",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "internal consistency only"
+          },
+          {
+            "id": "boundaries_disjoint",
+            "kind": "deterministic",
+            "target": "outputs.blueprint",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "internal consistency only"
+          }
+        ],
+        "acceptance": [
+          "blueprint_schema",
+          "rules_reference_declared_metrics",
+          "boundaries_disjoint"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Protected member checking assignments required; no execution demonstrated"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 180,
+          "invocations": 1,
+          "tool_calls": 0
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "none",
+        "may_change": [],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`blueprint_schema`",
+        "Output. Matches the field contract: types, required fields, every enum and range above, ComparisonRule factor rules, finite numbers.",
+        "reject"
+      ],
+      [
+        "`rules_reference_declared_metrics`",
+        "Output. Each `outcome_rules.metric_id` is a declared `metric_id`. Each declared metric has exactly one rule.",
+        "reject"
+      ],
+      [
+        "`dependent_variables_match_metrics`",
+        "Output. `dependent_variables` equals the `metric_id` set.",
+        "reject"
+      ],
+      [
+        "`rule_direction_consistent`",
+        "Output. Success and falsification comparators match `direction` as the OutcomeRule table says.",
+        "reject"
+      ],
+      [
+        "`boundaries_disjoint`",
+        "Output. No value satisfies both `success` and `falsification` for a metric. Exact when both rules are constants. Otherwise test at baseline values 0.001, 1 and 1000. Touching boundaries pass only when one comparator is strict.",
+        "reject"
+      ],
+      [
+        "`conditional_rule_in_middle`",
+        "Output. `conditional_rule` is null unless `middle` is `CONDITIONALLY_ACCEPTABLE`. When set, its region does not intersect `success` or `falsification` (same probe method).",
+        "reject"
+      ],
+      [
+        "`brief_targets_covered`",
+        "Every Brief `target_metrics[].id` appears as some `target_id`.",
+        "reject"
+      ],
+      [
+        "`brief_comparison_consistent`",
+        "For each Brief target with a non-null comparison, the success rule equals the conversion above.",
+        "reject"
+      ],
+      [
+        "`resource_refs_resolve`",
+        "Every ref in `resource_refs`, `brief_ref` and `opportunity_ref` resolves to exact bytes. Resources have `availability` `available`.",
+        "reject"
+      ],
+      [
+        "`baseline_identity_resolves`",
+        "`baseline_identity` matches the baseline snapshot revision and `entry_point` exists in its files.",
+        "reject"
+      ],
+      [
+        "`environment_from_resources`",
+        "`environment_ref` equals the `environment_ref` of both snapshots and is not null.",
+        "reject"
+      ],
+      [
+        "`constraints_carried`",
+        "Every Brief constraint `text` appears in `constraints`.",
+        "reject"
+      ],
+      [
+        "`blueprint_frozen_hash_recorded`",
+        "After acceptance the host stores the blueprint SHA-256 in the run record. Later stages must present the same hash. The Builder manifest, the benchmark payload and the verdict each carry it in `blueprint_ref`.",
+        "halt the run if absent or changed"
+      ]
+    ],
+    "criteria": [
+      [
+        "`claim_testable_as_written`",
+        "Does the claim name one intervention, one measured effect and its direction or size, so that the outcome rules can decide it?",
+        "yes"
+      ],
+      [
+        "`claim_consistent_with_rules`",
+        "Does the size or direction in the claim agree with the success rules of the metrics it names?",
+        "yes"
+      ],
+      [
+        "`mechanism_distinct_from_claim`",
+        "Does the mechanism explain why the effect should occur, and is it more than a restatement of the claim?",
+        "no"
+      ],
+      [
+        "`scope_bounded`",
+        "Do `implementation_scope` and `verification_plan` describe a bounded change and steps that a reader could check?",
+        "no"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/hypothesis.md",
+      "sha256": "503b8e1f057e3bfa30f98ecba6364174278a6e1efc44b5f0fba2eb5c9fe27ba7"
+    }
+  },
+  "builder": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.builder",
+        "version_label": "example-1",
+        "kind": "agent",
+        "summary": "Synthetic declaration: frozen blueprint to POC manifest and artifact bundle. Runs no trial, installs nothing",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          },
+          {
+            "path": "screening_rubric.json",
+            "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+          },
+          {
+            "path": "ranking_parent.txt",
+            "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "blueprint",
+            "artifact_type": "hypothesis_blueprint",
+            "schema_ref": "hypothesis-blueprint:field-contract:2",
+            "required": true,
+            "description": "Frozen experiment protocol",
+            "check_ids": []
+          },
+          {
+            "name": "baseline_resource",
+            "artifact_type": "resource_snapshot",
+            "schema_ref": "resource-snapshot:field-contract:1",
+            "required": true,
+            "description": "Captured baseline",
+            "check_ids": []
+          },
+          {
+            "name": "validation_resource",
+            "artifact_type": "resource_snapshot",
+            "schema_ref": "resource-snapshot:field-contract:1",
+            "required": true,
+            "description": "Captured validation data",
+            "check_ids": []
+          },
+          {
+            "name": "lock",
+            "artifact_type": "environment_lock",
+            "schema_ref": "environment-lock:field-contract:1",
+            "required": true,
+            "description": "Prepared environment lock",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "manifest",
+            "artifact_type": "poc_manifest",
+            "schema_ref": "poc-manifest:field-contract:2",
+            "required": true,
+            "description": "Readable bundle description",
+            "check_ids": [
+              "manifest_schema",
+              "required_files_present",
+              "dependencies_pinned",
+              "bundle_hash_matches"
+            ]
+          },
+          {
+            "name": "bundle",
+            "artifact_type": "poc_artifact_bundle",
+            "schema_ref": "poc-artifact-bundle:field-contract:1",
+            "required": true,
+            "description": "Zip with requirements.txt, poc_patch.py, run_benchmark.py",
+            "check_ids": [
+              "bundle_schema",
+              "required_files_present",
+              "bundle_hash_matches"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [],
+        "network": {
+          "mode": "none",
+          "direction": "none",
+          "allowlist": []
+        },
+        "resources": [
+          {
+            "resource_key": "poc_workspace",
+            "mode": "write"
+          }
+        ],
+        "injects": [
+          {
+            "service_key": "audited_model_bridge",
+            "interface_version_range": "1.x"
+          }
+        ],
+        "model": {
+          "tool_calling": true,
+          "modalities": [
+            "text"
+          ]
+        }
+      },
+      "changes": {
+        "effect_class": "idempotent",
+        "effects": [
+          {
+            "id": "model-disclosure",
+            "resource_key": "approved_model_bridge",
+            "op": "model_invoke",
+            "scope": "bound permitted request context",
+            "idempotent": false,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one approved context",
+              "irreversibility": true
+            },
+            "assurance": "protected bridge enforces scope and limits"
+          },
+          {
+            "id": "poc-workspace-write",
+            "resource_key": "poc_workspace",
+            "op": "write",
+            "scope": "/workspace/poc/ only",
+            "idempotent": true,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one run workspace",
+              "irreversibility": false
+            },
+            "assurance": "protected workspace confinement"
+          }
+        ],
+        "provides": [],
+        "invariants": []
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "manifest_schema",
+            "kind": "deterministic",
+            "target": "outputs.manifest",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "structure only"
+          },
+          {
+            "id": "bundle_schema",
+            "kind": "deterministic",
+            "target": "outputs.bundle",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "archive container and entries only"
+          },
+          {
+            "id": "required_files_present",
+            "kind": "deterministic",
+            "target": "outputs.bundle",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "archive entries only"
+          },
+          {
+            "id": "dependencies_pinned",
+            "kind": "deterministic",
+            "target": "outputs.bundle",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "declared pins only"
+          },
+          {
+            "id": "bundle_hash_matches",
+            "kind": "deterministic",
+            "target": "outputs",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "identity only"
+          },
+          {
+            "id": "syntax_check",
+            "kind": "deterministic",
+            "target": "outputs.bundle",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "compilation only, no execution"
+          },
+          {
+            "id": "forbidden_modules_absent",
+            "kind": "deterministic",
+            "target": "outputs.bundle",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent check owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output and run records",
+            "owner": "protected profile registry",
+            "assurance": "static import scan, not confinement"
+          }
+        ],
+        "acceptance": [
+          "manifest_schema",
+          "bundle_schema",
+          "required_files_present",
+          "dependencies_pinned",
+          "bundle_hash_matches",
+          "syntax_check",
+          "forbidden_modules_absent"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Protected member checking assignments required; no execution demonstrated"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 600,
+          "invocations": 1,
+          "tool_calls": 40
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "none",
+        "may_change": [],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`manifest_schema`",
+        "Manifest matches `poc-manifest:field-contract:2`.",
+        "reject"
+      ],
+      [
+        "`bundle_schema`",
+        "The bundle is a zip with no password, at most 1 MiB, and its entries and logical parts match `poc-artifact-bundle:field-contract:1`.",
+        "reject"
+      ],
+      [
+        "`required_files_present`",
+        "Zip entries are exactly the three required names, lowercase, no extra, no traversal. The manifest `files` paths match.",
+        "reject"
+      ],
+      [
+        "`bundle_hash_matches`",
+        "SHA-256 of the zip equals `archive_ref.sha256`. Each entry hash equals the manifest `artifact_ref.sha256`.",
+        "reject"
+      ],
+      [
+        "`dependencies_pinned`",
+        "Every `requirements.txt` line is `name==exact version` with no option, URL or range. `dependencies` equals the parsed lines.",
+        "reject"
+      ],
+      [
+        "`requirements_within_lock`",
+        "Every pin appears in the environment lock requirements.",
+        "reject"
+      ],
+      [
+        "`syntax_check`",
+        "Each `.py` file compiles. Compilation only, no execution.",
+        "reject, receipt `NOT_READY`"
+      ],
+      [
+        "`forbidden_modules_absent`",
+        "AST import scan against the pinned list finds none. Dynamic import names are flagged.",
+        "reject, receipt `NOT_READY`"
+      ],
+      [
+        "`output_log_format`",
+        "Static AST scan of `run_benchmark.py`, no code runs. Exactly one `print(json.dumps(...))` call, a dict display with the key `metrics` inside it, every blueprint `metric_id` present as a string constant, no other `print` call. The host writes the result to `build_receipt.output_format_check`. Reads the blueprint.",
+        "reject, receipt `NOT_READY`"
+      ],
+      [
+        "`blueprint_unchanged`",
+        "Manifest `blueprint_ref` equals the frozen blueprint hash in the run record.",
+        "halt the run"
+      ],
+      [
+        "`environment_unchanged`",
+        "Manifest, blueprint and lock agree on `environment_ref`.",
+        "reject"
+      ],
+      [
+        "`no_trial_no_install`",
+        "The runtime record shows no POC process, no package manager call and no network use. The build receipt flags `trial_executed` and `packages_installed` are false.",
+        "halt the run"
+      ],
+      [
+        "`build_receipt_ready`",
+        "The receipt exists, `trial_executed` and `packages_installed` are false, `output_format_check.result` is `pass` and `readiness` is `READY`.",
+        "reject"
+      ]
+    ],
+    "criteria": [
+      [
+        "`manifest_claims_no_execution`",
+        "`manifest`",
+        "Does the manifest avoid any claim that a trial ran, packages were installed, or measurements were taken?",
+        "yes"
+      ],
+      [
+        "`no_embedded_results`",
+        "`bundle`",
+        "Does any script avoid hard-coded measurement results and avoid claiming that a trial ran, so that values come from code that computes them at run time?",
+        "yes"
+      ],
+      [
+        "`harness_orders_baseline_first`",
+        "`bundle`",
+        "Does `run_benchmark.py` run the baseline before the treatment, using one seed and one data source for both?",
+        "yes"
+      ],
+      [
+        "`patch_is_single_bounded_file`",
+        "`bundle`",
+        "Is `poc_patch.py` one standalone file with a stated purpose and no code that edits other files?",
+        "no"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/builder.md",
+      "sha256": "a0a6b3dddf11b366717e9d1755e248438a88c819d99d6d3f621e71eaf474e902"
+    }
+  },
+  "benchmark": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.benchmark",
+        "version_label": "example-1",
+        "kind": "tool",
+        "summary": "Provisions the frozen lock, runs baseline then treatment per the blueprint, and records metrics without interpretation.",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "poc_manifest",
+            "artifact_type": "poc_manifest",
+            "schema_ref": "poc-manifest:field-contract:2",
+            "required": true,
+            "description": "Checked POC manifest from the Builder",
+            "check_ids": []
+          },
+          {
+            "name": "poc_artifact_bundle",
+            "artifact_type": "poc_artifact_bundle",
+            "schema_ref": "poc-artifact-bundle:field-contract:1",
+            "required": true,
+            "description": "Executable bundle bytes named by poc_manifest.archive_ref",
+            "check_ids": []
+          },
+          {
+            "name": "build_receipt",
+            "artifact_type": "build_receipt",
+            "schema_ref": "build-receipt:field-contract:1",
+            "required": true,
+            "description": "Host-written build evidence of the accepted Builder attempt. Must be READY",
+            "check_ids": []
+          },
+          {
+            "name": "hypothesis_blueprint",
+            "artifact_type": "hypothesis_blueprint",
+            "schema_ref": "hypothesis-blueprint:field-contract:2",
+            "required": true,
+            "description": "Frozen protocol",
+            "check_ids": []
+          },
+          {
+            "name": "baseline_resource",
+            "artifact_type": "resource_snapshot",
+            "schema_ref": "resource-snapshot:field-contract:1",
+            "required": true,
+            "description": "Captured baseline, run unmodified as the baseline subject",
+            "check_ids": []
+          },
+          {
+            "name": "validation_resource",
+            "artifact_type": "resource_snapshot",
+            "schema_ref": "resource-snapshot:field-contract:1",
+            "required": true,
+            "description": "Captured validation data",
+            "check_ids": []
+          },
+          {
+            "name": "environment_lock",
+            "artifact_type": "environment_lock",
+            "schema_ref": "environment-lock:field-contract:1",
+            "required": true,
+            "description": "Frozen dependency lock",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "benchmark_payload",
+            "artifact_type": "benchmark_payload",
+            "schema_ref": "benchmark-payload:field-contract:2",
+            "required": true,
+            "description": "Measurements only, no interpretation",
+            "check_ids": [
+              "benchmark_payload_schema"
+            ]
+          },
+          {
+            "name": "execution_receipt",
+            "artifact_type": "execution_receipt",
+            "schema_ref": "execution-receipt:field-contract:1",
+            "required": true,
+            "description": "Per-run record written by the protected executor",
+            "check_ids": [
+              "execution_receipt_schema"
+            ]
+          },
+          {
+            "name": "provisioning_receipt",
+            "artifact_type": "provisioning_receipt",
+            "schema_ref": "provisioning-receipt:field-contract:1",
+            "required": true,
+            "description": "Provisioning record written by the protected provisioner",
+            "check_ids": [
+              "provisioning_receipt_schema"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [],
+        "network": {
+          "mode": "allowlist",
+          "direction": "egress",
+          "allowlist": [
+            "approved_package_index"
+          ]
+        },
+        "resources": [
+          {
+            "resource_key": "poc_workspace",
+            "mode": "write"
+          },
+          {
+            "resource_key": "baseline_resource",
+            "mode": "read"
+          },
+          {
+            "resource_key": "gpu_device",
+            "mode": "exclusive"
+          }
+        ],
+        "injects": []
+      },
+      "changes": {
+        "effect_class": "compensable",
+        "effects": [
+          {
+            "id": "workspace-run",
+            "resource_key": "poc_workspace",
+            "op": "provision_and_execute",
+            "scope": "run workspace /workspace/poc only",
+            "idempotent": false,
+            "reversibility": "scoped",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one run workspace",
+              "irreversibility": false
+            },
+            "assurance": "unprivileged runner user, frozen lock, no network during runs"
+          }
+        ],
+        "provides": [],
+        "invariants": [
+          {
+            "id": "baseline_unmodified",
+            "statement": "The baseline subject digest equals the frozen baseline resource digest",
+            "check_id": "baseline_unmodified"
+          }
+        ]
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "benchmark_payload_schema",
+            "kind": "deterministic",
+            "target": "outputs.benchmark_payload",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "structure only"
+          },
+          {
+            "id": "execution_receipt_schema",
+            "kind": "deterministic",
+            "target": "outputs.execution_receipt",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "structure only"
+          },
+          {
+            "id": "provisioning_receipt_schema",
+            "kind": "deterministic",
+            "target": "outputs.provisioning_receipt",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "structure only"
+          }
+        ],
+        "acceptance": [
+          "benchmark_payload_schema",
+          "execution_receipt_schema",
+          "provisioning_receipt_schema"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Matchedness, provenance and validity are established by host checks, not by this declaration"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 3600,
+          "invocations": 1,
+          "tool_calls": 0
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "none",
+        "may_change": [],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "Mandatory host checks and verifier criteria are assigned by the protected binder, not declared here."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`benchmark_payload_schema`",
+        "The `benchmark_payload` matches its field table, enums and ranges above.",
+        "reject"
+      ],
+      [
+        "`execution_receipt_schema`",
+        "The `execution_receipt` matches its field table, enums and ranges above.",
+        "reject"
+      ],
+      [
+        "`provisioning_receipt_schema`",
+        "The `provisioning_receipt` matches its field table, enums and ranges above.",
+        "reject"
+      ],
+      [
+        "`build_receipt_ready`",
+        "Input check. The `build_receipt` input has `readiness` `READY`, its `manifest_ref` and `archive_ref` equal the manifest and bundle inputs, and `trial_executed` and `packages_installed` are false. A failed check halts the node before provisioning.",
+        "halt"
+      ],
+      [
+        "`refs_resolve`",
+        "Every Ref resolves to stored bytes with the stated sha256.",
+        "reject"
+      ],
+      [
+        "`protocol_matches_blueprint`",
+        "`blueprint_ref`, `repeat_count`, `seed`, `seed_policy`, per-run seeds, `resource_refs`, and each metric's id, unit and aggregation equal the frozen blueprint.",
+        "reject"
+      ],
+      [
+        "`metric_coverage`",
+        "Each blueprint metric appears exactly once. No extra metric.",
+        "reject"
+      ],
+      [
+        "`metric_value_or_reason`",
+        "Each `MetricSide` has a value or a reason, never both and never neither.",
+        "reject"
+      ],
+      [
+        "`baseline_before_treatment`",
+        "`run_order` and the receipt `sequence` and `started_at` place every baseline run before every treatment run. The payload and receipt orders agree.",
+        "reject"
+      ],
+      [
+        "`baseline_unmodified`",
+        "Baseline `subject_ref` equals `blueprint.baseline_identity.resource_ref`, and the baseline command runs its `entry_point`. Treatment `subject_ref` equals the manifest `archive_ref`.",
+        "reject"
+      ],
+      [
+        "`environment_lock_match`",
+        "Payload, receipt, manifest and blueprint name the same lock. Installed packages equal the lock set with exact versions.",
+        "reject"
+      ],
+      [
+        "`hardware_inventory_captured`",
+        "`hardware_inventory` is complete and every run's `hardware_ref` equals it.",
+        "reject"
+      ],
+      [
+        "`raw_repeats_present`",
+        "Each measured side has `repeat_count` repeats. Each run has stored stdout, stderr and an `empirical_results` entry.",
+        "reject"
+      ],
+      [
+        "`values_match_empirical_results`",
+        "Every payload repeat equals the value in `empirical_results` for that run and metric.",
+        "reject"
+      ],
+      [
+        "`arithmetic_consistent`",
+        "Each `value` and `delta` recomputes from the repeats within relative 1e-9.",
+        "reject"
+      ],
+      [
+        "`measurement_within_declared_range`",
+        "Every repeat and every aggregate `value` of a measured side lies within the blueprint metric's `valid_min` and `valid_max`. A null bound is not checked. This catches impossible values, for example a fraction above 1 ([D32](../../method/decisions.md#d32))",
+        "reject"
+      ],
+      [
+        "`network_policy_respected`",
+        "Provisioning used the declared policy with no unlisted requests, and runs had no network.",
+        "reject"
+      ]
+    ],
+    "criteria": [
+      [
+        "`no_interpretation`",
+        "Does the payload avoid any judgement, classification, recommendation or success wording?",
+        "yes"
+      ],
+      [
+        "`side_has_value_or_reason`",
+        "Does every metric side show either an aggregate value or an unmeasured reason, but not both?",
+        "yes"
+      ],
+      [
+        "`run_order_baseline_first`",
+        "Does `run_order` list every baseline run before any treatment run?",
+        "yes"
+      ],
+      [
+        "`repeats_match_aggregate`",
+        "Do the listed repeats agree with the stated aggregation, value and delta, and does each full side have `repeat_count` repeats?",
+        "yes"
+      ],
+      [
+        "`delta_direction_consistent`",
+        "Is every delta treatment minus baseline, in the metric unit?",
+        "yes"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/research-benchmark.md",
+      "sha256": "d4d46d56ab1b06e77eecc42bab917b3229e8fd0add58ec810ac39b60295c03b3"
+    }
+  },
+  "evaluation": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.evaluation",
+        "version_label": "example-1",
+        "kind": "agent",
+        "summary": "Applies the registered rules to the benchmark measurements and records a scientific verdict with per-metric findings.",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "hypothesis_blueprint",
+            "artifact_type": "hypothesis_blueprint",
+            "schema_ref": "hypothesis-blueprint:field-contract:2",
+            "required": true,
+            "description": "Registered rules",
+            "check_ids": []
+          },
+          {
+            "name": "benchmark_payload",
+            "artifact_type": "benchmark_payload",
+            "schema_ref": "benchmark-payload:field-contract:2",
+            "required": true,
+            "description": "Gate-admitted measurements",
+            "check_ids": []
+          },
+          {
+            "name": "brief",
+            "artifact_type": "research_brief",
+            "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+            "required": true,
+            "description": "Objective and constraints for context only",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "evaluation_verdict",
+            "artifact_type": "evaluation_verdict",
+            "schema_ref": "evaluation-verdict:field-contract:2",
+            "required": true,
+            "description": "Scientific verdict with per-metric findings",
+            "check_ids": [
+              "evaluation_verdict_schema"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [],
+        "network": {
+          "mode": "none",
+          "direction": "none",
+          "allowlist": []
+        },
+        "resources": [],
+        "injects": [
+          {
+            "service_key": "audited_model_bridge",
+            "interface_version_range": "1.x"
+          }
+        ],
+        "model": {
+          "tool_calling": false,
+          "modalities": [
+            "text"
+          ]
+        }
+      },
+      "changes": {
+        "effect_class": "read_only",
+        "effects": [
+          {
+            "id": "model-disclosure",
+            "resource_key": "approved_model_bridge",
+            "op": "model_invoke",
+            "scope": "bound permitted request context",
+            "idempotent": false,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one approved context",
+              "irreversibility": true
+            },
+            "assurance": "protected bridge enforces scope and limits"
+          }
+        ],
+        "provides": [],
+        "invariants": []
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "evaluation_verdict_schema",
+            "kind": "deterministic",
+            "target": "outputs.evaluation_verdict",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "structure only"
+          }
+        ],
+        "acceptance": [
+          "evaluation_verdict_schema"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Rule application against undisclosed inputs is established by the host rule_recomputation check"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 180,
+          "invocations": 1,
+          "tool_calls": 0
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "none",
+        "may_change": [],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "Mandatory host checks and verifier criteria are assigned by the protected binder, not declared here."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`evaluation_verdict_schema`",
+        "Output matches the field table, enums, ranges and string lengths above.",
+        "reject"
+      ],
+      [
+        "`refs_match_inputs`",
+        "`brief_ref`, `blueprint_ref` and `benchmark_ref` equal the input Refs. The payload's `blueprint_ref` equals the blueprint.",
+        "reject"
+      ],
+      [
+        "`blueprint_rules_disjoint`",
+        "Input check. For every metric the success and falsification rules do not both hold on the payload values, and every `conditional_rule` region lies outside both. The Hypothesis checks already enforce this. This check is a second line of defence.",
+        "node fails (blueprint defect), escalation record"
+      ],
+      [
+        "`rule_recomputation`",
+        "The host recomputes every finding and the overall classification from the blueprint and the payload using section 4.2. It also recomputes `threshold`, `completeness.status`, and the blocker condition. All must equal the output.",
+        "reject"
+      ],
+      [
+        "`finding_coverage`",
+        "One finding per blueprint metric, none extra, none duplicated.",
+        "reject"
+      ],
+      [
+        "`registered_rule_only`",
+        "A finding cites `conditional` only where the blueprint registered a `conditional_rule` for that metric. `CONDITIONALLY_ACCEPTABLE` appears only with `conditional`. Every `rule_text` restates a registered rule.",
+        "reject"
+      ]
+    ],
+    "criteria": [
+      [
+        "`classification_consistent_with_findings`",
+        "Does `classification` equal what the `aggregation_rule` named in the verdict gives for the listed findings and the plausibility status?",
+        "yes"
+      ],
+      [
+        "`finding_names_metric`",
+        "Does every finding name a distinct `metric_id`?",
+        "yes"
+      ],
+      [
+        "`finding_consistent_with_values`",
+        "For each finding, do `classification`, `rule_applied`, the two values, `threshold` and `rule_text` agree with each other?",
+        "yes"
+      ],
+      [
+        "`rationale_states_values_and_rule`",
+        "Does each rationale name the values, the threshold or rule, and the outcome that its finding states?",
+        "yes"
+      ],
+      [
+        "`blockers_match_findings`",
+        "Are blockers present exactly when a finding is unmeasured or plausibility is implausible, and do they say why?",
+        "yes"
+      ],
+      [
+        "`followups_are_recommendations`",
+        "Is every follow-up a recommendation, not an instruction to rerun a node or change code?",
+        "no"
+      ],
+      [
+        "`no_unregistered_criteria`",
+        "Does the verdict avoid new success or failure thresholds that its `rule_text` fields do not state?",
+        "no"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/scientific-evaluation.md",
+      "sha256": "c19a912436bad44602c42d6dcd1285427a9933b5ae9656301bd2a04f511329e0"
+    }
+  },
+  "delivery": {
+    "declaration": {
+      "schema_version": "1.0.0",
+      "identity": {
+        "name": "research.delivery",
+        "version_label": "example-1",
+        "kind": "agent",
+        "summary": "Writes the fixed-structure research report and the delivery manifest from the accepted lifecycle artifacts",
+        "carrier": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "body": [
+          {
+            "path": "intent_implementation.txt",
+            "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          }
+        ]
+      },
+      "ports": {
+        "inputs": [
+          {
+            "name": "brief",
+            "artifact_type": "research_brief",
+            "schema_ref": "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
+            "required": true,
+            "description": "Accepted Brief: objective and constraints",
+            "check_ids": []
+          },
+          {
+            "name": "candidate_set",
+            "artifact_type": "candidate_set",
+            "schema_ref": "candidate-set:field-contract:2",
+            "required": true,
+            "description": "Source of citation text for the opportunity",
+            "check_ids": []
+          },
+          {
+            "name": "opportunity_card",
+            "artifact_type": "opportunity_card",
+            "schema_ref": "opportunity-card:field-contract:2",
+            "required": true,
+            "description": "Accepted opportunity",
+            "check_ids": []
+          },
+          {
+            "name": "hypothesis_blueprint",
+            "artifact_type": "hypothesis_blueprint",
+            "schema_ref": "hypothesis-blueprint:field-contract:2",
+            "required": true,
+            "description": "Registered claim and criteria",
+            "check_ids": []
+          },
+          {
+            "name": "poc_manifest",
+            "artifact_type": "poc_manifest",
+            "schema_ref": "poc-manifest:field-contract:2",
+            "required": true,
+            "description": "POC package identity",
+            "check_ids": []
+          },
+          {
+            "name": "benchmark_payload",
+            "artifact_type": "benchmark_payload",
+            "schema_ref": "benchmark-payload:field-contract:2",
+            "required": true,
+            "description": "Measured values; the only source of report numbers",
+            "check_ids": []
+          },
+          {
+            "name": "evaluation_verdict",
+            "artifact_type": "evaluation_verdict",
+            "schema_ref": "evaluation-verdict:field-contract:2",
+            "required": true,
+            "description": "Saved scientific verdict; never contradicted",
+            "check_ids": []
+          },
+          {
+            "name": "gate_decision_index",
+            "artifact_type": "gate_decision_index",
+            "schema_ref": "gate-decision-index:field-contract:1",
+            "required": true,
+            "description": "Host-built index of the gate decisions of this run. One artifact, many decision refs",
+            "check_ids": []
+          },
+          {
+            "name": "screening_result",
+            "artifact_type": "screening_result",
+            "schema_ref": "screening-result:field-contract:2",
+            "required": true,
+            "description": "Accepted Screening result, listed in the manifest. Delivery lists it by Ref",
+            "check_ids": []
+          },
+          {
+            "name": "execution_receipt",
+            "artifact_type": "execution_receipt",
+            "schema_ref": "execution-receipt:field-contract:1",
+            "required": true,
+            "description": "Benchmark execution receipt. Its run records name the raw evidence files listed in the manifest",
+            "check_ids": []
+          },
+          {
+            "name": "provisioning_receipt",
+            "artifact_type": "provisioning_receipt",
+            "schema_ref": "provisioning-receipt:field-contract:1",
+            "required": true,
+            "description": "Benchmark provisioning receipt, listed in the manifest",
+            "check_ids": []
+          },
+          {
+            "name": "environment_lock",
+            "artifact_type": "environment_lock",
+            "schema_ref": "environment-lock:field-contract:1",
+            "required": true,
+            "description": "Prepared dependency lock, listed as an environment file",
+            "check_ids": []
+          },
+          {
+            "name": "run_configuration",
+            "artifact_type": "run_configuration",
+            "schema_ref": "opaque-bytes",
+            "required": true,
+            "description": "Frozen run configuration, listed as an environment file. Delivery lists it by Ref and does not read inside it",
+            "check_ids": []
+          }
+        ],
+        "outputs": [
+          {
+            "name": "delivery_manifest",
+            "artifact_type": "delivery_manifest",
+            "schema_ref": "delivery-manifest:field-contract:2",
+            "required": true,
+            "description": "Index of every exported lifecycle artifact",
+            "check_ids": [
+              "delivery_manifest_schema"
+            ]
+          },
+          {
+            "name": "research_report",
+            "artifact_type": "research_report",
+            "schema_ref": "research-report:field-contract:1",
+            "required": true,
+            "description": "Markdown report with nine fixed sections",
+            "check_ids": [
+              "research_report_schema",
+              "required_sections",
+              "recommendation_labeling"
+            ]
+          }
+        ]
+      },
+      "needs": {
+        "when": [],
+        "external": [],
+        "network": {
+          "mode": "none",
+          "direction": "none",
+          "allowlist": []
+        },
+        "resources": [],
+        "injects": [
+          {
+            "service_key": "audited_model_bridge",
+            "interface_version_range": "1.x"
+          }
+        ],
+        "model": {
+          "tool_calling": false,
+          "modalities": [
+            "text"
+          ]
+        }
+      },
+      "changes": {
+        "effect_class": "read_only",
+        "effects": [
+          {
+            "id": "model-disclosure",
+            "resource_key": "approved_model_bridge",
+            "op": "model_invoke",
+            "scope": "bound permitted request context",
+            "idempotent": false,
+            "reversibility": "none",
+            "undo": null,
+            "risk": {
+              "severity": "bounded",
+              "blast_radius": "one approved context",
+              "irreversibility": true
+            },
+            "assurance": "protected bridge enforces scope and limits"
+          }
+        ],
+        "provides": [],
+        "invariants": []
+      },
+      "guarantees": {
+        "checks": [
+          {
+            "id": "delivery_manifest_schema",
+            "kind": "deterministic",
+            "target": "outputs.delivery_manifest",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "manifest fields, enums and path rules"
+          },
+          {
+            "id": "research_report_schema",
+            "kind": "deterministic",
+            "target": "outputs.research_report",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "manifest fields, enums and path rules"
+          },
+          {
+            "id": "required_sections",
+            "kind": "deterministic",
+            "target": "outputs.research_report",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "nine headings in order, each non-empty"
+          },
+          {
+            "id": "recommendation_labeling",
+            "kind": "deterministic",
+            "target": "outputs.research_report",
+            "runner": {
+              "ref": "intent_implementation.txt",
+              "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+            },
+            "anchor": "exact output bytes",
+            "over": [
+              "outputs"
+            ],
+            "author": "independent schema owner",
+            "written_before_body": true,
+            "held_out": false,
+            "signal_source": "captured output",
+            "owner": "protected profile registry",
+            "assurance": "recommendations only in section 8, each labeled"
+          }
+        ],
+        "acceptance": [
+          "delivery_manifest_schema",
+          "research_report_schema",
+          "required_sections",
+          "recommendation_labeling"
+        ],
+        "evals": [],
+        "unanchored": [
+          "Hash, number and verdict agreement need run records and are host checks in the pinned check bundle"
+        ]
+      },
+      "budget": {
+        "per_call": {
+          "wall_s": 120,
+          "invocations": 1,
+          "tool_calls": 0
+        },
+        "enforcement": {
+          "wall_s": "hard",
+          "invocations": "hard",
+          "tool_calls": "hard"
+        },
+        "on_exhaust": "fail"
+      },
+      "evolution": {
+        "rsi": "none",
+        "may_change": [],
+        "notes_for_builder": []
+      },
+      "coverage": {
+        "undeclared_notes": [
+          "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+        ]
+      }
+    },
+    "checks": [
+      [
+        "`delivery_manifest_schema`",
+        "Manifest matches `delivery-manifest:field-contract:2`. Enums, path rule, role coverage and `ext` as above",
+        "reject, node halts"
+      ],
+      [
+        "`research_report_schema`",
+        "Report is valid UTF-8 markdown with a title line `# `",
+        "reject, node halts"
+      ],
+      [
+        "`required_sections`",
+        "The nine headings of the table appear exactly once, in order, each with non-empty body. No other level-2 heading",
+        "reject, node halts"
+      ],
+      [
+        "`recommendation_labeling`",
+        "`Recommendation:` appears only in section 8. Every bullet in section 8 starts with it",
+        "reject, node halts"
+      ],
+      [
+        "`ref_resolves`",
+        "Every Ref in the manifest resolves to bytes in the run artifact store",
+        "reject, node halts"
+      ],
+      [
+        "`ref_hash_match`",
+        "Every Ref `sha256` and every `files[].artifact_ref.sha256` equals the sha256 of the stored bytes. `report_ref` equals the report file hash",
+        "reject, node halts"
+      ],
+      [
+        "`manifest_completeness`",
+        "`brief_ref` and `verdict_ref` equal the accepted inputs. `gate_decision_refs` equal the run's advancing decisions. `artifact_refs` and `files` roles cover the lifecycle as in the contract, including the `screening_result`, `environment_lock` and `run_configuration` inputs and the raw evidence Refs of the `execution_receipt`",
+        "reject, node halts"
+      ],
+      [
+        "`results_table_matches_payload`",
+        "Each row of the section 5 table has a payload metric and each payload metric has a row. Baseline, treatment and delta equal the payload numbers (numeric equality)",
+        "reject, node halts"
+      ],
+      [
+        "`criteria_match_blueprint`",
+        "Section 3 table has the blueprint's metric IDs, units and aggregations, no more and no fewer",
+        "reject, node halts"
+      ],
+      [
+        "`verdict_matches_evaluation`",
+        "`Classification:` string equals the verdict `classification`. The `Completeness:` and `Plausibility:` lines equal the verdict statuses. Each finding line matches the verdict finding for its metric",
+        "reject, node halts"
+      ],
+      [
+        "`carried_content`",
+        "Every verdict blocker, residual risk, completeness note and plausibility note appears verbatim in section 7. Every verdict follow-up appears verbatim in section 8. Every opportunity risk appears in section 7. Every card `citation_id` appears in section 2",
+        "reject, node halts"
+      ],
+      [
+        "`reproducibility_pins`",
+        "The section 9 table rows equal manifest Refs for the same IDs and hashes. All eight required rows present",
+        "reject, node halts"
+      ],
+      [
+        "`negative_result_delivered`",
+        "When classification is `FAIL` or `INCONCLUSIVE`, a report and manifest still exist and no `blocking` missing evidence hides the cause",
+        "reject, node halts"
+      ]
+    ],
+    "criteria": [
+      [
+        "`sections_coherent`",
+        "`research_report`",
+        "Does each of the nine sections contain content that fits its heading, and does the report read as one coherent document?",
+        "yes"
+      ],
+      [
+        "`limitations_consistent_with_verdict`",
+        "`research_report`",
+        "Do the limitations and risks fit the classification stated in section 6 of the same report? A `FAIL` report must not describe the hypothesis as supported. A `PASS` report must not describe it as refuted",
+        "yes"
+      ],
+      [
+        "`recommendations_separated`",
+        "`research_report`",
+        "Is every recommendation labeled and confined to section 8, and is every statement in sections 1 to 7 an observation or a registered rule rather than advice?",
+        "yes"
+      ],
+      [
+        "`report_internally_consistent`",
+        "`research_report`",
+        "Do the numbers and metric names in sections 3, 5, 6 and 9 agree with each other inside the report?",
+        "yes"
+      ],
+      [
+        "`manifest_report_coherent`",
+        "`delivery_manifest`",
+        "Does the manifest list exactly one file with role `report`, and are the audiences and roles plausible for each file name?",
+        "no"
+      ]
+    ],
+    "source": {
+      "path": "reference/capsules/delivery.md",
+      "sha256": "ab994ff208089088fc914d87dc003d740fe408893caa0b596149214f3fc28e6d"
+    }
+  }
+}

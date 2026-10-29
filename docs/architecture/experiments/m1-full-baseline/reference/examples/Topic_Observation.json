@@ -1,0 +1,21 @@
+{
+  "id": "invocation:topic",
+  "contract_ref": {
+    "id": "Topic_Node_Contract.json",
+    "sha256": "5cad6bae25c873a2cdfa449a86b6f476e330a94ac9cda9be2cc71462e942e160"
+  },
+  "outcome": "synthetic_example",
+  "inputs": [
+    {
+      "id": "Request_Topic_Only.txt",
+      "sha256": "8b6aa7043e74bf2b6d5cfa1d6c2c88aa3f51558a6ec5cbf4422afbc7b3bf39cb"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "Intent_Topic_Only.json",
+      "sha256": "7384d9670be771ca289fda070156180b33eeb2eaa0772e95fcc7324b6472ec1a"
+    }
+  ],
+  "observed_runtime": false
+}
