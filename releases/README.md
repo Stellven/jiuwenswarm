@@ -5,8 +5,10 @@
 The M1 release joins `ai4r_M1` at
 `32c77d69d7b64705194dc56d5aac39d02be4924e` with `AI4Research-Main`,
 previously `1aaf56ad61d621f8689ddaa91d906532eeedf2cd`. Both histories are
-retained, with conflicts resolved in favor of M1. The `ai4research-m1` tag and
-downloadable manifest identify the final release commit. The native Python
+retained, with conflicts resolved in favor of M1. The `ai4research-m1` tag
+identifies the original M1 code release. The downloadable manifest identifies
+the exact packaged commit, including subsequent release-documentation updates.
+Documentation refreshes retain the original code tag. The native Python
 distribution keeps its existing `workswarm` version `0.2.5.beta1`.
 
 ## Verify and run
@@ -40,8 +42,12 @@ bindings, runtime readiness, platform selection and benchmark execution.
 From a Git checkout with Python 3.11+ and Git:
 
 ```sh
-python scripts/package_ai4r_release.py --ref ai4research-m1 --output dist/AI4Research-M1
+python scripts/package_ai4r_release.py --ref <commit-from-release-manifest.json> --output dist/AI4Research-M1
 ```
+
+Replace `<commit-from-release-manifest.json>` with the manifest's `commit` value.
+Use a Git checkout containing that commit. To reproduce the original code-tag
+package instead, use `--ref ai4research-m1`.
 
 The output directory must be new. The packager reads committed Git objects only.
 Local environment files, state and previous builds cannot enter the archives.
