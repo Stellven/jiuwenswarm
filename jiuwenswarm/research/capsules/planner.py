@@ -78,6 +78,38 @@ def planner_views(catalog, snapshot, policy):
     return contracts, reduced
 
 
+def fill_declared_limits(raw, snapshot, policy):
+    """Carrier-owned node limits: each node gets its capsule's declared max_limits.
+
+    A node below its declared envelope cannot hold the reviews the host reserves
+    for it (live run pl3: Screening at 120 s with two 60 s reviews ended
+    budget_exhausted before its worker ran). Applied only when every node names a
+    selectable pin and the declared envelopes fit the policy aggregate; otherwise
+    the model's limits stand and plan_checks judge them.
+    """
+    try:
+        value = json.loads(raw)
+        nodes = value['nodes']
+        declared = {tuple(e[k] for k in ('cc_name', 'cc_version', 'declaration_sha256')): e.get('max_limits')
+                    for e in snapshot['entries'] if e.get('selectable_by_planner')}
+        envelopes = [declared.get(tuple(n['cc'][k] for k in ('cc_name', 'cc_version', 'declaration_sha256'))) for n in nodes]
+        aggregate = policy['aggregate_limits']
+        if not isinstance(value.get('limits'), dict) or not envelopes or not all(isinstance(e, dict) for e in envelopes):
+            return raw
+        total = {'time_s': sum(e['time_s'] for e in envelopes), 'model_calls': sum(e['model_calls'] for e in envelopes),
+                 'memory_mb': max(e['memory_mb'] for e in envelopes)}
+    except (ValueError, KeyError, TypeError):
+        return raw
+    if any(total[d] > aggregate[d] for d in total):
+        return raw
+    for node, envelope in zip(nodes, envelopes):
+        node['limits'] = {d: envelope[d] for d in ('time_s', 'model_calls', 'memory_mb')}
+    for d in total:
+        current = value['limits'].get(d)
+        value['limits'][d] = min(aggregate[d], max(total[d], current if isinstance(current, (int, float)) else 0))
+    return json.dumps(value, ensure_ascii=False, indent=2)
+
+
 def _instructions_once(invoke):
     """The native harness repeats the system prompt as a system message inside the
     serialized conversation while the transport already carries it as system text."""
@@ -178,6 +210,8 @@ async def execute(ctx,inputs):
     # executed DAG, a dispatch retry, a verifier waiver or an unbounded loop.
     for ordinal in (1, 2):
         raw = await NativePlanner().propose(payload, invoke=_instructions_once(ctx.model), instructions=instructions)
+        if isinstance(raw, str) and not raw.startswith('INFEASIBLE:'):
+            raw = fill_declared_limits(raw, inputs['library_snapshot'], inputs['plan_policy'])
         candidate_ref = ctx.store.put_blob(raw.encode('utf-8'), media_type='text/plain')
         try:
             kind, candidate = parse_planner_reply(raw)
