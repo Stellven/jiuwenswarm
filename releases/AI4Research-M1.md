@@ -22,17 +22,96 @@ The local application runs at **http://127.0.0.1:5175**.
 
 ## Benchmark results
 
-Benchmarking demonstrates an efficiency advantage over the evaluated fixed-model
-baseline. In the matched routing benchmark, AI4Research Hybrid v8 used
-**18.19% fewer reported tokens** than fixed ChatGPT inside AI4Research
-(200,227 vs. 244,732), while both arms produced **24/24 correct worker answers**.
-It also reduced subscription worker calls by **25%**.
+M1 evaluation covers **Capability Capsules, independent verification, RSI and
+model routing**, with additional exploratory planning and contract checks.
+The recorded comparisons demonstrate benefits in preventing incorrect results,
+improving tool execution time and reducing model token usage. Each result below
+keeps its own baseline and experimental scope.
 
-These results cover eight public development fixtures, each repeated three
-times, and include router and verifier token usage. They establish an observed
-component-level efficiency improvement under the recorded conditions; they do
-not establish faster execution or universal end-to-end superiority.
-See the [benchmark evidence](https://github.com/Stellven/jiuwenswarm/blob/ai4research-m1/benchmarks/reports/2026-10-27-matched-router/README.md).
+### Capability Capsules and independent verification
+
+| Evaluation | Observed result | Comparison and scope |
+| --- | --- | --- |
+| Broken team tools, live agent | **0/8 incorrect answers delivered**, including one request for clarification | Both plain JiuwenSwarm and the same agent prompted to check the tool delivered 1/8 incorrect answers. One live run per task and arm. |
+| Tool admission before use | **14/14 broken tools rejected before first use**, in all 10 repeats; 0/2 correct tools rejected | A scripted plain-skill baseline caught 0/14 before use. This is a deterministic admission experiment, not a live-model comparison. |
+| Faulty research inputs | **6/8 faulty runs stopped with the correct reason**; 0/3 clean controls stopped | Plain JiuwenSwarm stopped 1/8 with the correct reason. Capsule checks were replayed on the stored runs; two faults remained undetected. |
+| Independent code checking | **10/10 coding tasks passed hidden tests** | Plain, prompted-to-verify and self-written-test arms each passed 9/10. A separate benchmark-side checker enabled a corrective retry; this checker is not a shipped capsule. |
+
+A larger broken-tool experiment recorded **3 incorrect answers in 36 live
+baseline runs** (12 tasks × 3 repeats). The capsule admission check rejected
+all 10 broken tools and retained both correct controls on the same 12-task set;
+that capsule comparison ran the admitted tool without a model, so it is not
+36 additional live capsule runs. In the independent-checker experiment, the
+gain came from one task; the self-written-test arm also allowed a retry when
+its own tests failed, while the plain and prompted-only arms had no retry.
+
+### RSI: tool performance and change acceptance
+
+RSI reduced execution time across three tested tools while passing their
+recorded correctness checks:
+
+| Tool | Execution-time reduction vs. frozen parent | Selected iteration | Recorded checks passed |
+| --- | ---: | ---: | ---: |
+| Calculate | **23.1%** | 3 | 19/19 |
+| Table Normalize | **16.6%** | 4 | 19/19 |
+| Parse Duration | **17.5%** | 1 | 14/14 |
+
+These are repeated-batch tool measurements on the tested workloads, rather than
+end-to-end application speedups. The iteration column identifies the selected
+result, not the total number of attempts. Controller and supplementary check
+groups are not pooled as independent trials.
+
+In a separate **400-proposal, 20-seed scripted self-change experiment**, the
+capsule gate accepted **37 changes with zero accepted regressions or policy
+violations**. The visible-example-only baseline accepted all 400 proposals,
+including **154 correctness/work regressions**, or **362 unsafe changes** when
+protected-file edits and prohibited effects were included. This tests the gate
+on a planted proposal set; acceptance and final scoring used the same hidden
+inputs, so it does not establish held-out autonomous RSI safety.
+
+A small live Calculate comparison produced **4/4 correct answers in each arm**:
+mean completion time was **72.4 s** for JiuwenSwarm without capsules,
+**63.4 s** with capsules and **60.6 s** with RSI-optimized capsules. The RSI arm
+averaged 4.75 model calls versus 4.00 in the other arms. These measurements used
+separate runs and different runtime setups; the time difference cannot be
+attributed to RSI alone.
+
+### Model routing: token efficiency
+
+AI4Research Hybrid v8 used **18.19% fewer reported tokens** than fixed ChatGPT
+inside AI4Research (**200,227 vs. 244,732**), while both arms produced
+**24/24 correct worker answers**. Subscription worker calls fell by **25%**
+(24 → 18). Token totals include selector and independent-verifier usage.
+
+This comparison used eight public development fixtures, each repeated three
+times. Cumulative component time increased from 271.16 s to 313.69 s; it does
+not establish faster execution or monetary savings. See the
+[routing evidence](https://github.com/Stellven/jiuwenswarm/blob/ai4research-m1/benchmarks/reports/2026-10-27-matched-router/README.md).
+
+### Exploratory planning and contract checks
+
+The QA appendix also records preliminary, single-run component comparisons:
+
+- **Contract-based planning:** 10/12 valid plans from capsule contracts versus
+  8/12 from skill summaries; two contract-based plans remained invalid.
+- **Requirement checking and honest stops:** 2/10 wrong or fabricated answers
+  with the requirement gate versus 4/10 for the plain model, matching the
+  prompted-to-verify arm's 2/10.
+- **Output contracts:** 5/10 correct and compliant results with the validator,
+  versus 6/10 for the plain model and 2/10 for the prompted-to-verify arm.
+  This experiment did not improve on the plain baseline; contract validation
+  still needs stronger semantic checking.
+
+**Evidence and interpretation.** These results summarize the supplied
+`AI4R_QA_Part_B.html` and `AI4R_QA_Part_B_Appendix.html` assessment dated
+October 29, covering the October 26–28 campaigns. Part A assesses engineering
+practice and is not a quantitative product-performance benchmark. Live-model,
+replay, deterministic and simulated results are reported separately, with no
+pooled pass rate. Small development sets, author-designed checks and faults,
+and the documented runtime differences limit generalization. These findings
+are not a new acceptance test of this release or a claim of universal
+end-to-end superiority. Original QA reports, internal reports and generated
+`benchmarks/output/` remain outside this release package.
 
 ## An M1 foundation for future development
 
@@ -125,9 +204,11 @@ and `up -d --build ai4r` command. Avoid `down -v` when retaining your data.
 
 ## Known limitations and feedback
 
-M1 remains an evolving milestone. The recorded benchmark is a routing-component
-comparison; verifier false blocks and broader scientific validation remain
-open work. Platform and model compatibility depend on the selected deployment;
+M1 remains an evolving milestone. The recorded evaluations cover several
+components under different experimental conditions; missed input faults,
+invalid plans, semantic output errors, verifier false blocks and broader
+scientific validation remain open work. Platform and model compatibility depend
+on the selected deployment;
 build images for the target architecture. The source package does not certify
 all benchmark variants or complete end-to-end scientific acceptance.
 
