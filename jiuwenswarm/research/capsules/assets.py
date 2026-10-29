@@ -273,7 +273,16 @@ def build_research_assets(store, *, verify_catalog=True, screening_version='m1-4
                   'version': '1.0.0', 'target_cc_name': identity['name'],
                   'target_cc_version_range': identity['version_label'] + '.x' if stage == 'screening' else identity['version_label'],
                   'checks': checks, 'owner_role': 'verifier_owner'}
-        instruction_ref = store.put_blob(frozen_output_instructions(base_instructions, declaration), media_type='text/plain')
+        stage_instructions = base_instructions
+        if stage == 'hypothesis':
+            # ImplementationScope.max_patch_files has a fixed field-contract meaning the
+            # reviewer cannot see from the declaration/output pair alone.
+            stage_instructions += (b'\nHypothesis implementation scope contract: implementation_scope.max_patch_files counts '
+                b'implementation files only. The Builder\'s tests.py, its run_benchmark.py harness and requirements.txt have '
+                b'separate host-owned allowances and never count against it. Naming them in poc_change_scope beside the one '
+                b'implementation file is therefore not a contradiction or an unspecified limit. Apply this to internal_consistency '
+                b'and every other criterion.\n')
+        instruction_ref = store.put_blob(frozen_output_instructions(stage_instructions, declaration), media_type='text/plain')
         profile = {'schema_version': '1.0.0', 'id': identity['name'] + '.profile:' + identity['version_label'] + '.response_contract_3', 'profile_id': identity['name'] + '.profile',
                    'version': '1.2.0', 'target_cc_name': identity['name'],
                    'target_cc_version_range': identity['version_label'] + '.x' if stage == 'screening' else identity['version_label'],
