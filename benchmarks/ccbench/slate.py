@@ -14,6 +14,8 @@ folder names of the already-running luna T1 (A-native-luna, A-verify-luna, A-ccl
 
 --arm NAME=CONFIG adds an arm (for example RSI) next to the existing ones; CONFIG is a JSON file:
   {"t1": {"served": "DIR with calc_tool.py and table_tool.py"},   T1: cc_live_inputs.py --served DIR, then the same agent run
+   "t1": {"capsule_mcp": true, "tool": "broken", "effort": "low"}, T1:ccmcp: native inputs plus the capsule MCP server (nativeadmit/cc_mcp_inputs.py,
+                                                                   nativetask --capsule-mcp); "effort" (optional, any T1 arm) makes a ledger and run at that effort
    "t2": {"code_root": "CHECKOUT"}}                                T2: the input guard of that checkout (AI4R_CODE_ROOT), then the agent
 Keys for T3, T4 and T5 are refused: those benches have no library to point at (see LUNA-SLATE.md). Existing arms are untouched.
 """
@@ -43,7 +45,7 @@ MODEL_BENCHES = {'T3': ('heldout', 'contract'), 'T4': ('haltbench',)}
 BENCH_ARMS = {'heldout': ('plain', 'verify', 'selftest', 'cc'), 'contract': ('plain', 'verify', 'cc'), 'haltbench': ('plain', 'verify', 'cc')}
 SELFTESTS = {'T1': ('nativeadmit', 'nativetask', 'cost'), 'T2': ('inputguard', 'cost'), 'T3': ('modelbench', 'heldout', 'contract'),
              'T4': ('modelbench', 'haltbench'), 'T5': ('planner',)}
-CONFIG_KEYS = {'t1': {'served'}, 't2': {'code_root'}}
+CONFIG_KEYS = {'t1': {'served', 'capsule_mcp', 'tool', 'effort'}, 't2': {'code_root'}}
 
 
 def posix(path):
@@ -160,7 +162,12 @@ class Slate:
         arms += [(n, self.out / 'T1' / n) for n, cfg in self.extra.items() if 't1' in cfg]
         return arms
 
+    def t1_cfg(self, arm):
+        return self.extra.get(arm, {}).get('t1', {})
+
     def t1_inputs(self, arm, item):
+        if self.t1_cfg(arm).get('capsule_mcp'):      # T1:ccmcp, real capsules over MCP: native inputs, plus the server
+            return self.out / 'T1' / (arm + '-inputs') / 'ccmcp-inputs' / item
         if arm == 'plain':
             return HERE / 'nativeadmit' / 'items' / item / 'public'
         if arm == 'careful':
@@ -178,7 +185,15 @@ class Slate:
                 with (careful / item / 'task.txt').open('ab') as f:
                     f.write(('\n\n' + T1_CAREFUL + '\n').encode('utf-8'))
         first = self.items()[0]
-        routes = [(self.out / 'A-cc', None)] + [(self.out / 'T1' / (n + '-inputs'), cfg['t1'].get('served')) for n, cfg in self.extra.items() if 't1' in cfg]
+        routes = [(self.out / 'A-cc', None)] + [(self.out / 'T1' / (n + '-inputs'), cfg['t1'].get('served')) for n, cfg in self.extra.items()
+                                                 if 't1' in cfg and not cfg['t1'].get('capsule_mcp')]
+        for n, cfg in self.extra.items():
+            if cfg.get('t1', {}).get('capsule_mcp'):
+                root = self.out / 'T1' / (n + '-inputs')
+                if not (root / 'ccmcp-inputs' / 'manifest.json').is_file():
+                    argv = self.py('nativeadmit/cc_mcp_inputs.py', '--out', posix(root), '--tool', cfg['t1'].get('tool', 'broken'))
+                    if self.runner.run(argv, label='t1-cc_mcp_inputs') != 0:
+                        self.problems.append('T1: cc_mcp_inputs failed for %s' % posix(root))
         for root, served in routes:
             if not (root / 'cc' / (first + '.json')).is_file():
                 if self.runner.run(self.py('nativeadmit/cc_route.py', '--out', posix(root)), label='t1-cc_route') != 0:
@@ -196,13 +211,19 @@ class Slate:
             return 'skip'
         ledger = folder / 'ledgers' / item
         if not (ledger / 'ledger.sqlite3').exists():
-            if self.sh(self.bench('nativetask', 'init-ledger', '--out', posix(ledger)), 't1-init-ledger') != 0:
+            cfg = self.t1_cfg(arm)
+            effort = ['--effort', cfg['effort']] if cfg.get('effort') else []
+            if self.sh(self.bench('nativetask', 'init-ledger', '--out', posix(ledger), *effort), 't1-init-ledger') != 0:
                 return 'fail'
         d = self.t1_inputs(arm, item)
         rc = self.sh(self.bench('nativetask', 'run', '--task-file', posix(d / 'task.txt'), '--inputs-dir', posix(d), '--ledger', posix(ledger / 'ledger.sqlite3'),
-                                '--attempt-id', '%s-r%d' % (item, rep), '--model', self.model, '--image', IMAGE, '--execute', '--out', posix(folder)),
+                                '--attempt-id', '%s-r%d' % (item, rep), '--model', self.model, '--image', IMAGE, *self.t1_flags(arm), '--execute', '--out', posix(folder)),
                      't1-%s-%s-r%d' % (arm, item, rep))
         return 'ok' if rc == 0 else 'fail'
+
+    def t1_flags(self, arm):
+        cfg = self.t1_cfg(arm)
+        return (['--capsule-mcp'] if cfg.get('capsule_mcp') else []) + (['--effort', cfg['effort']] if cfg.get('effort') else [])
 
     def t1_check(self, folder, item, rep):
         f = folder / 'sessions' / ('%s-r%d' % (item, rep)) / 'final-message.txt'

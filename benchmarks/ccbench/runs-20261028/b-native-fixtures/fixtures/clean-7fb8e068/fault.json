@@ -1,0 +1,7 @@
+{
+ "fixture": "clean-7fb8e068",
+ "session": "trap-7fb8e0682dcc41bb95960fab8160a726",
+ "trap": "clean",
+ "expected_cause": null,
+ "old_model": "gpt-6.1-sol"
+}

@@ -1,0 +1,284 @@
+{
+ "provenance": {
+  "model": "gpt-6-luna",
+  "product": {
+   "commit": "5db04b5037f2a20dab09bde596758ceb75d11a79",
+   "dirty": false
+  },
+  "image": {
+   "tag": "ai4r:ccbench-native",
+   "id": "sha256:0d0941949c6655ef4b935fe23bc24e74633fb83144581d6a7c56e68ede00ce7e",
+   "repo_digests": [
+    "ai4r@sha256:0d0941949c6655ef4b935fe23bc24e74633fb83144581d6a7c56e68ede00ce7e"
+   ]
+  },
+  "extra_arms": [],
+  "finished_at": "2026-10-28T15:55:11Z"
+ },
+ "failed_blocks": {
+  "T3": 0,
+  "T4": 0,
+  "T5": false
+ },
+ "tests": {
+  "T3": {
+   "heldout:cc": {
+    "runs": 10,
+    "counts": {
+     "correct": 10,
+     "wrong": 0,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 10,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 4434.1,
+    "mean_calls": 1.1,
+    "mean_wall_s": 9.286,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 44341,
+    "tokens_per_correct": 4434.1,
+    "tokens_per_correct_known_runs": 4434.1
+   },
+   "heldout:plain": {
+    "runs": 10,
+    "counts": {
+     "correct": 9,
+     "wrong": 1,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 9,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 3598.0,
+    "mean_calls": 1.0,
+    "mean_wall_s": 7.948,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 35980,
+    "tokens_per_correct": 3997.777777777778,
+    "tokens_per_correct_known_runs": 3997.777777777778
+   },
+   "heldout:selftest": {
+    "runs": 10,
+    "counts": {
+     "correct": 9,
+     "wrong": 1,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 9,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 7311.3,
+    "mean_calls": 1.2,
+    "mean_wall_s": 11.331,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 73113,
+    "tokens_per_correct": 8123.666666666667,
+    "tokens_per_correct_known_runs": 8123.666666666667
+   },
+   "heldout:verify": {
+    "runs": 10,
+    "counts": {
+     "correct": 9,
+     "wrong": 1,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 9,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 4269.8,
+    "mean_calls": 1.0,
+    "mean_wall_s": 8.414,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 42698,
+    "tokens_per_correct": 4744.222222222223,
+    "tokens_per_correct_known_runs": 4744.222222222223
+   },
+   "contract:cc": {
+    "runs": 10,
+    "counts": {
+     "correct": 5,
+     "wrong": 5,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 5,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 3815.6,
+    "mean_calls": 1.0,
+    "mean_wall_s": 9.703,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 38156,
+    "tokens_per_correct": 7631.2,
+    "tokens_per_correct_known_runs": 7631.2
+   },
+   "contract:plain": {
+    "runs": 10,
+    "counts": {
+     "correct": 6,
+     "wrong": 4,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 6,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 4587.3,
+    "mean_calls": 1.0,
+    "mean_wall_s": 8.794,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 45873,
+    "tokens_per_correct": 7645.5,
+    "tokens_per_correct_known_runs": 7645.5
+   },
+   "contract:verify": {
+    "runs": 10,
+    "counts": {
+     "correct": 2,
+     "wrong": 8,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 2,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 2247.0,
+    "mean_calls": 1.0,
+    "mean_wall_s": 7.699,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 22470,
+    "tokens_per_correct": 11235.0,
+    "tokens_per_correct_known_runs": 11235.0
+   }
+  },
+  "T4": {
+   "haltbench:cc": {
+    "runs": 10,
+    "counts": {
+     "correct": 3,
+     "wrong": 2,
+     "stopped": 5,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 3,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 3440.8,
+    "mean_calls": 1.6,
+    "mean_wall_s": 12.508,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 34408,
+    "tokens_per_correct": 11469.333333333334,
+    "tokens_per_correct_known_runs": 11469.333333333334
+   },
+   "haltbench:plain": {
+    "runs": 10,
+    "counts": {
+     "correct": 2,
+     "wrong": 4,
+     "stopped": 4,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 2,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 2440.2,
+    "mean_calls": 1.0,
+    "mean_wall_s": 6.95,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 24402,
+    "tokens_per_correct": 12201.0,
+    "tokens_per_correct_known_runs": 12201.0
+   },
+   "haltbench:verify": {
+    "runs": 10,
+    "counts": {
+     "correct": 4,
+     "wrong": 2,
+     "stopped": 4,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 4,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 3652.6,
+    "mean_calls": 1.0,
+    "mean_wall_s": 6.465999999999999,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 36526,
+    "tokens_per_correct": 9131.5,
+    "tokens_per_correct_known_runs": 9131.5
+   }
+  },
+  "T5": {
+   "A_declared": {
+    "runs": 12,
+    "counts": {
+     "correct": 7,
+     "wrong": 5,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 7,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 106028.75,
+    "mean_calls": 1.0,
+    "mean_wall_s": 12.276249999992919,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 1272345,
+    "tokens_per_correct": 181763.57142857142,
+    "tokens_per_correct_known_runs": 181763.57142857142
+   },
+   "B_skill_full": {
+    "runs": 12,
+    "counts": {
+     "correct": 7,
+     "wrong": 5,
+     "stopped": 0,
+     "false_stop": 0,
+     "unavailable": 0
+    },
+    "correct": 7,
+    "mean_input": null,
+    "mean_output": null,
+    "mean_total": 8030.75,
+    "mean_calls": 1.0,
+    "mean_wall_s": 10.074250000000271,
+    "runs_with_split": 0,
+    "runs_missing_total": 0,
+    "total_tokens": 96369,
+    "tokens_per_correct": 13767.0,
+    "tokens_per_correct_known_runs": 13767.0
+   }
+  }
+ },
+ "not_applicable": {}
+}

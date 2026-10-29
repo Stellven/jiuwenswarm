@@ -51,6 +51,45 @@ using `PYTHONPATH=/runtime:/opt/ai4r`.
 See "Origin" above for the entry command. `plan` is pure (no files, processes or ledger). `run` without `--execute` is a dry run that journals the ID. `run --execute` needs Docker, the native image, a ledger and a signed-in codex.
 `--skill-dir DIR` adds one ordinary skill folder, `--model`, `--wall-s`, `--max-calls` set the limits. `collect --session-id ID --attempt-id NEW [--execute]` recollects local evidence.
 
+## Reasoning effort (`--effort low|medium|high`, default medium)
+
+`plan` and `run` take `--effort`. It sets the spec's `reasoning_effort`, the ledger pin, the claim and finish checks, the
+broker request and the attempt record (`attempts/<id>.json` field `effort`). Default medium leaves everything as it was.
+**The ledger is pinned to one effort when it is created and rejects any other** ("model/effort mismatch"). Use one ledger per effort:
+
+```sh
+sh scripts/ai4r-bench nativetask init-ledger --out OUT-low --effort low
+sh scripts/ai4r-bench nativetask run ... --effort low --ledger OUT-low/ledger.sqlite3 --out OUT-low --execute
+```
+
+How it works: the product's governed Codex path hard-codes medium (`local_model_codex._validate`, `value_host.validate_request`,
+`local_models.CODEX_EFFORTS`). The benchmark broker process widens those checks to the one effort its ledger is pinned to
+(`allow_effort` in `run_native_task.py`); no product module on disk is edited. The effort reaches Codex through the app-server
+`-c model_reasoning_effort` override and thread/start config, and the receipt check compares the effective effort.
+The worker overlay and `benchmarks/harbor_suite/native_value.py` accept low, medium and high for the file broker (the
+subscription-binding path stays medium). Not run live; whether codex accepts `low` for each model is for the first run to show.
+
+## Capsule MCP arm (`--capsule-mcp`, `--mcp-config FILE`)
+
+`--capsule-mcp` registers the portable capsule server `python -m jiuwenswarm.capsule_runtime.mcp` with JiuwenSwarm for this run.
+`--mcp-config FILE` injects any stdio `mcp.servers` entries (a JSON list or `{"servers": [...]}`). Mechanism, read from the code:
+the spec carries `mcp_servers`; the worker's `configure()` writes them as `config["mcp"]["servers"]` in the run's own
+`state/config/config.yaml` (also copied to `effective-config.json`). The cli channel registers `mcp.servers` at start
+(`interface_deep.py:10775` calls `_register_mcp_servers_from_config`, `:5245`), through `mcp_config.build_mcp_server_config`.
+
+The image `ai4r:ccbench-native` predates `capsule_runtime`. The driver stages `jiuwenswarm/{__init__,capsule_runtime,research,research_assets,
+research_contracts,research_records,research_router,research_rsi,research_sidecar}` from `AI4R_CODE_ROOT` into
+`sessions/<id>/capsule-src/jiuwenswarm/` (no bytecode; SHA-256 of every file goes in `staging-receipt.json` as `capsule_src_sha256`),
+and mounts it read-only at `/capsule-src`, outside the writable `/campaign` mount. Only the MCP child gets `PYTHONPATH=/capsule-src`;
+the agent process keeps the image's JiuwenSwarm (`PYTHONPATH=/runtime:/opt/ai4r`). The ledger arm is `native-capsule-mcp`.
+Checked with `docker run`: the command starts in the image and lists `utility.calculate`, `utility.table_normalize` and their `_typed`
+versions (test `ContainerCommandTest`, skipped when Docker or the image is missing). No model call was made.
+
+## Bridge developer message (why luna answered in prose)
+
+See "Luna finding" in `../nativeadmit/README.md`. The broker now sends one developer message,
+`native_value.BRIDGE_SYSTEM`, for every model and arm, instead of the product's "Tools are unavailable."
+
 ## Native image
 
 Default image tag: `ai4r:ccbench-native`, built by `scripts/ai4r-bench build-native` (plain JiuwenSwarm, `deploy/m1/Dockerfile.app --target production`). The sweep's opponent `ai4r:cc-value-medium-20261026` is gone and **no build recipe or digest was stored for it** (the old attempt records carry no digest), so results on the two images are different opponents. `docker image inspect` is now run for every executed attempt and the result is written into the attempt record.

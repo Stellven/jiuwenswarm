@@ -1,0 +1,288 @@
+bench,model,arm,case,rep,outcome,tokens,wall_s,detail,source
+A broken tool,gpt-6.1-sol,native,calc_absolute,1,correct,,,delivered=10958.32 gold=10958.32 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_absolute,2,correct,,,delivered=10958.32 gold=10958.32 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_absolute,3,correct,,,delivered=10958.32 gold=10958.32 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_comma,1,correct,,,delivered=329524 gold=329524 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_comma,2,correct,,,delivered=329524 gold=329524 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_comma,3,correct,,,delivered=329524 gold=329524 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_empty,1,correct_flagged,,,delivered=0 gold=0 flagged_tool=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_empty,2,correct,,,delivered=0 gold=0 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_empty,3,correct,,,delivered=0 gold=0 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_float,1,correct,,,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_float,2,correct,,,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_float,3,correct,,,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_reference,1,correct,,,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_reference,2,correct,,,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_reference,3,correct,,,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_truncate,1,correct_flagged,,,delivered=250.785 gold=250.785 flagged_tool=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_truncate,2,correct,,,delivered=250.785 gold=250.785 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,calc_truncate,3,correct_flagged,,,delivered=250.785 gold=250.785 flagged_tool=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_float,1,correct_flagged,,,delivered=9007199255172313 gold=9007199255172313 flagged_tool=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_float,2,correct_flagged,,,delivered=9007199255172313 gold=9007199255172313 flagged_tool=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_float,3,correct_flagged,,,delivered=9007199255172313 gold=9007199255172313 flagged_tool=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_numeric,1,correct,,,delivered=02134 gold=02134 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_numeric,2,correct,,,delivered=02134 gold=02134 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_numeric,3,correct,,,delivered=02134 gold=02134 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_pad,1,silent_wrong,,,delivered=23 gold=None flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_pad,2,silent_wrong,,,delivered=23 gold=None flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_pad,3,silent_wrong,,,delivered=24 gold=None flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_reference,1,correct,,,delivered=00417 gold=00417 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_reference,2,correct,,,delivered=00417 gold=00417 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_reference,3,correct,,,delivered=00417 gold=00417 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_sorted,1,correct,,,delivered=18.75 gold=18.75 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_sorted,2,correct,,,delivered=18.75 gold=18.75 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_sorted,3,correct,,,delivered=18.75 gold=18.75 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_strip,1,correct,,,delivered=18 gold=18 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_strip,2,correct,,,delivered=18 gold=18 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,gpt-6.1-sol,native,table_strip,3,correct,,,delivered=18 gold=18 flagged_tool=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,calc_absolute,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,calc_comma,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,calc_empty,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,calc_float,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,calc_reference,1,correct,,,admitted=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,calc_truncate,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,table_float,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,table_numeric,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,table_pad,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,table_reference,1,correct,,,admitted=True,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,table_sorted,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+A broken tool,none (deterministic),CC route,table_strip,1,justified_halt,,,admitted=False,raw/ccbench-20261028/A-full/score/score-summary.json
+T1 broken tool,gpt-6.1-sol low,plain,calc_comma,1,correct,161264,80.7,delivered=329524 gold=329524 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,calc_float,1,correct,161356,66.83,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,calc_reference,1,correct,160991,65.31,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,calc_truncate,1,correct_flagged,162660,76.63,delivered=250.785 gold=250.785 flagged_tool=True,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,table_float,1,correct_flagged,160226,70.75,delivered=9007199255172313 gold=9007199255172313 flagged_tool=True,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,table_numeric,1,correct,202983,76.75,delivered=02134 gold=02134 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,table_pad,1,silent_wrong,224535,85.82,delivered=24 gold=None flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,plain,table_reference,1,correct,161310,72.06,delivered=00417 gold=00417 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,calc_comma,1,correct,174053,77.7,delivered=329524 gold=329524 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,calc_float,1,correct,161941,68.32,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,calc_reference,1,correct,162012,67.24,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,calc_truncate,1,correct_flagged,162931,67.08,delivered=250.785 gold=250.785 flagged_tool=True,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,table_float,1,correct,164191,71.58,delivered=9007199255172313 gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,table_numeric,1,correct,179154,72.5,delivered=02134 gold=02134 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,table_pad,1,silent_wrong,177726,77.73,delivered=24 gold=None flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,careful,table_reference,1,correct,177390,70.32,delivered=00417 gold=00417 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,calc_comma,1,correct,161548,66.75,delivered=329524 gold=329524 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,calc_float,1,correct,162057,61.66,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,calc_reference,1,correct,160410,65.6,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,calc_truncate,1,correct,160777,59.63,delivered=250.785 gold=250.785 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,table_float,1,correct,160287,69.67,delivered=9007199255172313 gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,table_numeric,1,correct,161140,58.74,delivered=02134 gold=02134 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,table_pad,1,unavailable,224697,85.67,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,cc,table_reference,1,correct,161241,62.86,delivered=00417 gold=00417 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,calc_comma,1,unavailable,122561,155.18,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,calc_float,1,correct,164875,98.86,delivered=156480913497867854 gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,calc_reference,1,correct,163403,98.65,delivered=1.6875 gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,calc_truncate,1,correct,163627,92.46,delivered=250.785 gold=250.785 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,table_float,1,correct_flagged,165769,96.99,delivered=9007199255172313 gold=9007199255172313 flagged_tool=True,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,table_numeric,1,correct,180487,94.16,delivered=02134 gold=02134 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,table_pad,1,silent_wrong,180546,96.32,delivered=23 gold=None flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6.1-sol low,ccmcp,table_reference,1,correct,178744,96.64,delivered=00417 gold=00417 flagged_tool=False,raw/rebench-20261028/T1low-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_absolute,1,wrong_halt,38623,39.4,delivered=None gold=10958.32 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_absolute,2,wrong_halt,37858,68.39,delivered=None gold=10958.32 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_comma,1,wrong_halt,38698,52.23,delivered=None gold=329524 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_comma,2,wrong_halt,39958,65.71,delivered=None gold=329524 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_empty,1,wrong_halt,38661,42.94,delivered=None gold=0 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_empty,2,wrong_halt,38809,45.67,delivered=None gold=0 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_float,1,wrong_halt,38584,46.64,delivered=None gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_float,2,wrong_halt,38596,37.9,delivered=None gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_reference,1,wrong_halt,37828,37.58,delivered=None gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_reference,2,wrong_halt,38668,38.02,delivered=None gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_truncate,1,wrong_halt,38602,39.6,delivered=None gold=250.785 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,calc_truncate,2,wrong_halt,38060,40.15,delivered=None gold=250.785 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_float,1,wrong_halt,41646,47.5,delivered=None gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_float,2,unavailable,,62.24,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_numeric,1,wrong_halt,38581,40.17,delivered=None gold=02134 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_numeric,2,wrong_halt,38847,47.51,delivered=None gold=02134 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_pad,1,unavailable,,47.78,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_pad,2,unavailable,,,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_reference,1,unavailable,,46.55,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_reference,2,unavailable,,,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_sorted,1,wrong_halt,38675,45.56,delivered=None gold=18.75 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_sorted,2,wrong_halt,38581,39.56,delivered=None gold=18.75 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_strip,1,silent_wrong,37844,41.53,delivered=114 gold=18 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),plain,table_strip,2,silent_wrong,38621,42.71,delivered=114 gold=18 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_absolute,1,wrong_halt,38656,45.94,delivered=None gold=10958.32 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_absolute,2,wrong_halt,37852,65.5,delivered=None gold=10958.32 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_comma,1,wrong_halt,38741,41.09,delivered=None gold=329524 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_comma,2,wrong_halt,38732,36.8,delivered=None gold=329524 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_empty,1,wrong_halt,37854,40.14,delivered=None gold=0 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_empty,2,wrong_halt,38626,36.65,delivered=None gold=0 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_float,1,wrong_halt,38655,35.45,delivered=None gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_float,2,wrong_halt,38640,38.99,delivered=None gold=156480913497867854 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_reference,1,wrong_halt,38634,36.44,delivered=None gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_reference,2,wrong_halt,38633,50.75,delivered=None gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_truncate,1,wrong_halt,38668,37.62,delivered=None gold=250.785 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,calc_truncate,2,wrong_halt,38682,36.22,delivered=None gold=250.785 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_float,1,wrong_halt,37853,36.03,delivered=None gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_float,2,wrong_halt,38686,37.57,delivered=None gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_numeric,1,unavailable,,56.87,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_numeric,2,unavailable,,,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_pad,1,wrong_halt,77775,49.12,delivered=None gold=None flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_pad,2,wrong_halt,38688,68.34,delivered=None gold=None flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_reference,1,wrong_halt,38689,61.73,delivered=None gold=00417 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_reference,2,wrong_halt,37841,67.76,delivered=None gold=00417 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_sorted,1,wrong_halt,38686,60.63,delivered=None gold=18.75 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_sorted,2,wrong_halt,38759,63.24,delivered=None gold=18.75 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_strip,1,wrong_halt,38853,67.04,delivered=None gold=18 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),careful,table_strip,2,silent_wrong,38653,68.3,delivered=114 gold=18 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_absolute,1,wrong_halt,38878,72.03,delivered=None gold=10958.32 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_absolute,2,wrong_halt,38592,76.31,delivered=None gold=10958.32 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_comma,1,wrong_halt,38892,74.88,delivered=None gold=329524 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_comma,2,wrong_halt,38674,70.27,delivered=None gold=329524 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_empty,1,wrong_halt,38605,68.02,delivered=None gold=0 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_empty,2,wrong_halt,39406,84.28,delivered=None gold=0 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_float,1,unavailable,,88.56,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_float,2,unavailable,,,delivered=None gold=None flagged_tool=None,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_reference,1,wrong_halt,39206,78.74,delivered=None gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_reference,2,wrong_halt,38773,66.11,delivered=None gold=1.6875 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_truncate,1,wrong_halt,38944,76.3,delivered=None gold=250.785 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,calc_truncate,2,wrong_halt,38708,58.76,delivered=None gold=250.785 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_float,1,wrong_halt,38642,64.03,delivered=None gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_float,2,wrong_halt,38741,68.59,delivered=None gold=9007199255172313 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_numeric,1,wrong_halt,38597,50.83,delivered=None gold=02134 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_numeric,2,silent_wrong,37778,44.68,delivered=1017 gold=02134 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_pad,1,wrong_halt,39215,47.59,delivered=None gold=None flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_pad,2,wrong_halt,38731,45.19,delivered=None gold=None flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_reference,1,wrong_halt,37824,35.44,delivered=None gold=00417 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_reference,2,wrong_halt,37827,52.31,delivered=None gold=00417 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_sorted,1,wrong_halt,38606,54.05,delivered=None gold=18.75 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_sorted,2,wrong_halt,38559,45.44,delivered=None gold=18.75 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_strip,1,silent_wrong,38755,50.86,delivered=114 gold=18 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+T1 broken tool,gpt-6-luna (VOID: no tool calls),cc,table_strip,2,silent_wrong,37852,45.61,delivered=114 gold=18 flagged_tool=False,raw/rebench-20261028/T1-luna-score/score-arms.json
+heldout,gpt-6-luna,cc,brackets_balanced,1,correct,1295,7.38,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,brackets_balanced,1,correct,7051,6.97,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,brackets_balanced,1,correct,1487,8.25,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,brackets_balanced,1,correct,7130,8.03,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,business_days,1,correct,7094,7.8,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,business_days,1,correct,1340,8.39,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,business_days,1,correct,1693,10.95,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,business_days,1,correct,1364,6.7,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,compare_versions,1,correct,7816,8.84,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,compare_versions,1,correct,7006,7.25,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,compare_versions,1,correct,1497,8.88,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,compare_versions,1,correct,7049,7.19,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,dedupe_records,1,correct,1324,6.81,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,dedupe_records,1,correct,1338,7.12,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,dedupe_records,1,correct,9941,19.46,retried=True,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,dedupe_records,1,correct,1661,11.03,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,merge_intervals,1,correct,7017,6.19,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,merge_intervals,1,correct,6988,6.89,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,merge_intervals,1,correct,19944,8.11,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,merge_intervals,1,correct,7041,7.12,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,parse_duration,1,correct,8760,16.4,retried=True,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,parse_duration,1,wrong,1336,7.05,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,parse_duration,1,wrong,9176,18.17,retried=True,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,parse_duration,1,wrong,1461,11.41,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,rle_decode,1,correct,6999,8.55,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,rle_decode,1,correct,1233,11.03,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,rle_decode,1,correct,7161,12.3,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,rle_decode,1,correct,1259,7.42,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,round_half_up,1,correct,1532,10.86,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,round_half_up,1,correct,7171,10.03,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,round_half_up,1,correct,7668,10.92,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,round_half_up,1,correct,7353,10.11,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,top_k_words,1,correct,1264,13.33,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,top_k_words,1,correct,1277,7.02,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,top_k_words,1,correct,7350,8.22,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,top_k_words,1,correct,1357,8.3,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,cc,wrap_text,1,correct,1240,6.7,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,plain,wrap_text,1,correct,1240,7.73,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,selftest,wrap_text,1,correct,7196,8.05,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+heldout,gpt-6-luna,verify,wrap_text,1,correct,7023,6.83,retried=False,raw/rebench-20261028/slate/modelbench/heldout/scores/heldout-gpt-6-luna.json
+contract,gpt-6-luna,cc,customers,1,correct,2018,10.61,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,customers,1,wrong,7308,6.38,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,customers,1,wrong,1584,6.56,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,files,1,wrong,1913,11.53,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,files,1,correct,1990,11.19,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,files,1,wrong,1508,7.7,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,grades,1,correct,1705,8.94,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,grades,1,correct,1846,8.84,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,grades,1,wrong,8043,8.0,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,latency,1,correct,7463,8.61,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,latency,1,correct,7450,7.61,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,latency,1,correct,1751,9.19,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,monthly,1,correct,10642,7.98,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,monthly,1,correct,7177,7.73,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,monthly,1,wrong,1407,8.28,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,orders,1,wrong,1549,7.16,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,orders,1,correct,1835,10.31,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,orders,1,wrong,1584,7.22,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,sessions,1,wrong,1768,7.84,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,sessions,1,wrong,1762,8.14,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,sessions,1,correct,2011,9.14,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,shipments,1,correct,2059,13.42,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,shipments,1,correct,7766,11.84,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,shipments,1,wrong,1544,7.26,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,survey,1,wrong,7219,6.36,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,survey,1,wrong,7217,8.62,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,survey,1,wrong,1489,6.53,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,cc,temps,1,wrong,1820,14.58,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,plain,temps,1,wrong,1522,7.28,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+contract,gpt-6-luna,verify,temps,1,wrong,1549,7.11,retried=False,raw/rebench-20261028/slate/modelbench/contract/scores/contract-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,contradictory_format,1,correct_stop,1600,9.3,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,contradictory_format,1,fabricated,1260,6.22,feasible=False good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,contradictory_format,1,fabricated,1303,5.94,feasible=False good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,count_late,1,correct,2913,15.28,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,count_late,1,wrong_value,1414,5.83,feasible=True good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,count_late,1,correct,1459,6.23,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,empty_delivered,1,correct_stop,1441,8.23,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,empty_delivered,1,correct_stop,1267,6.58,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,empty_delivered,1,correct_stop,7073,6.2,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,max_temp,1,correct,2917,16.61,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,max_temp,1,correct,1325,7.42,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,max_temp,1,correct,1370,6.36,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,mean_discount_present,1,wrong_value,2783,16.11,feasible=True good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,mean_discount_present,1,wrong_value,1248,5.33,feasible=True good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,mean_discount_present,1,wrong_value,7047,5.88,feasible=True good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,mean_price_north,1,wrong_value,8567,13.43,feasible=True good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,mean_price_north,1,wrong_value,7073,5.89,feasible=True good=False,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,mean_price_north,1,correct,7251,7.89,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,missing_column_age,1,correct_stop,1533,8.11,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,missing_column_age,1,correct_stop,1337,6.19,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,missing_column_age,1,correct_stop,1394,6.53,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,missing_fx_rates,1,correct_stop,2734,12.92,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,missing_fx_rates,1,correct_stop,1284,6.16,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,missing_fx_rates,1,correct_stop,1337,6.88,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,missing_period_q3,1,correct_stop,7135,7.97,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,missing_period_q3,1,correct_stop,1182,11.22,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,missing_period_q3,1,correct_stop,6993,5.91,feasible=False good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,cc,share_over_100,1,correct,2785,17.12,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,plain,share_over_100,1,correct,7012,8.66,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+haltbench,gpt-6-luna,verify,share_over_100,1,correct,1299,6.84,feasible=True good=True,raw/rebench-20261028/slate/modelbench/haltbench/scores/haltbench-gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,budget_calls,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,budget_calls,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,budget_time,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,budget_time,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,calculate,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,calculate,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,gpu_training,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,gpu_training,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,human_study,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,human_study,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,live_web,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,live_web,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,missing_paper,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,missing_paper,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,missing_values,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,missing_values,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,normalize,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,normalize,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,paper,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,paper,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,report,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,report,1,valid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,declared,screen,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+T5 planner,gpt-6-luna,skill_full,screen,1,invalid,,,,raw/rebench-20261028/slate/T5/scores/gpt-6-luna.json
+B broken inputs,none (replay),ours,baselinedef,1,stopped,,,expected=baseline_definition_conflict got=baseline_definition_conflict,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,pinmismatch,1,stopped,,,expected=environment_lock_pin_mismatch got=environment_lock_pin_mismatch,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,stale,1,stopped,,,expected=stale_or_duplicate_dataset got=stale_or_duplicate_dataset,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,units,1,stopped,,,expected=metric_unit_conflict got=metric_unit_conflict,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,units,1,stopped,,,expected=metric_unit_conflict got=metric_unit_conflict,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,infeasible,1,stopped,,,expected=infeasible_accuracy_bound got=infeasible_accuracy_bound,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,clean,1,not stopped,,,expected=None got=,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,clean,1,not stopped,,,expected=None got=,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,clean,1,not stopped,,,expected=None got=,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,conflicts,1,not stopped,,,expected=prose_requirement_conflict got=,raw/rebench-20261028/B-ours/results.json
+B broken inputs,none (replay),ours,overreach,1,not stopped,,,expected=unsupported_demands got=,raw/rebench-20261028/B-ours/results.json

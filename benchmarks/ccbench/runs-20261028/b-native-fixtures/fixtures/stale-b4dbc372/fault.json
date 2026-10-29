@@ -1,0 +1,7 @@
+{
+ "fixture": "stale-b4dbc372",
+ "session": "trap-b4dbc3729943449598912c5164c2c226",
+ "trap": "stale",
+ "expected_cause": "stale_or_duplicate_dataset",
+ "old_model": "gpt-6.1-sol"
+}

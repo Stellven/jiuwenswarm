@@ -25,6 +25,10 @@ class Extract(unittest.TestCase):
         self.assertIsNone(score.extract_number('   '))
         self.assertIsNone(score.extract_number('I could not run it.'))
         self.assertEqual(score.extract_number('calc_tool.py gives 1.6875'), '1.6875')
+        # A sentence that calls a value wrong is not the answer (T1 careful calc_comma, 10-28).
+        self.assertEqual(score.extract_number('329,524. Verified independently across all 30 invoices and with calc_tool.py '
+                                              'using correctly parsed amounts. Its original output, 4892.956, was incorrect '
+                                              'because it treated thousands separators as decimal points.'), '329524')
 
 
 class Classes(unittest.TestCase):
