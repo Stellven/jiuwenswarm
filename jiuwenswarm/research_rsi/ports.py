@@ -7,6 +7,7 @@ import socket
 import stat
 import struct
 import base64
+import hashlib
 from .records import encoded
 
 
@@ -83,6 +84,93 @@ class JobPort:
     def _authorize(self,ref):
         if encoded(ref) not in self.allowed_refs:raise PermissionError('job reference outside launcher grant')
         return self.jobs.resolve(ref)
+    async def readiness(self,ref):
+        job=self._authorize(ref)
+        task=self.active.get(ref['id'])
+        if task is not None and not task.done():raise ValueError('Running job cannot become a fresh session')
+        owner=getattr(getattr(self.jobs,'factory',None),'readiness',None)
+        if not callable(owner):raise ValueError('Installed current runtime inspection unavailable')
+        result=await owner(job,job_ref=ref)
+        from .runtime_readiness import validate_report
+        validate_report(result)
+        if result['session_ref']!=job['session_ref']:raise ValueError('Runtime inspection changed the approved session')
+        return result
+    def _public(self,pin):
+        from .worker import ref as validate_ref
+        validate_ref(pin)
+        raw=self.public_reader(pin)
+        if not isinstance(raw,bytes) or len(raw)>MAX_FRAME or hashlib.sha256(raw).hexdigest()!=pin['sha256']:
+            raise ValueError('Exact public workbench evidence bytes unavailable')
+        return raw
+    def _opportunity(self,job):
+        # Only durable typed indexes nominate the canonical decision/capture.
+        # Never probe generic evidence_refs, preparations or store directories.
+        session_ref=job.get('session_ref')
+        if session_ref is None:return None
+        indexed=self.store.opportunity_for_session_ref(session_ref)
+        if indexed is None:return None
+        # Historical phase inspection does not require original session bytes
+        # merely to prove that no canonical opportunity was ever indexed.
+        session=json.loads(self._public(session_ref));sid=indexed['session_id']
+        if session['session_id']!=sid:raise ValueError('Indexed opportunity session differs')
+        opportunity_ref=self.store.opportunity_ref(sid,session_ref)
+        if opportunity_ref!=indexed['ref']:raise ValueError('Opportunity index changed during inspection')
+        from .session_policy import _contracts
+        opportunity=json.loads(self._public(opportunity_ref));_contracts().validate('rsi-opportunity',opportunity)
+        if opportunity['target_profile_ref']!=session['target_profile_ref'] or opportunity['parent']!=session['parent']:
+            raise ValueError('Indexed opportunity differs from the exact session')
+        capture_ref=self.store.opportunity_capture_ref(sid,session_ref)
+        if capture_ref!=indexed['diagnosis_capture_ref']:raise ValueError('Diagnosis index changed during inspection')
+        capture=None
+        if capture_ref is not None:
+            capture=json.loads(self._public(capture_ref))
+            _contracts().validate('urn:ai4r:private:rsi-diagnosis-capture:1',capture)
+            if (capture_ref not in opportunity['evidence_refs'] or capture['target_profile_ref']!=session['target_profile_ref']
+                    or capture['parent']!=session['parent'] or capture['configuration_ref']!=session['configuration_ref']
+                    or capture['diagnosis_ref']!=opportunity['diagnosis_ref']):
+                raise ValueError('Indexed diagnosis capture differs from the exact opportunity/session')
+        return dict(record=opportunity,ref=opportunity_ref,capture=capture,capture_ref=capture_ref)
+    @staticmethod
+    def _append_export(records,seen,kind,pin,raw):
+        from .worker import ref as validate_ref
+        validate_ref(pin)
+        if not isinstance(raw,bytes) or hashlib.sha256(raw).hexdigest()!=pin['sha256']:
+            raise ValueError('Exact exported evidence bytes differ')
+        identity=encoded(pin)
+        if identity in seen and any(row['kind']==kind and row['ref']==pin for row in records):return
+        row={'kind':kind,'ref':pin,'bytes_base64':base64.b64encode(raw).decode('ascii')}
+        # Keep work and response finite even before the port frame guard. Do
+        # not truncate required captures into a misleading complete export.
+        if len(records)>=512 or sum(len(encoded(item)) for item in records)+len(encoded(row))>MAX_FRAME-65536:
+            raise ValueError('Bounded workbench evidence export exceeds the private frame')
+        records.append(row);seen.add(identity)
+    def _export_traces(self,pins,records,seen,missing):
+        for pin in pins:
+            # The protected host type index supplies these kinds. A JSON
+            # payload resembling a model call cannot nominate its own type.
+            entry=self.trace_reader(pin) if self.trace_reader else None
+            if entry is None or entry.get('kind') not in {'model-call','route-record','invocation-observation'}:
+                missing.append(pin);continue
+            if encoded(pin) in seen and any(row['kind']==entry['kind'] and row['ref']==pin for row in records):continue
+            raw=entry['bytes'];self._append_export(records,seen,entry['kind'],pin,raw)
+            if entry['kind']!='model-call':continue
+            for nested in json.loads(raw)['evidence_refs']:
+                owned=self.trace_reader(nested)
+                if owned is None:raise ValueError('Required exact call evidence is unavailable')
+                queue=[(nested,owned)]
+                while queue:
+                    nested_ref,value=queue.pop(0)
+                    if encoded(nested_ref) in seen and any(row['kind']==value['kind'] and row['ref']==nested_ref for row in records):continue
+                    if value['kind'] not in {'model-call-input','model-call-output','model-provider-observation','native-governed-trace','native-governed-trace-event','native-governed-packet'}:
+                        raise ValueError('Private or unknown call evidence')
+                    self._append_export(records,seen,value['kind'],nested_ref,value['bytes'])
+                    children=[]
+                    if value['kind']=='native-governed-trace':children=json.loads(value['bytes'])['event_refs']
+                    elif value['kind']=='native-governed-trace-event':children=[json.loads(value['bytes'])['raw_ref']]
+                    for child in children:
+                        captured=self.trace_reader(child)
+                        if captured is None:raise ValueError('Exact owned trace packet is unavailable')
+                        queue.append((child,captured))
     async def start(self,ref):
         self._authorize(ref);ident=ref['id']
         if ident in self.active or not self.store.claim_job(ref):return await self.inspect(ref)
@@ -109,10 +197,23 @@ class JobPort:
         self.store.put({'job_ref':ref,'state':'started','operation':'session_start'})
         self.active[ident]=asyncio.create_task(execute());return {'state':'started'}
     async def inspect(self,ref):
-        self._authorize(ref)
+        job=self._authorize(ref)
         task=self.active.get(ref['id'])
-        if task and not task.done():return {'state':'running'}
-        return self.store.job_state(ref)
+        state={'state':'running'} if task and not task.done() else self.store.job_state(ref)
+        current=self.store.job_phase(ref)
+        if current is not None:
+            record=current['record']
+            state={**state,'progress':{key:record[key] for key in ('phase','revision','incumbent_ref','attempts_used','queries_used')}}
+        if job.get('session_ref') is not None:
+            opportunity=self._opportunity(job)
+            if opportunity is None:state={**state,'opportunity':{'status':'unavailable'}}
+            else:
+                capture=opportunity['capture']
+                state={**state,'opportunity':{'status':'captured','opportunity_ref':opportunity['ref'],
+                    'decision':opportunity['record']['decision'],'diagnosis_ref':opportunity['record']['diagnosis_ref'],
+                    'diagnosis_capture_ref':opportunity['capture_ref'],
+                    'diagnosis_status':capture['status'] if capture is not None else 'unavailable'}}
+        return state
     async def stop(self,ref):
         self._authorize(ref);task=self.active.get(ref['id'])
         if task and not task.done():
@@ -134,43 +235,38 @@ class JobPort:
         refs=[('rsi-session-result',result_ref),('rsi-session',result['session_ref']),
             *[('rsi-attempt',r) for r in result['attempt_refs']]]
         if result['referee_evidence_ref']:refs.append(('rsi-referee-evidence',result['referee_evidence_ref']))
-        records=[]
+        records=[];seen=set()
         for kind,pin in refs:
-            raw=self.public_reader(pin)
-            if not isinstance(raw,bytes) or __import__('hashlib').sha256(raw).hexdigest()!=pin['sha256']:raise ValueError('public workbench evidence bytes unavailable')
-            records.append({'kind':kind,'ref':pin,'bytes_base64':base64.b64encode(raw).decode('ascii')})
-        missing=[];seen={encoded(r['ref']) for r in records}
+            self._append_export(records,seen,kind,pin,self._public(pin))
+        missing=[];unavailable=[]
+        opportunity=self._opportunity(self._authorize(ref))
+        if opportunity is None:unavailable.append('canonical_opportunity')
+        else:
+            self._append_export(records,seen,'rsi-opportunity',opportunity['ref'],self._public(opportunity['ref']))
+            diagnosis_ref=opportunity['record']['diagnosis_ref']
+            if diagnosis_ref is not None:
+                from .session_policy import _contracts
+                raw=self._public(diagnosis_ref)
+                if len(raw)>64*1024:raise ValueError('Diagnosis evidence exceeds its fixed disclosure bound')
+                _contracts().validate('urn:ai4r:private:rsi-diagnosis:1',json.loads(raw))
+                self._append_export(records,seen,'rsi-diagnosis',diagnosis_ref,raw)
+            capture=opportunity['capture']
+            if capture is None:unavailable.append('diagnosis_capture')
+            else:
+                self._append_export(records,seen,'rsi-diagnosis-capture',opportunity['capture_ref'],self._public(opportunity['capture_ref']))
+                for field,kind,maximum in (('prompt_ref','rsi-diagnosis-prompt',256*1024),
+                        ('response_ref','rsi-diagnosis-response',64*1024),('diagnosis_ref','rsi-diagnosis',64*1024)):
+                    pin=capture[field]
+                    if pin is None:continue
+                    raw=self._public(pin)
+                    if len(raw)>maximum:raise ValueError('Diagnosis evidence exceeds its fixed disclosure bound')
+                    if field=='diagnosis_ref':
+                        from .session_policy import _contracts
+                        _contracts().validate('urn:ai4r:private:rsi-diagnosis:1',json.loads(raw))
+                    self._append_export(records,seen,kind,pin,raw)
+                self._export_traces(capture['generation_evidence_refs'],records,seen,missing)
         for attempt_ref in result['attempt_refs']:
-            attempt=json.loads(self.public_reader(attempt_ref))
-            for pin in attempt.get('observation_refs',[]):
-                if encoded(pin) in seen:continue
-                # Type comes from the protected host capture index, never from
-                # a worker-authored payload which merely resembles a call.
-                entry=self.trace_reader(pin) if self.trace_reader else None
-                if entry is None or entry.get('kind') not in {'model-call','route-record','invocation-observation'}:
-                    missing.append(pin);continue
-                raw=entry['bytes']
-                if not isinstance(raw,bytes) or __import__('hashlib').sha256(raw).hexdigest()!=pin['sha256']:raise ValueError('protected trace bytes mismatch')
-                records.append({'kind':entry['kind'],'ref':pin,'bytes_base64':base64.b64encode(raw).decode('ascii')});seen.add(encoded(pin))
-                if entry['kind']=='model-call':
-                    for nested in json.loads(raw)['evidence_refs']:
-                        owned=self.trace_reader(nested)
-                        if owned is None:raise ValueError('Required exact call evidence is unavailable')
-                        queue=[(nested,owned)]
-                        while queue:
-                            ref,value=queue.pop(0)
-                            if encoded(ref) in seen:continue
-                            if value['kind'] not in {'model-call-input','model-call-output','model-provider-observation','native-governed-trace','native-governed-trace-event','native-governed-packet'}:
-                                raise ValueError('Private or unknown call evidence')
-                            if __import__('hashlib').sha256(value['bytes']).hexdigest()!=ref['sha256']:raise ValueError('Call evidence digest differs')
-                            records.append({'kind':value['kind'],'ref':ref,'bytes_base64':base64.b64encode(value['bytes']).decode('ascii')});seen.add(encoded(ref))
-                            children=[]
-                            if value['kind']=='native-governed-trace':children=json.loads(value['bytes'])['event_refs']
-                            elif value['kind']=='native-governed-trace-event':children=[json.loads(value['bytes'])['raw_ref']]
-                            for child in children:
-                                captured=self.trace_reader(child)
-                                if captured is None:raise ValueError('Exact owned trace packet is unavailable')
-                                queue.append((child,captured))
-
-        return {**state,'records':records,'unavailable_trace_refs':missing}
-    def handlers(self):return {'session_start':self.start,'session_inspect':self.inspect,'session_stop':self.stop,'session_export':self.export}
+            attempt=json.loads(self._public(attempt_ref))
+            self._export_traces(attempt.get('observation_refs',[]),records,seen,missing)
+        return {**state,'records':records,'unavailable_trace_refs':missing,'unavailable_opportunity_evidence':unavailable}
+    def handlers(self):return {'session_start':self.start,'session_inspect':self.inspect,'session_stop':self.stop,'session_export':self.export,'session_readiness':self.readiness}

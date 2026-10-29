@@ -4,11 +4,12 @@ from .records import encoded
 
 
 class CustodianService:
-    def __init__(self,requests,ledger,oracle,referee,signer,validate,authorized_sessions,*,session_grants=None,public_store=None,package_publisher=None,contain_session=None,qualification=None):
+    def __init__(self,requests,ledger,oracle,referee,signer,validate,authorized_sessions,*,session_grants=None,public_store=None,package_publisher=None,contain_session=None,qualification=None,readiness_inspector=None):
         self.requests,self.ledger,self.oracle,self.referee,self.signer,self.validate=requests,ledger,oracle,referee,signer,validate
         self.authorized_sessions=frozenset(authorized_sessions)
         self.grants=dict(session_grants or {});self.public=public_store;self.package_publisher=package_publisher;self.contain_session=contain_session
         self.qualification=qualification
+        self.readiness_inspector=readiness_inspector
     def _security(self,sid,operation,candidate_ref=None):
         from .qualification import require_qualification
         session_ref=self.grants.get(sid,{}).get('session_ref')
@@ -26,6 +27,14 @@ class CustodianService:
     async def state(self,ref):
         value=self._resolve(ref);state=self.ledger.state(value['session_id'])
         return {key:state[key] for key in ('used','cap','lifetime','lifetime_cap','final_sealed','halted')}
+    async def readiness(self,ref):
+        from .runtime_readiness import CustodianRuntimeReadiness
+        if type(self.readiness_inspector) is not CustodianRuntimeReadiness:raise ValueError('Installed custody readiness owner unavailable')
+        if self.public is None:raise ValueError('Original session reader unavailable')
+        session=self.public.get(ref);sid=session['session_id']
+        if sid not in self.authorized_sessions or self.grants.get(sid,{}).get('session_ref')!=ref:
+            raise PermissionError('Readiness session outside exact custody grant')
+        return await self.readiness_inspector.inspect(ref)
     async def halt(self,ref):
         value=self._resolve(ref);self.ledger.halt(value['session_id'])
         if self.contain_session is not None:await self.contain_session(value['session_id'])
@@ -82,5 +91,5 @@ class CustodianService:
                     # separate inactive-package publication is unavailable.
                     self.public.put({'record_kind':'rsi-package-publication-failure:1','session_result_ref':pin,'reason':type(exc).__name__})
         return signed
-    def handlers(self):return {'custodian_open':self.open,'custodian_state':self.state,'custodian_halt':self.halt,
+    def handlers(self):return {'custodian_open':self.open,'custodian_state':self.state,'custodian_halt':self.halt,'custodian_readiness':self.readiness,
         'custodian_evaluate':self.evaluate,'custodian_final':self.final,'custodian_sign_terminal':self.sign_terminal}

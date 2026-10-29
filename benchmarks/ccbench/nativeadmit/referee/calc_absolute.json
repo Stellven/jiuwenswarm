@@ -1,0 +1,21 @@
+{
+ "id": "calc_absolute",
+ "candidate": "calculate_absolute",
+ "tool": "calculate",
+ "defective": true,
+ "defect": "broad: signs discarded",
+ "witness": {
+  "values": [
+   -7,
+   2
+  ],
+  "mode": "json_numbers",
+  "operation": "sum"
+ },
+ "answer": "10958.32",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "15009.90",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

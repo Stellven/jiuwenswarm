@@ -1,0 +1,4 @@
+# Outcome X3: plan a research workflow from a request and a list of available capabilities
+Given a research request and the list of capabilities (tools or skills) available, produce a plan: the steps in order, what each step takes as input and produces as output, how you will know each step succeeded, and which parts of the request each step covers. If the request cannot be done with the available capabilities, say so and name what is missing instead of inventing steps. Do not run anything; only plan.
+Example input (short): request "Compare a new sorting routine to the existing one on the supplied dataset"; capabilities: build_code, run_benchmark, evaluate_results, write_report.
+Example output (short): 1 build_code -> 2 run_benchmark (baseline then new) -> 3 evaluate_results -> 4 write_report, each with success criteria.

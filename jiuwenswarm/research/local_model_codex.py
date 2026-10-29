@@ -22,9 +22,18 @@ MAX_RESPONSE_BYTES = 1024 * 1024
 MAX_PRIVATE_RECEIPT_BYTES = 4 * MAX_RESPONSE_BYTES
 PROOF_RESERVE_BYTES = 64 * 1024
 MODEL_KEYS = frozenset('id name model_name revision enabled context_window max_prompt_bytes timeout_s reasoning_effort'.split())
-INPUT_KEYS = frozenset('model prompt timeout_s codex_executable codex_sha256 account_fingerprint working_directory'.split())
+INPUT_KEYS = frozenset('model prompt timeout_s codex_executable codex_sha256 account_fingerprint working_directory native_model_catalog'.split())
+MODEL_CATALOG_SHA256 = '4b7773a08802e8e6bed67235babc173657784a3e422026688965afd6837f4364'
 ERRORS = frozenset('auth_failed invalid_request provider_error timeout network_error invalid_output CONTAINMENT_UNCERTAIN'.split())
 SYSTEM = 'Execute the supplied governed instruction. Tools are unavailable.'
+
+
+def packaged_model_catalog():
+    """Trusted installed metadata for host callers; never a client override."""
+    raw = Path(__file__).with_name('resources').joinpath('host_codex/model_catalog.json').read_bytes()
+    if hashlib.sha256(raw).hexdigest() != MODEL_CATALOG_SHA256:
+        raise ValueError('Pinned native model catalog changed')
+    return raw.decode('utf8')
 
 
 class Failure(Exception):
@@ -44,6 +53,9 @@ def _validate(payload):
     if not isinstance(payload, dict) or set(payload) != INPUT_KEYS:
         raise Failure('invalid_request')
     model = payload['model']
+    if (not isinstance(payload['native_model_catalog'], str)
+            or hashlib.sha256(payload['native_model_catalog'].encode('utf-8')).hexdigest() != MODEL_CATALOG_SHA256):
+        raise Failure('invalid_request')
     if not isinstance(model, dict) or set(model) != MODEL_KEYS:
         raise Failure('invalid_request')
     for key in ('id', 'name', 'model_name', 'revision'):
@@ -99,15 +111,22 @@ def child_environment(profile):
     return env
 
 
-def arguments(binary, effort):
-    overrides = {
+def native_thread_configuration(effort, model_catalog):
+    return {
         'forced_login_method': 'chatgpt', 'model_reasoning_effort': effort,
         'approval_policy': 'never', 'sandbox_mode': 'read-only', 'web_search': 'disabled',
         'project_doc_max_bytes': 0, 'features.shell_tool': False, 'features.apps': False,
         'features.js_repl': False, 'features.apply_patch_freeform': False,
         'features.unified_exec': False, 'features.skill_mcp_dependency_install': False,
         'tools.view_image': False, 'mcp_servers': {},
+        'features.view_image': False, 'features.multi_agent': False, 'features.goals': False,
+        'tools.experimental_request_user_input.enabled': False,
+        'model_catalog_json': str(model_catalog),
     }
+
+
+def arguments(binary, effort, model_catalog):
+    overrides = native_thread_configuration(effort, model_catalog)
     argv = [str(binary), 'app-server', '--listen', 'stdio://']
     for key, value in overrides.items():
         argv.extend(['-c', key + '=' + json.dumps(value)])
@@ -202,6 +221,7 @@ async def execute_async(payload, *, spawn=None, profile_resolver=None):
         'wire_frames': [], 'error_code': None, 'outcome': 'failed'}
     proc = None
     work = None
+    catalog_file = None
     thread_id = turn_id = None
     turn_submitted = terminal = False
     seq = 0
@@ -341,13 +361,18 @@ async def execute_async(payload, *, spawn=None, profile_resolver=None):
         profile = (profile_resolver or native_profile)()
         bundle['binary_sha256'] = payload['codex_sha256']
         work = Path(tempfile.mkdtemp(prefix='ai4r-codex-', dir=root))
+        fd, catalog_name = tempfile.mkstemp(prefix='ai4r-native-metadata-', suffix='.json', dir=root)
+        catalog_file = Path(catalog_name)
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(payload['native_model_catalog'].encode('utf-8'))
+            stream.flush(); os.fsync(stream.fileno())
         kwargs = {'cwd': str(work), 'env': child_environment(profile),
             'stdin': asyncio.subprocess.PIPE, 'stdout': asyncio.subprocess.PIPE,
             'stderr': asyncio.subprocess.DEVNULL, 'limit': MAX_RESPONSE_BYTES + 1}
         if os.name == 'nt':
             kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
         proc = await asyncio.wait_for((spawn or asyncio.create_subprocess_exec)(
-            *arguments(binary, model['reasoning_effort']), **kwargs), max(0.001, main_deadline-time.monotonic()))
+            *arguments(binary, model['reasoning_effort'], catalog_file), **kwargs), max(0.001, main_deadline-time.monotonic()))
         await request('initialize', {'clientInfo': {'name': 'ai4r_host_codex', 'version': '0.1.0'},
             'capabilities': {'experimentalApi': True, 'optOutNotificationMethods': [
                 'item/agentMessage/delta', 'item/reasoning/textDelta', 'item/reasoning/summaryTextDelta']}}, main_deadline)
@@ -366,7 +391,7 @@ async def execute_async(payload, *, spawn=None, profile_resolver=None):
             'approvalPolicy': 'never', 'modelProvider': 'ai4r_governed',
             'model': model['model_name'], 'ephemeral': True, 'allowProviderModelFallback': False,
             'developerInstructions': SYSTEM, 'config': {
-                'model_reasoning_effort': model['reasoning_effort'],
+                **native_thread_configuration(model['reasoning_effort'], catalog_file),
                 'model_providers.ai4r_governed.name': 'AI4Research governed subscription',
                 'model_providers.ai4r_governed.wire_api': 'responses',
                 'model_providers.ai4r_governed.requires_openai_auth': True,
@@ -466,6 +491,9 @@ async def execute_async(payload, *, spawn=None, profile_resolver=None):
         return {'outcome': bundle['outcome'], 'http_status': None,
             'response_text': _json(packed), 'provider_request_id': turn_id}
 
+    if catalog_file is not None and (proc is None or proc.returncode is not None):
+        try: catalog_file.unlink()
+        except OSError: pass
     frames = bundle['wire_frames']
     complete_trace = (observed_frames == len(frames) and observed_bytes == sum(len(f['raw'].encode('utf-8')) for f in frames))
     response = response_for(frames, complete_trace)
@@ -527,7 +555,8 @@ def main():
     except Exception:
         result = {'outcome': 'failed', 'http_status': None,
                   'response_text': None, 'provider_request_id': None}
-    sys.stdout.write(json.dumps(result, ensure_ascii=False, allow_nan=False, separators=(',', ':')))
+    sys.stdout.buffer.write(_json(result).encode('utf-8'))
+    sys.stdout.buffer.flush()
 
 
 if __name__ == '__main__':

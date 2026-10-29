@@ -1,0 +1,182 @@
+{
+  "schema": "ai4r-rsi-capsule-readable-benchmark-summary:1",
+  "capsule_name": "utility.calculate",
+  "original_report_sha256": "5754859eac5cdac67e6bc426a11b56ca5ae518f259fb9a99758f93c35ba067b1",
+  "candidate_sha256": "0fb940f090431ba01ef940ad7e3dc54b2a14e1749e0f9a2e62d2cccd9522bb70",
+  "parent_sha256": "22e37d0e3045d46c8b689ab56d699c09f08d0f6bdb045f93fd997b202256ae49",
+  "protocol_sha256": "905740b653c8e3c46e0deafa80d69bfb3b6b9501a876ff65efd398eb29d5efb8",
+  "runtime_manifest_sha256": "95e4b2f607dc9768f8d33f2e15ba88600c148505e3761b4a6b286e530fcf944b",
+  "metric": "amortized protected process wall per fixed full-execution batch; initialization/input guard included",
+  "original_single_invocation_latency": "separately reported in native public run; no latency improvement claim here",
+  "frozen_comparison": {
+    "schema": "ai4r-rsi-capsule-performance-comparison:1",
+    "capsule_name": "utility.calculate",
+    "median_ratio": 0.8321761733497889,
+    "relative_gain": 0.16782382665021112,
+    "ratio_confidence_interval": [
+      0.8185217253623219,
+      0.8417550863553439
+    ],
+    "correctness_passed": true,
+    "objective_met": true,
+    "rows": [
+      {
+        "id": "small-numbers",
+        "median_ratio": 0.8066675710112525,
+        "relative_gain": 0.19333242898874747,
+        "regression": false
+      },
+      {
+        "id": "large-numbers",
+        "median_ratio": 0.8543369331894676,
+        "relative_gain": 0.14566306681053243,
+        "regression": false
+      },
+      {
+        "id": "wide-numbers",
+        "median_ratio": 0.820449711090694,
+        "relative_gain": 0.17955028890930602,
+        "regression": false
+      },
+      {
+        "id": "large-decimals",
+        "median_ratio": 0.8413980631717547,
+        "relative_gain": 0.1586019368282453,
+        "regression": false
+      },
+      {
+        "id": "small-decimals",
+        "median_ratio": 0.8201475089392516,
+        "relative_gain": 0.1798524910607484,
+        "regression": false
+      },
+      {
+        "id": "large-mixed-sign",
+        "median_ratio": 0.8403496413949503,
+        "relative_gain": 0.15965035860504972,
+        "regression": false
+      },
+      {
+        "id": "wide-reordered",
+        "median_ratio": 0.8215735498075524,
+        "relative_gain": 0.17842645019244763,
+        "regression": false
+      },
+      {
+        "id": "decimal-exponents",
+        "median_ratio": 0.8537810754011907,
+        "relative_gain": 0.14621892459880925,
+        "regression": false
+      }
+    ],
+    "qualification": "local development evidence only; security deferred; no admission or activation"
+  },
+  "supplementary_per_workload_uncertainty": [
+    {
+      "workload": "decimal-exponents",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8537810754011907,
+      "median_relative_gain": 0.14621892459880925,
+      "supplementary_ratio_confidence_interval": [
+        0.8391611718228268,
+        0.8600760375691692
+      ],
+      "ratio_relative_mad": 0.011588978399156258,
+      "parent_amortized_median_ms": 206.95526284980588,
+      "candidate_amortized_median_ms": 177.15923379982996
+    },
+    {
+      "workload": "large-decimals",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8413980631717547,
+      "median_relative_gain": 0.1586019368282453,
+      "supplementary_ratio_confidence_interval": [
+        0.8169606592957647,
+        0.8500872157476576
+      ],
+      "ratio_relative_mad": 0.023633627296979463,
+      "parent_amortized_median_ms": 220.17444129996875,
+      "candidate_amortized_median_ms": 188.16185145005875
+    },
+    {
+      "workload": "large-mixed-sign",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8403496413949503,
+      "median_relative_gain": 0.15965035860504972,
+      "supplementary_ratio_confidence_interval": [
+        0.8239358648419642,
+        0.8588941479607962
+      ],
+      "ratio_relative_mad": 0.019532080153850908,
+      "parent_amortized_median_ms": 226.20503649995953,
+      "candidate_amortized_median_ms": 189.88968945013767
+    },
+    {
+      "workload": "large-numbers",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8543369331894676,
+      "median_relative_gain": 0.14566306681053243,
+      "supplementary_ratio_confidence_interval": [
+        0.8134249394162109,
+        0.9066174011096922
+      ],
+      "ratio_relative_mad": 0.047887422612670316,
+      "parent_amortized_median_ms": 240.85226759998477,
+      "candidate_amortized_median_ms": 206.22497035001288
+    },
+    {
+      "workload": "small-decimals",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8201475089392516,
+      "median_relative_gain": 0.1798524910607484,
+      "supplementary_ratio_confidence_interval": [
+        0.7333750013431101,
+        0.8341223243501648
+      ],
+      "ratio_relative_mad": 0.051111238105637814,
+      "parent_amortized_median_ms": 1.6988209809933323,
+      "candidate_amortized_median_ms": 1.3436768999963533
+    },
+    {
+      "workload": "small-numbers",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8066675710112525,
+      "median_relative_gain": 0.19333242898874747,
+      "supplementary_ratio_confidence_interval": [
+        0.7897363159712267,
+        0.8639764031930189
+      ],
+      "ratio_relative_mad": 0.038080296102830896,
+      "parent_amortized_median_ms": 1.5331107959937071,
+      "candidate_amortized_median_ms": 1.2680679309996776
+    },
+    {
+      "workload": "wide-numbers",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.820449711090694,
+      "median_relative_gain": 0.17955028890930602,
+      "supplementary_ratio_confidence_interval": [
+        0.8142102216075615,
+        0.8374233052882564
+      ],
+      "ratio_relative_mad": 0.009052006944779869,
+      "parent_amortized_median_ms": 382.685996049986,
+      "candidate_amortized_median_ms": 315.07158079984947
+    },
+    {
+      "workload": "wide-reordered",
+      "pairs": 11,
+      "median_candidate_parent_ratio": 0.8215735498075524,
+      "median_relative_gain": 0.17842645019244763,
+      "supplementary_ratio_confidence_interval": [
+        0.8080329331691705,
+        0.8295729008917332
+      ],
+      "ratio_relative_mad": 0.010024707281060804,
+      "parent_amortized_median_ms": 393.21914319989446,
+      "candidate_amortized_median_ms": 322.80336125004396
+    }
+  ],
+  "receipt_custody": "Original Root evaluator/publication must separately reconcile every receipt; this file is derived analysis.",
+  "security": "UNQUALIFIED; security deferred; no admission or activation"
+}

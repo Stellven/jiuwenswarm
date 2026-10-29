@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:evaluation-recording-decision:1.0.0",
+  "title": "Private diagnostic recording decision",
+  "description": "Neutral transport shape only. Never a product gate, acceptance commit or live scheduler decision.",
+  "type": "object",
+  "properties": {
+    "contract_ref": {
+      "$ref": "#/$defs/ref"
+    },
+    "check_plan_ref": {
+      "$ref": "#/$defs/ref"
+    },
+    "output_port": {
+      "type": "string",
+      "minLength": 1
+    },
+    "output_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ref"
+      },
+      "minItems": 1
+    },
+    "deterministic_result_ref": {
+      "$ref": "#/$defs/ref"
+    },
+    "assessment_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "verifier_check_ref": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ref"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "verdict": {
+      "enum": [
+        "PASS",
+        "PASS_WITH_KNOWN_LIMITATIONS",
+        "FAIL",
+        "ENVIRONMENT_BLOCKED",
+        "INCONCLUSIVE"
+      ]
+    },
+    "action": {
+      "enum": [
+        "advance",
+        "halt"
+      ]
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1
+    },
+    "accepted": {
+      "const": false
+    },
+    "invalid_for_product": {
+      "const": true
+    }
+  },
+  "required": [
+    "contract_ref",
+    "check_plan_ref",
+    "output_port",
+    "output_refs",
+    "deterministic_result_ref",
+    "assessment_ref",
+    "verifier_check_ref",
+    "verdict",
+    "action",
+    "reasons",
+    "accepted",
+    "invalid_for_product"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "ref": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

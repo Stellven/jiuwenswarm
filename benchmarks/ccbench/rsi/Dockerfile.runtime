@@ -1,0 +1,6 @@
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
+ARG PARTNER_COMMIT
+LABEL org.ai4r.benchmark.partner-commit=$PARTNER_COMMIT
+LABEL org.ai4r.benchmark.scope="private-t1-rsi"
+COPY --chown=0:0 jiuwenswarm/ /opt/ai4r/jiuwenswarm/

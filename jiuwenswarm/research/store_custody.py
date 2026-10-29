@@ -155,6 +155,13 @@ class CustodyStore:
     def record_kind(self, ref):
         return self._call("record_kind", [ref])
 
+    def record_ref(self, record_id):
+        return self._call("record_ref", [record_id])
+
+    def iter_records(self, *, run_id=None, kinds=None):
+        """Read-only scan used by the Builder host; the worker owns the database."""
+        return iter(self._call("iter_records", [], {"run_id": run_id, "kinds": None if kinds is None else list(kinds)}))
+
     def validate_evaluation_executor_binding(self, request, response):
         """Read-only private ownership check; no registration, claim or effect."""
         return self._call("validate_evaluation_executor_binding", [request, response])
@@ -221,7 +228,7 @@ def worker(state, transfers, input_root):
                 operation, args, kwargs = request["operation"], request["args"], request["kwargs"]
                 allowed = {"read_record", "record_kind", "put_record", "append_record", "read_blob", "put_blob",
                            "validate_evaluation_executor_binding",'validate_invocation_preparation','attempt_resource_disposition',
-                           'resolve_original_run_inputs'}
+                           'resolve_original_run_inputs','record_ref','iter_records'}
                 if operation not in allowed or not isinstance(args, list) or not isinstance(kwargs, dict):
                     raise ValueError
                 if operation == 'validate_invocation_preparation':
@@ -241,6 +248,11 @@ def worker(state, transfers, input_root):
                     from .run_inputs import resolve_original_run_inputs
                     provenance=resolve_original_run_inputs(store,args[0])
                     result=None if provenance is None else provenance.record
+                elif operation == 'iter_records':
+                    if args or set(kwargs) != {'run_id', 'kinds'}:
+                        raise ValueError
+                    result = list(store.iter_records(run_id=kwargs['run_id'],
+                        kinds=None if kwargs['kinds'] is None else tuple(kwargs['kinds'])))
                 elif operation == 'validate_evaluation_executor_binding':
                     if len(args) != 2 or kwargs:
                         raise ValueError
@@ -277,7 +289,7 @@ def worker(state, transfers, input_root):
                 else:
                     operations = {'read_record', 'record_kind', 'put_record', 'append_record', 'read_blob', 'put_blob',
                         'validate_evaluation_executor_binding', 'validate_invocation_preparation',
-                        'attempt_resource_disposition', 'resolve_original_run_inputs'}
+                        'attempt_resource_disposition', 'resolve_original_run_inputs', 'record_ref', 'iter_records'}
                     codes = {'budget_exhausted', 'executor_preparation_authorization', 'attempt_resources',
                         'run_inputs', 'contract_invalid', 'evidence_unavailable', 'integrity_fault',
                         'input_authority', 'check_binding', 'AUDIT_UNAVAILABLE'}

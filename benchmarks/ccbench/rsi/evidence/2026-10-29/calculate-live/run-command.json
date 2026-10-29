@@ -1,0 +1,1 @@
+["/var/tmp/m1plus-analysis-8f4Uyp/venv/bin/python", "-B", "/opt/ai4r-t1-rsi-calculate-20261028-r4/task3-code/run_t1_rsi.py", "run", "--out", "/opt/ai4r-t1-rsi-calculate-20261028-r4/t1", "--calls-per-attempt", "80", "--total-call-budget", "320", "--binary", "/mnt/d/Codex Development Runs/rsi-host-codex/native-bin-0.163.0/extracted/codex_cli_bin/bin/codex.exe"]

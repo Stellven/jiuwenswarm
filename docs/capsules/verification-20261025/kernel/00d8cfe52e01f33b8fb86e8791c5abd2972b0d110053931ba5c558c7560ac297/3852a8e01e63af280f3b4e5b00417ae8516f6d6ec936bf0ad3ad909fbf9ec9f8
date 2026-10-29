@@ -1,2 +1,0 @@
-{"type": "item.started", "item": {"id": "0", "type": "command_execution", "command": "pwd"}}
-{"type": "item.started", "item": {"id": "1", "type": "command_execution", "command": "pwd"}}

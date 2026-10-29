@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-preparation-request:1",
+  "type": "object", "additionalProperties": false, "required": ["schema", "operation", "parameters"],
+  "properties": {"schema": {"const": "ai4r-rsi-preparation-request:1"}, "operation": {"type": "string"}, "parameters": {"type": "object"}},
+  "oneOf": [
+    {"properties": {"operation": {"const": "prepare-ranking"}, "parameters": {"type": "object", "additionalProperties": false,
+      "required": ["parent_ref", "parent_declaration_ref", "author", "origin_ref", "generator_ref", "prior_preparation_refs", "populations", "max_rows", "seed"],
+      "properties": {"parent_ref": {"$ref": "#/$defs/Ref"}, "parent_declaration_ref": {"$ref": "#/$defs/Ref"},
+        "author": {"type": "string", "minLength": 1, "maxLength": 128}, "origin_ref": {"$ref": "#/$defs/Ref"}, "generator_ref": {"$ref": "#/$defs/Ref"},
+        "prior_preparation_refs": {"$ref": "#/$defs/Refs"}, "max_rows": {"const": 3},
+        "seed": {"anyOf": [{"type": "null"}, {"type": "string", "minLength": 16, "maxLength": 256}]},
+        "populations": {"type": "object", "additionalProperties": false, "required": ["development", "hidden_loop", "hidden_final", "platform"],
+          "properties": {"development": {"type": "integer", "minimum": 1, "maximum": 256}, "platform": {"type": "integer", "minimum": 1, "maximum": 256},
+            "hidden_loop": {"type": "integer", "minimum": 20, "maximum": 256}, "hidden_final": {"type": "integer", "minimum": 20, "maximum": 256}}}}}}},
+    {"properties": {"operation": {"const": "plan-calibration"}, "parameters": {"type": "object", "additionalProperties": false,
+      "required": ["preparation_ref", "review_ref", "target_ref", "fixture_manifest_ref", "session_ref", "worker_profile_ref", "invocation_wall_s", "evidence_wall_s", "wall_s"],
+      "properties": {"preparation_ref": {"$ref": "#/$defs/Ref"}, "review_ref": {"$ref": "#/$defs/Ref"}, "target_ref": {"$ref": "#/$defs/Ref"},
+        "fixture_manifest_ref": {"$ref": "#/$defs/Ref"}, "session_ref": {"$ref": "#/$defs/Ref"}, "worker_profile_ref": {"$ref": "#/$defs/Ref"},
+        "invocation_wall_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 300}, "evidence_wall_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 3600},
+        "wall_s": {"type": "integer", "minimum": 1, "maximum": 3600}}}}},
+    {"properties": {"operation": {"const": "prepare-materials"}, "parameters": {"type": "object", "additionalProperties": false,
+      "required": ["plan_ref", "parent_body_refs"], "properties": {"plan_ref": {"$ref": "#/$defs/Ref"},
+        "parent_body_refs": {"type": "object", "minProperties": 1, "maxProperties": 64, "additionalProperties": {"$ref": "#/$defs/Ref"}}}}}},
+    {"properties": {"operation": {"const": "collect-calibration"}, "parameters": {"type": "object", "additionalProperties": false,
+      "required": ["plan_ref"], "properties": {"plan_ref": {"$ref": "#/$defs/Ref"}}}}},
+    {"properties": {"operation": {"const": "verify-freeze"}, "parameters": {"type": "object", "additionalProperties": false,
+      "required": ["plan_ref", "collection_ref", "template_ref"], "properties": {"plan_ref": {"$ref": "#/$defs/Ref"}, "collection_ref": {"$ref": "#/$defs/Ref"}, "template_ref": {"$ref": "#/$defs/Ref"}}}}}
+  ],
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "Refs": {"type": "array", "maxItems": 128, "uniqueItems": true, "items": {"$ref": "#/$defs/Ref"}}}
+}

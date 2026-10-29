@@ -1,0 +1,714 @@
+{
+ "json_minmax": {
+  "decoys": [],
+  "deliverables": [
+   {
+    "expected": "95",
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "ms",
+     "min"
+    ]
+   },
+   {
+    "expected": "143",
+    "id": "D2",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "ms",
+     "max"
+    ]
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s2",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.table_normalize",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "latency"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.calculate",
+     "covers": [
+      "D1",
+      "D2"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "mean_report": {
+  "decoys": [],
+  "deliverables": [
+   {
+    "expected": "0.855",
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "accuracy",
+     "mean"
+    ]
+   },
+   {
+    "id": "D2",
+    "kind": "file",
+    "path": "accuracy_report.md",
+    "sha256": "c9e8a1983b57fe12554e23a41eec745d5f644268491d5c3af1aa00227c9406c5",
+    "size": 228
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s3",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.table_normalize",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "runs"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.calculate",
+     "covers": [
+      "D1"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.markdown_report",
+     "covers": [
+      "D2"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s2"
+     ],
+     "id": "s3",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s2"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "missing_final": {
+  "category": "missing_input",
+  "decoys": [],
+  "deliverables": [],
+  "feasible": false,
+  "missing": "the input results_final (only results_draft was supplied)",
+  "reason_regex": "results_final|final (result|packet|file|data)"
+ },
+ "missing_pdf": {
+  "category": "missing_input",
+  "decoys": [],
+  "deliverables": [],
+  "feasible": false,
+  "missing": "the paper document (no document input was supplied)",
+  "reason_regex": "document|pdf|paper|buffer|attach|source text"
+ },
+ "need_chart": {
+  "category": "missing_capability",
+  "decoys": [],
+  "deliverables": [],
+  "feasible": false,
+  "missing": "chart or image rendering",
+  "reason_regex": "chart|plot|graph|image|png|draw|figure|visuali"
+ },
+ "need_median": {
+  "category": "missing_capability",
+  "decoys": [],
+  "deliverables": [],
+  "feasible": false,
+  "missing": "a median operation (only count, sum, mean, min, max exist)",
+  "reason_regex": "median"
+ },
+ "normalize_report": {
+  "decoys": [],
+  "deliverables": [
+   {
+    "expected": {
+     "columns": [
+      "item",
+      "count"
+     ],
+     "rows": [
+      [
+       "bolt",
+       "10"
+      ],
+      [
+       "nut",
+       "25"
+      ],
+      [
+       "washer",
+       "40"
+      ]
+     ]
+    },
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "table"
+    ]
+   },
+   {
+    "id": "D2",
+    "kind": "file",
+    "path": "items_report.md",
+    "sha256": "59d0cd535af4f648aa4d4983a5f2378894874a0ce7fa340ad7545168425885b9",
+    "size": 265
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s2",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.table_normalize",
+     "covers": [
+      "D1"
+     ],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "inventory"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.packet_report",
+     "covers": [
+      "D2"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "pick_fahrenheit": {
+  "decoys": [
+   "temps_c"
+  ],
+  "deliverables": [
+   {
+    "expected": "77",
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "temp",
+     "max"
+    ]
+   },
+   {
+    "expected": "64",
+    "id": "D2",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "temp",
+     "min"
+    ]
+   },
+   {
+    "id": "D3",
+    "kind": "file",
+    "path": "temps_report.md",
+    "sha256": "beb6a4e30729ec63af3397580db9e8e2aa5a0aa508d733eebe6c623b0ae5ac9c",
+    "size": 233
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s3",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.table_normalize",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "temps_f"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.calculate",
+     "covers": [
+      "D1",
+      "D2"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.markdown_report",
+     "covers": [
+      "D3"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s2"
+     ],
+     "id": "s3",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s2"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "pick_q2": {
+  "decoys": [
+   "q1_sales"
+  ],
+  "deliverables": [
+   {
+    "expected": "80",
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "units",
+     "sum"
+    ]
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s2",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.table_normalize",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "q2_sales"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.calculate",
+     "covers": [
+      "D1"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "sum_csv": {
+  "decoys": [],
+  "deliverables": [
+   {
+    "expected": "60.75",
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "revenue",
+     "sum"
+    ]
+   },
+   {
+    "expected": 3,
+    "id": "D2",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "revenue",
+     "count"
+    ]
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s2",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.table_normalize",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "sales"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.calculate",
+     "covers": [
+      "D1",
+      "D2"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "summary_report": {
+  "decoys": [],
+  "deliverables": [
+   {
+    "id": "D1",
+    "kind": "file",
+    "path": "converted/paper-summary.md",
+    "sha256": "0152103c0e85acf5e29ec2830a38d7aae39c20af489e8261a5c2a28343404e82",
+    "size": 2180
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s2",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.summary_to_packet",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "paper"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.packet_report",
+     "covers": [
+      "D1"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ },
+ "table_ready": {
+  "decoys": [],
+  "deliverables": [
+   {
+    "expected": "0.75",
+    "id": "D1",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "score",
+     "mean"
+    ]
+   },
+   {
+    "expected": "1.0",
+    "id": "D2",
+    "kind": "value",
+    "locator": [
+     "data",
+     "calculation_result",
+     "columns",
+     "score",
+     "max"
+    ]
+   },
+   {
+    "id": "D3",
+    "kind": "file",
+    "path": "score_report.md",
+    "sha256": "720c6214a4d9367020f13d161cabe91bc1948ee8827914793ba78d83e1d273c1",
+    "size": 225
+   }
+  ],
+  "feasible": true,
+  "reference_plan": {
+   "complete_claim": true,
+   "final": "s2",
+   "issues": [],
+   "kind": "plan",
+   "steps": [
+    {
+     "capability": "utility.calculate",
+     "covers": [],
+     "criteria": [],
+     "depends_on": [],
+     "id": "s1",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "external": "metrics"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    },
+    {
+     "capability": "utility.markdown_report",
+     "covers": [
+      "D1",
+      "D2",
+      "D3"
+     ],
+     "criteria": [],
+     "depends_on": [
+      "s1"
+     ],
+     "id": "s2",
+     "inputs": [
+      {
+       "param": "packet",
+       "src": {
+        "output": "result",
+        "step": "s1"
+       }
+      }
+     ],
+     "outputs": [
+      "result"
+     ]
+    }
+   ]
+  }
+ }
+}

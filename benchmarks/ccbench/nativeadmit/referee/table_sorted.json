@@ -1,0 +1,21 @@
+{
+ "id": "table_sorted",
+ "candidate": "table_normalize_sorted",
+ "tool": "table_normalize",
+ "defective": true,
+ "defect": "medium: row reordering",
+ "witness": {
+  "text": "x\nz\na\n",
+  "format": "csv",
+  "columns": [
+   "x"
+  ],
+  "delimiter": ","
+ },
+ "answer": "18.75",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "27.76",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

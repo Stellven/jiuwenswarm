@@ -1,0 +1,161 @@
+{
+  "schema": "ai4r-rsi-delivery-evidence:1",
+  "date": "2026-10-29",
+  "timezone": "America/Toronto",
+  "scope": "development and benchmark evidence; no production admission or activation",
+  "source_base_commit": "106659ef194e7c5e788c6cc8f007b2dc670f4db4",
+  "source_state": "Base plus captured uncommitted changes; exact executed source snapshots are in the full archive.",
+  "archive": {
+    "filename": "AI4R CC and RSI - consolidated evidence - 2026-10-29.zip",
+    "bytes": 1508393850,
+    "sha256": "b45374567726c706cc5b98182580b0eaf2fbc82bfee3d1af930b69a9756a8656",
+    "location": "External local artifact on the owner Desktop; no shared download URL published yet.",
+    "format_note": "ZIP64 with 162510 entries; use a ZIP64-capable extractor if Windows Explorer cannot open it."
+  },
+  "files": [
+    {
+      "path": "calculate/selected-body.py",
+      "bytes": 5059,
+      "sha256": "566844da3d983eac4032e141bf14e04c2b61c4ea389d1e50637f981de8f16896",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\calculate-r6\\selected-body.py"
+    },
+    {
+      "path": "calculate/selection.json",
+      "bytes": 272,
+      "sha256": "3597a62a9b7f6d4d359b797451003a9185eb319b87d571a301f43246d37e73ac",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\calculate-r6\\selection.json"
+    },
+    {
+      "path": "calculate/selected-benchmark.json",
+      "bytes": 48668,
+      "sha256": "86511555662c2483b8ecc8aa8376e7ba324c1bf3ddf5baaff6883034627858f4",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\calculate-r6\\selected-benchmark.json"
+    },
+    {
+      "path": "calculate/parent-aa-benchmark.json",
+      "bytes": 48592,
+      "sha256": "cc082a1a5ed38b8655ebac4a3dc72d430c6e315f8819029eb270ed90a0a2f8e9",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\calculate-r6\\parent-aa-benchmark.json"
+    },
+    {
+      "path": "calculate/complete.json",
+      "bytes": 5003,
+      "sha256": "bd668489424b515b882576ab8577bcb6c2bd96ae558f502e7409981cf175d88a",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\calculate-r6\\complete.json"
+    },
+    {
+      "path": "normalize/selected-body.py",
+      "bytes": 1490,
+      "sha256": "6daae550126d7b6a5a328e20dfb9e8c41fd5e9676242f229177107504bad5987",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\selected-body.py"
+    },
+    {
+      "path": "normalize/selection.json",
+      "bytes": 272,
+      "sha256": "6b21664c24a0049d55cc74937249b1490731f291c15fc95fbc2d19457e0d24e5",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\selection.json"
+    },
+    {
+      "path": "normalize/selected-benchmark.json",
+      "bytes": 46657,
+      "sha256": "fc8a2261a196156d9bcaa8bd30227fe9bf70b56099f1ab5138331a7d5701a877",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\selected-benchmark.json"
+    },
+    {
+      "path": "normalize/parent-aa-benchmark.json",
+      "bytes": 58702,
+      "sha256": "85abab41e599a470a5c1450a7f585bcc188270975d96504a90007b896f0aa81a",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\parent-aa-benchmark.json"
+    },
+    {
+      "path": "normalize/summary.json",
+      "bytes": 4052,
+      "sha256": "ce08c7011d19c0c5a84a1e1d0388ac507a9ad1bf98a8f5c8cd67615857cfe8c6",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\summary.json"
+    },
+    {
+      "path": "normalize/containment-observation.json",
+      "bytes": 1599,
+      "sha256": "20a70f59e477b90970e8ae32c2e7fafdc5ae79d10b1f58a7d32a8f361751d487",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\containment-observation.json"
+    },
+    {
+      "path": "normalize/uncertain-completion.json",
+      "bytes": 677,
+      "sha256": "d6becf3b2eae20bfae2a19d811584a3e8778194b08b8369f7f43ab5e9c09e277",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\live-rsi-20261028\\normalize-r2\\uncertain-completion.json"
+    },
+    {
+      "path": "parse-duration/selected-body.py",
+      "bytes": 895,
+      "sha256": "476e2e848ce551e5f5dba1fd28ac7dc565fe9c3dab5cb8914ab3406e2cd8d74e",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\selected-body.py"
+    },
+    {
+      "path": "parse-duration/parent-cc.py",
+      "bytes": 949,
+      "sha256": "0c60d0f6057dec9edcb03016134e743e211ddf6d9224643675b7a39a446f7f47",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\parent-cc.py"
+    },
+    {
+      "path": "parse-duration/selected-benchmark.json",
+      "bytes": 70080,
+      "sha256": "71575118067e6a28672005bf33251f03a2d7662acb6e53ba0e7ae28bef070db5",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\selected-benchmark.json"
+    },
+    {
+      "path": "parse-duration/parent-aa-benchmark.json",
+      "bytes": 70113,
+      "sha256": "48c1990f33b5f4fdffd0d32cc017845035a0ad294d11930554b1249d06df7cab",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\parent-aa-benchmark.json"
+    },
+    {
+      "path": "parse-duration/summary.json",
+      "bytes": 2971,
+      "sha256": "8047c09bd907ffdd57312d927f684005c25a8bbbf084c83f28e83708a7feae05",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\summary.json"
+    },
+    {
+      "path": "parse-duration/three-arm-comparison.json",
+      "bytes": 2243,
+      "sha256": "d4836bd90948712fa0a1f0031465ab830aef544bfb4f2182038496244e2e32f2",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\three-arm-comparison.json"
+    },
+    {
+      "path": "parse-duration/manifest.json",
+      "bytes": 1449,
+      "sha256": "9fbc74bd1a96c614d4441f2d87efd1cf82feed53b28889952a1c907738de6a1e",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\manifest.json"
+    },
+    {
+      "path": "parse-duration/contract.json",
+      "bytes": 382,
+      "sha256": "0c4fda8b8d0a5d0450c309a8061f550570cad8e3d2020ad2deebb23d747d19b4",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\parse-duration-rsi-20261028-r1\\results\\contract.json"
+    },
+    {
+      "path": "calculate-live/comparison/score-arms.json",
+      "bytes": 10657,
+      "sha256": "3afdae3fb2720c3f33213bd7f4bd1e5681821249bd7135536da27ed18508718e",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\t1-rsi-20261028-r4\\results\\comparison\\score-arms.json"
+    },
+    {
+      "path": "calculate-live/comparison/score-arms.md",
+      "bytes": 788,
+      "sha256": "50872481451180be12a435ad27ac34b6eab7eedc18966062e1a019fab3bde633",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\t1-rsi-20261028-r4\\results\\comparison\\score-arms.md"
+    },
+    {
+      "path": "calculate-live/selected-tool-execution.json",
+      "bytes": 2738,
+      "sha256": "1537009aaea4b4dcf09abec518bcb76249eefe780e6c1ad670cd15f805120174",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\t1-rsi-20261028-r4\\results\\selected-tool-execution.json"
+    },
+    {
+      "path": "calculate-live/run-command.json",
+      "bytes": 362,
+      "sha256": "9221a88e2a0d08a82f9071961887d7f47415bfff2aefd2b8f2c7a0106894d09f",
+      "source": "D:\\M1plus\\analysis-evidence\\integration\\t1-rsi-20261028-r4\\results\\run-command.json"
+    }
+  ]
+}

@@ -1,0 +1,127 @@
+[
+ {
+  "shipment_id": 9007199255139961,
+  "dest": "Antwerp",
+  "kg": 204.5
+ },
+ {
+  "shipment_id": 9007199255307749,
+  "dest": "Hamburg",
+  "kg": 126.0
+ },
+ {
+  "shipment_id": 9007199255198767,
+  "dest": "Rotterdam",
+  "kg": 361.5
+ },
+ {
+  "shipment_id": 9007199255150837,
+  "dest": "Hamburg",
+  "kg": 67.5
+ },
+ {
+  "shipment_id": 9007199255489929,
+  "dest": "Hamburg",
+  "kg": 164.0
+ },
+ {
+  "shipment_id": 9007199254933717,
+  "dest": "Antwerp",
+  "kg": 88.5
+ },
+ {
+  "shipment_id": 9007199254812121,
+  "dest": "Rotterdam",
+  "kg": 284.0
+ },
+ {
+  "shipment_id": 9007199254899049,
+  "dest": "Hamburg",
+  "kg": 15.0
+ },
+ {
+  "shipment_id": 9007199254999625,
+  "dest": "Rotterdam",
+  "kg": 62.5
+ },
+ {
+  "shipment_id": 9007199255413029,
+  "dest": "Rotterdam",
+  "kg": 375.0
+ },
+ {
+  "shipment_id": 9007199255102063,
+  "dest": "Rotterdam",
+  "kg": 228.0
+ },
+ {
+  "shipment_id": 9007199254959807,
+  "dest": "Rotterdam",
+  "kg": 264.5
+ },
+ {
+  "shipment_id": 9007199255258431,
+  "dest": "Antwerp",
+  "kg": 410.0
+ },
+ {
+  "shipment_id": 9007199255172313,
+  "dest": "Antwerp",
+  "kg": 158.0
+ },
+ {
+  "shipment_id": 9007199255090031,
+  "dest": "Hamburg",
+  "kg": 309.0
+ },
+ {
+  "shipment_id": 9007199254977205,
+  "dest": "Rotterdam",
+  "kg": 112.0
+ },
+ {
+  "shipment_id": 9007199254800127,
+  "dest": "Antwerp",
+  "kg": 380.0
+ },
+ {
+  "shipment_id": 9007199254919165,
+  "dest": "Hamburg",
+  "kg": 117.0
+ },
+ {
+  "shipment_id": 9007199255320953,
+  "dest": "Antwerp",
+  "kg": 359.5
+ },
+ {
+  "shipment_id": 9007199254926795,
+  "dest": "Rotterdam",
+  "kg": 52.0
+ },
+ {
+  "shipment_id": 9007199254991999,
+  "dest": "Hamburg",
+  "kg": 75.0
+ },
+ {
+  "shipment_id": 9007199254762003,
+  "dest": "Rotterdam",
+  "kg": 361.0
+ },
+ {
+  "shipment_id": 9007199255207899,
+  "dest": "Hamburg",
+  "kg": 250.0
+ },
+ {
+  "shipment_id": 9007199255280719,
+  "dest": "Hamburg",
+  "kg": 246.0
+ },
+ {
+  "shipment_id": 9007199255157443,
+  "dest": "Hamburg",
+  "kg": 377.0
+ }
+]

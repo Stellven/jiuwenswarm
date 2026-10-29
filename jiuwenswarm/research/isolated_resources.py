@@ -104,6 +104,21 @@ class IsolatedResources:
                 if nested['ref']==ref:return {'kind':nested['kind'],'bytes':nested['bytes']}
         return None
 
+    def validate_proposal_once(self,contract_ref):
+        """Read-only checks to the start fence; no clocks, claims or inference."""
+        contract=self.store.read_record(contract_ref,contract_id='subnode-execution-contract')
+        self.runner._require_child_authority(contract_ref,contract)
+        self.runner._require_check_assets(contract)
+        self.runner._decode_inputs(contract)
+        budget=self.runner._budget_state(contract,reserve=False)
+        if budget['spendable']['model_calls']<1:
+            raise ResearchError('budget_exhausted','Prepared work has no call after independent review reservations')
+        from .attempt_resources import attempt_resource_disposition
+        disposition=attempt_resource_disposition(self.store,contract['node_contract_ref'])
+        frozen=self.runner._run_contexts[contract['run_id']]
+        return {'budget':budget,'requires_broker':disposition.requires_broker,
+                'requested_model':frozen.get('requested_model'),'run_id':contract['run_id']}
+
     async def propose_once(self,contract_ref,prompt):
         """One normal claimed model invocation, without publishing acceptance.
 

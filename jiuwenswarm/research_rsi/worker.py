@@ -15,6 +15,7 @@ from pathlib import Path
 import stat
 import uuid
 from .records import RecordStore,encoded
+from .targets import registered_helper
 
 PROTOCOL='ai4r-rsi-worker:1'
 DENIED_PATHS=('/var/lib/ai4r','/var/lib/ai4r-accounts','/run/ai4r','/var/run/docker.sock',
@@ -27,14 +28,25 @@ DENIED_PATHS=('/var/lib/ai4r','/var/lib/ai4r-accounts','/run/ai4r','/var/run/doc
 WORKER_PROGRAM=b'''import json,runpy,sys\nmodule=runpy.run_path('/resources/body.py')\nvalue=json.load(open('/resources/input.json'))\nresult=module['rank_opportunities'](value['scores'])\nsys.stdout.write(json.dumps(result,sort_keys=True,separators=(',',':'),allow_nan=False))\n'''
 
 
-def timing_program(iterations):
+def worker_program(kind='ranking-v1',process_policy=None):
+    helper=registered_helper(kind)
+    from .process_policy import apply_policy
+    return apply_policy(("import json,runpy,sys\nmodule=runpy.run_path('/resources/body.py')\n"
+        "value=json.load(open('/resources/input.json'))\n"
+        f"result=module[{helper.entrypoint!r}](value[{helper.input_name!r}])\n"
+        "sys.stdout.write(json.dumps(result,sort_keys=True,separators=(',',':'),allow_nan=False))\n").encode(),process_policy)
+
+
+def timing_program(iterations,target_kind='ranking-v1',process_policy=None):
     if type(iterations) is not int or iterations<=0:raise ValueError('Frozen positive batch iteration count required')
+    helper=registered_helper(target_kind)
     # Host receipt wall time measures the whole identical batch externally.
     # No child-authored clock or reported duration is trusted by the referee.
-    return ("import json,runpy,sys\nmodule=runpy.run_path('/resources/body.py')\n"
+    from .process_policy import apply_policy
+    return apply_policy(("import json,runpy,sys\nmodule=runpy.run_path('/resources/body.py')\n"
         "value=json.load(open('/resources/input.json'))\n"
-        f"for _ in range({iterations}):\n result=module['rank_opportunities'](value['scores'])\n"
-        "sys.stdout.write(json.dumps(result,sort_keys=True,separators=(',',':'),allow_nan=False))\n").encode()
+        f"for _ in range({iterations}):\n result=module[{helper.entrypoint!r}](value[{helper.input_name!r}])\n"
+        "sys.stdout.write(json.dumps(result,sort_keys=True,separators=(',',':'),allow_nan=False))\n").encode(),process_policy)
 
 
 def ref(value):
@@ -50,7 +62,13 @@ def validate_request(value):
 
 def validate_profile(value):
     fields={'schema','target_kind','session_ref','target_ref','parent_ref','contract_ref','environment_ref','hardware_ref','memory_mb','pids_max','timeout_s'}
-    if not isinstance(value,dict) or set(value)!=fields or value['schema']!='ai4r-rsi-worker-profile:1' or value['target_kind']!='ranking-v1':raise ValueError('Unknown finite worker profile')
+    current=isinstance(value,dict) and value.get('schema')=='ai4r-rsi-worker-profile:3'
+    if not isinstance(value,dict) or set(value)!=fields|({'process_policy'} if current else set()) or value['schema'] not in {'ai4r-rsi-worker-profile:1','ai4r-rsi-worker-profile:2','ai4r-rsi-worker-profile:3'}:raise ValueError('Unknown finite worker profile')
+    if current:
+        from .process_policy import POLICY
+        if value['process_policy']!=POLICY:raise ValueError('Required helper process policy differs')
+    registered_helper(value['target_kind'])
+    if value['schema']=='ai4r-rsi-worker-profile:1' and value['target_kind']!='ranking-v1':raise ValueError('Historical profile supports ranking only')
     for name in ('session_ref','target_ref','parent_ref','contract_ref','environment_ref','hardware_ref'):ref(value[name])
     if type(value['memory_mb']) is not int or not 0<value['memory_mb']<=65536 or type(value['pids_max']) is not int or not 0<value['pids_max']<=256 or type(value['timeout_s']) not in (int,float) or not math.isfinite(value['timeout_s']) or not 0<value['timeout_s']<=300:raise ValueError('Worker limits widened')
     return value
@@ -80,20 +98,43 @@ class PublicBytes:
 
 
 class WorkerClient:
-    def __init__(self,*,socket_path,session_id,capability,requests,profile_ref,session_ref,hidden=False):
+    def __init__(self,*,socket_path,session_id,capability,requests,profile_ref,session_ref,hidden=False,timeout_s=300,target_kind='ranking-v1',batch_iterations=None,process_policy=None):
         from jiuwenswarm.research.private_rpc import PrivateRPCClient
+        if type(timeout_s) not in (int,float) or not math.isfinite(timeout_s) or not 0<timeout_s<=300:
+            raise ValueError('Bounded worker RPC wall time required')
+        self.timeout_s=timeout_s
+        registered_helper(target_kind)
+        if batch_iterations is not None and (type(batch_iterations) is not int or batch_iterations<=0):raise ValueError('Frozen positive batch iteration count required')
+        self.target_kind,self.batch_iterations=target_kind,batch_iterations
+        from .process_policy import POLICY
+        if process_policy not in (None,POLICY):raise ValueError('Unknown helper process policy')
+        self.process_policy=process_policy
         self.rpc=PrivateRPCClient(socket_path,protocol=PROTOCOL,session_id=session_id,capability=capability,peer_uid=0,socket_mode=0o660)
         self.requests,self.profile_ref,self.session_ref,self.hidden=requests,profile_ref,session_ref,hidden
     async def run(self,candidate_ref,inputs,*,phase,reservation_ref,repeat_index=0,timing=False):
+        if type(timing) is not bool:raise ValueError('Explicit timing mode required')
         if phase not in ({'hidden_loop','hidden_final','platform'} if self.hidden else {'development'}):raise ValueError('Worker phase is outside the caller role')
+        registered_helper(self.target_kind).validate_inputs(inputs)
+        if timing and (type(self.batch_iterations) is not int or self.batch_iterations<=0):raise ValueError('Frozen client timing batch count required')
         pin=self.requests.put(inputs)
         value=dict(profile_ref=self.profile_ref,session_ref=self.session_ref,candidate_ref=candidate_ref,input_ref=pin,
             reservation_ref=reservation_ref,phase=phase,repeat_index=repeat_index)
         if timing and (not self.hidden or phase not in {'hidden_final','platform'}):raise ValueError('Timing batches are custodian final-only')
-        try:response=await self.rpc.call('run_timing_batch' if timing else 'run_helper',validate_request(value),timeout_s=300)
-        except asyncio.CancelledError:
+        try:response=await self.rpc.call('run_timing_batch' if timing else 'run_helper',validate_request(value),timeout_s=self.timeout_s)
+        except (asyncio.CancelledError,asyncio.TimeoutError):
             await asyncio.shield(self.rpc.call('cancel_session',{'session_ref':self.session_ref},timeout_s=30))
             raise
+        from .session_policy import validate_private
+        validate_private('urn:ai4r:private:rsi-worker-response:2',response)
+        iterations=self.batch_iterations if timing else 1
+        policy=getattr(self,'process_policy',None)
+        program=timing_program(iterations,self.target_kind,policy) if timing else worker_program(self.target_kind,policy)
+        if (response['request']!=value or type(response['batch_iterations']) is not int
+                or response['batch_iterations']!=iterations or response['program_sha256']!=hashlib.sha256(program).hexdigest()):
+            raise ValueError('Authenticated worker response differs from exact request/program')
+        receipt=response['receipt']
+        expected=[receipt['stdout_ref'],receipt['stderr_ref'],receipt['observed_limits']['isolation_probe_ref']]
+        if [item['ref'] for item in response['captures']]!=expected:raise ValueError('Worker capture inventory differs from actual receipt')
         # Keep original raw protected captures with independently verified hashes.
         for item in response.get('captures',[]):
             raw=base64.b64decode(item['bytes_base64'],validate=True)
@@ -137,6 +178,7 @@ class WorkerBroker:
         for name in ('work','assets'):(self.root/name).mkdir(mode=0o711,exist_ok=True)
     async def run(self,value,*,timing=False):
         from jiuwenswarm.research.executor import ExecutionJob,ReadonlyMount
+        if type(timing) is not bool:raise ValueError('Explicit timing mode required')
         validate_request(value)
         profile=self.profiles.get(encoded(value['profile_ref']))
         if profile is None or profile['session_ref']!=value['session_ref'] or value['phase'] not in ({'hidden_loop','hidden_final','platform'} if self.hidden else {'development'}):raise ValueError('Unapproved worker scope')
@@ -149,12 +191,15 @@ class WorkerBroker:
         from .qualification import require_qualification
         require_qualification(getattr(self,'qualification',None),'trial',session_ref=value['session_ref'],
                               worker_profile_ref=value['profile_ref'],candidate_ref=value['candidate_ref'])
-        program=WORKER_PROGRAM
+        helper=registered_helper(profile['target_kind'])
+        policy=profile.get('process_policy')
+        program=worker_program(profile['target_kind'],policy);iterations=1
         if timing:
             if not self.hidden or value['phase'] not in {'hidden_final','platform'} or not str(reservation.get('operation','')).startswith('timing:'):
                 raise ValueError('Timing batch is outside custodian final reservation')
             target=self.public.get(profile['target_ref'])
-            program=timing_program(target['scoring']['batch_iterations'])
+            iterations=target['scoring']['batch_iterations']
+            program=timing_program(iterations,profile['target_kind'],policy)
         claim=(encoded(value['reservation_ref']),value['repeat_index'],encoded(value['input_ref']))
         async with self.lock:
             if claim in self.claims:raise ValueError('Worker operation already issued; reconcile without replay')
@@ -165,7 +210,7 @@ class WorkerBroker:
         with claim_path.open('xb') as stream:stream.write(encoded(value));stream.flush();os.fsync(stream.fileno())
         raw=self.public.read(value['candidate_ref']);inputs=self.inputs.read(value['input_ref'])
         data=json.loads(inputs)
-        if not isinstance(data,dict) or set(data)!={'scores'} or not isinstance(data['scores'],list):raise ValueError('Unknown legitimate helper input')
+        helper.validate_inputs(data)
         ident='rsi-'+uuid.uuid4().hex;assets=self.root/'assets'/ident;assets.mkdir(mode=0o755)
         mounts=[]
         for name,body in [('worker.py',program),('body.py',raw),('input.json',inputs)]:
@@ -184,7 +229,8 @@ class WorkerBroker:
         captures=[]
         for pin in [receipt['stdout_ref'],receipt['stderr_ref'],receipt['observed_limits']['isolation_probe_ref']]:
             captures.append({'ref':pin,'bytes_base64':base64.b64encode(self.capture.read(pin)).decode('ascii')})
-        return {'receipt':receipt,'captures':captures}
+        return {'schema':'ai4r-rsi-worker-response:2','request':value,'receipt':receipt,'captures':captures,
+                'program_sha256':hashlib.sha256(program).hexdigest(),'batch_iterations':iterations}
     async def cancel(self,value):
         if not isinstance(value,dict) or set(value)!={'session_ref'}:raise ValueError('Unknown containment field')
         ref(value['session_ref']);key=encoded(value['session_ref'])

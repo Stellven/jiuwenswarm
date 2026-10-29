@@ -13,6 +13,16 @@ from .intake import extract_document, qualify_intake
 from .state import json_bytes
 
 
+def status_reasons(run,records):
+    """Run reason plus the executor's real cause when a protected stop carries one."""
+    reasons=[run['reason']] if run['reason'] else []
+    for envelope in records:
+        fault=envelope['record'].get('executor_fault') if envelope['kind']=='protected-invocation-stop' else None
+        if isinstance(fault,dict):
+            reasons.append('executor fault in %s: %s %s at %s'%(envelope['record'].get('node_id'),fault.get('exception_class'),fault.get('code') or '',fault.get('frame')))
+    return reasons
+
+
 class ResearchService:
     def __init__(self,store,*,registry,model,executor=None,profiles=None,readiness=None,
                  compiler=None,binder=None,scheduler=None,workspaces=None,upload_manager=None,evidence=None,finite_e1=None):
@@ -253,7 +263,7 @@ class ResearchService:
                 'revision':run['revision'],'stage':stage,
                 'status':'in_progress' if run['state'] in {'pending','running'} else run['state'],
                 'candidate_refs':candidates,'accepted_refs':accepted,'decision_ref':decision,
-                'reasons':[run['reason']] if run['reason'] else [],'bundle_ref':bundles[-1] if bundles else None,'node_statuses':nodes}
+                'reasons':status_reasons(run,records),'bundle_ref':bundles[-1] if bundles else None,'node_statuses':nodes}
         validate('client-status',result);return result
 
     async def list(self,principal,*,client_request_id):

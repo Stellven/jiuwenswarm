@@ -18,9 +18,25 @@ from .router_client import (MAX_IPC_FRAME_BYTES, PlatformIntegrityError, close_w
                             encode_frame, peer_credentials, read_frame)
 
 
+def fault_summary(error):
+    """Exception class, short code and the innermost in-package frame (module:function:line)."""
+    code = getattr(error, 'code', None)
+    frames, tb = [], error.__traceback__
+    while tb is not None:
+        frames.append((tb.tb_frame.f_globals.get('__name__', ''), tb.tb_frame.f_code.co_name, tb.tb_lineno))
+        tb = tb.tb_next
+    inner = [f for f in frames if f[0].split('.')[0] == __name__.split('.')[0]]
+    module, function, line = (inner or frames or [('', '', 0)])[-1]
+    return {'exception_class': type(error).__name__,
+            'code': code if isinstance(code, str) and code.isidentifier() and len(code) <= 64 else None,
+            'frame': f'{module}:{function}:{line}'}
+
+
 class PrivateRPCServer:
     def __init__(self, path, *, protocol, session_id, capability, handlers, allowed_uids,
-                 socket_mode=0o600, directory_mode=0o700, group_id=None, operation_uids=None):
+                 socket_mode=0o600, directory_mode=0o700, group_id=None, operation_uids=None,
+                 fault_recorder=None):
+        self.fault_recorder = fault_recorder
         self.path = Path(path)
         self.protocol, self.session_id, self.capability = protocol, session_id, capability
         self.handlers, self.allowed_uids = dict(handlers), frozenset(allowed_uids)
@@ -34,6 +50,14 @@ class PrivateRPCServer:
         self.server = None
         self.tasks = set()
         self.inode = None
+
+    def _record_fault(self, operation, payload, error):
+        """Keep the cause of a masked fault: class and code, never message or args."""
+        if self.fault_recorder is None: return
+        try:
+            self.fault_recorder(operation, payload, fault_summary(error))
+        except Exception:
+            pass
 
     async def _handle(self, reader, writer):
         task = asyncio.current_task()
@@ -56,13 +80,15 @@ class PrivateRPCServer:
                 result = self.handlers[request['operation']](request['payload'])
                 if inspect.isawaitable(result): result = await result
                 reply = {'protocol': self.protocol, 'result': result}
-            except PlatformIntegrityError:
+            except PlatformIntegrityError as error:
+                self._record_fault(request['operation'], request['payload'], error)
                 reply = {'protocol': self.protocol, 'error': 'PLATFORM_INTEGRITY_FAULT'}
             except Exception as error:
                 # No exception message, credential, path or input is reflected.
                 allowed = {'ENVIRONMENT_BLOCKED', 'DELIVERY_UNKNOWN', 'auth_failed', 'timeout', 'budget_exhausted',
                            'invalid_request', 'AUDIT_UNAVAILABLE'}
                 code = getattr(error, 'code', None)
+                if code not in allowed: self._record_fault(request['operation'], request['payload'], error)
                 reply = {'protocol': self.protocol, 'error': code if code in allowed else 'PLATFORM_INTEGRITY_FAULT'}
             writer.write(encode_frame(reply))
             await writer.drain()

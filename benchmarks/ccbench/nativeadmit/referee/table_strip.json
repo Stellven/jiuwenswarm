@@ -1,0 +1,21 @@
+{
+ "id": "table_strip",
+ "candidate": "table_normalize_strip",
+ "tool": "table_normalize",
+ "defective": true,
+ "defect": "subtle: whitespace loss",
+ "witness": {
+  "text": "x\n a \n",
+  "format": "csv",
+  "columns": [
+   "x"
+  ],
+  "delimiter": ","
+ },
+ "answer": "18",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "14",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

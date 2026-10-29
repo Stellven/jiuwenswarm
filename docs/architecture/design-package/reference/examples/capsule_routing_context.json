@@ -1,0 +1,37 @@
+{
+  "id": "routing-context:teaching-example",
+  "selected_capsule_ref": {
+    "id": "selected_capsule_input.json",
+    "sha256": "85318aeccd1967f08be75f3e8e0f9b4b145b651b8430a7b5c8efebb9d3f1644c"
+  },
+  "model_selection_profile_ref": {
+    "id": "model_selection_profile.json",
+    "sha256": "8166771ea6ae108bd8ee6663ac88348fee4b942147b5efe3068fc79f1e2633df"
+  },
+  "adapter_revision": "synthetic-1",
+  "required_model": {
+    "tool_calling": false,
+    "modalities": [
+      "text"
+    ]
+  },
+  "observed_runtime": false,
+  "capsule_budget": {
+    "per_call": {
+      "wall_s": 60,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "effective_limits": {
+    "time_s": 60,
+    "model_calls": 1,
+    "memory_mb": 512
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "calculate": {
+    "schema": "admission-study-contract:1",
+    "identity": {"name": "utility.calculate", "kind": "tool"},
+    "ports": {"inputs": {"values": "array<int|float|decimal_string>", "mode": ["json_numbers", "decimal_strings"], "operation": ["count", "sum", "mean", "min", "max"]}, "outputs": {"status": ["ok", "error"], "value": "int(count)|decimal_string"}},
+    "ranges": {"max_rows": 10000, "max_digits": 28, "max_adjusted_exponent": 28, "precision": 128},
+    "invariants": {"arithmetic": "decimal_half_even", "coercion": "none", "numeric_alphabet": "ascii", "decimal_separator": ".", "empty": "count_and_sum_only", "signed": true},
+    "edge_cases": ["empty", "type_boundaries", "numeric_boundaries", "representations"],
+    "description": "Aggregate a single selected column. Decimal128 here follows repository precision=128, not IEEE decimal128 precision=34. Strict ASCII decimal grammar; no comma, Unicode numeric or boolean coercion. Finite values with at most 28 coefficient digits and adjusted exponent magnitude at most 28. Empty sum/count succeed, empty mean/min/max fail. No quantization of input values."
+  },
+  "table_normalize": {
+    "schema": "admission-study-contract:1",
+    "identity": {"name": "utility.table_normalize", "kind": "tool"},
+    "ports": {"inputs": {"text": "str", "format": ["csv", "json"], "columns": "array<unique_nonempty_str>", "delimiter": "single_character|null"}, "outputs": {"status": ["ok", "error"], "columns": "array<str>", "rows": "array<array<str|int|float|bool|null>>"}},
+    "ranges": {"max_rows": 10000, "max_columns": 128, "max_column_length": 200},
+    "invariants": {"preserve_types": true, "preserve_order": true, "preserve_text": true, "rectangular": true, "exact_header": true, "json_unique_keys": true, "scalar_only": true},
+    "edge_cases": ["empty", "type_boundaries", "numeric_boundaries", "representations", "malformed"],
+    "description": "Decode CSV with explicit exact header and delimiter, or JSON records with exactly the selected columns and null delimiter. Preserve scalar types, row order, column order and text verbatim, including whitespace, Unicode and leading zeros. Reject ragged rows, duplicate keys, nonfinite numbers and nested values. Empty data is valid with explicit columns."
+  }
+}

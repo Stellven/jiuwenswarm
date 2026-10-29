@@ -1,0 +1,1 @@
+Our team uses table_tool.py to read data files. Use it to look up the zip code for customer C-1017 in customers.csv and give me the number.

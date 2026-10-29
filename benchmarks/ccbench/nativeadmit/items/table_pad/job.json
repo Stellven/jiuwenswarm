@@ -1,0 +1,12 @@
+{
+ "kind": "table",
+ "tool": "table_normalize",
+ "tool_file": "table_tool.py",
+ "argv": [
+  "contacts.csv"
+ ],
+ "extract": {
+  "type": "count_nonempty",
+  "field": "phone"
+ }
+}

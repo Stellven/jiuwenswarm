@@ -129,6 +129,7 @@ def native_codex_response(raw,binding,*,prompt):
     bundle=decode_frame(raw.encode())
     from .local_model_codex import unpack_bundle
     require(isinstance(bundle,dict))
+    packed_v2=bundle.get('schema')=='ai4r-host-codex-response:2'
     incomplete=bundle.get('schema')=='ai4r-host-codex-response:2' and isinstance(bundle.get('evidence'),dict) and bundle['evidence'].get('full_original_trace') is False
     bundle=unpack_bundle(bundle)
     backend,policy=binding['backend'],binding['model']
@@ -155,6 +156,7 @@ def native_codex_response(raw,binding,*,prompt):
         require(isinstance(parsed,dict))
         method=parsed.get('method','')
         require(isinstance(method,str) and method!='model/rerouted')
+        require(not method.startswith(('account/','login/','auth/')) and method not in {'model/list','logout'})
         incoming_request=wire['direction']=='in' and bool(method) and 'id' in parsed
         refusal=wire['direction']=='out' and not method
         if wire['direction']=='out':require(method in {'thread/start','turn/start','turn/interrupt'} or refusal)
@@ -167,6 +169,9 @@ def native_codex_response(raw,binding,*,prompt):
         item=(parsed.get('params') or {}).get('item') if isinstance(parsed.get('params'),dict) else None
         if isinstance(item,dict):require(item.get('type') in {'agentMessage','reasoning','userMessage','contextCompaction'})
         frames.append((wire['direction'],parsed))
+    owned_rpc_ids={frame['id'] for direction,frame in frames if direction=='out' and frame.get('method') and 'id' in frame}
+    require(all(frame.get('id') in owned_rpc_ids for direction,frame in frames
+        if direction=='in' and 'id' in frame and not frame.get('method')))
     starts={}
     for name in ('thread/start','turn/start'):
         requests=[f for direction,f in frames if direction=='out' and f.get('method')==name]
@@ -179,6 +184,19 @@ def native_codex_response(raw,binding,*,prompt):
             if name=='thread/start':
                 require(isinstance(params.get('config'),dict)
                         and params['config'].get('model_reasoning_effort')==policy['reasoning_effort'])
+                if packed_v2:
+                    from .local_model_codex import native_thread_configuration, SYSTEM
+                    config=params['config'];catalog=config.get('model_catalog_json')
+                    require(isinstance(catalog,str) and bool(catalog)
+                            and all(config.get(k)==v for k,v in native_thread_configuration(policy['reasoning_effort'],catalog).items())
+                            and params.get('developerInstructions')==SYSTEM
+                            and params.get('sandbox')=='read-only' and params.get('approvalPolicy')=='never'
+                            and params.get('ephemeral') is True and params.get('allowProviderModelFallback') is False
+                            and params.get('modelProvider')=='ai4r_governed'
+                            and config.get('model_providers.ai4r_governed.wire_api')=='responses'
+                            and config.get('model_providers.ai4r_governed.requires_openai_auth') is True
+                            and config.get('model_providers.ai4r_governed.request_max_retries')==0
+                            and config.get('model_providers.ai4r_governed.stream_max_retries')==0)
     observation={'identity':{'effective':None,'basis':'effective model not observed'},
                  'usage':observed_usage(),'provider_request_id':None,'observed_runtime':True}
     preturn_rejected=(bundle['outcome']=='failed' and bundle['error_code']=='invalid_output'

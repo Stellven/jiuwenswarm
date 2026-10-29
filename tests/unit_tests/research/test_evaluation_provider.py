@@ -370,3 +370,23 @@ async def test_replay_selects_one_output_but_keeps_complete_original_multioutput
     assert [r['ref'] for r in store.iter_records(kinds=('invocation-observation',))]==original_observations
     assert await replay.node_replay(actor,request)==result and len(prompts)==2
     store.close()
+
+
+def test_single_cc_results_include_original_semantic_and_mechanical_checks(tmp_path):
+    from types import SimpleNamespace
+    from jiuwenswarm.research.evaluation_provider import single_cc_check_results
+    from jiuwenswarm.research.gate import assemble_assessment
+    store=SQLiteRunStore(tmp_path)
+    try:
+        pin=store.put_blob(b'control')
+        checks=store.put_record('deterministic-check-result',{'schema_version':'1.0.0','subject_ref':pin,'check_plan_ref':pin,
+            'results':[{'check_id':'control','outcome':'PASS','reason':'Controlled exact predicate','evidence_refs':[pin]}]})
+        body={'findings':[{'criterion_id':'internal_consistency','outcome':'FAIL','reason':'Visible contradiction'}],
+            'uncertainties':[],'limitations':[],'required_correction':'Resolve the contradiction'}
+        assessment=store.put_record('verifier-assessment',assemble_assessment(body,[{'criterion_id':'internal_consistency','blocking':True}],pin,pin,pin))
+        measured=SimpleNamespace(deterministic_ref=checks,assessment_refs=[assessment],verifier_check_refs=[checks])
+        rows=single_cc_check_results(store,measured)
+        assert rows==[{'check_id':'control','status':'PASS'},
+            {'check_id':'semantic:0:internal_consistency','status':'FAIL'},
+            {'check_id':'reviewer:0:control','status':'PASS'}]
+    finally:store.close()

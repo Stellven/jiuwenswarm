@@ -102,6 +102,8 @@ class HostCodexHelperTests(unittest.TestCase):
             'prompt': 'Return the integer sum of two and two.', 'timeout_s': 2,
             'codex_executable': str(self.binary), 'codex_sha256': hashlib.sha256(self.binary.read_bytes()).hexdigest(),
             'account_fingerprint': hashlib.sha256(EMAIL.encode()).hexdigest(), 'working_directory': str(self.root)}
+        self.payload['native_model_catalog'] = Path(helper.__file__).with_name('resources').joinpath(
+            'host_codex/model_catalog.json').read_text(encoding='utf8')
 
     def tearDown(self):
         self.temp.cleanup()

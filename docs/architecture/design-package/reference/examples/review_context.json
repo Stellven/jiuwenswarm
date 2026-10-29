@@ -1,0 +1,49 @@
+{
+  "id": "review:intent",
+  "subject_ref": {
+    "id": "intent_ir.json",
+    "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+  },
+  "input_refs": [
+    {
+      "id": "qualified_intake.json",
+      "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
+    }
+  ],
+  "contract_ref": {
+    "id": "intention_subnode_contract.json",
+    "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
+  },
+  "check_plan_ref": {
+    "id": "check_plan.json",
+    "sha256": "680640007af2202ce7b07f88c3f0e66e561b9537dbba28fc51b541584285408c"
+  },
+  "deterministic_result_ref": {
+    "id": "intent_checks.json",
+    "sha256": "5aca558f60ec3eac1c9dafd2219d28f1debc6ebfe61bf897e59597b2247274eb"
+  },
+  "criteria": [
+    "declared_output_conformance",
+    "internal_consistency",
+    "limitations_consistency",
+    "uncertainty_consistency"
+  ],
+  "observations": [
+    {
+      "id": "invocation_observation.json",
+      "sha256": "6fd56c305420adefae40bf55aebe77238c3700f03677c590baddd3e93fe40d0c"
+    }
+  ],
+  "schema_version": "2.0.0",
+  "evidence_classes": [
+    "protected policy",
+    "accepted input",
+    "observed evidence",
+    "untrusted producer content"
+  ],
+  "node_contract_ref": {
+    "id": "intention_node_contract.json",
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+  },
+  "subnode_id": "intention"
+}

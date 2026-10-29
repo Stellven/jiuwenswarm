@@ -52,7 +52,7 @@ def test_changed_timed_fixture_scores_leave_timing_explicitly_unreliable():
     assert 'parent_times' not in result and result['timing_unavailable_reason']
 
 
-def test_unequal_final_means_still_capture_required_pairs_without_using_time_for_gain():
+def test_unequal_final_means_do_not_start_unneeded_timing_effects():
     evaluator=object.__new__(FixtureEvaluator);evaluator.repeats=3
     evaluator.target={'configuration_ref':{'id':'cfg'},'scoring':{'batch_iterations':1,'calibrated_relative_noise':.01}}
     evaluator.manifest={'partitions':{'hidden_final':[{'id':'one'}]},'independent':True}
@@ -62,5 +62,5 @@ def test_unequal_final_means_still_capture_required_pairs_without_using_time_for
         calls.append((candidate,operation,repeat));return int(repeat<(1 if candidate=='parent' else 2)),1
     evaluator.scores=scores;evaluator.one=one
     result=asyncio.run(evaluator.paired('parent','child','hidden_final',3,{'id':'cfg'}))
-    assert len(calls)==12*2*3 and result['parent_times']==[3]*7 and result['child_times']==[3]*7
-    assert result['parent']!=result['child'] and result['warmups']==5
+    assert calls==[] and 'parent_times' not in result and 'child_times' not in result
+    assert result['parent']!=result['child']

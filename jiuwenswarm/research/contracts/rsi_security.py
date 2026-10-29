@@ -34,7 +34,8 @@ def _json(raw):
 
 class RSIQualification:
     def __init__(self,read,qualification_ref,*,kind_reader=None,scope_observer=None,
-                 validation_profile=None,case_observer=None,public_key=None,key_id=None):
+                 validation_profile=None,case_observer=None,public_key=None,key_id=None,
+                 candidate_resolver=None):
         self.read,self.ref,self.kind_reader,self.scope_observer=read,qualification_ref,kind_reader,scope_observer
         # Only installed finite owners may inject these handles. They are not
         # decoded from a qualification, candidate, request or operator YAML.
@@ -42,17 +43,21 @@ class RSIQualification:
         # production bootstrap intentionally supplies None and stays blocked.
         self.validation_profile=copy.deepcopy(validation_profile)
         self.case_observer,self.public_key,self.key_id=case_observer,public_key,key_id
+        _need(candidate_resolver is None or callable(candidate_resolver),'installed candidate resolver must be callable')
+        self.candidate_resolver=candidate_resolver
 
     @classmethod
-    def from_store(cls,store,qualification_ref,*,scope_observer=None,validation_profile=None,case_observer=None,public_key=None,key_id=None):
+    def from_store(cls,store,qualification_ref,*,scope_observer=None,validation_profile=None,case_observer=None,public_key=None,key_id=None,
+                   candidate_resolver=None):
         # Only protected bootstrap supplies this Ref. It is never read from a
         # client request, candidate package or sidecar operation.
         return cls(store.read_blob,qualification_ref,kind_reader=store.record_kind,scope_observer=scope_observer,
-                   validation_profile=validation_profile,case_observer=case_observer,public_key=public_key,key_id=key_id)
+                   validation_profile=validation_profile,case_observer=case_observer,public_key=public_key,key_id=key_id,
+                   candidate_resolver=candidate_resolver)
 
     def raw(self,ref):
         _ref(ref);raw=self.read(ref)
-        _need(isinstance(raw,bytes) and 0<len(raw)<=16*1024*1024,'bounded original bytes required')
+        _need(isinstance(raw,bytes) and 0<=len(raw)<=16*1024*1024,'bounded original bytes required')
         _need(hashlib.sha256(raw).hexdigest()==ref['sha256'],'original bytes changed')
         return raw
 
@@ -213,10 +218,21 @@ class RSIQualification:
         if candidate_ref in (target['parent_ref'],session['parent_declaration_ref']):
             _need(operation in {'trial','oracle'},'original parent cannot be published/admitted as a new child')
             self.raw(candidate_ref);return session
-        # A source-complete proposed declaration can establish its own exact
-        # changed-body/parent scope without becoming admitted. Bare new helper
-        # bytes have no independently indexed declaration join yet and block.
-        child=self.get(candidate_ref);validate('capsule-declaration',child)
+        # An installed finite owner can nominate a declaration for bare helper
+        # bytes. That lookup supplies no qualification or mutation authority:
+        # independently reconcile the exact original bytes and entire scope.
+        # Existing direct declaration/admission paths do not use this hook.
+        candidate_bytes=self.raw(candidate_ref)
+        try:child=_json(candidate_bytes)
+        except (ValueError,UnicodeError):child=None
+        resolved_body=not isinstance(child,dict) or 'identity' not in child
+        if resolved_body:
+            _need(operation in {'trial','oracle'} and callable(self.candidate_resolver),
+                  'bare candidate requires an installed exact declaration join')
+            declaration_ref=copy.deepcopy(self.candidate_resolver(copy.deepcopy(session_ref),copy.deepcopy(candidate_ref)))
+            _ref(declaration_ref) # A list, producer payload or ambiguous result cannot nominate authority.
+            child=self.get(declaration_ref)
+        validate('capsule-declaration',child)
         parent=self.get(session['parent_declaration_ref']);validate('capsule-declaration',parent)
         _need(child['identity'].get('lineage',{}).get('parent')==session['parent_declaration_ref'],'candidate belongs to another parent/session target')
         from ..library import version_matches
@@ -235,6 +251,26 @@ class RSIQualification:
             for key in ('version_label','body','lineage'):value['identity'].pop(key,None)
             stripped.append(value)
         _need(stripped[0]==stripped[1],'candidate changed protected declaration identity/authority')
+        if resolved_body:
+            identity=parent['identity'];lineage=child['identity']['lineage']
+            _need(session['parent']=={'cc_name':identity['name'],'cc_version':identity['version_label'],
+                    'declaration_sha256':session['parent_declaration_ref']['sha256']},'body join original parent identity differs')
+            _need(all(target[key]==session[key] for key in ('configuration_ref','improver_ref','scoring_adapter_ref')),
+                  'body join frozen session/target context differs')
+            _need(parent['evolution']['rsi']=='propose','body join parent has no proposal authority')
+            _need(lineage.get('build_trigger')==session['session_id'] and lineage.get('relation')=='supersedes'
+                  and lineage.get('builder')=='rsi_workbench','body join proposed declaration belongs to another session/producer')
+            _need(len(target['mutable_paths'])==1 and len(changed)==1 and changed==set(target['mutable_paths'])
+                  and set(before)==set(after),'body join requires the exact single authorized existing body')
+            path=next(iter(changed));part=PurePosixPath(path)
+            _need(path and not part.is_absolute() and '..' not in part.parts and '\\' not in path and ':' not in path,
+                  'body join mutable path is not confined')
+            _need(before[path]==target['parent_ref']['sha256'],'body join target is not the original parent body')
+            self.raw(target['parent_ref'])
+            _need(after[path]==candidate_ref['sha256']==hashlib.sha256(candidate_bytes).hexdigest(),
+                  'body join candidate bytes differ from the proposed changed source')
+            _need(candidate_ref['sha256'] not in {pin['sha256'] for pin in target['protected_refs']},
+                  'body join candidate aliases protected material')
         return session
 
     def require(self,operation,*,session_ref,worker_profile_ref=None,candidate_ref=None):

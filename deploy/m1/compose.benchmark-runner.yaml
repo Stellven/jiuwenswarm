@@ -35,6 +35,7 @@ services:
       FRONTEND_HOST: 0.0.0.0
       FRONTEND_PORT: '5173'
       JIUWENSWARM_AGENT_SDK: codex_subscription
+      JIUWENSWARM_GOVERNED_REASONING_EFFORT: ${AI4R_GOVERNED_REASONING_EFFORT:-}
     ports: ['127.0.0.1:5175:5173']
     volumes:
       - state:/var/lib/ai4r

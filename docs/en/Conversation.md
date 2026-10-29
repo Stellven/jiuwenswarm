@@ -287,17 +287,14 @@ The screenshots below are ordered roughly as the conversation unfolds.
 3. **Collaboration in progress**  
    Conversation UI as multiple agents continue coordinated execution (exact layout depends on the product).
 
-![Cluster mode diagram 3](../assets/images/conversation/chat_cluster_mode_3.png)
 
 4. **Workspace output paths**  
    Example directory layout and important file paths under `workspace` after the task produces outputs.
 
-![Cluster mode result example: workspace file paths](../assets/images/conversation/cluster_mode_sample_workspace_paths.png)
 
 5. **Frontend showcase**  
    Example frontend pages of the output user management system.
 
-![Cluster mode result example: frontend UI](../assets/images/conversation/cluster_mode_sample_frontend.png)
 
 > **Note**: The cluster mode example above demonstrates the basic multi-agent collaboration flow. In practice, please verify whether cluster mode can fully deliver your engineering goals based on your project needs.
 

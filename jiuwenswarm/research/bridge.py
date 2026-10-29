@@ -22,6 +22,8 @@ from time import monotonic
 from typing import Mapping
 from pathlib import Path
 
+from .builder_mode import builder_mode
+
 from .router_client import (CodexRouter, RouteChoice, PlatformIntegrityError, MAX_IPC_FRAME_BYTES,
                             close_writer, encode_frame, peer_credentials, read_frame)
 from .contracts import ResearchError
@@ -82,6 +84,23 @@ def failure_observation(error,requested_model):
                     'observed_runtime':True}
         pending.extend((getattr(current,'__cause__',None),getattr(current,'__context__',None)))
     return None
+
+
+def failure_native_trace_refs(error):
+    """Recover original trace references through timeout/cancellation wrappers.
+
+    Keep every distinct attached reference for the normal scope/hash validator;
+    do not trust or discard a reference merely because it is on an inner error.
+    The bounded, cycle-safe walk follows the same links as failure telemetry.
+    """
+    pending=[error];seen=set();refs=[]
+    while pending and len(seen)<8:
+        current=pending.pop(0)
+        if current is None or id(current) in seen:continue
+        seen.add(id(current));ref=getattr(current,'native_trace_ref',None)
+        if ref is not None and ref not in refs:refs.append(ref)
+        pending.extend((getattr(current,'__cause__',None),getattr(current,'__context__',None)))
+    return refs
 
 
 class GovernedBridge:
@@ -166,6 +185,9 @@ class GovernedBridge:
             if exc.code=='CONTAINMENT_UNCERTAIN':self._uncertain_runs.add(run_id)
             raise
         except ResearchError as exc:
+            # Preserve declaration-validation failures before any provider effect.
+            if exc.code == 'builder_mode':
+                raise
             if exc.code in {'invalid_request', 'integrity_fault'}:
                 raise PlatformIntegrityError('AUTOMATIC_ROUTING_CONTEXT_INVALID') from None
             raise BridgeError(exc.code) from None
@@ -335,11 +357,9 @@ class GovernedBridge:
         expected_prompt_sha256=protected.get('expected_prompt_sha256')
         if expected_prompt_sha256 is not None and hashlib.sha256(prompt.encode('utf-8')).hexdigest() != expected_prompt_sha256:
             raise PlatformIntegrityError('MODEL_PROMPT_BINDING_INVALID')
-        # These immutable Builder releases are tool-free text generators. Their trusted
-        # carrier packages returned file bytes; only the original tool-using
-        # release enters the dedicated, credential-isolated Builder launcher.
+        # The protected authorizer supplies the validated, admitted declaration.
         is_builder = (protected.get("cc_name") == "research.builder"
-                      and protected.get("cc_version") not in {"m1-2", "m1-3", "m1-4", "m1-5", "m1-6", "m1-7", "m1-8", "m1-9", "m1-10", "m1-11", "m1-12", "m1-13", "m1-14", "m1-15", "m1-16", "m1-17", "m1-18"})
+                      and builder_mode(protected['declaration']) == 'legacy')
         if is_builder and self.builder_launcher is None:
             raise BridgeError("ENVIRONMENT_BLOCKED")
         remaining=deadline-monotonic()
@@ -606,8 +626,7 @@ class GovernedBridge:
                     self._uncertain_runs.add(protected['run_id'])
             call_record["ended_at"] = None if call_record["outcome"] == "outcome_unknown" else utc_now()
         if failure is not None:
-            trace_ref=getattr(failure,'native_trace_ref',None)
-            if trace_ref is not None:
+            for trace_ref in failure_native_trace_refs(failure):
                 try:await self._join_native_trace(trace_ref,native_scope,call_record)
                 except BridgeError:
                     failure_code='AUDIT_UNAVAILABLE'

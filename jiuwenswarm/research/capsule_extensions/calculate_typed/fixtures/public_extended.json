@@ -1,0 +1,64 @@
+{
+  "schema": "ai4r-rsi-capsule-fixture-set:1",
+  "fixture_set": "public_extended",
+  "cases": [
+    {
+      "id": "typed-fidelity-and-decimal-values",
+      "data": {
+        "table": {
+          "columns": [
+            "a",
+            "b"
+          ],
+          "rows": [
+            [
+              "1.25",
+              2
+            ],
+            [
+              "-0.25",
+              3
+            ],
+            [
+              "4.00",
+              5
+            ]
+          ]
+        },
+        "calculation": {
+          "columns": [
+            "a"
+          ],
+          "operations": [
+            "count",
+            "sum",
+            "mean",
+            "min",
+            "max"
+          ],
+          "numeric_mode": "decimal_strings"
+        },
+        "inherited_types": {
+          "integer": 1,
+          "float": 1.0,
+          "boolean": true,
+          "null": null,
+          "unicode": "α 日本語"
+        }
+      },
+      "expected_task_output": {
+        "arithmetic": "decimal128_half_even",
+        "columns": {
+          "a": {
+            "count": 3,
+            "max": "4.00",
+            "mean": "1.6666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666666667",
+            "min": "-0.25",
+            "sum": "5.00"
+          }
+        }
+      }
+    }
+  ],
+  "notes": "Synthetic representative fixtures frozen from selected calculate_typed and independently checked; no real models or performance claims."
+}

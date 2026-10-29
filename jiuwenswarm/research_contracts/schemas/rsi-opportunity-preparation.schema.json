@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-opportunity-preparation:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-opportunity-preparation:1"
+    },
+    "target_profile_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "parent": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/CcPin"
+    },
+    "parent_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "parent_declaration_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "configuration_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "worker_profile_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "development_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "review_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "attribution": {
+      "enum": [
+        "implementation",
+        "upstream_input",
+        "binding_composition",
+        "harness",
+        "verifier",
+        "environment",
+        "uncertain"
+      ]
+    },
+    "observed_symptom": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4000
+    },
+    "headroom_minimum": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "audience": {
+      "const": "rsi_diagnosis"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          }
+        },
+        "required": [
+          "ref",
+          "summary"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 16
+    },
+    "mandatory_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "test_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          },
+          "input_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          },
+          "expected_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          },
+          "capture_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          }
+        },
+        "required": [
+          "test_ref",
+          "input_ref",
+          "expected_ref",
+          "capture_ref"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 10000
+    },
+    "development_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "input_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          },
+          "expected_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          },
+          "capture_ref": {
+            "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+          }
+        },
+        "required": [
+          "input_ref",
+          "expected_ref",
+          "capture_ref"
+        ]
+      },
+      "minItems": 1,
+      "maxItems": 10000
+    },
+    "timing": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "reference_ref": {
+              "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+            },
+            "rounds": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "parent_checks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "input_ref": {
+                          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+                        },
+                        "expected_ref": {
+                          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+                        },
+                        "capture_ref": {
+                          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+                        }
+                      },
+                      "required": [
+                        "input_ref",
+                        "expected_ref",
+                        "capture_ref"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 10000
+                  },
+                  "reference_checks": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "input_ref": {
+                          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+                        },
+                        "expected_ref": {
+                          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+                        },
+                        "capture_ref": {
+                          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+                        }
+                      },
+                      "required": [
+                        "input_ref",
+                        "expected_ref",
+                        "capture_ref"
+                      ]
+                    },
+                    "minItems": 1,
+                    "maxItems": 10000
+                  }
+                },
+                "required": [
+                  "parent_checks",
+                  "reference_checks"
+                ]
+              },
+              "minItems": 12,
+              "maxItems": 12
+            }
+          },
+          "required": [
+            "reference_ref",
+            "rounds"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "target_profile_ref",
+    "parent",
+    "parent_ref",
+    "parent_declaration_ref",
+    "configuration_ref",
+    "worker_profile_ref",
+    "development_ref",
+    "review_ref",
+    "attribution",
+    "observed_symptom",
+    "headroom_minimum",
+    "audience",
+    "evidence",
+    "mandatory_checks",
+    "development_checks",
+    "timing"
+  ]
+}

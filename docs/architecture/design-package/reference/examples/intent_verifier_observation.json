@@ -1,0 +1,71 @@
+{
+  "schema_version": "3.0.0",
+  "id": "observation:intention.verifier",
+  "run_id": "run:example",
+  "attempt_id": "intention_compiler-a1",
+  "node_id": "intention_compiler",
+  "subnode_id": "intention.verifier",
+  "cc_name": "research.verifier",
+  "cc_version": "example-1",
+  "declaration_sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f",
+  "route_id": null,
+  "measurement_status": "unavailable",
+  "contract_ref": {
+    "id": "intent_verifier_subnode_contract.json",
+    "sha256": "4633c4d5c130144fcbc46587bff7fd3d0d1d6cf5b9cd3f2327635ce672639a0d"
+  },
+  "binding_id": "binding:intention.verifier",
+  "input_refs": [
+    {
+      "id": "capsule_declaration.json",
+      "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
+    },
+    {
+      "id": "intent_ir.json",
+      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "intent_assessment.json",
+      "sha256": "f0528abcb4ba8f37459499e9efb1238cae3d13266551c07cd17e220c97ca03fd"
+    }
+  ],
+  "model_identity": {
+    "requested": "synthetic teaching endpoint",
+    "effective": null,
+    "basis": "unobserved example"
+  },
+  "started_at": null,
+  "ended_at": null,
+  "outcome": "synthetic_example",
+  "effects": [],
+  "duration_s": null,
+  "model_calls": null,
+  "trace_refs": [],
+  "unavailable_reasons": [
+    "No runtime execution or observed effects are claimed"
+  ],
+  "observed_runtime": false,
+  "usage": {
+    "input_tokens": null,
+    "output_tokens": null,
+    "cost_amount": null,
+    "currency": null,
+    "unavailable_reasons": [
+      "Synthetic illustration; no tokens or attributable cost were observed"
+    ]
+  },
+  "node_contract_ref": {
+    "id": "intention_node_contract.json",
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+  },
+  "body_files_sha256": "66b5848b3c067f334e199497e79dec5b26a5b2838138ca969c375b1676f807b3",
+  "decision_source": null,
+  "failure_class": null,
+  "failure_reason_code": null,
+  "error_fingerprint": null,
+  "check_result_refs": [],
+  "verifier_assessment_ref": null,
+  "human_answer_ref": null
+}

@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-helper-preparation:2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "parent_ref",
+    "parent_declaration_ref",
+    "mutable_path",
+    "author",
+    "origin_kind",
+    "origin_ref",
+    "generator_ref",
+    "private_seed",
+    "max_rows",
+    "partitions",
+    "provenance",
+    "prior_preparation_refs",
+    "children",
+    "status",
+    "fixture_identity",
+    "split_ids",
+    "target_kind"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-helper-preparation:2"
+    },
+    "parent_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "parent_declaration_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "mutable_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^/\\\\]+$"
+    },
+    "author": {
+      "type": "string",
+      "minLength": 1
+    },
+    "origin_kind": {
+      "const": "seeded"
+    },
+    "origin_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "generator_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "private_seed": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 256
+    },
+    "max_rows": {
+      "const": 7
+    },
+    "partitions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development",
+        "hidden_loop",
+        "hidden_final",
+        "platform"
+      ],
+      "properties": {
+        "development": {
+          "$ref": "#/$defs/Rows"
+        },
+        "platform": {
+          "$ref": "#/$defs/Rows"
+        },
+        "hidden_loop": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Rows"
+            },
+            {
+              "minItems": 20
+            }
+          ]
+        },
+        "hidden_final": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/Rows"
+            },
+            {
+              "minItems": 20
+            }
+          ]
+        }
+      }
+    },
+    "provenance": {
+      "type": "array",
+      "minItems": 42,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "partition",
+          "input_sha256",
+          "semantic_sha256",
+          "expected_sha256",
+          "generator_unit"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "partition": {
+            "enum": [
+              "development",
+              "hidden_loop",
+              "hidden_final",
+              "platform"
+            ]
+          },
+          "input_sha256": {
+            "$ref": "#/$defs/Digest"
+          },
+          "semantic_sha256": {
+            "$ref": "#/$defs/Digest"
+          },
+          "expected_sha256": {
+            "$ref": "#/$defs/Digest"
+          },
+          "generator_unit": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "prior_preparation_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    },
+    "children": {
+      "type": "array",
+      "minItems": 13,
+      "maxItems": 13,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "body_ref"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "good",
+              "bad"
+            ]
+          },
+          "body_ref": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      }
+    },
+    "status": {
+      "const": "PENDING_REVIEW_AND_CALIBRATION"
+    },
+    "fixture_identity": {
+      "type": "string",
+      "minLength": 1
+    },
+    "split_ids": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "development",
+        "hidden_loop",
+        "hidden_final",
+        "platform"
+      ],
+      "properties": {
+        "development": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hidden_loop": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hidden_final": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "target_kind": {
+      "const": "normalize-labels-v1"
+    }
+  },
+  "$defs": {
+    "Digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/Digest"
+        }
+      }
+    },
+    "Rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "input_ref",
+          "expected_ref"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "input_ref": {
+            "$ref": "#/$defs/Ref"
+          },
+          "expected_ref": {
+            "$ref": "#/$defs/Ref"
+          }
+        }
+      }
+    }
+  }
+}

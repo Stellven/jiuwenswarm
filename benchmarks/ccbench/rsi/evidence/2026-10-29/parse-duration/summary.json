@@ -1,0 +1,85 @@
+{
+  "schema": "ai4r-parse-duration-rsi-summary:1",
+  "status": "COMPLETED",
+  "run_id": "parse-duration-rsi-20261028-r1",
+  "scope": "benchmark_only_no_product_activation",
+  "stop_reason": "no_progress",
+  "completed_iterations": 4,
+  "model_calls": 8,
+  "model": "gpt-6.1-sol",
+  "reasoning_effort": "medium",
+  "proposal_attempts": 4,
+  "unique_candidate_byte_sequences": 1,
+  "unique_candidate_asts": 1,
+  "selection": {
+    "benchmark_report": "/opt/ai4r-function-rsi-20261028-r1/campaign/reports/benchmark-1-476e2e848ce551e5f5dba1fd28ac7dc565fe9c3dab5cb8914ab3406e2cd8d74e.json",
+    "body_path": "/opt/ai4r-function-rsi-20261028-r1/campaign/candidates/iteration-1.py",
+    "body_sha256": "476e2e848ce551e5f5dba1fd28ac7dc565fe9c3dab5cb8914ab3406e2cd8d74e",
+    "iteration": 1,
+    "median_ratio": 0.8250631498360163
+  },
+  "correctness": {
+    "gate": 4,
+    "held_out": 10,
+    "passed": 14,
+    "trials": 3
+  },
+  "timing": {
+    "bootstrap_resamples": 5000,
+    "bootstrap_seed": 20261026,
+    "confidence": 0.95,
+    "correctness_passed": true,
+    "gate_results": {
+      "ci_upper_bound": true,
+      "correctness": true,
+      "max_workload_regression": true,
+      "minimum_gain": true
+    },
+    "gates": {
+      "ci_upper_bound": 0.9,
+      "max_workload_regression": 0.05,
+      "minimum_gain": 0.1
+    },
+    "median_ratio": 0.8250631498360163,
+    "objective_met": true,
+    "ratio_confidence_interval": [
+      0.8126273693819586,
+      0.8381489757860224
+    ],
+    "relative_gain": 0.17493685016398375,
+    "rows": [
+      {
+        "id": "gate-0",
+        "median_ratio": 0.8393341900044194,
+        "regression": false,
+        "relative_gain": 0.16066580999558056
+      },
+      {
+        "id": "gate-1",
+        "median_ratio": 0.7869838719235761,
+        "regression": false,
+        "relative_gain": 0.2130161280764239
+      },
+      {
+        "id": "gate-2",
+        "median_ratio": 0.8502777699625347,
+        "regression": false,
+        "relative_gain": 0.14972223003746532
+      }
+    ]
+  },
+  "timed_workloads": 3,
+  "workload_scope": "valid public gate inputs only",
+  "timing_method": "external protected process wall divided by frozen batch count; includes amortized startup",
+  "baseline_parent_sha256": "0c60d0f6057dec9edcb03016134e743e211ddf6d9224643675b7a39a446f7f47",
+  "protected_jobs": 609,
+  "limitations": [
+    "Measured external protected process wall divided by frozen batch size, including amortized startup.",
+    "Speed evidence covers the three original valid gate inputs; correctness covers the original 14 checks.",
+    "Historical plain and CC generation results are reused, not rerun; their generation times are not parser execution times.",
+    "Four proposals returned identical optimized source; only one distinct optimized implementation was generated.",
+    "No product admission or activation."
+  ],
+  "native_evidence_root": "/opt/ai4r-function-rsi-20261028-r1",
+  "source_inventory_verified_files": 3919
+}

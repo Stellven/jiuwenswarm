@@ -97,9 +97,15 @@ class ResearchClient:
         if not isinstance(value['model_calls'],list) or type(value['duration_s']) not in (int,float) or not math.isfinite(value['duration_s']) or value['duration_s']<0:
             raise ClientError('Invalid actual evaluation observations',status_code=200)
         if entry_mode=='node_replay':
-            self.validate('gate-decision',value['gate_decision'])
-            if value['tier1_verdict'] not in {'PASS','FAIL'} or value['tier2_verdict'] not in {'PASS','PASS_WITH_KNOWN_LIMITATIONS','FAIL','NEEDS_REVISION','NOT_RUN'} or type(value['advanced']) is not bool:
+            decision = value['gate_decision']
+            if isinstance(decision, dict) and decision.get('invalid_for_product') is True:
+                self.validate('urn:ai4r:evaluation-recording-decision:1.0.0', decision)
+            else:
+                self.validate('gate-decision', decision)
+            if value['tier1_verdict'] not in {'PASS','FAIL'} or value['tier2_verdict'] not in {'PASS','PASS_WITH_KNOWN_LIMITATIONS','FAIL','NEEDS_REVISION','INCONCLUSIVE','ENVIRONMENT_BLOCKED','NOT_RUN'} or type(value['advanced']) is not bool:
                 raise ClientError('Invalid replay tier result',status_code=200)
+            if value['advanced'] and (value['tier1_verdict'] != 'PASS' or value['tier2_verdict'] not in {'PASS','PASS_WITH_KNOWN_LIMITATIONS'}):
+                raise ClientError('Non-advancing replay verdict cannot advance',status_code=200)
         elif value['status'] not in {'completed','failed','blocked'} or not isinstance(value['output_refs'],dict) or not isinstance(value['check_results'],list):
             raise ClientError('Invalid single-Capsule result',status_code=200)
         return value

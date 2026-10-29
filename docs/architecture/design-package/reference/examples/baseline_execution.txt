@@ -1,0 +1,4 @@
+# Synthetic baseline stdout, one line per repeat. Not executed.
+{"metrics": {"latency_ms": 100, "quality": 0.9}}
+{"metrics": {"latency_ms": 100, "quality": 0.9}}
+{"metrics": {"latency_ms": 100, "quality": 0.9}}

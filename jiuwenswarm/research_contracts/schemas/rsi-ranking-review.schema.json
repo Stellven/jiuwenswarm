@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-ranking-review:1",
+  "description": "Exact custodian-captured independent owner review; caller must authenticate reviewer authority. This record cannot grant that authority by itself.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "preparation_ref", "reviewer", "provenance_approved", "overlap_inventory_complete", "development_disclosure_approved", "independent", "independence_reason", "evidence_refs"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-ranking-review:1"},
+    "preparation_ref": {"$ref": "#/$defs/Ref"}, "reviewer": {"type": "string", "minLength": 1},
+    "provenance_approved": {"type": "boolean"}, "overlap_inventory_complete": {"type": "boolean"},
+    "development_disclosure_approved": {"type": "boolean"}, "independent": {"type": "boolean"},
+    "independence_reason": {"type": "string", "minLength": 1},
+    "evidence_refs": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/Ref"}}
+  },
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}}
+}

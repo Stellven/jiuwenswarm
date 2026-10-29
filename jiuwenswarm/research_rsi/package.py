@@ -52,26 +52,10 @@ def publish_candidate(package,*,read_public,publication,qualification=None):
     """Copy only an already-public exact closure; a hidden Ref fails closed."""
     from .qualification import require_qualification
     require_qualification(qualification,'package',session_ref=package['session_ref'],candidate_ref=package['child_declaration_ref'])
-    refs=[];seen=set()
-    def visit(value):
-        if isinstance(value,dict):
-            if set(value)=={'id','sha256'}:
-                identity=(value['id'],value['sha256'])
-                if identity in seen:return
-                if len(seen)>=5000:raise ValueError('Candidate public closure exceeds the protected bound')
-                seen.add(identity)
-                raw=read_public(value)
-                if not isinstance(raw,bytes):raise ValueError('Public original bytes unavailable')
-                publication.put_ref(value,raw);refs.append(value)
-                try:nested=json.loads(raw.decode('utf8'))
-                except (ValueError,UnicodeError):return
-                visit(nested)
-            else:
-                for item in value.values():visit(item)
-        elif isinstance(value,list):
-            for item in value:visit(item)
-    visit(package)
-    return refs
+    from jiuwenswarm.research.contracts.rsi_publication import candidate_public_closure
+    rows=candidate_public_closure(package,read_public)
+    for pin,raw in rows:publication.put_ref(pin,raw)
+    return [pin for pin,_ in rows]
 
 
 def write_candidate(package,*,session_result,referee_evidence,public_key,key_id,read_ref,validate,inbox,custodian_uid,qualification=None):

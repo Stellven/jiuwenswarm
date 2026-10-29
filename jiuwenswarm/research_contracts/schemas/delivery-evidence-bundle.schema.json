@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:delivery-evidence-bundle:1.0.0",
+  "title": "Delivery evidence bundle",
+  "description": "The evidence a report may rest on: the request, scope statements, counts, a measurement table, a run log and the arithmetic policy. Every number a report states must trace to this bundle or to a host-computed derived value.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "request", "scope_statements", "counts", "measurements", "run_log", "arithmetic_policy", "comparison"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"const": "delivery_evidence_bundle"},
+    "request": {"type": "string", "minLength": 1, "maxLength": 6000},
+    "scope_statements": {"type": "array", "minItems": 1, "maxItems": 20, "items": {"type": "string", "minLength": 1, "maxLength": 3000}},
+    "counts": {"type": "array", "maxItems": 20, "items": {
+      "type": "object", "additionalProperties": false, "required": ["name", "value"],
+      "properties": {"name": {"type": "string", "pattern": "^[a-z][a-z_]{0,59}$"}, "value": {"type": "integer", "minimum": 0}}}},
+    "measurements": {"type": "array", "minItems": 1, "maxItems": 200, "items": {
+      "type": "object", "additionalProperties": false, "required": ["workload", "configuration", "metric", "value", "unit"],
+      "properties": {"workload": {"type": "string", "minLength": 1, "maxLength": 200}, "configuration": {"type": "string", "minLength": 1, "maxLength": 200},
+                     "metric": {"type": "string", "minLength": 1, "maxLength": 200}, "value": {"$ref": "#/$defs/decimal"},
+                     "unit": {"type": "string", "minLength": 1, "maxLength": 40}}}},
+    "run_log": {"type": "array", "maxItems": 500, "items": {
+      "type": "object", "additionalProperties": false, "required": ["configuration", "repeat", "exit_code", "duration_s"],
+      "properties": {"configuration": {"type": "string", "minLength": 1, "maxLength": 200}, "repeat": {"type": "integer", "minimum": 0},
+                     "exit_code": {"type": "integer"}, "duration_s": {"$ref": "#/$defs/decimal"}}}},
+    "arithmetic_policy": {"type": "string", "maxLength": 3000},
+    "comparison": {"type": "object", "additionalProperties": false, "required": ["reference_configuration", "trial_configuration", "ratio_metrics"],
+      "properties": {"reference_configuration": {"type": "string", "minLength": 1, "maxLength": 200},
+                     "trial_configuration": {"type": "string", "minLength": 1, "maxLength": 200},
+                     "ratio_metrics": {"type": "array", "maxItems": 20, "items": {"type": "string", "minLength": 1, "maxLength": 200}}}}
+  },
+  "$defs": {
+    "decimal": {"type": "string", "pattern": "^-?[0-9]+([.][0-9]+)?$", "maxLength": 40}
+  }
+}

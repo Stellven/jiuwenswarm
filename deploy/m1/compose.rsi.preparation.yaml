@@ -1,0 +1,11 @@
+# Explicitly combine with compose.rsi.yaml for custodian administration.
+# Fixed root-owned 0440:GID12002 input; never mounted into app/controller/worker.
+# Existing private custodian and hidden-input mounts hold all resulting state.
+services:
+  rsi-custodian:
+    volumes:
+      - type: bind
+        source: ${AI4R_RSI_PREPARATION_CONFIG:?Supply separately root-approved custodian preparation configuration}
+        target: /run/ai4r-rsi/preparation-service.json
+        read_only: true
+        bind: {create_host_path: false}

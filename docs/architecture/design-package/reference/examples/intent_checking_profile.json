@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0.0",
+  "id": "checking-profile:intent.compiler:1",
+  "profile_id": "intent.compiler.profile",
+  "version": "1.0.0",
+  "target_cc_name": "intent.compiler",
+  "target_cc_version_range": "example-1",
+  "criteria": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "question": "Does the output contain what the declaration says this CC produces, in the declared shape and ports?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "question": "Does the output avoid contradicting itself, for example a field that disagrees with another field in the same output?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "question": "Are the limitations and uncertainties the output states consistent with the output content and with the declaration's stated limits?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": null
+    },
+    {
+      "criterion_id": "uncertainty_consistency",
+      "question": "Does `readiness.status` agree with the listed uncertainties (`ready` only when none is blocking)?",
+      "blocking": true,
+      "answerable_from": "declaration_and_output",
+      "target_port": "intent"
+    }
+  ],
+  "instruction_ref": {
+    "id": "verifier_implementation.txt",
+    "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+  },
+  "model_call_limit": 1,
+  "time_s": 180,
+  "owner_role": "verifier_owner"
+}

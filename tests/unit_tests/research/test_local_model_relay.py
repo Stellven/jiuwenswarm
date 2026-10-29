@@ -99,11 +99,36 @@ class RelayTests(unittest.IsolatedAsyncioTestCase):
                    AsyncMock(side_effect=FileNotFoundError('SECRET executable'))) as spawn:
             with self.assertRaises(BackendStageFailure) as caught:
                 await HostCodexBackend()({'backend':{'kind':'host-codex-app-server',
-                    'host_python':'/fixture/python'}},self.payload)
+                    'host_python':'/fixture/python','codex_executable':'/fixture/codex',
+                    'codex_sha256':PIN,'account_fingerprint':PIN,'working_directory':'/fixture'},
+                    'model':{}},self.payload)
         self.assertEqual(caught.exception.diagnostic,
                          {'stage':'helper_spawn','exception_class':'FileNotFoundError'})
         self.assertNotIn('SECRET',str(caught.exception))
         spawn.assert_awaited_once()
+
+    async def test_host_helper_catalog_is_fixed_internal_source_not_client_input(self):
+        from jiuwenswarm.research.local_model_codex import MODEL_CATALOG_SHA256
+        binding={'model':{},'backend':{'kind':'host-codex-app-server',
+            'host_python':'/fixture/python','codex_executable':'/fixture/codex',
+            'codex_sha256':PIN,'account_fingerprint':PIN,'working_directory':'/fixture'}}
+        with patch.object(HostCodexBackend,'_observe',AsyncMock(return_value={})) as observe:
+            await HostCodexBackend()(binding,self.payload)
+        wire=json.loads(observe.call_args.args[1])
+        self.assertEqual(hashlib.sha256(wire['native_model_catalog'].encode()).hexdigest(),MODEL_CATALOG_SHA256)
+        bad=dict(self.payload,native_model_catalog='untrusted metadata')
+        with self.assertRaises(ResearchError):await self.relay.invoke(bad)
+        self.backend.assert_not_awaited()
+
+    async def test_rsi_unknown_policy_does_not_accept_generic_operator_acknowledgement(self):
+        self.backend.side_effect=RuntimeError('synthetic unknown')
+        await self.relay.invoke(self.payload)
+        # Constructor-only trusted RSI policy selection; a generic ack cannot
+        # substitute for its exact independently joined Root disposition.
+        self.relay.recovery_policy_sha256='b'*64
+        with patch('jiuwenswarm.research.local_model_recovery.acknowledged_unknown',return_value=True) as generic:
+            self.assertTrue(self.relay.unresolved())
+            generic.assert_not_called()
 
     async def test_host_stdin_failure_has_stage_and_joins_observer(self):
         process=SimpleNamespace(returncode=1,stdin=unittest.mock.Mock(),wait=AsyncMock())

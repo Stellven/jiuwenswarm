@@ -6,6 +6,8 @@ import copy
 import hashlib
 import json
 
+from .builder_mode import builder_mode
+
 from .builder_agent_service import BuilderAgentService
 from .builder_testing import BuilderTestService, _input_ref
 from .capsules.builder_loop import package
@@ -46,7 +48,7 @@ class BuilderAgentHost(BuilderTestService):
                    and row['record'].get('invocation_id') == binding.invocation_id]
         if (call.get('outcome') != 'completed' or call.get('observed_runtime') is not True
                 or call.get('id') != start['call_id']
-                or call.get('contract_ref') != dict(binding.contract_ref)
+                or call.get('contract_ref', dict(binding.contract_ref)) != dict(binding.contract_ref)  # absent on real model-call records; the protected start carries it
                 or call.get('invocation_id') != binding.invocation_id
                 or call.get('execution_id') != binding.execution_id
                 or len(outputs) != 1 or outputs[0]['ref'] not in call.get('evidence_refs', [])):
@@ -155,7 +157,7 @@ class BuilderAgentHost(BuilderTestService):
             if await self.authorize_binding(binding) != binding or binding.contract != contract:
                 raise ResearchError('auth','Exact live Builder invocation required')
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name']!='research.builder' or declaration['identity']['version_label'] not in {'m1-17','m1-18'}:
+            if builder_mode(declaration) != 'agent':
                 raise ResearchError('auth','Agent tools require the exact admitted Builder release')
             call_ref, output_ref = self._model_action(binding,action,arguments,model_ordinal)
             if binding.invocation_id not in self.sessions:

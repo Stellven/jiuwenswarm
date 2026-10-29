@@ -20,11 +20,32 @@ def require_qualification(authority,operation,*,session_ref,worker_profile_ref=N
     return result
 
 
-def captured_qualification(store,qualification_ref,*,scope_observer=None):
+def captured_qualification(store,qualification_ref,*,scope_observer=None,
+        validation_profile=None,case_observer=None,public_key=None,key_id=None,
+        candidate_resolver=None,kind_reader=None):
     if qualification_ref is None:return None
     read=getattr(store,'read_blob',None) or store.read
-    kind=getattr(store,'record_kind',None)
+    kind=kind_reader or getattr(store,'record_kind',None)
     # An original scope document alone is not evidence of the currently
     # running image. Until the finite trusted launcher observer is composed,
     # the positive operational path remains unavailable.
-    return RSIQualification(read,qualification_ref,kind_reader=kind,scope_observer=scope_observer)
+    return RSIQualification(read,qualification_ref,kind_reader=kind,scope_observer=scope_observer,
+        validation_profile=validation_profile,case_observer=case_observer,public_key=public_key,key_id=key_id,
+        candidate_resolver=candidate_resolver)
+
+
+def configured_qualification(store,qualification_ref,*,candidate_resolver=None,kind_reader=None):
+    """Prefer the fixed root installation, with current live producer checks."""
+    from jiuwenswarm.research.contracts.rsi_installation import installed_consumer_qualification
+    authority=installed_consumer_qualification(store,candidate_resolver=candidate_resolver)
+    if authority is None:
+        return captured_qualification(store,qualification_ref,candidate_resolver=candidate_resolver,kind_reader=kind_reader)
+    if qualification_ref!=authority.installation.qualification_ref:
+        raise QualificationUnavailable('Resource binding differs from the root-installed qualification')
+    return authority
+
+
+def require_key_pin(authority,public_key,key_id):
+    installation=getattr(authority,'installation',None)
+    if installation is not None and (installation.public_key!=public_key or installation.key_id!=key_id):
+        raise QualificationUnavailable('Captured custodian key differs from the root-installed qualification')

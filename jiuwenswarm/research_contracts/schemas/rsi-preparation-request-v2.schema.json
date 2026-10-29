@@ -1,0 +1,266 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-preparation-request:2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "operation",
+    "parameters"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-preparation-request:2"
+    },
+    "operation": {
+      "type": "string"
+    },
+    "parameters": {
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "operation": {
+          "const": "compile-helper-session"
+        },
+        "parameters": {
+          "$ref": "urn:ai4r:private:rsi-helper-session-request:1"
+        }
+      }
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "assemble-job2"
+        },
+        "parameters": {
+          "allOf": [
+            {
+              "$ref": "urn:ai4r:private:rsi-session-job:2"
+            },
+            {
+              "properties": {
+                "target_kind": {
+                  "enum": [
+                    "ranking-v1",
+                    "normalize-labels-v1"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "prepare-session-materials"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "session_ref",
+            "worker_profile_ref",
+            "parent_body_refs",
+            "visible_context_ref",
+            "job_ref"
+          ],
+          "properties": {
+            "session_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "worker_profile_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "parent_body_refs": {
+              "type": "object",
+              "minProperties": 1,
+              "maxProperties": 64,
+              "additionalProperties": {
+                "$ref": "#/$defs/Ref"
+              }
+            },
+            "visible_context_ref": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/Ref"
+                }
+              ]
+            },
+            "job_ref": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/Ref"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "operation": {
+          "const": "prepare-helper"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parent_ref",
+            "parent_declaration_ref",
+            "author",
+            "origin_ref",
+            "generator_ref",
+            "prior_preparation_refs",
+            "populations",
+            "max_rows",
+            "seed",
+            "target_kind"
+          ],
+          "properties": {
+            "parent_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "parent_declaration_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "author": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "origin_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "generator_ref": {
+              "$ref": "#/$defs/Ref"
+            },
+            "prior_preparation_refs": {
+              "$ref": "#/$defs/Refs"
+            },
+            "max_rows": {
+              "enum": [
+                3,
+                7
+              ]
+            },
+            "seed": {
+              "anyOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "minLength": 16,
+                  "maxLength": 256
+                }
+              ]
+            },
+            "populations": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "development",
+                "hidden_loop",
+                "hidden_final",
+                "platform"
+              ],
+              "properties": {
+                "development": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 256
+                },
+                "platform": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 256
+                },
+                "hidden_loop": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 256
+                },
+                "hidden_final": {
+                  "type": "integer",
+                  "minimum": 20,
+                  "maximum": 256
+                }
+              }
+            },
+            "target_kind": {
+              "enum": [
+                "ranking-v1",
+                "normalize-labels-v1"
+              ]
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "target_kind": {
+                    "const": "ranking-v1"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "max_rows": {
+                    "const": 3
+                  }
+                }
+              },
+              "else": {
+                "properties": {
+                  "max_rows": {
+                    "const": 7
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      }
+    },
+    "Refs": {
+      "type": "array",
+      "maxItems": 128,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/Ref"
+      }
+    }
+  }
+}

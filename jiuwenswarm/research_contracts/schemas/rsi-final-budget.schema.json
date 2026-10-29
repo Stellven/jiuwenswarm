@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-final-budget:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "target_ref", "hidden_final_units", "mandatory_units", "pass_count_repeats", "worker_timeout_s", "invocation_wall_s", "evidence_wall_s", "final_reserve_s"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-final-budget:1"},
+    "id": {"type": "string", "minLength": 1},
+    "target_ref": {"$ref": "#/$defs/Ref"},
+    "hidden_final_units": {"type": "integer", "minimum": 20},
+    "mandatory_units": {"type": "integer", "minimum": 1},
+    "pass_count_repeats": {"enum": [1, 3]},
+    "worker_timeout_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 300},
+    "invocation_wall_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 300},
+    "evidence_wall_s": {"type": "number", "exclusiveMinimum": 0, "maximum": 3600},
+    "final_reserve_s": {"type": "integer", "minimum": 1, "maximum": 3600}
+  },
+  "$defs": {
+    "Ref": {
+      "type": "object", "additionalProperties": false, "required": ["id", "sha256"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+    }
+  }
+}

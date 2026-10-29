@@ -3,21 +3,21 @@
   "id": "check-plan:intent",
   "contract_ref": {
     "id": "intention_subnode_contract.json",
-    "sha256": "2f84bff9563b1554d9142590e82af59bfb5704d8d37671b64b94264ddf35c157"
+    "sha256": "63c5235d567238d64882e7e0696b468aea0317da5c82efcf0a38c0c20c95449a"
   },
   "input_refs": [
     {
       "id": "qualified_intake.json",
-      "sha256": "71de4b769bdef8e041d286c06cb080d54fa721dde9de97ac2565964006239c84"
+      "sha256": "dfa38997575816bfcb25f2516a4dd3839acc9d8f857298beae093fe403f34f81"
     }
   ],
   "profile_ref": {
     "id": "intent_checking_profile.json",
-    "sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
+    "sha256": "32233642e533fe1c3cf01fa793d52c0fad65de023a4fc4850c5c60962677d943"
   },
   "policy_ref": {
     "id": "default_policy.json",
-    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+    "sha256": "86a572df29153bdc5067e2f123a3fd07902791540b2c73ddfbafb54b7ed4ff72"
   },
   "mandatory_deterministic": [
     "intent_schema",
@@ -33,12 +33,12 @@
   "runner_refs": [
     {
       "id": "intent_implementation.txt",
-      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      "sha256": "16002fc796e67a426c3d906c503be8c3dbf9feb8ac6211331d537ac3eccaf824"
     }
   ],
   "node_contract_ref": {
     "id": "intention_node_contract.json",
-    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+    "sha256": "0bdc4b52c9b67244140d5aee915da724a4fd2018276340ae9a25d8485ca66451"
   },
   "subnode_id": "intention"
 }

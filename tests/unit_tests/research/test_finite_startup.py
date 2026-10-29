@@ -38,7 +38,9 @@ async def finite_target(tmp_path, monkeypatch):
         ipc_root=ipc, app_uid=os.geteuid(), build_manifest=manifest,
         installed_package_root=package, installed_component_roots={'jiuwenswarm_tui': tmp_path / 'installed_tui'})
     status = {'enabled': True, 'state': 'ready', 'capture_healthy': True, 'builder_qualified': False}
-    async def observe_status(*args, **kwargs):
+    async def observe_status(method, *args, **kwargs):
+        if method == 'model_settings':  # readiness also reads the account's selected model route
+            return {'selected_id': 'codex'}
         return copy.deepcopy(status)
     ports.status_client = SimpleNamespace(call=observe_status)
     ports.model_bridge = scheduler.runner.model

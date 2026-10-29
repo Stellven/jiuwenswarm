@@ -1,121 +1,86 @@
 # AI4Research M1 design package
 
-**Reading level: human immediate · October 13, 2026.** This folder is the sole maintained architecture. Start here. The separately supplied PRD defines product requirements; its [receipt](sources/product/README.md) identifies the reviewed source. This package explains the system that realizes them. The [source index](sources/product/README.md) preserves receipt identities and explicit local exceptions.
+`Tier 1 · Start here · Serves: Knowledge and Standard`
 
-**PRD and design authority:**
+This package is the design for milestone 1 (M1) of AI4Research. Coding agents build from it. Humans test the code against it. The PRD (product requirements document) says what the product must do. This package says how. The PRD is supplied separately, and its [receipt](reference/product-input.md) names the copy we use.
 
-- The PRD owns overall requirements and required outcomes.
-- Design interprets the PRD and owns the architecture and implementation-facing details that achieve those outcomes.
-- If implementation guidance conflicts with the current design, follow the design.
-- Product obligations remain binding. A change to an obligation needs an explicitly recorded, authorized decision.
+**Authority ([D38](method/decisions.md#d38)).**
+- For M1 design, this package is the authority. For requirements, the PRD is.
+- Build from this package and the separately supplied PRD. Product-obligation departures require a numbered authorized [decision](method/decisions.md).
+- If the code does not do what the PRD or this package says, the code is wrong. If this package is wrong, fix the package first, record the decision, then fix the code.
+- Each concept has one name, in the [glossary](glossary.md#canonical-terms).
 
-## Human super-important read: understand the whole system
+## Architecture at a glance
 
-Read these three documents for M1 responsibilities, authority, placement, phases and the next build.
+AI4Research builds on JiuwenSwarm/OpenJiuwen. It reuses the existing workflow, agent, model, UI and diagnostic runtime where compatible, then adds research-specific CC governance, binding, checks, gates and evidence. A request becomes a checked Research Brief before planning. M1 uses Python services, a TypeScript UI, SQLite and files on Docker volumes. See [native reuse evidence](reference/native-reuse-evidence.json) and [system architecture](1-system.md).
 
-| Order | Read | Review outcome |
-|---|---|---|
-| 1 | This README | Find responsibilities and the reading route |
-| 2 | [System architecture](m1-design.md) | Explain connections, deployment, phases and what comes next |
-| 3 | [Principles](principles.md) | Explain checking, permissions, evidence and failure invariants |
+## Deployment and access
 
-## For design authors and human reviewers
-
-[Design method](design-method.md) defines architectural depth, change handling, maintenance and review. Use it when authoring or reviewing the maintained design. [Decision review](decision-review.md) retains alternatives and reasoning.
-
-
-**PRD supplied separately:** This folder contains architecture, source receipts and clause mappings, not the PRD body. Use the PRD Main/Context supplied by the coding prompt.
-
-## Build a specific component
-
-For the complete Intention Compiler, start with the [Architecture Main entrypoint](builds/intention-compiler/README.md) and [Architecture Context](builds/intention-compiler/context.md). Follow their required foundation and schema links. A successful build reaches accepted `Research_Brief.json`. Accepted Intent IR alone is incomplete.
-
-## Human should read: review the affected responsibility
-
-Select the affected responsibility. These pages explain purpose, connections, behavior, authority, failures and rationale.
-
-| Question | Detailed design |
-|---|---|
-| What makes Intent usable, and how does it become Requirements? | [Intent and Requirements](intent-design.md) |
-| How do plans freeze, bind future inputs and execute? | [Workflow](workflow.md) |
-| What does each research responsibility produce? | [Research design](research-design.md) |
-| What is a CC, and how do checking and library changes work? | [Capsules](capsules.md), [authoring](capsule/authoring.md) |
-| Who assigns checks and constructs verifier evidence? | [Guard design](guard-design.md) |
-| Where do models, generated code, state and the browser live? | [Placement](placement.md), [model routing](model-routing.md) |
-| What happens after a halt, cancellation or restart? | [Failure handling](failure-and-human.md) |
-| How do people inspect results and technical evidence? | [Artifact inspection](artifact-inspection.md), [automation/client boundary](automation.md) |
-| Where is RSI and what can it change? | [Offline RSI](offline-rsi.md) |
-| What must a phase or the next build demonstrate? | [Delivery phases](delivery-phases.md), [phase details](phase-details.md), [Immediate Plan](immediate-plan.md) |
-
-## AI read: human-readable reference, selective human review
-
-Read [reference principles and index](reference/README.md) for field contracts, selected exact schemas and readable examples. [CC fields](capsule/declaration.md) preserve the reusable declaration inventory. [Vocabulary](glossary.md), [clause coverage](coverage-allocation.md), [source decisions](authority-index.md) and [design review](coverage.md) support tracing, not a second architecture.
-
-Find a particular artifact or field through the [contract index](reference/contract-index.md). The reference defines shared fields. Implementers choose private algorithms, classes and adapters within those fields. No historical-schema search is required.
-
-## System picture
-
-AI4Research turns a supplied research purpose and local assets into a grounded opportunity, registered hypothesis, bounded POC, matched measurements and a readable report. Every work output is a candidate until protected checking and durable acceptance permit its use.
+**Diagram A.** Deployment and main processes. Dashed lines are off the hot path. Stores are mounted Docker volumes. The AI4Research control flow inside the app is detailed in [1. The system](1-system.md#components). The API router runs as a separate process inside the app container. The benchmark referee is a separate process under its own identity inside the sidecar.
 
 ```mermaid
-flowchart TB
-    User[Browser or supported local client] --> Control[Authenticated control plane]
-    Control --> Prep[Intention Compiler node: verified Intent and Research Brief]
-    Prep --> Plan[Static binding or bounded Phase 3 planning]
-    Plan --> Freeze[Protected plan checking and freeze]
-    Freeze --> Runner[Scheduler and governed CC runner]
-    Runner --> Work[Research CCs: search to delivery]
-    Work --> Det[Deterministic output checks]
-    Det -->|valid| Verify[Read-only verifier CC: assessment]
-    Det -->|invalid or unavailable| Gate[Protected gate: control decision]
-    Verify --> Gate
-    Gate --> State[Durable decision and immutable accepted artifacts]
-    State -->|accepted predecessor| Runner
-    State -->|halt or result| Control
-    Runner --> Models[Protected model routing and audited bridge]
-    Models --> Endpoint[Configured model endpoint]
-    Library[(Admitted CC library and guard profiles)] --> Plan
-    Library --> Runner
-    RSI[Separate offline RSI: candidate and protected evaluation] --> Admission[Protected admission: inactive eligible candidate]
-    Admission --> Library
-    Human[Human activation for future runs] --> Library
+flowchart LR
+    U[User browser or CLI on the LAN or VPN] -->|private address, session token on every request| W
+    subgraph Host[Server host: GB10, Docker Compose, one private network]
+        subgraph App[App container]
+            W[Web UI and control API] --> RT[Runtime: binder, scheduler, CC runner, check runner, gate host]
+            RT --> BR[Model bridge: Codex CLI over local IPC]
+            RT --> EX[Confined executor: own OS identity, POC workspace only]
+            RT --> ST[(Run state, artifacts, records)]
+            IN[(Admission inbox)] --> RT
+        end
+        subgraph Side[Sidecar container]
+            BM[Platform benchmark runner]
+            TR[Test runner]
+        end
+        subgraph WB[RSI workbench container, started by a human]
+            RSI[Proposer and child runner]
+            FX[(Hidden fixtures, referee identity only)]
+        end
+    end
+    BR --> M[Model endpoint]
+    BM -.->|own token, control API| W
+    TR -.->|own token, control API| W
+    ST -.->|record export, read-only| WB
+    WB -.->|signed candidate packages| IN
 ```
 
-Preparation and planning use the same checking pattern shown for research. The runtime feedback edge represents dependency release, not a cyclic research graph. RSI runs outside live research. Its scores cannot release product work or activate a candidate.
+- **One server host.** M1 runs only on the team's NVIDIA GB10 GPU server, never on a user's computer ([D35](method/decisions.md#d35)). The **Codex CLI** is the command-line model client that the PRD makes the default model route. The app reaches it over IPC (a local socket).
+- **Access.** `jiuwenswarm-start`, inside the app container, prints a one-time URL with a session token. The browser and CLI send the token on every request. Nothing listens on a public address.
+- **Confinement.** Generated proof-of-concept (POC) code reaches only its own workspace: no credentials, run state or fixtures. Credentials come from a protected environment file mounted into the app container.
+- **Sidecar** ([D36](method/decisions.md#d36)) and **RSI workbench** never call the runtime directly. The sidecar uses the control API. The workbench reads the record export and writes to the admission inbox.
 
-## Responsibility and authority
+Detail: [platform](platform/README.md) and [Compose topology](development-tools/automation.md).
 
-| Component | Owns | Connects to |
-|---|---|---|
-| Compiler/work CC | Candidate artifact fulfilling its assigned responsibility | Runner supplies inputs. Checking consumes outputs. |
-| Verifier CC | Read-only verdict, findings, reasons and uncertainty about the submitted artifact | Protected review context is input. Assessment goes to the host. |
-| Protected binder | Concrete contracts, typed bindings and independent check assignments | Accepted requirements, admitted pins, policy, evidence and durable state |
-| Protected gate | Checked decision and durable acceptance. No release before commit. | Exact contract, subject, evidence and assessment |
-| Protected library admission | Inactive candidate eligibility and standing history | Declaration, body and provenance. Independent evaluation. Human activation. |
-| Scheduler/runner | Eligible dispatch, scoped execution, budgets and observed evidence | Frozen contracts, CCs, model bridge and restricted experiment executor |
-| Control plane | Authenticated submission, inspection and visible results/blockers | Browser/CLI/TUI and server-owned run state |
-| Offline RSI | Bounded implementation improvement and comparable evidence | Protected target profile, isolated runner/referee and inactive library candidates |
+## Principles
 
-CC authors produce work or assessments. Protected infrastructure releases accepted results. Inspect IRs and decisions as readable records, with raw evidence separate.
+AI4Research values accuracy over speed. The full table of what good and bad look like is in [principles](method/principles.md). Use it whenever this package does not settle a case.
 
-## Deployment and scope
+- **Never pass garbage forward.** Every output is checked before anything uses it. If it is bad, that node stops.
+- **Get intent right first, then keep rolling.** The run follows its frozen plan without waiting for a person ([D50](method/decisions.md#d50)).
+- **A failure stops only what depends on it.** Independent branches continue in dependency order ([D49](method/decisions.md#d49)).
+- **Keep everything.** Exact versions are pinned, and artifacts and records are retained for reproduction and debugging.
+- **Side systems never block.** A run works without the model router, RSI workbench or sidecar.
 
-One workflow application container bundles the frontend, web/control service and runtime. The browser uses host loopback, by default `http://127.0.0.1:5173`. The image entrypoint starts the application, so no external UI helper is required. Internal model access is protected. Generated scientific code has a separate confinement boundary. The optional [development sidecar](development-tools/sidecar/README.md) is an ordinary authenticated client on the private container network. It is outside product agents and M1 delivery dependencies.
+## How to use this package
 
-Full M1 includes:
+- Read tier 1, then the tier 2 area page and tier 3 component contract. Each page states the expected behavior and links to its owning contract.
 
-- The baseline research journey and workstation.
-- Independent, isolated RSI.
-- Applicable bounded dynamic integration efforts.
+Tier 1 is this page, [1. System](1-system.md), [2. Capability Capsules](2-capability-capsules.md) and [3. Build plan](3-build-plan.md). Tier 2 is the areas below. Tier 3 is the [reference](reference/README.md).
 
-The current compiler build ends at an accepted Research Brief or a visible halt. Its foundational dependencies are included. Composite or merged CCs, remote workers and live self-modification are compatibility and research directions. They are not implied implementations.
+Each statement is **Knowledge** (what humans know better than an agent: research practice, the PRD, why the architecture has this shape) or a **Standard** (one agreed form, changed only by recorded decision).
 
-## Review and evidence
+## Page map
 
-[Design review](coverage.md) traces source obligations, compatibility, challenge cases and limitations. Documentation checks do not establish runtime acceptance.
+| Area | Covers |
+|---|---|
+| [Platform](platform/README.md) | App container, control API, state, runner, planning and freeze, failure, inspection |
+| [Pipeline](pipeline/README.md) | Intention Compiler, research stages, ports and data ownership |
+| [Checking](checking/README.md) | Check bundles, verifier CC, gates, per-CC check coverage |
+| [Capability capsules](capability-capsules/library-and-checking.md) | Library, admission, authoring |
+| [Side systems](side-systems/README.md) | [Model routing](side-systems/model-routing.md), [RSI workbench](side-systems/rsi-workbench.md), [platform benchmark runner](side-systems/benchmark-runner.md), [owner rulings](side-systems/owner-rulings.md) |
+| [Development tools](development-tools/sidecar/README.md) | Sidecar container, test runner, automation |
+| [Method](method/README.md) | [Decisions](method/decisions.md), [PRD clause coverage](method/clause-coverage.md), [phases](method/phases.md), [open items](method/open-items.md) |
+| [Reference](reference/README.md) | [One build page per CC](reference/capsules/README.md), [run plan](reference/run-plan.md), [contract index](reference/README.md#contract-index), [glossary](glossary.md) |
 
-Received PRD bodies remain unchanged outside this package and are supplied separately. [Decisions](principles.md#decisions-and-source-amendments) identify authorized local departures. These include D6's packaging realization; D5's compiler sequencing now follows the confirmed PRD (4). We do not claim literal zero differences. Historical material is optional provenance.
-
-## Model-routing integration
-
-[Routing overview](model-routing.md) connects the separate routing-owner component to the [shared Capsule export, profile and decision contract](reference/capsule-model-routing.md). Phase 1 remains fixed Codex; APIs are Phase 3.
+Internal names are lowercase ([D23](method/decisions.md#d23)). Where the PRD names a component, this package uses the PRD name.

@@ -1,0 +1,190 @@
+{
+  "schema": "cc03-typed-table-criteria:1",
+  "variants": {
+    "csv-control": {
+      "binding": {
+        "name": "utility.table_normalize_typed",
+        "version": "m1-1",
+        "declaration_ref": {
+          "id": "blob:723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08",
+          "sha256": "723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08"
+        },
+        "implementation_refs": [
+          {
+            "id": "blob:c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+            "sha256": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d"
+          },
+          {
+            "id": "blob:40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817",
+            "sha256": "40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817"
+          },
+          {
+            "id": "blob:b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a",
+            "sha256": "b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a"
+          }
+        ]
+      },
+      "expected_behavior": "complete",
+      "input_refs": {
+        "packet": {
+          "id": "blob:259b9b297a9e898ab1cc5d728f72cc694395fa0e9acfd590ad1ef3857cc6675b",
+          "sha256": "259b9b297a9e898ab1cc5d728f72cc694395fa0e9acfd590ad1ef3857cc6675b"
+        }
+      },
+      "expected_table": {
+        "columns": [
+          "name",
+          "value"
+        ],
+        "rows": [
+          [
+            "a",
+            "2"
+          ],
+          [
+            "b",
+            "3"
+          ]
+        ]
+      },
+      "output_port": "result",
+      "output_links": {}
+    },
+    "csv-leading-zero": {
+      "binding": {
+        "name": "utility.table_normalize_typed",
+        "version": "m1-1",
+        "declaration_ref": {
+          "id": "blob:723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08",
+          "sha256": "723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08"
+        },
+        "implementation_refs": [
+          {
+            "id": "blob:c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+            "sha256": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d"
+          },
+          {
+            "id": "blob:40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817",
+            "sha256": "40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817"
+          },
+          {
+            "id": "blob:b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a",
+            "sha256": "b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a"
+          }
+        ]
+      },
+      "expected_behavior": "complete",
+      "input_refs": {
+        "packet": {
+          "id": "blob:fcb028c82fb19df5065edbc329f3fdf2d0ff6177bbb5beeb53b2398f33dd662f",
+          "sha256": "fcb028c82fb19df5065edbc329f3fdf2d0ff6177bbb5beeb53b2398f33dd662f"
+        }
+      },
+      "expected_table": {
+        "columns": [
+          "name",
+          "value"
+        ],
+        "rows": [
+          [
+            "a,b",
+            "001"
+          ],
+          [
+            "line\nbreak",
+            "002"
+          ]
+        ]
+      },
+      "output_port": "result",
+      "output_links": {}
+    },
+    "json-types": {
+      "binding": {
+        "name": "utility.table_normalize_typed",
+        "version": "m1-1",
+        "declaration_ref": {
+          "id": "blob:723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08",
+          "sha256": "723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08"
+        },
+        "implementation_refs": [
+          {
+            "id": "blob:c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+            "sha256": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d"
+          },
+          {
+            "id": "blob:40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817",
+            "sha256": "40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817"
+          },
+          {
+            "id": "blob:b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a",
+            "sha256": "b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a"
+          }
+        ]
+      },
+      "expected_behavior": "complete",
+      "input_refs": {
+        "packet": {
+          "id": "blob:4df8f3532a8b0255bc438099dbbae65cdaeeb3c36712c763c33fba5f6e6c9514",
+          "sha256": "4df8f3532a8b0255bc438099dbbae65cdaeeb3c36712c763c33fba5f6e6c9514"
+        }
+      },
+      "expected_table": {
+        "columns": [
+          "name",
+          "value"
+        ],
+        "rows": [
+          [
+            "a",
+            1
+          ],
+          [
+            "b",
+            false
+          ],
+          [
+            "c",
+            null
+          ]
+        ]
+      },
+      "output_port": "result",
+      "output_links": {}
+    },
+    "malformed-row": {
+      "binding": {
+        "name": "utility.table_normalize_typed",
+        "version": "m1-1",
+        "declaration_ref": {
+          "id": "blob:723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08",
+          "sha256": "723236199e57b64e55509aae7ca76d4976e20b7c58921779b7e6a60efca68b08"
+        },
+        "implementation_refs": [
+          {
+            "id": "blob:c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d",
+            "sha256": "c441276c6df891e3ed3ffd264385ebc07441abb57ac2a5677d309afb986a9a6d"
+          },
+          {
+            "id": "blob:40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817",
+            "sha256": "40ee204e9e889410a8e14e12cc984605e52853d08ddb40b175b3354d180e3817"
+          },
+          {
+            "id": "blob:b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a",
+            "sha256": "b6561a111ec71742de7da1c85d6d3db642eb700a609ca7cfa730e5bd625b114a"
+          }
+        ]
+      },
+      "expected_behavior": "halt",
+      "input_refs": {
+        "packet": {
+          "id": "blob:7ea807d945cecdf26f9700746bc8f54bed57965c2f56d2c555e2a188d3283df0",
+          "sha256": "7ea807d945cecdf26f9700746bc8f54bed57965c2f56d2c555e2a188d3283df0"
+        }
+      },
+      "expected_table": null,
+      "output_port": "result",
+      "output_links": {}
+    }
+  }
+}

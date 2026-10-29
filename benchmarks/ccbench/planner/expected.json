@@ -1,0 +1,240 @@
+{
+  "paper": {
+    "feasible": true,
+    "category": "normal",
+    "required_capabilities": [
+      "research.paper_summary",
+      "research.paper_summary_delivery"
+    ],
+    "required_inputs": [
+      "local_document_buffer"
+    ],
+    "obligations": [
+      "requirement:paper",
+      "deliverable:paper",
+      "evidence:paper"
+    ],
+    "missing_capability_or_input": null,
+    "reason_terms": [],
+    "minimum_limits": {}
+  },
+  "screen": {
+    "feasible": true,
+    "category": "normal",
+    "required_capabilities": [
+      "research.screening"
+    ],
+    "required_inputs": [
+      "candidate_set"
+    ],
+    "obligations": [
+      "requirement:screen",
+      "deliverable:screen",
+      "evidence:screen"
+    ],
+    "missing_capability_or_input": null,
+    "reason_terms": [],
+    "minimum_limits": {}
+  },
+  "normalize": {
+    "feasible": true,
+    "category": "normal",
+    "required_capabilities": [
+      "utility.table_normalize"
+    ],
+    "required_inputs": [
+      "packet"
+    ],
+    "obligations": [
+      "requirement:normalize",
+      "deliverable:normalize",
+      "evidence:normalize"
+    ],
+    "missing_capability_or_input": null,
+    "reason_terms": [],
+    "minimum_limits": {}
+  },
+  "calculate": {
+    "feasible": true,
+    "category": "normal",
+    "required_capabilities": [
+      "utility.calculate"
+    ],
+    "required_inputs": [
+      "packet"
+    ],
+    "obligations": [
+      "requirement:calculate",
+      "deliverable:calculate",
+      "evidence:calculate"
+    ],
+    "missing_capability_or_input": null,
+    "reason_terms": [],
+    "minimum_limits": {}
+  },
+  "report": {
+    "feasible": true,
+    "category": "normal",
+    "required_capabilities": [
+      "utility.markdown_report"
+    ],
+    "required_inputs": [
+      "packet"
+    ],
+    "obligations": [
+      "requirement:report",
+      "deliverable:report",
+      "evidence:report"
+    ],
+    "missing_capability_or_input": null,
+    "reason_terms": [],
+    "minimum_limits": {}
+  },
+  "gpu_training": {
+    "feasible": false,
+    "category": "infeasible",
+    "required_capabilities": [],
+    "required_inputs": [],
+    "obligations": [
+      "requirement:gpu_training",
+      "deliverable:gpu_training",
+      "evidence:gpu_training"
+    ],
+    "missing_capability_or_input": "distributed GPU training",
+    "reason_terms": [
+      "gpu",
+      "train"
+    ],
+    "minimum_limits": {}
+  },
+  "live_web": {
+    "feasible": false,
+    "category": "infeasible",
+    "required_capabilities": [],
+    "required_inputs": [],
+    "obligations": [
+      "requirement:live_web",
+      "deliverable:live_web",
+      "evidence:live_web"
+    ],
+    "missing_capability_or_input": "live public web retrieval",
+    "reason_terms": [
+      "web",
+      "retriev",
+      "live"
+    ],
+    "minimum_limits": {}
+  },
+  "human_study": {
+    "feasible": false,
+    "category": "infeasible",
+    "required_capabilities": [],
+    "required_inputs": [],
+    "obligations": [
+      "requirement:human_study",
+      "deliverable:human_study",
+      "evidence:human_study"
+    ],
+    "missing_capability_or_input": "human participant recruitment and experimentation",
+    "reason_terms": [
+      "human",
+      "participant",
+      "recruit"
+    ],
+    "minimum_limits": {}
+  },
+  "budget_time": {
+    "feasible": false,
+    "category": "over_budget",
+    "required_capabilities": [
+      "utility.markdown_report"
+    ],
+    "required_inputs": [
+      "packet"
+    ],
+    "obligations": [
+      "requirement:budget_time",
+      "deliverable:budget_time",
+      "evidence:budget_time"
+    ],
+    "missing_capability_or_input": "time_s policy aggregate ceiling",
+    "reason_terms": [
+      "time",
+      "12000",
+      "budget"
+    ],
+    "minimum_limits": {
+      "time_s": 12000
+    }
+  },
+  "budget_calls": {
+    "feasible": false,
+    "category": "over_budget",
+    "required_capabilities": [
+      "utility.markdown_report"
+    ],
+    "required_inputs": [
+      "packet"
+    ],
+    "obligations": [
+      "requirement:budget_calls",
+      "deliverable:budget_calls",
+      "evidence:budget_calls"
+    ],
+    "missing_capability_or_input": "model_calls policy aggregate ceiling",
+    "reason_terms": [
+      "call",
+      "100",
+      "budget"
+    ],
+    "minimum_limits": {
+      "model_calls": 100
+    }
+  },
+  "missing_paper": {
+    "feasible": false,
+    "category": "underspecified",
+    "required_capabilities": [
+      "research.paper_summary",
+      "research.paper_summary_delivery"
+    ],
+    "required_inputs": [
+      "local_document_buffer"
+    ],
+    "obligations": [
+      "requirement:missing_paper",
+      "deliverable:missing_paper",
+      "evidence:missing_paper"
+    ],
+    "missing_capability_or_input": "qualified original paper input",
+    "reason_terms": [
+      "paper",
+      "document",
+      "input"
+    ],
+    "minimum_limits": {}
+  },
+  "missing_values": {
+    "feasible": false,
+    "category": "underspecified",
+    "required_capabilities": [
+      "utility.calculate"
+    ],
+    "required_inputs": [
+      "packet"
+    ],
+    "obligations": [
+      "requirement:missing_values",
+      "deliverable:missing_values",
+      "evidence:missing_values"
+    ],
+    "missing_capability_or_input": "measurement values input",
+    "reason_terms": [
+      "measurement",
+      "values",
+      "input",
+      "packet"
+    ],
+    "minimum_limits": {}
+  }
+}

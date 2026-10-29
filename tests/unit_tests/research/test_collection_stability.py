@@ -29,7 +29,9 @@ class CollectionStabilityTests(unittest.TestCase):
                 principal=Principal('alice',frozenset({'project'}),frozenset({'export'}))
                 first=snapshot(service,principal,'run:fixture');second=snapshot(service,principal,'run:fixture')
                 self.assertEqual(first,second)
-                self.assertEqual(len(first['artifacts']),2)
+                # The model-call start, the model call, and the run's contract index (always collected).
+                self.assertEqual(len(first['artifacts']),3)
+                self.assertIn('contracts/index.json',{item['path'] for item in first['artifacts']})
                 store.append_record('escalation',{'id':'late:fixture','run_id':'run:fixture','reason_code':'late_capture'})
                 late=snapshot(service,principal,'run:fixture')
                 self.assertNotEqual(first['manifest_sha256'],late['manifest_sha256'])

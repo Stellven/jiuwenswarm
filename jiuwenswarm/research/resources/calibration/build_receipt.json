@@ -3,15 +3,15 @@
   "id": "build_receipt",
   "manifest_ref": {
     "id": "poc_manifest.json",
-    "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
+    "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
   },
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+    "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
   },
   "environment_ref": {
     "id": "environment_lock.json",
-    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+    "sha256": "28f223d79c9dd33b40417aa1799cf85fc355b086f93eba287387e269de64d0fd"
   },
   "archive_ref": {
     "id": "poc_artifact_bundle.zip",
@@ -21,21 +21,21 @@
   "file_checks": [
     {
       "path": "requirements.txt",
-      "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f",
+      "sha256": "e684ffecda00fc19e4344ca3c3436cc06d4b171312416109cbea7870ec413d80",
       "syntax_result": "not_applicable",
       "syntax_detail": null,
       "forbidden_imports": []
     },
     {
       "path": "poc_patch.py",
-      "sha256": "cd23c5ffc4a30a1b5debad70de934c1763e74debeb586672568583177a878ec0",
+      "sha256": "e18154b165c1a84b2be8da0c498fda4f71b8bf7fd6fb8365d637ed037e3bbe63",
       "syntax_result": "pass",
       "syntax_detail": null,
       "forbidden_imports": []
     },
     {
       "path": "run_benchmark.py",
-      "sha256": "56e286b8f79ae5b30ee1d4d5ccb8e863f9a8e2185e054b837b6bb971df358759",
+      "sha256": "d9b1195b862e1a66b1b0f74efa8f16d7467abd0fa86e44606fc6df49ca3b814b",
       "syntax_result": "pass",
       "syntax_detail": null,
       "forbidden_imports": []

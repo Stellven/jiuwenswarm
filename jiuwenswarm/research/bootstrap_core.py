@@ -50,6 +50,12 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     or a client payload. No callable or graph arrives through submit.
     """
     options=dict(protected_options or {});actor=operator_actor or principal
+    from .utility_rsi_scope import require_scope
+    if require_scope(store, operator.snapshot(), options) is not None:
+        raise ResearchError('utility_rsi_scope', 'Utility-only RSI bindings cannot initialize a research product composition')
+    from .releases import STAGES as RELEASE_STAGES, implicit_release, pinned_extras, require_release
+    selections={stage:require_release(stage,options.get(stage+'_version',implicit_release(stage)),'configuration_override') for stage in RELEASE_STAGES}
+    intent_version,requirements_version,screening_version,delivery_version=(selections[k] for k in ('intent','requirements','screening','delivery'))
     configuration=store.read_record(configuration_ref)
     if configuration.get('operator',configuration)!=operator.snapshot():
         raise ResearchError('configuration_override','Captured configuration differs from validated operator settings')
@@ -59,13 +65,14 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     from .capsules.assets import load_research_catalog
     research_catalog=load_research_catalog()
     from .compiler import prepare_compiler_assets
-    compiler_assets=await prepare_compiler_assets(store)
+    compiler_assets=await prepare_compiler_assets(store,requirements_version=requirements_version,intent_version=intent_version)
     from .capsules.assets import build_research_assets
-    research_assets=build_research_assets(store)
+    research_assets=build_research_assets(store,screening_version=screening_version,delivery_version=delivery_version)
     evidence_aware_review=options.get('evidence_aware_review') is True
     if evidence_aware_review and options.get('finite_e1_binding_ref') is not None:
         raise ResearchError('evidence_pilot_assets','Evidence-aware pilot releases are unavailable to the finite E1 shortcut')
     bootstrap_pins=tuple(v['declaration_sha256'] for v in catalog['capsules'].values())+tuple(v['declaration_ref']['sha256'] for v in research_catalog['stages'].values())
+    bootstrap_pins+=pinned_extras(selections,compiler_assets,research_assets)
     paper_assets={}
     integrated = options.get('integrated_workflows') is True
     if options.get('paper_summary_workflow') is True or integrated:
@@ -168,7 +175,7 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
             library.select_development_builtins([*selected_compiler_assets,*selected_assets.values()],memory_mb=memory_ceiling)
         if finite is None:
             result.installed=await register_compiler_capsules(registry,checks,library,store,actor,
-                activate=initialize,initialize=initialize,memory_mb=memory_ceiling,prepared_assets=compiler_assets)
+                activate=initialize,initialize=initialize,memory_mb=memory_ceiling,prepared_assets=compiler_assets,requirements_version=requirements_version,intent_version=intent_version)
         else:
             # Pure immutable body preparation does not require Compiler work/resources.
             asset=compiler_assets['verifier']
@@ -253,8 +260,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
         from .capsule_extensions.catalog import register_active
         result.installed.update(register_active(registry, checks, library, store))
         if finite is None:
-            from .planning import capture_static_template
-            result.static_template_ref=capture_static_template(store,library)
+            from .screening_static_capture import capture_static_template
+            result.static_template_ref=capture_static_template(store,library,
+                screening_version=screening_version,delivery_version=delivery_version,expected_ref=operator.snapshot()['cc']['static_template_ref'])
             if result.static_template_ref!=operator.snapshot()['cc']['static_template_ref']:
                 raise ResearchError('static_template_pin','Approved configuration must explicitly capture the current authored static release')
         else:result.static_template_ref=finite._binding['template_ref']

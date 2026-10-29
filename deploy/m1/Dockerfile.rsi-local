@@ -1,0 +1,41 @@
+# syntax=docker/dockerfile:1.7
+# Isolated derivative images only. Build the existing Dockerfile.rsi targets
+# first, freeze their digests, then supply both immutable base references here.
+# Never retag or rebuild the running local application image.
+ARG RSI_BASE_IMAGE
+ARG RSI_WORKER_BASE_IMAGE
+FROM ${RSI_BASE_IMAGE} AS production
+USER root
+COPY jiuwenswarm/research_rsi/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_rsi/
+COPY jiuwenswarm/research_records/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_records/
+COPY jiuwenswarm/research_contracts/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_contracts/
+COPY jiuwenswarm/research/contracts/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research/contracts/
+# /opt/ai4r precedes site-packages in the inherited PYTHONPATH. Keep both
+# import locations on the same reviewed source and neutral schema versions.
+COPY jiuwenswarm/research_rsi/ /opt/ai4r/jiuwenswarm/research_rsi/
+COPY jiuwenswarm/research_records/ /opt/ai4r/jiuwenswarm/research_records/
+COPY jiuwenswarm/research_contracts/ /opt/ai4r/jiuwenswarm/research_contracts/
+COPY jiuwenswarm/research/contracts/ /opt/ai4r/jiuwenswarm/research/contracts/
+COPY deploy/m1/rsi_build_identity.py /tmp/rsi-build-identity.py
+COPY uv.lock pyproject.toml /tmp/rsi-build-inputs/
+RUN python /tmp/rsi-build-identity.py --normalize-overlay-permissions --lock /tmp/rsi-build-inputs/uv.lock --project /tmp/rsi-build-inputs/pyproject.toml --manifest /usr/local/share/ai4r-build-identity.json
+USER 12001:12001
+ENTRYPOINT ["python", "-m", "jiuwenswarm.research_rsi"]
+
+FROM ${RSI_WORKER_BASE_IMAGE} AS worker-broker
+USER root
+COPY jiuwenswarm/research_rsi/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_rsi/
+COPY jiuwenswarm/research_records/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_records/
+COPY jiuwenswarm/research_contracts/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research_contracts/
+COPY jiuwenswarm/research/contracts/ /opt/venv/lib/python3.12/site-packages/jiuwenswarm/research/contracts/
+COPY jiuwenswarm/research_rsi/ /opt/ai4r/jiuwenswarm/research_rsi/
+COPY jiuwenswarm/research_records/ /opt/ai4r/jiuwenswarm/research_records/
+COPY jiuwenswarm/research_contracts/ /opt/ai4r/jiuwenswarm/research_contracts/
+COPY jiuwenswarm/research/contracts/ /opt/ai4r/jiuwenswarm/research/contracts/
+COPY deploy/m1/rsi_build_identity.py /tmp/rsi-build-identity.py
+COPY uv.lock pyproject.toml /tmp/rsi-build-inputs/
+RUN python /tmp/rsi-build-identity.py --normalize-overlay-permissions --lock /tmp/rsi-build-inputs/uv.lock --project /tmp/rsi-build-inputs/pyproject.toml --manifest /usr/local/share/ai4r-build-identity.json
+RUN test ! -e /hidden-fixtures && test ! -e /var/lib/ai4r-rsi/custodian \
+    && test ! -e /var/lib/ai4r-rsi/accounts && test ! -e /var/lib/ai4r \
+    && test ! -e /var/lib/ai4r-accounts && test ! -e /var/run/docker.sock
+ENTRYPOINT ["python", "-m", "jiuwenswarm.research_rsi", "serve-worker-broker"]

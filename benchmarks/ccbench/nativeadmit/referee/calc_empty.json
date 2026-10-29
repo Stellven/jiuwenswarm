@@ -1,0 +1,18 @@
+{
+ "id": "calc_empty",
+ "candidate": "calculate_empty",
+ "tool": "calculate",
+ "defective": true,
+ "defect": "edge: empty rejection",
+ "witness": {
+  "values": [],
+  "mode": "json_numbers",
+  "operation": "sum"
+ },
+ "answer": "0",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": null,
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

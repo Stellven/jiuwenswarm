@@ -1,0 +1,12 @@
+{
+  "schema": "ai4r-rsi-capsule-fixtures:1",
+  "capsule_name": "utility.table_normalize",
+  "task_output_key": "table",
+  "scope": "complete packet carrier",
+  "sets": {
+    "public": "public.json",
+    "public_extended": "public_extended.json",
+    "held_out": "held_out.json"
+  },
+  "release_module": "table_normalize_v3"
+}

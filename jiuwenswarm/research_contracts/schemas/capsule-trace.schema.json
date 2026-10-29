@@ -1,0 +1,293 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:capsule-trace:1.0.0",
+  "title": "Host-owned per-invocation capsule trace",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "invocation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_ref": {
+      "$ref": "#/$defs/Sha256Ref"
+    },
+    "declaration_ref": {
+      "$ref": "#/$defs/Sha256Ref"
+    },
+    "profile_ref": {
+      "$ref": "#/$defs/Sha256Ref"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Event"
+      }
+    },
+    "terminal": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "minLength": 1
+        },
+        "final_artifact_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "status",
+        "final_artifact_sha256"
+      ],
+      "additionalProperties": false
+    },
+    "claims": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Claim"
+      }
+    },
+    "manifest_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    }
+  },
+  "required": [
+    "schema_version",
+    "invocation_id",
+    "contract_ref",
+    "declaration_ref",
+    "profile_ref",
+    "events",
+    "terminal",
+    "claims",
+    "manifest_sha256"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "Sha256Ref": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "ValueRef": {
+      "type": "object",
+      "properties": {
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+        }
+      },
+      "required": [
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "enum": [
+            "model_call",
+            "tool_call",
+            "tool_result",
+            "check_run",
+            "artifact_write",
+            "submit"
+          ]
+        },
+        "producer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "prev_event_sha256": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "event_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "args_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "input_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Sha256Ref"
+          }
+        },
+        "result_ref": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sha256Ref"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "type": "object",
+              "maxProperties": 32,
+              "patternProperties": {
+                "^[A-Za-z][A-Za-z0-9_.-]{0,63}$": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 256
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "description": "Small scalar metadata only. Store payloads as content-addressed blobs."
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "seq",
+        "kind",
+        "producer",
+        "prev_event_sha256",
+        "event_sha256",
+        "args_ref",
+        "input_refs",
+        "result_ref",
+        "detail"
+      ],
+      "additionalProperties": false
+    },
+    "Claim": {
+      "type": "object",
+      "properties": {
+        "output_pointer": {
+          "type": "string",
+          "pattern": "^(?:/(?:[^~/]|~[01])*)*$"
+        },
+        "kind": {
+          "enum": [
+            "evidence",
+            "derivation",
+            "unmeasured",
+            "unsupported"
+          ]
+        },
+        "evidence_event_seqs": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "uniqueItems": true
+        },
+        "derivation": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "type": "string",
+              "minLength": 1
+            },
+            "operands": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/ValueRef"
+              },
+              "minItems": 1
+            }
+          },
+          "required": [
+            "op",
+            "operands"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "output_pointer",
+        "kind",
+        "evidence_event_seqs"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "derivation"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "derivation"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "derivation"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "$comment": "Digests use state.json_bytes canonical JSON excluding only the digest field of the object being hashed. Event sequence starts at 1; the first predecessor is null. Submit closes the event stream. Integrity alone does not attest execution or claim truth."
+}

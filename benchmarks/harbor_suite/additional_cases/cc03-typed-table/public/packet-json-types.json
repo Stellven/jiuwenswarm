@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "data": {
+    "table_request": {
+      "file": "source",
+      "format": "json",
+      "columns": [
+        "name",
+        "value"
+      ],
+      "delimiter": null
+    }
+  },
+  "files": [
+    {
+      "path": "source",
+      "text": "[{\"name\":\"a\",\"value\":1},{\"name\":\"b\",\"value\":false},{\"name\":\"c\",\"value\":null}]",
+      "sha256": "631dfccec1fd40d47037628cb7183b8f5f4158bc26774b1c418831098436c737"
+    }
+  ],
+  "trust": "low",
+  "provenance": [],
+  "limitations": [
+    "Source truth is not established by normalization."
+  ]
+}

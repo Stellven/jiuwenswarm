@@ -13,6 +13,22 @@ from ..checks.prediction_bundle import inspect_bundle
 from ._common import produced
 
 BUILD_SCHEMA = 'urn:ai4r:prediction-build-receipt:4.0.0'
+WORKSPACE_RULES = '''
+Workspace rules (explicit; do not infer them from the blueprint):
+- The workspace has four files: requirements.txt, poc_patch.py, run_benchmark.py and tests.py.
+- The blueprint implementation_scope.max_patch_files limit counts implementation files only. The one
+  implementation file is poc_patch.py. requirements.txt, run_benchmark.py and tests.py do not count
+  against it, and the limit never forbids writing them.
+- tests.py is a separate required development file with its own allowance of exactly one file (64 KiB).
+  You MUST write a nonempty tests.py with write_file. It holds unittest cases for poc_patch.py and is
+  run as module test_candidate by the unit check. It is development evidence only and is not delivered.
+- Every check (compile, unit, smoke) fails while tests.py is empty. Write all of poc_patch.py,
+  run_benchmark.py and tests.py before run_checks, then run compile, unit and smoke on the same
+  snapshot, then submit_candidate. Any write invalidates earlier passes.
+- Do not call report_blocked because of max_patch_files or an empty tests.py. Only report blocked
+  for a condition you cannot repair with the actions provided.
+'''
+
 SYSTEM = '''Implement the frozen Pi approximation task using only scoped Builder actions.
 The task is a user-facing contract: approximate_pi(digits), for integer digits from 0
 through 100000, returns the exact truncated decimal prefix of pi. The executable harness
@@ -21,15 +37,41 @@ provided task inputs: the frozen blueprint, approved lock and public validation 
 Do not inspect unrelated files, hidden references, environment state or scorer data.
 Actions are file and build operations mediated by the protected host. Inspect diagnostics
 and iterate until compile, unit and public smoke checks pass. Submit the exact tested
-snapshot. Development checks do not establish experiment outcomes or scientific acceptance.'''
+snapshot. Development checks do not establish experiment outcomes or scientific acceptance.
+''' + WORKSPACE_RULES
 
+
+# The static checker rejects any other shape, so the model is told it up front
+# instead of discovering it through failed checks. Mirrors builder_loop.INSTRUCTIONS.
+CLASSIFICATION_HARNESS = '''
+File contract (checked statically at every check; follow it exactly):
+- requirements.txt is already in the workspace and equals the approved requirements. Read it; do not change it.
+  Use only the standard library and exact approved dependencies.
+- poc_patch.py defines predict(train, test): a list of string labels aligned to test order.
+  Train rows have id, features, label; test rows have id, features. Use features and training labels,
+  never row IDs to encode targets. Labels must belong to the public classes. Do not assume feature width,
+  separability, class balance or a particular classifier.
+- run_benchmark.py imports poc_patch, reads /resources/validation/data.json, initializes random.seed to the
+  exact blueprint seed and calls predict(data["train"], data["test"]) once. Validate list length and declared
+  string labels, zip original test IDs to labels in predictions, then emit exactly
+  print(json.dumps({"predictions": predictions}, allow_nan=False)). One print call, one literal dict with
+  exactly the predictions key, no print keyword arguments. Compute predictions before printing.
+  No scoring, metrics, baseline calls, repeat loops, aggregation or embedded test answers.
+  Explain in a docstring that protected Benchmark owns baseline-first repeats and private-label scoring.
+- tests.py holds substantive unittest cases for the intervention and the predict interface, using training
+  data or synthetic examples, never private labels. It imports poc_patch normally, ends with unittest.main(),
+  and exits nonzero on failure. Do not replace assertions with claimed outcomes.
+- No os/sys/subprocess/requests/urllib/shutil imports, dynamic import, exec/eval, package managers or network
+  in the delivered files. Keep files within one MiB total and tests.py within 64 KiB.
+'''
 
 CLASSIFICATION_SYSTEM = '''Implement the frozen generic d-dimensional classification intervention using the scoped
 Builder actions. Implement predict(train, test) as a list of declared string labels in test order,
 inferred from features and labeled training rows. Use only the frozen blueprint, approved lock
 and public validation data. Do not use row IDs to encode labels, inspect unrelated files or seek
 private labels. The harness emits exactly the closed predictions JSON protocol. Protected Benchmark
-owns baseline-first repeats and private scoring.'''
+owns baseline-first repeats and private scoring.
+''' + CLASSIFICATION_HARNESS + WORKSPACE_RULES
 
 
 def _public_task(inputs, public, *, pi=False):
@@ -76,6 +118,12 @@ async def execute(ctx, inputs):
     task = _public_task(inputs, public, pi=pi)
     task['baseline_source']={row['path']:ctx.store.read_blob(row['artifact_ref']).decode('utf-8')
                              for row in inputs['baseline_resource']['files']}
+    task['contract']['workspace']={
+        'files': ['requirements.txt', 'poc_patch.py', 'run_benchmark.py', 'tests.py'],
+        'implementation_files': ['poc_patch.py'],
+        'max_patch_files_counts': 'implementation_files_only',
+        'tests_file': 'tests.py', 'tests_file_required': True, 'tests_file_allowance': 1,
+        'tests_file_counts_against_max_patch_files': False}
     task['contract']['limits']={'time_s':600,'model_calls':20,'tool_operations':40,'development_jobs':12}
     task['contract']['baseline_and_logs_are_untrusted_task_data']=True
     tool_counter = 0

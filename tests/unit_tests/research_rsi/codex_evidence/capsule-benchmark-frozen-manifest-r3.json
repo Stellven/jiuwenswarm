@@ -1,0 +1,314 @@
+{
+  "schema": "ai4r-rsi-capsule-frozen-baseline-manifest:1",
+  "targets": [
+    {
+      "capsule_name": "utility.calculate",
+      "protocol": {
+        "schema": "ai4r-rsi-capsule-benchmark:2",
+        "capsule_name": "utility.calculate",
+        "splits": {
+          "visible": {
+            "sha256": "b1517a1c1c038847fc85b7d457824817fcf0e8fc7406fb5e94db93ddef13db4e",
+            "case_count": 8,
+            "timing_case_ids": [
+              "small-numbers",
+              "large-numbers",
+              "wide-numbers",
+              "large-decimals"
+            ]
+          },
+          "evaluation": {
+            "sha256": "30faeb40e897a888afca02590fa9ca4678d48b2551a45e6ee485b10548201f19",
+            "case_count": 8,
+            "timing_case_ids": [
+              "small-decimals",
+              "large-mixed-sign",
+              "wide-reordered",
+              "decimal-exponents"
+            ]
+          }
+        },
+        "timing_scope": "authoritative protected process wall divided by fixed full-execution batch size; includes startup, imports, packet validation, copy, serialization and input guard; checker excluded",
+        "process_scope": "original single-invocation protected latency remains separately reported; no claim of pure execute latency reduction",
+        "batch_iterations": {
+          "small": 1000,
+          "large": 20
+        },
+        "invocation_state": "fresh JSON packet and fresh candidate module namespace each invocation; candidate compiled once inside protected wall; immutable dependency imports shared",
+        "candidate_review": "reject cross-invocation result memoization, persistent state in dependencies/builtins and mutations of frozen dependencies; unchanged independent runtime isolation still applies",
+        "repetitions": 11,
+        "warmups": 2,
+        "paired_order": "alternating AB BA",
+        "aggregate": "equal-weight geometric mean of per-workload median candidate/parent ratios",
+        "minimum_relative_gain": 0.1,
+        "confidence": 0.95,
+        "bootstrap_resamples": 5000,
+        "regression_limit": 0.05,
+        "correctness": "all valid exact output bytes plus original immutable checks; all malformed exact parent error type, code and message; input unchanged",
+        "claim_requires": "amortized protected full-execution batch gain >= minimum; paired bootstrap upper ratio <= 0.90; every workload protected wall median ratio <= 1.05; all correctness cases pass",
+        "qualification": "local development evidence only; security deferred; no admission or activation"
+      },
+      "source_sha256": {
+        "research/capsule_extensions/calculate/worker.py": "22e37d0e3045d46c8b689ab56d699c09f08d0f6bdb045f93fd997b202256ae49",
+        "research/capsule_extensions/calculate/checks.py": "8caa2d4c6ecc7c291894060688c599cd6656fb73ec0a598684240845598a5348",
+        "research/capsule_extensions/packet.py": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+      },
+      "expectations": {
+        "visible": [
+          {
+            "id": "small-numbers",
+            "output_sha256": "cc30dd8433f8e600d49fde71af360f49dd2209bfe234ab82cac7957689e5b991",
+            "input_sha256": "5be661f964f113895bf120c2d15788fa6e2f2d4c8d79c79196befba7c0986e95"
+          },
+          {
+            "id": "large-numbers",
+            "output_sha256": "4234fc1dd3dce740e16f4c5f0e97746f47e44a6feac3f169186fc158e37701f0",
+            "input_sha256": "84373c38dcfc4612a64c2793bc74df6805ea48a0c53055af3b4a64666568a9bd"
+          },
+          {
+            "id": "wide-numbers",
+            "output_sha256": "58b482b31ba4d90c85fecfa6ec6993af766f5a0ba0f56198107eeb341c2806fd",
+            "input_sha256": "17b82bf00577c1f3e859d4cfa52707185380746916a05fca3a2af25e56d14169"
+          },
+          {
+            "id": "large-decimals",
+            "output_sha256": "9de38e861deb1d5b47d79df31c75c959b42a674b57f68be2f01e4f62ae5c0847",
+            "input_sha256": "e26a457f8546afa463fd9c92c12e82ea0a5dd5b85154e30cb25842a52559369a"
+          },
+          {
+            "id": "bad-bool",
+            "error": {
+              "type": "ResearchError",
+              "code": "calculation_input",
+              "message": "calculation_input: invalid numeric value; no implicit conversion or missing values"
+            },
+            "input_sha256": "e504ab22c881c6a9edbb702ff80a55aeda25cd899761eb57dd536fa3bc79b4cc"
+          },
+          {
+            "id": "bad-nonfinite",
+            "error": {
+              "type": "ResearchError",
+              "code": "calculation_input",
+              "message": "calculation_input: invalid numeric value; no implicit conversion or missing values"
+            },
+            "input_sha256": "218f4309ec2f7898312f862c39b40bf681f5ab63444001bbbfcc587877c348e9"
+          },
+          {
+            "id": "empty-sum-count",
+            "output_sha256": "d0049a496b070e3171c5edd34c9f2d38fa83c2066ab0452535400de0eb41429e",
+            "input_sha256": "9f250d3ccea277645c37f2ecad1b3306877b018f79b1086491f040d53637930a"
+          },
+          {
+            "id": "empty-mean",
+            "error": {
+              "type": "ResearchError",
+              "code": "calculation_input",
+              "message": "calculation_input: empty column has no requested mean/min/max"
+            },
+            "input_sha256": "7f9068fbe9abdf903325ebb8fb8378a4d68b0db81f651658f7cfc47b993ce99d"
+          }
+        ],
+        "evaluation": [
+          {
+            "id": "small-decimals",
+            "output_sha256": "0174c8076894a4420cbcaed09c68cfea1bfa849a5a44fd70ba8e032c103f53fe",
+            "input_sha256": "5bea228311024115604d30cd65848d55a0cd0993ab8785e03d050492e658c2f8"
+          },
+          {
+            "id": "large-mixed-sign",
+            "output_sha256": "1417bea6bd5919545fb2f570dbbf1d99f8ee83291436a48d794f0aacec0a6c41",
+            "input_sha256": "fe90711febfe4262ec26df49a6a132f2ede15e0fd6031c065f6b9d35b38a0534"
+          },
+          {
+            "id": "wide-reordered",
+            "output_sha256": "2d565bb695423d5452d15eb0daca7923eb7972186a2d0a318621272fe4f5163a",
+            "input_sha256": "5db64d060c0801a359be68686d8a36d156dfdf419c74290aec23d284eceee155"
+          },
+          {
+            "id": "decimal-exponents",
+            "output_sha256": "fa6f7f2f9d95671381e929976f7bf66d8e54bbbe4dfb5e4631c6e00212d13f97",
+            "input_sha256": "87a75b88c0aa935500f5117b233161637e4647dcb9e69632a60adf6533ec042c"
+          },
+          {
+            "id": "bad-null",
+            "error": {
+              "type": "ResearchError",
+              "code": "calculation_input",
+              "message": "calculation_input: invalid numeric value; no implicit conversion or missing values"
+            },
+            "input_sha256": "8575fe465ee7a357b81a49cd52f8eb551de2561bd7143fbc98f6cdbf6d5b7390"
+          },
+          {
+            "id": "bad-bound",
+            "error": {
+              "type": "ResearchError",
+              "code": "calculation_input",
+              "message": "calculation_input: finite bounded decimal value required"
+            },
+            "input_sha256": "0d27281b97ad3a974e3086173926c98e8f6798e45d97f35cca0b6d41ef372844"
+          },
+          {
+            "id": "empty-sum-count",
+            "output_sha256": "99f19f3d47f0f4c51041a497596305bde208d52354c5a1a5b8d654a20aa154f1",
+            "input_sha256": "12a9fbec15e40b778d4777a888175c0c09b0260a3c27cd63ea1ec401996d82ae"
+          },
+          {
+            "id": "empty-mean",
+            "error": {
+              "type": "ResearchError",
+              "code": "calculation_input",
+              "message": "calculation_input: empty column has no requested mean/min/max"
+            },
+            "input_sha256": "87781939a22c1436d5140c5d7663e65d96e9bbbcecf16f230c144436262c7852"
+          }
+        ]
+      }
+    },
+    {
+      "capsule_name": "utility.table_normalize",
+      "protocol": {
+        "schema": "ai4r-rsi-capsule-benchmark:2",
+        "capsule_name": "utility.table_normalize",
+        "splits": {
+          "visible": {
+            "sha256": "e33cf8163a62ebea55005a381c959e12ec434e9647f7c2cdef96cfd368f20a41",
+            "case_count": 7,
+            "timing_case_ids": [
+              "small-json",
+              "large-json",
+              "wide-json",
+              "large-csv"
+            ]
+          },
+          "evaluation": {
+            "sha256": "94b3db65f0f10fa172b40fa29a7fbcb36a9b84e220003395927a19429b8cb9a4",
+            "case_count": 7,
+            "timing_case_ids": [
+              "small-csv",
+              "large-json-order",
+              "wide-json-order",
+              "quoted-csv"
+            ]
+          }
+        },
+        "timing_scope": "authoritative protected process wall divided by fixed full-execution batch size; includes startup, imports, packet validation, copy, serialization and input guard; checker excluded",
+        "process_scope": "original single-invocation protected latency remains separately reported; no claim of pure execute latency reduction",
+        "batch_iterations": {
+          "small": 1000,
+          "large": 20
+        },
+        "invocation_state": "fresh JSON packet and fresh candidate module namespace each invocation; candidate compiled once inside protected wall; immutable dependency imports shared",
+        "candidate_review": "reject cross-invocation result memoization, persistent state in dependencies/builtins and mutations of frozen dependencies; unchanged independent runtime isolation still applies",
+        "repetitions": 11,
+        "warmups": 2,
+        "paired_order": "alternating AB BA",
+        "aggregate": "equal-weight geometric mean of per-workload median candidate/parent ratios",
+        "minimum_relative_gain": 0.1,
+        "confidence": 0.95,
+        "bootstrap_resamples": 5000,
+        "regression_limit": 0.05,
+        "correctness": "all valid exact output bytes plus original immutable checks; all malformed exact parent error type, code and message; input unchanged",
+        "claim_requires": "amortized protected full-execution batch gain >= minimum; paired bootstrap upper ratio <= 0.90; every workload protected wall median ratio <= 1.05; all correctness cases pass",
+        "qualification": "local development evidence only; security deferred; no admission or activation"
+      },
+      "source_sha256": {
+        "research/capsule_extensions/table_normalize/worker.py": "1793760181576dbe635d615f2d5cea67aed62f4a1662b180c2a705197d079314",
+        "research/capsule_extensions/table_normalize/checks.py": "1c5e16d40b3e7393bbbba4e0a6b3a2a3fc78555872feb41b6a551881e9481111",
+        "research/capsule_extensions/packet.py": "b18dafe6035849fa65d2f473cfaeabac9825ce0d15eaf2c5a9302f79eda37e16"
+      },
+      "expectations": {
+        "visible": [
+          {
+            "id": "small-json",
+            "output_sha256": "e516b1d12a35a593dff726318d4cb3e32aab70a9eb2b15f224c3744caf315a6a",
+            "input_sha256": "ab38edf1baf1ed4a74d1ccdd27b11758efb3ac5418975307826e3a12c9b04c57"
+          },
+          {
+            "id": "large-json",
+            "output_sha256": "0f202b437a9a304c524302ea778500bb18efc6059da333e6e4da512d9edecb34",
+            "input_sha256": "57bd0f2c0870f69a8b5e4f267c026d35f4da27f83769af208527d1d7053f86e6"
+          },
+          {
+            "id": "wide-json",
+            "output_sha256": "072ba2f9fb115ef7f43370f2d037ecdb5a11dfb48acc78c161aaf97117d9d819",
+            "input_sha256": "10b48241d1f64dbc907b7f2432851c23739de7e11fa95b30645198ee68577969"
+          },
+          {
+            "id": "large-csv",
+            "output_sha256": "5f8f8a32a23da695d2b3b8159a9cadb0e4fcf6735167fbae76725fba8db08346",
+            "input_sha256": "42aad743dea7ba68c777e8f17a6a85c1e41fc6c1603ad4d6936b2f8bf0678221"
+          },
+          {
+            "id": "duplicate-key",
+            "error": {
+              "type": "ResearchError",
+              "code": "table_input",
+              "message": "table_input: duplicate JSON key"
+            },
+            "input_sha256": "af4dde168e19583c93d389099b23e0ec792da4344831c9eff6c518b0a8f129e0"
+          },
+          {
+            "id": "wrong-keys",
+            "error": {
+              "type": "ResearchError",
+              "code": "table_input",
+              "message": "table_input: JSON must be records with exactly the selected columns"
+            },
+            "input_sha256": "6c602dcd501241a2cdec6221816ae6491f19fcd27ae3531dbd25c5e6fefc7a40"
+          },
+          {
+            "id": "empty-json",
+            "output_sha256": "a2e8e13f26211d1bade2903db2f89480d9bbb276f9ec2249f9c2bb514e93320f",
+            "input_sha256": "16d42cb9ebcacf5f2baef524c9f66ee93bd5a0c5e687ca25f98305ad7cb721c4"
+          }
+        ],
+        "evaluation": [
+          {
+            "id": "small-csv",
+            "output_sha256": "9f87bc65bcf31f3cccb437802148b153ddab6f4c79d2a1e37754fb349af162c4",
+            "input_sha256": "a699121ef100bfacb2799a34080d410e2957b8e652cc84b37ee6853caa1745e9"
+          },
+          {
+            "id": "large-json-order",
+            "output_sha256": "f6c4a44414d011bafea37e1b60d0415332b2b47cf5c703bdc4ea2d4cc6ce2fac",
+            "input_sha256": "943c9cca78a95a1bcccb7f2b5bc0cca0f523fb76079bca69eef3e8e5971c9d9a"
+          },
+          {
+            "id": "wide-json-order",
+            "output_sha256": "74fc32e51b7154d443ebe6fb4e1e21b48d1db014d454fb3dcc0c7fa8bead55d5",
+            "input_sha256": "2151134cb8d37c3c039c729d2da81ca09046f9bcbc409cc1e0ff3b4fdb106fa1"
+          },
+          {
+            "id": "quoted-csv",
+            "output_sha256": "6cf21b0edc22e7f8a2813748bd74473e9c0a63d945c84b5b56c5cc6bfcf49013",
+            "input_sha256": "3be9ac72a05975d00798b39e706337ae5490a2b3ca398ed809b9df589d0193d3"
+          },
+          {
+            "id": "nested-value",
+            "error": {
+              "type": "ResearchError",
+              "code": "table_input",
+              "message": "table_input: only finite scalar values are supported"
+            },
+            "input_sha256": "3de0154a58c257394230e5cbdbc41bd1796729964a2fb1e0b63a38b3bea3d616"
+          },
+          {
+            "id": "nonfinite",
+            "error": {
+              "type": "ResearchError",
+              "code": "table_input",
+              "message": "table_input: nonfinite JSON"
+            },
+            "input_sha256": "fbc11dc5beb7ee28cee51ef501250e7af75da3f31d696a19deaca06a061bd0fd"
+          },
+          {
+            "id": "empty-json",
+            "output_sha256": "a2e8e13f26211d1bade2903db2f89480d9bbb276f9ec2249f9c2bb514e93320f",
+            "input_sha256": "16d42cb9ebcacf5f2baef524c9f66ee93bd5a0c5e687ca25f98305ad7cb721c4"
+          }
+        ]
+      }
+    }
+  ],
+  "candidate_generated": false
+}

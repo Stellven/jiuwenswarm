@@ -305,17 +305,18 @@ class CapsuleRunner:
         # Historical opaque deployment captures retain their original behavior.
         try: deployment=json.loads(self.store.read_blob(deployment_ref))
         except (ValueError,UnicodeError):deployment=None
-        if isinstance(deployment,dict) and deployment.get('schema')=='ai4r-fixed-subscription:1':
-            if (set(deployment)!={'schema','id','route_id','requested_model','endpoint'}
-                    or deployment['route_id']!='codex-cli-default' or deployment['requested_model']!='gpt-6.1-sol'
-                    or deployment['endpoint']!='local-protected-IPC'):
+        from .fixed_subscription import FIXED_DEPLOYMENT_SCHEMAS, deployment_model, deployment_backend
+        if isinstance(deployment,dict) and deployment.get('schema') in FIXED_DEPLOYMENT_SCHEMAS:
+            requested = deployment_model(deployment)
+            deployment_backend(deployment)  # Validate the explicit protected backend too.
+            if requested not in {'gpt-6.1-sol','gpt-6-luna'}:
                 raise ResearchError('deployment_binding','Unsupported fixed subscription deployment')
-            value['requested_model']=deployment['requested_model']
+            value['requested_model']=requested
         if prior is not None and prior!=value:raise ResearchError('frozen_context','Run authorization cannot change')
         self._run_contexts[run_id]=value
-        self._run_started.setdefault(run_id,time.monotonic())
+        # Configuration freezes authority; the run clock begins on its first actual reservation.
 
-    def _budget_state(self,contract,execution=None):
+    def _budget_state(self,contract,execution=None,*,reserve=True):
         """Reconstruct unspent frozen sibling/reviewer reservations before effects."""
         run_id,node_id=contract['run_id'],contract['node_id']
         frozen=self._run_contexts.get(run_id)
@@ -325,7 +326,11 @@ class CapsuleRunner:
             raise ResearchError('run_not_dispatchable','Stopped work cannot consume a reservation')
         parent=self.store.read_record(contract['node_contract_ref'],contract_id='node-execution-contract')
         now=time.monotonic();key=(run_id,node_id)
-        if key not in self._node_started:
+        run_started=self._run_started.get(run_id,now)
+        node_started=self._node_started.get(key,now)
+        if reserve:
+            self._run_started.setdefault(run_id,now)
+        if reserve and key not in self._node_started:
             self._node_started[key]=now
             self.store.append_record('node-budget-start',{'id':'node-budget:'+uuid.uuid4().hex,'run_id':run_id,'node_id':node_id,
                 'node_contract_ref':contract['node_contract_ref'],'interface_revision':'M1-IF-002@r2','started_monotonic_s':now,'recorded_at':utc_now()})
@@ -353,9 +358,9 @@ class CapsuleRunner:
         # capacity. Worker/reviewer invocation ceilings and the run total stay
         # unchanged. Selection claims are included in node and run usage.
         node_call_ceiling = parent['node_limits']['model_calls'] + node_routing_allowance(self.store, parent)
-        node_remaining={'time_s':max(0,parent['node_limits']['time_s']-(now-self._node_started[key])),
+        node_remaining={'time_s':max(0,parent['node_limits']['time_s']-(now-node_started)),
                         'model_calls':max(0,node_call_ceiling-node_used),'memory_mb':parent['node_limits']['memory_mb']}
-        run_remaining={'time_s':max(0,frozen['run_limits']['time_s']-(now-self._run_started[run_id])),
+        run_remaining={'time_s':max(0,frozen['run_limits']['time_s']-(now-run_started)),
                        'model_calls':max(0,frozen['run_limits']['model_calls']-run_used),'memory_mb':frozen['run_limits']['memory_mb']}
         elapsed=0 if execution is None else now-execution['started']
         own=contract['bindings'][0]['limits']
@@ -394,6 +399,7 @@ class CapsuleRunner:
                    'invocation_id':execution['invocation_id'],'execution_id':context['execution_id'],
                    'call_ordinal':context.get('call_ordinal'),'call_function':execution['call_function'],
                    'cc_name':execution['declaration']['identity']['name'],'cc_version':execution['declaration']['identity']['version_label'],
+                   'declaration':copy.deepcopy(execution['declaration']),
                    'contract_ref':execution['contract_ref'],'input_refs':contract['input_refs'],
                    'limits':dict(binding['limits'],time_s=remaining),
                    'execution_deadline_monotonic_s':deadline,
@@ -963,14 +969,25 @@ class CapsuleRunner:
             if frozen is not None:
                 with self.store._lock:
                     used=self.store.connection.execute('SELECT COUNT(*) FROM model_calls WHERE run_id=?',(contract['run_id'],)).fetchone()[0]
-                if (time.monotonic()-self._run_started[contract['run_id']]>=frozen['run_limits']['time_s']
+                started = self._run_started.get(contract['run_id'])
+                if ((started is not None and time.monotonic()-started>=frozen['run_limits']['time_s'])
                         or used>=frozen['run_limits']['model_calls']):
                     reason,failed_ref='run_budget_exhausted',observation_ref
         if reason is None:return None
+        # The executor masks its own fault from the RPC reply. Its protected
+        # fault record is the only place the real cause survives, so carry it
+        # into the stop receipt instead of leaving a bare integrity_fault.
+        fault=None
+        if reason=='integrity_fault':
+            rows=[row['record'] for row in self.store.iter_records(run_id=contract['run_id'],kinds=('executor-rpc-fault',))
+                  if row['record'].get('node_id')==contract['node_id'] and row['record'].get('attempt_id')==contract['attempt_id']]
+            if rows:
+                last=rows[-1]
+                fault={key:last.get(key) for key in ('operation','exception_class','code','frame')}
         return self.store.append_record('protected-invocation-stop',{'schema':'ai4r-protected-invocation-stop:1',
             'id':'protected-stop:'+uuid.uuid4().hex,**{key:contract[key] for key in ('run_id','node_id','attempt_id')},
             'contract_ref':contract_ref,'worker_observation_ref':observation_ref,'failure_observation_ref':failed_ref,
-            'reason_code':reason,'recorded_at':utc_now()})
+            'reason_code':reason,'executor_fault':fault,'recorded_at':utc_now()})
 
     def _complete_execution(self,execution,stop=None):
         raw_ref=execution['observation_ref'];raw=self.store.read_record(raw_ref,contract_id='invocation-observation')

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-kernel-observation:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-kernel-observation:1"
+    },
+    "session_ref": {"$ref": "#/$defs/Ref"},
+    "worker_profile_ref": {"$ref": "#/$defs/Ref"},
+    "input_ref": {"$ref": "#/$defs/Ref"},
+    "attack_id": {"type": "string", "minLength": 1},
+    "execution_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "attack_source_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "probe_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "stdout_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "stderr_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "containment_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "before_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "after_ref": {
+      "$ref": "#/$defs/Ref"
+    }
+  },
+  "required": [
+    "schema",
+    "session_ref",
+    "worker_profile_ref",
+    "input_ref",
+    "attack_id",
+    "execution_ref",
+    "attack_source_ref",
+    "probe_ref",
+    "stdout_ref",
+    "stderr_ref",
+    "containment_ref",
+    "before_ref",
+    "after_ref"
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ]
+    }
+  }
+}

@@ -3,37 +3,37 @@
   "id": "benchmark_payload",
   "blueprint_ref": {
     "id": "hypothesis_blueprint.json",
-    "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+    "sha256": "b8338ccbe4a2923320ace48adfe3dec233e546ba76e7984b6c70f022be3212f8"
   },
   "poc_ref": {
     "id": "poc_manifest.json",
-    "sha256": "ecf5637cc151317c3186e1173dabe669c8bee818c9ab6176ee8f8bf11912d6b4"
+    "sha256": "b23de8de89118958fc96f6e956419d49d47bbec17f4d501cbaf51287dbbf48fb"
   },
   "environment_lock_ref": {
     "id": "environment_lock.json",
-    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+    "sha256": "28f223d79c9dd33b40417aa1799cf85fc355b086f93eba287387e269de64d0fd"
   },
   "resource_refs": [
     {
       "id": "baseline_resource.json",
-      "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+      "sha256": "11756f9803dc69d643f18e93b67ea2873cb51d2204ebdf124fe7e12c178b8be5"
     },
     {
       "id": "validation_resource.json",
-      "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+      "sha256": "1a12ee3f7032e4e7d2cc9a05f4175f68fdeb74b537b71458c47801f4a850bfb4"
     }
   ],
   "configuration_ref": {
     "id": "run_configuration.json",
-    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+    "sha256": "f0790faad1c5ec93ce5c42ff3d1797edf29f935cffa1197931636ce070703fb9"
   },
   "execution_receipt_ref": {
     "id": "execution_receipt.json",
-    "sha256": "cf67d205e56b8e7550b24e783fe2491fe9e192c5c164b732523cafcfcbd79aa1"
+    "sha256": "a44a33eed69cc0b5527fa2901501b34055731ea3bfa1d1431170b624d7ed7e05"
   },
   "provisioning_receipt_ref": {
     "id": "provisioning_receipt.json",
-    "sha256": "83941f7f623ea1e4f3cafe8fe974a51aec7e75f184288a02e80ad4f3c7408312"
+    "sha256": "640126da912a0e56789cfa4e7c22c6ddebab9fedd797467f24949affdf1f0b55"
   },
   "repeat_count": 3,
   "seed": 42,
@@ -102,11 +102,11 @@
     },
     {
       "id": "baseline_execution.txt",
-      "sha256": "b501847acc1746f73fd467303ec04727bc014da35e226e68387ae200015e2b7b"
+      "sha256": "858fddc91d7c6837802cb6637c585e84e20cf730d2239430c5b78d57d2f36c34"
     },
     {
       "id": "treatment_execution.txt",
-      "sha256": "2469291130d8ec8ea57bde672fb7ce1fab26df61afd5dc4f89cb1f9871a82318"
+      "sha256": "0acef534a6831b132904366ba7b04b693e0fd962abf49aed4873c3a3f50c7aba"
     },
     {
       "id": "execution_receipt_stderr.txt",

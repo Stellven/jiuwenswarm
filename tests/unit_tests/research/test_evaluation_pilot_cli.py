@@ -7,6 +7,28 @@ from jiuwenswarm.research import evaluation_pilot_cli as cli
 from jiuwenswarm.research.state import json_bytes
 
 
+def test_declaration_aliases_preserve_installed_ref_after_identical_recapture(tmp_path):
+    from importlib.resources import files
+    from jiuwenswarm.research.state import SQLiteRunStore
+    from jiuwenswarm.research.contracts import ResearchError
+    store=SQLiteRunStore(tmp_path)
+    try:
+        declaration=json.loads(files('jiuwenswarm.research').joinpath('resources/calibration/verifier_capsule.json').read_bytes())
+        canonical=store.put_blob(json_bytes(declaration))
+        assert not list(store.iter_records(kinds=('capsule-declaration',)))
+        assert cli._declaration_ref(store,canonical['sha256'],preferred_ref=canonical)==canonical
+        store.put_record('capsule-declaration',declaration)
+        raw=store.read_blob(canonical)
+        alias=store.put_record('capsule-declaration',declaration,record_id='recaptured:declaration')
+        assert canonical != alias
+        assert cli._declaration_ref(store,canonical['sha256'])==canonical
+        assert cli._declaration_ref(store,canonical['sha256'],preferred_ref=alias)==alias
+        with pytest.raises(ResearchError,match='differs from the captured digest'):
+            cli._declaration_ref(store,'0'*64,preferred_ref=alias)
+        with pytest.raises(ResearchError,match='Unknown captured reference'):
+            cli._declaration_ref(store,canonical['sha256'],preferred_ref={'id':'uncaptured','sha256':canonical['sha256']})
+    finally:store.close()
+
 def test_verifier_pin_must_be_explicit_when_catalog_has_multiple_versions():
     from jiuwenswarm.research.contracts import ResearchError
 
@@ -109,3 +131,5 @@ async def test_scope_cli_helper_rejects_foreign_config_before_creating_output(tm
             account_id=actor.account_id)
     assert not output_dir.exists()
     store.close()
+
+

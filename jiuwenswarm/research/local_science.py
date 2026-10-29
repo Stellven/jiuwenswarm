@@ -11,9 +11,15 @@ import platform
 import sys
 from pathlib import Path
 
+from .builder_mode import builder_mode
+
 from .contracts import ResearchError, validate
+from .run_input_types import typed_resource
 from .state import json_bytes
 
+
+# Resource keys capture_local_science_resources writes into the inventory and run inputs.
+SCIENCE_RESOURCE_KEYS = ('baseline_resource', 'validation_resource', 'environment_lock')
 
 BASELINE = b'''import json
 from pathlib import Path
@@ -95,7 +101,7 @@ Preserve negative and inconclusive outcomes and report uncertainty and limitatio
     rows = [('baseline_resource','file',baseline), ('validation_resource','dataset',validation),
             ('environment_lock','file',lock_ref), ('poc_workspace','workspace',workspace)]
     inventory = {'schema_version': '1.0.0', 'id': 'local_cpu_science_resources',
-        'resources': [{'resource_key': key, 'kind': kind, 'available': True, 'quantity': 1, 'ref': ref} for key, kind, ref in rows]}
+        'resources': [typed_resource({'resource_key': key, 'kind': kind, 'available': True, 'quantity': 1, 'ref': ref}) for key, kind, ref in rows]}
     validate('resource-inventory', inventory)
     guide_ref = next(row['artifact_ref'] for row in store.read_record(baseline)['files'] if row['path'] == 'README.md')
     scoring_profile = {'protocol': 'ai4r-blind-classification:1', 'public_dataset_ref': validation,
@@ -135,7 +141,7 @@ def capture_local_science_runtime(store, *, configuration_ref, policy_ref, resou
             'implementation_refs': implementations, 'dependency_refs': dependencies,
             'admission_ref': entry['admission_ref'],
             'operations': ['provision','hardware_inventory','measure_job','run']
-                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if declaration['identity']['version_label'] in {'m1-14','m1-15','m1-16','m1-17','m1-18'} else ['builder_test'] if declaration['identity']['carrier']['ref'] == 'builder_loop.py' else ['collect_builder'])})
+                if declaration['identity']['name'] == 'research.benchmark' else (['builder_action'] if builder_mode(declaration) == 'agent' else ['builder_test'] if builder_mode(declaration) == 'loop' else ['collect_builder'])})
     value = {'schema': 'ai4r-science-runtime:2',
         'build_id': verify_installed_build(), 'gpu_required': False,
         'profile': {'asset_root': '/var/lib/ai4r-executor/assets',

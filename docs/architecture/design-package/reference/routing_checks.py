@@ -63,18 +63,21 @@ def request_issues(request,profile):
         ctx=request['selected_capsule']['bound_context']
         if request['input_refs']!=[r for port in ctx['inputs'] for r in port['artifact_refs']]:result.append('input inventory mismatch')
         if request['policy_ref']!=ctx['policy_ref'] or profile['policy_ref']!=request['policy_ref']:result.append('policy mismatch')
-        if request['task_type'] not in ('general','planning','implementation','review','math_reasoning','scientific_reasoning','biomedical_analysis'):result.append('unknown task type')
+        if request['domain']!='cs_ml':result.append('out-of-scope domain')
+        if request['task_category'] not in ('ml_methods_and_inference','retrieval_and_knowledge_systems','algorithms_optimization_and_formal','software_systems_and_performance','databases_and_data_processing','networking_and_distributed_algorithms','security_and_reliability','experimental_evaluation_and_technical_data'):result.append('unknown task category')
+        if request['call_function'] not in ('worker','verifier','planner'):result.append('unknown call function')
         if not profile['approved_model_ids']:result.append('empty approved scope')
         if 'model_allowlist' in request['requirements'] and not set(request['requirements']['model_allowlist']) & set(profile['approved_model_ids']):result.append('empty request scope')
-        if profile['mode'] not in ('static_codex','api_phase3'):result.append('invalid mode')
-        judge=profile['judge_allowance']
-        if judge['enabled']:
-            if judge['model_calls']!=1 or not judge['deployment_ref'] or judge['time_s']<=0 or judge['output_tokens']<=0:result.append('unbounded Judge')
-            if ctx['budget_snapshot']['routing_reserved']['model_calls']<1:result.append('unreserved Judge')
-        elif judge['model_calls']!=0:result.append('disabled Judge consumes calls')
-        if profile['mode']=='static_codex' and (judge['enabled'] or profile['fallback_model_id'] is not None or len(profile['approved_model_ids'])!=1):result.append('static route expanded')
-        fallback=profile['fallback_model_id']
-        if fallback is not None and fallback not in profile['approved_model_ids']:result.append('fallback outside profile')
+        if profile['policy_mode'] not in ('development_profile','fixed_baseline','bounded_llm_ablation'):result.append('invalid policy mode')
+        allowance=profile['selection_allowance']
+        if allowance['enabled']:
+            if profile['policy_mode']!='bounded_llm_ablation':result.append('selection call outside ablation')
+            if allowance['model_calls']!=1 or not allowance['deployment_ref'] or allowance['time_s']<=0 or allowance['output_tokens']<=0:result.append('unbounded selection call')
+            if ctx['budget_snapshot']['routing_reserved']['model_calls']<1:result.append('unreserved selection call')
+        elif allowance['model_calls']!=0:result.append('disabled selection call consumes calls')
+        if profile['policy_mode']=='fixed_baseline' and (allowance['enabled'] or profile['alternate_model_id'] is not None or len(profile['approved_model_ids'])!=1):result.append('fixed baseline expanded')
+        alternate=profile['alternate_model_id']
+        if alternate is not None and alternate not in profile['approved_model_ids']:result.append('alternate outside profile')
     except (KeyError,TypeError,ValueError) as exc:result.append('invalid request/profile: '+str(exc))
     return result
 
@@ -84,27 +87,27 @@ def decision_issues(decision,request,profile):
         ctx=request['selected_capsule']['bound_context']
         effective_limits=copy.deepcopy(ctx['invocation_limits'])
         effective_limits['time_s']=min(effective_limits['time_s'],ctx['subnode_limits']['time_s'],ctx['node_limits']['time_s'],ctx['budget_snapshot']['subnode_remaining']['time_s'],request['selected_capsule']['declaration']['budget']['per_call']['wall_s'])
-        for key,expected in [('request_ref',ref_for('Route_Request.json')),('selected_capsule_ref',ref_for('Selected_Capsule_Input.json')),('runtime',ctx['runtime']),('execution_id',request['execution_id']),('binding_id',ctx['binding_id']),('role',ctx['role']),('model_selection_profile_ref',request['model_selection_profile_ref']),('limits',effective_limits)]:
+        for key,expected in [('request_ref',ref_for('route_request.json')),('selected_capsule_ref',ref_for('selected_capsule_input.json')),('runtime',ctx['runtime']),('execution_id',request['execution_id']),('binding_id',ctx['binding_id']),('role',ctx['role']),('model_selection_profile_ref',request['model_selection_profile_ref']),('limits',effective_limits)]:
             if decision[key]!=expected:result.append('decision mismatch: '+key)
         if decision['selected_endpoint'] not in decision['eligible_endpoints'] or not set(decision['eligible_endpoints'])<=set(profile['approved_model_ids']):result.append('ineligible model')
-        if decision['selection_method'] not in ('single_candidate','llm_judgment','predefined_fallback'):result.append('unknown selection method')
-        if decision['fallback_used']!=(decision['selection_method']=='predefined_fallback'):result.append('false fallback attribution')
-        if decision['fallback_used'] and decision['selected_endpoint']!=profile['fallback_model_id']:result.append('different fallback')
-        if profile['mode']=='static_codex' and (decision['selection_method']!='single_candidate' or decision['registry_snapshot_ref'] is not None):result.append('static API/Judge routing')
+        if decision['selection_method'] not in ('fixed_profile','single_candidate','development_profile_policy','bounded_llm_selection','compatible_baseline','router_alternate_model'):result.append('unknown selection method')
+        if decision['alternate_used']!=(decision['selection_method']=='router_alternate_model'):result.append('false alternate attribution')
+        if decision['alternate_used'] and decision['selected_endpoint']!=profile['alternate_model_id']:result.append('different alternate model')
+        if profile['policy_mode']=='fixed_baseline' and (decision['selection_method'] not in ('fixed_profile','single_candidate') or decision['registry_snapshot_ref'] is not None):result.append('fixed baseline uses API selection')
         if datetime.fromisoformat(decision['valid_until'].replace('Z','+00:00'))<=datetime.fromisoformat(decision['ready_at'].replace('Z','+00:00')):result.append('invalid validity')
         routing_ref(decision['deployment_ref'])
         context=load(routing_ref(decision['routing_context_ref']))
         if context['selected_capsule_ref']!=decision['selected_capsule_ref'] or context['model_selection_profile_ref']!=decision['model_selection_profile_ref'] or context['adapter_revision']!=decision['adapter_revision'] or context['capsule_budget']!=request['selected_capsule']['declaration']['budget'] or context['effective_limits']!=decision['limits']:result.append('derived context mismatch')
         if decision['selection_method']=='single_candidate' and len(decision['eligible_endpoints'])!=1:result.append('not sole candidate')
-        if decision['selection_method']=='llm_judgment' and (not profile['judge_allowance']['enabled'] or len(decision['eligible_endpoints'])<2):result.append('unauthorized Judge selection')
+        if decision['selection_method']=='bounded_llm_selection' and (not profile['selection_allowance']['enabled'] or len(decision['eligible_endpoints'])<2):result.append('unauthorized selection call')
     except (KeyError,TypeError,ValueError) as exc:result.append('invalid decision: '+str(exc))
     return result
 
-selected=load(EX/'Selected_Capsule_Input.json');request=load(EX/'Route_Request.json');profile=load(EX/'Model_Selection_Profile.json');decision=load(EX/'Route_Decision.json');call=load(EX/'Model_Call_Record.json')
+selected=load(EX/'selected_capsule_input.json');request=load(EX/'route_request.json');profile=load(EX/'model_selection_profile.json');decision=load(EX/'route_decision.json');call=load(EX/'model_call_record.json')
 require(not export_issues(selected),'Routing teaching export inconsistent: '+str(export_issues(selected)))
 require(not request_issues(request,profile),'Routing request/profile inconsistent: '+str(request_issues(request,profile)))
 require(not decision_issues(decision,request,profile),'Routing decision inconsistent: '+str(decision_issues(decision,request,profile)))
-require(call['purpose']=='task_execution' and call['route_decision_ref']==ref_for('Route_Decision.json') and call['deployment_ref']==decision['deployment_ref'] and call['execution_id']==request['execution_id'] and call['invocation_id']==decision['runtime']['invocation_id'],'Call provenance mismatch')
+require(call['purpose']=='task_execution' and call['route_decision_ref']==ref_for('route_decision.json') and call['deployment_ref']==decision['deployment_ref'] and call['execution_id']==request['execution_id'] and call['invocation_id']==decision['runtime']['invocation_id'],'Call provenance mismatch')
 require(not call['observed_runtime'] and all(call['usage'][key] is None for key in ('input_tokens','output_tokens','cost_amount')) and bool(call['usage']['unavailable_reasons']),'Synthetic call invents runtime usage')
 
 routing_seed_valid=not export_issues(selected) and not request_issues(request,profile) and not decision_issues(decision,request,profile)
@@ -125,16 +128,16 @@ if routing_seed_valid:
     for mode in ('client_role','unknown_task','input','profile_pin','empty_scope'):
         bad=copy.deepcopy(request)
         if mode=='client_role':bad['role']='reviewer'
-        elif mode=='unknown_task':bad['task_type']='invented'
+        elif mode=='unknown_task':bad['task_category']='invented'
         elif mode=='input':bad['input_refs']=[]
         elif mode=='empty_scope':bad['requirements']['model_allowlist']=[]
         else:bad['model_selection_profile_ref']['sha256']='0'*64
         require(bool(request_issues(bad,profile)),'Routing negative request accepted: '+mode);negative_count+=1
-    for mode in ('model','scope','fallback','binding','decision_version','expiry','context_hash','context_adapter','effective_limit'):
+    for mode in ('model','scope','alternate','binding','decision_version','expiry','context_hash','context_adapter','effective_limit'):
         bad=copy.deepcopy(decision)
         if mode=='model':bad['selected_endpoint']='unauthorized'
         elif mode=='scope':bad['eligible_endpoints'].append('unauthorized')
-        elif mode=='fallback':bad['fallback_used']=True
+        elif mode=='alternate':bad['alternate_used']=True
         elif mode=='binding':bad['binding_id']='other-binding'
         elif mode=='decision_version':bad['schema_version']='1.0.0'
         elif mode=='context_hash':bad['routing_context_ref']['sha256']='0'*64

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-worker-response:2",
+  "description": "Authenticated finite broker response; exact request/program/iteration echoes do not independently establish confinement qualification.",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "request", "receipt", "captures", "program_sha256", "batch_iterations"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-worker-response:2"},
+    "program_sha256": {"$ref": "#/$defs/Digest"}, "batch_iterations": {"type": "integer", "minimum": 1},
+    "request": {"type": "object", "additionalProperties": false,
+      "required": ["profile_ref", "session_ref", "candidate_ref", "input_ref", "reservation_ref", "phase", "repeat_index"],
+      "properties": {
+        "profile_ref": {"$ref": "#/$defs/Ref"}, "session_ref": {"$ref": "#/$defs/Ref"},
+        "candidate_ref": {"$ref": "#/$defs/Ref"}, "input_ref": {"$ref": "#/$defs/Ref"},
+        "reservation_ref": {"$ref": "#/$defs/Ref"},
+        "phase": {"enum": ["development", "platform", "hidden_loop", "hidden_final"]},
+        "repeat_index": {"type": "integer", "minimum": 0, "maximum": 2}
+      }
+    },
+    "receipt": {"type": "object", "required": ["stdout_ref", "stderr_ref", "observed_limits"], "properties": {
+      "stdout_ref": {"$ref": "#/$defs/Ref"}, "stderr_ref": {"$ref": "#/$defs/Ref"},
+      "observed_limits": {"type": "object", "required": ["isolation_probe_ref"], "properties": {"isolation_probe_ref": {"$ref": "#/$defs/Ref"}}}
+    }},
+    "captures": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object", "additionalProperties": false,
+      "required": ["ref", "bytes_base64"], "properties": {"ref": {"$ref": "#/$defs/Ref"}, "bytes_base64": {"type": "string", "pattern": "^[A-Za-z0-9+/]*={0,2}$"}}}}
+  },
+  "$defs": {
+    "Digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/Digest"}}}
+  }
+}

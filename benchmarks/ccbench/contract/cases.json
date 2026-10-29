@@ -1,0 +1,373 @@
+[
+ {
+  "id": "latency",
+  "data_csv": "request_id,latency_ms\nr001,1420\nr002,538\nr003,2337\nr004,224\nr005,1716\nr006,245\nr007,1164\nr008,1210\nr009,2054\nr010,979\nr011,238\nr012,378\nr013,2149\nr014,1681\nr015,2118\nr016,1961\nr017,602\nr018,1848\nr019,1892\nr020,670\nr021,504\nr022,2281\nr023,9150\nr024,211\nr025,1007\nr026,236\nr027,1674\nr028,1057\nr029,1944\nr030,11830\nr031,157\nr032,128",
+  "question": "What are the mean and the maximum request latency, and how many requests are in the data?",
+  "notes": "latency_ms is in milliseconds.",
+  "ports": [
+   {
+    "name": "mean_latency_s",
+    "type": "number",
+    "unit": "seconds",
+    "decimals": 3,
+    "min": 0,
+    "max": 60,
+    "description": "Mean latency. Round half up to 3 decimals."
+   },
+   {
+    "name": "max_latency_s",
+    "type": "number",
+    "unit": "seconds",
+    "decimals": 3,
+    "min": 0,
+    "max": 60,
+    "description": "Maximum latency. Round half up to 3 decimals."
+   },
+   {
+    "name": "request_count",
+    "type": "integer",
+    "unit": "requests",
+    "min": 1,
+    "max": 100000,
+    "description": "Number of requests."
+   }
+  ],
+  "gold": {
+   "mean_latency_s": "1.738",
+   "max_latency_s": "11.830",
+   "request_count": 32
+  }
+ },
+ {
+  "id": "orders",
+  "data_csv": "order_id,amount_cents,refund_cents\no001,5206,0\no002,12614,0\no003,15506,0\no004,46153,14312\no005,27389,0\no006,30752,0\no007,3331,0\no008,26454,0\no009,38240,0\no010,3070,0\no011,10557,0\no012,35267,0\no013,28774,0\no014,40427,0\no015,12113,3979\no016,36264,0\no017,34240,0\no018,44914,0\no019,38804,0\no020,44687,10838\no021,12482,0\no022,21820,0\no023,35530,0\no024,15169,0\no025,46440,0\no026,2058,0\no027,5449,0\no028,40284,0",
+  "question": "What is the net revenue, the refund rate, and how many orders had a refund?",
+  "notes": "amount_cents and refund_cents are in US cents. Net revenue = total amount minus total refunds. Refund rate = total refunded / total amount.",
+  "ports": [
+   {
+    "name": "net_revenue_usd",
+    "type": "number",
+    "unit": "USD",
+    "decimals": 2,
+    "min": 0,
+    "max": 10000000,
+    "description": "Net revenue. Round half up to 2 decimals."
+   },
+   {
+    "name": "refund_rate",
+    "type": "number",
+    "unit": "fraction",
+    "decimals": 4,
+    "min": 0,
+    "max": 1,
+    "description": "Refund rate. A fraction between 0 and 1, not a percentage. Round half up to 4 decimals."
+   },
+   {
+    "name": "orders_with_refund",
+    "type": "integer",
+    "unit": "orders",
+    "min": 0,
+    "max": 100000,
+    "description": "Orders with refund_cents > 0."
+   }
+  ],
+  "gold": {
+   "net_revenue_usd": "6848.65",
+   "refund_rate": "0.0408",
+   "orders_with_refund": 3
+  }
+ },
+ {
+  "id": "shipments",
+  "data_csv": "shipment_id,weight,unit\nS001,16.1,kg\nS002,28.2,lb\nS003,8087,g\nS004,15.9,lb\nS005,46.8,lb\nS006,48,lb\nS007,17.2,kg\nS008,38.3,lb\nS009,16.1,kg\nS010,7.8,kg\nS011,41.2,lb\nS012,10.3,kg\nS013,13.6,kg\nS014,47.7,lb\nS015,46.6,lb\nS016,7077,g\nS017,5917,g\nS018,8.1,kg\nS019,50.3,lb\nS020,17.2,kg\nS021,7.2,lb\nS022,21.6,lb\nS023,5,lb\nS024,48.6,lb",
+  "question": "What is the total weight shipped, which shipment is the heaviest, and how many shipments weigh more than 10 kg?",
+  "notes": "unit is kg, lb or g. 1 lb = 0.45359237 kg and 1 g = 0.001 kg. Compare to 10 kg after converting.",
+  "ports": [
+   {
+    "name": "total_kg",
+    "type": "number",
+    "unit": "kg",
+    "decimals": 2,
+    "min": 0,
+    "max": 100000,
+    "description": "Total weight. Round half up to 2 decimals."
+   },
+   {
+    "name": "heaviest_shipment",
+    "type": "string",
+    "pattern": "^S\\d{3}$",
+    "description": "shipment_id of the heaviest shipment."
+   },
+   {
+    "name": "count_over_10kg",
+    "type": "integer",
+    "unit": "shipments",
+    "min": 0,
+    "max": 1000,
+    "description": "Shipments strictly heavier than 10 kg."
+   }
+  ],
+  "gold": {
+   "total_kg": "329.51",
+   "heaviest_shipment": "S019",
+   "count_over_10kg": 15
+  }
+ },
+ {
+  "id": "monthly",
+  "data_csv": "month,revenue_usd\n2023-01,41367\n2023-02,42836\n2023-03,41026\n2023-04,44015\n2023-05,48360\n2023-06,47399\n2023-07,45375\n2023-08,42964\n2023-09,39788\n2023-10,42867\n2023-11,48368\n2023-12,49609",
+  "question": "By what percentage did revenue change from the first to the last month, which month had the highest revenue, and did revenue fall in any month compared with the month before?",
+  "notes": "Percent change = (last - first) / first * 100. Revenue is in USD.",
+  "ports": [
+   {
+    "name": "change_pct",
+    "type": "number",
+    "unit": "percent",
+    "decimals": 1,
+    "min": -100,
+    "max": 10000,
+    "description": "Percent change; 12.5 means 12.5 percent. Round half up to 1 decimals."
+   },
+   {
+    "name": "best_month",
+    "type": "string",
+    "pattern": "^\\d{4}-\\d{2}$",
+    "description": "Month with the highest revenue, YYYY-MM."
+   },
+   {
+    "name": "any_decline",
+    "type": "boolean",
+    "description": "True if some month is lower than the month before it."
+   }
+  ],
+  "gold": {
+   "change_pct": "19.9",
+   "best_month": "2023-12",
+   "any_decline": true
+  }
+ },
+ {
+  "id": "temps",
+  "data_csv": "date,temp_f\n2024-07-01,95.8\n2024-07-02,77\n2024-07-03,101.9\n2024-07-04,82.3\n2024-07-05,99.3\n2024-07-06,101.8\n2024-07-07,97.3\n2024-07-08,91.1\n2024-07-09,65.4\n2024-07-10,87.8\n2024-07-11,103.7\n2024-07-12,76.7\n2024-07-13,97.2\n2024-07-14,66.6\n2024-07-15,72\n2024-07-16,69.7\n2024-07-17,83\n2024-07-18,88\n2024-07-19,76.6\n2024-07-20,83.4\n2024-07-21,91.8",
+  "question": "What was the mean daily temperature, which day was the hottest, and on how many days did the temperature exceed 30 degrees Celsius?",
+  "notes": "temp_f is in degrees Fahrenheit. C = (F - 32) * 5 / 9.",
+  "ports": [
+   {
+    "name": "mean_temp_c",
+    "type": "number",
+    "unit": "celsius",
+    "decimals": 1,
+    "min": -90,
+    "max": 60,
+    "description": "Mean temperature. Round half up to 1 decimals."
+   },
+   {
+    "name": "hottest_day",
+    "type": "string",
+    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+    "description": "Date of the hottest day."
+   },
+   {
+    "name": "days_above_30c",
+    "type": "integer",
+    "unit": "days",
+    "min": 0,
+    "max": 366,
+    "description": "Days strictly above 30 C."
+   }
+  ],
+  "gold": {
+   "mean_temp_c": "30.1",
+   "hottest_day": "2024-07-11",
+   "days_above_30c": 11
+  }
+ },
+ {
+  "id": "files",
+  "data_csv": "path,size_bytes\n/data/f00.bin,891842431\n/data/f01.bin,656134650\n/data/f02.bin,126510938\n/data/f03.bin,560801967\n/data/f04.bin,858424092\n/data/f05.bin,320913934\n/data/f06.bin,79538125\n/data/f07.bin,40485026\n/data/f08.bin,196313201\n/data/f09.bin,751696013\n/data/f10.bin,669732851\n/data/f11.bin,544931656\n/data/f12.bin,855754555\n/data/f13.bin,829024432\n/data/f14.bin,440677900\n/data/f15.bin,382937748\n/data/f16.bin,866931358\n/data/f17.bin,63503992\n/data/f18.bin,3400000000",
+  "question": "What is the total size of all files, which file is the largest, and what share of the total does it take?",
+  "notes": "size_bytes is in bytes. 1 GiB = 1073741824 bytes.",
+  "ports": [
+   {
+    "name": "total_gib",
+    "type": "number",
+    "unit": "GiB",
+    "decimals": 3,
+    "min": 0,
+    "max": 100000,
+    "description": "Total size. Round half up to 3 decimals."
+   },
+   {
+    "name": "largest_file",
+    "type": "string",
+    "pattern": "^/data/f\\d{2}\\.bin$",
+    "description": "Path of the largest file."
+   },
+   {
+    "name": "largest_share",
+    "type": "number",
+    "unit": "fraction",
+    "decimals": 3,
+    "min": 0,
+    "max": 1,
+    "description": "Largest file size divided by total size. A fraction between 0 and 1, not a percentage. Round half up to 3 decimals."
+   }
+  ],
+  "gold": {
+   "total_gib": "11.675",
+   "largest_file": "/data/f18.bin",
+   "largest_share": "0.271"
+  }
+ },
+ {
+  "id": "sessions",
+  "data_csv": "user,start,end\nu01,2024-03-04T13:31:00,2024-03-04T14:21:30\nu02,2024-03-05T08:49:00,2024-03-05T09:19:30\nu03,2024-03-06T09:36:00,2024-03-06T11:21:30\nu04,2024-03-07T08:59:00,2024-03-07T10:05:00\nu05,2024-03-08T09:28:00,2024-03-08T11:31:30\nu06,2024-03-09T09:11:00,2024-03-09T10:24:00\nu07,2024-03-10T17:24:00,2024-03-10T19:24:00\nu08,2024-03-11T17:39:00,2024-03-11T18:22:00\nu09,2024-03-12T17:56:00,2024-03-12T18:23:30\nu10,2024-03-13T17:59:00,2024-03-13T19:52:00\nu11,2024-03-14T11:46:00,2024-03-14T12:09:30\nu12,2024-03-15T10:16:00,2024-03-15T11:42:30\nu13,2024-03-16T10:27:00,2024-03-16T11:09:30\nu14,2024-03-17T13:15:00,2024-03-17T14:13:00\nu15,2024-03-18T17:55:00,2024-03-18T18:55:15\nu16,2024-03-19T09:39:00,2024-03-19T10:07:30",
+  "question": "What is the total time spent in sessions, the length of the longest session, and the mean session length?",
+  "notes": "Timestamps are ISO 8601 in one time zone. Session length = end - start.",
+  "ports": [
+   {
+    "name": "total_hours",
+    "type": "number",
+    "unit": "hours",
+    "decimals": 2,
+    "min": 0,
+    "max": 100000,
+    "description": "Total session time. Round half up to 2 decimals."
+   },
+   {
+    "name": "longest_session_minutes",
+    "type": "integer",
+    "unit": "minutes",
+    "min": 0,
+    "max": 100000,
+    "description": "Longest session, rounded half up to a whole number of minutes."
+   },
+   {
+    "name": "mean_session_minutes",
+    "type": "number",
+    "unit": "minutes",
+    "decimals": 1,
+    "min": 0,
+    "max": 100000,
+    "description": "Mean session length. Round half up to 1 decimals."
+   }
+  ],
+  "gold": {
+   "total_hours": "17.53",
+   "longest_session_minutes": 124,
+   "mean_session_minutes": "65.7"
+  }
+ },
+ {
+  "id": "survey",
+  "data_csv": "respondent,score\np01,3\np02,4\np03,4\np04,3\np05,3\np06,NA\np07,1\np08,2\np09,3\np10,3\np11,5\np12,3\np13,4\np14,\np15,1\np16,5\np17,5\np18,5\np19,4\np20,5\np21,NA\np22,3\np23,4\np24,2\np25,5\np26,3\np27,1\np28,NA\np29,4\np30,5",
+  "question": "What is the mean score, what share of respondents answered, and how many did not answer?",
+  "notes": "score is 1 to 5. A blank cell or the text NA means the respondent did not answer; leave those out of the mean.",
+  "ports": [
+   {
+    "name": "mean_score",
+    "type": "number",
+    "unit": "points",
+    "decimals": 2,
+    "min": 1,
+    "max": 5,
+    "description": "Mean score of answered rows. Round half up to 2 decimals."
+   },
+   {
+    "name": "response_rate",
+    "type": "number",
+    "unit": "fraction",
+    "decimals": 3,
+    "min": 0,
+    "max": 1,
+    "description": "Answered rows divided by all rows. A fraction between 0 and 1, not a percentage. Round half up to 3 decimals."
+   },
+   {
+    "name": "n_missing",
+    "type": "integer",
+    "unit": "respondents",
+    "min": 0,
+    "max": 100000,
+    "description": "Rows without an answer."
+   }
+  ],
+  "gold": {
+   "mean_score": "3.46",
+   "response_rate": "0.867",
+   "n_missing": 4
+  }
+ },
+ {
+  "id": "customers",
+  "data_csv": "customer_id,note,spend_usd\nC08,Cy0,196.34\nC03,Ana1,351.00\nC06,Cy2,242.77\nC02,Ben3,288.78\nC01,Cy4,199.21\nC06,Cy2,242.77\nC08,Cy5,221.20\nC03,Ana6,31.14\nC03,Cy7,307.08\nC07,Cy8,57.37\nC03,Cy7,307.08\nC04,Cy9,119.92\nC07,Ana10,400.34\nC04,Ben11,148.43\nC04,Ben11,148.43\nC01,Ana12,367.00\nC07,Ana13,198.62\nC03,Ana14,126.54\nC02,Cy15,6.15\nC02,Cy15,6.15\nC04,Ana16,174.01\nC02,Ana17,281.02\nC09,Ana18,298.63\nC09,Ana19,220.08",
+  "question": "After removing export errors, how many purchases are there, what is the total spend, and which customer spent the most in total?",
+  "notes": "A row that is identical to an earlier row in every column is an export error: count it once. Rows with the same customer_id but any different value are separate purchases. spend_usd is in US dollars.",
+  "ports": [
+   {
+    "name": "purchases",
+    "type": "integer",
+    "unit": "rows",
+    "min": 0,
+    "max": 100000,
+    "description": "Purchases after removing exact duplicate rows."
+   },
+   {
+    "name": "total_spend_usd",
+    "type": "number",
+    "unit": "USD",
+    "decimals": 2,
+    "min": 0,
+    "max": 10000000,
+    "description": "Total spend after removing duplicates. Round half up to 2 decimals."
+   },
+   {
+    "name": "top_customer_id",
+    "type": "string",
+    "pattern": "^C\\d{2}$",
+    "description": "customer_id with the highest total spend."
+   }
+  ],
+  "gold": {
+   "purchases": 20,
+   "total_spend_usd": "4235.63",
+   "top_customer_id": "C03"
+  }
+ },
+ {
+  "id": "grades",
+  "data_csv": "student,exam_pct,weight\ns01,39,1\ns02,89,1\ns03,65,2\ns04,71,1\ns05,35,3\ns06,48,1\ns07,64,2\ns08,87,3\ns09,66,3\ns10,92,2\ns11,52,2\ns12,76,3\ns13,86,1\ns14,45,2\ns15,37,2\ns16,68,1\ns17,91,3\ns18,55,1",
+  "question": "What is the weight-adjusted mean exam score, what share of students scored at least 60, and who scored highest?",
+  "notes": "exam_pct is already a percentage (0 to 100). Weighted mean = sum(exam_pct * weight) / sum(weight). The pass share counts students (rows) with exam_pct >= 60, unweighted.",
+  "ports": [
+   {
+    "name": "weighted_mean_pct",
+    "type": "number",
+    "unit": "percent",
+    "decimals": 2,
+    "min": 0,
+    "max": 100,
+    "description": "Weighted mean exam score as a percentage (0 to 100). Round half up to 2 decimals."
+   },
+   {
+    "name": "pass_share",
+    "type": "number",
+    "unit": "fraction",
+    "decimals": 2,
+    "min": 0,
+    "max": 1,
+    "description": "Share of students with exam_pct >= 60. A fraction between 0 and 1, not a percentage. Round half up to 2 decimals."
+   },
+   {
+    "name": "top_student",
+    "type": "string",
+    "pattern": "^s\\d{2}$",
+    "description": "student with the highest exam_pct."
+   }
+  ],
+  "gold": {
+   "weighted_mean_pct": "65.62",
+   "pass_share": "0.61",
+   "top_student": "s10"
+  }
+ }
+]

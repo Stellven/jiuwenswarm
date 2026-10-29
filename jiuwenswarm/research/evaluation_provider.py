@@ -45,6 +45,20 @@ def logical_path(value):
     return value
 
 
+def single_cc_check_results(store, measured):
+    """Expose original deterministic, semantic and reviewer-mechanical findings."""
+    field=lambda key:getattr(measured,key) if hasattr(measured,key) else measured[key]
+    checked=store.read_record(field('deterministic_ref'))
+    rows=[{'check_id':r['check_id'],'status':r['outcome']} for r in checked['results']]
+    for index,ref in enumerate(field('assessment_refs')):
+        assessment=store.read_record(ref,contract_id='verifier-assessment')
+        rows.extend({'check_id':'semantic:'+str(index)+':'+r['criterion_id'],'status':r['outcome']} for r in assessment['findings'])
+    for index,ref in enumerate(field('verifier_check_refs')):
+        checked=store.read_record(ref,contract_id='deterministic-check-result')
+        rows.extend({'check_id':'reviewer:'+str(index)+':'+r['check_id'],'status':r['outcome']} for r in checked['results'])
+    return rows
+
+
 @dataclass(frozen=True)
 class PreparedEvaluation:
     """Installed owner result, never deserialized from a client request.
@@ -416,7 +430,7 @@ class EvaluationProvider:
         observation = store.read_record(measured.observation_ref)
         effects = observation.get('effects')
         return {'invocation_id': observation.get('id', measured.observation_ref['id']), 'status': measured.status if measured.status in {'completed','failed','blocked'} else 'failed',
-            'output_refs': copy.deepcopy(measured.output_refs), 'check_results': [{'check_id':r['check_id'],'status':r['outcome']} for r in checks['results']],
+            'output_refs': copy.deepcopy(measured.output_refs), 'check_results': single_cc_check_results(store, measured),
             'tool_effects_observed': effects if effects else None, 'model_calls': calls,
             'reason': measured.failure or ('Complete tool-effect observation unavailable' if not effects else None)}
 

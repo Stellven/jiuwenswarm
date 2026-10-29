@@ -6,11 +6,15 @@ from pathlib import Path
 import pytest
 
 from jiuwenswarm.research.binding import plan_checks
+from jiuwenswarm.research.run_input_types import typed_resource
 
 
 def fixtures():
     root=Path('tests/fixtures/research/planning')
-    return [json.loads((root/name).read_text('utf-8')) for name in ('static_template.json','lifecycle_research_brief.json','library_snapshot.json','resource_inventory.json','plan_policy.json')]
+    values=[json.loads((root/name).read_text('utf-8')) for name in ('static_template.json','lifecycle_research_brief.json','library_snapshot.json','resource_inventory.json','plan_policy.json')]
+    # Host capture types supplied bytes; the documentation example predates that capture.
+    values[3]['resources']=[typed_resource(row) for row in values[3]['resources']]
+    return values
 
 
 @pytest.mark.parametrize('fault,expected',[

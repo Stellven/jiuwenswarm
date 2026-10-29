@@ -1,0 +1,4 @@
+# Outcome X1: evaluate measured results against pre-registered rules
+A researcher has a hypothesis with a pre-registered success rule and a falsification rule for each of several metrics, and a table of measurements: for each metric, the baseline and the treatment measured several times each. Decide, per metric, whether the result supports the hypothesis (PASS), contradicts it (FAIL), or cannot be decided (INCONCLUSIVE, for example when measurements are missing), and give an overall verdict. Show the numbers you used for every decision.
+Example input (short): metric "latency_ms", lower is better, success if treatment <= 0.9 x baseline, falsified if treatment >= baseline; baseline repeats 100, 100, 100; treatment repeats 90, 90, 90.
+Example output (short): latency_ms PASS (90 <= 90); overall PASS.

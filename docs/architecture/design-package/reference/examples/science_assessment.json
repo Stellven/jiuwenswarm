@@ -1,0 +1,129 @@
+{
+  "schema_version": "1.0.0",
+  "subject_ref": {
+    "id": "evaluation_verdict.json",
+    "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+  },
+  "review_context_ref": {
+    "id": "science_review_context.json",
+    "sha256": "3368a333c13205b15c4dda869481cfe36ebef7aa1a83dc2a3e9ad6fd7d51bc47"
+  },
+  "verdict": "PASS",
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "classification, aggregation_rule, findings, completeness, plausibility, blockers, residual_risks and followups are all present",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "classification FAIL follows from the latency_ms finding FAIL under aggregation_rule m1_conjunctive_v1",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "residual_risks and plausibility notes agree with a measured, plausible FAIL",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "classification_consistent_with_findings",
+      "outcome": "PASS",
+      "reason": "classification FAIL equals the aggregate of the two findings and the plausible status",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "finding_names_metric",
+      "outcome": "PASS",
+      "reason": "findings name latency_ms and quality, each once",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "finding_consistent_with_values",
+      "outcome": "PASS",
+      "reason": "each finding agrees with its rule_applied, values, threshold and rule_text",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "rationale_states_values_and_rule",
+      "outcome": "PASS",
+      "reason": "each rationale names the values, the threshold and the outcome",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "blockers_match_findings",
+      "outcome": "PASS",
+      "reason": "blockers is empty, and no finding is unmeasured and plausibility is plausible",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "followups_are_recommendations",
+      "outcome": "PASS",
+      "reason": "the one followup is a recommendation, not an instruction to rerun",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    },
+    {
+      "criterion_id": "no_unregistered_criteria",
+      "outcome": "PASS",
+      "reason": "no threshold appears that a rule_text does not state",
+      "evidence_refs": [
+        {
+          "id": "evaluation_verdict.json",
+          "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+        }
+      ]
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Linked synthetic lifecycle; no execution or actual scientific validity is certified"
+  ],
+  "required_correction": null
+}

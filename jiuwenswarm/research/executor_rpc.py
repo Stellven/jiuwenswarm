@@ -596,8 +596,22 @@ async def serve():
         return await admission.run(payload['job_ref'])
     handlers = operations.handlers()
     handlers['run_admission_self_test'] = run_admission
+    def record_fault(operation, payload, fault):
+        # Protected diagnostic: class, code and in-package frame only. The RPC
+        # reply stays masked; the runner copies this record into the protected
+        # stop receipt, and run status shows it, so the cause is never lost.
+        scope = {}
+        try:
+            contract = store.read_record(payload['contract_ref'])
+            scope = {key: contract[key] for key in ('run_id', 'node_id', 'attempt_id') if isinstance(contract.get(key), str)}
+        except Exception:
+            pass
+        store.append_record('executor-rpc-fault', {**scope, 'operation': operation,
+            'invocation_id': payload.get('invocation_id') if isinstance(payload.get('invocation_id'), str) else None,
+            **fault})
     server = PrivateRPCServer(root / "executor.sock", protocol=PROTOCOL, **session,
-        handlers=handlers, allowed_uids={APP_UID}, socket_mode=0o660, directory_mode=0o710, group_id=APP_UID)
+        handlers=handlers, allowed_uids={APP_UID}, socket_mode=0o660, directory_mode=0o710, group_id=APP_UID,
+        fault_recorder=record_fault)
     stopped = asyncio.Event()
     loop = asyncio.get_running_loop()
     for signum in (signal.SIGTERM, signal.SIGINT):

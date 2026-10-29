@@ -9,6 +9,23 @@ from pathlib import Path
 from ..contracts import ResearchError
 
 
+def _verify_current_pins(root, spec):
+    pin = spec['shared_runtime']
+    if pin != {'path': 'packet.py', 'sha256': hashlib.sha256((root / 'packet.py').read_bytes()).hexdigest()}:
+        raise ResearchError('extension_manifest', 'Installed shared runtime pin changed')
+    dependencies = spec.get('shared_dependencies', [])
+    seen_dependencies = set()
+    for dependency in dependencies:
+        if (set(dependency) != {'path', 'sha256'} or dependency['path'] in seen_dependencies
+                or not isinstance(dependency['path'], str) or not isinstance(dependency['sha256'], str)):
+            raise ResearchError('extension_manifest', 'Invalid shared dependency pin')
+        target = (root / dependency['path']).resolve()
+        if (not target.is_relative_to(root.resolve()) or not target.is_file()
+                or hashlib.sha256(target.read_bytes()).hexdigest() != dependency['sha256']):
+            raise ResearchError('extension_manifest', 'Installed shared dependency pin changed: ' + dependency['path'])
+        seen_dependencies.add(dependency['path'])
+
+
 def candidates(store):
     result = {}
     root = Path(__file__).parent
@@ -30,20 +47,7 @@ def candidates(store):
             if not target.is_relative_to(root.resolve()) or not target.is_file() or hashlib.sha256(target.read_bytes()).hexdigest() != digest:
                 raise ResearchError('extension_manifest', 'Installed extension closure changed: ' + name)
         if current:
-            pin = spec['shared_runtime']
-            if pin != {'path': 'packet.py', 'sha256': hashlib.sha256((root / 'packet.py').read_bytes()).hexdigest()}:
-                raise ResearchError('extension_manifest', 'Installed shared runtime pin changed')
-            dependencies = spec.get('shared_dependencies', [])
-            seen_dependencies = set()
-            for dependency in dependencies:
-                if (set(dependency) != {'path', 'sha256'} or dependency['path'] in seen_dependencies
-                        or not isinstance(dependency['path'], str) or not isinstance(dependency['sha256'], str)):
-                    raise ResearchError('extension_manifest', 'Invalid shared dependency pin')
-                target = (root / dependency['path']).resolve()
-                if (not target.is_relative_to(root.resolve()) or not target.is_file()
-                        or hashlib.sha256(target.read_bytes()).hexdigest() != dependency['sha256']):
-                    raise ResearchError('extension_manifest', 'Installed shared dependency pin changed: ' + dependency['path'])
-                seen_dependencies.add(dependency['path'])
+            _verify_current_pins(root, spec)
         module = importlib.import_module(__package__ + '.' + spec['module'] + '.release')
         asset = module.prepare(store)
         declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')
@@ -62,15 +66,20 @@ def historical_candidates(store):
     """
     result = {}
     root = Path(__file__).parent
-    for path in sorted((root / 'history/v1').glob('*/release.json')):
+    manifests = [(path, True) for path in sorted((root / 'history/v1').glob('*/release.json'))]
+    manifests += [(path, False) for path in sorted((root / 'history/v2').glob('*/release.json'))]
+    for path, legacy in manifests:
         spec = json.loads(path.read_text('utf-8'))
-        if (set(spec) != {'name', 'module', 'files'} or not isinstance(spec['module'], str)
-                or not spec['module'].isidentifier()):
+        keys = {'name', 'module', 'files'} if legacy else {'name', 'module', 'files', 'shared_runtime'}
+        if (not isinstance(spec, dict) or not keys <= set(spec) <= keys | ({'shared_dependencies'} if not legacy else set())
+                or not isinstance(spec['module'], str) or not spec['module'].isidentifier()):
             raise ResearchError('extension_manifest', 'Invalid historical release manifest')
         module_root = root / spec['module']
         if not module_root.is_dir():
             raise ResearchError('extension_manifest', 'Historical release source module is unavailable')
-        required = {p.relative_to(root).as_posix() for p in module_root.glob('*.py')} | {'assets.py', 'packet.py'}
+        required = {p.relative_to(root).as_posix() for p in module_root.glob('*.py')}
+        if legacy:
+            required |= {'assets.py', 'packet.py'}
         if set(spec['files']) != required:
             raise ResearchError('extension_manifest', 'Incomplete historical release closure')
         for name, digest in spec['files'].items():
@@ -78,6 +87,8 @@ def historical_candidates(store):
             if (not target.is_relative_to(root.resolve()) or not target.is_file()
                     or hashlib.sha256(target.read_bytes()).hexdigest() != digest):
                 raise ResearchError('extension_manifest', 'Historical extension closure changed: ' + name)
+        if not legacy:
+            _verify_current_pins(root, spec)
         module = importlib.import_module(__package__ + '.' + spec['module'] + '.release')
         asset = module.prepare(store)
         declaration = store.read_record(asset['declaration_ref'], contract_id='capsule-declaration')

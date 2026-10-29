@@ -16,6 +16,16 @@ from .transport import AppServerTransport, CodexError
 from .account_telemetry import safe_limits, missing_fields, READ_SCHEMA_SHA256, UPDATE_SCHEMA_SHA256
 
 
+def governed_tool_config():
+    """Packaged 0.163 native declarations disabled for governed text turns.
+
+    Measured on the actual client: the legacy startup [tools] table alone
+    leaves request_user_input, view_image, multi-agent and goal tools visible.
+    Ordinary chat stream configuration remains separate.
+    """
+    return {'features.view_image': False, 'features.multi_agent': False,
+            'features.goals': False, 'tools.experimental_request_user_input.enabled': False}
+
 _TEXT_ONLY_ITEM_TYPES = frozenset({"userMessage", "agentMessage", "reasoning", "plan"})
 
 
@@ -273,7 +283,7 @@ class SubscriptionService:
 
     async def invoke_governed(self, prompt: str, *, model=None, timeout_s: float = 120,
                               system: str | None = None, _trace=None, local_conversation=False,
-                              reasoning_effort=None, expected_account_fingerprint=None):
+                              reasoning_effort: str | None = None, expected_account_fingerprint=None):
         """One fresh, tool-free research turn through the existing owner.
 
         Governed calls use a private provider alias: current Codex reserves
@@ -281,10 +291,26 @@ class SubscriptionService:
         can enforce zero HTTP/stream retries without changing normal chat.
         No chat binding is read or written. The deadline covers account
         admission, context creation, submission and every streamed notification.
+        An optional medium-effort pin must resolve at thread/start before any
+        turn is submitted. The environment pin applies only to governed research,
+        while local conversation retains its existing behavior unless explicit.
         """
-        if (not isinstance(prompt, str) or not prompt.strip() or not 0 < timeout_s <= 600
-                or reasoning_effort not in {None, 'medium'}):
+        if not isinstance(prompt, str) or not prompt.strip() or not 0 < timeout_s <= 600:
             raise CodexError("INVALID_INPUT")
+        requested_effort = reasoning_effort
+        if requested_effort is None and not local_conversation:
+            requested_effort = os.environ.get("JIUWENSWARM_GOVERNED_REASONING_EFFORT") or None
+        if requested_effort is not None and requested_effort != "medium":
+            raise CodexError("INVALID_REASONING_EFFORT")
+        thread_config = {} if local_conversation else {
+            "model_providers.ai4r_governed.name": "AI4Research governed subscription",
+            "model_providers.ai4r_governed.wire_api": "responses",
+            "model_providers.ai4r_governed.requires_openai_auth": True,
+            "model_providers.ai4r_governed.request_max_retries": 0,
+            "model_providers.ai4r_governed.stream_max_retries": 0,
+        }
+        if requested_effort is not None:
+            thread_config["model_reasoning_effort"] = requested_effort
         key = ("governed", uuid.uuid4().hex)
         queue = asyncio.Queue(maxsize=4096)
         run = {"request_id": key[1], "queue": queue, "turn": None,
@@ -355,13 +381,7 @@ class SubscriptionService:
                         "modelProvider": "openai" if local_conversation else "ai4r_governed",
                         "model": model, "ephemeral": True,
                         "developerInstructions": system or "Execute the supplied governed instruction. Tools are unavailable.",
-                        **({} if local_conversation else {"config": {
-                            **({'model_reasoning_effort': reasoning_effort} if reasoning_effort else {}),
-                            "model_providers.ai4r_governed.name": "AI4Research governed subscription",
-                            "model_providers.ai4r_governed.wire_api": "responses",
-                            "model_providers.ai4r_governed.requires_openai_auth": True,
-                            "model_providers.ai4r_governed.request_max_retries": 0,
-                            "model_providers.ai4r_governed.stream_max_retries": 0}}),
+                        **({"config": thread_config} if thread_config else {}),
                     })
                     run["thread"] = result["thread"]["id"]
                     if _trace is not None:
@@ -369,12 +389,15 @@ class SubscriptionService:
                     effective_model = result.get("model")
                     if model and effective_model != model:
                         raise CodexError('MODEL_IDENTITY_MISMATCH')
-                    if reasoning_effort and result.get('reasoningEffort') != reasoning_effort:
-                        raise CodexError('REASONING_EFFORT_MISMATCH')
+                    # Match the pinned host helper's canonical app-server
+                    # ThreadStartResponse field, never infer a default effort.
+                    if requested_effort is not None and result.get("reasoningEffort") != requested_effort:
+                        raise CodexError("REASONING_EFFORT_MISMATCH")
                     self.transport.listeners.add(receive)
                 result = await native_request("turn/start", {
                     "threadId": run["thread"], "input": [{"type": "text", "text": prompt}],
                     "model": model, "approvalPolicy": "never",
+                    **({"effort": requested_effort} if requested_effort is not None else {}),
                 })
                 run["turn"] = result["turn"]["id"]
                 while True:

@@ -1,0 +1,37 @@
+{
+  "schema": "ai4r-rsi-security-assertions:1",
+  "id": "rsi-security-assertions-v1",
+  "check_id": "M1-008/V15",
+  "procedure_sha256": "d2476982f26eaa641b0a78fea2c4033e62f8ac76befc3aae3e6e6538efed1f12",
+  "required_dependency_mode": "real_boundary",
+  "required_assertion_ids": [
+    "RSIV-1",
+    "RSIV-2",
+    "RSIV-3",
+    "RSIV-4",
+    "RSIV-5",
+    "RSIV-6",
+    "RSIV-7",
+    "RSIV-8",
+    "RSIV-9",
+    "RSIV-10",
+    "RSIV-11",
+    "RSIV-12",
+    "RSIV-13"
+  ],
+  "required_case_ids": [
+    "ai4r.rsi.security::RSIV-1",
+    "ai4r.rsi.security::RSIV-2",
+    "ai4r.rsi.security::RSIV-3",
+    "ai4r.rsi.security::RSIV-4",
+    "ai4r.rsi.security::RSIV-5",
+    "ai4r.rsi.security::RSIV-6",
+    "ai4r.rsi.security::RSIV-7",
+    "ai4r.rsi.security::RSIV-8",
+    "ai4r.rsi.security::RSIV-9",
+    "ai4r.rsi.security::RSIV-10",
+    "ai4r.rsi.security::RSIV-11",
+    "ai4r.rsi.security::RSIV-12",
+    "ai4r.rsi.security::RSIV-13"
+  ]
+}

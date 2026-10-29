@@ -1,0 +1,228 @@
+#!/bin/sh
+# ai4r-bench: one entry command for the ccbench harnesses (benchmarks/ccbench).
+#
+#   ai4r-bench <bench> [script] [args] --out DIR     run one bench; every output goes to DIR
+#   ai4r-bench selftest [bench ...]                  run the self-tests (all benches by default)
+#   ai4r-bench list                                  show benches and their scripts
+#   ai4r-bench build-native [--yes] --out DIR        build the native opponent image ai4r:ccbench-native (prints the command without --yes)
+#   ai4r-bench dossier <bench> --run DIR --out DIR   case dossier from a finished run (read only; host Python; bench: admission gatebench trapcheck planner nativeadmit planbench;
+#                                                    optional --data DIR (trapcheck evidence root), --native DIR (nativeadmit sessions), --meta KEY=VALUE)
+#
+# Add --host anywhere to run on the host Python instead of the container. Use --host for the model runs
+# (planner run, planbench run) if the container cannot reach your codex login, and always for nativetask,
+# which starts its own docker containers (docker inside docker is not supported; it is forced to --host).
+#
+# Default: inside docker image $AI4R_BENCH_IMAGE (default ai4r:cc-v1-baseline), with this repo mounted read-only
+# at /opt/ai4r (so a bench cannot write into its source), DIR mounted at /out, and the old evidence root
+# (AI4R_BENCH_DATA, default ~/huawei/outputs/cc-sweep-20261026) mounted read-only at /data when it exists.
+#
+# Environment
+#   AI4R_BENCH_IMAGE   image to run in (default ai4r:cc-v1-baseline)
+#   AI4R_BENCH_DATA    old evidence root: traps/ for trapcheck, stored baselines
+#   AI4R_CODEX_HOME    your codex config dir (holds the login); mounted at ~/.codex in the container for model runs
+#   AI4R_CODEX_BIN     codex executable for --host runs (default: codex on PATH)
+#   AI4R_PYTHON        host interpreter for --host and for run-meta (default: python3, else python)
+#
+# Run metadata: every bench run writes OUT/run-meta/<utc>-<bench>-<script>.json (argv, mode, image tag and id,
+# product commit and dirty flag, codex path and version for model runs, UTC start/end, exit code).
+#
+# Benches (the first script is the default; the next word may name another one):
+#   admission    study | verify_study | build_candidates            (study: --reps N)
+#   gatebench    run | freeze | verify | model_stream                (run: --seeds N)
+#   trapcheck    run                                                 (needs AI4R_BENCH_DATA/traps)
+#   planner      run_planner_bench plan|run|score | generate_tasks   (run: --task ID, repeatable)
+#   nativeadmit  cc_route | cc_fallback | score | build_items
+#   nativetask   run_native_task plan|run|collect|init-ledger        (host only)
+#   planbench    run_arm run|score | generate_tasks | generate_skillpack | freeze
+#   cclib        verify | compare_prompts
+#   heldout      run_heldout plan|freeze|run|score        (model runs; host Python recommended: --host)
+#   contract     run_contract plan|freeze|run|score
+#   haltbench    run_haltbench plan|freeze|run|score
+#   slate        slate luna --out DIR [--arm NAME=CONFIG ...] [--only T1,T2,...]   the luna test slate, one command (host only; see benchmarks/ccbench/LUNA-SLATE.md)
+set -eu
+
+die() { echo "ai4r-bench: $*" >&2; exit 2; }
+
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+repo=$(CDPATH= cd -- "$here/.." && { pwd -W 2>/dev/null || pwd; })
+image=${AI4R_BENCH_IMAGE:-ai4r:cc-v1-baseline}
+data=${AI4R_BENCH_DATA:-$HOME/huawei/outputs/cc-sweep-20261026}
+
+scripts_of() {
+    case $1 in
+        admission) echo "study verify_study build_candidates" ;;
+        gatebench) echo "run freeze verify model_stream" ;;
+        trapcheck) echo "run" ;;
+        planner) echo "run_planner_bench generate_tasks" ;;
+        nativeadmit) echo "cc_route cc_fallback score build_items" ;;
+        nativetask) echo "run_native_task" ;;
+        planbench) echo "run_arm generate_tasks generate_skillpack freeze" ;;
+        cclib) echo "verify compare_prompts" ;;
+        heldout) echo "run_heldout" ;;
+        contract) echo "run_contract" ;;
+        haltbench) echo "run_haltbench" ;;
+        dossier) echo "dossier" ;;
+        slate) echo "slate" ;;
+        *) return 1 ;;
+    esac
+}
+
+if [ $# -lt 1 ]; then sed -n '2,41p' "$0" | sed 's/^# \{0,1\}//'; exit 2; fi
+raw_args=$(printf '%s
+' "$@")
+cmd=$1; shift
+
+if [ "$cmd" = list ]; then
+    for b in admission gatebench trapcheck planner nativeadmit nativetask planbench cclib heldout contract haltbench dossier slate; do
+        echo "$b: $(scripts_of $b)"
+    done
+    exit 0
+fi
+
+# Split off --host and --out DIR; keep the rest in order.
+host=0; out=''; abs_run=''; abs_data=''; abs_native=''
+absdir() { CDPATH= cd -- "$1" && { pwd -W 2>/dev/null || pwd; }; }
+n=$#; i=0
+while [ $i -lt $n ]; do
+    a=$1; shift; i=$((i + 1))
+    case $a in
+        --host) host=1 ;;
+        --out) [ $# -ge 1 ] || die "--out needs a directory"; out=$1; shift; i=$((i + 1)) ;;
+        --out=*) out=${a#--out=} ;;
+        --run|--data|--native)
+            [ $# -ge 1 ] || die "$a needs a directory"
+            d=$(absdir "$1") || die "$a: no such directory $1"; shift; i=$((i + 1))
+            set -- "$@" "$a" "$d" ;;
+        *) set -- "$@" "$a" ;;
+    esac
+done
+
+if [ "$cmd" = build-native ]; then
+    # Build the plain native JiuwenSwarm image used as the native opponent (nativetask --image ai4r:ccbench-native).
+    # No recipe was stored for the sweep's ai4r:cc-value-medium-20261026; this is the documented M1 production build
+    # (deploy/m1/Dockerfile.app, target production) of THIS checkout. It needs network (base images, uv sync, npm ci) and
+    # several GB of RAM and disk, so it only runs with --yes; without it the command is printed.
+    tag=${AI4R_NATIVE_TAG:-ai4r:ccbench-native}
+    build="docker build --platform linux/amd64 -f deploy/m1/Dockerfile.app --target production -t $tag ."
+    if [ "${1:-}" != --yes ]; then
+        echo "would run in $repo:"; echo "  $build"; echo "then write native-image.json (tag, id, repo digests, git commit) to --out. Add --yes to run."
+        exit 0
+    fi
+    [ -n "$out" ] || die "build-native needs --out DIR for native-image.json"
+    mkdir -p "$out"
+    (cd "$repo" && $build)
+    commit=$(cd "$repo" && git rev-parse HEAD 2>/dev/null || echo unknown)
+    id=$(docker image inspect "$tag" --format '{{.Id}}')
+    digests=$(docker image inspect "$tag" --format '{{json .RepoDigests}}')
+    printf '{"tag": "%s", "id": "%s", "repo_digests": %s, "git_commit": "%s", "dockerfile": "deploy/m1/Dockerfile.app", "target": "production"}
+' "$tag" "$id" "$digests" "$commit" > "$out/native-image.json"
+    cat "$out/native-image.json"
+    exit 0
+fi
+
+bench_dir=''
+script=''
+if [ "$cmd" != selftest ]; then
+    scripts_of "$cmd" >/dev/null || die "unknown bench '$cmd' (try: ai4r-bench list)"
+    script=$(scripts_of "$cmd" | cut -d' ' -f1)
+    if [ $# -ge 1 ]; then
+        for s in $(scripts_of "$cmd"); do
+            if [ "$1" = "$s" ] || { [ "$cmd" = admission ] && [ "$1" = verify ] && [ "$s" = verify_study ]; }; then
+                script=$s; shift; break
+            fi
+        done
+    fi
+    script=$script.py
+    bench_dir=$cmd
+    if [ "$cmd" = dossier ]; then bench_dir=.; script=dossier.py; fi
+    if [ "$cmd" = slate ]; then bench_dir=.; script=slate.py; fi
+    [ -n "$out" ] || die "$cmd needs --out DIR (every output is written there)"
+fi
+if [ "$cmd" = nativetask ] || [ "$cmd" = dossier ] || [ "$cmd" = slate ]; then host=1; fi   # nativetask starts docker; dossier reads host folders and never needs a container
+
+out_abs=''
+if [ -n "$out" ]; then
+    mkdir -p "$out"
+    out_abs=$(CDPATH= cd -- "$out" && { pwd -W 2>/dev/null || pwd; })
+fi
+
+# Host interpreter (also writes the run-meta record in container mode).
+py=${AI4R_PYTHON:-}
+if [ -z "$py" ]; then
+    if python3 -c 'import sys' >/dev/null 2>&1; then py=python3; elif python -c 'import sys' >/dev/null 2>&1; then py=python; fi
+fi
+
+# Product commit of this checkout; passed on because the container has no usable git for a bind-mounted worktree.
+AI4R_PRODUCT_COMMIT=$(git -C "$repo" rev-parse HEAD 2>/dev/null || true)
+AI4R_PRODUCT_DIRTY=0
+if [ -n "$(git -C "$repo" status --porcelain --untracked-files=no 2>/dev/null)" ]; then AI4R_PRODUCT_DIRTY=1; fi
+export AI4R_PRODUCT_COMMIT AI4R_PRODUCT_DIRTY
+
+# Run metadata: out/run-meta/<utc>-<bench>-<script>.json, written before the run (end and exit code null) and after it.
+meta=''; model_flag=''
+if [ "$cmd" != selftest ] && [ "$cmd" != dossier ] && [ "$cmd" != slate ]; then
+    case "$cmd:$script:${1:-}" in
+        planner:run_planner_bench.py:run|planbench:run_arm.py:run|nativetask:run_native_task.py:run|heldout:run_heldout.py:run|contract:run_contract.py:run|haltbench:run_haltbench.py:run) model_flag=--model-run ;;
+    esac
+    if [ -n "$py" ]; then
+        meta="$out_abs/run-meta/$(date -u +%Y%m%dT%H%M%SZ)-$cmd-${script%.py}.json"
+    else
+        echo "ai4r-bench: no host python found; run-meta not written" >&2
+    fi
+fi
+mode=container; [ $host -eq 1 ] && mode=host
+meta_end=''; meta_rc=''
+meta_write() {   # meta_write BENCH_ARGS...   (meta_end and meta_rc are empty before the run)
+    [ -n "$meta" ] || return 0
+    "$py" -B "$repo/benchmarks/ccbench/runmeta.py" --file "$meta" --bench "$cmd" --script "$script" --mode "$mode" \
+        --image "$image" --cmdline "$raw_args" --start "$started" $model_flag ${meta_end:+--end "$meta_end"} ${meta_rc:+--exit-code "$meta_rc"} -- "$@" 2>&1 \
+        || echo "ai4r-bench: run-meta write failed" >&2
+}
+started=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+if [ $host -eq 1 ]; then
+    export AI4R_CODE_ROOT=$repo PYTHONDONTWRITEBYTECODE=1 PYTHONIOENCODING=utf-8 AI4R_BENCH_DATA=$data
+    export PYTHONPATH="$repo${PYTHONPATH:+:$PYTHONPATH}"
+    [ -n "$py" ] || die "no python found for --host (set AI4R_PYTHON)"
+    if [ "$cmd" = selftest ]; then
+        exec "$py" -B "$repo/benchmarks/ccbench/selftest.py" "$@"
+    fi
+    # cwd is the output directory: libraries that log into the cwd (openjiuwen) then write there, not into the repo.
+    cd "$out_abs"
+    meta_write "$@"
+    rc=0
+    "$py" -B "$repo/benchmarks/ccbench/$bench_dir/$script" "$@" --out "$out_abs" || rc=$?
+    meta_end=$(date -u +%Y-%m-%dT%H:%M:%SZ); meta_rc=$rc
+    meta_write "$@"
+    exit $rc
+fi
+
+command -v docker >/dev/null 2>&1 || die "docker not found; install it or add --host"
+docker image inspect "$image" >/dev/null 2>&1 || die "image $image not found; set AI4R_BENCH_IMAGE or add --host"
+
+# Git Bash on Windows would rewrite /opt/... arguments; the container paths below are literal.
+export MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL='*'
+mounts="-v $repo:/opt/ai4r:ro"
+if [ -d "$data" ]; then
+    data_abs=$(CDPATH= cd -- "$data" && { pwd -W 2>/dev/null || pwd; })
+    mounts="$mounts -v $data_abs:/data:ro"
+fi
+if [ -n "$out_abs" ]; then mounts="$mounts -v $out_abs:/out"; fi
+if [ -n "${AI4R_CODEX_HOME:-}" ]; then mounts="$mounts -v $AI4R_CODEX_HOME:/tmp/home/.codex"; fi
+user=''
+if command -v id >/dev/null 2>&1; then user="--user $(id -u):$(id -g)"; fi
+
+common="-e HOME=/tmp/home -e AI4R_CODE_ROOT=/opt/ai4r -e AI4R_BENCH_DATA=/data -e PYTHONPATH=/opt/ai4r -e PYTHONDONTWRITEBYTECODE=1 -e PYTHONIOENCODING=utf-8 -e AI4R_PRODUCT_COMMIT -e AI4R_PRODUCT_DIRTY"
+if [ "$cmd" = selftest ]; then
+    # shellcheck disable=SC2086
+    exec docker run --rm $user $mounts -w /tmp $common \
+        --entrypoint /opt/venv/bin/python "$image" -B /opt/ai4r/benchmarks/ccbench/selftest.py "$@"
+fi
+meta_write "$@"
+rc=0
+# shellcheck disable=SC2086
+docker run --rm $user $mounts -w /out $common \
+    --entrypoint /opt/venv/bin/python "$image" -B "/opt/ai4r/benchmarks/ccbench/$bench_dir/$script" "$@" --out /out || rc=$?
+meta_end=$(date -u +%Y-%m-%dT%H:%M:%SZ); meta_rc=$rc
+meta_write "$@"
+exit $rc

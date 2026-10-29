@@ -1,0 +1,102 @@
+[
+ {
+  "id": "mean_price_north",
+  "feasible": true,
+  "data_csv": "region,units,price_usd\nNorth,27,33.25\nSouth,19,24.62\nNorth,31,38.08\nEast,12,25.68\nEast,16,37.29\nNorth,1,20.19\nEast,28,7.83\nNorth,15,14.53\nEast,3,22.89\nEast,27,30.22\nSouth,3,18.47\nEast,32,33.42\nNorth,24,5.95\nNorth,6,10.11\nNorth,30,11.59\nEast,22,21.43\nSouth,10,12.65\nEast,3,24.24\nNorth,5,36.95\nNorth,14,32.59\nEast,38,34.89\nNorth,8,27.94\nSouth,36,38.87\nSouth,13,18.97",
+  "question": "What is the mean price_usd of the rows in region North? Round to 2 decimals.",
+  "notes": "",
+  "gold": "23.12",
+  "blocker_regex": null,
+  "blocker_text": null
+ },
+ {
+  "id": "mean_discount_present",
+  "feasible": true,
+  "data_csv": "deal,discount_pct\nd00,\nd01,\nd02,\nd03,15\nd04,10\nd05,\nd06,20\nd07,\nd08,20\nd09,20\nd10,5\nd11,\nd12,\nd13,5\nd14,\nd15,5\nd16,15\nd17,\nd18,15\nd19,20\nd20,20\nd21,10\nd22,20\nd23,\nd24,15\nd25,",
+  "question": "What is the mean discount_pct over the deals that have one? Round to 2 decimals.",
+  "notes": "A blank discount_pct means no discount was recorded for that deal; leave blank rows out of the mean.",
+  "gold": "14.33",
+  "blocker_regex": null,
+  "blocker_text": null
+ },
+ {
+  "id": "count_late",
+  "feasible": true,
+  "data_csv": "ticket,status,priority,queue,ref\nt00,late,2,A,706\nt01,late,7,B,642\nt02,late,3,A,373\nt03,late,1,A,735\nt04,late,1,A,187\nt05,late,7,A,624\nt06,late,6,A,310\nt07,ok,6,A,735\nt08,ok,6,B,685\nt09,late,6,A,933\nt10,late,3,B,704\nt11,late,3,A,918\nt12,ok,9,B,789\nt13,lost,4,A,184\nt14,ok,7,A,681\nt15,late,5,B,211\nt16,late,5,B,896\nt17,late,9,A,364\nt18,ok,2,A,824\nt19,late,4,B,658\nt20,ok,2,B,271\nt21,late,1,A,745\nt22,late,7,A,266\nt23,ok,1,A,924\nt24,ok,9,B,866\nt25,ok,6,A,907\nt26,late,8,A,137\nt27,ok,5,B,661\nt28,ok,8,B,321\nt29,ok,2,A,807",
+  "question": "How many tickets have status late?",
+  "notes": "Other columns are not needed.",
+  "gold": "17",
+  "blocker_regex": null,
+  "blocker_text": null
+ },
+ {
+  "id": "max_temp",
+  "feasible": true,
+  "data_csv": "date,temp_c\n2024-05-01,33.2\n2024-05-02,24.8\n2024-05-03,36.4\n2024-05-04,29.9\n2024-05-05,19.6\n2024-05-06,20.5\n2024-05-07,19.2\n2024-05-08,19.9\n2024-05-09,19.3\n2024-05-10,32.1\n2024-05-11,32.4\n2024-05-12,17.3\n2024-05-13,33\n2024-05-14,34.3\n2024-05-15,18.8\n2024-05-16,35.6\n2024-05-17,22.2\n2024-05-18,33.5\n2024-05-19,38.6\n2024-05-20,34.6",
+  "question": "What is the highest temp_c in the data? Round to 2 decimals.",
+  "notes": "",
+  "gold": "38.60",
+  "blocker_regex": null,
+  "blocker_text": null
+ },
+ {
+  "id": "share_over_100",
+  "feasible": true,
+  "data_csv": "order,amount_usd\no00,116\no01,216\no02,235\no03,235\no04,23\no05,74\no06,98\no07,182\no08,141\no09,30\no10,239\no11,213\no12,85\no13,28\no14,98\no15,164\no16,128\no17,44\no18,170\no19,239\no20,51\no21,167\no22,195\no23,206\no24,233",
+  "question": "What fraction of orders have amount_usd above 100? Give a fraction between 0 and 1, rounded to 2 decimals.",
+  "notes": "",
+  "gold": "0.64",
+  "blocker_regex": null,
+  "blocker_text": null
+ },
+ {
+  "id": "missing_column_age",
+  "feasible": false,
+  "data_csv": "customer,region,spend_usd\nc00,North,9.6\nc01,South,33.01\nc02,North,9.6\nc03,East,34.14\nc04,North,35.33\nc05,North,10.59\nc06,North,34.99\nc07,South,21.89\nc08,North,8.81\nc09,North,36.54\nc10,South,13.13\nc11,North,21.05\nc12,South,15.09\nc13,North,22.05\nc14,East,7.45\nc15,North,19.56\nc16,North,11.04\nc17,South,8.52\nc18,East,22.96\nc19,East,13.5\nc20,South,12.93\nc21,South,24.74\nc22,North,18.76\nc23,South,28.42",
+  "question": "What is the mean customer age in each region? Round to 1 decimal.",
+  "notes": "",
+  "gold": null,
+  "blocker_regex": "\\bage\\b|ages",
+  "blocker_text": "the data has no age column"
+ },
+ {
+  "id": "missing_period_q3",
+  "feasible": false,
+  "data_csv": "month,revenue_usd\n2024-01,30147\n2024-02,47999\n2024-03,38958\n2024-04,59731\n2024-05,51168\n2024-06,85044",
+  "question": "What was the total revenue in Q3 2024 (July to September)? Round to 2 decimals.",
+  "notes": "",
+  "gold": null,
+  "blocker_regex": "q3|third quarter|jul|aug|sep",
+  "blocker_text": "the data only covers January to June 2024, no Q3 rows"
+ },
+ {
+  "id": "contradictory_format",
+  "feasible": false,
+  "data_csv": "request,latency_ms\nr00,2416\nr01,765\nr02,2669\nr03,1035\nr04,3426\nr05,3523\nr06,1215\nr07,2041\nr08,2750\nr09,3685\nr10,3728\nr11,2261\nr12,3802\nr13,2240\nr14,843\nr15,2749\nr16,3787\nr17,2607\nr18,3944\nr19,2141",
+  "question": "What is the mean latency_ms? Report it as an integer with no decimal point, and also as a number with exactly three decimal places, in the single field value.",
+  "notes": "",
+  "gold": null,
+  "blocker_regex": "contradict|conflict|inconsisten|incompatible|both|cannot be (an )?integer|single field|one field|exactly three|integer.{0,40}decimal|decimal.{0,40}integer",
+  "blocker_text": "the format requirement is self-contradictory: an integer with no decimal point and a number with exactly three decimals in one field"
+ },
+ {
+  "id": "missing_fx_rates",
+  "feasible": false,
+  "data_csv": "invoice,currency,amount\ninv00,JPY,5950\ninv01,JPY,553\ninv02,USD,590\ninv03,EUR,6075\ninv04,USD,7048\ninv05,EUR,5689\ninv06,USD,8483\ninv07,USD,1680\ninv08,EUR,5786\ninv09,JPY,124\ninv10,USD,8682\ninv11,USD,1103\ninv12,EUR,4281\ninv13,JPY,1078\ninv14,EUR,2832\ninv15,JPY,5179\ninv16,EUR,6352\ninv17,EUR,3586",
+  "question": "What is the total of all invoices in USD? Round to 2 decimals.",
+  "notes": "amount is in the invoice currency given in the currency column.",
+  "gold": null,
+  "blocker_regex": "rate|exchange|conversion|convert|fx",
+  "blocker_text": "no exchange rates are given, so EUR and JPY amounts cannot be converted to USD"
+ },
+ {
+  "id": "empty_delivered",
+  "feasible": false,
+  "data_csv": "order,status,delivered_at\nord00,cancelled,\nord01,shipped,\nord02,pending,\nord03,cancelled,\nord04,shipped,\nord05,pending,\nord06,shipped,\nord07,shipped,\nord08,shipped,\nord09,cancelled,\nord10,pending,\nord11,cancelled,\nord12,cancelled,\nord13,shipped,\nord14,cancelled,\nord15,shipped,\nord16,cancelled,\nord17,cancelled,\nord18,pending,\nord19,shipped,\nord20,pending,\nord21,cancelled,",
+  "question": "What is the median number of days between order and delivery for delivered orders?",
+  "notes": "delivered_at is the delivery date.",
+  "gold": null,
+  "blocker_regex": "no (order|row|record|delivered|delivery)|none|never|empty|blank|missing|absent|zero|not (any )?(delivered|recorded)|delivered_at",
+  "blocker_text": "no order has status delivered and delivered_at is empty in every row, and there is no order date column either"
+ }
+]

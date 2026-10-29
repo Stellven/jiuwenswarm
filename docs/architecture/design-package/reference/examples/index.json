@@ -1,483 +1,582 @@
 {
   "examples": [
     {
-      "path": "Intent_IR.json",
+      "path": "intent_ir.json",
       "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
     },
     {
-      "path": "Intent_Topic_Only.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
-    },
-    {
-      "path": "Intent_Contradictory.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
-    },
-    {
-      "path": "Default_Policy.json",
-      "schema_id": null,
-      "field_contract_id": "default-policy:field-contract:1"
-    },
-    {
-      "path": "Research_Brief.json",
+      "path": "research_brief.json",
       "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
     },
     {
-      "path": "Check_Plan.json",
-      "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:2"
-    },
-    {
-      "path": "Intention_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Invocation_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Intent_Checks.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
-    },
-    {
-      "path": "Review_Context.json",
-      "schema_id": null,
-      "field_contract_id": "review-context:field-contract:2"
-    },
-    {
-      "path": "Intent_Assessment.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
-    },
-    {
-      "path": "Gate_Decision.json",
+      "path": "gate_decision.json",
       "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
-      "path": "Topic_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Topic_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Topic_Checks.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
-    },
-    {
-      "path": "Topic_Review_Context.json",
-      "schema_id": null,
-      "field_contract_id": "review-context:field-contract:2"
-    },
-    {
-      "path": "Topic_Assessment.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
-    },
-    {
-      "path": "Gate_Topic_Halt.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
-    },
-    {
-      "path": "Evaluation_Verdict.json",
-      "schema_id": null,
-      "field_contract_id": "evaluation-verdict:field-contract:1"
-    },
-    {
-      "path": "Science_Review_Context.json",
-      "schema_id": null,
-      "field_contract_id": "review-context:field-contract:2"
-    },
-    {
-      "path": "Science_Assessment.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
-    },
-    {
-      "path": "Science_Checks.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
-    },
-    {
-      "path": "Science_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Science_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Gate_Science_Pass.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
-    },
-    {
-      "path": "Capsule_Declaration.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Requirements_Check_Plan.json",
-      "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:2"
-    },
-    {
-      "path": "Requirements_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Requirements_Invocation_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Requirements_Review_Context.json",
-      "schema_id": null,
-      "field_contract_id": "review-context:field-contract:2"
-    },
-    {
-      "path": "Requirements_Checks.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
-    },
-    {
-      "path": "Requirements_Assessment.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
-    },
-    {
-      "path": "Gate_Requirements_Pass.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
-    },
-    {
-      "path": "Science_Check_Plan.json",
-      "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:2"
-    },
-    {
-      "path": "Qualified_Intake.json",
+      "path": "qualified_intake.json",
       "schema_id": null,
       "field_contract_id": "qualified-intake:field-contract:2"
     },
     {
-      "path": "Requirements_Capsule.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Evaluation_Capsule.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Environment_Lock.json",
+      "path": "environment_lock.json",
       "schema_id": null,
       "field_contract_id": "environment-lock:field-contract:1"
     },
     {
-      "path": "Baseline_Resource.json",
+      "path": "lifecycle_research_brief.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
+    },
+    {
+      "path": "ranking_declaration.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "benchmark_payload.json",
+      "schema_id": null,
+      "field_contract_id": "benchmark-payload:field-contract:2"
+    },
+    {
+      "path": "evaluation_verdict.json",
+      "schema_id": null,
+      "field_contract_id": "evaluation-verdict:field-contract:2"
+    },
+    {
+      "path": "research_benchmark_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "scientific_evaluation_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "delivery_manifest.json",
+      "schema_id": null,
+      "field_contract_id": "delivery-manifest:field-contract:2"
+    },
+    {
+      "path": "delivery_manifest_invalid_hash_mismatch.json",
+      "schema_id": null,
+      "field_contract_id": "delivery-manifest:field-contract:2",
+      "expect": "invalid",
+      "rejected_by": "ref_hash_match"
+    },
+    {
+      "path": "delivery_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "hypothesis_blueprint.json",
+      "schema_id": null,
+      "field_contract_id": "hypothesis-blueprint:field-contract:2"
+    },
+    {
+      "path": "poc_manifest.json",
+      "schema_id": null,
+      "field_contract_id": "poc-manifest:field-contract:2"
+    },
+    {
+      "path": "build_receipt.json",
+      "schema_id": null,
+      "field_contract_id": "build-receipt:field-contract:1"
+    },
+    {
+      "path": "hypothesis_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "builder_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "capsule_declaration.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "requirements_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "static_template.json",
+      "schema_id": null,
+      "field_contract_id": "static-template:field-contract:1"
+    },
+    {
+      "path": "library_snapshot.json",
+      "schema_id": null,
+      "field_contract_id": "library-snapshot:field-contract:1"
+    },
+    {
+      "path": "run_plan.json",
+      "schema_id": null,
+      "field_contract_id": "run-plan:field-contract:1"
+    },
+    {
+      "path": "dispatch_record.json",
+      "schema_id": null,
+      "field_contract_id": "dispatch-record:field-contract:2"
+    },
+    {
+      "path": "planner_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "search_scope.json",
+      "schema_id": null,
+      "field_contract_id": "search-scope:field-contract:1"
+    },
+    {
+      "path": "candidate_set.json",
+      "schema_id": null,
+      "field_contract_id": "candidate-set:field-contract:2"
+    },
+    {
+      "path": "screening_result.json",
+      "schema_id": null,
+      "field_contract_id": "screening-result:field-contract:2"
+    },
+    {
+      "path": "opportunity_card.json",
+      "schema_id": null,
+      "field_contract_id": "opportunity-card:field-contract:2"
+    },
+    {
+      "path": "search_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "screening_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "verifier_capsule.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
+    },
+    {
+      "path": "gate_decision_index.json",
+      "schema_id": null,
+      "field_contract_id": "gate-decision-index:field-contract:1"
+    },
+    {
+      "path": "run_bundle.json",
+      "schema_id": null,
+      "field_contract_id": "run-bundle:field-contract:1"
+    },
+    {
+      "path": "gate_decision_invalid_advance_on_fail.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0",
+      "expect": "invalid",
+      "rejected_by": "verdict_action_consistent"
+    },
+    {
+      "path": "poc_artifact_bundle.zip",
+      "schema_id": null,
+      "field_contract_id": "poc-artifact-bundle:field-contract:1"
+    },
+    {
+      "path": "build_receipt_invalid_ready_with_forbidden_import.json",
+      "schema_id": null,
+      "field_contract_id": "build-receipt:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "build_receipt_ready"
+    },
+    {
+      "path": "verifier_capsule_invalid_rsi_propose.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "expect": "invalid",
+      "rejected_by": "rsi_mode_allowed"
+    },
+    {
+      "path": "rsi_target_profile_invalid_wider_than_may_change.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-target-profile:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "profile_within_may_change"
+    },
+    {
+      "path": "candidate_package_invalid_child_outside_may_change.json",
+      "schema_id": null,
+      "field_contract_id": "candidate-package:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "changes_allowed"
+    },
+    {
+      "path": "run_plan_invalid_uncovered_node.json",
+      "schema_id": null,
+      "field_contract_id": "run-plan:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "brief_coverage"
+    },
+    {
+      "path": "run_plan_invalid_tie_order.json",
+      "schema_id": null,
+      "field_contract_id": "run-plan:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "topological_order_is_kahn"
+    },
+    {
+      "path": "invocation_observation_invalid_decision_source.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:3",
+      "expect": "invalid",
+      "rejected_by": "observation_decision_source_consistent"
+    },
+    {
+      "path": "node_contract_invalid_gate_subject.json",
+      "schema_id": null,
+      "field_contract_id": "node-execution-contract:field-contract:2",
+      "expect": "invalid",
+      "rejected_by": "gate_subjects_bound"
+    },
+    {
+      "path": "route_record_invalid_router_without_decision.json",
+      "schema_id": null,
+      "field_contract_id": "route-record:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "route_record_consistent"
+    },
+    {
+      "path": "model_call_record_invalid_failed_without_code.json",
+      "schema_id": null,
+      "field_contract_id": "model-call:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "provider_error_code_consistent"
+    },
+    {
+      "path": "run_plan_invalid_selector_not_expanded.json",
+      "schema_id": null,
+      "field_contract_id": "run-plan:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "selectors_expanded"
+    },
+    {
+      "path": "library_admission_invalid_child_pins.json",
+      "schema_id": null,
+      "field_contract_id": "library-admission:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "child_inherits_parent_check_pins"
+    },
+    {
+      "path": "rsi_referee_evidence_invalid_signature.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-referee-evidence:field-contract:1",
+      "expect": "invalid",
+      "rejected_by": "referee_signature_valid"
+    },
+    {
+      "path": "baseline_resource.json",
       "schema_id": null,
       "field_contract_id": "resource-snapshot:field-contract:1"
     },
     {
-      "path": "Validation_Resource.json",
+      "path": "candidate_package.json",
       "schema_id": null,
-      "field_contract_id": "resource-snapshot:field-contract:1"
+      "field_contract_id": "candidate-package:field-contract:1"
     },
     {
-      "path": "Candidate_Set.json",
-      "schema_id": null,
-      "field_contract_id": "candidate-set:field-contract:1"
+      "path": "capsule_routing_context.json",
+      "schema_id": null
     },
     {
-      "path": "Screening_Result.json",
-      "schema_id": null,
-      "field_contract_id": "screening-result:field-contract:1"
-    },
-    {
-      "path": "Opportunity_Card.json",
-      "schema_id": null,
-      "field_contract_id": "opportunity-card:field-contract:1"
-    },
-    {
-      "path": "Hypothesis_Blueprint.json",
-      "schema_id": null,
-      "field_contract_id": "hypothesis-blueprint:field-contract:1"
-    },
-    {
-      "path": "POC_Manifest.json",
-      "schema_id": null,
-      "field_contract_id": "poc-manifest:field-contract:1"
-    },
-    {
-      "path": "Benchmark_Payload.json",
-      "schema_id": null,
-      "field_contract_id": "benchmark-payload:field-contract:1"
-    },
-    {
-      "path": "Delivery_Manifest.json",
-      "schema_id": null,
-      "field_contract_id": "delivery-manifest:field-contract:1"
-    },
-    {
-      "path": "RSI_Target_Profile.json",
-      "schema_id": null,
-      "field_contract_id": "rsi-target-profile:field-contract:1"
-    },
-    {
-      "path": "RSI_Attempt_01.json",
-      "schema_id": null,
-      "field_contract_id": "rsi-attempt:field-contract:1"
-    },
-    {
-      "path": "RSI_Loop_Feedback.json",
-      "schema_id": null,
-      "field_contract_id": "rsi-loop-feedback:field-contract:1"
-    },
-    {
-      "path": "RSI_Referee_Evidence.json",
-      "schema_id": null,
-      "field_contract_id": "rsi-referee-evidence:field-contract:1"
-    },
-    {
-      "path": "RSI_Evidence_Export.json",
-      "schema_id": null,
-      "field_contract_id": "rsi-evidence-export:field-contract:1"
-    },
-    {
-      "path": "RSI_Admission.json",
-      "schema_id": null,
-      "field_contract_id": "library-admission:field-contract:1"
-    },
-    {
-      "path": "RSI_Activation.json",
-      "schema_id": null,
-      "field_contract_id": "activation-record:field-contract:1"
-    },
-    {
-      "path": "RSI_Rollback.json",
-      "schema_id": null,
-      "field_contract_id": "activation-record:field-contract:1"
-    },
-    {
-      "path": "Lifecycle_Research_Brief.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
-    },
-    {
-      "path": "Topic_Check_Plan.json",
+      "path": "check_plan.json",
       "schema_id": null,
       "field_contract_id": "bound-check-plan:field-contract:2"
     },
     {
-      "path": "Topic_Qualified_Intake.json",
+      "path": "client_upload_baseline.json",
       "schema_id": null,
-      "field_contract_id": "qualified-intake:field-contract:2"
+      "field_contract_id": "client-upload:field-contract:1"
     },
     {
-      "path": "Ranking_Declaration.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "RSI_Child_Candidate.json",
+      "path": "client_upload_validation.json",
       "schema_id": null,
-      "field_contract_id": "candidate-provenance:field-contract:1"
+      "field_contract_id": "client-upload:field-contract:1"
     },
     {
-      "path": "RSI_Parent_Admission.json",
+      "path": "default_policy.json",
       "schema_id": null,
-      "field_contract_id": "library-admission:field-contract:1"
+      "field_contract_id": "default-policy:field-contract:1"
     },
     {
-      "path": "Ranking_Child_Declaration.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Discovery_Capsule.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Screening_Capsule.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Planning_Nodes.json",
-      "schema_id": null
-    },
-    {
-      "path": "RSI_Chain_Genesis.json",
-      "schema_id": null
-    },
-    {
-      "path": "RSI_Security_Clearance.json",
+      "path": "execution_receipt.json",
       "schema_id": null,
-      "field_contract_id": "security-clearance:field-contract:1"
+      "field_contract_id": "execution-receipt:field-contract:1"
     },
     {
-      "path": "Source_Spans_CRLF.json",
-      "schema_id": null
-    },
-    {
-      "path": "Local_Profile.json",
-      "schema_id": null
-    },
-    {
-      "path": "Workspace.json",
-      "schema_id": null
-    },
-    {
-      "path": "Qualified_Input_Directory.json",
-      "schema_id": null
-    },
-    {
-      "path": "Intent_Permissible_Omissions.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
-    },
-    {
-      "path": "Research_Brief_Defaults.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:research-brief:2.0.0"
-    },
-    {
-      "path": "Verifier_Capsule.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0"
-    },
-    {
-      "path": "Intention_Subnode_Template.json",
-      "schema_id": null
-    },
-    {
-      "path": "Requirements_Subnode_Template.json",
-      "schema_id": null
-    },
-    {
-      "path": "Topic_Subnode_Template.json",
-      "schema_id": null
-    },
-    {
-      "path": "Science_Subnode_Template.json",
-      "schema_id": null
-    },
-    {
-      "path": "Intention_Node_Contract.json",
+      "path": "execution_receipt_empirical_results.json",
       "schema_id": null,
-      "field_contract_id": "node-execution-contract:field-contract:2"
+      "field_contract_id": "empirical-results:field-contract:1"
     },
     {
-      "path": "Topic_Node_Contract.json",
-      "schema_id": null,
-      "field_contract_id": "node-execution-contract:field-contract:2"
-    },
-    {
-      "path": "Science_Node_Contract.json",
-      "schema_id": null,
-      "field_contract_id": "node-execution-contract:field-contract:2"
-    },
-    {
-      "path": "Verifier_Subnode_Template.json",
-      "schema_id": null
-    },
-    {
-      "path": "Gate_Intention_Compiler_Pass.json",
+      "path": "gate_science_node_pass.json",
       "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
-      "path": "Compiler_Failure_Receipt.json",
-      "schema_id": null
-    },
-    {
-      "path": "Compiler_No_Output_Checks.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
-    },
-    {
-      "path": "Gate_Compiler_No_Output.json",
+      "path": "gate_science_pass.json",
       "schema_id": "urn:jiuwenswarm:m1-design:gate-decision:2.0.0"
     },
     {
-      "path": "Intent_Verifier_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+      "path": "intent_assessment.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
     },
     {
-      "path": "Intent_Verifier_Observation.json",
+      "path": "intent_checking_profile.json",
       "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
+      "field_contract_id": "checking-profile:field-contract:1"
     },
     {
-      "path": "Requirements_Verifier_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Requirements_Verifier_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Topic_Verifier_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Topic_Verifier_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Science_Verifier_Subnode_Contract.json",
-      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
-    },
-    {
-      "path": "Science_Verifier_Observation.json",
-      "schema_id": null,
-      "field_contract_id": "invocation-observation:field-contract:2"
-    },
-    {
-      "path": "Intention_Node_Check_Plan.json",
-      "schema_id": null,
-      "field_contract_id": "bound-check-plan:field-contract:2"
-    },
-    {
-      "path": "Intention_Node_Checks.json",
+      "path": "intent_checks.json",
       "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
     },
     {
-      "path": "Permissible_Qualified_Intake.json",
+      "path": "intent_verifier_observation.json",
       "schema_id": null,
-      "field_contract_id": "qualified-intake:field-contract:2"
+      "field_contract_id": "invocation-observation:field-contract:3"
     },
     {
-      "path": "Science_Node_Template.json",
+      "path": "intent_verifier_subnode_contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "intention_node_contract.json",
+      "schema_id": null,
+      "field_contract_id": "node-execution-contract:field-contract:2"
+    },
+    {
+      "path": "intention_subnode_contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "intention_subnode_template.json",
       "schema_id": null
     },
     {
-      "path": "Node_Finalization_Profile.json",
+      "path": "invocation_observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:3"
+    },
+    {
+      "path": "local_profile.json",
       "schema_id": null
     },
     {
-      "path": "Selected_Capsule_Input.json",
-      "schema_id": null,
-      "field_contract_id": "selected-capsule-input:field-contract:1"
-    },
-    {
-      "path": "Model_Selection_Profile.json",
-      "schema_id": null,
-      "field_contract_id": "model-selection-profile:field-contract:1"
-    },
-    {
-      "path": "Route_Request.json",
-      "schema_id": null,
-      "field_contract_id": "route-request:field-contract:1"
-    },
-    {
-      "path": "Route_Decision.json",
-      "schema_id": null,
-      "field_contract_id": "model-route:field-contract:2"
-    },
-    {
-      "path": "Model_Call_Record.json",
+      "path": "model_call_record.json",
       "schema_id": null,
       "field_contract_id": "model-call:field-contract:1"
     },
     {
-      "path": "Routing_Budget_Snapshot.json",
+      "path": "model_deployment_example.json",
       "schema_id": null
     },
     {
-      "path": "Model_Deployment_Example.json",
+      "path": "model_selection_profile.json",
+      "schema_id": null,
+      "field_contract_id": "model-selection-profile:field-contract:1"
+    },
+    {
+      "path": "node_finalization_profile.json",
+      "schema_id": null,
+      "field_contract_id": "node-finalization-profile:field-contract:2"
+    },
+    {
+      "path": "plan_policy.json",
+      "schema_id": null,
+      "field_contract_id": "plan-policy:field-contract:1"
+    },
+    {
+      "path": "provisioning_receipt.json",
+      "schema_id": null,
+      "field_contract_id": "provisioning-receipt:field-contract:1"
+    },
+    {
+      "path": "qualified_input_directory.json",
       "schema_id": null
     },
     {
-      "path": "Capsule_Routing_Context.json",
+      "path": "ranking_child_declaration.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "role": "rsi_child"
+    },
+    {
+      "path": "requirements_checking_profile.json",
+      "schema_id": null,
+      "field_contract_id": "checking-profile:field-contract:1"
+    },
+    {
+      "path": "requirements_subnode_template.json",
       "schema_id": null
+    },
+    {
+      "path": "resource_inventory.json",
+      "schema_id": null,
+      "field_contract_id": "resource-inventory:field-contract:1"
+    },
+    {
+      "path": "review_context.json",
+      "schema_id": null,
+      "field_contract_id": "review-context:field-contract:2"
+    },
+    {
+      "path": "route_decision.json",
+      "schema_id": null,
+      "field_contract_id": "model-route:field-contract:2"
+    },
+    {
+      "path": "route_request.json",
+      "schema_id": null,
+      "field_contract_id": "route-request:field-contract:1"
+    },
+    {
+      "path": "routing_budget_snapshot.json",
+      "schema_id": null
+    },
+    {
+      "path": "rsi_admission.json",
+      "schema_id": null,
+      "field_contract_id": "library-admission:field-contract:1"
+    },
+    {
+      "path": "rsi_attempt_01.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-attempt:field-contract:1"
+    },
+    {
+      "path": "rsi_chain_genesis.json",
+      "schema_id": null
+    },
+    {
+      "path": "rsi_child_candidate.json",
+      "schema_id": null,
+      "field_contract_id": "candidate-provenance:field-contract:1"
+    },
+    {
+      "path": "rsi_evidence_export.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-evidence-export:field-contract:1"
+    },
+    {
+      "path": "rsi_parent_admission.json",
+      "schema_id": null,
+      "field_contract_id": "library-admission:field-contract:1"
+    },
+    {
+      "path": "rsi_referee_evidence.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-referee-evidence:field-contract:1"
+    },
+    {
+      "path": "rsi_session.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-session:field-contract:1"
+    },
+    {
+      "path": "rsi_session_result.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-session-result:field-contract:1"
+    },
+    {
+      "path": "rsi_target_profile.json",
+      "schema_id": null,
+      "field_contract_id": "rsi-target-profile:field-contract:1"
+    },
+    {
+      "path": "science_assessment.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0"
+    },
+    {
+      "path": "science_check_plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "science_checking_profile.json",
+      "schema_id": null,
+      "field_contract_id": "checking-profile:field-contract:1"
+    },
+    {
+      "path": "science_checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "science_node_check_plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "science_node_checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "science_node_contract.json",
+      "schema_id": null,
+      "field_contract_id": "node-execution-contract:field-contract:2"
+    },
+    {
+      "path": "science_node_template.json",
+      "schema_id": null
+    },
+    {
+      "path": "science_observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:3"
+    },
+    {
+      "path": "science_review_context.json",
+      "schema_id": null,
+      "field_contract_id": "review-context:field-contract:2"
+    },
+    {
+      "path": "science_subnode_contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "science_subnode_template.json",
+      "schema_id": null
+    },
+    {
+      "path": "science_verifier_observation.json",
+      "schema_id": null,
+      "field_contract_id": "invocation-observation:field-contract:3"
+    },
+    {
+      "path": "science_verifier_subnode_contract.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:subnode-execution-contract:1.0.0"
+    },
+    {
+      "path": "screening_rubric.json",
+      "schema_id": null,
+      "field_contract_id": "screening-rubric:field-contract:1"
+    },
+    {
+      "path": "selected_capsule_input.json",
+      "schema_id": null,
+      "field_contract_id": "selected-capsule-input:field-contract:1"
+    },
+    {
+      "path": "static_plan_check_plan.json",
+      "schema_id": null,
+      "field_contract_id": "bound-check-plan:field-contract:2"
+    },
+    {
+      "path": "static_plan_checks.json",
+      "schema_id": "urn:jiuwenswarm:m1-design:deterministic-check-result:1.0.0"
+    },
+    {
+      "path": "validation_resource.json",
+      "schema_id": null,
+      "field_contract_id": "resource-snapshot:field-contract:1"
+    },
+    {
+      "path": "verifier_subnode_template.json",
+      "schema_id": null
+    },
+    {
+      "path": "workspace.json",
+      "schema_id": null
+    },
+    {
+      "path": "route_record_router_decision.json",
+      "schema_id": null,
+      "field_contract_id": "route-record:field-contract:1"
     }
   ]
 }

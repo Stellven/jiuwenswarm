@@ -26,7 +26,7 @@ def load_research_catalog():
     return value
 
 
-def build_research_assets(store, *, verify_catalog=True):
+def build_research_assets(store, *, verify_catalog=True, screening_version='m1-4', delivery_version='m1-5'):
     """Return immutable candidate assets; grant no library standing or authority."""
     root = Path(__file__).parents[1]
     resources = files('jiuwenswarm.research').joinpath('resources/capsules')
@@ -75,7 +75,7 @@ def build_research_assets(store, *, verify_catalog=True):
             for name in ('trusted_scoring.py', 'trusted_pi.py', 'pi_protocol.py', 'process_evidence.py'):
                 body[name] = (root / name).read_bytes()
         if stage == 'builder':
-            for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py',
+            for name in ('builder_agent_runtime.py', 'builder_agent_service.py', 'builder_agent_host.py', 'builder_mode.py',
                          'builder_testing.py', 'process_evidence.py', 'm1_process.py', '_m1_process_child.py', 'native.py', 'pi_protocol.py', 'trusted_pi.py', 'trusted_scoring.py'):
                 body[name] = (root / name).read_bytes()
         stage_runner_ref = runner_ref
@@ -301,6 +301,215 @@ def build_research_assets(store, *, verify_catalog=True):
         # identities, all implementation bytes and independent assets stay fixed.
         if json.loads(json_bytes(result)) != expected:
             raise ResearchError('catalog_pin_mismatch', 'Installed research bytes differ from the frozen release catalog')
+    if screening_version not in {'m1-4', 'm1-5', 'm1-6'}:
+        raise ResearchError('catalog_invalid', 'Unknown explicit Screening release')
+    if screening_version == 'm1-5':
+        result['screening'] = build_screening_asset(store, base=result['screening'], verify_catalog=verify_catalog)
+    if screening_version == 'm1-6':
+        result['screening'] = build_weighted_screening_asset(store, base=result['screening'], verify_catalog=verify_catalog)
+    if delivery_version not in {'m1-5', 'm1-6'}:
+        raise ResearchError('catalog_invalid', 'Unknown explicit Delivery release')
+    if delivery_version == 'm1-6':
+        result['delivery'] = build_delivery_evidence_asset(store, base=result['delivery'], verify_catalog=verify_catalog)
+    return result
+
+
+def build_screening_asset(store, *, base=None, verify_catalog=True):
+    """Explicit additive m1-5 instruction release; preserves m1-4 and all checks.
+
+    Capture grants no admission/activation. The campaign must select, admit and
+    bind these exact immutable pins through the ordinary protected setup.
+    """
+    base = base or build_research_assets(store, verify_catalog=verify_catalog)['screening']
+    resources = files('jiuwenswarm.research').joinpath('resources/capsules')
+    declaration = copy.deepcopy(store.read_record(base['declaration_ref']))
+    if declaration['identity']['version_label'] != 'm1-4':
+        raise ResearchError('catalog_invalid', 'Screening m1-5 requires the exact m1-4 base release')
+    body_refs = dict(base['body_refs'])
+    body_refs['screening_prompt.txt'] = store.put_blob(resources.joinpath('screening_prompt_m1_5.txt').read_bytes(), media_type='text/plain')
+    declaration['identity']['version_label'] = 'm1-5'
+    declaration['identity']['body'] = [{'path': name, 'sha256': ref['sha256']} for name, ref in body_refs.items() if name != '_common.py']
+    bundle = copy.deepcopy(store.read_record(base['bundle_ref']))
+    bundle.update(id='research.screening.checks:m1-5', target_cc_version_range='m1-5.x')
+    profile = copy.deepcopy(store.read_record(base['profile_ref']))
+    profile.update(id='research.screening.profile:m1-5.response_contract_3',
+                   target_cc_version_range='m1-5.x')
+    from ..checks.schema_context import frozen_output_instructions
+    instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
+    profile['instruction_ref'] = store.put_blob(frozen_output_instructions(instructions, declaration), media_type='text/plain')
+    result = dict(base, declaration_ref=store.put_record('capsule-declaration', declaration), body_refs=body_refs,
+                  bundle_ref=store.put_record('check-bundle', bundle), profile_ref=store.put_record('checking-profile', profile),
+                  implementation_refs=tuple(ref for name, ref in body_refs.items() if name != '_common.py'))
+    if verify_catalog:
+        expected = json.loads(resources.joinpath('screening_m1_5_catalog.json').read_text(encoding='utf-8'))
+        if json.loads(json_bytes(result)) != expected:
+            raise ResearchError('catalog_pin_mismatch', 'Screening m1-5 differs from its explicit immutable release pin')
+    return result
+
+
+WEIGHTED_SCREENING_CHECKS = (
+    ('screening_result_schema', 'The result, candidate set and rubric parse against their declared schemas, including bounds.'),
+    ('candidate_binding', 'candidate_ref and rubric_ref equal the bound inputs.'),
+    ('ids_accounted', 'Every input idea appears exactly once in scores and is either ranked or excluded with a stated violation.'),
+    ('values_match_inputs', 'Each row copies the supplied assessments for the rubric weights and the idea citations exactly.'),
+    ('exclusions_recomputed', 'The host recomputes every hard-constraint violation from the supplied facts; codes and eligibility must match.'),
+    ('totals_recomputed', 'Each exact rational weighted total equals the sum of weight times assessment.'),
+    ('ranking_recomputable', 'Ranking by exact total descending then idea_id ascending, and the Top-1, equal the exact recomputation.'),
+    ('dispositions_consistent', 'Rejected, selected and eligible dispositions follow eligibility and the Top-1.'))
+
+
+def build_weighted_screening_asset(store, *, base=None, verify_catalog=True):
+    """Explicit additive m1-6 release: N ideas, exact rational weights, hard constraints.
+
+    The m1-4 and m1-5 releases stay byte-identical. The input and output
+    contracts are new, so this release is a standalone capability and not a
+    drop-in for the fixed three-dimension pipeline. Capture grants no admission.
+    """
+    from ..checks.schema_context import frozen_output_instructions
+    root = Path(__file__).parents[1]
+    resources = files('jiuwenswarm.research').joinpath('resources/capsules')
+    base = base or build_research_assets(store, verify_catalog=verify_catalog)['screening']
+    declaration = copy.deepcopy(store.read_record(base['declaration_ref']))
+    if declaration['identity']['version_label'] != 'm1-4':
+        raise ResearchError('catalog_invalid', 'Screening m1-6 requires the exact m1-4 base release')
+    sources = {'screening_weighted.py': (root / 'capsules/screening_weighted.py').read_bytes(),
+               'ranking_weighted.py': (root / 'capsules/ranking_weighted.py').read_bytes(),
+               'screening_weighted_prompt.txt': resources.joinpath('screening_weighted_prompt.txt').read_bytes()}
+    body_refs = {'_common.py': base['body_refs']['_common.py']}
+    body_refs.update({name: store.put_blob(raw, media_type='text/x-python' if name.endswith('.py') else 'text/plain')
+                      for name, raw in sources.items()})
+    closure = {name: store.put_blob((root / name).read_bytes(), media_type='text/x-python')
+               for name in ('checks/screening_weighted.py', 'checks/research.py')}
+    runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.screening_weighted', 'files': closure}),
+                                media_type='application/json')
+    identity = declaration['identity']
+    identity['version_label'] = 'm1-6'
+    identity['summary'] = ('Applies supplied hard constraints, computes exact rational weighted totals with a pure helper, '
+                           'ranks deterministically, and records every one of up to 32 ideas as ranked or excluded with a reason')
+    identity['carrier'] = {'ref': 'screening_weighted.py', 'sha256': body_refs['screening_weighted.py']['sha256']}
+    identity['body'] = [{'path': name, 'sha256': ref['sha256']} for name, ref in body_refs.items() if name != '_common.py']
+    check_ids = [key for key, _ in WEIGHTED_SCREENING_CHECKS]
+    declaration['ports'] = {
+        'inputs': [
+            {'name': 'candidate_set', 'artifact_type': 'weighted_candidate_set', 'required': True,
+             'schema_ref': 'urn:ai4r:screening-weighted-candidates:1.0.0', 'check_ids': [],
+             'description': 'Up to 32 ideas with supplied exact numeric assessments and the structured facts the hard constraints use'},
+            {'name': 'screening_rubric', 'artifact_type': 'weighted_rubric', 'required': True,
+             'schema_ref': 'urn:ai4r:screening-weighted-rubric:1.0.0', 'check_ids': [],
+             'description': 'Supplied exact rational weights, hard constraints and the deterministic tie rule'}],
+        'outputs': [
+            {'name': 'screening_result', 'artifact_type': 'screening_result', 'required': True,
+             'schema_ref': 'urn:ai4r:screening-weighted-result:1.0.0', 'check_ids': check_ids,
+             'description': 'Every idea ranked or excluded with checked violations, exact totals, the ranking and the selected idea'}]}
+    declaration['guarantees']['checks'] = [
+        {'id': key, 'kind': 'deterministic', 'target': 'outputs.screening_result',
+         'runner': {'ref': 'protected_research_checks', 'sha256': runner_ref['sha256']},
+         'anchor': 'exact output bytes and bound inputs', 'over': ['inputs_and_outputs'], 'author': 'independent check owner',
+         'written_before_body': True, 'held_out': False, 'signal_source': 'captured output and bound inputs',
+         'owner': 'protected profile registry', 'assurance': 'deterministic host check'} for key in check_ids]
+    declaration['guarantees']['acceptance'] = list(check_ids)
+    bundle = copy.deepcopy(store.read_record(base['bundle_ref']))
+    bundle.update(id='research.screening.checks:m1-6', target_cc_version_range='m1-6.x',
+                  checks=[{'check_id': key, 'target_port': 'screening_result', 'rule_summary': summary,
+                           'runner_ref': runner_ref, 'reads': ['output'] if key.endswith('_schema') else ['output', 'inputs'],
+                           'blocking': True} for key, summary in WEIGHTED_SCREENING_CHECKS])
+    profile = copy.deepcopy(store.read_record(base['profile_ref']))
+    profile.update(id='research.screening.profile:m1-6.response_contract_3', target_cc_version_range='m1-6.x',
+                   criteria=[c for c in profile['criteria'] if c['target_port'] is None] + [
+                       {'criterion_id': 'assessments_agree_with_computation', 'blocking': True,
+                        'answerable_from': 'declaration_and_output', 'target_port': 'screening_result',
+                        'question': "Does each idea assessment agree with the same row's violations, rank and exact total, without contradicting them?"},
+                       {'criterion_id': 'opportunity_statement_grounded', 'blocking': False,
+                        'answerable_from': 'declaration_and_output', 'target_port': 'screening_result',
+                        'question': 'Does the opportunity statement name the selected idea and avoid claiming execution or improvement?'}])
+    instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
+    profile['instruction_ref'] = store.put_blob(frozen_output_instructions(instructions, declaration), media_type='text/plain')
+    result = dict(base, declaration_ref=store.put_record('capsule-declaration', declaration), body_refs=body_refs,
+                  bundle_ref=store.put_record('check-bundle', bundle), profile_ref=store.put_record('checking-profile', profile),
+                  runner_ref=runner_ref, implementation_refs=tuple(ref for name, ref in body_refs.items() if name != '_common.py'))
+    if verify_catalog:
+        expected = json.loads(resources.joinpath('screening_m1_6_catalog.json').read_text(encoding='utf-8'))
+        if json.loads(json_bytes(result)) != expected:
+            raise ResearchError('catalog_pin_mismatch', 'Screening m1-6 differs from its explicit immutable release pin')
+    return result
+
+
+DELIVERY_EVIDENCE_CHECKS = (
+    ('research_report_schema', 'The bundle and report parse against their declared schemas: a single title line and Markdown text.'),
+    ('required_sections', 'The eight declared headings appear once each, in order, each with a nonempty body.'),
+    ('evidence_tables_match', 'The Results table, Run log, scope statements and counts equal the evidence bundle exactly.'),
+    ('derived_values_recomputed', 'Every derived sum, mean, difference and ratio equals the exact half-up recomputation from the bundle.'),
+    ('numbers_trace_to_evidence', 'Every number in the report is an evidence value or a derived value; a requested figure may appear only when declined.'))
+
+
+def build_delivery_evidence_asset(store, *, base=None, verify_catalog=True):
+    """Explicit additive Delivery m1-6: an evidence bundle is the typed input.
+
+    Delivery m1-5 needs thirteen accepted pipeline artifacts and stays unchanged.
+    This release takes one typed evidence bundle (request, scope statements,
+    counts, measurements, run log, arithmetic policy) so a report can rest on
+    supplied evidence alone. Every number must trace to the bundle. Capture grants no admission.
+    """
+    from ..checks.schema_context import frozen_output_instructions
+    root = Path(__file__).parents[1]
+    resources = files('jiuwenswarm.research').joinpath('resources/capsules')
+    base = base or build_research_assets(store, verify_catalog=verify_catalog)['delivery']
+    declaration = copy.deepcopy(store.read_record(base['declaration_ref']))
+    if declaration['identity']['version_label'] != 'm1-5':
+        raise ResearchError('catalog_invalid', 'Delivery m1-6 requires the exact m1-5 base release')
+    body_refs = {'_common.py': base['body_refs']['_common.py'],
+                 'delivery_evidence.py': store.put_blob((root / 'capsules/delivery_evidence.py').read_bytes(), media_type='text/x-python')}
+    closure = {name: store.put_blob((root / name).read_bytes(), media_type='text/x-python')
+               for name in ('checks/delivery_evidence.py', 'checks/research.py')}
+    runner_ref = store.put_blob(json_bytes({'implementation': 'research.checks.delivery_evidence', 'files': closure}),
+                                media_type='application/json')
+    identity = declaration['identity']
+    identity['version_label'] = 'm1-6'
+    identity['summary'] = ('Writes a delivery report from one typed evidence bundle; the host copies the tables, recomputes '
+                           'derived values and traces every reported number to the evidence')
+    identity['carrier'] = {'ref': 'delivery_evidence.py', 'sha256': body_refs['delivery_evidence.py']['sha256']}
+    identity['body'] = [{'path': 'delivery_evidence.py', 'sha256': body_refs['delivery_evidence.py']['sha256']}]
+    check_ids = [key for key, _ in DELIVERY_EVIDENCE_CHECKS]
+    declaration['ports'] = {
+        'inputs': [{'name': 'evidence_bundle', 'artifact_type': 'delivery_evidence_bundle', 'required': True,
+                    'schema_ref': 'urn:ai4r:delivery-evidence-bundle:1.0.0', 'check_ids': [],
+                    'description': 'The request, scope statements, counts, measurements, run log and arithmetic policy the report may rest on'}],
+        'outputs': [{'name': 'research_report', 'artifact_type': 'research_report', 'required': True,
+                     'schema_ref': 'urn:ai4r:delivery-evidence-report:1.0.0', 'check_ids': check_ids,
+                     'description': 'Actual artifact is a UTF-8 Markdown report, not a JSON object: a # title then exactly eight ## headings in the declared order'}]}
+    declaration['guarantees']['checks'] = [
+        {'id': key, 'kind': 'deterministic', 'target': 'outputs.research_report',
+         'runner': {'ref': 'protected_research_checks', 'sha256': runner_ref['sha256']},
+         'anchor': 'exact output bytes and bound inputs', 'over': ['inputs_and_outputs'], 'author': 'independent check owner',
+         'written_before_body': True, 'held_out': False, 'signal_source': 'captured output and bound inputs',
+         'owner': 'protected profile registry', 'assurance': 'deterministic host check'} for key in check_ids]
+    declaration['guarantees']['acceptance'] = list(check_ids)
+    bundle = copy.deepcopy(store.read_record(base['bundle_ref']))
+    bundle.update(id='research.delivery.checks:m1-6', target_cc_version_range='m1-6',
+                  checks=[{'check_id': key, 'target_port': 'research_report', 'rule_summary': summary,
+                           'runner_ref': runner_ref, 'reads': ['output'] if key.endswith('_schema') else ['output', 'inputs'],
+                           'blocking': True} for key, summary in DELIVERY_EVIDENCE_CHECKS])
+    profile = copy.deepcopy(store.read_record(base['profile_ref']))
+    profile.update(id='research.delivery.profile:m1-6.response_contract_3', target_cc_version_range='m1-6',
+                   criteria=[c for c in profile['criteria'] if c['target_port'] is None] + [
+                       {'criterion_id': 'unsupported_requests_declined', 'blocking': True,
+                        'answerable_from': 'declaration_and_output', 'target_port': 'research_report',
+                        'question': 'Does the section on requests the evidence cannot support decline every request part that the shown evidence cannot support, name the specific missing evidence, and does no other section assert that claim?'},
+                       {'criterion_id': 'findings_match_tables', 'blocking': True,
+                        'answerable_from': 'declaration_and_output', 'target_port': 'research_report',
+                        'question': 'Do the stated findings agree with the Results and Derived comparisons tables, without attributing a value to a different workload or configuration?'},
+                       {'criterion_id': 'limitations_stated', 'blocking': True,
+                        'answerable_from': 'declaration_and_output', 'target_port': 'research_report',
+                        'question': 'Does the report state what was not done or not measured, consistent with its scope statements?'}])
+    instructions = resources.joinpath('verifier_implementation.txt').read_bytes()
+    profile['instruction_ref'] = store.put_blob(frozen_output_instructions(instructions, declaration), media_type='text/plain')
+    result = dict(base, declaration_ref=store.put_record('capsule-declaration', declaration), body_refs=body_refs,
+                  bundle_ref=store.put_record('check-bundle', bundle), profile_ref=store.put_record('checking-profile', profile),
+                  runner_ref=runner_ref, implementation_refs=tuple(ref for name, ref in body_refs.items() if name != '_common.py'))
+    if verify_catalog:
+        expected = json.loads(resources.joinpath('delivery_m1_6_catalog.json').read_text(encoding='utf-8'))
+        if json.loads(json_bytes(result)) != expected:
+            raise ResearchError('catalog_pin_mismatch', 'Delivery m1-6 differs from its explicit immutable release pin')
     return result
 
 
@@ -356,6 +565,12 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
         elif stage == 'benchmark':
             from ..checks.benchmark_dispatch import BenchmarkDispatchChecks
             checks = BenchmarkDispatchChecks(stage, executor=executor)
+        elif stage == 'screening' and identity['version_label'] == 'm1-6':
+            from ..checks.screening_weighted import WeightedScreeningChecks
+            checks = WeightedScreeningChecks(stage, executor=executor)
+        elif stage == 'delivery' and identity['version_label'] == 'm1-6':
+            from ..checks.delivery_evidence import DeliveryEvidenceChecks
+            checks = DeliveryEvidenceChecks(stage, executor=executor)
         else:
             checks = ResearchChecks(stage, executor=executor)
             if stage == 'hypothesis':
@@ -363,8 +578,17 @@ def register_research_capsules(registry, check_registry, library, store, *, conn
                 checks = PredictionHypothesisChecks(stage, executor=executor)
         check_registry.register_bundle(bundle['bundle_id'], [check['check_id'] for check in bundle['checks']],
                                        checks, implementation_ref=asset['runner_ref'], profile_ref=asset['profile_ref'])
-        handler = screening.ScreeningCarrier(rank_opportunities, asset['body_refs']['ranking_parent.txt'],
-                                             asset['body_refs']['screening_prompt.txt']) if stage == 'screening' else handlers[stage]
+        if stage == 'screening' and identity['version_label'] == 'm1-6':
+            from . import screening_weighted
+            from .ranking_weighted import rank_weighted
+            handler = screening_weighted.WeightedScreeningCarrier(rank_weighted, asset['body_refs']['ranking_weighted.py'],
+                                                                  asset['body_refs']['screening_weighted_prompt.txt']).execute
+        elif stage == 'delivery' and identity['version_label'] == 'm1-6':
+            from . import delivery_evidence
+            handler = delivery_evidence.execute
+        else:
+            handler = screening.ScreeningCarrier(rank_opportunities, asset['body_refs']['ranking_parent.txt'],
+                                                 asset['body_refs']['screening_prompt.txt']) if stage == 'screening' else handlers[stage]
         registry.register(identity['name'], identity['version_label'], handler,
                           declaration_sha256=asset['declaration_ref']['sha256'], implementation_refs=asset['implementation_refs'])
     return assets

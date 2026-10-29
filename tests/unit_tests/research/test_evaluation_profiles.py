@@ -49,7 +49,7 @@ async def test_real_foreign_ref_swap_keeps_original_observation_and_fails_tier1_
     parent=factory.prepare_parent('run:fault','intent',[{'subnode_id':'intent','cc':installed['intent']['pin'],'depends_on':[]}],inputs=inputs,
         outputs=[{'name':'intent','contract_id':'intent-ir','version':'1.0.0','required':True}],objective='Controlled swap negative',requirement_ids=['intent'],
         limits={'time_s':120,'model_calls':2,'memory_mb':256},policy_ref=opaque,configuration_ref=opaque,template_ref=opaque,
-        authority_ceiling={'network':'none','network_allowlist':[],'resource_reads':[intake_ref],'write_roots':[],'tools':[]})
+        authority_ceiling={'network':'none','network_allowlist':[],'resource_reads':[intake_ref,intake['request_ref']],'write_roots':[],'tools':[]})
     contract,checkplan,bundle=factory.bind_subnode(parent,'intent',inputs)
     selection=store.put_record('model-selection-profile',{'schema_version':'1.0.0','id':'fixed','policy_mode':'fixed_baseline','approved_model_ids':['codex-cli-default'],'extra_requirements':{},'selection_allowance':{'enabled':False,'deployment_ref':None,'model_calls':0,'time_s':0,'output_tokens':0,'disclosure_scope':[]},'alternate_model_id':None,'policy_ref':opaque})
     runner.configure_run('run:fault',model_selection_profile_ref=selection,deployment_ref=opaque,router={'enabled':False,'deadline_s':30,'profile_ref':None},configuration_ref=opaque,run_limits={'time_s':120,'model_calls':2,'memory_mb':256})

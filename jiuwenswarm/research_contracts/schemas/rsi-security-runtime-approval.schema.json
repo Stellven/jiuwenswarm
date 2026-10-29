@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-runtime-approval:1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "plan_ref",
+    "scope_ref",
+    "validation_profile_ref",
+    "attack_pins_ref",
+    "custodian_key_id",
+    "custodian_public_key_sha256",
+    "rpc_session_id",
+    "capability"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-runtime-approval:1"
+    },
+    "plan_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "scope_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "validation_profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "attack_pins_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "custodian_key_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"
+    },
+    "custodian_public_key_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "rpc_session_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "capability": {
+      "type": "string",
+      "minLength": 16,
+      "maxLength": 1024
+    }
+  },
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

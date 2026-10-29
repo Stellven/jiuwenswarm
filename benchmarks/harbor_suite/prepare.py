@@ -16,7 +16,7 @@ import re
 import stat
 import zipfile
 
-from .contracts import canonical, load_cases, pin, read_json, regular, relative, resolve_cases_root, task_key
+from .contracts import EXTENDED, canonical, load_cases, pin, read_json, regular, relative, resolve_cases_root, task_key
 
 IMAGE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._/:\-]*@sha256:[a-f0-9]{64}$")
 ADAPTER = "benchmarks.harbor_suite.adapter:AI4ResearchSuiteAgent"
@@ -70,7 +70,11 @@ def prepare(destination, *, python_image, profile="smoke", expected_model="gpt-6
     cases_root = resolve_cases_root(cases_root).absolute()
     if destination.is_relative_to(cases_root) or cases_root.is_relative_to(destination):
         raise ValueError("bundle and authored cases must be separate")
-    cases = load_cases(cases_root)
+    if (not isinstance(case_ids, (tuple, list))
+            or any(not isinstance(ident, str) or not ident for ident in case_ids)):
+        raise ValueError("case selection requires unique known nonempty case IDs")
+    cases = (load_cases(cases_root, case_ids=case_ids) if any(c in EXTENDED for c in case_ids or ())
+             else load_cases(cases_root))
     if (not isinstance(case_ids, (tuple, list))
             or any(not isinstance(ident, str) or not ident for ident in case_ids)
             or len(set(case_ids)) != len(case_ids)

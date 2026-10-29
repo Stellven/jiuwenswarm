@@ -30,7 +30,7 @@ docs/architecture/design-package/sources/capsule-semantic-v2.10b.md -text
 docs/architecture/experiments/m1-cut-down/** -text
 
 # Architecture manifests pin exact input/projection bytes for portable comparisons.
-docs/architecture/design-package/** -text
+docs/architecture/design-package/** -text whitespace=cr-at-eol
 
 # Preserve paired compact design bytes and exact reference identities.
 docs/architecture/design-package-compact/** -text
@@ -47,24 +47,26 @@ docs/architecture/experiments/** -text
 docs/product/received-prds/*.txt -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
 
 # Capsule releases hash source bytes; Windows checkouts must preserve LF.
+# Optional benchmark cases pin the exact public JSON bytes.
+benchmarks/harbor_suite/additional_cases/** text eol=lf
 jiuwenswarm/research/**/*.py text eol=lf
 jiuwenswarm/research/**/*.txt text eol=lf
 jiuwenswarm/research/**/*.json text eol=lf
 jiuwenswarm/research_assets/** text eol=lf
 jiuwenswarm/research_contracts/**/*.json text eol=lf
-# Legacy frozen review profiles were authored with CRLF instruction bytes.
-jiuwenswarm/research/resources/capsules/verifier_implementation.txt text eol=crlf
+# Pinned bytes are LF on every host (Linux/DGX checkouts are LF).
+jiuwenswarm/research/resources/capsules/verifier_implementation.txt text eol=lf
 
-# Incoming V3 compiler releases pin CRLF bytes; reproduce them on every host.
-jiuwenswarm/research_assets/compiler/intent.declaration.json text eol=crlf
-jiuwenswarm/research_assets/compiler/requirements.declaration.json text eol=crlf
-jiuwenswarm/research_assets/compiler/verifier.declaration.json text eol=crlf
-jiuwenswarm/research_assets/compiler/requirements.txt text eol=crlf
+# Compiler releases pin LF bytes on every host.
+jiuwenswarm/research_assets/compiler/intent.declaration.json text eol=lf
+jiuwenswarm/research_assets/compiler/requirements.declaration.json text eol=lf
+jiuwenswarm/research_assets/compiler/verifier.declaration.json text eol=lf
+jiuwenswarm/research_assets/compiler/requirements.txt text eol=lf
 
-# Upstream target-comparison and Hypothesis closures also pin CRLF bytes.
-jiuwenswarm/research/target_comparisons.py text eol=crlf
-jiuwenswarm/research/capsules/hypothesis.py text eol=crlf
-jiuwenswarm/research/checks/builder_text.py text eol=crlf
+# Target-comparison, Hypothesis and Builder closures pin LF bytes.
+jiuwenswarm/research/target_comparisons.py text eol=lf
+jiuwenswarm/research/capsules/hypothesis.py text eol=lf
+jiuwenswarm/research/checks/builder_text.py text eol=lf
 
 # Preserve received benchmark source and its intentional Markdown line breaks.
 "docs/code/Missions/docs/source/BENCHMARK_REQUIREMENTS (3).md" -text whitespace=-blank-at-eol,-blank-at-eof
@@ -76,3 +78,27 @@ docs/capsules/verification-20261025/** -text
 deploy/m1/examples/inputs/*.pdf -text
 deploy/m1/*.ps1 text eol=lf
 docs/capsules/verification-20261026/** -text
+
+# Delivery's fixture manifest pins the report's original LF bytes.
+tests/fixtures/research/pipeline/source-valid/research_report.md text eol=lf
+# Frozen development banks retain a source hash of their independent grader.
+benchmarks/harbor_suite/value_core_complex.py text eol=lf
+
+# Additive Requirements m1-9 release pins its LF bytes on every host.
+jiuwenswarm/research/capsules/requirements_m1_9.py text eol=lf
+jiuwenswarm/research_assets/compiler/requirements_m1_9.txt text eol=lf
+
+# Pinned research roots hash exact LF bytes; Windows checkouts must not convert them.
+jiuwenswarm/research/resources/** text eol=lf
+jiuwenswarm/research_contracts/** text eol=lf
+tests/fixtures/research/** text eol=lf
+# Binary members of the pinned roots stay byte-exact.
+jiuwenswarm/research/resources/**/*.zip -text
+jiuwenswarm/research_assets/**/*.zip -text
+tests/fixtures/research/**/*.zip -text
+deploy/m1/seccomp/*.json text eol=lf
+# Exact archived source inputs; excluded from the portable design package.
+docs/architecture/source-archive/** -text whitespace=-trailing-space,-blank-at-eof
+
+# Published RSI evidence retains exact source and measurement bytes.
+benchmarks/ccbench/rsi/evidence/** -text

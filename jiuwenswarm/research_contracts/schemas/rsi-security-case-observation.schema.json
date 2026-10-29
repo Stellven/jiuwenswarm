@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-case-observation:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-case-observation:1"
+    },
+    "case_id": {
+      "enum": [
+        "RSIV-1",
+        "RSIV-2",
+        "RSIV-3",
+        "RSIV-4",
+        "RSIV-5",
+        "RSIV-6",
+        "RSIV-7",
+        "RSIV-8",
+        "RSIV-9",
+        "RSIV-10",
+        "RSIV-11",
+        "RSIV-12",
+        "RSIV-13"
+      ]
+    },
+    "session_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "worker_profile_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "attack_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attack_source_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "attack_source_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "mode": {
+      "enum": [
+        "kernel",
+        "policy"
+      ]
+    },
+    "input_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "before_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "after_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "denial_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "execution_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "probe_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "stdout_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "stderr_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "containment_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    },
+    "attempt_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/Ref"
+        }
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "case_id",
+    "session_ref",
+    "worker_profile_ref",
+    "attack_id",
+    "attack_source_ref",
+    "attack_source_sha256",
+    "mode",
+    "input_ref",
+    "before_ref",
+    "after_ref",
+    "denial_ref",
+    "execution_ref",
+    "probe_ref",
+    "stdout_ref",
+    "stderr_ref",
+    "containment_ref",
+    "attempt_ref"
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ]
+    }
+  }
+}

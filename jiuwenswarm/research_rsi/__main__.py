@@ -12,17 +12,39 @@ from .records import RecordStore,encoded
 
 def main(argv=None):
     parser=argparse.ArgumentParser(prog='ai4r-rsi');sub=parser.add_subparsers(dest='operation',required=True)
-    sub.add_parser('doctor')
+    doctor=sub.add_parser('doctor');doctor.add_argument('--config');doctor.add_argument('--live',action='store_true');doctor.add_argument('--job-ref')
+    preparation=sub.add_parser('prepare')
+    from .preparation_runtime import OPERATIONS
+    preparation.add_argument('action',choices=OPERATIONS);preparation.add_argument('--request-ref',required=True)
     for command in ('serve-jobs','serve-custodian','serve-worker-broker'):
         service=sub.add_parser(command);service.add_argument('--config',required=True)
+    validation=sub.add_parser('serve-security-validation');validation.add_argument('--config',required=True)
+    sub.add_parser('serve-validation-custodian')
     profiles=sub.add_parser('profiles');profiles.add_argument('--root',required=True)
     session=sub.add_parser('session');ss=session.add_subparsers(dest='action',required=True)
     for name in ('start','inspect','stop','export'):
         p=ss.add_parser(name);p.add_argument('--job-ref',required=True)
+        if name in ('inspect','export'):
+            p.add_argument('--offline',action='store_true');p.add_argument('--config')
     cust=sub.add_parser('custodian');cs=cust.add_subparsers(dest='action',required=True)
     for name in ('register','evaluate','final'):
         p=cs.add_parser(name);p.add_argument('--request-ref',required=True)
     args=parser.parse_args(argv)
+    if args.operation in {'serve-security-validation','serve-validation-custodian'}:
+        from jiuwenswarm.research.private_rpc import BridgeError,PlatformIntegrityError
+        try:
+            if args.operation=='serve-security-validation':
+                from .security_runtime import serve_validation
+                asyncio.run(serve_validation(args.config))
+            else:
+                from .security_custody import serve
+                asyncio.run(serve())
+            return 0
+        except (ValueError,OSError,KeyError,TypeError,BridgeError,PlatformIntegrityError):
+            print('BLOCKED: protected validation plan, isolated owners or current evidence unavailable.',file=sys.stderr);return 2
+    if args.operation=='prepare':
+        from .preparation_runtime import main as prepare_main
+        return prepare_main([args.action,'--request-ref',args.request_ref])
     if args.operation=='serve-worker-broker':
         from .worker_bootstrap import main as broker_main
         try:broker_main(args.config);return 0
@@ -34,9 +56,16 @@ def main(argv=None):
         except (RuntimeUnavailable,OSError,ValueError,KeyError):
             print('BLOCKED: protected service configuration, isolated UID or qualified fixed runtime resource binding is unavailable.',file=sys.stderr);return 2
     if args.operation=='doctor':
-        findings={'os':sys.platform,'separate_uid_support':hasattr(os,'geteuid'),'runtime_job_grant':bool(os.environ.get('AI4R_RSI_JOB_ROOT')),
-            'status':'BLOCKED','reason':'Actual approved target, separately scoped native bridge, custody/key/fixtures and measured headroom must be qualified before START.'}
-        print(json.dumps(findings,sort_keys=True));return 2
+        from .readiness import check_doctor,check_doctor_live
+        try:
+            from .worker import ref
+            selected=json.loads(args.job_ref) if args.job_ref else None
+            if selected is not None:ref(selected)
+            if selected is not None and not args.live:parser.error('--job-ref requires --live')
+            findings=asyncio.run(check_doctor_live(args.config,job_ref=selected)) if args.live else check_doctor(args.config)
+        except (ValueError,OSError,KeyError,TypeError):
+            print('BLOCKED: protected readiness configuration or immutable job reference unavailable.',file=sys.stderr);return 2
+        print(json.dumps(findings,sort_keys=True));return 0 if findings['status']=='READY' else 2
     if args.operation=='profiles':
         # Print only visible profile IDs/digests, never protected split contents.
         root=Path(args.root)
@@ -63,6 +92,17 @@ def main(argv=None):
         try:print(json.dumps(asyncio.run(perform()),sort_keys=True));return 0
         except (ValueError,OSError,KeyError):
             print('BLOCKED: owned custodian configuration, exact registration/calibration or authorized action unavailable.',file=sys.stderr);return 2
+    if args.operation=='session' and getattr(args,'offline',False):
+        from .history import inspect_history
+        from .worker import ref
+        try:
+            selected=json.loads(args.job_ref);ref(selected)
+            result=inspect_history(args.config or os.environ.get('AI4R_RSI_JOBS_CONFIG','/run/ai4r-rsi/jobs-service.json'),
+                selected,export=args.action=='export')
+            print(json.dumps(result,sort_keys=True));return 0 if result['state']=='terminal' else 2
+        except (ValueError,OSError,KeyError,TypeError):
+            print('BLOCKED: protected original history grant or captured bytes unavailable.',file=sys.stderr);return 2
+    if args.operation=='session' and getattr(args,'config',None):parser.error('--config requires --offline')
     try:
         from .ports import request
         text=args.job_ref if args.operation=='session' else args.request_ref

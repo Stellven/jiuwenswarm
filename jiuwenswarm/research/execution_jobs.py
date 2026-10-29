@@ -23,6 +23,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Mapping
 
+from .builder_mode import builder_mode
+
 from .contracts import ResearchError, contract_schema, validate
 from .environment import inspect_wheel, normalize_name, validate_lock, verify_inventory
 from .executor import ExecutionJob, InvocationBinding, PreparedEnvironment, ReadonlyMount
@@ -238,7 +240,7 @@ class ScienceExecutionAdapter:
         lock_port = 'lock' if builder_manifest_ref is not None else 'environment_lock'
         if builder_manifest_ref is not None:
             declaration = self.store.read_record(contract['bindings'][0]['declaration_ref'])
-            if declaration['identity']['name'] != 'research.builder' or declaration['identity']['version_label'] not in {'m1-13','m1-14','m1-15','m1-16','m1-17','m1-18'}:
+            if builder_mode(declaration) not in {'loop', 'agent'}:
                 raise ResearchError('auth', 'Development provisioning requires the exact Builder release')
         if pins != dict(lock_pins):
             raise ResearchError('validation', 'Provisioner pins differ from exact complete lock')

@@ -1,0 +1,435 @@
+{
+ "schema": "ai4r-rsi-capsule-benchmark-workloads:1",
+ "capsule_name": "utility.calculate",
+ "notes": "Codex frozen benchmark (protocol ai4r-rsi-capsule-benchmark:2) as data. Generated workloads are tables of ((row_coef*i + col_coef*j) % mod + offset) / divisor cells; derived cases copy an earlier case of the same split and set packet paths.",
+ "protocol": {
+  "timing_scope": "authoritative protected process wall divided by fixed full-execution batch size; includes startup, imports, packet validation, copy, serialization and input guard; checker excluded",
+  "process_scope": "original single-invocation protected latency remains separately reported; no claim of pure execute latency reduction",
+  "batch_iterations": {
+   "small": 1000,
+   "large": 20
+  },
+  "invocation_state": "fresh JSON packet and fresh candidate module namespace each invocation; candidate compiled once inside protected wall; immutable dependency imports shared",
+  "candidate_review": "reject cross-invocation result memoization, persistent state in dependencies/builtins and mutations of frozen dependencies; unchanged independent runtime isolation still applies",
+  "repetitions": 11,
+  "warmups": 2,
+  "paired_order": "alternating AB BA",
+  "aggregate": "equal-weight geometric mean of per-workload median candidate/parent ratios",
+  "minimum_relative_gain": 0.1,
+  "confidence": 0.95,
+  "bootstrap_resamples": 5000,
+  "regression_limit": 0.05,
+  "correctness": "all valid exact output bytes plus original immutable checks; all malformed exact parent error type, code and message; input unchanged",
+  "claim_requires": "amortized protected full-execution batch gain >= minimum; paired bootstrap upper ratio <= 0.90; every workload protected wall median ratio <= 1.05; all correctness cases pass",
+  "qualification": "local development evidence only; security deferred; no admission or activation"
+ },
+ "statistics": {
+  "bootstrap_seed": 20261026
+ },
+ "withheld_splits": [
+  "evaluation"
+ ],
+ "workloads": [
+  "small-numbers",
+  "large-numbers",
+  "wide-numbers",
+  "large-decimals",
+  "small-decimals",
+  "large-mixed-sign",
+  "wide-reordered",
+  "decimal-exponents"
+ ],
+ "table_defaults": {
+  "column_name": "field_{k}",
+  "cell": {
+   "row_coef": 7,
+   "col_coef": 1,
+   "col_index": "forward",
+   "mod": 199,
+   "offset": -99,
+   "divisor": 10
+  },
+  "encoding": {
+   "kind": "rows"
+  }
+ },
+ "workload_packet": {
+  "data": {
+   "table": {
+    "columns": {
+     "$var": "columns"
+    },
+    "rows": {
+     "$var": "table"
+    }
+   },
+   "calculation": {
+    "columns": {
+     "$slice": {
+      "of": {
+       "$slice": {
+        "of": {
+         "$var": "columns"
+        },
+        "start": {
+         "$int": {
+          "terms": {
+           "selected_count": -1
+          }
+         }
+        }
+       }
+      },
+      "step": -1
+     }
+    },
+    "operations": [
+     "count",
+     "sum",
+     "mean",
+     "min",
+     "max"
+    ],
+    "numeric_mode": {
+     "$var": "numeric_mode"
+    }
+   },
+   "unrelated": {
+    "exact": [
+     null,
+     true,
+     "α"
+    ]
+   }
+  },
+  "files": [
+   [
+    "notes.txt",
+    "preserve input"
+   ]
+  ]
+ },
+ "splits": {
+  "visible": [
+   {
+    "id": "small-numbers",
+    "timed": true,
+    "batch": "small",
+    "table": {
+     "height": 12,
+     "width": 4
+    },
+    "vars": {
+     "selected_count": 2,
+     "numeric_mode": "json_numbers"
+    }
+   },
+   {
+    "id": "large-numbers",
+    "timed": true,
+    "batch": "large",
+    "table": {
+     "height": 8000,
+     "width": 4
+    },
+    "vars": {
+     "selected_count": 3,
+     "numeric_mode": "json_numbers"
+    }
+   },
+   {
+    "id": "wide-numbers",
+    "timed": true,
+    "batch": "large",
+    "table": {
+     "height": 1600,
+     "width": 64
+    },
+    "vars": {
+     "selected_count": 16,
+     "numeric_mode": "json_numbers"
+    }
+   },
+   {
+    "id": "large-decimals",
+    "timed": true,
+    "batch": "large",
+    "table": {
+     "height": 5000,
+     "width": 8,
+     "format": ".2f"
+    },
+    "vars": {
+     "selected_count": 5,
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   {
+    "id": "bad-bool",
+    "malformed": true,
+    "derive": "small-numbers",
+    "set": [
+     {
+      "path": [
+       "data",
+       "table",
+       "rows",
+       0,
+       0
+      ],
+      "value": true
+     },
+     {
+      "path": [
+       "data",
+       "calculation",
+       "columns"
+      ],
+      "value": [
+       "field_0"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "bad-nonfinite",
+    "malformed": true,
+    "derive": "small-numbers",
+    "set": [
+     {
+      "path": [
+       "data",
+       "table",
+       "rows",
+       0,
+       0
+      ],
+      "value": "NaN"
+     },
+     {
+      "path": [
+       "data",
+       "calculation",
+       "columns"
+      ],
+      "value": [
+       "field_0"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "empty-sum-count",
+    "derive": "small-numbers",
+    "set": [
+     {
+      "path": [
+       "data",
+       "table",
+       "rows"
+      ],
+      "value": []
+     },
+     {
+      "path": [
+       "data",
+       "calculation",
+       "operations"
+      ],
+      "value": [
+       "sum",
+       "count"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "empty-mean",
+    "malformed": true,
+    "derive": "empty-sum-count",
+    "set": [
+     {
+      "path": [
+       "data",
+       "calculation",
+       "operations"
+      ],
+      "value": [
+       "mean"
+      ]
+     }
+    ]
+   }
+  ],
+  "evaluation": [
+   {
+    "id": "small-decimals",
+    "timed": true,
+    "batch": "small",
+    "table": {
+     "height": 17,
+     "width": 5,
+     "format": ".2f"
+    },
+    "vars": {
+     "selected_count": 3,
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   {
+    "id": "large-mixed-sign",
+    "timed": true,
+    "batch": "large",
+    "table": {
+     "height": 6971,
+     "width": 5
+    },
+    "vars": {
+     "selected_count": 4,
+     "numeric_mode": "json_numbers"
+    }
+   },
+   {
+    "id": "wide-reordered",
+    "timed": true,
+    "batch": "large",
+    "table": {
+     "height": 1200,
+     "width": 96
+    },
+    "vars": {
+     "selected_count": 13,
+     "numeric_mode": "json_numbers"
+    }
+   },
+   {
+    "id": "decimal-exponents",
+    "timed": true,
+    "batch": "large",
+    "table": {
+     "height": 4200,
+     "width": 9,
+     "format": ".2f",
+     "patches": [
+      {
+       "rows": [
+        0
+       ],
+       "row_values": [
+        "-0e-2",
+        "+1.20e1",
+        "001.00",
+        "2.50",
+        "1e-2",
+        "0",
+        "-3.00",
+        "5.0",
+        "7"
+       ]
+      }
+     ]
+    },
+    "vars": {
+     "selected_count": 7,
+     "numeric_mode": "decimal_strings"
+    }
+   },
+   {
+    "id": "bad-null",
+    "malformed": true,
+    "derive": "small-decimals",
+    "set": [
+     {
+      "path": [
+       "data",
+       "table",
+       "rows",
+       0,
+       0
+      ],
+      "value": null
+     },
+     {
+      "path": [
+       "data",
+       "calculation",
+       "columns"
+      ],
+      "value": [
+       "field_0"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "bad-bound",
+    "malformed": true,
+    "derive": "small-decimals",
+    "set": [
+     {
+      "path": [
+       "data",
+       "table",
+       "rows",
+       0,
+       0
+      ],
+      "value": "1e129"
+     },
+     {
+      "path": [
+       "data",
+       "calculation",
+       "columns"
+      ],
+      "value": [
+       "field_0"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "empty-sum-count",
+    "derive": "small-decimals",
+    "set": [
+     {
+      "path": [
+       "data",
+       "table",
+       "rows"
+      ],
+      "value": []
+     },
+     {
+      "path": [
+       "data",
+       "calculation",
+       "operations"
+      ],
+      "value": [
+       "sum",
+       "count"
+      ]
+     }
+    ]
+   },
+   {
+    "id": "empty-mean",
+    "malformed": true,
+    "derive": "empty-sum-count",
+    "set": [
+     {
+      "path": [
+       "data",
+       "calculation",
+       "operations"
+      ],
+      "value": [
+       "mean"
+      ]
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,304 @@
+[
+  {
+    "candidate": "calculate_reference",
+    "tool": "calculate",
+    "defective": false,
+    "witness": null,
+    "expected": null,
+    "defect": "correct"
+  },
+  {
+    "candidate": "calculate_absolute",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [
+        -7,
+        2
+      ],
+      "mode": "json_numbers",
+      "operation": "sum"
+    },
+    "expected": {
+      "status": "ok",
+      "value": "-5"
+    },
+    "defect": "broad: signs discarded"
+  },
+  {
+    "candidate": "calculate_float",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [
+        9007199254740993
+      ],
+      "mode": "json_numbers",
+      "operation": "sum"
+    },
+    "expected": {
+      "status": "ok",
+      "value": "9007199254740993"
+    },
+    "defect": "subtle: binary float precision"
+  },
+  {
+    "candidate": "calculate_boolean",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [
+        true,
+        2
+      ],
+      "mode": "json_numbers",
+      "operation": "sum"
+    },
+    "expected": {
+      "status": "error"
+    },
+    "defect": "medium: boolean coercion"
+  },
+  {
+    "candidate": "calculate_unicode",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [
+        "٣",
+        "2"
+      ],
+      "mode": "decimal_strings",
+      "operation": "sum"
+    },
+    "expected": {
+      "status": "error"
+    },
+    "defect": "rare: Unicode grammar acceptance"
+  },
+  {
+    "candidate": "calculate_comma",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [
+        "2,5",
+        "2"
+      ],
+      "mode": "decimal_strings",
+      "operation": "sum"
+    },
+    "expected": {
+      "status": "error"
+    },
+    "defect": "rare: locale coercion"
+  },
+  {
+    "candidate": "calculate_empty",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [],
+      "mode": "json_numbers",
+      "operation": "sum"
+    },
+    "expected": {
+      "status": "ok",
+      "value": "0"
+    },
+    "defect": "edge: empty rejection"
+  },
+  {
+    "candidate": "calculate_truncate",
+    "tool": "calculate",
+    "defective": true,
+    "witness": {
+      "values": [
+        2,
+        3
+      ],
+      "mode": "json_numbers",
+      "operation": "mean"
+    },
+    "expected": {
+      "status": "ok",
+      "value": "2.5"
+    },
+    "defect": "broad: fractional means truncated"
+  },
+  {
+    "candidate": "table_normalize_reference",
+    "tool": "table_normalize",
+    "defective": false,
+    "witness": null,
+    "expected": null,
+    "defect": "correct"
+  },
+  {
+    "candidate": "table_normalize_numeric",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "id\n007\n",
+      "format": "csv",
+      "columns": [
+        "id"
+      ],
+      "delimiter": ","
+    },
+    "expected": {
+      "status": "ok",
+      "columns": [
+        "id"
+      ],
+      "rows": [
+        [
+          "007"
+        ]
+      ]
+    },
+    "defect": "broad: CSV numeric coercion"
+  },
+  {
+    "candidate": "table_normalize_sorted",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "x\nz\na\n",
+      "format": "csv",
+      "columns": [
+        "x"
+      ],
+      "delimiter": ","
+    },
+    "expected": {
+      "status": "ok",
+      "columns": [
+        "x"
+      ],
+      "rows": [
+        [
+          "z"
+        ],
+        [
+          "a"
+        ]
+      ]
+    },
+    "defect": "medium: row reordering"
+  },
+  {
+    "candidate": "table_normalize_boolean",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "[{\"x\":true}]",
+      "format": "json",
+      "columns": [
+        "x"
+      ],
+      "delimiter": null
+    },
+    "expected": {
+      "status": "ok",
+      "columns": [
+        "x"
+      ],
+      "rows": [
+        [
+          true
+        ]
+      ]
+    },
+    "defect": "medium: JSON boolean coercion"
+  },
+  {
+    "candidate": "table_normalize_float",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "[{\"x\":9007199254740993}]",
+      "format": "json",
+      "columns": [
+        "x"
+      ],
+      "delimiter": null
+    },
+    "expected": {
+      "status": "ok",
+      "columns": [
+        "x"
+      ],
+      "rows": [
+        [
+          9007199254740993
+        ]
+      ]
+    },
+    "defect": "subtle: large integer precision"
+  },
+  {
+    "candidate": "table_normalize_pad",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "x,y\na\n",
+      "format": "csv",
+      "columns": [
+        "x",
+        "y"
+      ],
+      "delimiter": ","
+    },
+    "expected": {
+      "status": "error"
+    },
+    "defect": "rare: ragged rows silently padded"
+  },
+  {
+    "candidate": "table_normalize_empty",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "[]",
+      "format": "json",
+      "columns": [
+        "x"
+      ],
+      "delimiter": null
+    },
+    "expected": {
+      "status": "ok",
+      "columns": [
+        "x"
+      ],
+      "rows": []
+    },
+    "defect": "edge: empty rejection"
+  },
+  {
+    "candidate": "table_normalize_strip",
+    "tool": "table_normalize",
+    "defective": true,
+    "witness": {
+      "text": "x\n a \n",
+      "format": "csv",
+      "columns": [
+        "x"
+      ],
+      "delimiter": ","
+    },
+    "expected": {
+      "status": "ok",
+      "columns": [
+        "x"
+      ],
+      "rows": [
+        [
+          " a "
+        ]
+      ]
+    },
+    "defect": "subtle: whitespace loss"
+  }
+]

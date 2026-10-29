@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 
 from .contracts import ResearchError, validate
+from .run_input_types import supplied_type
 from .capability_planning import is_capability_policy, layout_issues as capability_layout_issues
 from .summary_planning import (PAPER_CC_VERSION, PAPER_PLANNER_VERSION, PAPER_DELIVERY_CC, PAPER_PLANNER_CC, is_document_summary_policy,
                                summary_layout_issues, validate_summary_documents)
@@ -137,6 +138,16 @@ def plan_checks(source: dict, brief: dict, library: dict, resources: dict, polic
                     allowed={'brief','search_scope',*resource_map}
                     if finite_context is not None:allowed.update(finite_context.input_refs())
                     if key not in allowed or future is not None:fail('dependency_closure',f'{nid}: unknown accepted input key')
+                    elif own is not None:
+                        # The captured type of the supplied bytes must equal the consumer port; the planner's own
+                        # copy of the consumer type proves nothing. Untyped data fails closed, except qualified
+                        # finite inputs, whose exact refs the finite context already pins.
+                        supplied=supplied_type(key,resource_map)
+                        if supplied is None:
+                            if finite_context is None or key not in finite_context.input_refs():
+                                fail('port_type_compatibility',f'{nid}: supplied input {key} has no captured artifact type')
+                        elif supplied[0]!=own['artifact_type'] or (supplied[1] is not None and supplied[1]!=own['schema_ref']):
+                            fail('port_type_compatibility',f'{nid}: supplied input {key} is {supplied[0]}, not the {own["artifact_type"]} that port {port["name"]} consumes')
                 elif kind=='host_record':
                     if key not in HOST_KEYS or future is not None:fail('dependency_closure',f'{nid}: unknown host input key')
                     if key!=port['artifact_type']:fail('port_type_compatibility',f'{nid}: host record type differs')
@@ -509,6 +520,13 @@ def declaration_authority_ceiling(declaration, parent, *, role):
     calls = declaration['budget']['per_call'].get('tool_calls')
     if named and (type(calls) is not int or calls <= 0 or any(name not in parent['tools'] for name in named)):
         raise ResearchError('authority_unavailable', 'Required named declared host tool lacks its explicit original budget/parent grant')
+    if type(calls) is int and calls > 0:
+        # Same derivation as local_science: an admitted agent-mode Builder declaration
+        # is the grant for its own protected action operation, bounded by the parent
+        # ceiling and the declaration's tool-call budget. Nothing else is implied.
+        from .builder_mode import builder_mode
+        if declaration['identity']['name'] == 'research.builder' and builder_mode(declaration) == 'agent':
+            named = [*named, 'builder_action']
     permitted['tools'] = [value for value in parent['tools'] if value in named] if type(calls) is int and calls > 0 else []
     writable = [row['resource_key'] for row in declaration['needs']['resources'] if row['mode'] == 'write']
     permitted['write_roots'] = []

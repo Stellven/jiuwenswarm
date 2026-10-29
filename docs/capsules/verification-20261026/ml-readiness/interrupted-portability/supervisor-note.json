@@ -1,6 +1,0 @@
-{
-  "status": "interrupted",
-  "reason": "Supervisor stopped this check before completion to normalize eight changed Python/JSON files to LF before creating the source commit. No passing claim; the original result may remain running because Docker was stopped externally.",
-  "container_id": "a0d5d77336b7",
-  "source_commit_after_normalization": "a138e435fe0f6e33a0684ac0458404e3d3d1700b"
-}

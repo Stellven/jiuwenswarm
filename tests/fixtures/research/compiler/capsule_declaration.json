@@ -7,12 +7,12 @@
     "summary": "Extract faithful, coherent user meaning with explicit uncertainty",
     "carrier": {
       "ref": "intent_implementation.txt",
-      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      "sha256": "16002fc796e67a426c3d906c503be8c3dbf9feb8ac6211331d537ac3eccaf824"
     },
     "body": [
       {
         "path": "intent_implementation.txt",
-        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        "sha256": "16002fc796e67a426c3d906c503be8c3dbf9feb8ac6211331d537ac3eccaf824"
       }
     ]
   },
@@ -97,7 +97,7 @@
         "target": "outputs.intent",
         "runner": {
           "ref": "intent_implementation.txt",
-          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          "sha256": "16002fc796e67a426c3d906c503be8c3dbf9feb8ac6211331d537ac3eccaf824"
         },
         "anchor": "exact output bytes",
         "over": [

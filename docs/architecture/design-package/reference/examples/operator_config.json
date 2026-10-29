@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "cc": {
+    "plan_source": "static",
+    "plan_policy_ref": {
+      "id": "plan_policy.json",
+      "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
+    },
+    "static_template_ref": {
+      "id": "static_template.json",
+      "sha256": "7e824c044d8333487f96f844dca64f19d470e9097677fea8223166dd1f3dfbb5"
+    },
+    "evaluation_profile_ref": null,
+    "router": {
+      "enabled": false,
+      "deadline_s": 30,
+      "profile_ref": null
+    }
+  },
+  "rsi": {
+    "custodian_key_id": "rsi-custodian-key-1",
+    "custodian_public_key": "c3ludGhldGljLXB1YmxpYy1rZXktZm9yLWV4YW1wbGVzLW9ubHk"
+  },
+  "codex": {
+    "route_id": "codex-cli-default"
+  },
+  "role_aliases": {
+    "searcher": "codex-cli-default",
+    "builder": "codex-cli-default",
+    "verifier": "codex-cli-default"
+  },
+  "ext": {
+    "example.synthetic": true
+  }
+}

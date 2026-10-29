@@ -1,0 +1,105 @@
+{
+  "schema": "ai4r-harbor-suite-case:1",
+  "id": "cc03-typed-table",
+  "module": "cc",
+  "title": "Exact scalar types in reusable table normalization",
+  "scenario_ids": [
+    "s01"
+  ],
+  "milestone": "m1",
+  "classification": "extended_performance",
+  "requirements": [
+    "CC01",
+    "CC02",
+    "VF01"
+  ],
+  "domains": [
+    "c04"
+  ],
+  "entrypoint": "single_cc",
+  "objective": "Measure original E3 normalization content and binding, with valid, edge and malformed controls.",
+  "primary_metric": {
+    "name": "expected_behavior_met",
+    "definition": "Correct original E3 completion/refusal over four selected development variants; content, binding, unavailable and productive completion reported separately."
+  },
+  "budgets": {
+    "wall_time_s": 600,
+    "max_model_calls": 20,
+    "physical_memory_mb": 1024,
+    "committed_memory_mb": 2048,
+    "storage_mb": 512,
+    "concurrency": 1,
+    "gpu_required": false
+  },
+  "product_prerequisites": [
+    "Exact typed capsule release independently qualified, admitted and active",
+    "Supported original packet E3 source binding, fresh scope and approved evaluation profile",
+    "Original authenticated output/observation export and frozen evaluation overlay"
+  ],
+  "evidence_requirements": [
+    "request",
+    "normalized_request",
+    "source_contract",
+    "source_declaration",
+    "source_admission",
+    "actual_contract",
+    "measurement",
+    "observation",
+    "output"
+  ],
+  "variants": [
+    {
+      "id": "csv-control",
+      "split": "development",
+      "task": "Normalize the supplied packet using its explicit table request. Preserve exact values, JSON scalar types, row order and limitations. Refuse malformed rows without guessing.",
+      "inputs": [
+        {
+          "path": "public/packet-csv-control.json",
+          "kind": "docs"
+        }
+      ],
+      "expected_behavior": "complete",
+      "seed": 0
+    },
+    {
+      "id": "csv-leading-zero",
+      "split": "development",
+      "task": "Normalize the supplied packet using its explicit table request. Preserve exact values, JSON scalar types, row order and limitations. Refuse malformed rows without guessing.",
+      "inputs": [
+        {
+          "path": "public/packet-csv-leading-zero.json",
+          "kind": "docs"
+        }
+      ],
+      "expected_behavior": "complete",
+      "seed": 1
+    },
+    {
+      "id": "json-types",
+      "split": "development",
+      "task": "Normalize the supplied packet using its explicit table request. Preserve exact values, JSON scalar types, row order and limitations. Refuse malformed rows without guessing.",
+      "inputs": [
+        {
+          "path": "public/packet-json-types.json",
+          "kind": "docs"
+        }
+      ],
+      "expected_behavior": "complete",
+      "seed": 2
+    },
+    {
+      "id": "malformed-row",
+      "split": "development",
+      "task": "Normalize the supplied packet using its explicit table request. Preserve exact values, JSON scalar types, row order and limitations. Refuse malformed rows without guessing.",
+      "inputs": [
+        {
+          "path": "public/packet-malformed-row.json",
+          "kind": "docs"
+        }
+      ],
+      "expected_behavior": "halt",
+      "seed": 3
+    }
+  ],
+  "oracle_version": "cc03-typed-table:1"
+}

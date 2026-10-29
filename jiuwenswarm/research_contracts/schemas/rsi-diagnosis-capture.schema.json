@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-diagnosis-capture:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-diagnosis-capture:1"
+    },
+    "target_profile_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "parent": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/CcPin"
+    },
+    "configuration_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "preparation_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "prompt_ref": {
+      "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+    },
+    "response_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+        }
+      ]
+    },
+    "diagnosis_ref": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+        }
+      ]
+    },
+    "generation_evidence_refs": {
+      "type": "array",
+      "items": {
+        "$ref": "urn:jiuwenswarm:m1-design:rsi-amendments:2.0.0#/$defs/Ref"
+      },
+      "minItems": 0,
+      "maxItems": 100
+    },
+    "generating_model": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      ]
+    },
+    "model_calls": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 0
+        }
+      ]
+    },
+    "unavailable_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 0,
+      "maxItems": 40
+    },
+    "status": {
+      "enum": [
+        "unavailable",
+        "invalid",
+        "cancelled",
+        "validated"
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "target_profile_ref",
+    "parent",
+    "configuration_ref",
+    "preparation_ref",
+    "prompt_ref",
+    "response_ref",
+    "diagnosis_ref",
+    "generation_evidence_refs",
+    "generating_model",
+    "model_calls",
+    "unavailable_reasons",
+    "status"
+  ]
+}

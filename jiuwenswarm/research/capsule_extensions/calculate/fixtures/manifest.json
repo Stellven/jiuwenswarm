@@ -1,0 +1,12 @@
+{
+  "schema": "ai4r-rsi-capsule-fixtures:1",
+  "capsule_name": "utility.calculate",
+  "task_output_key": "calculation_result",
+  "scope": "complete packet carrier",
+  "sets": {
+    "public": "public.json",
+    "public_extended": "public_extended.json",
+    "held_out": "held_out.json"
+  },
+  "release_module": "calculate_v4"
+}

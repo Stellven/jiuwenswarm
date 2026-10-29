@@ -1,0 +1,1 @@
+{"function":"parse_duration","immutable_checks":"partner_2dd6ef19","limits":{"max_jobs":3000,"memory_mb":256,"pids_max":16,"timeout_s":20},"max_iterations":5,"max_model_calls":10,"max_no_progress":3,"mutation":"parent_function_source_only","run_id":"parse-duration-rsi-20261028-r1","schema":"ai4r-pure-function-development-contract:1","scope":"benchmark_only_no_product_activation"}

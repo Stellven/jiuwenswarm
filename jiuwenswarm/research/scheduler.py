@@ -8,6 +8,8 @@ import copy
 import uuid
 from datetime import datetime,timezone
 
+from .builder_mode import builder_mode
+
 from .compiler import VerifierBindings,input_port
 from .contracts import ResearchError
 from .native import run_native_workflow
@@ -237,9 +239,9 @@ class Scheduler:
                     starts = [item['record'] for item in self.store.iter_records(run_id=run_id,kinds=('model-call-start',))
                         if item['record'].get('contract_ref') == observed['contract_ref']
                         and item['record'].get('invocation_id') == offered.get('invocation_id')]
-                    agent_builder = selected['cc']['cc_version'] in {'m1-14','m1-15','m1-16','m1-17','m1-18'}
-                    loop_builder = (selected['cc']['cc_version'] == 'm1-13' and
-                        self.store.read_record(producing['bindings'][0]['declaration_ref'])['identity']['carrier']['ref'] == 'builder_loop.py')
+                    mode = builder_mode(self.store.read_record(producing['bindings'][0]['declaration_ref']))
+                    agent_builder = mode == 'agent'
+                    loop_builder = mode == 'loop'
                     if (producing['node_contract_ref'] != proof['parent_ref'] or producing['subnode_id'] != name
                             or producing['bindings'][0]['role'] != 'work'
                             or producing['bindings'][0]['declaration_ref']['sha256'] != selected['cc']['declaration_sha256']
@@ -248,7 +250,7 @@ class Scheduler:
                         raise ResearchError('host_record_unavailable', 'Host proposal differs from the actual source/native producing attempt')
                     receipt_contract = ('urn:ai4r:prediction-build-receipt:4.0.0' if agent_builder else
                         'urn:ai4r:prediction-build-receipt:3.0.0' if loop_builder else 'urn:ai4r:prediction-build-receipt:2.0.0'
-                        if selected['cc']['cc_version'] in {'m1-11', 'm1-12', 'm1-13'} else 'build-receipt')
+                        if mode == 'prediction' else 'build-receipt')
                     receipt = self.store.read_record(offered['ref'], contract_id=receipt_contract)
                     if (receipt['manifest_ref'] != proof['outputs'].get('manifest') or receipt['archive_ref'] != proof['outputs'].get('bundle')
                             or receipt['blueprint_ref'] != producer_inputs.get('blueprint') or receipt['environment_ref'] != producer_inputs.get('lock')
@@ -386,7 +388,10 @@ class Scheduler:
                         or any(failed[key]!=observation[key] for key in ('run_id','node_id','attempt_id','node_contract_ref'))
                         or stopped.get('reason_code') not in {'integrity_fault','security_fault','AUDIT_UNAVAILABLE','CONTAINMENT_UNCERTAIN','run_budget_exhausted'}):
                     raise ResearchError('protected_stop','Protected stop receipt does not join the exact completed invocation')
-                raise ResearchError('protected_stop','An actual protected integrity/security/persistence/run-budget failure halts the whole run')
+                fault=stopped.get('executor_fault')
+                cause=(' Executor cause: %s %s at %s in %s.'%(fault.get('exception_class'),fault.get('code') or '',fault.get('frame'),fault.get('operation'))
+                       if isinstance(fault,dict) else '')
+                raise ResearchError('protected_stop','An actual protected integrity/security/persistence/run-budget failure halts the whole run.'+cause)
             if observation['failure_reason_code'] in {'integrity_fault','security_fault','AUDIT_UNAVAILABLE'}:
                 raise ResearchError('protected_stop','A protected integrity/security/persistence fault halts the whole run')
             return {'node_id':node_id,'outcome':states[node_id],'decision_ref':decision_ref}

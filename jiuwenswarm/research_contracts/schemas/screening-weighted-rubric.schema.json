@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:screening-weighted-rubric:1.0.0",
+  "title": "Weighted screening rubric",
+  "description": "Supplied exact rational weights over named assessments, hard constraints that exclude an idea, and the deterministic tie rule. The total is the exact sum of weight times assessment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "weights", "constraints", "tie_rule", "reason_max_chars"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"const": "weighted_rubric"},
+    "weights": {"type": "object", "minProperties": 1, "maxProperties": 16, "propertyNames": {"pattern": "^[a-z][a-z0-9_]{0,39}$"}, "additionalProperties": {"$ref": "#/$defs/rational"}},
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cpu_only", "max_runtime_minutes", "allowed_licenses", "forbidden_dependencies"],
+      "properties": {
+        "cpu_only": {"type": "boolean"},
+        "max_runtime_minutes": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/rational"}]},
+        "allowed_licenses": {"anyOf": [{"type": "null"}, {"type": "array", "maxItems": 64, "items": {"type": "string", "minLength": 1, "maxLength": 100}}]},
+        "forbidden_dependencies": {"type": "array", "maxItems": 64, "items": {"type": "string", "minLength": 1, "maxLength": 200}}
+      }
+    },
+    "tie_rule": {"const": "ascending_idea_id_codepoint"},
+    "reason_max_chars": {"type": "integer", "minimum": 50, "maximum": 1000}
+  },
+  "$defs": {
+    "rational": {"type": "string", "pattern": "^(-?[0-9]+([.][0-9]+)?|-?[0-9]+/[0-9]+)$", "maxLength": 40}
+  }
+}

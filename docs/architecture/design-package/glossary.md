@@ -1,82 +1,70 @@
 # Canonical vocabulary and PRD crosswalk
 
-This Git-tracked page is the shared naming register and PRD-to-architecture crosswalk for maintained terms, prose and diagrams. The full package is authoritative; the compact package mirrors this content. Any team member can propose edits; affected owners check meaning and use. Use canonical terms in design, tasks, specifications and agent instructions. Stable machine identifiers remain in their contract and task registries. The received PRD remains verbatim; its words and clause numbers remain source references. The crosswalk explains responsibilities and relationships rather than declaring unlike components interchangeable. The [coverage map](coverage.md) and [decisions](principles.md#decisions-and-source-amendments) retain actual amendments; vocabulary edits do not change product scope. Definitions and examples still matter; matching labels alone do not ensure shared understanding.
+`Tier 3 · Part of: [Reference](reference/README.md)`
 
-## Package naming
+This Git-tracked page is the shared naming register and PRD-to-architecture crosswalk for maintained terms, prose and diagrams. The design package is authoritative. Any team member can propose edits; affected owners check meaning and use. Use canonical terms in design, tasks, specifications and agent instructions. Stable machine identifiers remain in their contract and task registries. The received PRD remains verbatim; its words and clause numbers remain source references. The crosswalk explains responsibilities and relationships rather than declaring unlike components interchangeable. The [decisions](method/decisions.md#decisions-and-source-amendments) retain actual amendments; vocabulary edits do not change product scope. Definitions and examples still matter; matching labels alone do not ensure shared understanding.
 
-**Design-package** is the maintained full architecture at `docs/architecture/design-package/`. **Design-package-compact** is its matched reduced-explanation version at `docs/architecture/design-package-compact/`. Both cover the same M1 and share authoritative contracts. Build-package is the former name, retained in historical receipts. In paired trials, consult only the assigned version.
+## Canonical terms
 
-## Delivery, implementation and research conventions
+Each term has one meaning and one home page. Use the term exactly. The phrases in the last column are **forbidden** in maintained pages, because they suggest a second meaning. `validate.py` reads this table and fails on any forbidden phrase outside `diagrams/`, this page, [decisions](method/decisions.md) and [owner rulings](side-systems/owner-rulings.md). Matching ignores case. Each forbidden phrase is written in backticks.
 
-| Preferred wording | Scope and convention |
-|---|---|
-| M1 Delivery Phase 1 - Governed Research Baseline | Contains the fixed research workflow and operational shell, integrated through Implementation Stages 0–7. Short form: Delivery Phase 1. |
-| M1 Delivery Phase 2 - Local-Isolated RSI Validation | Contains the required bounded offline RSI path, integrated through Implementation Stage 8. Short form: Delivery Phase 2. |
-| M1 Delivery Phase 3 - Dynamic System Integration | Contains applicable advanced compiler, planning, binding, routing, alternate verifier and Code Mode integration efforts. Each receives an evidenced outcome; non-blocking scope does not permit silently skipping it. |
-| Implementation Stage 0–8 | Refers to an engineering integration milestone and its runnable exit. Always qualify numbered stages with “Implementation”; source §§6.3–6.11 retain their identifiers. |
-| Research step: Ingestion (§3.1), Requirement Compilation (§3.2), etc. | Refers to product research responsibilities in §§3.1–3.9. Use the responsibility name and source clause. PRD “Stage 3.8” points to Scientific Evaluation (§3.8), not Implementation Stage 3 or 8. |
-| SwarmFlow runtime phase | Refers to an executing native workflow-script phase; preserve the native identifier `phase`. A delivery phase can contain many runtime phases. |
-| M1 Delivery Phase 1 - Intent Compilation and Verification Slice (formerly TRIAL-1) | Historical display name for the earlier bounded build. Scope: text intake, Intention CC, intent gate and accepted intent or halt. Current build is the complete Intention Compiler node through Research Brief. It contributes foundation evidence and Brief preparation; it does not complete Delivery Phase 1, Implementation Stage 1's downstream work consumer, or Implementation Stage 2's Research Brief. Short form: Intent Compilation and Verification Slice. |
+| Term | Meaning | Home | Forbidden |
+|---|---|---|---|
+| server host | The one machine that runs M1: the GB10 GPU host. Users never run M1 on their own computers | [Platform](platform/README.md) | `workstation`, `local machine`, `local execution host` |
+| private network access | Users reach the app from the LAN or VPN at the server's private address, with a session token in every request ([D35](method/decisions.md#d35)) | [Platform](platform/README.md) | `loopback`, `127.0.0.1:5173` |
+| app container | The container that holds the whole product: web UI, control API, runtime, model bridge, confined executor, state | [Platform](platform/README.md) | `workflow application image` |
+| sidecar container | The one container that holds the platform benchmark runner and the test runner. Both are ordinary authenticated clients of the control API ([D36](method/decisions.md#d36)) | [Sidecar](development-tools/sidecar/README.md) | `benchmarker`, `benchmark container`, `development sidecar` |
+| platform benchmark runner | Scores whole product runs from outside, inside the sidecar container. Not the Research Benchmark CC | [Benchmark runner](side-systems/benchmark-runner.md) | `platform benchmarker` |
+| RSI workbench | The human-run RSI system in its own container. Built in M1, off the hot path | [RSI workbench](side-systems/rsi-workbench.md) | `offline RSI`, `optional RSI` |
+| hot path | Code a research run cannot work without | [1. System](1-system.md) | |
+| off the hot path | Built in M1, but a run works when it is absent, off or broken | [1. System](1-system.md) | `optional to the core`, `optional integration`, `later/optional` |
+| later work | Not in M1. Named in [D21](method/decisions.md#d21) or a later milestone | [Decisions](method/decisions.md) | |
+| Codex fallback | The fixed Codex route, chosen before a model call when the router is enabled but fails, times out, names an unapproved model, halts or replies with no route. The only meaning of "fallback". When the router is off or not installed, the Codex route is simply the default and is not a fallback | [Routing contract](reference/model-routing-contract.md) | `fallback mode`, `static fallback`, `fallback template`, `fallback workflow`, `automatic fallback`, `silent fallback` |
+| router alternate model | The router's own spare model, chosen inside the router before the call | [Routing contract](reference/model-routing-contract.md) | `fallback_model_id`, `fallback model` |
+| plan source | The run setting `plan_source`: `static` (the static template) or `planned` (the Planner node). Chosen before the run, on the run request ([D39](method/decisions.md#d39)). The only plan-source switch | [Run plan](reference/run-plan.md) | `plan_mode`, `static mode`, `planned mode`, `run mode` |
+| static template | The hand-written plan used when `plan_source` is `static`. The PRD's Phase 1 Default DAG together with the Intention Compiler | [Run plan](reference/run-plan.md) | |
+| checking profile | The pinned record that says which checks and verifier criteria are mandatory for one CC version. Owned by the verifier owner. At the static plan gate, which has no verifier, the check plan's `profile_ref` names the static template ([run plan](reference/run-plan.md)). The only profile name for this idea | [Verifier CC page](reference/capsules/verifier.md#checking_profile-contract) | `gate profile`, `guard profile`, `guard_profile_ref`, `check profile` |
+| node finalization profile | A separate record, owned by protected configuration. It is not a form of the checking profile. The node gate reads it ([checking records](reference/checking.md#node-finalization-profile)) | [Checking records](reference/checking.md#node-finalization-profile) | |
+| check bundle | The pinned deterministic checks of one CC version (PRD Tier 1). "Guard" is retired as a component name: say check bundle, verifier CC, gate decision or checking | [Checking](checking/README.md) | `guard architecture`, `guard resolver`, `mutation guard` |
+| verifier CC | The general CC that assesses one output against its CC's declaration (PRD Tier 2). Gives an assessment, never a decision | [Verifier](reference/capsules/verifier.md) | `plan verifier`, `verifier agent` |
+| gate decision | The protected record that advances or halts one output, or a whole node (node gate decision) | [Checking](reference/checking.md) | |
+| work subnode | One work CC call plus its check bundle | [Node execution](reference/node-execution.md) | `execution subnode` |
+| verifier subnode | One verifier CC call on one output, created by the scheduler at dispatch | [Node execution](reference/node-execution.md) | |
+| `cc.router.enabled` | The one switch for the API router. Its mirrors are listed in the [routing contract](reference/model-routing-contract.md#routerport-the-hot-path-seam) | [Routing contract](reference/model-routing-contract.md) | `routing_mode` |
+| `evolution.rsi` `propose` | RSI may submit a child; admission stores it inactive ([declaration](reference/declaration.md)). `submit` is rejected in M1 ([D34](method/decisions.md#d34)) | [Declaration](reference/declaration.md) | |
+| `may_change` | `evolution.may_change`: the only parts of a CC an RSI child may change. Missing or empty means nothing ([D34](method/decisions.md#d34)) | [Declaration](reference/declaration.md) | `evolution.frozen` |
+| PRD core M1 gate | Phase 1, Stages 0–7 and their required end-to-end run, verification, benchmark evidence and completion report ([D40](method/decisions.md#d40)) | [Delivery phases](method/phases.md) | `core acceptance` |
+| interaction mode | The submission field `interaction_mode`: `interactive` (a person is present) or `headless`. The run configuration freezes it and the gate host branches on it ([D48](method/decisions.md#d48)) | [Client submission](reference/field-catalog.md#client-submission) | |
+| host launcher | Compose up and down on the server host. It owns container lifecycle and runs the cases that kill the router process or stop a container. The test runner cannot do either | [Sidecar](development-tools/sidecar/README.md) | |
+| selector | A rule in a static template that stands for every Brief item of one kind. The binder expands it against the accepted Brief ([D47](method/decisions.md#d47)) | [Run plan](reference/run-plan.md#selectors) | |
+| partial | The run outcome when some node failed and independent branches still finished. Accepted artifacts and all evidence are kept ([D49](method/decisions.md#d49)) | [Run plan](reference/run-plan.md) | |
+| skipped | The state of a node that did not run because a dependency failed. The failed node is named as the reason ([D49](method/decisions.md#d49)) | [Run plan](reference/run-plan.md) | |
 
-Keep “formerly TRIAL-1” adjacent to the first display-name occurrence on each maintained page. Historical references may retain TRIAL-1. This editorial rename does not allocate or rename a TASK, IF, schema, directory or runtime identifier; coding agents register or reconcile those through the live workflow. The existing `immediate-plan.md` path remains stable.
+## Identities and outcomes
 
-## Components and responsibilities
-
-Read each row as **a PRD responsibility elaborated into cooperating parts**, with an output and an authority boundary. It is a reading map, not a list of aliases or a new allocation of coding TASKs. Use PRD feature names for headings; qualify internal roles by what they do.
-
-| PRD responsibility | Architecture elaboration | Result / authority and detail |
-|---|---|---|
-| Ingestion (§3.1) | Capture original input; qualify/extract permitted documents; bind supplied project/data assets. | Qualified Intake Package with attribution. Intake infrastructure owns qualification. [Research responsibilities](research-design.md#research-path-and-ports). |
-| Requirement Compilation; Intention Compilers (§3.2, §4.7) | Intention CC extracts meaning; its gate accepts intermediate intent; Requirements CC constructs the Brief; its gate checks the Brief. | Accepted `Research_Brief.json` supports planning. D5 deliberately permits a fixed bounded sequence rather than a required single LLM pass; advanced compiler integration belongs to Delivery Phase 3. [Workflow](workflow.md). |
-| Planner; Harness Core (§4.8, §4.6) | Fixed graph in Delivery Phase 1, planner proposal in Delivery Phase 3; protected binder assigns admitted CCs/checks; plan gate and freeze pin contracts; scheduler and runner dispatch accepted work. | Frozen TaskGraph and run-specific Node Execution Contracts. Planner proposes; protected infrastructure authorizes. SwarmFlow executes the workflow. [Workflow](workflow.md). |
-| Search & Ideation; Idea Screening (§3.3–3.4) | Permitted retrieval and cited candidate generation; feasibility/scoring and Top-1 selection; pure ranking helper also serves offline RSI. | Cited ideas, selected opportunity and rejection reasons, checked by their gates. [Research responsibilities](research-design.md#research-path-and-ports). |
-| Hypothesis Generation (§3.5) | Form one claim; bind baseline/data/metrics; pre-register success, falsification and inconclusive criteria. | Frozen experimental protocol before building or measuring. [Research responsibilities](research-design.md#research-path-and-ports). |
-| POC Implementation; Builder (§3.6, §4.9) | POC builder CC constructs bounded intervention, harness and declared dependencies; readiness checks inspect the package. | Build evidence and POC package; runner executes CCs, while scientific execution belongs to Benchmarking. [Research responsibilities](research-design.md#research-path-and-ports). |
-| Scientific Benchmarking (§3.7) | Provision pinned dependencies under isolation; run baseline then treatment under the frozen protocol; retain measurements and raw logs. | Attributable empirical evidence for Scientific Evaluation. [Placement](placement.md). |
-| Scientific Evaluation (§3.8) | Scientific evaluation CC applies pre-registered criteria to accepted measurements; runtime verifier checks the resulting assessment. | Scientific conclusion is data; the Evaluator Gate owns infrastructure advancement. A valid negative or inconclusive result can advance. [Research responsibilities](m1-design.md). |
-| Delivery / Report Generation (§3.9) | Delivery CC assembles report, artifacts and limitations; its gate checks them; infrastructure transfers accepted output and closes lifecycle. | Traceable report and supporting exports, including valid negative science. [Research responsibilities](m1-design.md). |
-| Capability Capsule (§4.1) | Reusable declaration and implementation; immutable dependency pins; admission/library eligibility; per-invocation binding and observations. | A CC may serve a workflow node; the node's contract binds objectives and authority. Prompt files alone do not define the full CC. [Declaration](capsule/declaration.md). |
-| Evaluator Gate & Verifier (§4.2) | Tier 1 deterministic guard checks; Tier 2 read-only runtime verifier CC; protected gate host decision and durable release. Guard profiles assign obligations independently of the producer. | Gate host alone authorizes accepted output. Verifier supplies semantic assessment; scientific evaluator and RSI referee have separate roles. [Boundary](capsules.md#exact-verification-boundary), [guards](guard-design.md). |
-| Foundational Models & Routing; Codex CLI (§4.3, §3.0) | Protected model bridge and role/profile records; static baseline selection; bounded alternative routing and verifier integration in Delivery Phase 3. | Audited effective model access within frozen limits. [Placement](placement.md), [phase accounting](delivery-phases.md). |
-| RSI Integration (§4.4) | Bounded improver proposes candidates; fixture oracle controls hidden evidence; RSI referee scores under fixed rules; library records eligibility; human activation selects an admitted version. | Offline candidate lineage and evaluation evidence; no automatic live promotion. [Offline RSI](offline-rsi.md). |
-| Data Foundations (§4.5) | Run-state authority owns lifecycle/release; immutable files retain raw evidence; derived records/exports cite sources; native memory supports reasoning. | Stage Evidence Bundle, Capsule Run Record, Run Bundle and scorecards retain distinct meanings. A scorecard grants no release authority. [Data ownership](research-design.md#data-and-state-ownership). |
-| Platform Shell (§5.1–5.6) | Telemetry and status; installer/startup and CLI/Web/TUI; user/profile and local security; terminal surfaces; bounded configuration and budgets. | Operable user-scoped product with authorized local execution. Cloud profile state supplies no remote execution permission. [M1 shell](m1-design.md), [placement](placement.md). |
-| System validation (§5.6.5, §6) | Platform benchmarker drives the ordinary headless workflow, compares matched configurations and reads scoped exports. | Platform evidence; the user's Scientific Benchmarking CC supplies research measurements. [Automation](automation.md). |
-
-## Identities, ports, and outcomes
-
-**Use role-qualified names.** Write “intent verifier CC”, “plan verifier CC”, “RSI referee”, “fixture oracle”, or “protected gate host”. Avoid bare “verifier agent” where two paths are possible. A shared verifier implementation may have multiple pinned profiles; profile isolation and evidence scope remain explicit.
+Use role-qualified names: "verifier CC on `intent_ir`", "RSI referee", "fixture oracle", "protected gate host".
 
 | Term | Rule |
 |---|---|
-| Stage / task / node / attempt | Delivery Phase names baseline/RSI/dynamic integration. Implementation Stage names integration milestones 0–8. A research responsibility is a workflow role; task groups objectives; node encapsulates a product responsibility under a Node Execution Contract; subnode identifies one CC assignment under a Subnode Execution Contract; attempt is an execution instance; invocation records actual calls. M1 uses one work CC per subnode; internal CC composition remains later work. A coding TASK and native SwarmFlow runtime phase are separate identities. |
-| Declaration name / version / hash | Stable capability name, display version, and exact immutable identity are distinct. Never use a display label as a content pin. |
-| Node Execution Contract (§4.1.3–4) | Protected run-specific objective, accepted port bindings, output/check/evidence obligations, exact participating CC pins and effective limits; it may narrow admission but never widen it. [Fields](reference/other-contracts.md#planning-and-node-contracts). |
-| Subnode Execution Contract | Protected one-CC assignment: owning node, accepted typed inputs, admitted pins, effective authority, limits and independent checking obligations. Work and verifier subnodes are distinct. [Fields](reference/node-execution.md). |
-| Product account / local execution identity | Stable product user and durable profile are independent of OS identity/workspace. Local token/OS restrictions authorize the execution host; cloud profile persistence does not authorize remote workflow execution. |
-| Artifact type / port / reference | Type names semantic meaning; port names the input/output role; reference identifies stored content. A filesystem path alone does not prove accepted identity or freshness. |
-| Freeze / protocol registration | Graph freeze fixes topology and bindings before research execution. Hypothesis registration later fixes experimental criteria before build/measurement. Future output references are not fabricated values. |
-| `PASS_WITH_KNOWN_LIMITATIONS` | Advances only if every mandatory condition passed; carry warnings forward. It cannot excuse a failed required boundary. |
-| `ENVIRONMENT_BLOCKED` / `BLOCKED` | Detailed runtime verdict / normalized test or display status. Delivery Phase 3 implementation-accounting status has a separate context. Preserve runtime values and reasons; do not replace them with delivery status. `ESCALATE_TO_HUMAN` is an action, not a sixth gate verdict. |
-| Scientific `FAIL` or `INCONCLUSIVE` | Hypothesis rejected or evidence between pre-registered bounds. Validly executed scientific evaluation can still receive infrastructure `PASS` and reach Delivery. |
+| Declaration name / version / hash | Stable capability name, display version and exact immutable identity are distinct. Never use a display label as a content pin. |
+| Product account / execution identity | The product user and durable profile are independent of OS identity and workspace. The session token authorizes control API requests. The confined executor runs under its own OS identity. |
+| Artifact type / port / reference | Type names meaning, port names the input or output role, reference identifies stored content. A path alone does not prove accepted identity or freshness. |
+| Freeze / protocol registration | Graph freeze fixes topology and bindings before research execution. Hypothesis registration later fixes experimental criteria before build or measurement. |
 | NOT_RUN / unavailable / stale | No observation, unavailable telemetry, or invalidated evidence. None means zero cost, failed science, or a pass. |
 
-## Naming and schema principles
+## PRD artifact names
 
-Use canonical display names throughout maintained prose, headings, tables and diagram labels. Explain what components contain, produce, consume or control; avoid blanket equations between roles or layers. Do not replace PRD bytes, immutable source schema keys, status enums, PRD artifact filenames, native identifiers or historical records. Maintained shared-contract keys may change only through explicit versioned migration. Required CC sources retain their bytes; their internal M1/M2/M3/M4 labels describe source profiles/maturity, not M1 Delivery Phase numbers.
+PRD artifact names map to lowercase internal names ([D23](method/decisions.md#d23)). Enum values keep their schema spelling.
 
-When terminology changes, update labels and rendered diagram views together, retain stable paths where possible, and repair heading fragments. If a replacement changes producer, consumer, authority, budget, verdict or behavior, record a design decision rather than a naming edit.
-
-Use descriptive capability names consistently across declarations, diagrams, task agreements, and records. Existing PRD artifact names remain the translation anchors. [Reference contracts](reference/README.md) own shared field names and critical serialization. Internal identifiers/storage layout are implementation choices; examples illustrate the same contracts.
-
-Every shared payload has one semantic owner, a version, validation rules, and identified producers/consumers. Distinguish missing, unknown, unavailable, and not applicable. Preserve units, metric direction, evidence origin, warnings, and scope. Content and identity are immutable after acceptance; derived summaries cite their source. Additive fields require explicit compatibility rules rather than assuming all readers tolerate them. Reject unsupported mandatory semantics; do not silently drop them.
-
-Keep reusable capability declaration, Node Execution Contract, invocation binding, runtime observation, verifier assessment, authoritative gate decision, and aggregate score separate. A schema-valid self-assertion is not evidence of execution. Future readers must be able to reconstruct which versions, policy, inputs, and accepted predecessors produced a decision.
-
-## Composition notation
-
-`V ⊆ C` means a runtime verifier is a capability capsule; `G ∩ C = ∅` means a protected gate is infrastructure, not a capsule. A dependency arrow carries captured/accepted data through governed runtime; it never grants direct bypass of checking. For future composition, a composite pins member declarations and preserves each member's checks, effects and trace. Effective authority is the intersection of admission, node/subnode contracts and run policy for each participating CC, never the union of another CC's permissions. See [capsules](capsules.md) for invocation and [field reference](capsule/declaration.md) for declarations.
-
-## Current node and subnode distinction
-
-Intention Compiler is the complete PRD node producing Research Brief. Intention CC produces Intent IR; Requirements CC produces the Brief. Work and verifier assignments are subnodes, one CC each. Protected checks and gates are infrastructure inside the enclosing node. Node finalization aggregates internal acceptance without another semantic model call. [Contract fields](reference/node-execution.md) define parent/child scope and migration. This supersedes the earlier display convention of calling each work CC assignment a node.
+| PRD name | Internal name |
+|---|---|
+| `Research_Brief.json` | `research_brief.json` |
+| `Hypothesis_Blueprint.json` | `hypothesis_blueprint.json` |
+| `Candidate_Set.json` | `candidate_set.json` |
+| `Opportunity_Card.json` | `opportunity_card.json` |
+| `POC_Artifact_Bundle.zip` | `poc_artifact_bundle.zip` |
+| `Benchmark_Payload.json` | `benchmark_payload.json` |
+| `Evaluation_Verdict.json` | `evaluation_verdict.json` |
+| `Phase_1_Completion_Report.md (also 2 and 3)` | `phase_1_completion_report.md` |
+| `M1_Final_Test_Report.md` | `m1_final_test_report.md` |
+| `M1_Implementation_Report.md` | `m1_implementation_report.md` |

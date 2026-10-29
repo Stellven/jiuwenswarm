@@ -1,0 +1,120 @@
+{
+  "schema_version": "1.0.0",
+  "id": "run-bundle:science-1",
+  "run_id": "run:science",
+  "exported_at": "2026-10-07T12:05:00Z",
+  "status": "in_progress",
+  "plan_source": "static",
+  "run_plan_ref": {
+    "id": "run_plan.json",
+    "sha256": "0f064ca543daecf4ae2b996695aa30a58f2c87648bcf48921e9173cac2703ef9"
+  },
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+  },
+  "evaluation_profile_id": null,
+  "pins": {
+    "app_build": "app-build-2026.10.07",
+    "client_contract_version": "1.0.0",
+    "library_snapshot_sha256": "aaf40eb39a40beb50939b6f4cd456f4be980eb5ccc781b45f9bf53647783f416",
+    "plan_policy_ref": {
+      "id": "plan_policy.json",
+      "sha256": "b57bc8ee852af8e94beb33cb8da5c3395ce1568d3c41193f3bf8ace9e3efbd17"
+    },
+    "check_bundle_set_sha256": "d78c2e1971546f13d806d1882bf27832337523d329bbd0c6b7b237aca1ce0c11",
+    "router_enabled": false,
+    "router_version": null
+  },
+  "effective_seed": 42,
+  "artifact_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+    },
+    {
+      "id": "science_assessment.json",
+      "sha256": "1d479f1dc62d756a0eeda5c6233c36e45f13518c2d19d98abd2b24d58a8aa5d8"
+    }
+  ],
+  "decision_refs": [
+    {
+      "id": "gate_science_pass.json",
+      "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+    },
+    {
+      "id": "gate_science_node_pass.json",
+      "sha256": "5756d7cf4bc1ea30754cd316196f8247524923af55f507f451cc9d0e729511bd"
+    }
+  ],
+  "gate_decisions": [
+    {
+      "node_id": "evaluation",
+      "subnode_id": "evaluation",
+      "scope_kind": "subnode",
+      "output_port": "evaluation_verdict",
+      "verdict": "PASS",
+      "action": "advance",
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "decision_ref": {
+        "id": "gate_science_pass.json",
+        "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+      }
+    },
+    {
+      "node_id": "evaluation",
+      "subnode_id": null,
+      "scope_kind": "node",
+      "output_port": null,
+      "verdict": "PASS",
+      "action": "advance",
+      "recorded_at": "2026-10-07T12:00:00Z",
+      "decision_ref": {
+        "id": "gate_science_node_pass.json",
+        "sha256": "5756d7cf4bc1ea30754cd316196f8247524923af55f507f451cc9d0e729511bd"
+      }
+    }
+  ],
+  "node_dispatches": [
+    {
+      "node_id": "evaluation",
+      "attempt_id": "evaluation-a1",
+      "started_at": "2026-10-07T11:59:00Z",
+      "ended_at": "2026-10-07T12:00:30Z",
+      "outcome": "accepted",
+      "dispatch_record_ref": {
+        "id": "dispatch_record.json",
+        "sha256": "98a72b0eacdba51b8dd53804d5b791dc52702d9e4fc13e03afc180cc300fd90d"
+      }
+    }
+  ],
+  "observation_refs": [
+    {
+      "id": "science_observation.json",
+      "sha256": "6d9b210aa995d184fe81e51232639ae32d3c0691529c216372f8ff1128478f8e"
+    },
+    {
+      "id": "science_verifier_observation.json",
+      "sha256": "9f2bc0b4bcb67f7857c3ca8021c2ede40866f1d6cd447d40ae018b06fed63caa"
+    }
+  ],
+  "model_call_refs": [],
+  "route_record_refs": [],
+  "fault_ids": [],
+  "missing_evidence": [
+    {
+      "obligation_id": "delivery_outputs",
+      "reason": "Not yet produced: the run is in progress after the evaluation node",
+      "blocking": true
+    },
+    {
+      "obligation_id": "model_call_records",
+      "reason": "Synthetic example: no model call was made, so no call or route record exists",
+      "blocking": false
+    }
+  ],
+  "redactions": [],
+  "ext": {
+    "example.synthetic": true
+  }
+}

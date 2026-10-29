@@ -19,7 +19,7 @@
       "quantity": null,
       "ref": {
         "id": "academic_source.txt",
-        "sha256": "da0a79d39f34aad640bd62b1f23b91887ad60f36c62f5f653e9df0889e031c2d"
+        "sha256": "326d5ef412e8d99d76c533f7ae377eac2323554378a3b4e974af6542276468c4"
       }
     },
     {
@@ -29,7 +29,7 @@
       "quantity": null,
       "ref": {
         "id": "baseline_resource.json",
-        "sha256": "da89631f79d0905966d988021a5975ab040e57524719435c0544bf8c095a372e"
+        "sha256": "d65eed9f24589239f04f1329c029f43136a09e8da640735ea8d3c212e825a207"
       }
     },
     {
@@ -39,7 +39,7 @@
       "quantity": null,
       "ref": {
         "id": "validation_resource.json",
-        "sha256": "cb49a149c906cf36614a6993a67591354103642564d92722fc2c4b08b3a5db89"
+        "sha256": "33078f761cabeb4de5bd8ad553af94cf7c86634f4c16a0036f3add90094f7a48"
       }
     },
     {
@@ -49,7 +49,7 @@
       "quantity": null,
       "ref": {
         "id": "environment_lock.json",
-        "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+        "sha256": "28f223d79c9dd33b40417aa1799cf85fc355b086f93eba287387e269de64d0fd"
       }
     },
     {

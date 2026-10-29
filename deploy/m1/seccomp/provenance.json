@@ -3,7 +3,7 @@
   "revision": "4b8214fc4971e06172938a1f1554ccff6647ee80",
   "upstream_sha256": "6416b47770785a41ac59073cdc77d9fe98517df2799dc83ef207e622de3053f6",
   "license_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
-  "derived_sha256": "d0849d2be1a52b076b95186aae1cffcff39beb3ed8254be4eca2bc7332f6acff",
+  "derived_sha256": "83e6d8a75e6db3b1500e8d0790884e90a8567ed47bf51dd81d1a840de67e7858",
   "amendment": "Allow only namespace construction syscalls needed by the unprivileged executor after it drops to UID/GID10002. Retain the upstream default deny policy and capability-gated rules. No SYS_ADMIN capability or privileged container.",
   "qualification": "NOT_ASSESSED"
 }

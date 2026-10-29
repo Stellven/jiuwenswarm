@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-installation:1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "qualification_ref", "scope_ref", "validation_profile_ref", "assertion_manifest_ref", "attack_pins_ref", "runtime_observation_ref", "custodian_key_id", "custodian_public_key", "rpc_session_id", "rpc_capability", "originals"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-security-installation:1"},
+    "qualification_ref": {"$ref": "#/$defs/Ref"}, "scope_ref": {"$ref": "#/$defs/Ref"},
+    "validation_profile_ref": {"$ref": "#/$defs/Ref"}, "assertion_manifest_ref": {"$ref": "#/$defs/Ref"},
+    "attack_pins_ref": {"$ref": "#/$defs/Ref"}, "runtime_observation_ref": {"$ref": "#/$defs/Ref"},
+    "custodian_key_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"},
+    "custodian_public_key": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"},
+    "rpc_session_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"},
+    "rpc_capability": {"type": "string", "minLength": 43, "maxLength": 256, "pattern": "^[A-Za-z0-9_-]+$"},
+    "originals": {"type": "array", "minItems": 6, "maxItems": 4096, "items": {"type": "object", "additionalProperties": false, "required": ["ref", "kind"], "properties": {"ref": {"$ref": "#/$defs/Ref"}, "kind": {"type": "string", "pattern": "^[a-z][a-z0-9_.:-]{0,79}$"}}}}
+  },
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

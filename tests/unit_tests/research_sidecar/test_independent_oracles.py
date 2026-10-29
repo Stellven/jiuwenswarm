@@ -16,5 +16,5 @@ def test_screening_oracle_recomputes_filter_sum_tie_and_top1():
 
 def test_oracle_registry_cannot_execute_import_or_trust_producer_pass(tmp_path):
     label={'mandatory_checks':[{'check_id':'x','kind':'deterministic'}],'labels':{'x':{'oracle':'os.system','parameters':{}}}}
-    observations=evaluate_checks(label,None,{},tmp_path)
+    observations=evaluate_checks(label,None,{'run_id':'run:unit'},tmp_path)
     assert 'x' not in observations

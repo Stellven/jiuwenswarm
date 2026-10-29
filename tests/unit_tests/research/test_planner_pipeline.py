@@ -9,6 +9,7 @@ from jiuwenswarm.research.binding import Binder, expand_selectors
 from jiuwenswarm.research.capsules.assets import build_research_assets
 from jiuwenswarm.research.contracts import ResearchError
 from jiuwenswarm.research.planning import PlanningCoordinator
+from jiuwenswarm.research.run_input_types import typed_resource
 from jiuwenswarm.research.state import json_bytes
 from jiuwenswarm.research.unified_planning import integrated_plan_policy
 from tests.unit_tests.research.test_compiler import controlled_compiler
@@ -57,6 +58,7 @@ async def test_planner_through_independent_gate_and_freeze(tmp_path, monkeypatch
             library.set_standing(pin['cc_name'], pin['cc_version'], 'active', actor, reason='Controlled integration fixture')
         snapshot_ref = library.snapshot()
         resources = json.loads((FIXTURES / 'resource_inventory.json').read_text())
+        resources['resources'] = [typed_resource(row) for row in resources['resources']]
         for row in resources['resources']:
             if row['ref'] is not None:
                 row['ref'] = store.put_blob(('Controlled qualified source bytes: ' + row['resource_key']).encode())

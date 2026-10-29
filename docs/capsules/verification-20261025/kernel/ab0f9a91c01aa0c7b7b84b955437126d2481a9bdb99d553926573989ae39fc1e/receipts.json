@@ -1,5 +1,0 @@
-{
-  "test": "tests/integration/research/test_executor.py::test_rpc_refuses_kernel_execution_without_original_attempt_resources",
-  "scope": "Controlled actual Linux kernel mechanics; no installed app or model acceptance",
-  "results": []
-}

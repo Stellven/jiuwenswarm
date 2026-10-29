@@ -19,7 +19,7 @@ class CapsuleAssetsTests(unittest.TestCase):
                 'search': 'm1-6',
                 'screening': 'm1-4',
                 'hypothesis': 'm1-8',
-                'builder': 'm1-17',
+                'builder': 'm1-18',
                 'benchmark': 'm1-10-agent-pi',
                 'evaluation': 'm1-5',
                 'delivery': 'm1-5',

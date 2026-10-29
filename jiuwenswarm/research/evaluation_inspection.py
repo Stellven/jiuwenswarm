@@ -400,10 +400,11 @@ def supporting_proof(store, reader, request_ref, request, row, scope_ref, scope,
             and finite(result.get('duration_s')) and result['duration_s'] >= value['elapsed_s'],
             'Result duration/origin differs from its actual measurement', 'integrity_fault')
         if request['entry_point'] == 'E3':
+            from .evaluation_provider import single_cc_check_results
             require(set(result) == {'invocation_id','status','output_refs','check_results','tool_effects_observed','model_calls','reason','duration_s','invalid_for_product'}
                 and result['invocation_id'] == observed['id'] and result['status'] == value['status']
                 and result['output_refs'] == value['output_refs']
-                and result['check_results'] == [{'check_id': item['check_id'], 'status': item['outcome']} for item in checked['results']]
+                and result['check_results'] == single_cc_check_results(store,value)
                 and result['tool_effects_observed'] == (observed['effects'] or None)
                 and result['reason'] == (value['failure'] or ('Complete tool-effect observation unavailable' if not observed['effects'] else None)),
                 'Result differs from original worker measurement', 'integrity_fault')

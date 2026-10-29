@@ -43,7 +43,11 @@ def test_source_upload_kinds_and_validated_refusal_are_preserved(tmp_path):
     source=tmp_path/'visible.txt';source.write_text('controlled visible input');seen=[]
     error={'schema_version':'1.0.0','id':'error:controlled','category':'validation','message':'Controlled refused fixture.',
         'request_id':None,'run_id':None,'evidence_refs':[],'correction':'Inspect the controlled request.'}
-    def handle(request):seen.append(request);return httpx.Response(422,json=error)
+    def handle(request):
+        seen.append(request)
+        if request.method == 'GET' and request.url.path == '/api/v1/inputs':
+            return httpx.Response(200, json=[])
+        return httpx.Response(422,json=error)
     async def work():
         client=ResearchClient('http://test',token,transport=httpx.MockTransport(handle))
         for kind in ('docs','repo','datasets'):
@@ -70,11 +74,14 @@ async def actual_evaluation_http(root,*,single=False,bad_span=True):
     else:
         from tests.unit_tests.research.test_evaluation_replay import replay_fixture
         store,provider,actor,payload,_,_=await replay_fixture(root/'core',bad_span=bad_span,record_gate=True)
+    from tests.unit_tests.research.evaluation_runtime_fixture import bind_request_runtime
+    owner = bind_request_runtime(store, provider, payload, 'E3' if single else 'E2')
     assets=provider.assets;authority=SessionAuthority(root/'auth','http://testserver')
     authority.initialize(Principal(actor.account_id,actor.workspace_ids,frozenset({'readiness','status','submit'})))
     context={k:assets[k] for k in ('account_id','workspace_id','configuration_ref')}
     context.update(profile_ref=provider.profile_ref,profile_id=provider.profile['profile_id'])
-    authority.configure_evaluation(context,run_lookup=lambda _:None,run_reconcile=lambda *_:[],campaign_id=assets['campaign_id'])
+    authority.configure_evaluation(context,run_lookup=lambda _:None,run_reconcile=lambda *_:[],campaign_id=assets['campaign_id'],
+                                   runtime_ref=owner.runtime_ref, assets_ref=provider.assets_ref)
     token=root/'evaluation-token'
     authority.issue_evaluation({'schema':'ai4r-evaluation-grant:1',**{k:v for k,v in context.items() if k!='account_id'},'campaign_id':assets['campaign_id']},token)
     async def readiness(principal):
@@ -83,7 +90,9 @@ async def actual_evaluation_http(root,*,single=False,bad_span=True):
             'prerequisites':[],'ready':False,'evaluation_profile':provider.profile['profile_id'],'fault_injection':False,
             'pins':{'app_build':'controlled','client_contract_version':'1.0.0','library_snapshot_sha256':provider.profile['library_snapshot_sha256'],
                 'plan_policy_ref':{'id':'p','sha256':'a'*64},'check_bundle_set_sha256':'b'*64,'router_enabled':False,'router_version':None}}
-    service=SimpleNamespace(evaluation_provider=provider,readiness=readiness)
+    from jiuwenswarm.research.evaluation_history import EvaluationReader
+    service=SimpleNamespace(evaluation_provider=provider,readiness=readiness,
+        evaluation_reader=EvaluationReader(store, runtime_ref=owner.runtime_ref))
     channel=SimpleNamespace(research_profile=True,research_service=service,research_authority=authority,set_handshake_auth=lambda _:None)
     app=FastAPI();mount_research_routes(app,channel)
     return store,provider,payload,app,authority,token
@@ -151,11 +160,12 @@ def test_actual_e3_http_uses_installed_owner_and_missing_provider_has_zero_new_e
             assert result['invalid_for_product'] and result['status']=='blocked'
             assert (await client.evaluation_request(payload['request_id']))['result']==result
             assert await client.evaluate('single_cc',payload)==result
-            assert len(list(store.iter_records(kinds=('invocation-observation',))))==1
+            assert len(list(store.iter_records(kinds=('evaluation-invocation-observation',))))==1
+            assert not list(store.iter_records(kinds=('invocation-observation',)))
             app.state.research_service.evaluation_provider=None
             with pytest.raises(ClientError) as error:await client.evaluate('single_cc',payload|{'request_id':'missing-profile'})
             assert error.value.status_code==503
-            assert len(list(store.iter_records(kinds=('invocation-observation',))))==1
+            assert len(list(store.iter_records(kinds=('evaluation-invocation-observation',))))==1
         finally:await client.close();authority.close();store.close()
     asyncio.run(work())
 

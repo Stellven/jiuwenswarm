@@ -3,7 +3,7 @@
   "role": "work",
   "capsule_ref": {
     "id": "scientific_evaluation_capsule.json",
-    "sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+    "sha256": "4ffd4d7854671d23796d6699970b5f06a9638dfbc31433c197bd8e051c01d864"
   },
   "input_contracts": [
     "urn:jiuwenswarm:m1-design:research-brief:2.0.0",
@@ -15,7 +15,7 @@
   ],
   "checking_profile_ref": {
     "id": "science_checking_profile.json",
-    "sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
+    "sha256": "191d039e6a751baae79bb97335bf5d8088d3cf00181335bdcbb0482bc50d9283"
   },
   "synthetic": true
 }

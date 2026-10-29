@@ -7,12 +7,12 @@
     "summary": "Check one CC output against its pinned declaration under fixed profile criteria. Reads only the declaration and the output.",
     "carrier": {
       "ref": "intent_implementation.txt",
-      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      "sha256": "16002fc796e67a426c3d906c503be8c3dbf9feb8ac6211331d537ac3eccaf824"
     },
     "body": [
       {
         "path": "verifier_implementation.txt",
-        "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+        "sha256": "6432480a05ea2be3d5790f7a09563417149792438481e11c7e007c934a01e3c9"
       }
     ]
   },
@@ -105,7 +105,7 @@
         "target": "outputs.verifier_assessment",
         "runner": {
           "ref": "intent_implementation.txt",
-          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+          "sha256": "16002fc796e67a426c3d906c503be8c3dbf9feb8ac6211331d537ac3eccaf824"
         },
         "anchor": "exact output bytes",
         "over": [

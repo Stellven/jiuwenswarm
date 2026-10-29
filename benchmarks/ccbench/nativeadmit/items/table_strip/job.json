@@ -1,0 +1,14 @@
+{
+ "kind": "table",
+ "tool": "table_normalize",
+ "tool_file": "table_tool.py",
+ "argv": [
+  "tickets.csv"
+ ],
+ "extract": {
+  "type": "strlen",
+  "key": "ticket",
+  "val": "T-114",
+  "field": "note"
+ }
+}

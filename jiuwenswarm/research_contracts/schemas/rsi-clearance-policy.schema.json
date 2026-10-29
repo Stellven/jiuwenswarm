@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-clearance-policy:1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "id", "authorized_reviewers", "clearance_refs"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-clearance-policy:1"},
+    "id": {"type": "string", "minLength": 1},
+    "authorized_reviewers": {"type": "array", "minItems": 1, "maxItems": 32, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}},
+    "clearance_refs": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/Ref"}}
+  },
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"],
+    "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}}
+}

@@ -1,0 +1,1298 @@
+{
+  "schema": "ai4r-rsi-capsule-benchmark-workloads:1",
+  "capsule_name": "utility.summary_to_packet",
+  "input_name": "summary",
+  "notes": "Representative schema validation, supplied summary serialization, source-reference deduplication, Unicode, multiple documents and malformed inputs; no models or claims of source truth.",
+  "protocol": {
+    "timing_scope": "authoritative protected process wall divided by fixed full-execution batch size; includes startup, imports, packet validation, copy, serialization and input guard; checker excluded",
+    "process_scope": "original single-invocation protected latency remains separately reported; no claim of pure execute latency reduction",
+    "batch_iterations": {
+      "small": 1000,
+      "large": 20
+    },
+    "invocation_state": "fresh JSON packet and fresh candidate module namespace each invocation; candidate compiled once inside protected wall; immutable dependency imports shared",
+    "candidate_review": "reject cross-invocation result memoization, persistent state in dependencies/builtins and mutations of frozen dependencies; unchanged independent runtime isolation still applies",
+    "repetitions": 11,
+    "warmups": 2,
+    "paired_order": "alternating AB BA",
+    "aggregate": "equal-weight geometric mean of per-workload median candidate/parent ratios",
+    "minimum_relative_gain": 0.1,
+    "confidence": 0.95,
+    "bootstrap_resamples": 5000,
+    "regression_limit": 0.05,
+    "correctness": "all valid exact output bytes plus original immutable checks; all malformed exact parent error type, code and message; input unchanged",
+    "claim_requires": "amortized protected full-execution batch gain >= minimum; paired bootstrap upper ratio <= 0.90; every workload protected wall median ratio <= 1.05; all correctness cases pass",
+    "qualification": "local development evidence only; security deferred; no admission or activation"
+  },
+  "withheld_splits": [
+    "evaluation"
+  ],
+  "splits": {
+    "visible": [
+      {
+        "id": "minimal-summary-envelope",
+        "timed": true,
+        "batch": "small",
+        "data": {
+          "schema_version": "1.0.0",
+          "id": "paper_summary",
+          "brief_ref": {
+            "id": "synthetic:brief",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "documents_ref": {
+            "id": "synthetic:documents",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "title": "Synthetic summary envelope",
+          "documents": [
+            {
+              "document_id": "P1",
+              "source_ref": {
+                "id": "synthetic:paper:1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              "page_count": 2
+            }
+          ],
+          "sections": {
+            "problem": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "method": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "results": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "contributions": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "limitations": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            }
+          },
+          "citations": [
+            {
+              "citation_id": "C1",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            }
+          ]
+        }
+      },
+      {
+        "id": "long-summary-sections",
+        "timed": true,
+        "batch": "large",
+        "data": {
+          "schema_version": "1.0.0",
+          "id": "paper_summary",
+          "brief_ref": {
+            "id": "synthetic:brief",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "documents_ref": {
+            "id": "synthetic:documents",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "title": "Long Unicode sections",
+          "documents": [
+            {
+              "document_id": "P1",
+              "source_ref": {
+                "id": "synthetic:paper:1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P2",
+              "source_ref": {
+                "id": "synthetic:paper:2",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000002"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P3",
+              "source_ref": {
+                "id": "synthetic:paper:3",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000003"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P4",
+              "source_ref": {
+                "id": "synthetic:paper:4",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000004"
+              },
+              "page_count": 2
+            }
+          ],
+          "sections": {
+            "problem": {
+              "status": "supported",
+              "text": {
+                "$join": {
+                  "sep": "",
+                  "items": {
+                    "$list": {
+                      "n": 100,
+                      "var": "i",
+                      "item": "Synthetic α scientific section content. "
+                    }
+                  }
+                }
+              },
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "method": {
+              "status": "supported",
+              "text": {
+                "$join": {
+                  "sep": "",
+                  "items": {
+                    "$list": {
+                      "n": 100,
+                      "var": "i",
+                      "item": "Synthetic α scientific section content. "
+                    }
+                  }
+                }
+              },
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "results": {
+              "status": "supported",
+              "text": {
+                "$join": {
+                  "sep": "",
+                  "items": {
+                    "$list": {
+                      "n": 100,
+                      "var": "i",
+                      "item": "Synthetic α scientific section content. "
+                    }
+                  }
+                }
+              },
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "contributions": {
+              "status": "supported",
+              "text": {
+                "$join": {
+                  "sep": "",
+                  "items": {
+                    "$list": {
+                      "n": 100,
+                      "var": "i",
+                      "item": "Synthetic α scientific section content. "
+                    }
+                  }
+                }
+              },
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "limitations": {
+              "status": "supported",
+              "text": {
+                "$join": {
+                  "sep": "",
+                  "items": {
+                    "$list": {
+                      "n": 100,
+                      "var": "i",
+                      "item": "Synthetic α scientific section content. "
+                    }
+                  }
+                }
+              },
+              "citation_ids": [
+                "C1"
+              ]
+            }
+          },
+          "citations": [
+            {
+              "citation_id": "C1",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            }
+          ]
+        }
+      },
+      {
+        "id": "missing-required-section",
+        "malformed": true,
+        "data": {
+          "schema_version": "1.0.0",
+          "id": "paper_summary",
+          "brief_ref": {
+            "id": "synthetic:brief",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "documents_ref": {
+            "id": "synthetic:documents",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "title": "Synthetic summary envelope",
+          "documents": [
+            {
+              "document_id": "P1",
+              "source_ref": {
+                "id": "synthetic:paper:1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              "page_count": 2
+            }
+          ],
+          "sections": {
+            "problem": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "results": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "contributions": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "limitations": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            }
+          },
+          "citations": [
+            {
+              "citation_id": "C1",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            }
+          ]
+        }
+      }
+    ],
+    "evaluation": [
+      {
+        "id": "unicode-summary-envelope",
+        "timed": true,
+        "batch": "small",
+        "data": {
+          "schema_version": "1.0.0",
+          "id": "paper_summary",
+          "brief_ref": {
+            "id": "synthetic:brief",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "documents_ref": {
+            "id": "synthetic:documents",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "title": "α 日本語 summary <metadata>",
+          "documents": [
+            {
+              "document_id": "P1",
+              "source_ref": {
+                "id": "synthetic:paper:1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P2",
+              "source_ref": {
+                "id": "synthetic:paper:2",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000002"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P3",
+              "source_ref": {
+                "id": "synthetic:paper:3",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000003"
+              },
+              "page_count": 2
+            }
+          ],
+          "sections": {
+            "problem": {
+              "status": "supported",
+              "text": "Preserve Unicode α and line breaks\nwithout asserting truth.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "method": {
+              "status": "supported",
+              "text": "Preserve Unicode α and line breaks\nwithout asserting truth.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "results": {
+              "status": "supported",
+              "text": "Preserve Unicode α and line breaks\nwithout asserting truth.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "contributions": {
+              "status": "supported",
+              "text": "Preserve Unicode α and line breaks\nwithout asserting truth.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "limitations": {
+              "status": "supported",
+              "text": "Preserve Unicode α and line breaks\nwithout asserting truth.",
+              "citation_ids": [
+                "C1"
+              ]
+            }
+          },
+          "citations": [
+            {
+              "citation_id": "C1",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            }
+          ]
+        }
+      },
+      {
+        "id": "many-documents-and-citations",
+        "timed": true,
+        "batch": "large",
+        "data": {
+          "schema_version": "1.0.0",
+          "id": "paper_summary",
+          "brief_ref": {
+            "id": "synthetic:brief",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "documents_ref": {
+            "id": "synthetic:documents",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "title": "Many documents and citations",
+          "documents": [
+            {
+              "document_id": "P1",
+              "source_ref": {
+                "id": "synthetic:paper:1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P2",
+              "source_ref": {
+                "id": "synthetic:paper:2",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000002"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P3",
+              "source_ref": {
+                "id": "synthetic:paper:3",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000003"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P4",
+              "source_ref": {
+                "id": "synthetic:paper:4",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000004"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P5",
+              "source_ref": {
+                "id": "synthetic:paper:5",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000005"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P6",
+              "source_ref": {
+                "id": "synthetic:paper:6",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000006"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P7",
+              "source_ref": {
+                "id": "synthetic:paper:7",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000007"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P8",
+              "source_ref": {
+                "id": "synthetic:paper:8",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000008"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P9",
+              "source_ref": {
+                "id": "synthetic:paper:9",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000009"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P10",
+              "source_ref": {
+                "id": "synthetic:paper:10",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000000a"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P11",
+              "source_ref": {
+                "id": "synthetic:paper:11",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000000b"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P12",
+              "source_ref": {
+                "id": "synthetic:paper:12",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000000c"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P13",
+              "source_ref": {
+                "id": "synthetic:paper:13",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000000d"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P14",
+              "source_ref": {
+                "id": "synthetic:paper:14",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000000e"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P15",
+              "source_ref": {
+                "id": "synthetic:paper:15",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000000f"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P16",
+              "source_ref": {
+                "id": "synthetic:paper:16",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000010"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P17",
+              "source_ref": {
+                "id": "synthetic:paper:17",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000011"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P18",
+              "source_ref": {
+                "id": "synthetic:paper:18",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000012"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P19",
+              "source_ref": {
+                "id": "synthetic:paper:19",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000013"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P20",
+              "source_ref": {
+                "id": "synthetic:paper:20",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000014"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P21",
+              "source_ref": {
+                "id": "synthetic:paper:21",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000015"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P22",
+              "source_ref": {
+                "id": "synthetic:paper:22",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000016"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P23",
+              "source_ref": {
+                "id": "synthetic:paper:23",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000017"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P24",
+              "source_ref": {
+                "id": "synthetic:paper:24",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000018"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P25",
+              "source_ref": {
+                "id": "synthetic:paper:25",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000019"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P26",
+              "source_ref": {
+                "id": "synthetic:paper:26",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000001a"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P27",
+              "source_ref": {
+                "id": "synthetic:paper:27",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000001b"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P28",
+              "source_ref": {
+                "id": "synthetic:paper:28",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000001c"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P29",
+              "source_ref": {
+                "id": "synthetic:paper:29",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000001d"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P30",
+              "source_ref": {
+                "id": "synthetic:paper:30",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000001e"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P31",
+              "source_ref": {
+                "id": "synthetic:paper:31",
+                "sha256": "000000000000000000000000000000000000000000000000000000000000001f"
+              },
+              "page_count": 2
+            },
+            {
+              "document_id": "P32",
+              "source_ref": {
+                "id": "synthetic:paper:32",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000020"
+              },
+              "page_count": 2
+            }
+          ],
+          "sections": {
+            "problem": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "method": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "results": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "contributions": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "limitations": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            }
+          },
+          "citations": [
+            {
+              "citation_id": "C1",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C2",
+              "document_id": "P2",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C3",
+              "document_id": "P3",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C4",
+              "document_id": "P4",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C5",
+              "document_id": "P5",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C6",
+              "document_id": "P6",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C7",
+              "document_id": "P7",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C8",
+              "document_id": "P8",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C9",
+              "document_id": "P9",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C10",
+              "document_id": "P10",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C11",
+              "document_id": "P11",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C12",
+              "document_id": "P12",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C13",
+              "document_id": "P13",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C14",
+              "document_id": "P14",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C15",
+              "document_id": "P15",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C16",
+              "document_id": "P16",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C17",
+              "document_id": "P17",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C18",
+              "document_id": "P18",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C19",
+              "document_id": "P19",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C20",
+              "document_id": "P20",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C21",
+              "document_id": "P21",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C22",
+              "document_id": "P22",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C23",
+              "document_id": "P23",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C24",
+              "document_id": "P24",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C25",
+              "document_id": "P25",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C26",
+              "document_id": "P26",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C27",
+              "document_id": "P27",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C28",
+              "document_id": "P28",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C29",
+              "document_id": "P29",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C30",
+              "document_id": "P30",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C31",
+              "document_id": "P31",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C32",
+              "document_id": "P32",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C33",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C34",
+              "document_id": "P2",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C35",
+              "document_id": "P3",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C36",
+              "document_id": "P4",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C37",
+              "document_id": "P5",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C38",
+              "document_id": "P6",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C39",
+              "document_id": "P7",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C40",
+              "document_id": "P8",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C41",
+              "document_id": "P9",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C42",
+              "document_id": "P10",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C43",
+              "document_id": "P11",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C44",
+              "document_id": "P12",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C45",
+              "document_id": "P13",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C46",
+              "document_id": "P14",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C47",
+              "document_id": "P15",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C48",
+              "document_id": "P16",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C49",
+              "document_id": "P17",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C50",
+              "document_id": "P18",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C51",
+              "document_id": "P19",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C52",
+              "document_id": "P20",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C53",
+              "document_id": "P21",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C54",
+              "document_id": "P22",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C55",
+              "document_id": "P23",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C56",
+              "document_id": "P24",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C57",
+              "document_id": "P25",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C58",
+              "document_id": "P26",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C59",
+              "document_id": "P27",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            },
+            {
+              "citation_id": "C60",
+              "document_id": "P28",
+              "page": 2,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            }
+          ]
+        }
+      },
+      {
+        "id": "invalid-summary-title",
+        "malformed": true,
+        "data": {
+          "schema_version": "1.0.0",
+          "id": "paper_summary",
+          "brief_ref": {
+            "id": "synthetic:brief",
+            "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          },
+          "documents_ref": {
+            "id": "synthetic:documents",
+            "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          },
+          "title": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "documents": [
+            {
+              "document_id": "P1",
+              "source_ref": {
+                "id": "synthetic:paper:1",
+                "sha256": "0000000000000000000000000000000000000000000000000000000000000001"
+              },
+              "page_count": 2
+            }
+          ],
+          "sections": {
+            "problem": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "method": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "results": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "contributions": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            },
+            "limitations": {
+              "status": "supported",
+              "text": "Synthetic benchmark content; no scientific claim is validated.",
+              "citation_ids": [
+                "C1"
+              ]
+            }
+          },
+          "citations": [
+            {
+              "citation_id": "C1",
+              "document_id": "P1",
+              "page": 1,
+              "start": 0,
+              "end": 9,
+              "quote": "Synthetic"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "workloads": [
+    "minimal-summary-envelope",
+    "long-summary-sections",
+    "unicode-summary-envelope",
+    "many-documents-and-citations"
+  ]
+}

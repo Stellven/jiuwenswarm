@@ -109,7 +109,8 @@ def capture_pi_task(store, reference_directory, *, accepted_inputs=None):
             "falsification": {"operand": "treatment", "comparator": "ge", "reference": "baseline", "factor": 1, "offset": 0},
             "middle": "INCONCLUSIVE", "conditional_rule": None, "conditional_meaning": None}],
         "repeat_count": 5, "seed": 42, "seed_policy": "fixed_same_for_all_runs",
-        "implementation_scope": {"poc_change_scope": ["Implement approximate_pi(digits) in poc_patch.py"],
+        "implementation_scope": {"poc_change_scope": ["Implement approximate_pi(digits) in poc_patch.py",
+                "max_patch_files counts implementation files only; tests.py is a separate required Builder development file and is not counted"],
             "must_not_change": ["baseline", "public_validation_request", "trusted_scoring_protocol", "benchmark_cases"],
             "max_patch_files": 1},
         "constraints": [], "verification_plan": [

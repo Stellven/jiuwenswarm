@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:screening-weighted-result:1.0.0",
+  "title": "Weighted screening result",
+  "description": "Every input idea appears exactly once in scores, either ranked or excluded with machine-checkable violations. Totals are exact rational strings, recomputable from values and the rubric weights.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "candidate_ref", "rubric_ref", "scores", "ranking", "selected_idea_id", "opportunity_statement"],
+  "properties": {
+    "schema_version": {"const": "1.0.0"},
+    "id": {"const": "screening_result"},
+    "candidate_ref": {"$ref": "#/$defs/ref"},
+    "rubric_ref": {"$ref": "#/$defs/ref"},
+    "scores": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/score"}},
+    "ranking": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/rank"}},
+    "selected_idea_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "opportunity_statement": {"type": "string", "minLength": 1, "maxLength": 1200}
+  },
+  "$defs": {
+    "ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"], "properties": {"id": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "rational": {"type": "string", "pattern": "^(-?[0-9]+/[0-9]+|-?[0-9]+)$", "maxLength": 80},
+    "violation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "detail"],
+      "properties": {
+        "code": {"enum": ["requires_gpu", "license_not_allowed", "runtime_exceeds_budget", "forbidden_dependency"]},
+        "detail": {"type": "string", "minLength": 1, "maxLength": 300}
+      }
+    },
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["idea_id", "values", "weighted_total", "violations", "eligible", "disposition", "disposition_reason", "assessment", "citation_ids"],
+      "properties": {
+        "idea_id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "values": {"type": "object", "minProperties": 1, "maxProperties": 16, "additionalProperties": {"type": "string", "maxLength": 40}},
+        "weighted_total": {"$ref": "#/$defs/rational"},
+        "violations": {"type": "array", "maxItems": 128, "items": {"$ref": "#/$defs/violation"}},
+        "eligible": {"type": "boolean"},
+        "disposition": {"enum": ["selected", "eligible", "rejected"]},
+        "disposition_reason": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "assessment": {"type": "string", "minLength": 1, "maxLength": 1000},
+        "citation_ids": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"type": "string", "minLength": 1, "maxLength": 200}}
+      }
+    },
+    "rank": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["rank", "idea_id", "weighted_total"],
+      "properties": {
+        "rank": {"type": "integer", "minimum": 1},
+        "idea_id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "weighted_total": {"$ref": "#/$defs/rational"}
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+ "id": "calc_float",
+ "candidate": "calculate_float",
+ "tool": "calculate",
+ "defective": true,
+ "defect": "subtle: binary float precision",
+ "witness": {
+  "values": [
+   9007199254740993
+  ],
+  "mode": "json_numbers",
+  "operation": "sum"
+ },
+ "answer": "156480913497867854",
+ "answer_kind": "number",
+ "oracle_status": "ok",
+ "tool_answer_on_this_data": "1.5648091349786784e+17",
+ "expect_no_answer": false,
+ "note": "oracle value"
+}

@@ -9,7 +9,7 @@
       "path": "example_data.txt",
       "artifact_ref": {
         "id": "example_data.txt",
-        "sha256": "afea8e2428f79aadc732a59df07198b24a22f99675b60ab656630878dab9a9e1"
+        "sha256": "8f01aa7e16c4504a20154ee9cd9c08910f48c138251f10358ce21b9748a6c461"
       },
       "media_type": "text/plain",
       "audience": "authorized researcher"
@@ -20,7 +20,7 @@
   "availability": "available",
   "environment_ref": {
     "id": "environment_lock.json",
-    "sha256": "e94243e5b3b3b196962158fc9587cffdeaa24acbc27d96a9521f352906ea17df"
+    "sha256": "28f223d79c9dd33b40417aa1799cf85fc355b086f93eba287387e269de64d0fd"
   },
   "ext": {
     "example.synthetic": true

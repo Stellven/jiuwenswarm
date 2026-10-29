@@ -1,0 +1,252 @@
+{
+ "schema": "ai4r-rsi-capsule-semantic-edges:1",
+ "capsule_name": "utility.table_normalize",
+ "split": "supplementary",
+ "notes": "Supplementary differential edge cases (Codex capsule_semantic_edges v1/v2) outside the timed benchmark; judged by the same parent-relative correctness contract.",
+ "cases": [
+  {
+   "id": "quoted-unicode-crlf",
+   "malformed": false,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": ","
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "b,a\r\n\"α,β\",\"line\r\nnext\"\r\n\"a\"\"b\",001\r\n"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "ordered-json-scalars",
+   "malformed": false,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": null
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[{\"a\":null,\"b\":true},{\"a\":1.25,\"b\":\"001\"}]"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "empty-json",
+   "malformed": false,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": null
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[]"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "float-overflow-error",
+   "malformed": true,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": null
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[{\"a\":1e309,\"b\":1}]"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "duplicate-json-key",
+   "malformed": true,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": null
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[{\"a\":1,\"a\":2,\"b\":3}]"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "nested-scalar-error",
+   "malformed": true,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "json",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": null
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[{\"a\":[],\"b\":1}]"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "csv-header-order-error",
+   "malformed": true,
+   "data": {
+    "table_request": {
+     "file": "source.txt",
+     "format": "csv",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": ","
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "a,b\r\n1,2\r\n"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "missing-file-error",
+   "malformed": true,
+   "data": {
+    "table_request": {
+     "file": "missing.txt",
+     "format": "json",
+     "columns": [
+      "b",
+      "a"
+     ],
+     "delimiter": null
+    },
+    "unrelated": {
+     "retain": true
+    }
+   },
+   "files": [
+    [
+     "source.txt",
+     "[]"
+    ],
+    [
+     "notes.txt",
+     "retain"
+    ]
+   ]
+  },
+  {
+   "id": "duplicate-limitations-default",
+   "malformed": false,
+   "since_version": 2,
+   "derive": "ordered-json-scalars",
+   "set": [
+    {
+     "path": [
+      "limitations"
+     ],
+     "value": [
+      "repeat",
+      "keep",
+      "repeat",
+      "keep",
+      "tail"
+     ]
+    }
+   ]
+  }
+ ]
+}

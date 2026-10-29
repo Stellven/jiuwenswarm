@@ -1,0 +1,21 @@
+{
+ "id": "calc_comma",
+ "candidate": "calculate_comma",
+ "tool": "calculate",
+ "defective": true,
+ "defect": "rare: locale coercion",
+ "witness": {
+  "values": [
+   "2,5",
+   "2"
+  ],
+  "mode": "decimal_strings",
+  "operation": "sum"
+ },
+ "answer": "329524",
+ "answer_kind": "number",
+ "oracle_status": "error",
+ "tool_answer_on_this_data": "4892.956",
+ "expect_no_answer": false,
+ "note": "oracle rejects thousands separators; gold is the intended sum with the comma read as a thousands separator"
+}

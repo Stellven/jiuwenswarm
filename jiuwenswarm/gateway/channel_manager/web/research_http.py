@@ -414,6 +414,73 @@ async def native_research_message(channel, ws, method: str, params: dict):
     """
     authority, service = channel.research_authority, channel.research_service
     headers = getattr(ws, 'request_headers', None) or getattr(getattr(ws, 'request', None), 'headers', {})
+    if method in {'rsi.cc.snapshot', 'rsi.cc.candidate.get', 'rsi.cc.run.start', 'rsi.cc.operator.action', 'rsi.cc.targets.list'}:
+        principal = authority.authenticate_ws(headers, 'status')
+        workspace = getattr(channel, 'research_cc_workspace', None)
+        publication = os.environ.get('JIUWENSWARM_CC_RSI_PUBLICATION')
+        if publication and (publication != '/run/ai4r-rsi-ui/publication.json' or not workspace
+                            or os.environ.get('JIUWENSWARM_CC_RSI_WORKSPACE') != workspace):
+            raise ResearchError('unavailable', 'The public CC publication differs from the startup workspace')
+        if workspace is not None and workspace not in principal.workspace_ids:
+            raise ResearchError('auth', 'The native session cannot access the startup CC workspace', {'http_status': 403})
+    if method == 'rsi.cc.targets.list':
+        if not isinstance(params, dict) or params:
+            raise ResearchError('validation', 'The Source target catalog accepts no parameters')
+        if not workspace:
+            raise ResearchError('unavailable', 'The startup workspace is not configured')
+        from jiuwenswarm.research_rsi.targets.capsules import capsule_catalog
+        targets = capsule_catalog()
+        capsules = getattr(channel, 'research_cc_capsules', None)
+        readiness = await _result(capsules.readiness(headers)) if capsules is not None else {}
+        # Source availability is not Library admission or a protected execution grant.
+        return True, {'schema_version': '1', 'workspace_id': workspace, 'targets': [
+            dict(row, target_id=row['capsule_name'],
+                 development_grant_status=('READY' if readiness[row['capsule_name']]['run']['allowed'] else 'BLOCKED')
+                    if row['capsule_name'] in readiness else 'NOT_ESTABLISHED',
+                 revision=readiness.get(row['capsule_name'], {}).get('revision'),
+                 run_id=readiness.get(row['capsule_name'], {}).get('run_id'),
+                 run=readiness.get(row['capsule_name'], {}).get('run', {
+                     'allowed': False, 'blocker': row.get('blocker') or 'No prepared Root development slot is installed'}))
+            for row in targets]}
+    if method in {'rsi.cc.snapshot', 'rsi.cc.candidate.get'}:
+        principal = authority.authenticate_ws(headers, 'status')
+        # Inspection stays available while native execution readiness is blocked.
+        # The dedicated AgentServer projection cannot read private Root runtime.
+        setattr(ws, 'authenticated_user_id', principal.account_id)
+        operator = getattr(channel, 'research_cc_operator', None)
+        development = getattr(channel, 'research_cc_development', None)
+        if method == 'rsi.cc.snapshot' and development is not None:
+            base = await _result(operator.snapshot(headers, params)) if operator is not None and callable(getattr(operator, 'snapshot', None)) else None
+            view = await _result(development.snapshot(headers, params, base=base))
+            capsules = getattr(channel, 'research_cc_capsules', None)
+            if capsules is not None:
+                view = await _result(capsules.snapshot(headers, params, base=view))
+            return True, view
+        if method == 'rsi.cc.snapshot' and operator is not None and callable(getattr(operator, 'snapshot', None)):
+            view = await _result(operator.snapshot(headers, params))
+            capsules = getattr(channel, 'research_cc_capsules', None)
+            if capsules is not None:
+                view = await _result(capsules.snapshot(headers, params, base=view))
+            return True, view
+        return False, None
+    if method == 'rsi.cc.run.start':
+        authority.authenticate_ws(headers, 'status')
+        capsules = getattr(channel, 'research_cc_capsules', None)
+        if capsules is not None and isinstance(params, dict) and capsules.owns(params.get('target_id')):
+            return True, await _result(capsules.execute(headers, params))
+        development = getattr(channel, 'research_cc_development', None)
+        if development is None:
+            raise ResearchError('unavailable', 'The fixed development run broker is not installed')
+        return True, await _result(development.execute(headers, params))
+    if method == 'rsi.cc.operator.action':
+        authority.authenticate_ws(headers, 'status')
+        operator = getattr(channel, 'research_cc_operator', None)
+        if operator is None:
+            raise ResearchError('unavailable', 'Authenticated finite CC operator/run broker is not installed')
+        # The installed adapter reauthenticates the actual native session and
+        # signs an exact action assertion. Browser user_id/proof fields are not
+        # forwarded as authority. Ordinary app roles gain no Library operation.
+        return True, await _result(operator.execute(headers, params))
     if method == 'codex.chat':
         from jiuwenswarm.research.local_chat import enabled, conversation_document_context
         principal = authority.authenticate_ws(headers, 'submit')

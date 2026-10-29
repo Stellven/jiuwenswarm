@@ -1,0 +1,43 @@
+{
+  "schema": "ai4r-rsi-capsule-fixture-set:1",
+  "fixture_set": "held_out",
+  "notes": "Frozen selected m1-2 worker output independently checked when fixture created; synthetic model-free reports.",
+  "cases": [
+    {
+      "id": "empty-report-sections",
+      "data": {
+        "report": {
+          "path": "reports/result.md",
+          "title": "Minimal report",
+          "sections": [],
+          "data_keys": [
+            "metadata"
+          ]
+        },
+        "metadata": {
+          "ordered": [
+            "z",
+            "a"
+          ],
+          "note": "`code` and | table |"
+        }
+      },
+      "expected_task_output": {
+        "data_keys": [
+          "metadata"
+        ],
+        "input_files": [],
+        "path": "reports/result.md",
+        "provenance": [
+          {
+            "id": "public:synthetic-input",
+            "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+          }
+        ],
+        "sha256": "c053879bc2c815d1dbf568e7d04549a918f303470d698fddf59ad65edccd71c7",
+        "size_bytes": 209,
+        "trust": "low"
+      }
+    }
+  ]
+}

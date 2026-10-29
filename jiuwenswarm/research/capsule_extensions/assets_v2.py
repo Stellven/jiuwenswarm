@@ -8,7 +8,7 @@ from .packet import PACKET
 
 def prepare(store, directory, *, name, summary, input_name='packet', input_type='work_packet',
             input_schema=PACKET, version='m1-1', agent=False, extra_criteria=(),
-            shared_dependencies=()):
+            shared_dependencies=(), output_type='work_packet'):
     directory = Path(directory)
     root = Path(__file__).parents[1]
     runtime = Path(__file__).with_name('packet.py')
@@ -38,7 +38,7 @@ def prepare(store, directory, *, name, summary, input_name='packet', input_type=
     description = 'Versioned work-packet envelope with bounded data, UTF-8 files, provenance and low-trust taint.'
     input_port = [{'name': input_name, 'artifact_type': input_type, 'schema_ref': input_schema,
         'required': True, 'check_ids': [], 'description': 'Exact pinned source contract; adapter validates original input bytes.'}]
-    output_port = [{'name': 'result', 'artifact_type': 'work_packet', 'schema_ref': PACKET,
+    output_port = [{'name': 'result', 'artifact_type': output_type, 'schema_ref': PACKET,
         'required': True, 'check_ids': ['result_schema', 'result_integrity'], 'description': description}]
     declaration['ports'] = {'inputs': input_port, 'outputs': output_port}
     declaration['coverage']['undeclared_notes'] = [summary]

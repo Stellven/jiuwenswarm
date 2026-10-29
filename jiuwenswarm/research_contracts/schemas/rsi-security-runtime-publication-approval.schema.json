@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-runtime-publication-approval:1",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "plan_ref", "campaign_status_ref", "qualification_ref", "installation_closure_ref", "scope_ref", "rpc_session_id", "rpc_capability"],
+  "properties": {
+    "schema": {"const": "ai4r-rsi-security-runtime-publication-approval:1"},
+    "plan_ref": {"$ref": "#/$defs/Ref"}, "campaign_status_ref": {"$ref": "#/$defs/Ref"},
+    "qualification_ref": {"$ref": "#/$defs/Ref"}, "installation_closure_ref": {"$ref": "#/$defs/Ref"},
+    "scope_ref": {"$ref": "#/$defs/Ref"},
+    "rpc_session_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.:-]{0,63}$"},
+    "rpc_capability": {"type": "string", "minLength": 43, "maxLength": 256, "pattern": "^[A-Za-z0-9_-]+$"}
+  },
+  "$defs": {"Ref": {"type": "object", "additionalProperties": false, "required": ["id", "sha256"],
+    "properties": {"id": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}}
+}

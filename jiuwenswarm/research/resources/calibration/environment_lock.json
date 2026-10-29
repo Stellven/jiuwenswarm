@@ -4,12 +4,12 @@
   "platform": "synthetic CPython environment on Linux",
   "requirements_ref": {
     "id": "approved_requirements.txt",
-    "sha256": "b42023ae72eefd65f5091c3b051a46c4a5efee9aaaad7d1aed5ef159a767ed5f"
+    "sha256": "e684ffecda00fc19e4344ca3c3436cc06d4b171312416109cbea7870ec413d80"
   },
   "package_refs": [],
   "approval_ref": {
     "id": "environment_approval.txt",
-    "sha256": "036a5e2c0c7aadafa43aee121e4882516960fe375c86412335ae0dd16cf98bf6"
+    "sha256": "24a1f5960eeb6730681063ac6d7c57c00dc42a790296926efb0b16650ca43f73"
   },
   "ext": {
     "example.synthetic": true

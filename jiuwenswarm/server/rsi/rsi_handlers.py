@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
+import os
 from typing import Any, Callable
 
 from jiuwenswarm.agents.harness.common.rsi.errors import RsiBadRequest, RsiError, RsiNotReady
@@ -43,6 +44,10 @@ _METHOD_DISPATCH: dict[str, str] = {
     "rsi.harness.install": "harness_install",
     "rsi.harness.versions.list": "harness_versions_list",
     "rsi.harness.rollback": "harness_rollback",
+    "rsi.cc.snapshot": "cc_snapshot",
+    "rsi.cc.candidate.get": "cc_candidate",
+    "rsi.cc.operator.action": "cc_operator_action",
+    "rsi.cc.run.start": "cc_run_start",
 }
 
 
@@ -56,10 +61,13 @@ class RsiAgentServerHandlers:
         send_push: Callable[[dict[str, Any]], Any] | None = None,
         harness_refs_provider: Callable[[], str | None] | None = None,
         default_channel_id: str = "web",
+        cc_projection: Any = None,
     ) -> None:
         self.context = context
         self.send_push = send_push or (lambda msg: False)
         self.default_channel_id = default_channel_id
+        from .cc_rsi_projection import CcRsiProjection
+        self.cc_projection = cc_projection or CcRsiProjection(os.environ.get("JIUWENSWARM_CC_RSI_PUBLICATION"))
         # 服务域接线：harness_refs 快照提供方（默认 auto_harness 激活 refs）
         if harness_refs_provider is not None:
             self.context.bind_task_service(harness_refs_provider=harness_refs_provider)
@@ -134,6 +142,28 @@ class RsiAgentServerHandlers:
             return {"ok": False, "error": str(exc), "code": "INTERNAL_ERROR"}
 
     # -- I1–I13 + Harness install --
+
+    def _cc_call(self, method, params):
+        from .cc_rsi_projection import ProjectionError
+        try:
+            return getattr(self.cc_projection, method)(params)
+        except ProjectionError as error:
+            raise RsiNotReady(str(error)) from None
+        except (OSError, ValueError):
+            # Never return exception text from filesystem/private records.
+            raise RsiNotReady("CC publication or authenticated operator acknowledgement unavailable. Refresh to reconcile.") from None
+
+    def _do_cc_snapshot(self, params):
+        return self._cc_call("snapshot", params)
+
+    def _do_cc_candidate(self, params):
+        return self._cc_call("candidate", params)
+
+    def _do_cc_operator_action(self, params):
+        return self._cc_call("operator_action", params)
+
+    def _do_cc_run_start(self, params):
+        return self._cc_call("run_start", params)
 
     def _do_dataset_validate(self, params: dict[str, Any]) -> dict[str, Any]:
         return self.context.dataset_service.validate(

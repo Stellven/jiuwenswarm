@@ -3,11 +3,11 @@
   "id": "candidate_set",
   "brief_ref": {
     "id": "lifecycle_research_brief.json",
-    "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+    "sha256": "925f37d264242392bd1b5bde837db52bcc99568fb0274dd3ef6e9fa229d4fe00"
   },
   "scope_ref": {
     "id": "search_scope.json",
-    "sha256": "9f1de539a40c309b73f9124905c1aa1e9a02fe896515a540f8ad664727e5908f"
+    "sha256": "4e8c847c77164fcb9246cbbb397192dc5de4c13c9218753f3d5baf719094d5d1"
   },
   "queries": [
     "indexed lookup retrieval latency",
@@ -38,7 +38,7 @@
       "id": "citation:index",
       "source_ref": {
         "id": "academic_source.txt",
-        "sha256": "da0a79d39f34aad640bd62b1f23b91887ad60f36c62f5f653e9df0889e031c2d"
+        "sha256": "326d5ef412e8d99d76c533f7ae377eac2323554378a3b4e974af6542276468c4"
       },
       "connector": "local_documents",
       "query": "indexed lookup retrieval latency",

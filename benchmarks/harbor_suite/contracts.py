@@ -20,6 +20,15 @@ EXPECTED = {
     "pipeline01-experiment": ("pipeline", "run"),
     "pipeline02-recovery": ("pipeline", "run"),
 }
+EXTENDED = {
+    'cc03-typed-table': ("cc", "single_cc"),
+    'ccv01-intent': ("cc", "single_cc"),
+    'ccv02-plan': ("cc", "single_cc"),
+    'ccv03-screen': ("cc", "single_cc"),
+    'ccv04-build': ("cc", "single_cc"),
+    'ccv05-evaluate': ("cc", "single_cc"),
+    'ccv06-deliver': ("cc", "single_cc"),
+}
 ID = re.compile(r"^[a-z0-9][a-z0-9_.-]{0,63}$")
 FIELDS = set("schema id module title scenario_ids milestone classification requirements domains entrypoint objective primary_metric budgets product_prerequisites evidence_requirements variants oracle_version".split())
 VARIANT_FIELDS = set("id split task inputs expected_behavior seed".split())
@@ -78,8 +87,9 @@ def validate_case(case, folder=None):
     require(isinstance(case, dict) and set(case) == FIELDS and case.get("schema") == SCHEMA,
             "suite case fields differ from AUTHORING.md")
     ident = case["id"]
-    require(ident in EXPECTED and (case["module"], case["entrypoint"]) == EXPECTED[ident],
-            "case identity/module/entrypoint differs from the ten-case suite")
+    registry = {**EXPECTED, **EXTENDED}
+    require(ident in registry and (case["module"], case["entrypoint"]) == registry[ident],
+            "case identity/module/entrypoint differs from the registered suite")
     for key in ("title", "objective", "oracle_version"):
         require(isinstance(case[key], str) and bool(case[key].strip()), "missing " + key)
     for key in ("scenario_ids", "requirements", "domains", "product_prerequisites", "evidence_requirements"):
@@ -91,7 +101,8 @@ def validate_case(case, folder=None):
             "invalid requirement mapping")
     later = case["module"] in {"mr", "rsi"}
     require(case["milestone"] == ("m2" if later else "m1"), "incorrect benchmark milestone")
-    require(case["classification"] == ("m2_m3_progress" if later else "core_m1_acceptance"),
+    classification = "extended_performance" if ident in EXTENDED else ("m2_m3_progress" if later else "core_m1_acceptance")
+    require(case["classification"] == classification,
             "incorrect benchmark classification")
     metric = case["primary_metric"]
     require(isinstance(metric, dict) and set(metric) == {"name", "definition"}
@@ -148,10 +159,13 @@ def resolve_cases_root(root=None):
     return Path(selected).expanduser().absolute()
 
 
-def load_cases(root=None):
+def load_cases(root=None, *, case_ids=None):
     root = resolve_cases_root(root)
     result = []
-    for ident in EXPECTED:
+    selected = list(EXPECTED) if case_ids is None else list(case_ids)
+    require(bool(selected) and len(set(selected)) == len(selected)
+            and set(selected) <= set(EXPECTED) | set(EXTENDED), 'unknown/duplicate case selection')
+    for ident in selected:
         folder = root / ident
         case = validate_case(read_json(folder / "case.json"), folder)
         require(case["id"] == ident, "case directory identity mismatch")
@@ -160,7 +174,7 @@ def load_cases(root=None):
 
 
 def task_key(case_id, variant_id, repeat):
-    require(case_id in EXPECTED and type(repeat) is int and repeat > 0, "invalid task key scope")
+    require(case_id in {**EXPECTED, **EXTENDED} and type(repeat) is int and repeat > 0, "invalid task key scope")
     suffix = hashlib.sha256(canonical([variant_id, repeat])).hexdigest()[:12]
     return case_id + "-" + suffix
 

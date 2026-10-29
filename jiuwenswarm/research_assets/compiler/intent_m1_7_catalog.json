@@ -1,0 +1,245 @@
+{
+  "body_refs": {
+    "research/capsules/_common.py": {
+      "id": "blob:1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2",
+      "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+    },
+    "research/capsules/intent.py": {
+      "id": "blob:39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef",
+      "sha256": "39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef"
+    },
+    "research_assets/compiler/intent.txt": {
+      "id": "blob:4188e32b215676e557541b5c333deec82f1dfdd2ad028720eacf0f522112f295",
+      "sha256": "4188e32b215676e557541b5c333deec82f1dfdd2ad028720eacf0f522112f295"
+    }
+  },
+  "bundle": {
+    "bundle_id": "intent.compiler.checks",
+    "checks": [
+      {
+        "blocking": true,
+        "check_id": "intent_schema",
+        "reads": [
+          "output"
+        ],
+        "rule_summary": "Enforce the source-defined intent_schema invariant on exact bound artifacts and observed records",
+        "runner_ref": {
+          "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+          "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
+        },
+        "target_port": "intent"
+      },
+      {
+        "blocking": true,
+        "check_id": "source_spans",
+        "reads": [
+          "output",
+          "inputs",
+          "runtime_records"
+        ],
+        "rule_summary": "Enforce the source-defined source_spans invariant on exact bound artifacts and observed records",
+        "runner_ref": {
+          "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+          "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
+        },
+        "target_port": "intent"
+      },
+      {
+        "blocking": true,
+        "check_id": "exact_identity",
+        "reads": [
+          "output",
+          "inputs",
+          "runtime_records"
+        ],
+        "rule_summary": "Enforce the source-defined exact_identity invariant on exact bound artifacts and observed records",
+        "runner_ref": {
+          "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+          "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
+        },
+        "target_port": "intent"
+      }
+    ],
+    "id": "intent.compiler.checks.m1-7",
+    "owner_role": "verifier_owner",
+    "schema_version": "1.0.0",
+    "target_cc_name": "intent.compiler",
+    "target_cc_version_range": "m1-7",
+    "version": "1.0.0"
+  },
+  "bundle_ref": {
+    "id": "blob:ab90691bade82bb2656fb371d7b5beebb73205717782ce70ffc0b99a0dc3f5a0",
+    "sha256": "ab90691bade82bb2656fb371d7b5beebb73205717782ce70ffc0b99a0dc3f5a0"
+  },
+  "cc": "intent.compiler",
+  "declaration": {
+    "budget": {
+      "enforcement": {
+        "invocations": "hard",
+        "tool_calls": "hard",
+        "wall_s": "hard"
+      },
+      "on_exhaust": "fail",
+      "per_call": {
+        "invocations": 1,
+        "tool_calls": 0,
+        "wall_s": 420
+      }
+    },
+    "changes": {
+      "effect_class": "read_only",
+      "effects": [
+        {
+          "assurance": "protected bridge enforces scope and limits",
+          "id": "model-disclosure",
+          "idempotent": false,
+          "op": "model_invoke",
+          "resource_key": "approved_model_bridge",
+          "reversibility": "none",
+          "risk": {
+            "blast_radius": "one approved context",
+            "irreversibility": true,
+            "severity": "bounded"
+          },
+          "scope": "bound permitted request context",
+          "undo": null
+        }
+      ],
+      "invariants": [],
+      "provides": []
+    },
+    "coverage": {
+      "undeclared_notes": [
+        "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+      ]
+    },
+    "evolution": {
+      "may_change": [],
+      "notes_for_builder": [],
+      "rsi": "none"
+    },
+    "guarantees": {
+      "acceptance": [
+        "intent_schema"
+      ],
+      "checks": [
+        {
+          "anchor": "exact output bytes",
+          "assurance": "structure only",
+          "author": "independent schema owner",
+          "held_out": false,
+          "id": "intent_schema",
+          "kind": "deterministic",
+          "over": [
+            "outputs"
+          ],
+          "owner": "protected profile registry",
+          "runner": {
+            "ref": "research/capsules/intent.py",
+            "sha256": "39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef"
+          },
+          "signal_source": "captured output",
+          "target": "outputs.intent",
+          "written_before_body": true
+        }
+      ],
+      "evals": [],
+      "unanchored": [
+        "Request fidelity and downstream usability are producer obligations backed by deterministic host checks, not verifier criteria"
+      ]
+    },
+    "identity": {
+      "body": [
+        {
+          "path": "research/capsules/intent.py",
+          "sha256": "39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef"
+        },
+        {
+          "path": "research_assets/compiler/intent.txt",
+          "sha256": "4188e32b215676e557541b5c333deec82f1dfdd2ad028720eacf0f522112f295"
+        }
+      ],
+      "carrier": {
+        "ref": "research/capsules/intent.py",
+        "sha256": "39dd4453b3002285a15a32f9a3ed537db734eaf331f8b1fd53c0175ca90e13ef"
+      },
+      "kind": "agent",
+      "name": "intent.compiler",
+      "summary": "Interpret qualified user meaning with explicit attributable uncertainty",
+      "version_label": "m1-7"
+    },
+    "needs": {
+      "external": [
+        {
+          "identifier": "research.shared_serialization",
+          "kind": "library",
+          "pin": {
+            "ref": "research/capsules/_common.py",
+            "sha256": "1073925837699a0d31017bcf1b8e9cd9bbe202685bfe67091cc363c7d675ceb2"
+          }
+        }
+      ],
+      "injects": [
+        {
+          "interface_version_range": "1.x",
+          "service_key": "audited_model_bridge"
+        }
+      ],
+      "model": {
+        "modalities": [
+          "text"
+        ],
+        "tool_calling": false
+      },
+      "network": {
+        "allowlist": [],
+        "direction": "none",
+        "mode": "none"
+      },
+      "resources": [
+        {
+          "mode": "read",
+          "resource_key": "original_request"
+        }
+      ],
+      "when": []
+    },
+    "ports": {
+      "inputs": [
+        {
+          "artifact_type": "qualified_intake",
+          "check_ids": [],
+          "description": "Exact qualified request and permitted context",
+          "name": "request",
+          "required": true,
+          "schema_ref": "qualified-intake:field-contract:2"
+        }
+      ],
+      "outputs": [
+        {
+          "artifact_type": "intent_ir",
+          "check_ids": [
+            "intent_schema"
+          ],
+          "description": "Attributed interpretation, not Requirements",
+          "name": "intent",
+          "required": true,
+          "schema_ref": "urn:jiuwenswarm:m1-design:intent-ir:1.0.0"
+        }
+      ]
+    },
+    "schema_version": "1.0.0"
+  },
+  "declaration_ref": {
+    "id": "blob:f3eb92f0173d8d6ea71fe12fa3421bb1181367c67ff09d5cb832e0e0c75e792b",
+    "sha256": "f3eb92f0173d8d6ea71fe12fa3421bb1181367c67ff09d5cb832e0e0c75e792b"
+  },
+  "profile_ref": {
+    "id": "blob:42baf8b544610f8430378972568769c9e991dbb36041f73ad6d92e03ace53922",
+    "sha256": "42baf8b544610f8430378972568769c9e991dbb36041f73ad6d92e03ace53922"
+  },
+  "runner_ref": {
+    "id": "blob:9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70",
+    "sha256": "9103758a6cc44a6d15f128198cb9cb4b27d10cd2ab19041fc7f02064a2651b70"
+  }
+}

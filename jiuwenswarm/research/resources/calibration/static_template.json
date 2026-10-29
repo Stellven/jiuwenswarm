@@ -387,7 +387,7 @@
       "cc": {
         "cc_name": "research.evaluation",
         "cc_version": "example-1",
-        "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+        "declaration_sha256": "4ffd4d7854671d23796d6699970b5f06a9638dfbc31433c197bd8e051c01d864"
       },
       "objective": "Classify the result with the registered rules",
       "requirement_ids": [

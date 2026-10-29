@@ -121,10 +121,47 @@ def snapshot(source, destination):
     atomic(destination / 'evaluation-host-inventory.json', {'schema': 'ai4r-harbor-evaluation-snapshot:1', 'files': inventory})
 
 
+def observer_process_options(platform=None):
+    platform = os.name if platform is None else platform
+    require(platform in {'posix', 'nt'}, 'unsupported finite evaluation observer platform')
+    return {'start_new_session': True} if platform == 'posix' else {
+        'creationflags': 0x00000200 | 0x08000000}  # NEW_PROCESS_GROUP | NO_WINDOW
+
+
+async def stop_observer(process, platform=None):
+    """Contain the local observer tree; never claim remote model containment."""
+    platform = os.name if platform is None else platform
+    if process.returncode is not None:
+        return
+    if platform == 'nt':
+        executable = str(Path(os.environ.get('SystemRoot', r'C:\Windows')) / 'System32' / 'taskkill.exe')
+        killer = await asyncio.create_subprocess_exec(executable, '/PID', str(process.pid), '/T', '/F',
+            stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL,
+            creationflags=0x08000000)
+        code = await asyncio.wait_for(killer.wait(), timeout=15)
+        require(code == 0 or process.returncode is not None,
+                'Windows observer tree termination remains uncertain')
+        await asyncio.wait_for(process.wait(), timeout=15)
+        return
+    require(platform == 'posix', 'unsupported finite evaluation observer platform')
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        pass
+    try:
+        await asyncio.wait_for(process.wait(), timeout=15)
+    except TimeoutError:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        await process.wait()
+
+
 async def dispatch(suite, task, identity):
     from .adapter import receipt
     from .evidence import normalize_single_cc
-    require(os.name == 'posix', 'live finite evaluation observer requires Linux/WSL process-group containment')
+    process_options = observer_process_options()
     config = load_config(suite['evaluation_config'], task, suite)
     binding = task['evaluation_binding']; root = suite['output_root']
     folder = root / binding['campaign_id']
@@ -157,26 +194,12 @@ async def dispatch(suite, task, identity):
         cancelled = None
         with (logs / (tag+'.stdout')).open('ab') as stdout, (logs / (tag+'.stderr')).open('ab') as stderr:
             process = await asyncio.create_subprocess_exec(*config['command'], cwd=config['cwd'], stdout=stdout, stderr=stderr,
-                **({'start_new_session': True} if os.name == 'posix' else {}))
+                **process_options)
             try:
                 code = await process.wait()
             except asyncio.CancelledError as error:
                 cancelled = error; code = None
-                if process.returncode is None:
-                    try:
-                        if os.name == 'posix': os.killpg(process.pid, signal.SIGTERM)
-                        else: process.terminate()
-                    except ProcessLookupError:
-                        pass
-                    try:
-                        await asyncio.wait_for(process.wait(), timeout=15)
-                    except TimeoutError:
-                        try:
-                            if os.name == 'posix': os.killpg(process.pid, signal.SIGKILL)
-                            else: process.kill()
-                        except ProcessLookupError:
-                            pass
-                        await process.wait()
+                await stop_observer(process)
         row.update(evaluation_state='observer_cancelled' if cancelled else 'observer_returned', runner_returncode=code)
         atomic(folder / 'suite-receipt.json', row)
         # A cancelled observer does not establish remote containment. Leave the

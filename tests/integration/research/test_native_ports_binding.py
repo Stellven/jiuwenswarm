@@ -28,7 +28,10 @@ async def test_authorization_socket_has_finite_operations_and_exact_active_bindi
     with pytest.raises(PlatformIntegrityError):await client.call('authorize_model_context',{'execution_id':'unknown','call_ordinal':1})
     assert await client.call('authorize_model_dispatch',{})=={'call_id':'fixture:claimed','remaining_time_s':1}
     assert set(ports.authorization_server.handlers)=={'authorize_model_context','authorize_model_dispatch','authorize_executor_binding','authorize_containment',
+        'authorize_executor_preparation','publish_scientific_start_receipt','inspect_scientific_attempt','inspect_scientific_evaluation',
         'authorize_admission_self_test','prepare_calibration_case','inspect_calibration','cancel_calibration'}
+    for operation in ('authorize_executor_preparation','publish_scientific_start_receipt','inspect_scientific_attempt','inspect_scientific_evaluation'):
+        assert ports.authorization_server.operation_uids[operation]=={0}
     assert ports.authorization_server.operation_uids['authorize_admission_self_test']=={0}
     for operation in ('prepare_calibration_case','inspect_calibration','cancel_calibration'):
         assert ports.authorization_server.operation_uids[operation]=={os.geteuid()}

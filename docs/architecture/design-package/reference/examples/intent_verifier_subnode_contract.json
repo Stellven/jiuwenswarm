@@ -1,0 +1,135 @@
+{
+  "id": "subnode-contract:intention.verifier",
+  "run_id": "run:example",
+  "node_id": "intention_compiler",
+  "attempt_id": "intention_compiler-a1",
+  "objective": "Assess submitted artifact against protected assigned criteria without modifying work or controlling flow",
+  "input_refs": [
+    {
+      "id": "capsule_declaration.json",
+      "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
+    },
+    {
+      "id": "intent_ir.json",
+      "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+    }
+  ],
+  "required_outputs": [
+    "verifier-assessment"
+  ],
+  "policy_ref": {
+    "id": "default_policy.json",
+    "sha256": "7ebec60f34e9b75612961c984e29bbf1a0772afab93f61c8133d143af1f7eab6"
+  },
+  "schema_version": "1.0.0",
+  "revision": 1,
+  "requirement_ids": [
+    "fixed:intent.compiler"
+  ],
+  "bindings": [
+    {
+      "id": "binding:intention.verifier",
+      "role": "verifier",
+      "declaration_ref": {
+        "id": "verifier_capsule.json",
+        "sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f"
+      },
+      "implementation_refs": [
+        {
+          "id": "verifier_implementation.txt",
+          "sha256": "79abc723b450d1ee6053f3461c54d473a2aaa86290c83ba019f6735c97584fbc"
+        }
+      ],
+      "dependency_refs": [],
+      "admission_ref": {
+        "id": "synthetic_admission.json",
+        "sha256": "ad6b207f1e9419c4f7605c16cd8ce4baa659546259aa3bbe56a2789c669c99ff"
+      },
+      "effective_authority": {
+        "network": "none",
+        "network_allowlist": [],
+        "resource_reads": [
+          {
+            "id": "capsule_declaration.json",
+            "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
+          },
+          {
+            "id": "intent_ir.json",
+            "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+          }
+        ],
+        "write_roots": [
+          "assessment-output"
+        ],
+        "tools": [
+          "audited-model-bridge"
+        ]
+      },
+      "limits": {
+        "time_s": 60,
+        "model_calls": 1,
+        "memory_mb": 512
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "name": "subject_declaration",
+      "contract_id": "urn:jiuwenswarm:m1-design:capsule-declaration:1.0.0",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "capsule_declaration.json",
+          "sha256": "b7714d788caeaf9ef3e87c16a11b92b4a6a17909c2aa8abeef23e582f61f1390"
+        }
+      ]
+    },
+    {
+      "name": "subject_output",
+      "contract_id": "opaque-bytes",
+      "version": "1.0.0",
+      "required": true,
+      "artifact_refs": [
+        {
+          "id": "intent_ir.json",
+          "sha256": "4dd9fe8109f55d2ab6d9691ba623a7c744491cf3e4fe4b9b23aa034aae01ba52"
+        }
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "verifier_assessment",
+      "contract_id": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",
+      "version": "1.0.0",
+      "required": true
+    }
+  ],
+  "evidence_obligations": [
+    "complete_assessment",
+    "read_only_execution"
+  ],
+  "checking_profile_ref": {
+    "id": "intent_checking_profile.json",
+    "sha256": "a056db4df4fffdf383ba7e9fe16fa34823953895177c50f48d167d9ef74271e9"
+  },
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+  },
+  "template_ref": {
+    "id": "verifier_subnode_template.json",
+    "sha256": "c87dabcd1066a4c158d09cf1863682cae35043690e32d6c345350d190da7daa0"
+  },
+  "subnode_id": "intention.verifier",
+  "node_contract_ref": {
+    "id": "intention_node_contract.json",
+    "sha256": "69710caac91feb787a1be740835da5768a7f9bb4fdc597a93fa517b236f1ecba"
+  },
+  "subnode_limits": {
+    "time_s": 60,
+    "model_calls": 1,
+    "memory_mb": 512
+  }
+}

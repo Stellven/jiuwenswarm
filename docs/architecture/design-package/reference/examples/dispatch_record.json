@@ -1,0 +1,78 @@
+{
+  "schema_version": "2.0.0",
+  "id": "dispatch_record_evaluation_attempt_1",
+  "run_id": "run:science",
+  "attempt_id": "evaluation-a1",
+  "phase": "planned",
+  "run_plan_ref": {
+    "id": "run_plan.json",
+    "sha256": "0f064ca543daecf4ae2b996695aa30a58f2c87648bcf48921e9173cac2703ef9"
+  },
+  "node_id": "evaluation",
+  "cc": {
+    "cc_name": "research.evaluation",
+    "cc_version": "example-1",
+    "declaration_sha256": "7a5a0ec87a6909f2748ec5f8f865456992cbeab60473aeb278b4ef08a789c18e"
+  },
+  "node_contract_ref": {
+    "id": "science_node_contract.json",
+    "sha256": "4daa1326220f80e8f09f5a8df0f9afb481091aa9d9b4fa1c91e1e5d4b2da5820"
+  },
+  "bound_input_refs": [
+    {
+      "name": "hypothesis_blueprint",
+      "ref": {
+        "id": "hypothesis_blueprint.json",
+        "sha256": "7e62818cf80ddd9f8ab695df1295322c04bbef6ed958e985c73aef1600f9571e"
+      }
+    },
+    {
+      "name": "benchmark_payload",
+      "ref": {
+        "id": "benchmark_payload.json",
+        "sha256": "ec44c12629aec73a4f28837612941c1aaa7b95686db5cd1ed0b14a0913a8e167"
+      }
+    },
+    {
+      "name": "brief",
+      "ref": {
+        "id": "lifecycle_research_brief.json",
+        "sha256": "e61024e96229443fb376f3b4ed090076f2ea9b03b9c386396864c90b402aab2c"
+      }
+    }
+  ],
+  "check_pins": {
+    "check_bundle_id": "research.evaluation.checks",
+    "check_bundle_version": "1.0.0",
+    "check_bundle_sha256": "850f44daf116832f76122664e31905a7f5da27ddf4ef3c248c65ae7da01afc20",
+    "checking_profile_id": "research.evaluation.profile",
+    "checking_profile_version": "1.0.0",
+    "checking_profile_sha256": "2dcbfdd89c6891225dc7c90cc03f6c0355ac71805b5eef8875722e9095763d8a"
+  },
+  "check_plan_ref": {
+    "id": "science_node_check_plan.json",
+    "sha256": "1fc790265ba1dd1c9ac9d826ff4b652c5ca337a2ab72763ae069165b90e89d95"
+  },
+  "attempt": 1,
+  "started_at": "2026-10-07T11:59:00Z",
+  "ended_at": "2026-10-07T12:00:30Z",
+  "outcome": "accepted",
+  "gate_decision_ref": {
+    "id": "gate_science_node_pass.json",
+    "sha256": "5756d7cf4bc1ea30754cd316196f8247524923af55f507f451cc9d0e729511bd"
+  },
+  "output_gate_decision_refs": [
+    {
+      "id": "gate_science_pass.json",
+      "sha256": "0574e73dec07d98ac0472dd10fdb7d5297176e449699308259f2beecebb28179"
+    }
+  ],
+  "output_refs": [
+    {
+      "id": "evaluation_verdict.json",
+      "sha256": "e07ef5a43938f79fb43b91c94c0f1d85175d683e467429224a1f9160cd0ef9e7"
+    }
+  ],
+  "elapsed_s": 90.0,
+  "model_calls_used": 2
+}

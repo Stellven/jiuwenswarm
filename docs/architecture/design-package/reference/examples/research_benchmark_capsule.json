@@ -1,0 +1,258 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.benchmark",
+    "version_label": "example-1",
+    "kind": "tool",
+    "summary": "Provisions the frozen lock, runs baseline then treatment per the blueprint, and records metrics without interpretation.",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "poc_manifest",
+        "artifact_type": "poc_manifest",
+        "schema_ref": "poc-manifest:field-contract:2",
+        "required": true,
+        "description": "Checked POC manifest from the Builder",
+        "check_ids": []
+      },
+      {
+        "name": "poc_artifact_bundle",
+        "artifact_type": "poc_artifact_bundle",
+        "schema_ref": "poc-artifact-bundle:field-contract:1",
+        "required": true,
+        "description": "Executable bundle bytes named by poc_manifest.archive_ref",
+        "check_ids": []
+      },
+      {
+        "name": "build_receipt",
+        "artifact_type": "build_receipt",
+        "schema_ref": "build-receipt:field-contract:1",
+        "required": true,
+        "description": "Host-written build evidence of the accepted Builder attempt. Must be READY",
+        "check_ids": []
+      },
+      {
+        "name": "hypothesis_blueprint",
+        "artifact_type": "hypothesis_blueprint",
+        "schema_ref": "hypothesis-blueprint:field-contract:2",
+        "required": true,
+        "description": "Frozen protocol",
+        "check_ids": []
+      },
+      {
+        "name": "baseline_resource",
+        "artifact_type": "resource_snapshot",
+        "schema_ref": "resource-snapshot:field-contract:1",
+        "required": true,
+        "description": "Captured baseline, run unmodified as the baseline subject",
+        "check_ids": []
+      },
+      {
+        "name": "validation_resource",
+        "artifact_type": "resource_snapshot",
+        "schema_ref": "resource-snapshot:field-contract:1",
+        "required": true,
+        "description": "Captured validation data",
+        "check_ids": []
+      },
+      {
+        "name": "environment_lock",
+        "artifact_type": "environment_lock",
+        "schema_ref": "environment-lock:field-contract:1",
+        "required": true,
+        "description": "Frozen dependency lock",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "benchmark_payload",
+        "artifact_type": "benchmark_payload",
+        "schema_ref": "benchmark-payload:field-contract:2",
+        "required": true,
+        "description": "Measurements only, no interpretation",
+        "check_ids": [
+          "benchmark_payload_schema"
+        ]
+      },
+      {
+        "name": "execution_receipt",
+        "artifact_type": "execution_receipt",
+        "schema_ref": "execution-receipt:field-contract:1",
+        "required": true,
+        "description": "Per-run record written by the protected executor",
+        "check_ids": [
+          "execution_receipt_schema"
+        ]
+      },
+      {
+        "name": "provisioning_receipt",
+        "artifact_type": "provisioning_receipt",
+        "schema_ref": "provisioning-receipt:field-contract:1",
+        "required": true,
+        "description": "Provisioning record written by the protected provisioner",
+        "check_ids": [
+          "provisioning_receipt_schema"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "allowlist",
+      "direction": "egress",
+      "allowlist": [
+        "approved_package_index"
+      ]
+    },
+    "resources": [
+      {
+        "resource_key": "poc_workspace",
+        "mode": "write"
+      },
+      {
+        "resource_key": "baseline_resource",
+        "mode": "read"
+      },
+      {
+        "resource_key": "gpu_device",
+        "mode": "exclusive"
+      }
+    ],
+    "injects": []
+  },
+  "changes": {
+    "effect_class": "compensable",
+    "effects": [
+      {
+        "id": "workspace-run",
+        "resource_key": "poc_workspace",
+        "op": "provision_and_execute",
+        "scope": "run workspace /workspace/poc only",
+        "idempotent": false,
+        "reversibility": "scoped",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one run workspace",
+          "irreversibility": false
+        },
+        "assurance": "unprivileged runner user, frozen lock, no network during runs"
+      }
+    ],
+    "provides": [],
+    "invariants": [
+      {
+        "id": "baseline_unmodified",
+        "statement": "The baseline subject digest equals the frozen baseline resource digest",
+        "check_id": "baseline_unmodified"
+      }
+    ]
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "benchmark_payload_schema",
+        "kind": "deterministic",
+        "target": "outputs.benchmark_payload",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      },
+      {
+        "id": "execution_receipt_schema",
+        "kind": "deterministic",
+        "target": "outputs.execution_receipt",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      },
+      {
+        "id": "provisioning_receipt_schema",
+        "kind": "deterministic",
+        "target": "outputs.provisioning_receipt",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent schema owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      }
+    ],
+    "acceptance": [
+      "benchmark_payload_schema",
+      "execution_receipt_schema",
+      "provisioning_receipt_schema"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Matchedness, provenance and validity are established by host checks, not by this declaration"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 3600,
+      "invocations": 1,
+      "tool_calls": 0
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "Mandatory host checks and verifier criteria are assigned by the protected binder, not declared here."
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:delivery-evidence-report:1.0.0",
+  "title": "Delivery evidence report",
+  "description": "Actual artifact is a UTF-8 Markdown report, not a JSON object: the decoded Markdown text. A single # title line, then exactly these ## headings once each in order: Objective; Method and scope; Results; Run log; Derived comparisons; What the results show; Requests the evidence cannot support; Limitations. The tables are copied from the evidence bundle by the host. Every number must be an evidence value or a host-computed derived value.",
+  "type": "string",
+  "minLength": 1
+}

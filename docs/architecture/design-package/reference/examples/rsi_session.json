@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0.0",
+  "id": "rsi_session",
+  "session_id": "rsi:synthetic:1",
+  "target_profile_ref": {
+    "id": "rsi_target_profile.json",
+    "sha256": "bc9325646c3294adb03052538badb5f24dc062297418a8f18862fbf808993a9e"
+  },
+  "parent": {
+    "cc_name": "screening.rank_opportunities",
+    "cc_version": "example-1",
+    "declaration_sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+  },
+  "parent_declaration_ref": {
+    "id": "ranking_declaration.json",
+    "sha256": "c455612d8a9bb2d1e99a617db0ecd69581d78c56a4aece596f6b339ef3d4eba3"
+  },
+  "improver_ref": {
+    "id": "rsi_improver_policy.txt",
+    "sha256": "ee424d8b228b6415978175c4d53af1ffe8c8ea3f93e026402038e7c6b94d27aa"
+  },
+  "scoring_adapter_ref": {
+    "id": "rsi_scoring_adapter.txt",
+    "sha256": "7762160b24aff7441bb230fcbb98fc472ea44a085cdbfc857b2b3c50e059ad5c"
+  },
+  "configuration_ref": {
+    "id": "run_configuration.json",
+    "sha256": "ad4873d6b4695fb0898969a8c7ae3c0c236a2bf90329841f6265a7c0c5ac26fa"
+  },
+  "hash_profile_ref": {
+    "id": "rsi_hash_profile.txt",
+    "sha256": "ee206cb900d8291ead27b92cdea4e12ec383b133698533aff3be585ee4eee99d"
+  },
+  "chain_root_ref": {
+    "id": "rsi_chain_genesis.json",
+    "sha256": "832dd4a76b34e54e59b97083f345b34a465137dc046489e761963c5488b93b86"
+  },
+  "limits": {
+    "max_attempts": 20,
+    "max_no_progress": 5,
+    "wall_s": 3600,
+    "per_call_s": 300,
+    "session_query_limit": 30,
+    "lifetime_query_limit": 90
+  },
+  "pass_count_repeats": 1,
+  "qualification": {
+    "min_pass_rate_gain": 0.05,
+    "alpha": 0.05,
+    "min_timing_gain": 0.1,
+    "noise_multiplier": 3,
+    "warmup_batches": 5,
+    "paired_rounds": 7
+  },
+  "started_by": "human:rsi-operator",
+  "frozen_at": "2026-10-14T09:00:00Z",
+  "ext": {
+    "example.synthetic": true
+  }
+}

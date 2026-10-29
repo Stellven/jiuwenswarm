@@ -4,7 +4,7 @@
   "role": "verifier",
   "capsule_ref": {
     "id": "verifier_capsule.json",
-    "sha256": "0892a0d135b6a2c1f1ad5690eeeadb6618409a7db6a4b10912baea79690bee9f"
+    "sha256": "23959dbe3b1cac882b9af568cfdb052a6dba476022282de4e2d2bd0fc659fda1"
   },
   "input_contract": "subject_declaration+subject_output",
   "output_contract": "urn:jiuwenswarm:m1-design:verifier-assessment:1.0.0",

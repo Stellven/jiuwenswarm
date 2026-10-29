@@ -31,8 +31,8 @@ def setup(tmp_path):
     inputs = {'lock': lock, 'blueprint': blueprint, 'baseline_resource': {'files': []},
               'validation_resource': {'files':[{'path':'data.json','artifact_ref':store.put_blob(json_bytes(public))}]}}
     refs = {key: lock_ref if key == 'lock' else store.put_blob(json_bytes(value)) for key,value in inputs.items()}
-    declaration = {'identity': {'name':'research.builder','version_label':'m1-13'},
-                   'needs':{'model':{'tool_calling':False}}, 'budget':{'per_call':{'invocations':3}}}
+    declaration = {'identity': {'name':'research.builder','version_label':'m1-13','carrier':{'ref':'builder_loop.py'}},
+                   'needs':{'model':{'tool_calling':False}}, 'budget':{'per_call':{'invocations':3,'tool_calls':0}}}
     contract = {'run_id':'run:builder','node_id':'builder','subnode_id':'builder','attempt_id':'attempt:builder',
                 'inputs':[{'name':key,'artifact_refs':[ref],'contract_id':'opaque-bytes','version':'1.0.0'} for key,ref in refs.items()], 'outputs':[],
                 'subnode_limits':{'time_s':10},'bindings':[{'limits':{'time_s':10},'declaration_ref':store.put_blob(json_bytes(declaration))}]}

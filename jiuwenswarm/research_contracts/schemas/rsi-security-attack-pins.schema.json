@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai4r:private:rsi-security-attack-pins:1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema": {
+      "const": "ai4r-rsi-security-attack-pins:1"
+    },
+    "program_prefix_ref": {
+      "$ref": "#/$defs/Ref"
+    },
+    "attacks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "RSIV-1": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-2": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-3": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-4": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-5": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-6": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-7": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-8": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-9": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-10": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-11": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-12": {
+          "$ref": "#/$defs/Ref"
+        },
+        "RSIV-13": {
+          "$ref": "#/$defs/Ref"
+        }
+      },
+      "required": [
+        "RSIV-1",
+        "RSIV-2",
+        "RSIV-3",
+        "RSIV-4",
+        "RSIV-5",
+        "RSIV-6",
+        "RSIV-7",
+        "RSIV-8",
+        "RSIV-9",
+        "RSIV-10",
+        "RSIV-11",
+        "RSIV-12",
+        "RSIV-13"
+      ]
+    }
+  },
+  "required": [
+    "schema",
+    "program_prefix_ref",
+    "attacks"
+  ],
+  "$defs": {
+    "Ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "id",
+        "sha256"
+      ]
+    }
+  }
+}

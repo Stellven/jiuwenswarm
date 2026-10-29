@@ -1,0 +1,116 @@
+# Explicit overlay for a separately selected deployment only. Prepare the
+# Root-owned bundle first; never apply to the benchmark/shared5175 app.
+# Build the broker with Dockerfile.rsi-ui-operator from the explicitly selected
+# new app/package/frontend image and the repository root as build context.
+services:
+  app:
+    environment:
+      JIUWENSWARM_M1_ORIGIN: http://127.0.0.1:5175
+      JIUWENSWARM_CC_RSI_PUBLICATION: /run/ai4r-rsi-ui/publication.json
+    ports: !override
+      - target: 5173
+        published: '5175'
+        host_ip: 127.0.0.1
+        protocol: tcp
+    volumes:
+      - type: bind
+        source: /run/ai4r-rsi-ui
+        target: /run/ai4r-rsi-ui
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_INSTALLATION_BUNDLE:?completed Root bundle required}/complete.json'
+        target: /etc/ai4r/cc-rsi-installation.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_INSTALLATION_BUNDLE:?completed Root bundle required}/gateway.json'
+        target: /etc/ai4r/cc-rsi-gateway.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_INSTALLATION_BUNDLE:?completed Root bundle required}/gateway.key'
+        target: /etc/ai4r/cc-rsi-gateway.key
+        read_only: true
+        bind: {create_host_path: false}
+  cc-human-operator:
+    image: '${AI4R_CC_OPERATOR_IMAGE:?verified matching operator image digest required}'
+    init: true
+    user: '0:0'
+    network_mode: none
+    read_only: true
+    restart: 'no'
+    pids_limit: 64
+    mem_limit: 512m
+    cpus: '1'
+    entrypoint: ['/opt/venv/bin/python-cc-operator', '/run/cc-rsi-operator.py', 'serve']
+    tmpfs: ['/tmp:rw,nosuid,nodev,noexec,size=16m']
+    volumes:
+      - type: bind
+        source: '${AI4R_CC_INSTALLATION_BUNDLE:?completed Root bundle required}/operator-entrypoint.py'
+        target: /run/cc-rsi-operator.py
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_INSTALLATION_BUNDLE:?completed Root bundle required}/complete.json'
+        target: /etc/ai4r/cc-rsi-installation.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_INSTALLATION_BUNDLE:?completed Root bundle required}/operator.json'
+        target: /etc/ai4r/cc-rsi-operator.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: /var/lib/ai4r-cc-rsi-operator
+        target: /var/lib/ai4r-cc-rsi-operator
+        bind: {create_host_path: false}
+      - type: bind
+        source: /run/ai4r-rsi-ui
+        target: /run/ai4r-rsi-ui
+        bind: {create_host_path: false}
+      # These three mounts must be the explicitly selected UID10001 Library
+      # destination/binding/config, not the UID12001 RSI bootstrap namespace.
+      - type: bind
+        source: '${AI4R_CC_LIBRARY_STATE:?explicit verified Library state required}'
+        target: /var/lib/ai4r
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_LIBRARY_INPUT:?explicit verified native Library input root required}'
+        target: /workspace/input
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_LIBRARY_BINDINGS:?Root-sealed Library binding locator required}'
+        target: /etc/ai4r/bootstrap-bindings.json
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_LIBRARY_CONFIG:?Root-sealed Library configuration required}'
+        target: /etc/ai4r/config.yaml
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_SIGNED_INBOX:?selected custodian-only public inbox required}'
+        target: /var/lib/ai4r-rsi-inbox
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_SECURITY_INSTALLATION:?current Root qualification installation required}'
+        target: /run/ai4r-rsi-security
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_SECURITY_IPC:?current Root scope observer socket directory required}'
+        target: /run/ai4r-rsi-security-ipc
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_EXECUTOR_RUN:?selected confined admission executor socket directory required}'
+        target: /run/ai4r-executor
+        read_only: true
+        bind: {create_host_path: false}
+      - type: bind
+        source: '${AI4R_CC_LIBRARY_RUN:?selected native executor session directory required}'
+        target: /run/ai4r
+        read_only: true
+        bind: {create_host_path: false}

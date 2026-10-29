@@ -1,0 +1,327 @@
+{
+  "schema_version": "1.0.0",
+  "identity": {
+    "name": "research.builder",
+    "version_label": "example-1",
+    "kind": "agent",
+    "summary": "Synthetic declaration: frozen blueprint to POC manifest and artifact bundle. Runs no trial, installs nothing",
+    "carrier": {
+      "ref": "intent_implementation.txt",
+      "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+    },
+    "body": [
+      {
+        "path": "intent_implementation.txt",
+        "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+      },
+      {
+        "path": "screening_rubric.json",
+        "sha256": "08d8ee151a1ef1cada0faed32c392d7de1be8c4fc41a713a77062ef92680468c"
+      },
+      {
+        "path": "ranking_parent.txt",
+        "sha256": "2a7c6c85b57fd9d2bbb20134126acc9d0dc2b2e2c5958679475f2028b5276191"
+      }
+    ]
+  },
+  "ports": {
+    "inputs": [
+      {
+        "name": "blueprint",
+        "artifact_type": "hypothesis_blueprint",
+        "schema_ref": "hypothesis-blueprint:field-contract:2",
+        "required": true,
+        "description": "Frozen experiment protocol",
+        "check_ids": []
+      },
+      {
+        "name": "baseline_resource",
+        "artifact_type": "resource_snapshot",
+        "schema_ref": "resource-snapshot:field-contract:1",
+        "required": true,
+        "description": "Captured baseline",
+        "check_ids": []
+      },
+      {
+        "name": "validation_resource",
+        "artifact_type": "resource_snapshot",
+        "schema_ref": "resource-snapshot:field-contract:1",
+        "required": true,
+        "description": "Captured validation data",
+        "check_ids": []
+      },
+      {
+        "name": "lock",
+        "artifact_type": "environment_lock",
+        "schema_ref": "environment-lock:field-contract:1",
+        "required": true,
+        "description": "Prepared environment lock",
+        "check_ids": []
+      }
+    ],
+    "outputs": [
+      {
+        "name": "manifest",
+        "artifact_type": "poc_manifest",
+        "schema_ref": "poc-manifest:field-contract:2",
+        "required": true,
+        "description": "Readable bundle description",
+        "check_ids": [
+          "manifest_schema",
+          "required_files_present",
+          "dependencies_pinned",
+          "bundle_hash_matches"
+        ]
+      },
+      {
+        "name": "bundle",
+        "artifact_type": "poc_artifact_bundle",
+        "schema_ref": "poc-artifact-bundle:field-contract:1",
+        "required": true,
+        "description": "Zip with requirements.txt, poc_patch.py, run_benchmark.py",
+        "check_ids": [
+          "bundle_schema",
+          "required_files_present",
+          "bundle_hash_matches"
+        ]
+      }
+    ]
+  },
+  "needs": {
+    "when": [],
+    "external": [],
+    "network": {
+      "mode": "none",
+      "direction": "none",
+      "allowlist": []
+    },
+    "resources": [
+      {
+        "resource_key": "poc_workspace",
+        "mode": "write"
+      }
+    ],
+    "injects": [
+      {
+        "service_key": "audited_model_bridge",
+        "interface_version_range": "1.x"
+      }
+    ],
+    "model": {
+      "tool_calling": true,
+      "modalities": [
+        "text"
+      ]
+    }
+  },
+  "changes": {
+    "effect_class": "idempotent",
+    "effects": [
+      {
+        "id": "model-disclosure",
+        "resource_key": "approved_model_bridge",
+        "op": "model_invoke",
+        "scope": "bound permitted request context",
+        "idempotent": false,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one approved context",
+          "irreversibility": true
+        },
+        "assurance": "protected bridge enforces scope and limits"
+      },
+      {
+        "id": "poc-workspace-write",
+        "resource_key": "poc_workspace",
+        "op": "write",
+        "scope": "/workspace/poc/ only",
+        "idempotent": true,
+        "reversibility": "none",
+        "undo": null,
+        "risk": {
+          "severity": "bounded",
+          "blast_radius": "one run workspace",
+          "irreversibility": false
+        },
+        "assurance": "protected workspace confinement"
+      }
+    ],
+    "provides": [],
+    "invariants": []
+  },
+  "guarantees": {
+    "checks": [
+      {
+        "id": "manifest_schema",
+        "kind": "deterministic",
+        "target": "outputs.manifest",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "structure only"
+      },
+      {
+        "id": "bundle_schema",
+        "kind": "deterministic",
+        "target": "outputs.bundle",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "archive container and entries only"
+      },
+      {
+        "id": "required_files_present",
+        "kind": "deterministic",
+        "target": "outputs.bundle",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "archive entries only"
+      },
+      {
+        "id": "dependencies_pinned",
+        "kind": "deterministic",
+        "target": "outputs.bundle",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "declared pins only"
+      },
+      {
+        "id": "bundle_hash_matches",
+        "kind": "deterministic",
+        "target": "outputs",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "identity only"
+      },
+      {
+        "id": "syntax_check",
+        "kind": "deterministic",
+        "target": "outputs.bundle",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "compilation only, no execution"
+      },
+      {
+        "id": "forbidden_modules_absent",
+        "kind": "deterministic",
+        "target": "outputs.bundle",
+        "runner": {
+          "ref": "intent_implementation.txt",
+          "sha256": "83dacac63cfbba131db22e01fccdbf7df69259a9d2d0a4e7c9a432e8f02a4e3d"
+        },
+        "anchor": "exact output bytes",
+        "over": [
+          "outputs"
+        ],
+        "author": "independent check owner",
+        "written_before_body": true,
+        "held_out": false,
+        "signal_source": "captured output and run records",
+        "owner": "protected profile registry",
+        "assurance": "static import scan, not confinement"
+      }
+    ],
+    "acceptance": [
+      "manifest_schema",
+      "bundle_schema",
+      "required_files_present",
+      "dependencies_pinned",
+      "bundle_hash_matches",
+      "syntax_check",
+      "forbidden_modules_absent"
+    ],
+    "evals": [],
+    "unanchored": [
+      "Protected member checking assignments required; no execution demonstrated"
+    ]
+  },
+  "budget": {
+    "per_call": {
+      "wall_s": 600,
+      "invocations": 1,
+      "tool_calls": 40
+    },
+    "enforcement": {
+      "wall_s": "hard",
+      "invocations": "hard",
+      "tool_calls": "hard"
+    },
+    "on_exhaust": "fail"
+  },
+  "evolution": {
+    "rsi": "none",
+    "may_change": [],
+    "notes_for_builder": []
+  },
+  "coverage": {
+    "undeclared_notes": [
+      "No capability-specific predicate applies; host readiness checks required model/storage before invocation."
+    ]
+  }
+}
