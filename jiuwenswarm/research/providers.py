@@ -79,7 +79,7 @@ class NativeProviders:
         self.factory = native_factory
 
     async def _configuration(self, deployment_ref, *, timeout_s, call_function):
-        if (call_function not in {"worker", "planner"} or type(timeout_s) not in (int, float)
+        if (call_function not in {"worker", "planner", "verifier", "routing_selection"} or type(timeout_s) not in (int, float)
                 or not math.isfinite(timeout_s) or not 0 < timeout_s <= 600):
             raise ProviderError("invalid_request")
         # The protected resolver must verify the exact Ref, approved deployment
@@ -99,7 +99,14 @@ class NativeProviders:
                 or deployment.get("provider") != endpoint["provider_id"]):
             raise ProviderError("invalid_request")
         url = urlsplit(endpoint["base_url"])
-        if url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
+        local = deployment.get('adapter_id') == 'native-local-openai-chat-v1'
+        if not local and call_function not in {'worker', 'planner'}:
+            raise ProviderError('invalid_request')
+        if local:
+            from .local_pool_registry import local_endpoint_url
+            if endpoint['provider_id'] != 'local' or not local_endpoint_url(endpoint['base_url']):
+                raise ProviderError('invalid_request')
+        elif url.scheme != "https" or not url.hostname or url.username or url.password or url.query or url.fragment:
             raise ProviderError("invalid_request")
         models = endpoint["models"]
         requested = {"model_id": deployment.get("model_id"), "provider_model_name": deployment.get("provider_model_name")}
@@ -110,20 +117,39 @@ class NativeProviders:
         if not isinstance(name, str) or not re.fullmatch(r"[A-Z][A-Z0-9_]{0,63}", name):
             raise ProviderError("invalid_request")
         key = self.environment.get(name)
-        if not isinstance(key, str) or not key.strip():
+        if not local and (not isinstance(key, str) or not key.strip()):
             raise ProviderError("auth_failed")
         provider_timeout = endpoint["timeout_s"]
         if type(provider_timeout) not in (int, float) or not math.isfinite(provider_timeout) or not 1 <= provider_timeout <= 600:
             raise ProviderError("invalid_request")
         # This parser/transport is qualified independently of all other native
         # providers. Unknown adapters remain unavailable, even if registered.
-        if deployment.get("adapter_id") != "native-openai-chat-v1" or not deployment.get("revision"):
+        if deployment.get("adapter_id") not in {"native-openai-chat-v1", 'native-local-openai-chat-v1'} or not deployment.get("revision"):
             raise ProviderError("invalid_request")
         timeout = min(timeout_s, provider_timeout)
         config = {"client_id": "governed-api-call", "client_provider": "OpenAI", "api_mode": "chat_completions",
                   "api_key": key, "api_base": endpoint["base_url"], "timeout": timeout,
                   "max_retries": 0, "use_shared_llm_http_client": False}
         model = {"model_name": deployment["provider_model_name"]}
+        if local:
+            config.update(auth_mode='none', api_key='')
+            output_tokens = deployment.get('output_tokens')
+            if type(output_tokens) is not int or not 256 <= output_tokens <= 32768:
+                raise ProviderError('invalid_request')
+            thinking = deployment.get('reasoning_enabled', False)
+            role_policy = deployment.get('reasoning_role_policy')
+            if role_policy is not None:
+                if role_policy != 'worker_medium_assessor_verifier_none:1':
+                    raise ProviderError('invalid_request')
+                thinking = call_function in {'worker','planner'}
+            if type(thinking) is not bool or deployment.get('reasoning_effort', 'medium') not in {'low','medium','high'}:
+                raise ProviderError('invalid_request')
+            extra = {'chat_template_kwargs': {'enable_thinking': thinking}}
+            if thinking:
+                extra['reasoning_effort'] = deployment.get('reasoning_effort', 'medium')
+            elif role_policy:
+                extra['reasoning_effort'] = 'none'
+            model.update(max_tokens=output_tokens, temperature=1.0, top_p=0.95, extra_body=extra)
         return deployment, config, model
 
     async def preflight(self, deployment_ref, *, timeout_s, call_function):
@@ -135,21 +161,30 @@ class NativeProviders:
         """
         await self._configuration(deployment_ref, timeout_s=timeout_s, call_function=call_function)
 
-    async def invoke(self, deployment_ref, prompt, *, timeout_s, call_function):
+    async def invoke(self, deployment_ref, prompt, *, timeout_s, call_function, output_tokens=None):
         if not isinstance(prompt, str) or not prompt.strip():
             raise ProviderError("invalid_request")
         deployment, config, model = await self._configuration(deployment_ref, timeout_s=timeout_s,
                                                               call_function=call_function)
         timeout = config["timeout"]
+        if output_tokens is not None:
+            if (deployment.get('adapter_id') != 'native-local-openai-chat-v1' or type(output_tokens) is not int
+                    or not 1 <= output_tokens <= model['max_tokens']):
+                raise ProviderError('invalid_request')
+            model['max_tokens'] = output_tokens
         observation = {"identity": {"effective": None, "basis": "effective model not observed"},
                        "usage": observed_usage(), "provider_request_id": None}
         started = False
+        truncated = False
         try:
             client = self.factory(config, model)
             parser = getattr(client, "_parse_response", None)
             if parser is None:
                 raise ProviderError("invalid_request")
             async def observe(response, *args, **kwargs):
+                nonlocal truncated
+                choices = _get(response, 'choices', [])
+                truncated = bool(choices and _get(choices[0], 'finish_reason') == 'length')
                 usage = _get(response, "usage")
                 observation["usage"] = observed_usage({
                     "input_tokens": _get(usage, "prompt_tokens"),
@@ -167,7 +202,7 @@ class NativeProviders:
                 response = await client.invoke(messages=[{"role": "user", "content": prompt}], tools=None,
                                                model=deployment["provider_model_name"], timeout=timeout)
             text = _get(response, "content")
-            if not isinstance(text, str) or not text.strip() or _get(response, "tool_calls"):
+            if truncated or not isinstance(text, str) or not text.strip() or _get(response, "tool_calls"):
                 raise ProviderError("invalid_output")
             return {"text": text, **observation, "observed_runtime": True}
         except asyncio.CancelledError as error:

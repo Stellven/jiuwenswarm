@@ -1,0 +1,63 @@
+{
+  "schema": "ai4r-demo-manifest:1",
+  "demo": "case1-cpu",
+  "campaign_id": "demo-cpu-paper-20261023-103800",
+  "runner_case_file": "/cases/demos-20261023/case1-cpu.json",
+  "case_sha256": "8583519f58b49b2d6cf717cd4b3958e29c06a1ab3fbcc9eb1a3ebf604db66101",
+  "checkout_commit": "f7b31c6796191c5a80804a9484b031bc671bc6db",
+  "app_build_id": "db45a807a314ef5aab1f69090b1a5bd8d0f7c1eed878cc857885518ef4780ca4",
+  "app_image": "sha256:c8eeba69e0d45968d1e18dfe281f6c66f91053ff8e258d231295eb552dd1a613",
+  "runner_image": "sha256:193c0ae0cffb95557424faec618bc944fb87d2b08cac78921f1190f8e0358992",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "model_requested": "gpt-6.1-sol",
+  "model_observed": [
+    "gpt-6.1-sol"
+  ],
+  "status": "HALTED",
+  "reason": "compiler_did_not_release: Requirements semantic verifier rejected comparison=null alongside an at-least-five-percentage-point target.",
+  "reviewer_material_sent_to_app": false,
+  "quality_assessment": null,
+  "runtime_metadata_source": "host-preflight.json and per-run runtime-environment.json; actual model must be read from saved events",
+  "collection_state": "complete",
+  "app_run_id": "run:7705df93bd904f5d9e37c99b156d29c8",
+  "request_id": "request-1c6142b5fd154037934f161b19708d95",
+  "submitted_at": "2026-10-23T14:38:25Z",
+  "ended_at": "2026-10-23T14:41:51Z",
+  "runner_hostname": "12ac8accaf15",
+  "observed_nodes": [
+    {
+      "attempt_id": "intention_compiler-a1",
+      "lifecycle_status": "Failed",
+      "node_id": "intention_compiler",
+      "skipped_because": null
+    }
+  ],
+  "run_record": "../../results/demo-cpu-paper-20261023-103800/runs/case1-cpu-r1/run_record.json",
+  "original_archive": "../../results/demo-cpu-paper-20261023-103800/runs/case1-cpu-r1/artifacts/originals.zip",
+  "archive_sha256": "0419e23fe7c0b40c5c87bdf0cd91dc8aa9f05154271be56c9e3aa5e17a09a50a",
+  "submitted_inputs": [
+    {
+      "path": "demos-20261023/case1-cpu/test.csv",
+      "sha256": "83c211408fc478e6426d25057710d2e3e3e958410e250124c2ccb737c3b7d8a1",
+      "upload_id": "upload:24042565a9c8735725c788bb0386f1f8"
+    },
+    {
+      "path": "demos-20261023/case1-cpu/train.csv",
+      "sha256": "8589c9819660549c7e088d53abf9a413394ab6bc054b49ea3c8fde04f7af9203",
+      "upload_id": "upload:e3bd1582903dbc5689c1638bcf1e00aa"
+    },
+    {
+      "path": "demos-20261023/case1-cpu/data-description.md",
+      "sha256": "aac07dd9fd07008467fcf487b682017d5111444559022f1eb7bba71455a93c54",
+      "upload_id": "upload:eea6d182041384396887f02e2c6e7683"
+    }
+  ],
+  "missing_measurements": [
+    "predictions.csv",
+    "logistic-regression accuracy",
+    "1-nearest-neighbour accuracy",
+    "accuracy difference"
+  ],
+  "scoring_status": "NOT_SCORED",
+  "provenance_note": "Checkout commit is reviewer-captured; installed app build/image are recorded separately. Model is observed in native run events. Runner does not natively store the checkout commit/physical hostname."
+}

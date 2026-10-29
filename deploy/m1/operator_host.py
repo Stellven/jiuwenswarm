@@ -34,6 +34,22 @@ def local_model_operator():
     exec(compile(source, '<repository-local-model-operator>', 'exec'), namespace)
     return namespace
 
+
+def spark_model_operator():
+    source = globals().get('SPARK_MODEL_OPERATOR_SOURCE')
+    if source is None:
+        source = Path(__file__).with_name('spark_model_operator.py').read_text(encoding='utf-8')
+    selection = globals().get('SPARK_POOL_SELECTION')
+    if selection is None:
+        selection = json.loads(Path(__file__).with_name('spark-pool-v2.json').read_text(encoding='utf-8'))
+    selection3 = globals().get('SPARK_POOL_SELECTION_V3')
+    if selection3 is None:
+        selection3 = json.loads(Path(__file__).with_name('spark-pool-v3.json').read_text(encoding='utf-8'))
+    namespace = {'__name__': 'ai4r_spark_model_operator', 'SPARK_POOL_SELECTION': selection,
+        'SPARK_POOL_SELECTION_V3':selection3}
+    exec(compile(source, '<repository-spark-model-operator>', 'exec'), namespace)
+    return namespace
+
 # Read-only, operator-only inspection inside the owned app/container or its
 # stopped volumes. Never mounted into the runner; never invokes store recovery.
 IDLE_PROBE = '''import hashlib,json,os,sqlite3,stat,sys,tempfile
@@ -290,6 +306,8 @@ def render(p, template):
         'labels': {'ai4r.deployment': p['deployment_id']}}
     if p.get('local_model') is not None:
         local_model_operator()['apply_compose'](p, result)
+    if p.get('local_pool') is not None:
+        spark_model_operator()['apply_compose'](p, result)
     publish(root / 'compose.json', canonical(result), replace=True)
 
 
@@ -496,6 +514,33 @@ def dispatch(r):
                 previous['local_model'] = selected
                 publish(root / 'deployment.json', canonical(previous), replace=True)
                 return {'configured': True, 'deployment': previous, 'activated': False}
+        if action in {'local-pool-configure', 'local-pool-migrate', 'local-pool-prepare', 'local-pool-weights'}:
+            with lock(root / 'execution.lock'):
+                assert_idle(p)
+                assert_app_idle(p)
+                previous = json.loads((root / 'deployment.json').read_bytes())
+                helper = spark_model_operator()
+                if action == 'local-pool-migrate':
+                    old = previous.get('local_pool')
+                    if (not old or old.get('schema') not in {'ai4r-spark-pool:1','ai4r-spark-pool:2'}
+                            or old.get('selection_generation')==3):
+                        raise ValueError('Migration requires an older pinned local pool')
+                    previous.setdefault('retired_local_pools', []).append(old)
+                    previous['local_pool'] = helper['configure_v2'](previous, r['data_root'], docker, checked,
+                        share_address=r.get('share_address'))
+                elif action == 'local-pool-configure':
+                    if previous.get('local_pool'):
+                        raise ValueError('Local pool is already pinned; retain it or explicitly migrate the idle deployment')
+                    previous['local_pool'] = helper['configure_v2'](previous, r['data_root'], docker, checked,
+                        share_address=r.get('share_address'))
+                elif action=='local-pool-weights':
+                    previous['local_pool'] = helper['fetch_weights'](previous, docker, checked, publish, canonical)
+                else:
+                    previous['local_pool'] = helper['prepare'](previous, docker, checked, publish, canonical)
+                publish(root / 'deployment.json', canonical(previous), replace=True)
+                return {'configured': True, 'prepared': previous['local_pool']['prepared'],
+                        'weights_ready': previous['local_pool'].get('weights_ready',False),
+                        'deployment': previous, 'activated': False}
         if action == 'begin-transfer':
             with lock(root / 'execution.lock'):
                 assert_idle(p)
@@ -572,8 +617,10 @@ def dispatch(r):
             with lock(root / 'execution.lock'):
                 assert_idle(p)
                 assert_app_idle(p)
-                compose(p, 'stop', '--timeout', '45', timeout=120)
-                return {'stopped': True, 'state_retained': True}
+                retained = bool(p.get('local_pool', {}).get('shared_access'))
+                services = ('ai4r', 'benchmark-runner') if retained else ()
+                compose(p, 'stop', '--timeout', '45', *services, timeout=120)
+                return {'stopped': True, 'state_retained': True, 'shared_models_retained': retained}
         if action == 'logs':
             # Logs are intentionally private; returned only on an explicit command.
             return {'stdout': compose(p, 'logs', '--no-color', '--tail', str(r['tail']), r['service']).decode(errors='replace')}
@@ -654,12 +701,15 @@ def start(p, r):
     assert_app_idle(p)
     if p.get('local_model') is not None:
         local_model_operator()['provision'](p, docker)
+    if p.get('local_pool') is not None:
+        spark_model_operator()['preflight_start'](p, docker)
+        spark_model_operator()['provision'](p, docker, canonical)
     render(p, r['template'])
     for key in ('app_image', 'runner_image'):
         image = json.loads(docker(p, 'image', 'inspect', p[key]))[0]
         if 'linux/' + image['Architecture'] != p['platform']:
             raise ValueError('Image architecture does not match target')
-    compose(p, 'up', '-d', '--no-build', '--pull', 'never', 'ai4r', timeout=180)
+    compose(p, 'up', '-d', '--no-build', '--pull', 'never', 'ai4r', timeout=1200 if p.get('local_pool') else 180)
     # Wait for native ownership sockets, not model login or model execution.
     for attempt in range(60):
         try:
@@ -676,7 +726,7 @@ def start(p, r):
             raise ValueError('App catalog initialization blocked; inspect app prerequisites')
         publish(initialized, canonical({'app_image': p['app_image']}))
         assert_app_idle(p)
-        compose(p, 'up', '-d', '--force-recreate', '--no-build', '--pull', 'never', 'ai4r', timeout=180)
+        compose(p, 'up', '-d', '--force-recreate', '--no-deps', '--no-build', '--pull', 'never', 'ai4r', timeout=180)
         publish(root / 'deployment.json', canonical(p), replace=True)
         return {'deployment': p, 'app_started': True, 'next': 'Complete sign-in at http://127.0.0.1:5175, then run start --refresh-credential. For SSH use an SSH port-forward.'}
     container = compose(p, 'ps', '-q', 'ai4r').decode().strip()

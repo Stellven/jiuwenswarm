@@ -1,0 +1,42 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, id, brief_ref, scope_ref, queries, connector_outcomes, citations, and ideas satisfy the declared candidate_set shape, required fields, types, patterns, and bounds."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "ideas[].idea_id values are unique, ideas[].citation_ids resolve to citations[].id, citations[].query appears in queries, and connector_outcomes[].citations_captured matches the citation count for its connector. No conflicting claims appear in ideas[].summary, assumptions, or risks."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "ideas[].assumptions mark feature and distribution premises as unproved; ideas[].summary and ideas[].risks describe the improvement as untested and distinguish validation from blind test predictions. These qualifications are consistent with the content and the declaration's stated limits."
+    },
+    {
+      "criterion_id": "idea_states_mechanism",
+      "outcome": "PASS",
+      "reason": "ideas[0].summary proposes fitting preprocessing only on the training partition to reduce validation leakage. ideas[1].summary proposes a shared stratified holdout and frozen configurations to reduce composition and holdout-difficulty effects."
+    },
+    {
+      "criterion_id": "ideas_are_distinct",
+      "outcome": "PASS",
+      "reason": "ideas[0].summary addresses preprocessing leakage, while ideas[1].summary addresses comparable evaluation through shared stratified validation rows and frozen configurations."
+    },
+    {
+      "criterion_id": "assumptions_and_risks_specific",
+      "outcome": "PASS",
+      "reason": "ideas[0].assumptions and risks concern row-dependent preprocessing and transformation effects on the two models. ideas[1].assumptions and risks concern class counts, holdout representativeness, and split-dependent variation around the five-point target."
+    }
+  ],
+  "uncertainties": [
+    "ideas[].assumptions explicitly leave feature properties, class sufficiency, and holdout representativeness unresolved."
+  ],
+  "limitations": [
+    "Review is limited to the supplied declaration and output; brief_ref, scope_ref, and citations[].source_ref were treated only as references.",
+    "No source fidelity, entailment, experimental truth, or permissions were assessed."
+  ],
+  "required_correction": null
+}

@@ -1,0 +1,97 @@
+{
+  "schema_version": "case1-full-result:1",
+  "campaign_id": "case1-full-20261023-01",
+  "app_run_id": "run:ed6087d37f4742aaba2b0435a1f91841",
+  "request_id": "request-8ffc1f13bc2d4153818c47d9aa4a7361",
+  "execution_state": "partial",
+  "collection_state": "complete",
+  "agent_cancelled_run": false,
+  "source_checkout_at_launch": "125dafc57437700dc32005f5e2403a0aa00a519f",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "app_build_id": "02947b968893eda882bd3a950b03d617fd2a5ba20d0c015a7a0be4d7ba973ac2",
+  "app_image": "sha256:9196a0cd4341c934d691fdeb4751e1ba896e935bee404182c2adbe35a1ec45df",
+  "runner_image": "sha256:faab1f7b5350d5bc53e4cb6065247af909609d6e17603b65c52379f0987bc09a",
+  "models_observed": [
+    "gpt-6.1-sol"
+  ],
+  "submitted_at": "2026-10-23T18:12:56Z",
+  "ended_at": "2026-10-23T18:21:32Z",
+  "stages": [
+    {
+      "attempt_id": null,
+      "lifecycle_status": "Failed",
+      "node_id": "benchmark",
+      "skipped_because": "builder"
+    },
+    {
+      "attempt_id": "builder-a1",
+      "lifecycle_status": "Failed",
+      "node_id": "builder",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": null,
+      "lifecycle_status": "Failed",
+      "node_id": "delivery",
+      "skipped_because": "builder"
+    },
+    {
+      "attempt_id": null,
+      "lifecycle_status": "Failed",
+      "node_id": "evaluation",
+      "skipped_because": "benchmark"
+    },
+    {
+      "attempt_id": "hypothesis-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "hypothesis",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "intention_compiler-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "intention_compiler",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "planner-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "planner",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "screening-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "screening",
+      "skipped_because": null
+    },
+    {
+      "attempt_id": "search-a1",
+      "lifecycle_status": "Completed",
+      "node_id": "search",
+      "skipped_because": null
+    }
+  ],
+  "failure": {
+    "metric_ids": [
+      "validation_accuracy"
+    ],
+    "builder_checker_accepted_ids": [
+      "accuracy"
+    ],
+    "check_id": "output_log_format"
+  },
+  "failure_explanation": "Hypothesis emitted validation_accuracy. The Builder prediction-bundle checker requires exactly accuracy and rejects this valid identifier before Python syntax checks or execution. The protected gate halted Builder; Benchmark, Evaluation and Delivery were skipped.",
+  "predictions_produced": false,
+  "measurements_produced": false,
+  "blind_scoring_status": "NOT_SCORED: no actual predictions",
+  "scientific_conclusion": null,
+  "quality_assessment": null,
+  "run_plan_ref": {
+    "id": "blob:a092676fe73ce1a74b25a826767ad89a063ec6370c823bf38f599f0f37ff7811",
+    "sha256": "a092676fe73ce1a74b25a826767ad89a063ec6370c823bf38f599f0f37ff7811"
+  },
+  "contracts": "runs/case1-cpu-r1/contracts/index.json",
+  "static_diagnosis": "runs/case1-cpu-r1/builder-static-diagnosis.json",
+  "observations": "Same original task and public data; reviewer labels not uploaded. Runner observation ceiling extended to 7800 seconds; native budgets unchanged. No app code, capsule, baseline or task was changed during this run."
+}

@@ -22,6 +22,7 @@ from .evidence_review import (EvidenceAwareGate, EvidenceAwareSemanticVerifier,
 from .checks.verifier import verifier_predicates,contract_is
 from .state import json_bytes, utc_now
 from .router_client import PlatformIntegrityError
+from .automatic_routing import POLICY as AUTOMATIC_ROUTING_POLICY, routing_policy, node_routing_allowance
 from .checks.records import body_files_sha256,complete_observation
 from .checks.assets import CheckAssetAdmissions
 
@@ -353,8 +354,12 @@ class CapsuleRunner:
             node_used=self.store.connection.execute('SELECT COUNT(*) FROM model_calls WHERE run_id=? AND node_id=?',(run_id,node_id)).fetchone()[0]
             run_used=self.store.connection.execute('SELECT COUNT(*) FROM model_calls WHERE run_id=?',(run_id,)).fetchone()[0]
             used=0 if execution is None else self.store.connection.execute('SELECT COUNT(*) FROM model_calls WHERE run_id=? AND invocation_id=?',(run_id,execution['invocation_id'])).fetchone()[0]
+        # Product automatic routing has its own versioned per-worker selection
+        # capacity. Worker/reviewer invocation ceilings and the run total stay
+        # unchanged. Selection claims are included in node and run usage.
+        node_call_ceiling = parent['node_limits']['model_calls'] + node_routing_allowance(self.store, parent)
         node_remaining={'time_s':max(0,parent['node_limits']['time_s']-(now-node_started)),
-                        'model_calls':max(0,parent['node_limits']['model_calls']-node_used),'memory_mb':parent['node_limits']['memory_mb']}
+                        'model_calls':max(0,node_call_ceiling-node_used),'memory_mb':parent['node_limits']['memory_mb']}
         run_remaining={'time_s':max(0,frozen['run_limits']['time_s']-(now-run_started)),
                        'model_calls':max(0,frozen['run_limits']['model_calls']-run_used),'memory_mb':frozen['run_limits']['memory_mb']}
         elapsed=0 if execution is None else now-execution['started']
@@ -369,7 +374,8 @@ class CapsuleRunner:
         if spendable['time_s']<=0 or spendable['model_calls']<0:
             raise ResearchError('budget_exhausted','Frozen independent reviewer/sibling reservations do not fit the remaining node/run ceiling')
         return {'node_remaining':node_remaining,'run_remaining':run_remaining,'subnode_remaining':subremaining,
-                **reserved,'spendable':spendable,'reserved_calls':reserved_calls,'observed_monotonic_s':now}
+                **reserved,'spendable':spendable,'reserved_calls':reserved_calls,'observed_monotonic_s':now,
+                'node_call_ceiling': node_call_ceiling}
 
     def authorize_model_context(self,context: Mapping)->dict:
         owner=self.resolve_evaluation_owner(execution_id=context.get('execution_id'))
@@ -399,6 +405,16 @@ class CapsuleRunner:
                    'execution_deadline_monotonic_s':deadline,
                    **{k:copy.deepcopy(v) for k,v in frozen.items() if k not in {'run_limits','routing_context'}},
                    'model_selection_profile':selection_profile,'approved_model_ids':selection_profile['approved_model_ids']}
+        if routing_policy(self.store, contract['run_id']) is not None:
+            protected['routing_budget'] = {
+                'schema': 'ai4r-routing-budget-view:1',
+                'basis': 'remaining_before_current_executor_claim',
+                **{key: copy.deepcopy(budget[key]) for key in (
+                    'node_remaining', 'run_remaining', 'subnode_remaining',
+                    'verifier_reserved', 'other_work_reserved', 'spendable')},
+                'tokens_remaining': None, 'cost_remaining': None,
+                'unavailable_reason': 'Local token and compute-cost balances are not measured',
+            }
         if frozen['router']['enabled'] and selection_profile['policy_mode']!='fixed_baseline' and execution['call_function']!='verifier':
             try:
                 selected,request=self._route_export(execution,context['execution_id'],parent,frozen,selection_profile)
@@ -407,9 +423,51 @@ class CapsuleRunner:
                 if exc.code in {'TASK_MISMATCH','BUDGET_UNVERIFIABLE','PROFILE_UNAVAILABLE'}:protected['routing_export_error']=exc.code
                 else:raise
         call_id,claim_ref=self.store.claim_model_call(protected,invocation_limit=min(contract['subnode_limits']['model_calls'],binding['limits']['model_calls']),
-            node_limit=parent['node_limits']['model_calls'],run_limit=frozen['run_limits']['model_calls'],
+            node_limit=budget['node_call_ceiling'],run_limit=frozen['run_limits']['model_calls'],
             reserved_node_calls=budget['reserved_calls'],reserved_run_calls=budget['reserved_calls'])
         return dict(protected,call_id=call_id,call_claim_ref=claim_ref)
+
+    def authorize_routing_selection(self, payload):
+        """Private bridge-only allowance for one nonrecursive selection call."""
+        fields = {'execution_id', 'invocation_id', 'call_id', 'call_claim_ref', 'contract_ref'}
+        if (not isinstance(payload, Mapping) or set(payload) != fields | {'prompt_sha256'}
+                or not isinstance(payload['prompt_sha256'], str)
+                or len(payload['prompt_sha256']) != 64
+                or any(c not in '0123456789abcdef' for c in payload['prompt_sha256'])):
+            raise ResearchError('invalid_request', 'Invalid routing selection binding')
+        subject = self.authorize_model_dispatch({key: payload[key] for key in fields})
+        if subject['call_function'] not in {'worker', 'planner'} or subject.get('purpose') == 'routing_selection':
+            raise ResearchError('invalid_request', 'This call cannot request another selector')
+        snapshot = routing_policy(self.store, subject['run_id'])
+        if snapshot is None:
+            raise ResearchError('invalid_request', 'No frozen automatic routing policy')
+        if snapshot['routing_policy']['selection_calls_per_capsule_invocation'] == 0:
+            raise ResearchError('invalid_request', 'The frozen primary-executor policy forbids model selection calls')
+        candidate = next((c for c in snapshot['candidates'] if c['id'] == snapshot['selector_id']), None)
+        if candidate is None:
+            raise ResearchError('invalid_request', 'No pinned selection model')
+        execution = self._executions[subject['execution_id']]
+        contract = execution['contract']
+        budget = self._budget_state(contract, execution)
+        deadline = min(subject['execution_deadline_monotonic_s'],
+            time.monotonic() + snapshot['routing_policy']['selection_time_s'])
+        if deadline <= time.monotonic():
+            raise ResearchError('budget_exhausted', 'No time remains for routing selection')
+        selection = {key: copy.deepcopy(value) for key, value in subject.items()
+            if key not in {'call_id', 'call_claim_ref', 'selected_capsule', 'route_request'}}
+        selection.update(
+            purpose='routing_selection', call_function='routing_selection',
+            subject_call_id=subject['call_id'], subject_invocation_id=subject['invocation_id'],
+            invocation_id=subject['invocation_id'] + ':routing', call_ordinal=1,
+            expected_prompt_sha256=payload['prompt_sha256'], routing_selection_candidate=copy.deepcopy(candidate),
+            deployment_ref=candidate['deployment_ref'],
+            limits=dict(subject['limits'], time_s=deadline-time.monotonic(), model_calls=1),
+            execution_deadline_monotonic_s=deadline)
+        frozen = self._run_contexts[subject['run_id']]
+        call_id, claim_ref = self.store.claim_model_call(selection, invocation_limit=1,
+            node_limit=budget['node_call_ceiling'], run_limit=frozen['run_limits']['model_calls'],
+            reserved_node_calls=budget['reserved_calls'], reserved_run_calls=budget['reserved_calls'])
+        return dict(selection, call_id=call_id, call_claim_ref=claim_ref)
 
     def authorize_model_dispatch(self,payload: Mapping)->dict:
         """Recheck the existing durable claim immediately before its effect."""
@@ -419,18 +477,27 @@ class CapsuleRunner:
         if not isinstance(payload,Mapping) or set(payload)!=fields:
             raise ResearchError('model_dispatch_authorization','Malformed finite dispatch recheck')
         execution=self._executions.get(payload['execution_id'])
-        if (execution is None or execution['closed'] or execution.get('phase')!='active' or payload['contract_ref']!=execution['contract_ref']
-            or payload['invocation_id']!=execution['invocation_id']):
+        if (execution is None or execution['closed'] or execution.get('phase')!='active' or payload['contract_ref']!=execution['contract_ref']):
             raise ResearchError('model_dispatch_authorization','No matching active invocation')
         contract=execution['contract']
         with self.store._lock:
             row=self.store.connection.execute('SELECT claim_ref FROM model_calls WHERE run_id=? AND invocation_id=? AND call_id=?',
-                (contract['run_id'],execution['invocation_id'],payload['call_id'])).fetchone()
+                (contract['run_id'],payload['invocation_id'],payload['call_id'])).fetchone()
         if row is None or json.loads(row['claim_ref'])!=payload['call_claim_ref']:
             raise ResearchError('model_dispatch_authorization','Dispatch does not match an exact durable call claim')
         claim=self.store.read_record(payload['call_claim_ref'])
         if any(claim.get(key)!=payload[key] for key in fields-{'call_claim_ref'}):
             raise ResearchError('model_dispatch_authorization','Claim and protected execution differ')
+        if claim.get('purpose') == 'routing_selection':
+            snapshot = routing_policy(self.store, contract['run_id'])
+            selector = next((c for c in snapshot['candidates'] if c['id'] == snapshot['selector_id']), None) if snapshot else None
+            if (claim.get('subject_invocation_id') != execution['invocation_id'] or selector is None
+                    or claim.get('routing_selection_candidate') != selector
+                    or claim['invocation_id'] != execution['invocation_id'] + ':routing'
+                    or self.store.read_record(self.store.record_ref(claim['subject_call_id'] + ':claim'))['invocation_id'] != execution['invocation_id']):
+                raise ResearchError('model_dispatch_authorization', 'Routing selection scope differs')
+        elif payload['invocation_id'] != execution['invocation_id']:
+            raise ResearchError('model_dispatch_authorization', 'Dispatch invocation differs')
         budget=self._budget_state(contract,execution)
         deadline=min(execution['deadline'],claim['execution_deadline_monotonic_s'],
                      budget['observed_monotonic_s']+budget['spendable']['time_s'])
@@ -902,7 +969,8 @@ class CapsuleRunner:
             if frozen is not None:
                 with self.store._lock:
                     used=self.store.connection.execute('SELECT COUNT(*) FROM model_calls WHERE run_id=?',(contract['run_id'],)).fetchone()[0]
-                if (time.monotonic()-self._run_started[contract['run_id']]>=frozen['run_limits']['time_s']
+                started = self._run_started.get(contract['run_id'])
+                if ((started is not None and time.monotonic()-started>=frozen['run_limits']['time_s'])
                         or used>=frozen['run_limits']['model_calls']):
                     reason,failed_ref='run_budget_exhausted',observation_ref
         if reason is None:return None
@@ -1125,7 +1193,20 @@ class CapsuleRunner:
         valid=bool(results) and all(result.accepted for result in results) and required.issubset(observed)
         duration=sum(v['duration_s'] for v in values if v['duration_s'] is not None)
         counts=[v['model_calls'] for v in values]
-        limits=parent['node_limits'];within=all(c is not None for c in counts) and sum(counts)<=limits['model_calls'] and duration<=limits['time_s']
+        limits=parent['node_limits']
+        routing_starts = [row for row in self.store.iter_records(run_id=parent['run_id'], kinds=('model-call-start',))
+            if row['record'].get('contract_ref') and self.store.read_record(row['record']['contract_ref']).get('node_contract_ref') == parent_ref
+            and self.store.read_record(row['record']['call_claim_ref']).get('purpose') == 'routing_selection']
+        allowance = node_routing_allowance(self.store, parent)
+        within=(all(c is not None for c in counts) and sum(counts)<=limits['model_calls']
+            and len(routing_starts)<=allowance and sum(counts)+len(routing_starts)<=limits['model_calls']+allowance
+            and duration<=limits['time_s'])
+        if allowance:
+            self.store.append_record('node-routing-budget', {'id':'node-routing-budget:'+uuid.uuid4().hex,
+                'run_id':parent['run_id'], 'node_id':parent['node_id'], 'node_contract_ref':parent_ref,
+                'routing_policy':dict(routing_policy(self.store, parent['run_id'])['routing_policy']), 'worker_and_verifier_ceiling':limits['model_calls'],
+                'routing_call_ceiling':allowance, 'aggregate_call_ceiling':limits['model_calls']+allowance,
+                'routing_calls_started':len(routing_starts), 'recorded_at':utc_now()})
         planref=self.prepare_node_check_plan(parent_ref)
         checkrows=[{'check_id':key,'outcome':'PASS' if okay else 'FAIL','reason':reason,'evidence_refs':observations+internal}
                    for key,okay,reason in [('internal_acceptance',valid,'Every required work output independently advanced'),

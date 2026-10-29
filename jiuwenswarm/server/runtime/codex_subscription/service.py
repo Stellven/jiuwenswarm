@@ -283,7 +283,7 @@ class SubscriptionService:
 
     async def invoke_governed(self, prompt: str, *, model=None, timeout_s: float = 120,
                               system: str | None = None, _trace=None, local_conversation=False,
-                              reasoning_effort: str | None = None):
+                              reasoning_effort: str | None = None, expected_account_fingerprint=None):
         """One fresh, tool-free research turn through the existing owner.
 
         Governed calls use a private provider alias: current Codex reserves
@@ -367,6 +367,8 @@ class SubscriptionService:
                         raise CodexError("SUBSCRIPTION_REQUIRED" if status["state"] == "subscription_required" else "SIGN_IN_REQUIRED")
                     if not self.account_fingerprint:
                         raise CodexError("ACCOUNT_IDENTITY_UNAVAILABLE")
+                    if expected_account_fingerprint is not None and self.account_fingerprint != expected_account_fingerprint:
+                        raise CodexError('ACCOUNT_IDENTITY_MISMATCH')
                     self.active[key] = run
                     run["epoch"] = self.epoch
                     # Per-thread config prevents CLI network retries for governed

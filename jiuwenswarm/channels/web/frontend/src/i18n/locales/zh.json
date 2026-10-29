@@ -475,6 +475,11 @@
       "ttsVoiceLabel": "语音播报音色",
       "qwenModelLabel": "Qwen 模型",
       "qwenVoiceLabel": "Qwen 音色",
+      "replyLanguageLabel": "回复语言",
+      "replyLanguageDescription": "控制语音与文字回复使用的语言。下次启动全双工后生效。",
+      "replyLanguageMatch": "跟随对话",
+      "replyLanguageZhCN": "简体中文",
+      "replyLanguageEn": "英语",
       "deleteTitle": "删除全双工模型配置",
       "deleteConfirm": "删除后将清除已保存的全双工模型地址、模型和密钥。"
     },
@@ -1257,6 +1262,7 @@
     "toggleLabel": "追求目标",
     "toolbarUnavailable": "当前已有进行中的目标，请先完成或清除",
     "toolbarUnavailablePlan": "计划模式进行中，暂不可选择目标",
+    "toolbarUnavailableProcessing": "对话进行中，暂不可选择目标",
     "overwriteConfirm": "当前目标“{{currentObjective}}”尚未完成。是否替换为“{{requestedObjective}}”？",
     "closeTag": "取消目标",
     "closeTagDisabled": "会话进行中，无法关闭目标",
@@ -2088,6 +2094,12 @@
       "colActions": "操作",
       "stateCollecting": "正在采集",
       "stateCompleted": "采集完成",
+      "stateCancelled": "已取消",
+      "createdNodes": "本次新增 {{nodes}} 个节点（{{files}} 个文件）",
+      "updatedNodes": "已更新 {{count}} 个节点",
+      "noNewContent": "无新增内容",
+      "collectionDisabledHint": "请先在上下文设置中开启总开关和内容采集，再立即采集。",
+      "collectionStoppingHint": "正在停止采集，请等待停止完成后重试。",
       "statePartial": "部分成功：{{completed}}/{{total}}，{{failed}} 项失败",
       "stateFailed": "采集失败",
       "stateWaiting": "等待采集",
@@ -2147,7 +2159,8 @@
       "maxItemsLabel": "单次最多采集条数",
       "maxItemsPlaceholder": "留空使用默认",
       "advancedConfig": "高级配置",
-      "maxItemsRangeError": "单次采集条数须在 1~40 之间，或留空使用默认",
+      "maxItemsRangeError": "单次采集条数须为 1~40 之间的整数，或留空使用默认",
+      "frequencyRangeError": "采集频率须为 1~{{max}} 之间的整数",
       "previousStep": "上一步",
       "submit": "添加",
       "save": "保存",
@@ -2159,7 +2172,8 @@
       "localFiles": {
         "rootDirLabel": "本地文件夹路径",
         "rootDirPlaceholder": "D:/my-notes",
-        "rootDirHint": "须为绝对路径"
+        "rootDirHint": "须为绝对路径",
+        "rootDirRequired": "请选择本地文件夹路径"
       },
       "zhihu": {
         "columnUrlLabel": "知乎专栏地址",
@@ -3098,6 +3112,7 @@
       "webUploadPlaceholder": "点击上传文件",
       "uploadInvalidType": "仅支持 .zip 和 .tar 文件",
       "uploadDirectoryUnsupported": "不支持直接拖拽文件夹，请先将文件夹压缩为 .zip 或 .tar 文件后再上传",
+      "uploadVirtualFileUnsupported": "不支持直接从 WinRAR 等压缩软件中拖入文件，请先解压或复制到本地磁盘后再上传",
       "uploadPickerUnsupported": "当前环境暂不支持选择本地文件",
       "uploadPickerFailed": "打开文件选择器失败，请重试",
       "removeUpload": "移除已选文件",
@@ -3264,6 +3279,9 @@
   "chatUi": {
     "copyMessage": "复制消息",
     "copied": "已复制",
+    "usageInput": "输入",
+    "usageOutput": "输出",
+    "usageCacheHit": "缓存命中",
     "stopReading": "停止朗读",
     "readMessage": "朗读消息",
     "forkFromMessage": "从此消息新建会话分支",
@@ -3729,6 +3747,7 @@
       "renamePlaceholder": "输入新名称",
       "archiveConversation": "归档",
       "conversationArchived": "已归档任务会话",
+      "conversationDeleted": "对话已删除",
       "archiveView": "查看",
       "archiveUndo": "撤销",
       "removeProject": "移除项目",
@@ -3774,7 +3793,9 @@
     },
     "deleteDialog": {
       "title": "删除",
-      "description": "确定删除“<name>{{title}}</name>”吗？此操作不可撤销。"
+      "attention": "注意",
+      "description": "确定删除“<name>{{title}}</name>”吗？此操作不可撤销。",
+      "permanentConfirm": "确定要永久删除该任务吗？"
     },
     "notFound": {
       "title": "对话不存在或已删除",
@@ -4717,13 +4738,41 @@
     }
   },
   "researchModels": {
-    "chatgptDescription": "使用 ChatGPT 订阅登录后，在上方选择具体 GPT 型号并保存，应用于新的 AI4R 研究请求，无需 API key。",
+    "localDescription": "在同一 AI4R 流程中使用三个本地模型和 ChatGPT 订阅，无需 API Key。",
+    "executionMode": "执行模式",
+    "localModeHint": "在 gpt-oss-20b、Nemotron Lightning、gpt-oss-120b 和 ChatGPT 6.1 Sol 之间优先保障质量。关键派生指标决策要求 ChatGPT；验证保持独立本地调用。",
+    "localMode": "AI4R · 自动模型路由",
+    "chatgptBaseline": "ChatGPT · 手动选择模型",
+    "chatgptModel": "ChatGPT 模型",
+    "baselineHint": "手动选择保持原有行为。与自动路由公平对比时，请选择上方 AI4R 内固定执行模型。",
+    "localRole": {
+      "e4b": "已退出当前候选池",
+      "bolt": "已退出当前候选池",
+      "qwen": "已退出当前候选池",
+      "lightning": "高效本地推理执行模型",
+      "gptoss": "较强的本地推理执行模型",
+      "gptoss20": "紧凑推理模型、路由评估与独立验证"
+    },
+    "localReady": "已连接",
+    "localUnavailable": "未就绪",
+    "localStatus": {
+      "not_configured": "尚未配置",
+      "disabled": "已停用",
+      "service_unavailable": "服务不可用",
+      "model_not_served": "指定模型未加载",
+      "configuration_invalid": "模型配置需要检查"
+    },
+    "localPrerequisite": "请启动 Spark 上必需的本地路由评估和验证服务后刷新。模型地址由服务端配置。",
+    "applyMode": "使用此模式",
+    "frozenPool": "仅应用于新研究；运行中的研究保留原模型池及已作出的选择。",
+    "localError": "无法保存或加载本地模型。请检查应用连接并刷新模型列表。如果问题仍然存在，请联系管理员。",
+    "modeSaved": "已保存，新研究将使用此执行模式。",
+    "chatgptDescription": "同一订阅用于自动路由和 AI4R 内固定执行模型对照，均固定使用 GPT-6.1-Sol。手动模式使用你选择的 ChatGPT 型号。无需 API Key。",
     "chatgptOption": "{{model}}（ChatGPT 订阅）",
     "chatgptError": "无法保存或加载 ChatGPT 模型。请登录后刷新模型列表。",
     "option": "{{model}}（{{platform}} API key）",
     "localOption": "{{model}}（本地端点）",
     "localEndpoint": "本地端点",
-    "localError": "无法保存或加载本地模型。请检查应用连接并刷新模型列表。如果问题仍然存在，请联系管理员。",
     "localManaged": "模型：{{model}}。此端点由管理员批准并管理，无需 API 密钥。保存后将用于新的研究请求。",
     "platformKey": "{{platform}} API key",
     "claudeKeyHint": "请使用绑定 Anthropic 工作区的 API key。此处暂不支持需要额外工作区请求头的个人或服务账户 key。",
@@ -4747,6 +4796,7 @@
     "saveUse": "保存并使用",
     "refresh": "刷新",
     "error": "无法保存或加载模型。请检查应用连接并刷新模型列表。如果问题仍然存在，请联系管理员或检查所选提供商的凭据。",
-    "saved": "已保存。新的研究请求将使用此模型。"
+    "saved": "已保存。新的研究请求将使用此模型。",
+    "ai4rReference": "ChatGPT 6.1 Sol · AI4R 内固定执行模型"
   }
 }

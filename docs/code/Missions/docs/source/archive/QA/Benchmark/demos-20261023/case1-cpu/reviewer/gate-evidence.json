@@ -1,0 +1,386 @@
+[
+  {
+    "archive_member": "evidence/gate-decision-be5b54e6dda695f8af32f1d1b558974cea59601711c030ebd5229af3b7686c2c.json",
+    "sha256": "28be0edc8add85b132098f1ebdb13ca5df1ff99ee0ca95318a1373c93d31c58d",
+    "record": {
+      "accepted_refs": [
+        {
+          "id": "blob:ae00f85dda0a44f3c856fd296fa3fa77659d9b47907f622b6276c01753be5d66",
+          "sha256": "ae00f85dda0a44f3c856fd296fa3fa77659d9b47907f622b6276c01753be5d66"
+        }
+      ],
+      "action": "advance",
+      "assessment_ref": {
+        "id": "assessment:3b3bacb31012429caa0f0d637a16b117",
+        "sha256": "d2b9ff555520e18506cbdd271c5e429fa0dfcc03530fcc3abfef0785d41e59a4"
+      },
+      "attempt_id": "intention_compiler-a1",
+      "check_plan_ref": {
+        "id": "blob:1c596fb58bc4626cc909d44da63a7a7e42fd9ed2e24255f659641f99afa5e8e2",
+        "sha256": "1c596fb58bc4626cc909d44da63a7a7e42fd9ed2e24255f659641f99afa5e8e2"
+      },
+      "contract_ref": {
+        "id": "blob:18c96b2526fe48e7e4aae63c89d81f25d80c5a5fe0d7dbffd1540419a8cfb2c0",
+        "sha256": "18c96b2526fe48e7e4aae63c89d81f25d80c5a5fe0d7dbffd1540419a8cfb2c0"
+      },
+      "deterministic_result_ref": {
+        "id": "checks:94fe5064f25449e6a32f7bde080a9257",
+        "sha256": "fa3d79c81748f428b5432c20f06db6cabe3fa036c73f036120445004b929e4fb"
+      },
+      "id": "gate:d7512c64bf7747599560ebe494afd053",
+      "input_refs": [
+        {
+          "id": "blob:297d4a7a22f045c0aec78cbf2bf3d10c69e4c53e4479c2a7ca15481caee43ed4",
+          "sha256": "297d4a7a22f045c0aec78cbf2bf3d10c69e4c53e4479c2a7ca15481caee43ed4"
+        }
+      ],
+      "internal_decision_refs": [],
+      "invocation_refs": [
+        {
+          "id": "blob:c6f934a2bdbd9779ff900b34dd7c561fc5d721f94c13d5db6cdf910768db2e06",
+          "sha256": "c6f934a2bdbd9779ff900b34dd7c561fc5d721f94c13d5db6cdf910768db2e06"
+        },
+        {
+          "id": "blob:4b726594305790110d6fae2e7631219b8156afe6b59f2562148dee77eb480ec1",
+          "sha256": "4b726594305790110d6fae2e7631219b8156afe6b59f2562148dee77eb480ec1"
+        }
+      ],
+      "node_contract_ref": {
+        "id": "blob:daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c",
+        "sha256": "daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c"
+      },
+      "node_id": "intention_compiler",
+      "output_port": "intent",
+      "output_refs": [
+        {
+          "id": "blob:ae00f85dda0a44f3c856fd296fa3fa77659d9b47907f622b6276c01753be5d66",
+          "sha256": "ae00f85dda0a44f3c856fd296fa3fa77659d9b47907f622b6276c01753be5d66"
+        }
+      ],
+      "policy_ref": {
+        "id": "blob:91c7eccd63977fb5b76f1eeb5f28046b79c8021a919d4258af80e874b38956b6",
+        "sha256": "91c7eccd63977fb5b76f1eeb5f28046b79c8021a919d4258af80e874b38956b6"
+      },
+      "reasons": [
+        {
+          "code": "gate_advance",
+          "criterion_ids": [],
+          "evidence_refs": [
+            {
+              "id": "checks:94fe5064f25449e6a32f7bde080a9257",
+              "sha256": "fa3d79c81748f428b5432c20f06db6cabe3fa036c73f036120445004b929e4fb"
+            },
+            {
+              "id": "blob:21e5d17d92147a8f98f5ee5386ec93c0d60e56cd1bc60a629707966e4fdc47dd",
+              "sha256": "21e5d17d92147a8f98f5ee5386ec93c0d60e56cd1bc60a629707966e4fdc47dd"
+            }
+          ],
+          "message": "All mandatory checks and semantic criteria passed"
+        }
+      ],
+      "recorded_at": "2026-10-23T14:40:24Z",
+      "run_id": "run:7705df93bd904f5d9e37c99b156d29c8",
+      "schema_version": "2.0.0",
+      "scope_kind": "subnode",
+      "subnode_id": "intent",
+      "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+    }
+  },
+  {
+    "archive_member": "evidence/gate-decision-3335c6889a4e714b87910a93b9232de3c0fe8e33f3640e1884b9ae25e73374a2.json",
+    "sha256": "ba219ad6f136d7dae122c66f4dcf683e0114b407bc9b5a3c24d50198a92f5834",
+    "record": {
+      "accepted_refs": [],
+      "action": "halt",
+      "assessment_ref": {
+        "id": "assessment:8b651dcf71c94d388767839d34ab8822",
+        "sha256": "c5e906bc5efeec83c95aa8f26ae2a6c9a1c6fe281e07f47312f4443fe83b8843"
+      },
+      "attempt_id": "intention_compiler-a1",
+      "check_plan_ref": {
+        "id": "blob:9f310869af5b02446c01041786fc2ed9d1dfcaf9994dd6d623181de5c55fb332",
+        "sha256": "9f310869af5b02446c01041786fc2ed9d1dfcaf9994dd6d623181de5c55fb332"
+      },
+      "contract_ref": {
+        "id": "blob:4d5d9bd2b0a05705c26419c686387c396f2e09586f0b2ddb4e6960ae294452ad",
+        "sha256": "4d5d9bd2b0a05705c26419c686387c396f2e09586f0b2ddb4e6960ae294452ad"
+      },
+      "deterministic_result_ref": {
+        "id": "checks:d212f89c87d742e7b59bfd6989e2319f",
+        "sha256": "b3bc31aa2ff142457e5ec0bb5edb2b1451fa09a14a0aa66954e0c661599ece09"
+      },
+      "id": "gate:9602a62e48724122950fc58738732c6b",
+      "input_refs": [
+        {
+          "id": "blob:ae00f85dda0a44f3c856fd296fa3fa77659d9b47907f622b6276c01753be5d66",
+          "sha256": "ae00f85dda0a44f3c856fd296fa3fa77659d9b47907f622b6276c01753be5d66"
+        },
+        {
+          "id": "blob:297d4a7a22f045c0aec78cbf2bf3d10c69e4c53e4479c2a7ca15481caee43ed4",
+          "sha256": "297d4a7a22f045c0aec78cbf2bf3d10c69e4c53e4479c2a7ca15481caee43ed4"
+        },
+        {
+          "id": "blob:bc80f026c0e7c37d594b6a675dd7d4c960107656cdf5cd1fbe0fc4801a6bd336",
+          "sha256": "bc80f026c0e7c37d594b6a675dd7d4c960107656cdf5cd1fbe0fc4801a6bd336"
+        }
+      ],
+      "internal_decision_refs": [],
+      "invocation_refs": [
+        {
+          "id": "blob:33cf74b538550a5526c68a31268c939450ce053c102e60e92f9325e36725e481",
+          "sha256": "33cf74b538550a5526c68a31268c939450ce053c102e60e92f9325e36725e481"
+        },
+        {
+          "id": "blob:c285c4e43c49739e5c5acb1780355053deea2edc8c3b1eea13c3bc6e9f6a0abe",
+          "sha256": "c285c4e43c49739e5c5acb1780355053deea2edc8c3b1eea13c3bc6e9f6a0abe"
+        }
+      ],
+      "node_contract_ref": {
+        "id": "blob:daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c",
+        "sha256": "daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c"
+      },
+      "node_id": "intention_compiler",
+      "output_port": "brief",
+      "output_refs": [
+        {
+          "id": "blob:75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8",
+          "sha256": "75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8"
+        }
+      ],
+      "policy_ref": {
+        "id": "blob:91c7eccd63977fb5b76f1eeb5f28046b79c8021a919d4258af80e874b38956b6",
+        "sha256": "91c7eccd63977fb5b76f1eeb5f28046b79c8021a919d4258af80e874b38956b6"
+      },
+      "reasons": [
+        {
+          "code": "gate_halt",
+          "criterion_ids": [],
+          "evidence_refs": [
+            {
+              "id": "checks:d212f89c87d742e7b59bfd6989e2319f",
+              "sha256": "b3bc31aa2ff142457e5ec0bb5edb2b1451fa09a14a0aa66954e0c661599ece09"
+            },
+            {
+              "id": "blob:1234c897e454297fa3523d0cbc314c3949de34f0815fc160e68fd2302d2df00a",
+              "sha256": "1234c897e454297fa3523d0cbc314c3949de34f0815fc160e68fd2302d2df00a"
+            }
+          ],
+          "message": "All mandatory checks and semantic criteria passed"
+        }
+      ],
+      "recorded_at": "2026-10-23T14:41:47Z",
+      "run_id": "run:7705df93bd904f5d9e37c99b156d29c8",
+      "schema_version": "2.0.0",
+      "scope_kind": "subnode",
+      "subnode_id": "requirements",
+      "verdict": "FAIL"
+    }
+  },
+  {
+    "archive_member": "evidence/gate-decision-bb9dc73a6fce31349781fc84e7aeee5bf465983fab614062777ffd008593fada.json",
+    "sha256": "9b6cda10d9332a97da2806545d7e9edaf1d8769ceff318d23910502527973d7d",
+    "record": {
+      "accepted_refs": [],
+      "action": "halt",
+      "assessment_ref": null,
+      "attempt_id": "intention_compiler-a1",
+      "check_plan_ref": {
+        "id": "blob:8b32c775e6843c7d33e90d6bc80b73a8ebddcf6859d780dc6955b68f7f5fc977",
+        "sha256": "8b32c775e6843c7d33e90d6bc80b73a8ebddcf6859d780dc6955b68f7f5fc977"
+      },
+      "contract_ref": {
+        "id": "blob:daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c",
+        "sha256": "daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c"
+      },
+      "deterministic_result_ref": {
+        "id": "blob:2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312",
+        "sha256": "2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312"
+      },
+      "id": "gate:3560111f27bc4098afa2fc0fbe7f86a9",
+      "input_refs": [
+        {
+          "id": "blob:297d4a7a22f045c0aec78cbf2bf3d10c69e4c53e4479c2a7ca15481caee43ed4",
+          "sha256": "297d4a7a22f045c0aec78cbf2bf3d10c69e4c53e4479c2a7ca15481caee43ed4"
+        },
+        {
+          "id": "blob:bc80f026c0e7c37d594b6a675dd7d4c960107656cdf5cd1fbe0fc4801a6bd336",
+          "sha256": "bc80f026c0e7c37d594b6a675dd7d4c960107656cdf5cd1fbe0fc4801a6bd336"
+        }
+      ],
+      "internal_decision_refs": [
+        {
+          "id": "blob:28be0edc8add85b132098f1ebdb13ca5df1ff99ee0ca95318a1373c93d31c58d",
+          "sha256": "28be0edc8add85b132098f1ebdb13ca5df1ff99ee0ca95318a1373c93d31c58d"
+        },
+        {
+          "id": "blob:ba219ad6f136d7dae122c66f4dcf683e0114b407bc9b5a3c24d50198a92f5834",
+          "sha256": "ba219ad6f136d7dae122c66f4dcf683e0114b407bc9b5a3c24d50198a92f5834"
+        }
+      ],
+      "invocation_refs": [
+        {
+          "id": "blob:c6f934a2bdbd9779ff900b34dd7c561fc5d721f94c13d5db6cdf910768db2e06",
+          "sha256": "c6f934a2bdbd9779ff900b34dd7c561fc5d721f94c13d5db6cdf910768db2e06"
+        },
+        {
+          "id": "blob:4b726594305790110d6fae2e7631219b8156afe6b59f2562148dee77eb480ec1",
+          "sha256": "4b726594305790110d6fae2e7631219b8156afe6b59f2562148dee77eb480ec1"
+        },
+        {
+          "id": "blob:33cf74b538550a5526c68a31268c939450ce053c102e60e92f9325e36725e481",
+          "sha256": "33cf74b538550a5526c68a31268c939450ce053c102e60e92f9325e36725e481"
+        },
+        {
+          "id": "blob:c285c4e43c49739e5c5acb1780355053deea2edc8c3b1eea13c3bc6e9f6a0abe",
+          "sha256": "c285c4e43c49739e5c5acb1780355053deea2edc8c3b1eea13c3bc6e9f6a0abe"
+        }
+      ],
+      "node_contract_ref": {
+        "id": "blob:daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c",
+        "sha256": "daa036f7c7e60d461155789c80e6bf9191996ec4b688ba9b73338196e8e12e7c"
+      },
+      "node_id": "intention_compiler",
+      "output_port": null,
+      "output_refs": [],
+      "policy_ref": {
+        "id": "blob:91c7eccd63977fb5b76f1eeb5f28046b79c8021a919d4258af80e874b38956b6",
+        "sha256": "91c7eccd63977fb5b76f1eeb5f28046b79c8021a919d4258af80e874b38956b6"
+      },
+      "reasons": [
+        {
+          "code": "gate_halt",
+          "criterion_ids": [],
+          "evidence_refs": [
+            {
+              "id": "blob:2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312",
+              "sha256": "2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312"
+            }
+          ],
+          "message": "Mandatory deterministic checks did not all pass"
+        },
+        {
+          "code": "gate_halt",
+          "criterion_ids": [],
+          "evidence_refs": [
+            {
+              "id": "blob:2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312",
+              "sha256": "2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312"
+            }
+          ],
+          "message": "node_obligation_failed"
+        },
+        {
+          "code": "gate_halt",
+          "criterion_ids": [],
+          "evidence_refs": [
+            {
+              "id": "blob:2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312",
+              "sha256": "2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312"
+            }
+          ],
+          "message": "Internal subnode did not advance"
+        },
+        {
+          "code": "gate_halt",
+          "criterion_ids": [],
+          "evidence_refs": [
+            {
+              "id": "blob:2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312",
+              "sha256": "2d5bd36efc85eb6f2f1e86744564158977f2c90d752267e2b788afcf0eae6312"
+            }
+          ],
+          "message": "Required output or invocation evidence is missing"
+        }
+      ],
+      "recorded_at": "2026-10-23T14:41:49Z",
+      "run_id": "run:7705df93bd904f5d9e37c99b156d29c8",
+      "schema_version": "2.0.0",
+      "scope_kind": "node",
+      "subnode_id": null,
+      "verdict": "FAIL"
+    }
+  },
+  {
+    "archive_member": "evidence/verifier-assessment-36212fa201591c272f57725300d997d8a3268ffc442526e24beb5c594ba9f025.json",
+    "sha256": "c5e906bc5efeec83c95aa8f26ae2a6c9a1c6fe281e07f47312f4443fe83b8843",
+    "record": {
+      "findings": [
+        {
+          "criterion_id": "declared_output_conformance",
+          "evidence_refs": [
+            {
+              "id": "blob:b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
+              "sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6"
+            },
+            {
+              "id": "blob:75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8",
+              "sha256": "75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8"
+            }
+          ],
+          "outcome": "PASS",
+          "reason": "All required fields are present, and their types and shapes conform to the supplied schema. target_metrics[0].comparison permits null, and unresolved_items contains the required uncertainty fields."
+        },
+        {
+          "criterion_id": "internal_consistency",
+          "evidence_refs": [
+            {
+              "id": "blob:b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
+              "sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6"
+            },
+            {
+              "id": "blob:75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8",
+              "sha256": "75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8"
+            }
+          ],
+          "outcome": "FAIL",
+          "reason": "target_metrics[0].comparison is null, declared to express no quantitative target threshold, while target_metrics[0].target_text, mandatory_requirements[0].text and acceptance_expectations[0].description specify an at-least-5-percentage-point threshold. Local requirement_ids otherwise resolve consistently."
+        },
+        {
+          "criterion_id": "limitations_consistency",
+          "evidence_refs": [
+            {
+              "id": "blob:b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
+              "sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6"
+            },
+            {
+              "id": "blob:75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8",
+              "sha256": "75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8"
+            }
+          ],
+          "outcome": "FAIL",
+          "reason": "unresolved_items[0].description acknowledges a quantitative threshold but presents target_metrics[0].comparison=null as its representation. This conflicts with the declared meaning of null; unresolved_items[0].clarification does not resolve that conflict."
+        },
+        {
+          "criterion_id": "requirement_link_completeness",
+          "evidence_refs": [
+            {
+              "id": "blob:b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6",
+              "sha256": "b6672065092fceb7f79b64eb32bbb9e3f811cc7f7a03230beed60d1eba7291d6"
+            },
+            {
+              "id": "blob:75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8",
+              "sha256": "75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8"
+            }
+          ],
+          "outcome": "PASS",
+          "reason": "Every ID in mandatory_requirements has a corresponding link in both acceptance_expectations[].requirement_ids and evidence_obligations[].requirement_ids."
+        }
+      ],
+      "limitations": [
+        "Assessment is limited to the supplied declaration, schemas and exact output; referenced resources were not inspected."
+      ],
+      "required_correction": "Resolve the conflict between target_metrics[0].comparison, the quantitative threshold stated in target_metrics[0].target_text, and its explanation in unresolved_items[0].",
+      "review_context_ref": {
+        "id": "blob:9257cd1c959a69e3f655d016ead5b04f2885953e4dc92bf80cfb70067183d6af",
+        "sha256": "9257cd1c959a69e3f655d016ead5b04f2885953e4dc92bf80cfb70067183d6af"
+      },
+      "schema_version": "1.0.0",
+      "subject_ref": {
+        "id": "blob:75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8",
+        "sha256": "75ec1cfd050ccc098c549339dd24d48c8639c94a0f6fdfc60924fcfa02adfaa8"
+      },
+      "uncertainties": [],
+      "verdict": "FAIL"
+    }
+  }
+]

@@ -81,8 +81,17 @@ async def runtime_snapshot(channel, principal):
         except (ResearchError, AttributeError, KeyError, TypeError):
             pass
         try:
-            state = await ports.status_client.call('subscription_status', {}, timeout_s=10)
-            observations = [('model', state.get('state') == 'ready')]
+            selected = await ports.status_client.call('model_settings', {
+                'account_id': principal.account_id, 'action': 'get', 'values': {},
+                'include_chatgpt_models': False}, timeout_s=15)
+            state = await ports.status_client.call('subscription_status',
+                {} if selected.get('selected_id') in {'codex', 'chatgpt_ai4r'} else {'include_subscription': False}, timeout_s=10)
+            model_ready = (selected.get('local_ready') is True if selected.get('selected_id') == 'auto'
+                else state.get('state') == 'ready' if selected.get('selected_id') == 'codex'
+                else selected.get('api_ready') is True)
+            if selected.get('selected_id') == 'chatgpt_ai4r':
+                model_ready = selected.get('local_ready') is True and state.get('state') == 'ready'
+            observations = [('model', model_ready)]
             if not integrated_scope:
                 observations.append(('builder', state.get('builder_qualified') is True))
             for name, ok in observations:

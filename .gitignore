@@ -4,6 +4,9 @@
 
 # User-selected benchmark cases, inputs and collected results stay local.
 /benchmarks/harbor_suite/cases/
+# Generated benchmark output and internal reports stay local, outside releases.
+/benchmarks/output/
+/benchmarks/**/internal/
 # Machine-specific endpoint inventory is an operator handoff, not public source.
 /benchmarks/harbor_suite/SPARK_MODEL_INVENTORY.md
 /docs/code/Missions/docs/source/QA/Benchmark/

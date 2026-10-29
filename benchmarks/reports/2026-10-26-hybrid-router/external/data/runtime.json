@@ -1,0 +1,9 @@
+{
+  "captured_at": "2026-10-26T23:02:38.344707+00:00",
+  "note": "Post-campaign snapshot; not a peak-memory or power measurement.",
+  "gpu": "NVIDIA GB10, 580.178.04, [N/A]",
+  "os": "Linux 7.0.0-1019-nvidia aarch64 GNU/Linux",
+  "app_image": "sha256:dcb5f77624f9f57d3eb595339a0eb2a0b647d1e58e3e63bf93aa64a83af58f3e",
+  "docker": "29.6.2",
+  "current_routing_source_sha256": "e375899ea2d8613b9f6fde5467b098118f41a7bf410c612e88d961cc74173d2e"
+}

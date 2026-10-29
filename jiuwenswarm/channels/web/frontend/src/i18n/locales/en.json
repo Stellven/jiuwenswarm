@@ -475,6 +475,11 @@
       "ttsVoiceLabel": "Speech synthesis voice",
       "qwenModelLabel": "Qwen model",
       "qwenVoiceLabel": "Qwen voice",
+      "replyLanguageLabel": "Reply language",
+      "replyLanguageDescription": "Controls the spoken and written reply language. Takes effect the next time Full-duplex starts.",
+      "replyLanguageMatch": "Match conversation",
+      "replyLanguageZhCN": "Simplified Chinese",
+      "replyLanguageEn": "English",
       "deleteTitle": "Delete full-duplex model settings",
       "deleteConfirm": "This clears the saved full-duplex endpoint, model, and API key."
     },
@@ -1257,6 +1262,7 @@
     "toggleLabel": "Pursue Goal",
     "toolbarUnavailable": "A goal is already in progress. Finish or clear it first.",
     "toolbarUnavailablePlan": "Plan mode is in progress, so Goal isn't available",
+    "toolbarUnavailableProcessing": "A reply is in progress, so Goal isn't available",
     "overwriteConfirm": "The current goal \"{{currentObjective}}\" is unfinished. Replace it with \"{{requestedObjective}}\"?",
     "closeTag": "Cancel goal",
     "closeTagDisabled": "Cannot close the goal while the session is busy",
@@ -2088,6 +2094,12 @@
       "colActions": "Actions",
       "stateCollecting": "Fetching",
       "stateCompleted": "Completed",
+      "stateCancelled": "Cancelled",
+      "createdNodes": "Added {{nodes}} nodes ({{files}} files) in this run",
+      "updatedNodes": "Updated {{count}} nodes",
+      "noNewContent": "No new content",
+      "collectionDisabledHint": "Enable Personal Context and content collection in settings before fetching now.",
+      "collectionStoppingHint": "Collection is stopping. Wait until it has stopped and try again.",
       "statePartial": "Partially completed: {{completed}}/{{total}}, {{failed}} failed",
       "stateFailed": "Failed",
       "stateWaiting": "Waiting",
@@ -2147,7 +2159,8 @@
       "maxItemsLabel": "Max items per run",
       "maxItemsPlaceholder": "Leave empty for default",
       "advancedConfig": "Advanced Settings",
-      "maxItemsRangeError": "Max items must be 1-40, or empty for default",
+      "maxItemsRangeError": "Max items must be an integer from 1 to 40, or empty for default",
+      "frequencyRangeError": "Frequency must be an integer from 1 to {{max}}",
       "previousStep": "Previous",
       "submit": "Add",
       "save": "Save",
@@ -3099,6 +3112,7 @@
       "webUploadPlaceholder": "Click to upload a file",
       "uploadInvalidType": "Only .zip and .tar files are supported",
       "uploadDirectoryUnsupported": "Folders cannot be dragged here. Compress the folder into a .zip or .tar file before uploading.",
+      "uploadVirtualFileUnsupported": "Files cannot be dragged directly from WinRAR or another archive app. Extract or copy the file to a local folder before uploading.",
       "uploadPickerUnsupported": "Local file selection is not supported in this environment",
       "uploadPickerFailed": "Failed to open the local file picker. Try again.",
       "removeUpload": "Remove selected file",
@@ -3265,6 +3279,9 @@
   "chatUi": {
     "copyMessage": "Copy message",
     "copied": "Copied",
+    "usageInput": "Input",
+    "usageOutput": "Output",
+    "usageCacheHit": "Cache hit",
     "stopReading": "Stop reading",
     "readMessage": "Read message",
     "forkFromMessage": "Create a conversation branch from this message",
@@ -3730,6 +3747,7 @@
       "renamePlaceholder": "Enter a new name",
       "archiveConversation": "Archive",
       "conversationArchived": "Task session archived",
+      "conversationDeleted": "Conversation deleted",
       "archiveView": "View",
       "archiveUndo": "Undo",
       "removeProject": "Remove project",
@@ -3775,7 +3793,9 @@
     },
     "deleteDialog": {
       "title": "Delete",
-      "description": "Delete “<name>{{title}}</name>”? This action cannot be undone."
+      "attention": "Attention",
+      "description": "Delete “<name>{{title}}</name>”? This action cannot be undone.",
+      "permanentConfirm": "Are you sure you want to permanently delete this task?"
     },
     "notFound": {
       "title": "Conversation not found or deleted",
@@ -4718,13 +4738,41 @@
     }
   },
   "researchModels": {
-    "chatgptDescription": "Sign in with your ChatGPT subscription, then choose a GPT model above and save it for new AI4R research requests. No API key is required.",
+    "localDescription": "Use three local models and your ChatGPT subscription in the same AI4R workflow. No API key required.",
+    "executionMode": "Execution mode",
+    "localModeHint": "Quality-first routing across gpt-oss-20b, Nemotron Lightning, gpt-oss-120b and ChatGPT 6.1 Sol. Critical derived decisions require ChatGPT. Verification uses a separate local call.",
+    "localMode": "AI4R · automatic model routing",
+    "chatgptBaseline": "ChatGPT · manual model choice",
+    "chatgptModel": "ChatGPT model",
+    "baselineHint": "Manual ChatGPT choice retains its original behavior. For a controlled comparison with automatic routing, select the AI4R fixed-worker reference above.",
+    "localRole": {
+      "e4b": "Retired from the current pool",
+      "bolt": "Retired from the current pool",
+      "qwen": "Retired from the current pool",
+      "lightning": "Efficient local reasoning executor",
+      "gptoss": "Larger local reasoning executor",
+      "gptoss20": "Compact reasoning executor, routing assessor and separate verifier"
+    },
+    "localReady": "Connected",
+    "localUnavailable": "Unavailable",
+    "localStatus": {
+      "not_configured": "Not configured",
+      "disabled": "Disabled",
+      "service_unavailable": "Service unavailable",
+      "model_not_served": "Model not loaded",
+      "configuration_invalid": "Configuration needs attention"
+    },
+    "localPrerequisite": "Start the required local assessor and verifier service on your Spark, then refresh. Model endpoints are configured on the server.",
+    "applyMode": "Use this mode",
+    "frozenPool": "Applies to new research. Running work keeps its original model pool and decisions.",
+    "localError": "Could not save or load the local model. Check your app connection and refresh the model list. If the problem persists, contact your administrator.",
+    "modeSaved": "Saved. New research will use this execution mode.",
+    "chatgptDescription": "This subscription serves automatic routing and the fixed-worker AI4R reference, both pinned to GPT-6.1-Sol. Manual mode uses your selected ChatGPT model. No API key is required.",
     "chatgptOption": "{{model}} (ChatGPT subscription)",
     "chatgptError": "Could not save or load the ChatGPT model. Sign in and refresh the model list.",
     "option": "{{model}} ({{platform}} API key)",
     "localOption": "{{model}} (Local endpoint)",
     "localEndpoint": "Local endpoint",
-    "localError": "Could not save or load the local model. Check your app connection and refresh the model list. If the problem persists, contact your administrator.",
     "localManaged": "Model: {{model}}. This endpoint is approved and managed by your administrator. No API key is required; save to use it for new research runs.",
     "platformKey": "{{platform}} API key",
     "claudeKeyHint": "Use an Anthropic workspace-scoped API key. Personal or service-account keys that require a separate workspace header are not supported here yet.",
@@ -4748,6 +4796,7 @@
     "saveUse": "Save and use",
     "refresh": "Refresh",
     "error": "Could not save or load the model. Check your app connection and refresh the model list. If the problem persists, contact your administrator or check the selected provider's credentials.",
-    "saved": "Saved. New research runs will use this model."
+    "saved": "Saved. New research runs will use this model.",
+    "ai4rReference": "ChatGPT 6.1 Sol · fixed worker in AI4R"
   }
 }

@@ -219,6 +219,7 @@ class NativePorts:
         if callable(register_start):register_start(self)
         self.authorization_server=PrivateRPCServer(self.root/'authorization.sock',protocol=AUTH_PROTOCOL,**self.session,
             handlers={'authorize_model_context':self.authorize_model_context,'authorize_model_dispatch':self.authorize_model_dispatch,
+                      'authorize_routing_selection':runner.authorize_routing_selection,
                       'authorize_executor_binding':runner.authorize_executor_binding,
                       'authorize_executor_preparation':self.authorize_executor_preparation,
                       'publish_scientific_start_receipt':self.publish_scientific_start_receipt,
@@ -229,6 +230,7 @@ class NativePorts:
                       'prepare_calibration_case':self.prepare_calibration_case,'inspect_calibration':self.inspect_calibration,
                       'cancel_calibration':self.cancel_calibration},allowed_uids={self.uid,0},
             operation_uids={'authorize_model_context':{self.uid},'authorize_model_dispatch':{self.uid,0},
+                            'authorize_routing_selection':{self.uid},
                             'authorize_executor_binding':{0},'authorize_containment':{self.uid,0},
                             'authorize_executor_preparation':{0},'publish_scientific_start_receipt':{0},
                             'inspect_scientific_attempt':{0},'inspect_scientific_evaluation':{0},
@@ -287,15 +289,23 @@ class NativePorts:
         if library.get('unavailable_reason'):
             prerequisites.append({'name':'library','status':'unavailable','reason':'No work is eligible while its exact protected library/check binding is unresolved: '+library['unavailable_reason']})
         try:
-            status=await self.status_client.call('subscription_status',{},timeout_s=30)
             selected=await self.status_client.call('model_settings', {
-                'account_id':principal.account_id,'action':'get','values':{}},timeout_s=30)
-            api_selected=selected.get('selected_id') != 'codex'
-            ready=selected.get('api_ready') is True if api_selected else status.get('state')=='ready'
-            if api_selected:
+                'account_id':principal.account_id,'action':'get','values':{},
+                'include_chatgpt_models':False},timeout_s=30)
+            automatic=selected.get('selected_id') in {'auto', 'chatgpt_ai4r'}
+            api_selected=selected.get('selected_id') not in {'auto', 'codex', 'chatgpt_ai4r'}
+            # Local/API execution must not wait for subscription discovery,
+            # authentication or the comparison CLI to become available.
+            status=await self.status_client.call('subscription_status',
+                {'include_subscription':False} if automatic or api_selected else {},timeout_s=30)
+            ready=selected.get('local_ready') is True if automatic else selected.get('api_ready') is True if api_selected else status.get('state')=='ready'
+            if selected.get('selected_id') == 'chatgpt_ai4r':
+                ready = ready and status.get('state') == 'ready'
+            if api_selected or automatic:
                 status=dict(status,state='ready' if ready else 'unavailable',enabled=ready)
             prerequisites.append({'name':'model','status':'ready' if ready else 'unavailable',
-                'reason':'Selected API model has a configured private credential; provider authentication is checked at dispatch' if api_selected and ready else 'Managed subscription is ready' if ready else 'Selected model authentication or transport is unavailable'})
+                'reason':('Local routing, execution and independent verifier services are ready; signed-in ChatGPT may serve difficult tasks' if ready else 'Required local routing, executor or verifier service is unavailable') if automatic
+                    else 'Selected API model has a configured private credential; provider authentication is checked at dispatch' if api_selected and ready else 'Managed subscription is ready' if ready else 'Selected model authentication or transport is unavailable'})
         except Exception:
             status={}
             prerequisites.append({'name':'model','status':'unavailable','reason':'AgentServer model status could not be established'})
@@ -517,6 +527,7 @@ async def start_agent_ports():
     authorization=PrivateRPCClient(root/'authorization.sock',protocol=AUTH_PROTOCOL,peer_uid=APP_UID,**session)
     async def authorize(payload):return await authorization.call('authorize_model_context',dict(payload),timeout_s=30)
     async def revalidate(payload):return await authorization.call('authorize_model_dispatch',dict(payload),timeout_s=30)
+    async def authorize_routing_selection(payload):return await authorization.call('authorize_routing_selection',dict(payload),timeout_s=30)
     async def authorize_containment(payload):return await authorization.call('authorize_containment',dict(payload),timeout_s=30)
     from .executor_rpc import ExecutorClient,PROTOCOL
     executor=ExecutorClient(PrivateRPCClient('/run/ai4r-executor/executor.sock',protocol=PROTOCOL,
@@ -532,20 +543,25 @@ async def start_agent_ports():
     from .model_settings import ModelSettingsOwner
     from .local_models import LocalModelCatalog
     manual_models=ModelSettingsOwner(store,local_catalog=LocalModelCatalog(os.environ.get('AI4R_LOCAL_MODEL_CATALOG')))
+    from .automatic_routing import AutomaticRouting
+    automatic_routing=AutomaticRouting(manual_models, subscription)
     if type(router) is UnavailableRoutingPort:
         print(json.dumps({'event':'optional-routing-unavailable','reason':router.installation_failure.value}),flush=True)
     bridge=GovernedBridge(persist=store.append_record,authorize=authorize,subscription_service=subscription,
                          router_port=router,providers=providers,fixed_route_id=operator.codex_route_id,validate_record=validate,health_check=capture_healthy,
                           revalidate=revalidate,builder_launcher=BrokerBuilderPort(),read_evidence=store.read_blob,
                           capture_native=lambda kind,record,*,context:capture_native_record(store,kind,record,context=context),
-                          manual_models=manual_models)
+                          manual_models=manual_models, automatic_routing=automatic_routing,
+                          authorize_routing_selection=authorize_routing_selection)
     model_server=ModelBridgeServer(bridge,root/'model.sock',allowed_peer_uids={APP_UID},authorize_containment=authorize_containment,**session)
     from .unified_planning import is_integrated_policy
     try:integrated_policy=is_integrated_policy(store.read_record(operator.snapshot()['cc']['plan_policy_ref'],contract_id='plan-policy'))
     except ResearchError:integrated_policy=False
     async def subscription_status(payload):
-        if payload:raise ResearchError('invalid_request','Status accepts no supplied identity or credential')
-        status=await subscription.status()
+        if not isinstance(payload,dict) or (payload and
+                (set(payload)!={'include_subscription'} or payload['include_subscription'] is not False)):
+            raise ResearchError('invalid_request','Status accepts no supplied identity or credential')
+        status=await subscription.status() if not payload else {}
         # Managed-model availability must remain observable without scientific
         # datasets or Builder qualification in the integrated read-only scope.
         try:execution_status={} if integrated_policy else await executor.prerequisites()
@@ -556,17 +572,28 @@ async def start_agent_ports():
                 'execution_mode':execution_status.get('execution_mode') if isinstance(execution_status,dict) else None,
                 'capture_healthy':capture_healthy() is True}
     async def model_settings(payload):
+        payload=dict(payload)
+        include_catalog=payload.pop('include_chatgpt_models',True)
+        if type(include_catalog) is not bool:
+            raise ResearchError('invalid_request','Invalid model catalog request')
         catalog=[]
-        try:
-            async with asyncio.timeout(5):
-                catalog=(await subscription.models())['models']
-        except Exception:
-            pass  # Signed-out users can still configure OpenRouter or choose the subscription default.
+        if include_catalog:
+            try:
+                async with asyncio.timeout(5):
+                    catalog=(await subscription.models())['models']
+            except Exception:
+                pass  # The comparison catalog never blocks local model settings.
         result=manual_models.settings(payload,chatgpt_models={m['id'] for m in catalog})
-        return dict(result,chatgpt_models=catalog)
+        return dict(result,chatgpt_models=catalog,**(await automatic_routing.status()))
+    from .subscription_baseline import SubscriptionBaseline
+    baseline = SubscriptionBaseline(store, subscription)
+    from .hybrid_benchmark import HybridBenchmark
+    hybrid_benchmark = HybridBenchmark(store.root/'hybrid-benchmark', subscription)
     status_server=PrivateRPCServer(root/'agent-status.sock',protocol=STATUS_PROTOCOL,**session,
         handlers={'subscription_status':subscription_status,'model_settings':model_settings,
-                  'freeze_model_selection':manual_models.freeze},allowed_uids={APP_UID})
+                  'freeze_model_selection':automatic_routing.freeze,
+                  'benchmark_chatgpt_baseline':baseline.invoke,
+                  'benchmark_hybrid_route':hybrid_benchmark.invoke},allowed_uids={APP_UID})
     try:
         await model_server.start();await status_server.start()
     except BaseException:

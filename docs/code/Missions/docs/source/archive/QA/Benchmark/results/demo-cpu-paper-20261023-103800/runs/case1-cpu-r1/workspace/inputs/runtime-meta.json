@@ -1,0 +1,35 @@
+{
+  "schema": "demo-runtime-provenance:1",
+  "captured_at": "2026-10-23T14:36:23Z",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "host_os": "Windows-11-10.0.22631-SP0",
+  "host_architecture": "AMD64",
+  "physical_memory": {
+    "total": 16944848896,
+    "available": 1803362304,
+    "percent": 89.4,
+    "used": 15141486592,
+    "free": 1803362304
+  },
+  "cpu_logical": 24,
+  "cpu_physical": 16,
+  "checkout_commit": "f7b31c6796191c5a80804a9484b031bc671bc6db",
+  "app_build_id": "db45a807a314ef5aab1f69090b1a5bd8d0f7c1eed878cc857885518ef4780ca4",
+  "app_image": "sha256:c8eeba69e0d45968d1e18dfe281f6c66f91053ff8e258d231295eb552dd1a613",
+  "runner_image": "sha256:193c0ae0cffb95557424faec618bc944fb87d2b08cac78921f1190f8e0358992",
+  "declared_model": "gpt-6.1-sol",
+  "observed_model": null,
+  "gpu_inventory": {
+    "command": [
+      "nvidia-smi",
+      "--query-gpu=name,driver_version,memory.total,memory.free",
+      "--format=csv,noheader"
+    ],
+    "exit_code": 0,
+    "stdout": "NVIDIA GeForce RTX 4060 Laptop GPU, 576.88, 8188 MiB, 6047 MiB",
+    "stderr": ""
+  },
+  "app_gpu_device_requests": null,
+  "app_torch_installed": false,
+  "source_note": "Host and commit supplied by reviewer-side provenance capture; actual model must come from app run evidence."
+}

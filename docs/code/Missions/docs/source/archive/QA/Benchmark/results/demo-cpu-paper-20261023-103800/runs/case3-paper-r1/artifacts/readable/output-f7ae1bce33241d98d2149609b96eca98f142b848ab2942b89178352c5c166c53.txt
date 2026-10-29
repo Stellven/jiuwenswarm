@@ -1,0 +1,44 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, id, brief_ref, summary_ref, report_ref, source_refs, gate_decision_refs, files and missing_evidence conform to the manifest schema, including reference formats and allowed fields."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "brief_ref, summary_ref, report_ref, source_refs and gate_decision_refs exactly match the corresponding files[].artifact_ref values and roles."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "missing_evidence is empty, and files contains entries for every referenced artifact; no output field states a conflicting uncertainty or limitation."
+    },
+    {
+      "criterion_id": "paper_delivery_sections",
+      "outcome": "PASS",
+      "reason": "files coherently represents report, brief, summary, source and gate_decision roles, each matching its corresponding top-level reference."
+    },
+    {
+      "criterion_id": "paper_delivery_citations",
+      "outcome": "PASS",
+      "reason": "files lists paper_summary.json with role summary and an artifact_ref matching summary_ref; source_refs matches the source entry at sources/document_001.txt."
+    },
+    {
+      "criterion_id": "paper_delivery_honesty",
+      "outcome": "PASS",
+      "reason": "files, report_ref and summary_ref present a paper-summary inventory without claiming a new benchmark, experiment, scientific acceptance or unseen source inspection."
+    },
+    {
+      "criterion_id": "paper_delivery_usable",
+      "outcome": "PASS",
+      "reason": "files[].path values are unique, safe relative paths; roles, media_type and audience clearly identify each entry, and missing_evidence is empty."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Referenced artifact contents and acceptance status are not available; findings cover only the manifest's declared shape and visible internal relationships."
+  ],
+  "required_correction": null
+}

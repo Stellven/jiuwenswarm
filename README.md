@@ -1,3 +1,5 @@
+> **AI4Research M1:** See the [release notes and quick start](releases/AI4Research-M1.md) and [deployment operations](deploy/m1/OPERATIONS.md). The integrated release is maintained on `AI4Research-Main`.
+>
 > **AI4Research architecture:** Start at the [architecture index](docs/architecture/README.md) for the maintained [design package](docs/architecture/design-package/README.md) and [experiment registry](docs/architecture/experiments/README.md). The JiuwenSwarm documentation below describes the underlying platform.
 
 <p align="center">

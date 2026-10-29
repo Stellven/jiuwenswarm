@@ -1,0 +1,28 @@
+{
+  "schema": "demo-runtime-provenance:1",
+  "captured_at": "2026-10-23T19:05:16.450046+00:00",
+  "physical_host": "LAPTOP-MFQ6O7IF",
+  "host_os": "Windows-11-10.0.22631-SP0",
+  "host_architecture": "AMD64",
+  "checkout_commit": "125dafc57437700dc32005f5e2403a0aa00a519f",
+  "checkout_dirty": true,
+  "app_build_id": "e5972c6a619366f748864fe40172bb52ff2d17acd3c33b10e8a6d06be6a67e65",
+  "app_image": "sha256:eeb70fe4e12abb5a531f79246ff2a010ce87f4c085f9821c701f58d049390ca2",
+  "runner_image": "sha256:faab1f7b5350d5bc53e4cb6065247af909609d6e17603b65c52379f0987bc09a",
+  "declared_model": "gpt-6.1-sol",
+  "observed_model": null,
+  "source_note": "Same full Case 1 task and three public uploads, following correction of the metric-protocol snapshot authority regression. No baseline or task changes. Reviewer labels remain excluded. Observer HTTP timeout is 180s to collect existing large exports; app execution budgets remain unchanged. Source checkout is dirty; exact deployed bytes are pinned in the build identity.",
+  "runner_hostname": "84e3d9ff1415",
+  "runner_os": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+  "runner_architecture": "x86_64",
+  "runner_python": "3.12.15",
+  "runner_uid": 11001,
+  "runner_package_versions": {
+    "httpx": "0.28.1",
+    "jsonschema": "4.26.0",
+    "psutil": "7.2.2",
+    "numpy": null,
+    "scikit-learn": null,
+    "torch": null
+  }
+}

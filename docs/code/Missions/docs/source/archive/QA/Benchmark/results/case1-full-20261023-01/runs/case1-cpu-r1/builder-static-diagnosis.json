@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "Static inspection of exact captured file strings; generated code was not executed",
+  "source_packet_path": "records/runs/run_ed6087d37f4742aaba2b0435a1f91841/builder/builder-a1/builder/trace/native/91b983f3785d32ca331460c27290b949b2357a539c7115fcf404ae175c0132d8/00002220.packet",
+  "source_packet_sha256": "704655c6fb086f9a3ff5a90544876a24de140cdb174830238bd00fa95561cca8",
+  "native_failure_reason": "CheckError",
+  "reproduced_static_failure": {
+    "check_id": "output_log_format",
+    "detail": "output_log_format",
+    "exception_type": "CheckError"
+  },
+  "file_texts_contain_literal_backslash_n": {
+    "requirements.txt": false,
+    "poc_patch.py": false,
+    "run_benchmark.py": false
+  },
+  "known_baseline_mismatch_visible_in_harness": true,
+  "predictions_produced": false,
+  "quality_assessment": null
+}

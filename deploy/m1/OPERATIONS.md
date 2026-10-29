@@ -12,6 +12,10 @@ above this deployment workflow. See
 Harbor and inference hosts, public-only staging and recovery over SSH.
 Standard application runs do not require Harbor.
 
+For the key-free E4B router, local executor pool and fixed Qwen verifier on a
+single DGX Spark, use [SPARK-LOCAL-MODELS.md](SPARK-LOCAL-MODELS.md). It extends
+this same operator/app on 5175 and preserves the existing comparison mode.
+
 ## Start here: ordinary Docker, no sudo
 
 Build the images, then start the existing app. Its explicit local-research mode

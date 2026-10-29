@@ -1,0 +1,5153 @@
+{
+  "schema": "ai4r-router-report-inputs:1",
+  "collected_at": "2026-10-26T23:01:58.851993+00:00",
+  "host": "gx10-004d",
+  "platform": "Linux-7.0.0-1019-nvidia-aarch64-with-glibc2.39",
+  "source_plan_sha256": "e770c24bcbd54b268941c8aeaf2db4ba9f29ab555964f3b746c4a1201dc2e1e8",
+  "reviewer_sha256": "37e04a79423d2d145b9e1cb4d60e0f704424b9c87b917fb3ad67b95786d98c00",
+  "reviewer_answers_exported": false,
+  "cohorts": [
+    {
+      "id": "qwen",
+      "label": "Fixed Qwen",
+      "source_directory": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001",
+      "phase": "fixed",
+      "n": 24,
+      "correct": 16,
+      "gated_correct": 16,
+      "gates": {
+        "advance": 21,
+        "halt": 3
+      },
+      "choices": {
+        "local:qwen": 24
+      },
+      "roles": {
+        "worker": {
+          "calls": 24,
+          "input_tokens": 4833,
+          "output_tokens": 632
+        },
+        "verifier": {
+          "calls": 24,
+          "input_tokens": 4153,
+          "output_tokens": 168
+        }
+      },
+      "elapsed_s": 120.1880680739414,
+      "median_s": 3.9874570969259366,
+      "native_proofs": 0,
+      "plan_sha256": "e770c24bcbd54b268941c8aeaf2db4ba9f29ab555964f3b746c4a1201dc2e1e8",
+      "controller_sha256": null,
+      "launched": {
+        "at": 1793046386.020978,
+        "host": "gx10-004d",
+        "plan_sha256": "e770c24bcbd54b268941c8aeaf2db4ba9f29ab555964f3b746c4a1201dc2e1e8"
+      },
+      "monetary_cost": null,
+      "domains": {
+        "c01-inference": 0,
+        "c02-retrieval": 2,
+        "c03-shortest-path": 3,
+        "c04-performance": 0,
+        "c05-database": 3,
+        "c06-quorum": 2,
+        "c07-reliability": 3,
+        "c08-paired-data": 3
+      },
+      "total_tokens": 9786
+    },
+    {
+      "id": "e4b",
+      "label": "Historical E4B router",
+      "source_directory": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001",
+      "phase": "routed",
+      "n": 24,
+      "correct": 3,
+      "gated_correct": 3,
+      "gates": {
+        "advance": 20,
+        "halt": 4
+      },
+      "choices": {
+        "local:e4b": 24
+      },
+      "roles": {
+        "routing_selection": {
+          "calls": 24,
+          "input_tokens": 17640,
+          "output_tokens": 991
+        },
+        "worker": {
+          "calls": 24,
+          "input_tokens": 4830,
+          "output_tokens": 661
+        },
+        "verifier": {
+          "calls": 24,
+          "input_tokens": 4192,
+          "output_tokens": 168
+        }
+      },
+      "elapsed_s": 76.61260979785584,
+      "median_s": 3.150630649528466,
+      "native_proofs": 0,
+      "plan_sha256": "e770c24bcbd54b268941c8aeaf2db4ba9f29ab555964f3b746c4a1201dc2e1e8",
+      "controller_sha256": null,
+      "launched": {
+        "at": 1793046386.020978,
+        "host": "gx10-004d",
+        "plan_sha256": "e770c24bcbd54b268941c8aeaf2db4ba9f29ab555964f3b746c4a1201dc2e1e8"
+      },
+      "monetary_cost": null,
+      "domains": {
+        "c01-inference": 0,
+        "c02-retrieval": 0,
+        "c03-shortest-path": 0,
+        "c04-performance": 0,
+        "c05-database": 0,
+        "c06-quorum": 0,
+        "c07-reliability": 3,
+        "c08-paired-data": 0
+      },
+      "total_tokens": 28482
+    },
+    {
+      "id": "chatgpt",
+      "label": "All ChatGPT",
+      "source_directory": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002",
+      "phase": null,
+      "n": 24,
+      "correct": 24,
+      "gated_correct": null,
+      "gates": {},
+      "choices": {
+        "subscription:gpt-6.1-sol": 24
+      },
+      "roles": {
+        "worker": {
+          "calls": 24,
+          "input_tokens": 225939,
+          "output_tokens": 1047
+        }
+      },
+      "elapsed_s": 86.66835366305895,
+      "median_s": 3.406291226972826,
+      "native_proofs": 24,
+      "plan_sha256": "0592e643818e10efe016a37b8c715a5e9424ba8a0bc7402c1ad5e093da1049ef",
+      "controller_sha256": "fe862946d982007386ef881d32611339448d8e2f18ed2c4bbb6a5bdc4b155cb4",
+      "launched": {
+        "at": 1793050578.417657,
+        "base_commit": "b983328d62fd8c5bfe7825bc6dd259f31e39ba85",
+        "container": "ai4r-spark-ai4r-1",
+        "host": "gx10-004d",
+        "image_id": "sha256:dc0de7065dd5b8362c3c9b4fc4a9a8640bd18fc875eae06393a3dae635b5ed4d",
+        "source_status": "image ID and controller hash identify actual source; base commit may have source overlays"
+      },
+      "monetary_cost": null,
+      "domains": {
+        "c01-inference": 3,
+        "c02-retrieval": 3,
+        "c03-shortest-path": 3,
+        "c04-performance": 3,
+        "c05-database": 3,
+        "c06-quorum": 3,
+        "c07-reliability": 3,
+        "c08-paired-data": 3
+      },
+      "total_tokens": 226986
+    },
+    {
+      "id": "v3",
+      "label": "Hybrid v3",
+      "source_directory": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002",
+      "phase": null,
+      "n": 24,
+      "correct": 16,
+      "gated_correct": 12,
+      "gates": {
+        "advance": 16,
+        "halt": 8
+      },
+      "choices": {
+        "local:qwen": 23,
+        "subscription:gpt-6.1-sol": 1
+      },
+      "roles": {
+        "routing_selection": {
+          "calls": 24,
+          "input_tokens": 16554,
+          "output_tokens": 1557
+        },
+        "worker": {
+          "calls": 24,
+          "input_tokens": 14057,
+          "output_tokens": 725
+        },
+        "verifier": {
+          "calls": 24,
+          "input_tokens": 4026,
+          "output_tokens": 168
+        }
+      },
+      "elapsed_s": 344.2694916112814,
+      "median_s": 13.804916380089708,
+      "native_proofs": 1,
+      "plan_sha256": "e4a4be353bb4689ce98548aab4819dc14f7fccfc14fbfee690d7d6c3ae29a894",
+      "controller_sha256": "7faf6cfbf5642c980401cd0f222c092fa11d9ad3ea2d8c531693a20699773456",
+      "launched": {
+        "at": 1793052966.184781,
+        "base_commit": "b983328d62fd8c5bfe7825bc6dd259f31e39ba85",
+        "container": "ai4r-spark-ai4r-1",
+        "host": "gx10-004d",
+        "image_id": "sha256:92024f9619e41f398b05eed5b2f0725175df1ae22845d6d7f8d68da3bef715f4",
+        "source_status": "image ID and controller hash identify actual source; base commit may have source overlays"
+      },
+      "monetary_cost": null,
+      "domains": {
+        "c01-inference": 0,
+        "c02-retrieval": 1,
+        "c03-shortest-path": 3,
+        "c04-performance": 0,
+        "c05-database": 3,
+        "c06-quorum": 3,
+        "c07-reliability": 3,
+        "c08-paired-data": 3
+      },
+      "total_tokens": 37087
+    },
+    {
+      "id": "v4",
+      "label": "Hybrid v4",
+      "source_directory": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001",
+      "phase": null,
+      "n": 24,
+      "correct": 20,
+      "gated_correct": 14,
+      "gates": {
+        "halt": 8,
+        "advance": 16
+      },
+      "choices": {
+        "subscription:gpt-6.1-sol": 15,
+        "local:qwen": 9
+      },
+      "roles": {
+        "routing_selection": {
+          "calls": 24,
+          "input_tokens": 16675,
+          "output_tokens": 1034
+        },
+        "worker": {
+          "calls": 24,
+          "input_tokens": 143039,
+          "output_tokens": 901
+        },
+        "verifier": {
+          "calls": 24,
+          "input_tokens": 4014,
+          "output_tokens": 168
+        }
+      },
+      "elapsed_s": 277.52918323595077,
+      "median_s": 11.555310702999122,
+      "native_proofs": 15,
+      "plan_sha256": "d5653d1d86ffe130497519f47166b7af0d0ba4913f4ff2a115d83a34c16b7215",
+      "controller_sha256": "7faf6cfbf5642c980401cd0f222c092fa11d9ad3ea2d8c531693a20699773456",
+      "launched": {
+        "at": 1793053771.8599825,
+        "base_commit": "b983328d62fd8c5bfe7825bc6dd259f31e39ba85",
+        "container": "ai4r-spark-ai4r-1",
+        "host": "gx10-004d",
+        "image_id": "sha256:8c35773a0b03905c92c5c75ba4a9c1867334e95f8c666c8917cd9ea5d394aa91",
+        "source_status": "image ID and controller hash identify actual source; base commit may have source overlays"
+      },
+      "monetary_cost": null,
+      "domains": {
+        "c01-inference": 3,
+        "c02-retrieval": 2,
+        "c03-shortest-path": 3,
+        "c04-performance": 1,
+        "c05-database": 3,
+        "c06-quorum": 2,
+        "c07-reliability": 3,
+        "c08-paired-data": 3
+      },
+      "total_tokens": 165831
+    },
+    {
+      "id": "v5",
+      "label": "Hybrid v5 (current)",
+      "source_directory": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001",
+      "phase": null,
+      "n": 24,
+      "correct": 21,
+      "gated_correct": 11,
+      "gates": {
+        "halt": 13,
+        "advance": 11
+      },
+      "choices": {
+        "local:qwen": 5,
+        "subscription:gpt-6.1-sol": 19
+      },
+      "roles": {
+        "routing_selection": {
+          "calls": 24,
+          "input_tokens": 12235,
+          "output_tokens": 1475
+        },
+        "worker": {
+          "calls": 24,
+          "input_tokens": 179862,
+          "output_tokens": 944
+        },
+        "verifier": {
+          "calls": 24,
+          "input_tokens": 4014,
+          "output_tokens": 168
+        }
+      },
+      "elapsed_s": 337.9136448127683,
+      "median_s": 13.714475274435245,
+      "native_proofs": 19,
+      "plan_sha256": "c6786997e30d4f7b5a414cbc04dd0f8146dfb663f1c0153949227efccc4fc32b",
+      "controller_sha256": "3f2424758b04a0e6a3523b4f9c2856095f2c69704bddc21feb465d346f444f01",
+      "launched": {
+        "at": 1793054820.182362,
+        "base_commit": "b983328d62fd8c5bfe7825bc6dd259f31e39ba85",
+        "container": "ai4r-spark-ai4r-1",
+        "host": "gx10-004d",
+        "image_id": "sha256:dcb5f77624f9f57d3eb595339a0eb2a0b647d1e58e3e63bf93aa64a83af58f3e",
+        "source_status": "image ID and controller hash identify actual source; base commit may have source overlays"
+      },
+      "monetary_cost": null,
+      "domains": {
+        "c01-inference": 0,
+        "c02-retrieval": 3,
+        "c03-shortest-path": 3,
+        "c04-performance": 3,
+        "c05-database": 3,
+        "c06-quorum": 3,
+        "c07-reliability": 3,
+        "c08-paired-data": 3
+      },
+      "total_tokens": 198698
+    }
+  ],
+  "observations": [
+    {
+      "cohort": "qwen",
+      "variant": "c01-inference",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.773580559063703,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 182,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":2,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c01-inference-fixed-qwen-r0/result.json",
+      "source_sha256": "fe4a19e12827435e946e65bef592b8fd8c0604c0682c90f51bddc329821ffcc6"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c01-inference",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.758755204034969,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 182,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.5,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c01-inference-fixed-qwen-r1/result.json",
+      "source_sha256": "c5042607716faa626f19fc6d33060d88be47e79f124713b7de92494740d3362c"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c01-inference",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.7782892659306526,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 182,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":4,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c01-inference-fixed-qwen-r2/result.json",
+      "source_sha256": "8af782b62fbb31d7b039657a12f74a7adcb84883179bbe8d619394322fcdbdf3"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c02-retrieval",
+      "repeat": 0,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 3.5736066058743745,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 163,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"a\",\"precision_at_2\":0.5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c02-retrieval-fixed-qwen-r0/result.json",
+      "source_sha256": "e29698f7298f988615fa1076bc510f4e5cf2d238773728a2e725c5121ccdd301"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c02-retrieval",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 4.634635181864724,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 163,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"best\": \"b\",\n  \"precision_at_2\": 1.0\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c02-retrieval-fixed-qwen-r1/result.json",
+      "source_sha256": "5605aea6e798f46e72ea06b7de3bd7d6603e745eab04070cc1558805e12cab24"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c02-retrieval",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.532796557061374,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 163,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1.0}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c02-retrieval-fixed-qwen-r2/result.json",
+      "source_sha256": "b8a694339a11bb89cbe4fad2cdcfc3faae982d3d8a9c384555b3931e294f3e74"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c03-shortest-path",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.660514964023605,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c03-shortest-path-fixed-qwen-r0/result.json",
+      "source_sha256": "a2787138b8ecf7041908d1c0c2780f10433f952a072efee16924498cf1698762"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c03-shortest-path",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.677551083965227,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c03-shortest-path-fixed-qwen-r1/result.json",
+      "source_sha256": "ed37057ac94aa4a77ab47450a7764b574d4cc600fe52d28d0c5653bde03606a2"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c03-shortest-path",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.7017632049974054,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c03-shortest-path-fixed-qwen-r2/result.json",
+      "source_sha256": "ad4025ef9c3f3af2c6765d5b50adb24d240a7cf87d7e01726b483fbd236bf6fb"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c04-performance",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 5.994597761891782,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 34
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":26.0,\"candidate_mean_ms_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c04-performance-fixed-qwen-r0/result.json",
+      "source_sha256": "8f8610bb16220452930c8df92782230ef0d5858ac0af76f5992a81b2dbdc31b4"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c04-performance",
+      "repeat": 1,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 6.25697727384977,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 36
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 187,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":26.0,\"candidate_mean_ms_ms\":13.6,\"candidate_p95_ms\":20.0,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c04-performance-fixed-qwen-r1/result.json",
+      "source_sha256": "5ba3bc1bc1bf8ec0eb330d586fca4dac42b970d2c4ec7a96a89f522edc9e336e"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c04-performance",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 5.7832831221167,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 32
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":26,\"candidate_mean_ms_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c04-performance-fixed-qwen-r2/result.json",
+      "source_sha256": "fe06d625ecbe4f797518170da59d2067a2e87023c1f7bcfa2704bd1ee66b8f15"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c05-database",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.8650500650983304,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c05-database-fixed-qwen-r0/result.json",
+      "source_sha256": "cb0ac60b5ac9921b15ae430c733f348b74526c02654647e9f1189a858c94b98d"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c05-database",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.8865496839862317,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c05-database-fixed-qwen-r1/result.json",
+      "source_sha256": "69902f497091b75e02fe4a1e9d0328c66904ba530afd4d9ec0db8c2e3e789a3a"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c05-database",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.861711857141927,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c05-database-fixed-qwen-r2/result.json",
+      "source_sha256": "144332e61349e938638426294161f64bb77ac1a6289200f2d2338426b618497f"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c06-quorum",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 5.200413427082822,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 192,
+          "output_tokens": 28
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 181,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c06-quorum-fixed-qwen-r0/result.json",
+      "source_sha256": "ea096df41e3fe994a21b8798dd4400b690d08bc640f2adfc5cee04a13f480f24"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c06-quorum",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 5.263158131157979,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 192,
+          "output_tokens": 28
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 181,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c06-quorum-fixed-qwen-r1/result.json",
+      "source_sha256": "b13257f5c19353eb98d944ac15338989ebcf4897e244ca1586c328f4d73cbe1b"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c06-quorum",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 3.6418062408920377,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 192,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":true,\"disjoint_example\":null}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c06-quorum-fixed-qwen-r2/result.json",
+      "source_sha256": "e24c23614a3c13543ac4d08e722a7a116804027442b60195ea0098483389d25c"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c07-reliability",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 4.088364509865642,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 170,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c07-reliability-fixed-qwen-r0/result.json",
+      "source_sha256": "7f067351d60e022f3aac5b08c6a7ac4d10b28f90b59237b87927f90d9f0c65be"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c07-reliability",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 7.664131902856752,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 47
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 170,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"allowed\": [\n    \"r1\"\n  ],\n  \"denied\": [\n    \"r2\",\n    \"r3\",\n    \"r4\"\n  ]\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c07-reliability-fixed-qwen-r1/result.json",
+      "source_sha256": "c4340f56714023dcebc7d19948921077e412fa6622b81c640aabf07ed74a7211"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c07-reliability",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 4.107385040959343,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 170,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c07-reliability-fixed-qwen-r2/result.json",
+      "source_sha256": "349f53203a00bf4a51bdeaf0d4d0729daa6e89a024b8e17bb2b90df29703151c"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c08-paired-data",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 10.111013637157157,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 188,
+          "output_tokens": 67
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 191,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"paired_improvements_ms\": [\n    1,\n    5,\n    -2,\n    6\n  ],\n  \"mean_improvement_ms\": 2.5,\n  \"positive_pairs\": 3,\n  \"total_pairs\": 4\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c08-paired-data-fixed-qwen-r0/result.json",
+      "source_sha256": "320716a90dbb67411b8c78fc1bb87e5a57db88333fac6a0bda0fa764ab1762c5"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c08-paired-data",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 6.2254133250098675,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 188,
+          "output_tokens": 36
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 191,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c08-paired-data-fixed-qwen-r1/result.json",
+      "source_sha256": "5b4ece2a89ba7fecc5301af6b8780d123b856cc5ebd27856f5ed22f2035fd858"
+    },
+    {
+      "cohort": "qwen",
+      "variant": "c08-paired-data",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 10.146719468059018,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 188,
+          "output_tokens": 67
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 191,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"paired_improvements_ms\": [\n    1,\n    5,\n    -2,\n    6\n  ],\n  \"mean_improvement_ms\": 2.5,\n  \"positive_pairs\": 3,\n  \"total_pairs\": 4\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c08-paired-data-fixed-qwen-r2/result.json",
+      "source_sha256": "68abde7e57fdf85e1acf28566941c063324ccc39613281e9adc430e2451e2900"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c01-inference",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.0485923839733005,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 731,
+          "output_tokens": 46
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 182,
+          "output_tokens": 18
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.5,\"correct\":2,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c01-inference-routed-auto-r0/result.json",
+      "source_sha256": "86aadc7bc2b2e8fd202a11ad6d26e7d893f5092e340c53b655d8a2b96ee2bd6e"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c01-inference",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.1135073110926896,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 731,
+          "output_tokens": 46
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 182,
+          "output_tokens": 18
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.5,\"correct\":2,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c01-inference-routed-auto-r1/result.json",
+      "source_sha256": "5c3016c84409524440f19f62d2192dabd8586383be063f6ca1c28ade1a296554"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c01-inference",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 2.999992124037817,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 731,
+          "output_tokens": 35
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 182,
+          "output_tokens": 23
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\": 0.5, \"correct\": 2, \"total\": 4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c01-inference-routed-auto-r2/result.json",
+      "source_sha256": "efa43c2c3a847e3d7fcb33fc970858ad425105d3632b0410463e1ee8ff723395"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c02-retrieval",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.1877539879642427,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 738,
+          "output_tokens": 38
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 31
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"a\",\"precision_at_2\":0.8333333333333334}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c02-retrieval-routed-auto-r0/result.json",
+      "source_sha256": "1b5d2cb47b1b0000db81ce1c9a35a333c008336be8347ea8cff1535101b0c6bb"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c02-retrieval",
+      "repeat": 1,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:e4b",
+      "elapsed_s": 3.3277179908473045,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 738,
+          "output_tokens": 41
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 34
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\": \"a\", \"precision_at_2\": 0.8333333333333334}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c02-retrieval-routed-auto-r1/result.json",
+      "source_sha256": "1b88b54b2b28426cd529ef37f5a2c240cfcd5e99f1e9d2244ad1bbaf93123072"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c02-retrieval",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:e4b",
+      "elapsed_s": 3.070435194997117,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 738,
+          "output_tokens": 42
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 18
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 163,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"a\", \"precision_at_2\": 0.5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c02-retrieval-routed-auto-r2/result.json",
+      "source_sha256": "26686a1d8ee1defadccde2882cc762431a0b8c94c5bec43e77623fa1f5b14de3"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c03-shortest-path",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 2.957204513018951,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 735,
+          "output_tokens": 38
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":8}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c03-shortest-path-routed-auto-r0/result.json",
+      "source_sha256": "f0ec3798b152b62525fb4d0cebb3ab00d387b80d391141eb076de990ad2fc223"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c03-shortest-path",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 2.8871567940805107,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 41
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 168,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":11}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c03-shortest-path-routed-auto-r1/result.json",
+      "source_sha256": "56c0adca1625182c66a2d45b3d2cb7f512c94d6838d931f941e238b9d7f3edf7"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c03-shortest-path",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 2.835135931149125,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 735,
+          "output_tokens": 34
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":8}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c03-shortest-path-routed-auto-r2/result.json",
+      "source_sha256": "f74c13959ee88c85e2e12cdfa5f805420d58217ae9b11dea6087f09110bb4b9d"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c04-performance",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.655987465986982,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 47
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 222,
+          "output_tokens": 45
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 184,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\": 38.0, \"candidate_mean_ms\": 15.4, \"candidate_p95_ms\": 20, \"accept\": true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c04-performance-routed-auto-r0/result.json",
+      "source_sha256": "d0c3a4fdaa12f452d29c01a948542b36afb8d26d0dc7c1102a7cae81a573a116"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c04-performance",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.555006223032251,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 735,
+          "output_tokens": 43
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 222,
+          "output_tokens": 45
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 184,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\": 34.0, \"candidate_mean_ms\": 16.8, \"candidate_p95_ms\": 20, \"accept\": true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c04-performance-routed-auto-r1/result.json",
+      "source_sha256": "03fc4cfd371c70b3f48eee6c4a97cf2d09bceed919224a53db67d683e43256ff"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c04-performance",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.4396729639265686,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 735,
+          "output_tokens": 40
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 222,
+          "output_tokens": 45
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 184,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\": 38.0, \"candidate_mean_ms\": 15.8, \"candidate_p95_ms\": 20, \"accept\": true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c04-performance-routed-auto-r2/result.json",
+      "source_sha256": "b1e75ddc4478213a8de907c1f8c34a3d287107b9c4b891dce52df958ba9b3c4c"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c05-database",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.051244999980554,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 43
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 204,
+          "output_tokens": 18
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":13}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c05-database-routed-auto-r0/result.json",
+      "source_sha256": "2515acc6472b87d538679b1202ed58f8116f6957c6125c05b280ca43ca409531"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c05-database",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 2.909392112866044,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 40
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 204,
+          "output_tokens": 18
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":20}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c05-database-routed-auto-r1/result.json",
+      "source_sha256": "2b579dc52ef7441c9bf2ad0ebc694449f0202e4c71c6f3b1676593722e41950c"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c05-database",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:e4b",
+      "elapsed_s": 2.987444543046877,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 42
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 204,
+          "output_tokens": 18
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":13}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c05-database-routed-auto-r2/result.json",
+      "source_sha256": "e667e5b282a1545b5a8da33c7ed00797eade8377a6157f45ea6d1d5927df5ee9"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c06-quorum",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.2720445920713246,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 733,
+          "output_tokens": 46
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 27
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":true,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c06-quorum-routed-auto-r0/result.json",
+      "source_sha256": "3fe694123ea25c517c0f34ba1a1878564f3ad88fe97a26f14ae2216284b89bfe"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c06-quorum",
+      "repeat": 1,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:e4b",
+      "elapsed_s": 3.2671920389402658,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 42
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 27
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":true,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\"]}}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c06-quorum-routed-auto-r1/result.json",
+      "source_sha256": "14db5105f0c799b36fe7e0218ff41bcb8d151ed95fd9afd910124111f21bf92a"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c06-quorum",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.19645439600572,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 734,
+          "output_tokens": 44
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 27
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":true,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c06-quorum-routed-auto-r2/result.json",
+      "source_sha256": "c74a9fc42e9d1f0725f5f14462a08166f958bbeca2a9ce46ff8eda40ad8b5625"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c07-reliability",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.0594556550495327,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 737,
+          "output_tokens": 41
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 274,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 170,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c07-reliability-routed-auto-r0/result.json",
+      "source_sha256": "9c349729b71a890dcfaab8f778fcb839df94bff5e640f0f5a110b0ac416aab97"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c07-reliability",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.0647980358917266,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 737,
+          "output_tokens": 38
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 274,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 170,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\": [\"r1\"], \"denied\": [\"r2\", \"r3\", \"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c07-reliability-routed-auto-r1/result.json",
+      "source_sha256": "1aeee88d3dbc77d00149468ec6f970c30bb331a8e86f7b9498e43b3bfc4966f0"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c07-reliability",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.253208935027942,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 737,
+          "output_tokens": 48
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 274,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 170,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\": [\"r1\"], \"denied\": [\"r2\", \"r3\", \"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c07-reliability-routed-auto-r2/result.json",
+      "source_sha256": "a35e31553cf1cb27141f171ee425f3e2b1c2f763b887fead37aec87109589711"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c08-paired-data",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.400857888860628,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 737,
+          "output_tokens": 40
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 190,
+          "output_tokens": 38
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 191,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,2,6],\"mean_improvement_ms\":3.5,\"positive_pairs\":4,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c08-paired-data-routed-auto-r0/result.json",
+      "source_sha256": "de7d555b09812efed554086fa451c5f0124a5ffa741b16da41ac4250998b28e9"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c08-paired-data",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.541889454005286,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 737,
+          "output_tokens": 39
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 190,
+          "output_tokens": 47
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 191,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1, 5, -2, -6], \"mean_improvement_ms\": -1.5, \"positive_pairs\": 2, \"total_pairs\": 4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c08-paired-data-routed-auto-r1/result.json",
+      "source_sha256": "50eb1240a77292c8ccb65001c36bf9b9c72db60a244c8eb4abdaf77bc300383e"
+    },
+    {
+      "cohort": "e4b",
+      "variant": "c08-paired-data",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:e4b",
+      "elapsed_s": 3.530464262003079,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 737,
+          "output_tokens": 37
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 190,
+          "output_tokens": 48
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 191,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\": [-1, -5, 2, -6], \"mean_improvement_ms\": -2.5, \"positive_pairs\": 1, \"total_pairs\": 4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/local-routing-v1/results/campaign-001/runs/c08-paired-data-routed-auto-r2/result.json",
+      "source_sha256": "734675689ec752ef9c0b77d97af540f45395262368b3bc34dcd4c1a0b8f83535"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c01-inference",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.5115684419870377,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9398,
+          "output_tokens": 57
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":3,\"total\":4}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:4021465467b24d92a13589d03069abc5",
+            "sha256": "07fc6a9e31955429ce71d86e256511b3df55154a826d3ecab43e3efe530a186b"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r0/result.json",
+      "source_sha256": "68fc547b666312ea0feb54c59be7cdd544b40489b2ba777a4f08cd14146b7fa1"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c01-inference",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.2821810038294643,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9398,
+          "output_tokens": 58
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":3,\"total\":4}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:76943d2b72f44532b614ecb5cd5449bb",
+            "sha256": "07274830156e9e14c47378443278121a56997f70dcc801e8583d8b87b9a4f822"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r1/result.json",
+      "source_sha256": "6ce18dfa2172db1d6f94dabd4cca58db7c04be9e24421753d164e4ec1ec2d854"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c01-inference",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.2588083499576896,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9398,
+          "output_tokens": 56
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":3,\"total\":4}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:1f3cd6e655b249b5870331758c3bd4b2",
+            "sha256": "41c56d0618c70e10b92eda1f716ca0b73b5fc65918d079a94094b328001d6237"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c01-inference-r2/result.json",
+      "source_sha256": "746b62f567d25f47ff5aca0ca55e45016a47bce0abe9ee303b7a435bd9102bd3"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c02-retrieval",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.2355735669843853,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 44
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:7e48876727b84a9fb6c80723688b837d",
+            "sha256": "14091449c5c476e95ac6a2a094c75846264e9c1944141f9068f2e61cae915359"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r0/result.json",
+      "source_sha256": "641bc466b8a2e8c6846706bfe693d314069e19a87bda4c0b89ccc9e03c8f0fc3"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c02-retrieval",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.649467632872984,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 36
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:1e1b0e234eac42c389227ee0932b2727",
+            "sha256": "d1f441ebeda5fead6965f0992fd0068842047d1f645e510a91cc35013b2c96e2"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r1/result.json",
+      "source_sha256": "5ffd30b15f2b608989b7a06a364e2a534d78f8b22e252837b347a55e2a34799b"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c02-retrieval",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.4211816149763763,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 37
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:00feeec29a954bb688c7c4a971c52eee",
+            "sha256": "2726af26b9c858407c9f014ef929c843d981eb1ec9c13843f8e11bfaaece061f"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c02-retrieval-r2/result.json",
+      "source_sha256": "42962fc49501bdbdf342b5de93e1666b931ac67716c0daada51ee6a8e0bd9149"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c03-shortest-path",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.8599994520191103,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 37
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:680f3166473f41e182ebc2a99d6245ad",
+            "sha256": "4962cd3f1687eaea74cf28e2de151577322b985c3ed9742dd1d8bf3c3d68d315"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r0/result.json",
+      "source_sha256": "fe8378fa8d83199ea539ca589b111fb7d3e0a1620c2b601d946134e09c458171"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c03-shortest-path",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.115832566982135,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 39
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:521647631cf14ac29c2c9e2d3df247f1",
+            "sha256": "fd095506a163ae30c2fb1ec102fb597a2600a42c09ba7a14c808812f1c9d4240"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r1/result.json",
+      "source_sha256": "176ae2bee0686f5d6d0296f08918e1967e4ad5f38a1dbb840186b529dfd103a7"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c03-shortest-path",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.533311657141894,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 48
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:6485f015cfdb482c8e3880ff9cb5b453",
+            "sha256": "236175072df61c7ad1a06625bf6d58dffe13cd7006147ecb2f9463d371ab89bb"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c03-shortest-path-r2/result.json",
+      "source_sha256": "e18df28990b637dc56520234aa92fa98adb71f9ac81f9738b7fe7e3b898cbad2"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c04-performance",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 4.363316019065678,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 59
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:a711c0863af94fd18e0d84736343b312",
+            "sha256": "7a002faf7712340d02253cc7e2c326539eae897ad031c7f65a1c1022efda6d93"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r0/result.json",
+      "source_sha256": "6f5ccb4e00453302a07d87a3dd29dec3eaed363cc8463bda0bd7f79c079b627d"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c04-performance",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.6152673040051013,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 59
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:700f72ebb80d486796af4eb84adaedbc",
+            "sha256": "d620a6207a654bd4919aa376f006a427ec75c114dec0b4e3fd533cc93318096c"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r1/result.json",
+      "source_sha256": "be1704b12a4aa32c327e2fc34fe93321163af93c5cd757b99552b174cb301be3"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c04-performance",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.789553726091981,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 59
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:d937fe0a46b64513bedbcfe0ea5d1de0",
+            "sha256": "764ceb25fc77f85051498dbe078d4beed23b7efb607bc5571b24605edf765987"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c04-performance-r2/result.json",
+      "source_sha256": "87db64763ea69699ad3777ec85d1b9cdc8cb0e746e800e6a6c35506518fa437a"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c05-database",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 2.6890687549021095,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 20
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:2791db09c55c405b9eec33fee508cf0d",
+            "sha256": "df25c5ae9adc7798d008ee716a290934c51bda6eff77ed1b3ad5545dc4717604"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r0/result.json",
+      "source_sha256": "a702653bb866fa9c4f5f7b3f01fb71ad7b9dc27bbd7619110a1cc75e38a99b54"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c05-database",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.3764449490699917,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 20
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:36688e8fc90b4e5b894d9a47816f0b0d",
+            "sha256": "63a5ac70784d27bb62868340fa9e018f4870ec69e16f172ef809b94825078cbb"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r1/result.json",
+      "source_sha256": "a5b8f5321172d5beb56d5bc91dcb592b8826ede39b28d0686073b45ba751bfdc"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c05-database",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 2.8000221950933337,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 20
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:71d1aa04ff394752bc92f5ea575eb774",
+            "sha256": "767eca4b27bfb35d907916cc108cd96890e186a8d96b4ae313c0a69b7207a082"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c05-database-r2/result.json",
+      "source_sha256": "815b6c158dadb466ac2bfdecaf92f8af76d7766743ccd270fdab6436251e016a"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c06-quorum",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 4.1403799939434975,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 49
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:8ba821e4009240f1a5dcdcd01c9dbf5f",
+            "sha256": "c6d61c9d2ee7b3097451f4cea06548e4f8512f32531e9bbcfdcdc47ad1c87365"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r0/result.json",
+      "source_sha256": "ed0512dc0793c3130f838a11541d79af6a540dc92c5f0e85fa1192820450fef0"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c06-quorum",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 8.996189463185146,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 57
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:e273ee9a265446cabcc8c98253d04f7f",
+            "sha256": "3cff30cfdaf07ef3792d045fc05d0fbdc49b4bbea0e24ef2e496948ad3b97ced"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r1/result.json",
+      "source_sha256": "1cabed1ff86e881f226c2ac796f93e4f25ab64be66a6e20cc755ff0f3ae43826"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c06-quorum",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.3914008389692754,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 55
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:9516562a5ff14c44bc98e3306a6d8749",
+            "sha256": "72673d6d31b2de1f8ea4ff2833e547e39737ba1dfb4632bfe1edf945420d762d"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c06-quorum-r2/result.json",
+      "source_sha256": "a56de2d9456a5f8e8bea72b6048fceb825f8af80ea3277007de0122a1faa7fe3"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c07-reliability",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 2.6154545100871474,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:90c3273c58ca44c0b755ad3b0479986d",
+            "sha256": "68002355a068a1aa1acf65cc064ff5fe01a3cc4d77d6100d6a33e944124fb613"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r0/result.json",
+      "source_sha256": "43a05c18fbdbf5ca7370d3b1e1b0578ca362ee81ae0f23cfc26445cf8bc883f7"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c07-reliability",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 2.791195865953341,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:c5c71e3098c14f3fad9c6e66d5f654ea",
+            "sha256": "d27bb8a315b8f541309bdbae3ba3eaa1b45665716f5a3e13535b1fd4d1e681fb"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r1/result.json",
+      "source_sha256": "9caf5bbfcdb690ae3d5aa4f72c810c86283b576a0c38f8980ae38cbed9c01526"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c07-reliability",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 2.5568669990170747,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:bba6d4f9403a4935844cb7489a7b5ea3",
+            "sha256": "ef4e3826c359a13cb640ea355d97905953e9be61d9816e0c7caef6407565a1f5"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c07-reliability-r2/result.json",
+      "source_sha256": "70d37194543f5df197967363a760f9c4b444807b8c4177a3caa9bc59191a3fbd"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c08-paired-data",
+      "repeat": 0,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.733107728883624,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 63
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:1a76fcdbbfa849549ca66c66e4f6da9a",
+            "sha256": "9456bc1719850286be378818d39ca0aeffe06fdad7d412f0d6970484025e98e7"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r0/result.json",
+      "source_sha256": "ad259285a501633f6b87984facf528efa800ead25f8f5ec17ce5cc7fddd5ac4a"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c08-paired-data",
+      "repeat": 1,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.5880402440670878,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 65
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:a32c3b4c5a6541659cbf368c26100307",
+            "sha256": "353a8402aa1f4cec28671c23e0f8e34ed701fda0391f2f579f1a2ccea52a4a4b"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r1/result.json",
+      "source_sha256": "5deb0ca430111337280985e9b447ae899d675eb9cf36bd2baed3e27a25a7aa1f"
+    },
+    {
+      "cohort": "chatgpt",
+      "variant": "c08-paired-data",
+      "repeat": 2,
+      "correct": true,
+      "gate": null,
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 3.3541207839734852,
+      "roles": {
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 37
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": null,
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 50,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "benchmark-native-governed-trace:a9b4096968af44748484cab51a03a2e0",
+            "sha256": "763a693da8b40cbc21dda4c557d82b2f808798a983599782920675ecbf8901bc"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/chatgpt-baseline-002/c08-paired-data-r2/result.json",
+      "source_sha256": "4d9e11620a7af9d1eead5a20d2c5dee20ba5a42767ce90711dd8156b68f14905"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c01-inference",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 11.521397395990789,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 686,
+          "output_tokens": 52
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":4,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c01-inference-r0/result.json",
+      "source_sha256": "5d19118d67221b026d050eeadfe9849d50a451fbd19f45e389b5f0e4fe9f6638"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c01-inference",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 13.351836592890322,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 684,
+          "output_tokens": 54
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 30
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"best_threshold\": 0.5,\n  \"correct\": 3,\n  \"total\": 4\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c01-inference-r1/result.json",
+      "source_sha256": "b46a44d6d4482f292f3022ea6f26cb686180365df231311835c0cae6bc16d98c"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c01-inference",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 12.882678237045184,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 686,
+          "output_tokens": 54
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 30
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"best_threshold\": 0.5,\n  \"correct\": 3,\n  \"total\": 4\n}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c01-inference-r2/result.json",
+      "source_sha256": "cc409c020748f93451985f7655c6dd8068153028c9b62999204af36fa1df9712"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c02-retrieval",
+      "repeat": 0,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 11.27540399483405,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 55
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 157,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"a\",\"precision_at_2\":0.5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c02-retrieval-r0/result.json",
+      "source_sha256": "712d16b17413e431519876e1e4c597e37ce14edc70b7c3ba8fecc262855c0f0d"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c02-retrieval",
+      "repeat": 1,
+      "correct": true,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 11.222813500091434,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 55
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 157,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1.0}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c02-retrieval-r1/result.json",
+      "source_sha256": "a1406d5789da92316d06b1049c8ee3628bc612704c5aeac80f0d67f55d3e27a4"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c02-retrieval",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 14.615426733158529,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 80
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 157,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"a\",\"precision_at_2\":1.0}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c02-retrieval-r2/result.json",
+      "source_sha256": "8bb8eed0841c5b3d58bbfe2a9d400b0c048b7060f2aadb65719ebf8e5549854b"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c03-shortest-path",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 10.966914518037811,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 688,
+          "output_tokens": 53
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c03-shortest-path-r0/result.json",
+      "source_sha256": "8fe838729c8a7199c50e79472110e34ae48012caf362f6f113300858a9a50566"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c03-shortest-path",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 12.723744224989787,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 688,
+          "output_tokens": 66
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c03-shortest-path-r1/result.json",
+      "source_sha256": "2218d91be4ac7d65fcb5e65388420160302e018c8f6c6b4f99047fcbb1559534"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c03-shortest-path",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 13.854130927007645,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 688,
+          "output_tokens": 75
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c03-shortest-path-r2/result.json",
+      "source_sha256": "fe85313a9bb1d38d06279627828d76a9fdf38bb2c9ef6097beaf5902f47855fb"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c04-performance",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 15.343687459127977,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 70
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 33
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":24.0,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c04-performance-r0/result.json",
+      "source_sha256": "b869c02ff1814a7fdaedea8a84d730c6a408cb901f9cbf2ae996f68cac54984f"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c04-performance",
+      "repeat": 1,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 18.02024013712071,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 73
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 49
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"baseline_mean_ms\": 28.0,\n  \"candidate_mean_ms\": 15.6,\n  \"candidate_p95_ms\": 20,\n  \"accept\": true\n}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c04-performance-r1/result.json",
+      "source_sha256": "a1c3c31b8f5d664f54645206f6672dcf901cf4d14237212f63061de643768e2e"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c04-performance",
+      "repeat": 2,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 13.597826238023117,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 56
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 33
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":24.0,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c04-performance-r2/result.json",
+      "source_sha256": "f86cf78e90d58f73a58eb6da991e38c434a3ccee498c604e3b5015f93a4b3d7e"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c05-database",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 11.19612589199096,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 53
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c05-database-r0/result.json",
+      "source_sha256": "aa6d716735d864ec670a8f7da0c9ed533e171824642227f209b95ff41735ae45"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c05-database",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 13.75570183317177,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 71
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c05-database-r1/result.json",
+      "source_sha256": "77f6cbfc55fcc19a546ba40c4032cc656745f51ced53d3d2ad27a1f530bd49e8"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c05-database",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 14.163142326986417,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 56
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 38
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"retained_ids\": [\n    \"a\",\n    \"b\",\n    \"c\"\n  ],\n  \"sum\": 18\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c05-database-r2/result.json",
+      "source_sha256": "1c91152c9fcd9453a112d42ead5e5700a471db2c01dc2fbc919f55caa7f5e648"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c06-quorum",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 13.096085257129744,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 57
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 192,
+          "output_tokens": 28
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c06-quorum-r0/result.json",
+      "source_sha256": "9a9fcc6b97275e4209948018dbb41a4f5542fe2342f67a501d8d25f23bbb6bc3"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c06-quorum",
+      "repeat": 1,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 16.023602758999914,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 77
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 49
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:7b1774c871f84b26a83e21208098218d",
+            "sha256": "97b3be1139797df19036dfee5a9cbee40dbf8ee5367871ae2ff0917147e35f7d"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c06-quorum-r1/result.json",
+      "source_sha256": "01a8a03c6c0a6c6159b43eb7f2e0500c73de015e6ae42fa8fddfaeb60e5886e4"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c06-quorum",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 14.117311203852296,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 690,
+          "output_tokens": 57
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 192,
+          "output_tokens": 36
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\": false, \"disjoint_example\": {\"read\": [\"a\", \"b\"], \"write\": [\"c\", \"d\", \"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c06-quorum-r2/result.json",
+      "source_sha256": "724a4bc484ef53a74f2b407674db033f4291e82303474551a5cb6d905211d5c5"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c07-reliability",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 16.211914096027613,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 693,
+          "output_tokens": 90
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c07-reliability-r0/result.json",
+      "source_sha256": "00f5921e74f00d520519328a0a6761a99ac94699472b0e0d6f76f6e806de6965"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c07-reliability",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 17.59339787811041,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 693,
+          "output_tokens": 73
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 47
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"allowed\": [\n    \"r1\"\n  ],\n  \"denied\": [\n    \"r2\",\n    \"r3\",\n    \"r4\"\n  ]\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c07-reliability-r1/result.json",
+      "source_sha256": "9cd41d1f97a9dee30a0ba933ae5f54e66aa9ad4e56acc5b08ec591dc6cfe187e"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c07-reliability",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 12.632252447772771,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 693,
+          "output_tokens": 62
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c07-reliability-r2/result.json",
+      "source_sha256": "f6017264887cf7fb0d92ad30ecb601018bac2d3fab1ed8fddb3a1f7ea26dc221"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c08-paired-data",
+      "repeat": 0,
+      "correct": true,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 19.484804848907515,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 69
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 189,
+          "output_tokens": 67
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"paired_improvements_ms\": [\n    1,\n    5,\n    -2,\n    6\n  ],\n  \"mean_improvement_ms\": 2.5,\n  \"positive_pairs\": 3,\n  \"total_pairs\": 4\n}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c08-paired-data-r0/result.json",
+      "source_sha256": "ccbf7858e9aaddaa5629ed4cbaf11748a4782d39e0bec0467ae4ddac5a2fa0c7"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c08-paired-data",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 19.32882502907887,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 67
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 189,
+          "output_tokens": 67
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\n  \"paired_improvements_ms\": [\n    1,\n    5,\n    -2,\n    6\n  ],\n  \"mean_improvement_ms\": 2.5,\n  \"positive_pairs\": 3,\n  \"total_pairs\": 4\n}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c08-paired-data-r1/result.json",
+      "source_sha256": "21330654ab0e44ec45890e26af37e14c915aceed90e83ef89a6b03a0f74ed185"
+    },
+    {
+      "cohort": "v3",
+      "variant": "c08-paired-data",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 17.290228080935776,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 82
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 189,
+          "output_tokens": 36
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-routing-002/c08-paired-data-r2/result.json",
+      "source_sha256": "eca4a476297eb0f696553b5d321dfc232c8a2b3c2c3cb2cfc4c14bb5c75d1ed6"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c01-inference",
+      "repeat": 0,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 11.33389486791566,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 38
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9398,
+          "output_tokens": 56
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:b24c53cc05154519b3545c76db00790f",
+            "sha256": "8245332bb13c4c4e3e38e3f4e6e106c0d35ec358a2ef43b943ccc8ae6cf73e54"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c01-inference-r0/result.json",
+      "source_sha256": "3745aab49a3d11187a3bc070d65555440835aabdd0bb0de9a4531772f6e81d37"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c01-inference",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 10.925100047839805,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 32
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9398,
+          "output_tokens": 57
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:4f333e09014141e4ad0124d5b0602ba0",
+            "sha256": "001f9e74bdadbeaa34f2275336b097b1ed58fc1ac48c8fdbe0a58901ddece64f"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c01-inference-r1/result.json",
+      "source_sha256": "60e1fb45b3199f5188fa525087bf78b210a84e4bdb474ec28a644b1ca97c137c"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c01-inference",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 10.85718861198984,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 691,
+          "output_tokens": 35
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9398,
+          "output_tokens": 60
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.7,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:bdbd255a7d55461e9ec1076687b25d7a",
+            "sha256": "3843b50bf8022933f52aaaa91341b30558cfcbc7199def8162cc8e2b3fe8b760"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c01-inference-r2/result.json",
+      "source_sha256": "d18d55d9a71ce7bdbfe501ed1e850951b59d23c857404707791e4bc6c967d08d"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c02-retrieval",
+      "repeat": 0,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 11.220562253845856,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 40
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 35
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 155,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:541ea4dead664829a8e7ff1b10bf1c2c",
+            "sha256": "c5bd01299ba315e6548a475b666a4914e8aac75b6f170aec00b483f61062a1c2"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c02-retrieval-r0/result.json",
+      "source_sha256": "eada8dca006b38e03638d6cd38aa1ffc045d5c3e69ffd02a12c4728ec2f62e63"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c02-retrieval",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 9.970652574906126,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 27
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 46
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 155,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:1b865c5fac4f4e1481cf4f440334bf32",
+            "sha256": "49673a71c33eb279a3a90b23abd1eb9ae01782daa7cc9ea4cc11829b262f90cd"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c02-retrieval-r1/result.json",
+      "source_sha256": "05d857392ab36376974db598a3916b1db427c49b1124905e85a1e7a41a8e9926"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c02-retrieval",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 10.428224136820063,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 48
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 15
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 157,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"a\",\"precision_at_2\":1.0}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c02-retrieval-r2/result.json",
+      "source_sha256": "7dbb376ddc3f1a1b7105704c275d7bdf6d792987bf9ce3920e67d49f34417b07"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c03-shortest-path",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 10.39291759999469,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 693,
+          "output_tokens": 48
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c03-shortest-path-r0/result.json",
+      "source_sha256": "89bdd863e23ce86feb6e4834d295bd273e7956e6ed47b30d964b00c0546609f9"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c03-shortest-path",
+      "repeat": 1,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 14.746069267159328,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 693,
+          "output_tokens": 42
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 20
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:4c5dff0a472049bcbac6427638ca8e15",
+            "sha256": "912ebb4f12738f0118c788635e0d4b07d10971d119dcbc46552c6ce3b88cbf88"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c03-shortest-path-r1/result.json",
+      "source_sha256": "372b68e7f68ad94f99d472e60503d863704d82ad95aa0687c8df43c256d59d47"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c03-shortest-path",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 11.457033039070666,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 693,
+          "output_tokens": 45
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 47
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:d067e28a98394ef49e4376baa4cab65c",
+            "sha256": "13d683156f5652a418fb08d357e44cc4a4030b56f8bd33083e3a5d89121cbac2"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c03-shortest-path-r2/result.json",
+      "source_sha256": "771510ae496707842be53eb3438ba6edfcafa19f5be20b5bb7abfbe2d4ffab02"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c04-performance",
+      "repeat": 0,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 11.5952896210365,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 696,
+          "output_tokens": 41
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 32
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 177,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":26,\"candidate_mean_ms_ms\":15.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c04-performance-r0/result.json",
+      "source_sha256": "37192fc88e678af044d5982b305b8a6e7a8efd7fcecbfeb32bb28eb99e62d67a"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c04-performance",
+      "repeat": 1,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 13.219506290042773,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 696,
+          "output_tokens": 49
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 66
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:ae03be6ccdf449be924c22dd3cb15908",
+            "sha256": "4a9f59352743e77e0397444b5ef4444bd6d6abaec53350a2a52d75e3ea890d23"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c04-performance-r1/result.json",
+      "source_sha256": "28cd6f064b5d2b48c568520778096ea553d77da3776c9a7dfa0ab0a20b665288"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c04-performance",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 12.20944535615854,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 696,
+          "output_tokens": 42
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 214,
+          "output_tokens": 36
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 181,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":26.0,\"candidate_mean_ms_ms\":15.6,\"candidate_p95_ms\":20.0,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c04-performance-r2/result.json",
+      "source_sha256": "58387459f71cc1d8ab7ed974638ab5f58f5c7d359b1e7b21713d05a402b629f9"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c05-database",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 12.326973309973255,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 56
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c05-database-r0/result.json",
+      "source_sha256": "8cc8161b9b55b720f256650ef9ca755ceb4e8c1772686e67294ce551a09ac4c2"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c05-database",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 9.3595464900136,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 694,
+          "output_tokens": 38
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 207,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c05-database-r1/result.json",
+      "source_sha256": "69d841e130ee5b7c3206f580623c7b0936cf78482d9b949a95b87eb1237cc834"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c05-database",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 11.515331784961745,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 47
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 20
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:fd30c8ce0d2c4db3a2ddc2e7172fb71f",
+            "sha256": "eab5b641a03fa7b29be3be2d661712c4ce55e151135b71821190af73813809c7"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c05-database-r2/result.json",
+      "source_sha256": "3d9042f85772967bdbc32a9a68de5904c12633ef9e409e41dd1ee5275abb0742"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c06-quorum",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 10.91020400216803,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 40
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 49
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:ff44f77f17664e67bf9fff5479e27430",
+            "sha256": "6664775318ad150f79d46ca969e042bc917c6ccd63d6f55033b9a0bc4bcf866c"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c06-quorum-r0/result.json",
+      "source_sha256": "a123b3d8782825d140454692f23b1adc6fadfa004ccd59bc98fa1f0f3b1d0929"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c06-quorum",
+      "repeat": 1,
+      "correct": false,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 11.832749709952623,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 51
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 192,
+          "output_tokens": 23
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 167,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":true,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c06-quorum-r1/result.json",
+      "source_sha256": "6e06b2b97f2c6dbdb33a84bc63c7526fd56d8868e19a4c9e8c9ed5f9819ef751"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c06-quorum",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.616662443149835,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 695,
+          "output_tokens": 52
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 56
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:c764805cbaa14449abae56958d950906",
+            "sha256": "253ab0df5fbb5bb4c2bd0dbdd33ca23c8d8e064f0043a9ede6a82b9ed9781889"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c06-quorum-r2/result.json",
+      "source_sha256": "7df4dcdaa37d46610748de44c3addada99d1eb659e7874b25a3337761bdf2ad3"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c07-reliability",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.247213487979025,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 698,
+          "output_tokens": 49
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:27935161f3c54e8086577ed65f85c211",
+            "sha256": "c57720a96595ac75a0d456d150a472c494d59d7cbb8d25d788e86d357b9b0215"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c07-reliability-r0/result.json",
+      "source_sha256": "61a1e464a652d21cdeeaa9710706a1ddb9527e79e0d28344bd3bf875665d9e9e"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c07-reliability",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.134220871841535,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 697,
+          "output_tokens": 47
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:a9d279be055f4375a53987a4cbec3bfe",
+            "sha256": "91c6737548f323a9a8335805c4e7ff14508512a62248408352736743f040f4f4"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c07-reliability-r1/result.json",
+      "source_sha256": "293ce14ea390d0a1bc84f65ff2018d218673d5f5c35abed20ab1c4b6af00f75e"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c07-reliability",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 10.704486079979688,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 698,
+          "output_tokens": 46
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c07-reliability-r2/result.json",
+      "source_sha256": "6bd4683927ae653c7aa6802a8967c6a9cbc4b8bbb8aab82294c005e8d4131688"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c08-paired-data",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 12.190394437871873,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 696,
+          "output_tokens": 42
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 189,
+          "output_tokens": 36
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c08-paired-data-r0/result.json",
+      "source_sha256": "41b099cbdd2da4d247e46efa1127a33a547acdea93bfd86a2a24060722bfce3d"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c08-paired-data",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 11.600278152152896,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 696,
+          "output_tokens": 38
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 65
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:2fb3a0be02a349f48f769de0f8706f40",
+            "sha256": "8bb7a42acbb98acc43c5dda52d1240441a835fe82aa0c8dadd323f2ed6d5b1d1"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c08-paired-data-r1/result.json",
+      "source_sha256": "5569973b534d55ffe08486649a6fc9af0a7090e7f0af3b94f7ca3e64b97fed10"
+    },
+    {
+      "cohort": "v4",
+      "variant": "c08-paired-data",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 11.735238799126819,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 696,
+          "output_tokens": 41
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 65
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:9eb46fb21ded404ea887963807efc5c7",
+            "sha256": "c5eefcf8868d180a85c6c7382fec7ec04f05005a57d74624a17c65d0441d0e13"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-riskbands-001/c08-paired-data-r2/result.json",
+      "source_sha256": "83c51e5014aea1deb48778873b66b8eaf6b1cccf4e549fb26b7f93f3f7b1eb19"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c01-inference",
+      "repeat": 0,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 11.690933671081439,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 506,
+          "output_tokens": 51
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.5,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r0/result.json",
+      "source_sha256": "0655bfa8e354663c5961d15e1942a7c007b6982928f582b2e7fb00b40a3abb63"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c01-inference",
+      "repeat": 1,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 10.153189161093906,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 506,
+          "output_tokens": 46
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.5,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r1/result.json",
+      "source_sha256": "32b0bc9e416d4d19482ef524601047985c62ee645e2e6bf2bed15f649c30ebe8"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c01-inference",
+      "repeat": 2,
+      "correct": false,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 11.055323873180896,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 506,
+          "output_tokens": 53
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 183,
+          "output_tokens": 17
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best_threshold\":0.5,\"correct\":3,\"total\":4}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c01-inference-r2/result.json",
+      "source_sha256": "8d282861ab54a57f5d493fbe80cba7a023f013386202eaf20ee91a93927752dc"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c02-retrieval",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 14.687901644036174,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 509,
+          "output_tokens": 59
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 44
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 155,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:15a82b87a5c74bfca1b8b283d1b0d1d7",
+            "sha256": "03f9189e87f56746e28af1a2533a58b07ffbe3f056a153e65efac6f4a409a771"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r0/result.json",
+      "source_sha256": "38455e9bb4a2d4bc2319ce129909423eebb07d97797a5d6d639e284680a28d2c"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c02-retrieval",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 14.377167304046452,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 71
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 34
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 155,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:37fb65d539c343c3a2ac42e74ecadc8c",
+            "sha256": "e363d332dd0abccd64ce58d11adc30e3eb0c0316ead564a7164c5bbfa9396737"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r1/result.json",
+      "source_sha256": "0fe3b6f54d8e329e81a037d4e68265abc61feae34a6539d4bd578b00cb039f09"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c02-retrieval",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 13.481955906841904,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 60
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 35
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 155,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"best\":\"b\",\"precision_at_2\":1}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 31,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:1d1ad895351e4e54b675e52567781b33",
+            "sha256": "c4d7d8aed4ce3e6c5829cbf35616234e75417d460c6c5ad496034a79493176a1"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c02-retrieval-r2/result.json",
+      "source_sha256": "7fd3475624d6a8ff202b62f095df80ff43ac809dc3512199200895ca4b19407b"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c03-shortest-path",
+      "repeat": 0,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.41075868695043,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 508,
+          "output_tokens": 54
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 41
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:5adc65ac8d964e8e8934ac41211c58da",
+            "sha256": "41cb8f3407ce9514af1a52eab96c359e4c45b9b29f6759f3d15d6cbc3fc5716a"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r0/result.json",
+      "source_sha256": "0eccd91dc0f2a79f23fab50be55f0eb0500da0aa296c30a29dcc58f2c4cebc3d"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c03-shortest-path",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 17.034324654145166,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 508,
+          "output_tokens": 90
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9394,
+          "output_tokens": 39
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:db132460d27f4d40a35f0f8cb5e492f2",
+            "sha256": "bc98a1dbedb295e51b5c843ede67a1b3bcd623649fe02431d36d4fac58101812"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r1/result.json",
+      "source_sha256": "9c160effb81c4e12959484997ef5ce4794f7e7d9331c2f6a9c87d0a388bac552"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c03-shortest-path",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "local:qwen",
+      "elapsed_s": 10.634374239016324,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 508,
+          "output_tokens": 50
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 178,
+          "output_tokens": 16
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"path\":[\"s\",\"a\",\"b\",\"t\"],\"cost\":5}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c03-shortest-path-r2/result.json",
+      "source_sha256": "959a5e06bb0207c46f35cfa1c58768d0542b44563d386d4eec96995ea83f241b"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c04-performance",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.73687420389615,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 511,
+          "output_tokens": 54
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 59
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:8803be8f91e648938a16a8700d3dcae3",
+            "sha256": "738f714494a0c2f89d9a25c9860e9ff0d402003ead992d14b06983ec3e309b44"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r0/result.json",
+      "source_sha256": "31fade2702d99fcd074a569c12a81a2ba736316c0bab05db401e2a245547f571"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c04-performance",
+      "repeat": 1,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 20.950631657149643,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 511,
+          "output_tokens": 68
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 59
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:451e64a182ea463a853979d140315663",
+            "sha256": "82ffc3c577d7c8d80d9b2f741fb0935efa818e481bda550e3271c055a624aa8d"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r1/result.json",
+      "source_sha256": "ac57676bed97fafe992ea249dc6147b7ff84e29d694b0c3d004b0e542588c4a3"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c04-performance",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 13.463561431970447,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 511,
+          "output_tokens": 56
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9414,
+          "output_tokens": 59
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 176,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"baseline_mean_ms\":28,\"candidate_mean_ms\":13.6,\"candidate_p95_ms\":20,\"accept\":true}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 45,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:69f7358ed49149038a5bcd1ab570469a",
+            "sha256": "87d1ae3fa57231eec2a5f324b7a6dd0bf1baa2f283ca22c988359a79fb445294"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c04-performance-r2/result.json",
+      "source_sha256": "b091665ed5c1ac00c19b81ad85728bc366fa283be6b3ebc2204fc67bcfe8ea76"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c05-database",
+      "repeat": 0,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 14.085103455930948,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 509,
+          "output_tokens": 52
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 20
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:1e7bce3489c1479aa4728593e41dadaf",
+            "sha256": "f969a9eab318380993c1a5836405ba54ad96a3be1aaf883d12f17a4b5439967e"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r0/result.json",
+      "source_sha256": "1fbbdba99fdb34533f693b07d8205785c0fbdfeb70d86faecfeeaef92ce61859"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c05-database",
+      "repeat": 1,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.759817029116675,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 59
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 20
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 33,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:99073d292ca8456fa9109eb80412cb6f",
+            "sha256": "306b552ddc8a7d008475006f5b568803abd889096632308000587273c28f194d"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r1/result.json",
+      "source_sha256": "b4ba4d9ac650257e97556ec36db6d3aef4dd5454fe8eae12d4dd7f1fe55a1a09"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c05-database",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 15.630586814135313,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 78
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9423,
+          "output_tokens": 38
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 161,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"retained_ids\":[\"a\",\"b\",\"c\"],\"sum\":18}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 35,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:d7c533f4c821450f849a15315bd93cc5",
+            "sha256": "ff6e365fec5ed04f0f862d3d7f3e59427e05679dc72d5d7d19dfb4eddcbbdcee"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c05-database-r2/result.json",
+      "source_sha256": "7f8c4759179b40fb0038153f4e8423bb13f44aa22cfdd69b468804147d9a21b2"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c06-quorum",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 13.946994642028585,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 64
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 52
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:ea86f5f06afa48179cd880ee16939622",
+            "sha256": "7c79348617e059f886641bd643b343e7723a53322800556641eb08a4178c1811"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r0/result.json",
+      "source_sha256": "197aee6f4b9595017895bf962cfb2b9ff09e520ba7ca8800be9ca8b8767cedfb"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c06-quorum",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 17.343298602150753,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 65
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 60
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:a8af9e9e526f4083a57cc3d3844d0a87",
+            "sha256": "91db32eff8d2ae251a01c58afe290c7a1348942e3076e4cac4ab9dee8f255765"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r1/result.json",
+      "source_sha256": "70cd4f8682f4a498d416bbc182b5b01aef511a11edea2a34269bad4e17535f3a"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c06-quorum",
+      "repeat": 2,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 13.465364506002516,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 510,
+          "output_tokens": 53
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9407,
+          "output_tokens": 51
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 175,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"guaranteed_intersection\":false,\"disjoint_example\":{\"read\":[\"a\",\"b\"],\"write\":[\"c\",\"d\",\"e\"]}}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 48,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:4ef18dd38f2a4b0e891c5d1ae9d0f6dd",
+            "sha256": "c5651b5b58f51333384a6977be38fab2fb13e08c4923bf64ae4d9a4f1efce20d"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c06-quorum-r2/result.json",
+      "source_sha256": "3c38a750c09f681d169836d2b53dfe27dd5a3d4afdaba75ca732ef38c998fa6a"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c07-reliability",
+      "repeat": 0,
+      "correct": true,
+      "gate": "halt",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 16.336147899040952,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 513,
+          "output_tokens": 74
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"FAIL\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:21c2f185d3334d39a49338f8a1d049d8",
+            "sha256": "a477fe2b04b28ab09b72d941512346d25cbabe515c1ad6033a4125307cb77fb3"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r0/result.json",
+      "source_sha256": "579dc78643ce915d767e14828bd1809b9375346af5cadfee70012410c68eea9b"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c07-reliability",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 12.375307362060994,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 513,
+          "output_tokens": 55
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9491,
+          "output_tokens": 24
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 37,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:798dc7692f3540f28bd116ae37d2c7a7",
+            "sha256": "8bc8e1b8836c449da9e7b358b87f6db3738d566be9381049fe1908f7513863ba"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r1/result.json",
+      "source_sha256": "b8f159767d71bc0c22811ba195e0332c4a2a31677f5ebbebad04ec55a8dbd3cd"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c07-reliability",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "local:qwen",
+      "elapsed_s": 12.173778103897348,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 513,
+          "output_tokens": 59
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 275,
+          "output_tokens": 19
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 164,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"allowed\":[\"r1\"],\"denied\":[\"r2\",\"r3\",\"r4\"]}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c07-reliability-r2/result.json",
+      "source_sha256": "05dc51b49f23c3b750101a89895cd4847df49250ce7a3ba4aff9b5d4f3d2e69b"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c08-paired-data",
+      "repeat": 0,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 15.614046425092965,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 511,
+          "output_tokens": 70
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 68
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:cc286a38286b485d8ed3f5693f5540af",
+            "sha256": "3ba6b41c826062bbbb23dfd6e160271c16dfcb7e86ae4bd554a0850f503687d1"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r0/result.json",
+      "source_sha256": "972ad5b0233567b992df9a0466c8688291d9444a93326806b127ae05335df83f"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c08-paired-data",
+      "repeat": 1,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 15.871520218905061,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 511,
+          "output_tokens": 64
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 66
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:158e7a0cddc042828ec0104536c4d705",
+            "sha256": "1fb13eaea4cfab36493605c27c2d9b68140e8b2db7d9665a46fe06724e580ac9"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r1/result.json",
+      "source_sha256": "751fd5f255a2ccf8360bf62dea0863dfc2ab78b5fcb6f3c0b57da63fbc66c15a"
+    },
+    {
+      "cohort": "v5",
+      "variant": "c08-paired-data",
+      "repeat": 2,
+      "correct": true,
+      "gate": "advance",
+      "selected": "subscription:gpt-6.1-sol",
+      "elapsed_s": 15.634683320997283,
+      "roles": {
+        "routing_selection": {
+          "calls": 1,
+          "input_tokens": 511,
+          "output_tokens": 70
+        },
+        "worker": {
+          "calls": 1,
+          "input_tokens": 9393,
+          "output_tokens": 65
+        },
+        "verifier": {
+          "calls": 1,
+          "input_tokens": 185,
+          "output_tokens": 7
+        }
+      },
+      "worker_output": "{\"paired_improvements_ms\":[1,5,-2,6],\"mean_improvement_ms\":2.5,\"positive_pairs\":3,\"total_pairs\":4}",
+      "verifier_output": "{\"verdict\":\"PASS\"}",
+      "native_proofs": [
+        {
+          "packet_hashes_verified": 52,
+          "prompt_sha256_verified": true,
+          "resolved_model": "gpt-6.1-sol",
+          "reasoning_effort": "medium",
+          "terminal": "completed",
+          "trace_ref": {
+            "id": "native-governed-trace:2edad85b7a2a431b9b566e8b2fae5379",
+            "sha256": "5e26ab98b9028e650c0d87b2f103d1d15c3364b12a3edec36f300df81f26b93d"
+          }
+        }
+      ],
+      "source_path": "/home/user2/ai4r-data/benchmarks/hybrid-operations-001/c08-paired-data-r2/result.json",
+      "source_sha256": "9fb28c045fed12ad8bac8d9a725ef0bbea7583677febb459c95269421f9eeb25"
+    }
+  ],
+  "scope": "Public development MR01 component comparison; eight fixtures, three repeats per fixture; not full DAG acceptance."
+}

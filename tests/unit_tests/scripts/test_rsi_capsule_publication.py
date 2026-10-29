@@ -3,6 +3,7 @@ import copy
 import importlib.util
 import json
 import math
+from dataclasses import replace
 from pathlib import Path
 import pytest
 from jiuwenswarm.research_rsi.records import encoded
@@ -12,9 +13,9 @@ spec=importlib.util.spec_from_file_location('capsule_publication',Path(__file__)
 pub=importlib.util.module_from_spec(spec);spec.loader.exec_module(pub)
 
 
-@pytest.fixture
-def baseline():
-    name='utility.calculate'; target=registered_capsule(name)
+def _baseline(target=None):
+    name='utility.calculate'
+    target = registered_capsule(name) if target is None else target
     raw={}
     def put(value):
         body=value if isinstance(value,bytes) else encoded(value)
@@ -58,6 +59,11 @@ def baseline():
         'body':[{'path':target.carrier_path.removeprefix('research/'),'sha256':body_ref['sha256']}]}}
     meta={'workspace_id':'local','target_id':name,'target_name':'Calculate','mutable_path':target.carrier_path,'published_at':'2026-10-26T22:00:00Z'}
     return locals()
+
+
+@pytest.fixture
+def baseline():
+    return _baseline()
 
 
 def test_complete_receipt_join_reports_measured_public_baseline(baseline):
@@ -283,8 +289,16 @@ LEGACY_DIGESTS={
     'merge':'540046136b762775b501ebc7f4efcb79cfbd8e4bc8ad6413cfe54a5bd60a66c3'}
 
 
-def test_legacy_single_attempt_publications_are_byte_identical(baseline):
-    v=baseline;out={}
+def test_legacy_single_attempt_publications_are_byte_identical(monkeypatch):
+    # These golden packets predate selected-release carrier discovery. Pin the
+    # original carrier path (retained in b90333d43) so this compatibility test
+    # measures publisher bytes, not changes in the currently selected release.
+    # Other publication tests continue to use the current catalog via baseline.
+    target = replace(registered_capsule('utility.calculate'),
+        carrier_path='research/capsule_extensions/calculate/worker.py')
+    monkeypatch.setattr(pub, 'registered_capsule', lambda name:
+        target if name == target.capsule_name else registered_capsule(name))
+    v=_baseline(target);out={}
     out['baseline']=pub.baseline_packet(v['meta'],v['body'],v['declaration'],v['result'],v['read'])
     session,result=_session_result(v)
     out['session_error']=pub.session_packet(v['meta'],session,copy.deepcopy(result),v['read'],v['read'])

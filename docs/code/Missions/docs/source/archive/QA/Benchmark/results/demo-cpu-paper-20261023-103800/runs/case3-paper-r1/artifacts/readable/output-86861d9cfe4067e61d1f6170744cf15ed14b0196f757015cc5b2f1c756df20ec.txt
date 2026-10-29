@@ -1,0 +1,45 @@
+{
+  "findings": [
+    {
+      "criterion_id": "declared_output_conformance",
+      "outcome": "PASS",
+      "reason": "schema_version, id, brief_ref, documents_ref, title, documents, sections and citations match the declared summary shape and visible field constraints."
+    },
+    {
+      "criterion_id": "internal_consistency",
+      "outcome": "PASS",
+      "reason": "All sections.*.citation_ids resolve to unique citations.citation_id entries; citations.document_id resolves to documents.document_id, pages fall within page_count, and start/end coordinates are ordered. sections.method.text and sections.results.text consistently distinguish 120 primary articles from 116 common-success articles."
+    },
+    {
+      "criterion_id": "limitations_consistency",
+      "outcome": "PASS",
+      "reason": "sections.limitations.text coherently qualifies sections.method.text and sections.results.text concerning cohort scope, annotation uncertainty, length calibration, CDC failures, retrieval intervals and diagnostic interpretation."
+    },
+    {
+      "criterion_id": "paper_sections_complete",
+      "outcome": "PASS",
+      "reason": "sections.problem, sections.method, sections.results, sections.contributions and sections.limitations each contain distinct nonempty text, supported status and citation_ids. No section declares its information absent."
+    },
+    {
+      "criterion_id": "paper_claims_qualified",
+      "outcome": "PASS",
+      "reason": "sections.results.text attributes diagnostic interpretations to the authors, distinguishes percentages from percentage-point differences, separates comparison cohorts and restricts retrieval conclusions to frozen settings. sections.limitations.text identifies unreported measurements; no section claims new execution."
+    },
+    {
+      "criterion_id": "paper_citations_coherent",
+      "outcome": "PASS",
+      "reason": "Every supported sections entry cites existing citations entries with document_id, page and quote fields. The visible quotes address the associated methods, numerical results, contributions and qualifications without internally contradictory use."
+    },
+    {
+      "criterion_id": "paper_synthesis_readable",
+      "outcome": "PASS",
+      "reason": "sections.problem.text, sections.method.text, sections.results.text, sections.contributions.text and sections.limitations.text form a readable scientific synthesis with distinct purposes and concrete detail about workload definitions, chunkers, cohorts, retrieval and uncertainty."
+    }
+  ],
+  "uncertainties": [],
+  "limitations": [
+    "Assessment is limited to the supplied declaration and output; brief_ref, documents_ref and documents.source_ref were not resolved.",
+    "citations.quote and start/end fields were assessed only for visible coherence; source equality, entailment, experimental truth and permissions were not assessed."
+  ],
+  "required_correction": null
+}

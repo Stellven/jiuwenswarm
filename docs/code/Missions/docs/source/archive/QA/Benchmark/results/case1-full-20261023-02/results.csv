@@ -1,0 +1,2 @@
+﻿case_id,repeat_index,run_id,request_id,app_run_id,execution_state,collection_state,created_at,submitted_at,ended_at,artifact_count,errors,assessment,evidence_references,review_notes
+case1-cpu,1,case1-cpu-r1,request-d0e340f7851f493bb3a2b50607d2a898,run:1ca32733f3e04c188616d16ecf315ac7,partial,complete,2026-10-23T18:51:31Z,2026-10-23T18:51:38Z,2026-10-23T18:57:46Z,35,"[{""at"": ""2026-10-23T18:58:43Z"", ""category"": ""collection_failure"", ""detail"": """"}, {""at"": ""2026-10-23T18:59:38Z"", ""category"": ""collection_failure"", ""detail"": """"}]",,,

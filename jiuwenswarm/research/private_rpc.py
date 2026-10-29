@@ -85,7 +85,7 @@ class PrivateRPCServer:
                 reply = {'protocol': self.protocol, 'error': 'PLATFORM_INTEGRITY_FAULT'}
             except Exception as error:
                 # No exception message, credential, path or input is reflected.
-                allowed = {'ENVIRONMENT_BLOCKED', 'DELIVERY_UNKNOWN', 'auth_failed', 'timeout',
+                allowed = {'ENVIRONMENT_BLOCKED', 'DELIVERY_UNKNOWN', 'auth_failed', 'timeout', 'budget_exhausted',
                            'invalid_request', 'AUDIT_UNAVAILABLE'}
                 code = getattr(error, 'code', None)
                 if code not in allowed: self._record_fault(request['operation'], request['payload'], error)

@@ -34,10 +34,14 @@ REMOTE = "import sys,json; e=json.load(sys.stdin); n={'__name__':'ai4r_rpc'};exe
 
 def host_source():
     helper = (HERE / 'local_model_operator.py').read_text(encoding='utf-8')
+    spark_helper = (HERE / 'spark_model_operator.py').read_text(encoding='utf-8')
     source = (HERE / 'operator_host.py').read_text(encoding='utf-8')
     # Keep future imports first; host RPC needs no separately installed module.
     marker = 'from __future__ import annotations'
-    return source.replace(marker, marker + '\nLOCAL_MODEL_OPERATOR_SOURCE = ' + repr(helper), 1)
+    return source.replace(marker, marker + '\nLOCAL_MODEL_OPERATOR_SOURCE = ' + repr(helper)
+        + '\nSPARK_MODEL_OPERATOR_SOURCE = ' + repr(spark_helper)
+        + '\nSPARK_POOL_SELECTION = ' + repr(json.loads((HERE/'spark-pool-v2.json').read_text(encoding='utf-8')))
+        + '\nSPARK_POOL_SELECTION_V3 = ' + repr(json.loads((HERE/'spark-pool-v3.json').read_text(encoding='utf-8'))), 1)
 
 
 def load(path):
@@ -161,6 +165,7 @@ def setup(args):
 
 
 def build(config, args):
+    validate_release_checkout()
     target = config['deployment']; output = args.output.resolve()
     if output.exists():
         raise ValueError('Build output must be a fresh directory')
@@ -227,6 +232,24 @@ def build(config, args):
     for role, key in [('ai4r', 'app_image'), ('benchmark-runner', 'runner_image')]:
         target[key] = receipt['images'][role]['image_id']
     return {'receipt': str(output / 'receipt.json'), **receipt}
+
+
+def validate_release_checkout():
+    """Fail before building if a checkout violates its explicit release EOLs."""
+    raw = host.run(['git', '-C', str(REPO), 'ls-files', '--eol', '-z', '--',
+        'jiuwenswarm/research', 'jiuwenswarm/research_assets', 'jiuwenswarm/research_contracts'])
+    invalid = []
+    for entry in raw.decode('utf-8').split('\0'):
+        if not entry:
+            continue
+        header, name = entry.split('\t', 1)
+        desired = re.search(r'eol=(lf|crlf)', header)
+        working = re.search(r'w/(lf|crlf|mixed|none)', header)
+        if desired and working and working[1] not in {desired[1], 'none'}:
+            invalid.append(name)
+    if invalid:
+        raise ValueError('Release source checkout violates .gitattributes; restore the declared line endings before building: '
+            + ', '.join(invalid[:8]))
 
 
 def freeze_context(role, destination):
@@ -501,6 +524,16 @@ def parser():
     c.add_argument('--catalog', required=True)
     c.add_argument('--session-file', required=True)
     c.add_argument('--socket-directory', required=True)
+    s = sub.add_parser('local-pool', help='Manage the key-free model pool on a single 128 GB Spark')
+    pool = s.add_subparsers(dest='local_pool_command', required=True)
+    c = pool.add_parser('configure', help='Pin public model revisions; no weight downloads')
+    c.add_argument('--data-root', required=True)
+    c.add_argument('--share-address', help='Expose shared inference on this Tailscale IPv4, plus host loopback')
+    c = pool.add_parser('migrate', help='Pin the approved local reasoning pool; retain older pool pins')
+    c.add_argument('--data-root', required=True)
+    c.add_argument('--share-address', help='Shared Tailscale IPv4 plus loopback')
+    pool.add_parser('weights', help='Download and verify pinned public weights on Spark; no Docker access needed')
+    pool.add_parser('prepare', help='Download pinned images/weights on Spark, after disk checks')
     sub.add_parser('stop')
     s = sub.add_parser('logs'); s.add_argument('--service', choices=('ai4r', 'benchmark-runner'), default='ai4r'); s.add_argument('--tail', type=int, default=100)
     s = sub.add_parser('fetch'); s.add_argument('--campaign', required=True); s.add_argument('--output', type=Path, required=True)
@@ -572,6 +605,13 @@ def execute(args):
                 result = transport.request('local-model-configure', catalog=args.catalog,
                     session_file=args.session_file, socket_directory=args.socket_directory)
                 config['deployment'] = result.pop('deployment')
+            elif args.command == 'local-pool':
+                # Keep image selections made by build in the same deployment
+                # before the host adds its model pins to that deployment.
+                config['deployment'] = transport.request('configure')['deployment']
+                values = {'data_root': args.data_root, 'share_address': args.share_address} if args.local_pool_command in {'configure','migrate'} else {}
+                result = transport.request('local-pool-' + args.local_pool_command, **values)
+                config['deployment'] = result.pop('deployment')
             elif args.command == 'start':
                 result = transport.request('start', refresh_credential=args.refresh_credential,
                     template=(HERE / 'compose.benchmark-runner.yaml').read_text())
@@ -588,7 +628,7 @@ def execute(args):
                 result['local'] = local_gc(config, args.dry_run)
             elif args.command == 'logs': result = transport.request('logs', service=args.service, tail=args.tail)
             else: result = transport.request(args.command)
-            if args.command in {'build', 'stage', 'start', 'local-model'}:
+            if args.command in {'build', 'stage', 'start', 'local-model', 'local-pool'}:
                 save(args.profile, config)
         print(json.dumps(result, indent=2))
         return 2 if args.command == 'doctor' and result.get('prerequisite_error') else 0
