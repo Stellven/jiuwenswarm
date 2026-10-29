@@ -4,6 +4,27 @@
 
 Released October 29, 2026 · `ai4research-m1` · `AI4Research-Main`
 
+## Latest main-branch integration
+
+This M1 release has been refreshed with the main-branch integration at
+`6bb00afa28cae3c5edc95e7c3217a1a21dbb9890` (PR #12), plus the release
+documentation update. The `ai4research-m1` tag and downloadable manifest identify
+the exact published snapshot.
+
+- Integrated the iterative RSI capsule loop, bounded budgets, durable execution
+  slots, retained evaluated children and resource-lifecycle handling.
+- Added paired, batched parent/child benchmarks, correctness feedback and
+  retained-child integration with the Capability Capsule benchmark runners.
+- Included the updated capsule/Planner/Builder contracts, source-closure pins,
+  trace handling and current main-branch runtime fixes.
+- Included the compact public RSI benchmark evidence and its documented
+  reproduction inputs. See the
+  [RSI benchmark guide](https://github.com/Stellven/jiuwenswarm/blob/ai4research-m1/docs/rsi-loop/BENCHMARKS.md).
+
+The historical measurements below retain their original executed-source and
+runtime scope. Publishing this integrated source does not constitute a new
+benchmark campaign or automatically admit or activate retained RSI children.
+
 ## Integrated AI research workflow
 
 M1 brings together the core AI4Research pipeline:
@@ -221,6 +242,5 @@ AI4Research is distributed under the
 [Apache License 2.0](https://github.com/Stellven/jiuwenswarm/blob/ai4research-m1/LICENSE),
 with third-party notices included in the source package. See the
 [packaging guide](https://github.com/Stellven/jiuwenswarm/blob/AI4Research-Main/releases/README.md)
-for archive contents, checksums and reproduction. Documentation refreshes are
-included in the downloadable packages; `release-manifest.json` identifies their
-exact source commit, while the original M1 code tag remains `ai4research-m1`.
+for archive contents, checksums and reproduction. The `ai4research-m1` tag and
+`release-manifest.json` identify the current published M1 source snapshot.
