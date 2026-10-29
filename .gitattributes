@@ -99,3 +99,6 @@ tests/fixtures/research/**/*.zip -text
 deploy/m1/seccomp/*.json text eol=lf
 # Exact archived source inputs; excluded from the portable design package.
 docs/architecture/source-archive/** -text whitespace=-trailing-space,-blank-at-eof
+
+# Published RSI evidence retains exact source and measurement bytes.
+benchmarks/ccbench/rsi/evidence/** -text

@@ -1,0 +1,32 @@
+[
+  {
+    "executions": [
+      {
+        "arguments": "{\"command\": \"python3 -c 'import csv,sys; sys.path.insert(0,\\\"/campaign/run/project\\\"); import calc_tool; from decimal import Decimal; f=open(\\\"/campaign/run/project/invoices.csv\\\",newline=\\\"\\\",encoding=\\\"utf-8\\\"); values=[r[\\\"amount\\\"].replace(\\\",\\\",\\\"\\\") for r in csv.DictReader(f)]; f.close(); result=calc_tool.run({\\\"values\\\":values,\\\"mode\\\":\\\"decimal_strings\\\",\\\"operation\\\":\\\"sum\\\"}); assert result[\\\"status\\\"]==\\\"ok\\\",result; assert Decimal(str(result[\\\"value\\\"]))==sum(map(Decimal,values)),result; print(result[\\\"value\\\"])'\", \"description\": \"Compute and verify the invoice amount total\"}",
+        "output": "{\"success\": true, \"data\": {\"content\": \"Command: python3 -c 'import csv,sys; sys.path.insert(0,\\\"/campaign/run/project\\\"); import calc_tool; from decimal import Decimal; f=open(\\\"/campaign/run/project/invoices.csv\\\",newline=\\\"\\\",encoding=\\\"utf-8\\\"); values=[r[\\\"amount\\\"].replace(\\\",\\\",\\\"\\\") for r in csv.DictReader(f)]; f.close(); result=calc_tool.run({\\\"values\\\":values,\\\"mode\\\":\\\"decimal_strings\\\",\\\"operation\\\":\\\"sum\\\"}); assert result[\\\"status\\\"]==\\\"ok\\\",result; assert Decimal(str(result[\\\"value\\\"]))==sum(map(Decimal,values)),result; print(result[\\\"value\\\"])'\\nStdout: 329524\\n\\nStderr: (empty)\\nExit Code: 0\"}, \"include_extracted_content_only_once\": false}",
+        "span": "execute_tool bash"
+      }
+    ],
+    "item": "calc_comma"
+  },
+  {
+    "executions": [
+      {
+        "arguments": "{\"command\": \"python /campaign/run/project/calc_tool.py /campaign/run/project/runs.csv latency_ms mean\", \"description\": \"Compute mean latency using calc_tool.py\"}",
+        "output": "{\"success\": true, \"data\": {\"content\": \"Command: python /campaign/run/project/calc_tool.py /campaign/run/project/runs.csv latency_ms mean\\nStdout: 250.785\\n\\nStderr: (empty)\\nExit Code: 0\"}, \"include_extracted_content_only_once\": false}",
+        "span": "execute_tool bash"
+      }
+    ],
+    "item": "calc_truncate"
+  },
+  {
+    "executions": [
+      {
+        "arguments": "{\"command\": \"python /campaign/run/project/calc_tool.py /campaign/run/project/transfers.csv bytes sum\", \"description\": \"Sum the bytes column using calc_tool.py\"}",
+        "output": "{\"success\": true, \"data\": {\"content\": \"Command: python /campaign/run/project/calc_tool.py /campaign/run/project/transfers.csv bytes sum\\nStdout: 156480913497867854\\n\\nStderr: (empty)\\nExit Code: 0\"}, \"include_extracted_content_only_once\": false}",
+        "span": "execute_tool bash"
+      }
+    ],
+    "item": "calc_float"
+  }
+]

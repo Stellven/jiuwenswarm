@@ -1,0 +1,64 @@
+{
+  "historical_scores_sha256": "f4a44515798b3a67cb17375cf5ccbc05648f5b6045cd4e60178ff286a78889f0",
+  "rows": [
+    {
+      "arm": "plain",
+      "source": "historical_partner_result_unchanged",
+      "held_out_passed": 9,
+      "held_out_total": 10,
+      "generation_cost": {
+        "calls": 1,
+        "tokens": 1336,
+        "input_tokens": null,
+        "output_tokens": null,
+        "calls_without_token_count": 0,
+        "wall_s": 7.05
+      },
+      "parser_runtime_ratio_vs_cc": null,
+      "runtime_basis": "not measured",
+      "model": "gpt-6-luna"
+    },
+    {
+      "arm": "cc",
+      "source": "historical_partner_result_unchanged",
+      "held_out_passed": 10,
+      "held_out_total": 10,
+      "generation_cost": {
+        "calls": 2,
+        "tokens": 8760,
+        "input_tokens": null,
+        "output_tokens": null,
+        "calls_without_token_count": 0,
+        "wall_s": 16.4
+      },
+      "parser_runtime_ratio_vs_cc": 1.0,
+      "runtime_basis": "fresh paired parent baseline",
+      "model": "gpt-6-luna"
+    },
+    {
+      "arm": "rsi_cc",
+      "source": "new_protected_function_rsi",
+      "held_out_passed": 10,
+      "held_out_total": 10,
+      "all_checks_passed": 14,
+      "correctness_trials": 3,
+      "optimization_model_calls": 8,
+      "parser_runtime_ratio_vs_cc": 0.8250631498360163,
+      "ratio_confidence_interval": [
+        0.8126273693819586,
+        0.8381489757860224
+      ],
+      "selected_sha256": "476e2e848ce551e5f5dba1fd28ac7dc565fe9c3dab5cb8914ab3406e2cd8d74e",
+      "model": "gpt-6.1-sol",
+      "model_role": "code optimization; execution comparison uses same fixed Python environment"
+    }
+  ],
+  "runtime_scope": "valid public gate inputs only",
+  "limitations": [
+    "Measured external protected process wall divided by frozen batch size, including amortized startup.",
+    "Speed evidence covers the three original valid gate inputs; correctness covers the original 14 checks.",
+    "Historical plain and CC generation results are reused, not rerun; their generation times are not parser execution times.",
+    "Four proposals returned identical optimized source; only one distinct optimized implementation was generated.",
+    "No product admission or activation."
+  ]
+}

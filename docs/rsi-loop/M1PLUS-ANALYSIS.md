@@ -320,3 +320,7 @@ Verification was performed in disposable native Linux snapshots with the selecte
 Evidence is retained under `D:/M1plus/analysis-evidence/integration/`: `catalog-benchmark-eight.json`, `partner-cc-relay.log`, `capsule-cc-scripts.log`, `rsi-prerequisites.log`, `transport-cancellation-fixes.log`, `capsule-suite-before-context-fix.log`, `selected-release-suite.log`, `context-summary-final.log`, and `source-closure.json`. Full per-job benchmark captures remain at `/var/tmp/m1plus-eight-capsule-smoke-20261028/` in WSL.
 
 No source checkout B/C changes, push, deployment, live journal/Core writes, service restart, UI update, or live model run was performed. The final integration remains on the isolated partner-based branch for review and later deployment.
+
+## Live delivery update - 2026-10-29
+
+The earlier model-free/no-live-run status above is historical. Subsequent work completed Calculate and parse_duration RSI, retained an evaluated Normalize child after a diagnosis error, and completed the four-task Calculate live comparison. See [current benchmark outcomes and evidence](BENCHMARKS.md#live-rsi-delivery-evidence--2026-10-29). Host relay compatibility, utility-only preparation, budget-clock timing, exact frozen-executor loading, durable cgroup retirement/capacity checks and selected-result publication are included in this delivery. UI and production activation remain outside this change. The user authorized committing and pushing rsi-loop-m1plus on 2026-10-29; PR creation is deferred.

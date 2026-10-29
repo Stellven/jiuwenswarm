@@ -1,0 +1,108 @@
+{
+  "run_id": "m1plus-normalize-live-20261028-r2",
+  "capsule": "utility.table_normalize",
+  "status": "PARTIAL_ERROR_WITH_RETAINED_EVALUATED_CHILD",
+  "stop_reason": "error",
+  "stop_detail": "DIAGNOSIS_UNAVAILABLE: NATIVE_CONTAINMENT_UNCERTAIN_NO_FURTHER_EFFECT",
+  "model_calls": 9,
+  "generated_children": 4,
+  "selected_iteration": 4,
+  "selection_ref": {
+    "id": "6b21664c24a0049d55cc74937249b1490731f291c15fc95fbc2d19457e0d24e5.json",
+    "sha256": "6b21664c24a0049d55cc74937249b1490731f291c15fc95fbc2d19457e0d24e5"
+  },
+  "selected_body_sha256": "6daae550126d7b6a5a328e20dfb9e8c41fd5e9676242f229177107504bad5987",
+  "selected_latency_reduction": 0.1658777592270404,
+  "ratio_confidence_interval": [
+    0.8256194364172014,
+    0.8489808971724445
+  ],
+  "correctness_cases": 19,
+  "correctness_trials": {
+    "candidate": 3,
+    "estimated_cases": 19,
+    "parent": 3,
+    "requested": 3
+  },
+  "protected_jobs": 1315,
+  "iterations": [
+    {
+      "iteration": 1,
+      "outcome": "kept",
+      "kept": true,
+      "reason": "improved over parent: IMPROVED: correctness 19/19 vs parent 19/19; paired batched benchmark ratio 0.853 (gain +14.7%), 95% CI [0.841, 0.863], objective met",
+      "model_calls": 2,
+      "candidate_ref": {
+        "id": "2b4a9170ddd84a93f07fd7c1f64d04507f5b44efbc89d703fcddb44fbbbf6b22.json",
+        "sha256": "2b4a9170ddd84a93f07fd7c1f64d04507f5b44efbc89d703fcddb44fbbbf6b22"
+      },
+      "median_ratio": 0.8530896984084935,
+      "ratio_confidence_interval": [
+        0.8411243862481538,
+        0.8629251595994382
+      ]
+    },
+    {
+      "iteration": 2,
+      "outcome": "not_kept",
+      "kept": false,
+      "reason": "not kept vs iteration 1 (no correctness gain; paired gain does not beat the current best): NOT IMPROVED: correctness 19/19 vs parent 19/19; latency ratio 0.988 vs noise floor 0.953 (within noise)",
+      "model_calls": 2,
+      "candidate_ref": {
+        "id": "d4e698481c78a5737d5c64843ef050d82199e324ffd2bd4595c807b7332e1d53.json",
+        "sha256": "d4e698481c78a5737d5c64843ef050d82199e324ffd2bd4595c807b7332e1d53"
+      },
+      "median_ratio": 0.8571409277532244,
+      "ratio_confidence_interval": [
+        0.8450497602412935,
+        0.8684482957785827
+      ]
+    },
+    {
+      "iteration": 3,
+      "outcome": "not_kept",
+      "kept": false,
+      "reason": "not kept vs iteration 1 (no correctness gain; paired gain does not beat the current best): NOT IMPROVED: correctness 19/19 vs parent 19/19; latency ratio 0.995 vs noise floor 0.953 (within noise)",
+      "model_calls": 2,
+      "candidate_ref": {
+        "id": "336d90155a69a96005d272a88f404e3e085d048f369e50800305f736c25583de.json",
+        "sha256": "336d90155a69a96005d272a88f404e3e085d048f369e50800305f736c25583de"
+      },
+      "median_ratio": 0.8472906995505041,
+      "ratio_confidence_interval": [
+        0.8366213487837723,
+        0.8606428613318687
+      ]
+    },
+    {
+      "iteration": 4,
+      "outcome": "kept",
+      "kept": true,
+      "reason": "improved over iteration 1: NOT IMPROVED: correctness 19/19 vs parent 19/19; latency ratio 0.987 vs noise floor 0.953 (within noise)",
+      "model_calls": 2,
+      "candidate_ref": {
+        "id": "6daae550126d7b6a5a328e20dfb9e8c41fd5e9676242f229177107504bad5987.json",
+        "sha256": "6daae550126d7b6a5a328e20dfb9e8c41fd5e9676242f229177107504bad5987"
+      },
+      "median_ratio": 0.8341222407729596,
+      "ratio_confidence_interval": [
+        0.8256194364172014,
+        0.8489808971724445
+      ]
+    },
+    {
+      "iteration": 5,
+      "outcome": "error",
+      "kept": false,
+      "reason": "DIAGNOSIS_UNAVAILABLE: NATIVE_CONTAINMENT_UNCERTAIN_NO_FURTHER_EFFECT",
+      "model_calls": 1,
+      "candidate_ref": null,
+      "median_ratio": null,
+      "ratio_confidence_interval": null
+    }
+  ],
+  "partner_contract_validation": "NOT_RUN_TERMINAL_ERROR_GATE",
+  "three_arm_live_comparison": "NOT_RUN_TERMINAL_ERROR_GATE",
+  "production_activation": "NOT_REQUESTED",
+  "raw_campaign": "/opt/ai4r-m1plus-live-20261028-r10/campaign"
+}
