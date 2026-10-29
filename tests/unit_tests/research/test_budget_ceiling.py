@@ -146,3 +146,53 @@ def test_atomic_model_claim_preserves_independent_node_and_run_reservations(tmp_
     with pytest.raises(ResearchError, match='budget_exhausted'):
         store.claim_model_call(context | {'call_ordinal': 2}, invocation_limit=2, node_limit=2, run_limit=2, reserved_node_calls=1, reserved_run_calls=1)
     store.claim_model_call(context | {'invocation_id': 'verifier'}, invocation_limit=1, node_limit=2, run_limit=2)
+
+
+@pytest.mark.asyncio
+async def test_configuration_delay_does_not_spend_work_time_and_started_clock_never_resets(tmp_path,monkeypatch):
+    import jiuwenswarm.research.runner as module
+    clock=[100.0]
+    monkeypatch.setattr(module.time,'monotonic',lambda:clock[0])
+    store,runner,ref,contract=await work_contract(tmp_path)
+    frozen=copy.deepcopy(runner._run_contexts['budget-run'])
+    clock[0]+=1000  # Parent correctness and benchmark preparation are not this work run.
+    assert runner._run_started=={} and runner._node_started=={}
+    preview=runner._budget_state(contract,reserve=False)
+    assert preview['run_remaining']['time_s']==120
+    assert runner._run_started=={} and list(store.iter_records(kinds=('node-budget-start',)))==[]
+    context=runner._start_context(ref,contract,{})
+    first=runner._run_started['budget-run']
+    clock[0]+=10
+    assert runner._budget_state(contract)['run_remaining']['time_s']==110
+    runner.configure_run('budget-run',**frozen)
+    assert runner._run_started['budget-run']==first
+    clock[0]+=120
+    with pytest.raises(ResearchError,match='budget_exhausted'):
+        runner._budget_state(contract,reserve=False)
+    assert runner._run_started['budget-run']==first
+    assert list(store.iter_records(kinds=('model-call-start',)))==[]
+
+
+@pytest.mark.asyncio
+async def test_schema2_host_work_reaches_dispatch_fence_without_inference(tmp_path):
+    from types import SimpleNamespace
+    from jiuwenswarm.research.isolated_resources import IsolatedResources
+    store,old,ref,contract=await work_contract(tmp_path)
+    deployment=store.put_blob(__import__('json').dumps({'schema':'ai4r-fixed-subscription:2','id':'host-test',
+        'route_id':'codex-cli-default','requested_model':'gpt-6.1-sol','endpoint':'local-protected-IPC',
+        'backend':'host-codex-app-server','reasoning_effort':'medium'}).encode())
+    runner=CapsuleRunner(store,old.registry,old.check_registry,model=None,check_assets=old.check_assets)
+    frozen=dict(old._run_contexts['budget-run'],deployment_ref=deployment)
+    runner.configure_run('budget-run',**frozen)
+    resources=IsolatedResources(store,None,SimpleNamespace(runner=runner),None,None,None,{})
+    preview=resources.validate_proposal_once(ref)
+    assert preview['requested_model']=='gpt-6.1-sol' and preview['requires_broker'] is False
+    assert runner._run_started=={} and runner._node_started=={}
+    assert store.connection.execute('SELECT COUNT(*) FROM attempts').fetchone()[0]==0
+    context=runner._start_context(ref,contract,runner._decode_inputs(contract))
+    await runner._await_start(context)
+    claimed=runner.authorize_model_context({'execution_id':context.execution_id,'call_ordinal':1})
+    request={k:claimed[k] for k in ('execution_id','invocation_id','call_id','call_claim_ref','contract_ref')}
+    protected=runner.authorize_model_dispatch(request)
+    assert protected['requested_model']=='gpt-6.1-sol' and protected['limits']['model_calls']==1
+    assert list(store.iter_records(kinds=('model-call-start','model-call-output')))==[]

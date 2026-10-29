@@ -476,8 +476,10 @@ def test_loop_interrupted_parent_reuses_published_baseline_without_inventing_res
     assert [n['id'] for n in packet['snapshot']['nodes']]==['base:'+w['parent_ref']['sha256']]
     assert run['budget']['diagnosis_calls']==run['budget']['proposal_calls']==0
     assert run['lineage']['parent']['status']=='not_evaluated' and run['lineage']['iterations']==[]
-    with pytest.raises(ValueError,match='ORIGINAL_PUBLISHED_BASELINE_REQUIRED'):
-        _loop_packet(w,result,issued=len(w['fixtures']))
+    fresh=_loop_packet(w,result,issued=len(w['fixtures']))
+    assert fresh['snapshot']['nodes']==[] and fresh['candidates']==[]
+    assert fresh['snapshot']['runs'][0]['lineage']['parent_node_id'] is None
+    assert fresh['snapshot']['runs'][0]['lineage']['parent']['status']=='not_evaluated'
 
 
 def test_loop_startup_and_resultless_worker_failures_use_loop_budget(loop_world):
@@ -799,3 +801,22 @@ def test_codex_performance_history_renders_unchanged_through_our_projection():
         (n['id'], n['speed'], n['noise'], n['evidence_refs']) for n in published['nodes']]
     assert [r['activity'] for r in served['runs']] == [r['activity'] for r in published['runs']]
     assert all('lineage' not in run for run in served['runs'])  # Codex rows stay legacy rows.
+
+
+def test_error_before_first_baseline_has_no_evaluation_node_or_candidate(baseline):
+    v=baseline;session,result=_session_result(v)
+    previous={'workspace_id':'local','snapshot':{'schema_version':'1','revision':'empty',
+        'generated_at':None,'availability':'BLOCKED','blocker':'No completed run.',
+        'targets':[],'runs':[],'nodes':[]},'candidates':[]}
+    failure={'schema':'ai4r-rsi-capsule-controller-failure:1','id':session['id'],
+        'exception_type':'ValueError','status':'ERROR_NO_REPLAY'}
+    packet=pub.controller_failure_packet(v['meta'],session,failure,previous,model_calls=0)
+    assert packet['snapshot']['nodes']==[] and packet['candidates']==[]
+    assert packet['snapshot']['targets'][0]['parent_hash']==session['parent_body_ref']['sha256']
+    run=packet['snapshot']['runs'][0]
+    assert run['budget']['diagnosis_calls']==run['budget']['proposal_calls']==0
+    assert 'No completed parent baseline' in run['activity'][0]['summary']
+    result['parent_visible']=None
+    legacy=pub.session_packet(v['meta'],session,result,v['read'],v['read'],previous=previous)
+    assert legacy['snapshot']['nodes']==[] and legacy['candidates']==[]
+    assert previous['snapshot']['targets']==[] and previous['snapshot']['runs']==[]

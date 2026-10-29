@@ -111,7 +111,7 @@ def _require_science_resources(store, static_ref, inventory_ref):
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
                           public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
                           requested_model='gpt-6.1-sol', evidence_aware_review=False, screening_version='m1-4', requirements_version='m1-8',
-                          intent_version=_UNSET, delivery_version='m1-5', allow_missing_science=False):
+                          intent_version=_UNSET, delivery_version='m1-5', allow_missing_science=False, model_backend=None):
     from .releases import RELEASES, capture_default, implicit_release, release_facts, require_release
     # An unnamed Intent release adopts what an existing profile froze; a new profile
     # takes the current capture default. A checking-only refresh never moves it.
@@ -126,6 +126,9 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
                                 % ('captured Screening' if stage == 'screening' else RELEASES[stage]['label']))
     if requested_model not in {'gpt-6-luna', 'gpt-6.1-sol'} or type(evidence_aware_review) is not bool:
         raise ResearchError('local_profile_conflict', 'Pilot model and review mode must be explicit supported selections')
+    from .fixed_subscription import HOST_CODEX_BACKEND, deployment_backend
+    if model_backend not in (None, HOST_CODEX_BACKEND) or (model_backend == HOST_CODEX_BACKEND and requested_model != 'gpt-6.1-sol'):
+        raise ResearchError('local_profile_conflict', 'Unsupported explicit fixed subscription backend')
     directory = Path(directory)
     if not directory.is_absolute() or directory.is_symlink() or input_root.is_symlink() or not input_root.is_dir():
         raise ResearchError('local_profile_custody', 'Local operator and input directories must be real absolute directories')
@@ -152,7 +155,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
             raise ResearchError('local_profile_conflict','Frozen Screening release changed; use a fresh profile directory')
         if binding['protected_options'].get('delivery_version',implicit_release('delivery')) != delivery_version:
             raise ResearchError('local_profile_conflict','Frozen Delivery release changed; use a fresh profile directory')
-        if (store.read_record(binding['deployment_ref']).get('requested_model') != requested_model
+        if (deployment_backend(store.read_record(binding['deployment_ref'])) != (model_backend or 'codex')
+                or store.read_record(binding['deployment_ref']).get('requested_model') != requested_model
                 or binding['protected_options'].get('evidence_aware_review', False) != evidence_aware_review):
             raise ResearchError('local_profile_conflict', 'Frozen model or review mode changed; use a fresh profile directory')
         operator = OperatorConfiguration.load(config_path, resolve_profile=store.read_record)
@@ -257,6 +261,10 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'alternate_model_id': None, 'policy_ref': policy_ref})
     deployment = store.put_blob(json_bytes({'schema': 'ai4r-fixed-subscription:1', 'id': GOVERNANCE_PROFILE_NAME + '.deployment',
         'route_id': 'codex-cli-default', 'requested_model': requested_model, 'endpoint': 'local-protected-IPC'}), media_type='application/json')
+    if model_backend == HOST_CODEX_BACKEND:
+        deployment_value = store.read_record(deployment)
+        deployment_value.update(schema='ai4r-fixed-subscription:2', backend=HOST_CODEX_BACKEND, reasoning_effort='medium')
+        deployment = store.put_blob(json_bytes(deployment_value), media_type='application/json')
     defaults = store.put_record('default-policy', {'schema_version': '1.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.defaults',
         'hardware_profile': 'single_gpu', 'automatic_retries': 0})
     finalization = store.put_record('node-finalization-profile', {'schema_version': '2.0.0', 'id': GOVERNANCE_PROFILE_NAME + '.finalization',
@@ -264,6 +272,10 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         'semantic_assessment_reuse': 'accepted_requirements', 'additional_model_calls': 0})
     capture = lambda name, value: store.put_blob(json_bytes({'schema': 'ai4r-local-' + name + ':1', **value}), media_type='application/json')
     profile = capture('profile', {'id': GOVERNANCE_PROFILE_NAME, 'model': 'gpt-6.1-sol', 'hardware_ceiling': 'single_gpu'})
+    if model_backend == HOST_CODEX_BACKEND:
+        profile_value = store.read_record(profile)
+        profile_value.update(schema='ai4r-local-profile:2', backend=HOST_CODEX_BACKEND, reasoning_effort='medium')
+        profile = store.put_blob(json_bytes(profile_value), media_type='application/json')
     workspace = capture('workspace', {'id': 'local', 'input_root': str(input_root), 'poc_root': '/workspace/poc'})
     inputs = capture('input-directory', {'id': GOVERNANCE_PROFILE_NAME + '.inputs', 'path': str(input_root), 'readable': os.access(input_root, os.R_OK)})
     public_dataset_path = public_dataset_path or os.environ.get('JIUWENSWARM_M1_EXTERNAL_DATASET')

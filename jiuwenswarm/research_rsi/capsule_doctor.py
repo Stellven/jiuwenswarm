@@ -899,6 +899,12 @@ async def compose_snapshot(value, helper, scratch):
         # actual Library/check assets, child contracts, native lease and status.
         runtime = await helper.compose(composition, forbidden_evaluation)
         await runtime.before_model()  # Status/lease freshness only; never model.
+        pairs=[value['session'], *value['session'].get('loop',{}).get('contracts',[])]
+        for pair in pairs:
+            for role in ('diagnosis','proposal'):
+                checked=runtime.resources.validate_proposal_once(pair[role+'_contract_ref'])
+                need(checked['requested_model']=='gpt-6.1-sol' and not checked['requires_broker'],
+                     'EXACT_MODEL_ONLY_GOVERNED_WORK_REQUIRED')
         need(type(runtime.subscription).__name__ == 'HostCodexSubscriptionService',
              'EXACT_QUALIFIED_NATIVE_SUBSCRIPTION_REQUIRED')
         from .host_codex_backend import descriptor

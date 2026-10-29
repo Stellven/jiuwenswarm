@@ -19,12 +19,50 @@ import types
 
 from ..records import encoded
 from .capsules import public_fixtures, registered_capsule, fixture_inputs
+from .cgroup_lifecycle import check_capacity, retire_owned_group
 from .capsule_runtime import (BOOTSTRAP_SCHEMA, MAX_OUTPUT_BYTES, capsule_job_assets,
     check_capsule_output, require_runtime_closure, verify_runtime)
 from ..capsule_doctor import (WORKER_GID, WORKER_UID, _searchable, require_worker_traversal,
     static_traversal, traversal_components, worker_traversal)
 
 V18_EXECUTOR_SHA256 = '25c77a8c6830e32e83a6b77334d82e12350912fe33b312df8d5b1aad26bc4715'
+
+V18_KERNEL_DIRECTORY = Path('/opt/ai4r-rsi-frozen-v18-03ed3199/jiuwenswarm/research')
+V18_KERNEL_FILES = {'executor.py': V18_EXECUTOR_SHA256,
+    '_executor_probe.py': '96067b0fe8c65abbd3eef1a9e90bc42e6ef7b01d199f42aaf6b718566bd560da'}
+
+
+def v18_kernel_sources():
+    """The exact read-only closure needed by the protected capsule run path."""
+    paths = []
+    for filename, expected in V18_KERNEL_FILES.items():
+        path = _root_custody(V18_KERNEL_DIRECTORY / filename)
+        need(digest(path.read_bytes()) == expected, 'EXACT_HISTORICAL_V18_KERNEL_CLOSURE_REQUIRED')
+        paths.append(path)
+    return tuple(paths)
+
+
+def load_v18_executor():
+    """Load the immutable kernel privately; never replace the product executor."""
+    import importlib.util
+    import sys
+    paths = v18_kernel_sources()
+    name = '_ai4r_capsule_v18_executor_25c77a8c'
+    module = sys.modules.get(name)
+    if module is None:
+        spec = importlib.util.spec_from_file_location(name, paths[0])
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[name] = module
+        try:
+            spec.loader.exec_module(module)
+        except BaseException:
+            sys.modules.pop(name, None)
+            raise
+    need(Path(module.__file__) == paths[0], 'FROZEN_V18_MODULE_IDENTITY_DIFFERS')
+    executor_abi(module.RestrictedExecutor, module.ExecutionJob, module.ReadonlyMount)
+    return module
+
+
 GRANT_SCHEMA = 'ai4r-rsi-whole-capsule-development-grant:2'
 LOOP_GRANT_SCHEMA = 'ai4r-rsi-whole-capsule-development-grant:3'
 MAX_LOOP_EXECUTIONS = 100000
@@ -351,6 +389,12 @@ def bounded_executor(base, *, output_limit=MAX_OUTPUT_BYTES):
     """
     need(type(output_limit) is int and 0 < output_limit <= MAX_OUTPUT_BYTES, 'ROOT_OUTPUT_BOUND_REQUIRED')
     class Executor(base):
+        def _cgroup(self, job):
+            # Check every finite ancestor immediately before allocating. The
+            # frozen kernel still owns creation, limits and confinement.
+            check_capacity(self.cgroup_root)
+            return super()._cgroup(job)
+
         async def _run_kernel(self, job, command, **kwargs):
             canonical = base._run_kernel
             original_asyncio = canonical.__globals__['asyncio']
@@ -823,7 +867,8 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
     """Exactly granted baseline/candidate public jobs, with durable no-replay claims."""
     def __init__(self, *, root, runtime_root, manifest, grant_path, grant_sha256, cgroup_root, captures, benchmark=None):
         _require_root()
-        from jiuwenswarm.research.executor import RestrictedExecutor, ExecutionJob, ReadonlyMount
+        kernel = load_v18_executor()
+        RestrictedExecutor, ExecutionJob, ReadonlyMount = kernel.RestrictedExecutor, kernel.ExecutionJob, kernel.ReadonlyMount
         from jiuwenswarm.research_rsi.records import RecordStore
         self.abi = executor_abi(RestrictedExecutor, ExecutionJob, ReadonlyMount)
         grant_path = _root_custody(grant_path)
@@ -888,6 +933,9 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
                        node_id='unqualified-whole-capsule-development', start_extra=None):
         """One protected V18 job; ``make_assets(profile_kwargs)`` builds its program."""
         need(self.executions < self.grant['max_executions'], 'ROOT_EXECUTION_BUDGET_EXHAUSTED')
+        # Fail before consuming a claim or preparing a worker when the shared
+        # host hierarchy has no room. Creation repeats this check for races.
+        check_capacity(self.cgroup_root)
         assets = make_assets({})
         asset_root = self.root / 'assets' / ident; asset_root.mkdir(mode=0o755)
         work = self.root / 'work' / ident; work.mkdir(mode=0o700); os.chown(work, WORKER_UID, WORKER_GID)
@@ -919,12 +967,18 @@ class WholeCapsuleDispatcher(_EvaluationLedger):
             receipt = await self.executor.run(job)
         finally:
             self.sealing = False
-        group = self.cgroup_root / ident
-        events = dict(line.split() for line in (group / 'cgroup.events').read_text().splitlines())
-        need(events.get('populated') == '0' and not (group / 'cgroup.procs').read_text().strip(), 'EXECUTION_GROUP_NOT_EMPTY')
+        # Retain the complete kernel receipt and verify its captured bytes
+        # before retiring only this executor's empty group. Sealed job evidence
+        # remains in the sealed store; copying public bindings into it never
+        # makes withheld output visible to the controller.
+        if store is not self.captures:
+            for ref in (start_ref, program_ref, candidate_ref):
+                store.put_ref(ref, self.captures.read(ref))
+        retirement = retire_owned_group(self.executor, job, receipt=receipt,
+            start_ref=start_ref, store=store)
         stdout = store.read(receipt['stdout_ref'])
         return {'assets': assets, 'receipt': receipt, 'stdout': stdout, 'start_ref': start_ref,
-                'input_ref': input_ref, 'program_ref': program_ref}
+                'input_ref': input_ref, 'program_ref': program_ref, 'cgroup_retirement': retirement}
 
 
 def make_dispatcher(kind, **options):

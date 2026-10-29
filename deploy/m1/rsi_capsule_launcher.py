@@ -214,6 +214,12 @@ def worker_command(value, cfg):
         protected(path, directory=True, owner=owner); mounts[path] = False
     for path in (cfg['source_root'], cfg['evaluator']['runtime_root'], '/run/ai4r-rsi-host-codex'):
         protected(path, directory=True); mounts[path] = True
+    # The pinned capsule kernel is separate from the current product package.
+    # Runner preflight checks both exact digests before this command is issued.
+    frozen_kernel = Path('/opt/ai4r-rsi-frozen-v18-03ed3199/jiuwenswarm/research')
+    for filename in ('executor.py', '_executor_probe.py'):
+        path = frozen_kernel / filename
+        protected(path); mounts[str(path)] = True
     mounts[value['configuration']['path']] = True
     mounts[cfg['evaluator']['grant_path']] = True
     if 'compatibility' in cfg:

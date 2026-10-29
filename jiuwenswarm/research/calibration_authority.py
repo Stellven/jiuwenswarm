@@ -26,7 +26,8 @@ def timestamp(value):return datetime.fromtimestamp(value,timezone.utc).strftime(
 
 
 _CAPTURE_KINDS = ('model-call','model-call-start','model-call-input','model-call-output',
-    'model-provider-observation','route-record','native-governed-trace','native-governed-trace-event')
+    'model-provider-observation','route-record','native-governed-trace','native-governed-trace-event',
+    'host-codex-native-original')
 _AUDIT_CACHES = weakref.WeakKeyDictionary()
 _AUDIT_CACHES_LOCK = threading.RLock()
 
@@ -66,7 +67,7 @@ class _CaptureAuditIndex:
             extras = []
             if row['kind'] == 'model-call':extras.extend(value['evidence_refs'])
             if row['kind'] == 'native-governed-trace':extras.extend(value['event_refs'])
-            if row['kind'] == 'native-governed-trace-event':extras.append(value['raw_ref'])
+            if row['kind'] in {'native-governed-trace-event', 'host-codex-native-original'}:extras.append(value['raw_ref'])
             entry = (row['ordinal'], ref, extras)
             key = json_bytes(ref)
             for index, identity in ((self.by_run,value.get('run_id')),
@@ -120,8 +121,10 @@ class CalibrationAuthority:
         self.selection=selection
         try:deployment=store.read_record(deployment_ref)
         except (ResearchError,ValueError,UnicodeError):deployment={}
-        self.requested_model=(deployment.get('requested_model')
-            if isinstance(deployment,dict) and deployment.get('schema')=='ai4r-fixed-subscription:1' else None)
+        from .fixed_subscription import FIXED_DEPLOYMENT_SCHEMAS, deployment_model, deployment_backend
+        fixed = isinstance(deployment, dict) and deployment.get('schema') in FIXED_DEPLOYMENT_SCHEMAS
+        self.requested_model = deployment_model(deployment) if fixed else None
+        self.model_backend = deployment_backend(deployment) if fixed else None
         if self.requested_model is not None:
             require(self.requested_model in {'gpt-6.1-sol','gpt-6-luna'},'Local fixed deployment requires an exact supported model')
         from importlib.resources import files

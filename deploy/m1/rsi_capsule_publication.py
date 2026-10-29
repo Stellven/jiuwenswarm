@@ -228,16 +228,20 @@ def session_packet(meta, session, result, read, root_read, previous=None):
              and session['grant']['schema']=='ai4r-rsi-whole-capsule-development-grant:2',
              'SAME_VERSIONED_SESSION_PARENT_GRANT_REQUIRED')
     if parent_result is None:
-        need(previous is not None,'ORIGINAL_PUBLISHED_BASELINE_REQUIRED')
-        nodes=[n for n in previous['snapshot']['nodes'] if n['target_id']==session['capsule_name'] and n['parent_id'] is None and n['run_id'] is None]
-        need(len(nodes)==1 and nodes[0]['hash']==sha(parent),'ORIGINAL_PUBLISHED_PARENT_DIFFERS')
-        packet=copy.deepcopy(previous)
-        packet['snapshot']['targets']=[t for t in packet['snapshot']['targets'] if t['id']==session['capsule_name']]
-        packet['snapshot']['nodes']=copy.deepcopy(nodes);packet['snapshot']['runs']=[]
-        packet['candidates']=[c for c in packet['candidates'] if c['node_id']==nodes[0]['id']]
+        nodes=[] if previous is None else [n for n in previous['snapshot']['nodes'] if n['target_id']==session['capsule_name'] and n['parent_id'] is None and n['run_id'] is None]
+        if not nodes:
+            need(result['status']=='ERROR_NO_REPLAY' and result['model_calls']==0
+                 and result['candidate_ref'] is None, 'UNMEASURED_PARENT_REQUIRES_ZERO_CALL_ERROR')
+            packet=unmeasured_parent_packet(meta,session)
+        else:
+            need(len(nodes)==1 and nodes[0]['hash']==sha(parent),'ORIGINAL_PUBLISHED_PARENT_DIFFERS')
+            packet=copy.deepcopy(previous)
+            packet['snapshot']['targets']=[t for t in packet['snapshot']['targets'] if t['id']==session['capsule_name']]
+            packet['snapshot']['nodes']=copy.deepcopy(nodes);packet['snapshot']['runs']=[]
+            packet['candidates']=[c for c in packet['candidates'] if c['node_id']==nodes[0]['id']]
     else:
         packet=baseline_packet(meta,parent,declaration,parent_result,root_read)
-    view=packet['snapshot']; baseline=view['nodes'][0]
+    view=packet['snapshot']; baseline=view['nodes'][0] if view['nodes'] else None
     budget={'elapsed_seconds':None,'limit_seconds':3600,'setup_calls':0,'diagnosis_calls':None,
         'proposal_calls':None,'generation_call_limit':2,'cost':None,'currency':None}
     if result['model_calls']==2:
@@ -253,6 +257,7 @@ def session_packet(meta, session, result, read, root_read, previous=None):
     if child_ref is None and isinstance(result.get('proposal_capture'),dict):
         child_ref=result['proposal_capture'].get('child_ref')
     if child_ref is not None:
+        need(baseline is not None, 'CANDIDATE_REQUIRES_OBSERVED_PARENT_BASELINE')
         child=original(read,child_ref).decode('utf8'); need(len(child.encode())<=256*1024,'PUBLIC_CANDIDATE_EXCEEDS_BOUND')
         candidate=result['candidate_visible']
         summary=None if candidate is None else visible_summary(candidate,name=session['capsule_name'],
@@ -290,6 +295,22 @@ def interrupted_parent_summary(session, result, completion, root_results, root_r
     return summary
 
 
+
+def unmeasured_parent_packet(meta, session):
+    """Disclose the bound parent identity without claiming an evaluated baseline."""
+    name = session['capsule_name']
+    need(meta['target_id'] == name and meta['mutable_path'] == session['authorized_component'],
+         'UNMEASURED_PARENT_TARGET_DIFFERS')
+    packet = {'workspace_id': meta['workspace_id'], 'snapshot': {
+        'schema_version': '1', 'revision': sha(encoded(session['parent_body_ref'])),
+        'generated_at': meta['published_at'], 'availability': 'AVAILABLE', 'blocker': None,
+        'targets': [{'id': name, 'name': meta['target_name'],
+                     'parent_hash': session['parent_body_ref']['sha256'],
+                     'active_hash': None, 'run': _denied()}],
+        'runs': [], 'nodes': []}, 'candidates': []}
+    return validate_publication(packet, workspace_id=meta['workspace_id'])
+
+
 def controller_failure_packet(meta, session, failure, previous, *, model_calls=None, call_limit=2, limit_seconds=3600):
     """Expose an actual controller failure, never synthesize session evidence."""
     need(failure['schema']=='ai4r-rsi-capsule-controller-failure:1'
@@ -301,17 +322,22 @@ def controller_failure_packet(meta, session, failure, previous, *, model_calls=N
     validate_publication(previous,workspace_id=meta['workspace_id'])
     nodes=[n for n in previous['snapshot']['nodes'] if n['target_id']==session['capsule_name']
            and n['parent_id'] is None and n['run_id'] is None]
-    need(len(nodes)==1 and nodes[0]['hash']==session['parent_body_ref']['sha256'],
-         'ORIGINAL_PUBLISHED_CONTROLLER_PARENT_DIFFERS')
-    packet=copy.deepcopy(previous)
-    view=packet['snapshot']
-    view['targets']=[t for t in view['targets'] if t['id']==session['capsule_name']]
-    need(len(view['targets'])==1,'EXACT_PUBLISHED_CONTROLLER_TARGET_REQUIRED')
-    view['targets'][0]['run']=_denied()
-    view['nodes']=copy.deepcopy(nodes);view['runs']=[]
-    packet['candidates']=[c for c in packet['candidates'] if c['node_id']==nodes[0]['id']]
+    if not nodes:
+        packet=unmeasured_parent_packet(meta,session)
+        view=packet['snapshot']
+    else:
+        need(len(nodes)==1 and nodes[0]['hash']==session['parent_body_ref']['sha256'],
+             'ORIGINAL_PUBLISHED_CONTROLLER_PARENT_DIFFERS')
+        packet=copy.deepcopy(previous)
+        view=packet['snapshot']
+        view['targets']=[t for t in view['targets'] if t['id']==session['capsule_name']]
+        need(len(view['targets'])==1,'EXACT_PUBLISHED_CONTROLLER_TARGET_REQUIRED')
+        view['targets'][0]['run']=_denied()
+        view['nodes']=copy.deepcopy(nodes);view['runs']=[]
+        packet['candidates']=[c for c in packet['candidates'] if c['node_id']==nodes[0]['id']]
     need(model_calls is None or model_calls==0,'EARLY_CONTROLLER_CALL_COUNT_UNKNOWN')
     message='Controller failed ('+failure['exception_type']+'); inspect retained evidence. This attempt cannot replay.'
+    if not nodes: message+=' No completed parent baseline is available.'
     calls=0 if model_calls==0 else None
     view['runs'].append({'id':session['id'],'target_id':session['capsule_name'],'stage':'Failed',
         'status':'ERROR_NO_REPLAY','blockers':[message],
@@ -531,7 +557,10 @@ def loop_baseline(meta, session, result, root_read, previous, parent):
         packet['candidates']=[c for c in packet['candidates'] if c['node_id']==nodes[0]['id']]
         return packet
     raw=result['parent_visible']
-    need(raw is not None,'ORIGINAL_PUBLISHED_BASELINE_REQUIRED')
+    if raw is None:
+        need(result.get('status')=='ERROR_NO_REPLAY' and result.get('model_calls')==0
+             and result.get('candidate_ref') is None, 'UNMEASURED_PARENT_REQUIRES_ZERO_CALL_ERROR')
+        return unmeasured_parent_packet(meta,session)
     summary=visible_summary_v2(raw,name=name,body_ref=session['parent_body_ref'],read=root_read,
         grant_ref=session['grant_ref'],role='parent',iteration=0)
     target=registered_capsule(name);digest=sha(parent);node_id='base:'+digest
@@ -613,7 +642,7 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
         parent_summary=None
         need(loop['parent_visible'] is None and not loop['iterations'],'NO_ITERATION_WITHOUT_PARENT_CONTROL')
     packet=loop_baseline(meta,session,result,root_read,previous,parent)
-    view=packet['snapshot'];baseline=view['nodes'][0]
+    view=packet['snapshot'];baseline=view['nodes'][0] if view['nodes'] else None
     calls_limit,wall_limit=loop_limits(loop)
     if wall_limit is not None:wall_limit+=benchmark_wall_s(session)
     rows=loop['iterations'];known=result['model_calls'] is not None
@@ -723,7 +752,7 @@ def loop_session_packet(meta, session, result, read, root_read, previous, *, ser
             'parent_code':parent.decode('utf8'),'candidate_code':child,
             'rationale':row['rationale'][:4096] if isinstance(row.get('rationale'),str) else None,
             'blocker':_denied()['blocker'] if summary is not None else 'Proposal retained without a completed public evaluation.'})
-    run['lineage']=project_loop(result,node_ids=node_ids,parent_node_id=baseline['id'])
+    run['lineage']=project_loop(result,node_ids=node_ids,parent_node_id=None if baseline is None else baseline['id'])
     return validate_publication(packet,workspace_id=meta['workspace_id'])
 
 
@@ -982,6 +1011,59 @@ def publish_baselines(input_path,reviewed):
     finally:os.close(fd)
 
 
+def require_early_failure_observation(cfg,pin,session,result,control,evaluator,owner,run_exit):
+    """Join a retained pre-evaluation refusal to actual stopped-effect evidence."""
+    observation=_read_json(control/'early-controller-observation.json')
+    fields={'schema','id','configuration_sha256','result_sha256','controller_failure_sha256',
+            'evaluator_failure_sha256','container_inspection','prior_inspection_sha256','prior_pid_namespace',
+            'observed_no_owned_processes','cgroup_root','empty_job_groups','recorded_at'}
+    need(set(observation)==fields and observation['schema']=='ai4r-capsule-early-controller-observation:1'
+         and observation['id']==session['id'] and observation['configuration_sha256']==pin['sha256']
+         and observation['result_sha256']==sha(protected(cfg['result_path'],12001).read_bytes())
+         and observation['controller_failure_sha256']==result['controller_failure_sha256'],
+         'EXACT_EARLY_CONTROLLER_OBSERVATION_REQUIRED')
+    failure_path=evaluator.root/'failure.json';failure=_read_json(failure_path)
+    need(observation['evaluator_failure_sha256']==sha(protected(failure_path).read_bytes())
+         and failure['schema']=='ai4r-rsi-capsule-evaluator-failure:1'
+         and failure['id']==session['id'] and failure['configuration_sha256']==pin['sha256']
+         and failure['status']=='ERROR_NO_REPLAY' and type(result['evaluator_exit_code']) is int
+         and result['evaluator_exit_code']!=0 and issued_jobs(evaluator.root)==0,
+         'EXACT_ZERO_JOB_EVALUATOR_FAILURE_REQUIRED')
+    inspection=observation['container_inspection']
+    need(set(inspection)=={'path','sha256'} and observation['prior_inspection_sha256']==run_exit['inspection_sha256'],
+         'EXACT_STOPPED_CONTAINER_INSPECTION_REQUIRED')
+    inspection_raw=protected(inspection['path']).read_bytes();info=json.loads(inspection_raw)
+    need(sha(inspection_raw)==inspection['sha256'] and info['Id']==run_exit['cid']
+         and info['State']['Running'] is False and info['State']['Restarting'] is False
+         and info['State']['Pid']==0 and info['State']['ExitCode']==run_exit['exit_code'],
+         'ACTUAL_CONTAINER_TERMINATION_REQUIRED')
+    namespace=observation['prior_pid_namespace']
+    need(namespace==owner['pid_namespace'] and observation['observed_no_owned_processes'] is True,
+         'EXACT_EVALUATOR_PROCESS_NAMESPACE_REQUIRED')
+    for process in Path('/proc').iterdir():
+        if not process.name.isdigit():continue
+        try:current=os.readlink(process/'ns/pid')
+        except (FileNotFoundError,ProcessLookupError):continue
+        need(current!=namespace,'OWNED_CONTROLLER_PROCESS_REMAINS')
+    group=protected(cfg['evaluator']['cgroup_root'],directory=True)
+    groups=[group,*sorted(path for path in group.rglob('*') if path.is_dir())]
+    need(observation['cgroup_root']==str(group) and observation['empty_job_groups']==[str(path) for path in groups]
+         and all(not (path/'cgroup.procs').read_text().strip()
+                 and 'populated 0' in (path/'cgroup.events').read_text() for path in groups),
+         'ACTUAL_EMPTY_OWNED_CGROUPS_REQUIRED')
+    import sqlite3
+    core=protected(cfg['composition']['core_root'],12001,directory=True)
+    ids=sorted(cfg['composition']['run_contexts']);need(bool(ids),'EXACT_OWN_CORE_CONTEXTS_REQUIRED')
+    db=sqlite3.connect((core/'state/research.sqlite3').as_uri()+'?mode=ro',uri=True)
+    try:
+        marks=','.join('?'*len(ids))
+        need(all(db.execute('SELECT COUNT(*) FROM '+table+' WHERE run_id IN ('+marks+')',ids).fetchone()[0]==0
+                 for table in ('model_calls','tool_calls','attempts'))
+             and db.execute("SELECT COUNT(*) FROM records WHERE kind='model-call-start' AND run_id IN ("+marks+")",ids).fetchone()[0]==0,
+             'EARLY_CONTROLLER_CORE_EFFECT_EXISTS')
+    finally:db.close()
+
+
 def publish_completed(template_path, *, published_at=None):
     """Called only by the fixed Root launcher after a known stopped worker."""
     need(os.name=='posix' and os.geteuid()==0,'ROOT_CAPSULE_PUBLISHER_REQUIRED')
@@ -1021,9 +1103,13 @@ def publish_completed(template_path, *, published_at=None):
         need(failure['configuration_sha256']==pin['sha256'] and failure['phase']==result['phase'],
              'CONTROLLER_FAILURE_CONFIGURATION_DIFFERS')
         if result['model_calls']==0:
-            need(result['phase'] in ('WAITING_FOR_EVALUATOR','COMPOSING') and completion is not None
-                 and completion['executions']==0 and completion['completed_roles']==[],
+            need(result['phase'] in ('WAITING_FOR_EVALUATOR','COMPOSING'),
                  'EARLY_CONTROLLER_ZERO_EFFECT_PROOF_REQUIRED')
+            if completion is not None:
+                need(completion['executions']==0 and completion['completed_roles']==[],
+                     'EARLY_CONTROLLER_ZERO_EFFECT_PROOF_REQUIRED')
+            else:
+                require_early_failure_observation(cfg,pin,session,result,control,evaluator,owner,run_exit)
         meta=dict(template['meta'])
         from datetime import datetime,timezone
         meta['published_at']=published_at or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')

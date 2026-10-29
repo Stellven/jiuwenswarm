@@ -981,7 +981,9 @@ class CapsuleLoop:
             try:
                 public['model_calls'] = self.check_calls(diagnosis_handle, 1, 'DIAGNOSIS')
             except ValueError as count:
-                return finish('error', 'DIAGNOSIS_CALL_COUNT_DIFFERS: ' + str(count)[:300], count)
+                refusal = str(getattr(error, 'code', type(error).__name__))[:128]
+                return finish('error', 'DIAGNOSIS_CALL_COUNT_DIFFERS: ' + str(count)[:300]
+                              + '; governed refusal: ' + refusal, count)
             captured = (diagnosis.last_capture_ref is not None
                         and store.get(diagnosis.last_capture_ref).get('response_ref') is not None)
             return finish('rejected' if captured else 'error',

@@ -359,11 +359,21 @@ def validate_capture(store, value):
     need(binding['protected_options']['development_builtin_catalog'] is False
          and binding['protected_options'].get('integrated_workflows') is False
          and binding['protected_options'].get('paper_summary_workflow') is False
-         and binding['protected_options'].get('isolated_helper_scope') == 'rsi-screening-helper:1'
+         and binding['protected_options'].get('isolated_helper_scope') in ('rsi-screening-helper:1', 'utility-rsi:1')
          and binding['protected_options']['calibration_runtime_ref'] == value['calibration_runtime_ref']
          and deployment_model(store.read_record(value['deployment_ref'])) == value['model'] == selected_model())
     expected_backend = selected_backend() or ('spark' if selected_model() == 'Qwen3.8-27B-NVFP4' else 'codex')
     need(deployment_backend(store.read_record(value['deployment_ref'])) == expected_backend)
+    if binding['protected_options'].get('isolated_helper_scope') == 'utility-rsi:1':
+        need(binding['protected_options'].get('utility_rsi_scope') == {
+            'schema': 'ai4r-utility-rsi-scope:1',
+            'targets': ['utility.calculate', 'utility.table_normalize'],
+            'work_stages': ['intent', 'verifier'], 'setup_model_calls': 12,
+            'rsi_model_calls_per_target': 10, 'product_eligible': False})
+        need({row['stage'] for row in value['stages']} == {'intent', 'verifier'})
+    from jiuwenswarm.research.utility_rsi_scope import require_scope
+    scope_operator = store.read_record(value['configuration_ref'])
+    require_scope(store, scope_operator.get('operator', scope_operator), binding['protected_options'])
     profile = store.read_record(binding['protected_options']['profile_ref'])
     require_profile_model(profile, value['model'], backend=expected_backend)
     selection = store.read_record(value['model_selection_profile_ref'], contract_id='model-selection-profile')
@@ -465,9 +475,11 @@ async def admit(stage):
             declaration = store.read_record(asset['declaration_ref'])
             need(not declaration['identity'].get('lineage') and not declaration['guarantees'].get('self_tests'))
             library = LibraryService(store)
-            library.check_assets.bind_calibration_runtime(value['calibration_runtime_ref'],
+            from jiuwenswarm.research.calibration_authority import CalibrationAuthority
+            CalibrationAuthority(store, value['calibration_runtime_ref'],
                 configuration_ref=value['configuration_ref'], model_selection_profile_ref=value['model_selection_profile_ref'],
-                deployment_ref=value['deployment_ref'])
+                deployment_ref=value['deployment_ref'],
+                policy_ref=store.read_record(value['configuration_ref'])['cc']['plan_policy_ref'], model=None)
             library.associate_checks(asset['declaration_ref'], asset['bundle_ref'], asset['profile_ref'], actor)
             policy = store.read_record(store.read_record(value['configuration_ref'])['cc']['plan_policy_ref'])
             from jiuwenswarm.research.contracts import ResearchError

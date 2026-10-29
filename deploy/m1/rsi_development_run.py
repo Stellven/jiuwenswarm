@@ -611,16 +611,25 @@ class DevelopmentModel:
         before = {encoded(e['ref']) for e in store.iter_records(kinds={'model-call-start', 'model-call', 'route-record', 'invocation-observation'})}
         lease_ref = self.lease.start(self.run_id, self.contract_ref)
         succeeded = False
+        refusal_ref = None
         try:
             response = await self.resources.propose_once(self.contract_ref, prompt)
             succeeded = True
             return response
+        except BaseException as error:
+            code = str(getattr(error, 'code', type(error).__name__))[:128]
+            refusal_ref = store.append_record('rsi-governed-work-refusal', {
+                'schema': 'ai4r-rsi-governed-work-refusal:1', 'contract_ref': self.contract_ref,
+                'run_id': self.run_id, 'exception_type': type(error).__name__, 'reason_code': code})
+            self.last_unavailable_reasons.append('Governed work refused: ' + code)
+            raise
         finally:
             entries = [e for e in store.iter_records(kinds={'model-call-start', 'model-call', 'route-record', 'invocation-observation'})
                        if encoded(e['ref']) not in before]
             starts = [e for e in entries if e['kind'] == 'model-call-start']
             need(all(e['record']['contract_ref'] == self.contract_ref for e in starts), 'FOREIGN_MODEL_EFFECT')
             self.last_evidence = [e['ref'] for e in entries]
+            if refusal_ref is not None: self.last_evidence.append(refusal_ref)
             self.last_model_calls = len(starts)
             calls = [e['record'] for e in entries if e['kind'] == 'model-call' and e['record'].get('outcome') == 'completed']
             if len(calls) == 1:
@@ -636,6 +645,20 @@ class DevelopmentModel:
             else:
                 self.lease.uncertain(lease_ref, proof)
                 raise ValueError('NATIVE_CONTAINMENT_UNCERTAIN_NO_FURTHER_EFFECT')
+
+
+def validate_calibration_binding(core, exact, operator):
+    """Resolve the current protected runtime through its calibration owner.
+
+    This validates captured startup/policy identity without measuring cases,
+    publishing eligibility or making a model call. Published checking guards
+    remain independently enforced by LibraryService/CheckAssetAdmissions.
+    """
+    from jiuwenswarm.research.calibration_authority import CalibrationAuthority
+    return CalibrationAuthority(core, exact['protected_options']['calibration_runtime_ref'],
+        **{key: exact[key] for key in ('configuration_ref', 'model_selection_profile_ref', 'deployment_ref')},
+        policy_ref=operator.snapshot()['cc']['plan_policy_ref'], model=None)
+
 
 
 async def compose(value, evaluate):
@@ -678,9 +701,8 @@ async def compose(value, evaluate):
         async def run(self, *args, **kwargs): raise ValueError('ONLY_FINITE_PUBLIC_EVALUATOR_MAY_EXECUTE')
     executor = NoWorkExecutor()
     library = LibraryService(core, executor=executor)
-    runtime_ref = exact['protected_options']['calibration_runtime_ref']
-    library.check_assets.bind_calibration_runtime(runtime_ref,
-        **{key: exact[key] for key in ('configuration_ref', 'model_selection_profile_ref', 'deployment_ref')})
+    validate_calibration_binding(core, exact, operator)
+
     for stage, declaration_ref in value['work_capsule_refs'].items():
         declaration = core.read_record(declaration_ref, contract_id='capsule-declaration')
         identity = declaration['identity']

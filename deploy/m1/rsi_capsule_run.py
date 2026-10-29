@@ -28,7 +28,7 @@ MAX_CONFIG = 8 * 1024 * 1024
 MAX_PIPE_FRAME = 4 * 1024 * 1024
 MAX_TRIALS = 20
 DISPATCHERS = ('v18-bwrap', 'local')
-COMPOSITION_SHA256 = '5ba11903f494c06cffaa56f40efae2b5cadee73711a3bc7dd2b9f7e04a6f8016'
+COMPOSITION_SHA256 = 'e96e6a36c24e3e8d63358028778e76038421c8e34e10a50c0b8cc3f645e1fbf4'
 
 
 def need(ok, reason):
@@ -213,11 +213,11 @@ def readonly_relay_fact(value):
     """
     script = r'''import asyncio,hashlib,importlib.util,json,os,sys
 from pathlib import Path
-for path in reversed(('/opt/ai4r-rsi-frozen-v18-03ed3199','/opt/ai4r-rsi-host-codex/site-packages')):
+for path in reversed((sys.argv[3],'/opt/ai4r-rsi-host-codex/site-packages')):
  if Path(path).is_dir():sys.path.insert(0,path)
 assert os.getuid()==os.geteuid()==12001 and os.getgid()==os.getegid()==12001 and os.getgroups()==[13000]
 path=Path(sys.argv[2])
-assert hashlib.sha256(path.read_bytes()).hexdigest()=='5ba11903f494c06cffaa56f40efae2b5cadee73711a3bc7dd2b9f7e04a6f8016'
+assert hashlib.sha256(path.read_bytes()).hexdigest()==sys.argv[4]
 spec=importlib.util.spec_from_file_location('_capsule_readonly_composition',path)
 helper=importlib.util.module_from_spec(spec);sys.modules[spec.name]=helper;spec.loader.exec_module(helper)
 fact=asyncio.run(helper.relay_idle_fact(Path(sys.argv[1])))
@@ -233,7 +233,7 @@ sys.stdout.buffer.write(raw)
     need(digest(composition.read_bytes()) == value['composition_sha256'] == COMPOSITION_SHA256,
          'READONLY_NATIVE_COMPOSITION_DIFFERS')
     result = subprocess.run([sys.executable, '-I', '-B', '-c', script,
-        value['composition']['account_root'], str(composition)], stdin=subprocess.DEVNULL,
+        value['composition']['account_root'], str(composition), value['source_root'], COMPOSITION_SHA256], stdin=subprocess.DEVNULL,
         stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=15, check=False,
         user=12001, group=12001, extra_groups=[13000], close_fds=True,
         env={'PATH':'/usr/local/bin:/usr/bin:/bin', 'LANG':'C.UTF-8', 'PYTHONDONTWRITEBYTECODE':'1'})
@@ -303,6 +303,8 @@ def preflight(configuration_path, configuration_sha256):
     protected(evaluator['root'], directory=True)
     if evaluator.get('dispatcher', 'v18-bwrap') == 'v18-bwrap':
         protected(evaluator['cgroup_root'], directory=True)  # The local dispatcher owns no cgroup.
+        from jiuwenswarm.research_rsi.targets.capsule_executor import load_v18_executor
+        load_v18_executor()  # Exact kernel/probe and ABI, before any run claim.
     claim = Path(value['claim_path'])
     protected(claim.parent, directory=True)
     need(not claim.exists() and not claim.is_symlink(), 'ROOT_CLAIM_ALREADY_EXISTS_NO_REPLAY')

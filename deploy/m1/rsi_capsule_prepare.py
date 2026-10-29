@@ -11,10 +11,11 @@ import asyncio
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 from deploy.m1.rsi_development_run import (encoded, need, protected, exclusive,
-    prepare_work_contexts)
+    prepare_work_contexts, validate_calibration_binding)
 
 
 LOOP_DEFAULTS = {'max_iterations': 5, 'max_no_progress': 3, 'trials': 3}
@@ -24,6 +25,19 @@ def iteration_run_id(run_id, role, iteration):
     """Run-context id of one loop iteration's governed work (iteration 1 is
     the historical ``rsi-development:<id>:<role>``)."""
     return 'rsi-development:' + run_id + ':' + role + ('' if iteration == 1 else ':' + str(iteration))
+
+
+
+def validate_iteration_run_ids(run_id, max_iterations):
+    """Reject invalid derived contract identifiers before consuming preparation."""
+    need(type(max_iterations) is int and 1 <= max_iterations <= 100,
+         'FINITE_LOOP_MAX_ITERATIONS_REQUIRED')
+    need(isinstance(run_id, str), 'VALID_WORK_RUN_ID_REQUIRED')
+    for iteration in range(1, max_iterations + 1):
+        for role in ('diagnosis', 'proposal'):
+            derived = iteration_run_id(run_id, role, iteration)
+            need(re.fullmatch(r'[a-z0-9][a-z0-9_.:-]{0,63}', derived) is not None,
+                 'DERIVED_WORK_RUN_ID_EXCEEDS_CONTRACT: ' + derived)
 
 
 def loop_settings(loop):
@@ -97,6 +111,19 @@ async def prepare_session(*, core, library, runner, operator, records, lease_rec
     validate_grant(grant, value['runtime_manifest'])
     target = registered_capsule(grant['capsule_name'])
     loop = loop_settings(value['loop']) if value.get('loop') is not None else None
+    validate_iteration_run_ids(grant['run_id'], loop['max_iterations'] if loop is not None else 1)
+    from jiuwenswarm.research.utility_rsi_scope import require_scope
+    exact_scope = value['exact_binding_refs']
+    scope_configuration = core.read_record(exact_scope['configuration_ref'])
+    utility_scope = require_scope(core, scope_configuration.get('operator', scope_configuration), exact_scope['protected_options'])
+    if utility_scope is not None:
+        need(utility_scope == {'schema': 'ai4r-utility-rsi-scope:1',
+            'targets': ['utility.calculate', 'utility.table_normalize'],
+            'work_stages': ['intent', 'verifier'], 'setup_model_calls': 12,
+            'rsi_model_calls_per_target': 10, 'product_eligible': False}, 'EXACT_UTILITY_RSI_SCOPE_REQUIRED')
+        need(grant['capsule_name'] in utility_scope['targets'] and loop is not None
+             and loop['model_backend'] == {'kind': 'host-codex'}
+             and loop['max_iterations'] <= 5, 'UTILITY_RSI_TARGET_AND_MODEL_BUDGET_REQUIRED')
     if loop is not None:
         # Budget derived from the loop configuration by the owner's function:
         # parent trials plus candidate trials for every iteration over the
@@ -230,8 +257,8 @@ async def prepare_configuration(value):
         operator = OperatorConfiguration.from_mapping(configuration.get('operator', configuration), resolve_profile=core.read_record)
         need(operator.snapshot()['cc']['router']['enabled'] is False, 'FIXED_NATIVE_MODEL_REQUIRED')
         library = LibraryService(core, executor=None)
-        library.check_assets.bind_calibration_runtime(exact['protected_options']['calibration_runtime_ref'],
-            **{key: exact[key] for key in ('configuration_ref', 'model_selection_profile_ref', 'deployment_ref')})
+        validate_calibration_binding(core, exact, operator)
+
         verifier = core.read_record(value['work_capsule_refs']['verifier'], contract_id='capsule-declaration')
         entry = library.get(verifier['identity']['name'], verifier['identity']['version_label'])
         library.configure_verifier(core.read_record(entry['admission_ref'], contract_id='library-admission')['cc'])

@@ -109,6 +109,8 @@ def load_profile():
         Path(__file__).with_name('rsi_host_codex_recovery.py'))
     recovery=importlib.util.module_from_spec(spec);spec.loader.exec_module(recovery)
     recovery.verify_recovery_complete(ROOT)
+    from deploy.m1.rsi_host_codex_upgrade import verify_upgrade_complete
+    verify_upgrade_complete(ROOT)
     spec=importlib.util.spec_from_file_location('_rsi_stopped_deployment_guard',
         Path(__file__).with_name('rsi_stopped_repair.py'))
     deployment=importlib.util.module_from_spec(spec);spec.loader.exec_module(deployment)

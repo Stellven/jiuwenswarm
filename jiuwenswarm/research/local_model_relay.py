@@ -387,11 +387,15 @@ class LocalModelRelay:
             'prior_policy_sha256','successor_policy_sha256','prior_qualification_sha256',
             'successor_qualification_sha256','actor','authorization','purpose','provider_termination',
             'original_outcome','automatic_replay','prior_budget_preserved','recorded_at','evidence_refs'}
+        accepted_policy=value.get('successor_policy_sha256') if isinstance(value,dict) else None
+        if accepted_policy!=self.recovery_policy_sha256:
+            from deploy.m1.rsi_host_codex_upgrade import policy_ancestor
+            need(policy_ancestor(self.runtime.parent,self.recovery_policy_sha256,accepted_policy))
         need(isinstance(value,dict) and set(value)==fields
             and value['schema']=='ai4r-host-codex-abandonment:1'
             and value['request_id']==ident and value['payload_sha256']==digest
             and value['result_sha256']==hashlib.sha256(result.encode()).hexdigest()
-            and value['successor_policy_sha256']==self.recovery_policy_sha256
+            and value['successor_policy_sha256']==accepted_policy
             and value['prior_policy_sha256']!=value['successor_policy_sha256']
             and value['actor']=='os:0:root' and value['purpose']=='exact_new_bounded_screening_run'
             and value['provider_termination']=='UNPROVEN' and value['original_outcome']=='outcome_unknown'

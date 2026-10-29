@@ -14,6 +14,7 @@ from jiuwenswarm.research_rsi.records import RecordStore, encoded
 from jiuwenswarm.research_rsi.targets.capsules import public_fixtures, registered_capsule
 from jiuwenswarm.research_rsi.targets import capsule_executor as dispatcher
 from tests.unit_tests.research_rsi.test_capsule_runtime import installed_runtime
+from tests.unit_tests.research_rsi.test_cgroup_lifecycle import fake_cgroupfs
 
 
 def grant_for(manifest, name, *, paired=True):
@@ -71,20 +72,22 @@ def test_parameterized_capture_bounds_both_pipes_and_preserves_separate_probe():
 
 @pytest.mark.parametrize('name,count', [('utility.calculate', 4), ('utility.table_normalize', 5)])
 @pytest.mark.parametrize('fail_first', [False, True])
-def test_dispatcher_builds_historical_jobs_checks_packets_and_refuses_replay(installed_runtime, tmp_path, monkeypatch, name, count, fail_first):
+def test_dispatcher_builds_historical_jobs_checks_packets_and_refuses_replay(installed_runtime, tmp_path, monkeypatch, fake_cgroupfs, name, count, fail_first):
     # Root/isolation gates are deliberately replaced ONLY in this local
     # mechanics test. The fake executor does not run candidate code or confer
     # security/runtime evidence; actual sandbox acceptance is a separate job.
     import jiuwenswarm.research.executor as kernel
     runtime, manifest = installed_runtime
     root = tmp_path / 'dispatch'; root.mkdir()
-    cgroups = tmp_path / 'cgroups'; cgroups.mkdir()
+    cgroups = fake_cgroupfs.root
     captures = RecordStore(tmp_path / 'captures')
     grant = grant_for(manifest, name)
     grant_path = tmp_path / 'grant.json'; grant_path.write_bytes(encoded(grant))
     jobs = []
     class ExecutorDouble:
-        def __init__(self, **options): self.options = options
+        def __init__(self, **options):
+            self.options = options
+            self.cgroup_root, self.active, self.owned_groups = cgroups, {}, {}
         def prerequisites(self): return []
         async def run(self, job):
             self.options['authorize_job'](job)
@@ -95,16 +98,21 @@ def test_dispatcher_builds_historical_jobs_checks_packets_and_refuses_replay(ins
             fixture = next(row for row in public_fixtures(name) if row['packet'] == original)
             output = copy.deepcopy(original)
             output['data']['calculation_result' if name.endswith('calculate') else 'table'] = fixture['expected_task_output']
-            group = cgroups / job.job_id; group.mkdir()
-            (group / 'cgroup.events').write_text('populated 0\n'); (group / 'cgroup.procs').write_text('')
+            group = fake_cgroupfs.group(job.job_id)
+            self.owned_groups[job.job_id] = {'path': group, 'inode': group.stat().st_ino, 'invocation_id': job.invocation_id}
             jobs.append(job)
             capture = self.options['capture']
-            return {'job_id': job.job_id, 'termination_reason': 'resource_limit_exceeded' if fail_first else 'completed', 'exit_code': 0,
+            return {'job_id': job.job_id, 'invocation_id': job.invocation_id,
+                'contract_ref': job.contract_ref, 'subject_ref': job.subject_ref,
+                'ended_at': '2026-10-28T00:00:00Z', 'memory_events': 'oom_kill 0\n', 'pids_events': 'max 0\n',
+                'termination_reason': 'resource_limit_exceeded' if fail_first else 'completed', 'exit_code': 0,
                 'observed_runtime': True, 'wall_time_s': .25, 'stdout_ref': capture(encoded(output)),
                 'stderr_ref': capture(b''), 'observed_limits': {'admin_output_truncated': False,
+                    'memory_max': '134217728', 'pids_max': '16',
                     'isolation_probe_ref': capture(b'{"local":"synthetic mechanics double"}')}}
     monkeypatch.setattr(kernel, 'RestrictedExecutor', ExecutorDouble)
     monkeypatch.setattr(kernel, 'ExecutionJob', lambda **kw: SimpleNamespace(**kw))
+    monkeypatch.setattr(dispatcher, 'load_v18_executor', lambda: kernel)
     monkeypatch.setattr(dispatcher, 'executor_abi', lambda *a: {'test_only': 'no actual ABI proof'})
     monkeypatch.setattr(dispatcher, '_require_root', lambda: None)
     monkeypatch.setattr(dispatcher, '_root_custody', lambda path, **kw: Path(path))
@@ -137,6 +145,8 @@ def test_dispatcher_builds_historical_jobs_checks_packets_and_refuses_replay(ins
     assert baseline['passed_count'] == candidate['passed_count'] == count
     assert baseline['protected_wall_s'] == candidate['protected_wall_s'] == count * .25
     assert len(jobs) == count * 2 and len({job.job_id for job in jobs}) == count * 2
+    assert len(fake_cgroupfs.removals) == len(jobs)
+    assert all(owned['retired'] for owned in value.executor.owned_groups.values())
     # Every job's private work directory and its asset files were brought into
     # worker traversal custody before dispatch (general, path-derived).
     assert {job.cwd for job in jobs} <= set(traversed)

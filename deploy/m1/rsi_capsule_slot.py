@@ -200,11 +200,18 @@ BENCHMARK_CEILINGS = {'workloads': 64, 'repetitions': 100, 'warmups': 20, 'per_j
 
 
 def benchmark_workload_count(template):
-    """Workloads declared by the capsule's benchmark data in the pinned run
-    source (``<carrier dir>/fixtures/benchmark.json``), or None without one."""
-    from jiuwenswarm.research_rsi.targets.capsules import registered_capsule
-    carrier = Path(registered_capsule(template['target_id']).carrier_path)
-    path = Path(template['run']['source_root']) / 'jiuwenswarm' / carrier.parent / 'fixtures' / 'benchmark.json'
+    """Workloads from the registered fixture adapter in the pinned source.
+
+    A selected release may delegate to an older fixture adapter; its mutable
+    carrier directory does not determine where the benchmark spec lives.
+    """
+    extensions = Path(template['run']['source_root']) / 'jiuwenswarm/research/capsule_extensions'
+    manifests = [path for path in sorted(extensions.glob('*/fixtures/manifest.json'))
+                 if json.loads(custody(path).read_bytes()).get('capsule_name') == template['target_id']]
+    need(len(manifests) <= 1, 'UNIQUE_CAPSULE_FIXTURE_MANIFEST_REQUIRED')
+    if not manifests:
+        return None
+    path = manifests[0].parent / 'benchmark.json'
     if not path.exists():
         return None
     value = json.loads(custody(path).read_bytes())
@@ -280,6 +287,30 @@ def execution_budget(fixtures, loop, capsule_name):
     return loop_execution_budget(len(fixtures), **kwargs)
 
 
+
+def revision_metadata(template, run_id, manifest, *, loop=None):
+    """Rebind public worker facts to this revision, keeping hardware limits.
+
+    Durable templates may originate in an older installed run. Its contract
+    identity/job count and runtime identity are facts to derive, not stable
+    installation authority that may be copied into a successor.
+    """
+    import copy
+    metadata = copy.deepcopy(template['evaluator']['metadata'])
+    contract, environment = metadata['contract'], metadata['environment']
+    if contract.get('schema') == 'ai4r-public-whole-capsule-development-contract:1':
+        from jiuwenswarm.research_rsi.targets.capsule_executor import grant_fixtures, LOOP_GRANT_SCHEMA
+        loop = revision_loop(template) if loop is None else loop
+        fixtures = grant_fixtures({'schema': LOOP_GRANT_SCHEMA, 'capsule_name': template['target_id']})
+        contract.update(id=run_id, run_id=run_id, target=template['target_id'],
+                        max_jobs=execution_budget(fixtures, loop, template['target_id']),
+                        roles=['parent', 'candidate'])
+    if environment.get('schema') == 'ai4r-public-whole-capsule-runtime-environment:1':
+        environment.update(manifest_sha256=sha(encoded(manifest)), python=copy.deepcopy(manifest['python']),
+                           image=template['container']['image'])
+    return metadata
+
+
 def derive_grant(template, run_id, manifest, *, now, loop=None):
     """Loop grant v3 bounded by its execution budget and a durable horizon."""
     from jiuwenswarm.research_rsi.records import encoded as canonical
@@ -293,7 +324,7 @@ def derive_grant(template, run_id, manifest, *, now, loop=None):
     loop = revision_loop(template) if loop is None else loop
     draft = {'schema': LOOP_GRANT_SCHEMA, 'capsule_name': name}
     fixtures = grant_fixtures(draft)
-    metadata = template['evaluator']['metadata']
+    metadata = revision_metadata(template, run_id, manifest, loop=loop)
     grant = {'schema': LOOP_GRANT_SCHEMA, 'bootstrap_schema': BOOTSTRAP_SCHEMA, 'run_id': run_id,
         'capsule_name': name, 'runtime_manifest_sha256': sha(canonical(manifest)), 'parent_sha256': parent,
         'fixture_sha256': sha(canonical(fixtures)), 'fixture_count': len(fixtures), 'roles': ['parent', 'candidate'],
@@ -371,6 +402,8 @@ def doctor_step(template, dirs, configuration, run_cfg):
     mounts = {comp[key]: True for key in ('core_root', 'input_root', 'record_root', 'native_lease_root', 'account_root')}
     mounts.update({str(dirs['doctor']): False, run_cfg['source_root']: True,
                    run_cfg['evaluator']['runtime_root']: True, '/run/ai4r-rsi-host-codex': True, configuration['path']: True})
+    from jiuwenswarm.research_rsi.targets.capsule_executor import v18_kernel_sources
+    mounts.update({str(path): True for path in v18_kernel_sources()})
     return container_step(template, name='ai4r-capsule-doctor-' + dirs['namespace'].name, user=(0, 0),
         mounts=mounts, workdir='/',
         argv=['-I', '-B', template['run']['runner'], 'doctor', '--configuration', configuration['path'],
@@ -387,12 +420,14 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
     successor revision never reuses its directories or claims.
     """
     validate_template(template)
+    from deploy.m1.rsi_capsule_prepare import validate_iteration_run_ids
+    revision = revision_loop(template)
+    validate_iteration_run_ids(run_id, loop_settings(revision)['max_iterations'])
     now = int(time.time() if now is None else now)
     dirs = revision_directories(template, run_id)
     make_directories(dirs, chown=chown)
     evaluator = template['evaluator']
     manifest = json.loads(custody(evaluator['manifest_path']).read_bytes())
-    revision = revision_loop(template)
     grant = derive_grant(template, run_id, manifest, now=now, loop=revision)
     loop = loop_settings(revision)
     deadline = run_deadline_s(grant, revision)
@@ -425,7 +460,7 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
             'exact_binding_refs': comp['exact_binding_refs'], 'work_capsule_refs': comp['work_capsule_refs'],
             'run_contexts': prepared['run_contexts']},
         'evaluator': {'root': str(dirs['evidence']), 'runtime_root': evaluator['runtime_root'], 'manifest': manifest,
-            'metadata': evaluator['metadata'], 'grant_path': grant_pin['path'], 'grant_sha256': grant_pin['sha256'],
+            'metadata': revision_metadata(template, run_id, manifest, loop=revision), 'grant_path': grant_pin['path'], 'grant_sha256': grant_pin['sha256'],
             'cgroup_root': evaluator['cgroup_root']},
         'claim_path': str(dirs['claim'] / 'session-claim.json'),
         'result_path': str(dirs['records'] / 'capsule-result.json'),

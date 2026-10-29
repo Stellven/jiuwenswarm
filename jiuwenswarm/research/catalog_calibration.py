@@ -232,18 +232,26 @@ def delivery_fixture(store, corpus, inputs):
 
 
 async def capture_catalog_calibration(store, *, configuration_ref, model_selection_profile_ref, deployment_ref,
-                                      executor=None, profile_generations=None):
+                                      executor=None, profile_generations=None, stages=None):
     """Capture only. No model calls, admissions, activation or product outputs."""
     from .checks import CheckRegistry
     from .checks.calibration import CalibrationMeasurements
     from .checks.calibration_runtime import prepare_calibration_checks
     checks = CheckRegistry(); assets = await prepare_calibration_checks(store, checks, executor=executor)
+    all_assets = assets
     generations = {} if profile_generations is None else profile_generations
     if (not isinstance(generations, dict) or not set(generations) <= set(assets)
             or any(not isinstance(value, str) or not value or len(value) > 64
                    or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789_.-' for c in value)
                    for value in generations.values())):
         raise ResearchError('calibration_corpus', 'Explicit calibration generations must name installed stages and bounded stable identities')
+    if stages is not None:
+        if (not isinstance(stages, (list, tuple)) or not stages or len(set(stages)) != len(stages)
+                or not set(stages) <= set(assets)):
+            raise ResearchError('calibration_corpus', 'Explicit calibration stages must name distinct installed assets')
+        assets = {stage: assets[stage] for stage in stages}
+        if 'verifier' not in assets:
+            raise ResearchError('calibration_corpus', 'A scoped runtime must include its installed verifier')
     corpus = Corpus(store); profiles = []; context_maps = {}; limitations = []
     runner = corpus.mark(store.put_blob(Path(__import__('inspect').getfile(CalibrationMeasurements)).read_bytes()))
     for stage, asset in assets.items():
@@ -251,9 +259,9 @@ async def capture_catalog_calibration(store, *, configuration_ref, model_selecti
             # The literal assessment checker is exercised with its actual
             # structured declaration/output bindings and a host-assembled reply.
             from .gate import assemble_assessment
-            subject = corpus.capture('intent_ir.json'); declared = assets['intent']['declaration_ref']
-            profile = store.read_record(assets['intent']['profile_ref'], contract_id='checking-profile')
-            basis = corpus.record({'profile_ref': assets['intent']['profile_ref']})
+            subject = corpus.capture('intent_ir.json'); declared = all_assets['intent']['declaration_ref']
+            profile = store.read_record(all_assets['intent']['profile_ref'], contract_id='checking-profile')
+            basis = corpus.record({'profile_ref': all_assets['intent']['profile_ref']})
             review = corpus.record({'schema_version': '2.0.0', 'id': 'static_calibration_review', 'subject_ref': subject,
                 'contract_ref': basis, 'check_plan_ref': basis, 'input_refs': [], 'deterministic_result_ref': basis,
                 'criteria': [c['criterion_id'] for c in profile['criteria']], 'observations': [],

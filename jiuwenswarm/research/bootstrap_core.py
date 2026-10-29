@@ -50,6 +50,9 @@ async def compose_core(*,store,operator,model,executor,readiness,upload_manager,
     or a client payload. No callable or graph arrives through submit.
     """
     options=dict(protected_options or {});actor=operator_actor or principal
+    from .utility_rsi_scope import require_scope
+    if require_scope(store, operator.snapshot(), options) is not None:
+        raise ResearchError('utility_rsi_scope', 'Utility-only RSI bindings cannot initialize a research product composition')
     from .releases import STAGES as RELEASE_STAGES, implicit_release, pinned_extras, require_release
     selections={stage:require_release(stage,options.get(stage+'_version',implicit_release(stage)),'configuration_override') for stage in RELEASE_STAGES}
     intent_version,requirements_version,screening_version,delivery_version=(selections[k] for k in ('intent','requirements','screening','delivery'))

@@ -449,9 +449,40 @@ def capture_native_record(store, kind, record, *, context):
 
 def capture_governed_trace_record(store, kind, record):
     """Attribute raw native packets through their original captured call start."""
-    if (kind not in {'native-governed-trace', 'native-governed-trace-event'}
+    if (kind not in {'native-governed-trace', 'native-governed-trace-event', 'host-codex-native-original'}
             or not isinstance(record, dict) or not isinstance(record.get('scope'), dict)):
         raise ResearchError('audit_unavailable', 'Malformed native governed trace capture')
+    if kind == 'host-codex-native-original':
+        # The host adapter captures its validated original before individual
+        # frames. This is call-owned native evidence, never caller metadata.
+        if (set(record) != {'schema', 'scope', 'policy_sha256', 'raw_ref'}
+                or record['schema'] != 'ai4r-host-codex-original:1'
+                or not isinstance(record['policy_sha256'], str)
+                or re.fullmatch('[0-9a-f]{64}', record['policy_sha256']) is None):
+            raise ResearchError('audit_unavailable', 'Malformed host native original capture')
+        validate('Ref', record['raw_ref'])
+        raw = store.read_blob(record['raw_ref'])
+        if len(raw) > 1024 * 1024:
+            raise ResearchError('audit_unavailable', 'Host native original exceeds evidence bound')
+        from .local_model_codex import unpack_bundle
+        from .local_models import CODEX_BUNDLE_FIELDS
+        from ..research_rsi.host_codex_backend import MODEL, EFFORT, NATIVE_SHA256
+        try:
+            original = unpack_bundle(json.loads(raw))
+            early_failure = (isinstance(original, dict) and original.get('outcome') == 'failed'
+                and original.get('wire_frames') == []
+                and all(original.get(key) is None for key in ('thread_start', 'turn_start', 'turn_completed'))
+                and original.get('error_code') not in (None, 'CONTAINMENT_UNCERTAIN'))
+            valid = (isinstance(original, dict) and set(original) == CODEX_BUNDLE_FIELDS
+                     and original.get('schema') == 'ai4r-host-codex-response:1'
+                     and original.get('requested_model') == MODEL
+                     and original.get('reasoning_effort') == EFFORT
+                     and (original.get('binary_sha256') == NATIVE_SHA256
+                          or early_failure and original.get('binary_sha256') is None))
+        except (ValueError, TypeError, KeyError):
+            valid = False
+        if not valid:
+            raise ResearchError('audit_unavailable', 'Host native original policy differs')
     scope = record['scope']; start_ref = scope.get('model_call_start_ref')
     validate('Ref', start_ref)
     if store.record_kind(start_ref) != 'model-call-start':
