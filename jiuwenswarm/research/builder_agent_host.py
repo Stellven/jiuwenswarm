@@ -139,7 +139,8 @@ class BuilderAgentHost(BuilderTestService):
                     parse_pi_output(stdout,validate_pi_request(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])))
                 else:
                     from .trusted_scoring import parse_predictions,parse_public_dataset
-                    parse_predictions(stdout,parse_public_dataset(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])))
+                    parse_predictions(stdout,parse_public_dataset(self.store.read_blob(inputs['validation_resource']['files'][0]['artifact_ref'])),
+                        max_stdout_bytes=1024*1024)
             except (ValueError,ResearchError):
                 passed=False
         report = {'schema':'ai4r-builder-agent-check:1','contract_ref':dict(binding.contract_ref),
