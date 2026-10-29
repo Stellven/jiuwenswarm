@@ -168,3 +168,53 @@ def test_profile_capture_without_dataset_fails_unless_explicitly_allowed(tmp_pat
             _capture(store, tmp_path)
         assert not (tmp_path / 'operator' / 'bootstrap.json').exists()
         assert _capture(store, tmp_path, allow_missing_science=True)['binding_ref']
+
+
+def _plan_source(store, result):
+    return store.read_record(store.read_record(result['binding_ref'])['configuration_ref'])['cc']['plan_source']
+
+
+def test_profile_plan_source_defaults_static_and_freezes(tmp_path):
+    with closing(SQLiteRunStore(tmp_path / 'state')) as store:
+        result = _capture(store, tmp_path, allow_missing_science=True)
+        assert _plan_source(store, result) == 'static'
+        assert _capture(store, tmp_path, allow_missing_science=True, plan_source='static') == result
+        with pytest.raises(ResearchError, match='Frozen plan source changed'):
+            _capture(store, tmp_path, allow_missing_science=True, plan_source='planned')
+
+
+def test_profile_captures_planned_and_unnamed_recapture_adopts_it(tmp_path):
+    with closing(SQLiteRunStore(tmp_path / 'state')) as store:
+        result = _capture(store, tmp_path, allow_missing_science=True, plan_source='planned')
+        assert _plan_source(store, result) == 'planned'
+        assert _capture(store, tmp_path, allow_missing_science=True) == result
+        with pytest.raises(ResearchError, match='Frozen plan source changed'):
+            _capture(store, tmp_path, allow_missing_science=True, plan_source='static')
+
+
+def test_profile_refuses_unknown_plan_source():
+    with pytest.raises(ResearchError, match='Plan source must be static or planned'):
+        capture_local_profile(None, 'unused', plan_source='dynamic')
+
+
+def _main_options(tmp_path, environ, existing=False):
+    from jiuwenswarm.research import local_profile
+    directory = tmp_path / 'operator' / local_profile.PROFILE_NAME
+    if existing:
+        directory.mkdir(parents=True)
+        (directory / 'config.json').write_text('{}')
+    seen = {}
+    environ = {'JIUWENSWARM_M1_LOCAL_RESEARCH': '1', 'JIUWENSWARM_M1_STATE': str(tmp_path), **environ}
+    with patch.dict('os.environ', environ, clear=True), \
+         patch('jiuwenswarm.research.local_profile.os.name', 'posix'), \
+         patch('jiuwenswarm.research.local_profile.os.geteuid', return_value=10001, create=True), \
+         patch('jiuwenswarm.research.local_profile.SQLiteRunStore'), \
+         patch('jiuwenswarm.research.local_profile.capture_local_profile', side_effect=lambda store, path, **kw: seen.update(kw)):
+        local_profile.main()
+    return seen
+
+
+def test_product_entry_captures_planned_and_benches_pin_static(tmp_path):
+    assert _main_options(tmp_path / 'new', {})['plan_source'] == 'planned'
+    assert 'plan_source' not in _main_options(tmp_path / 'old', {}, existing=True)
+    assert _main_options(tmp_path / 'bench', {'JIUWENSWARM_M1_PLAN_SOURCE': 'static'}, existing=True)['plan_source'] == 'static'

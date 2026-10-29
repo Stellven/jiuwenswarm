@@ -1,0 +1,47 @@
+{
+  "schema_version": "sequential-cases:1",
+  "policy": "stop",
+  "cases": [
+    {
+      "id": "poc-planned",
+      "plan_source": "planned",
+      "task": "Using the externally supplied classification training data, choose and justify one bounded classifier improvement over the captured majority-class baseline. Preserve the training data, test population, label vocabulary and trusted accuracy scoring. Use only the Python standard library, no network or GPU. Metric accuracy (fraction), higher is better; success if treatment accuracy > baseline accuracy, falsification if treatment accuracy <= baseline accuracy. Produce predictions only; hidden test labels are available solely to the trusted host scorer. Run the baseline first then the treatment, 3 repeats each, fixed execution seed 42. Deliver genuine measured results, POC files, raw logs, uncertainty and limitations, including a negative or inconclusive result if the improvement does not succeed.\n",
+      "inputs": [
+        {
+          "path": "data.json",
+          "kind": "datasets"
+        },
+        {
+          "path": "baseline.zip",
+          "kind": "repo"
+        },
+        {
+          "path": "README.md",
+          "kind": "docs"
+        },
+        {
+          "path": "environment-lock.json",
+          "kind": "docs"
+        },
+        {
+          "path": "scoring-pins.json",
+          "kind": "docs"
+        },
+        {
+          "path": "resource-pins.json",
+          "kind": "docs"
+        },
+        {
+          "path": "TASK.md",
+          "kind": "docs"
+        }
+      ],
+      "repeats": 1,
+      "limits": {
+        "deadline_s": 3600,
+        "cancel_grace_s": 120,
+        "poll_s": 2
+      }
+    }
+  ]
+}

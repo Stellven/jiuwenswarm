@@ -99,7 +99,7 @@ else:
     raise SystemExit('INITIALIZER_PORTS_UNAVAILABLE')'''
 
 
-def capture_code(generation, intent_version, pins, requested_model='gpt-6.1-sol'):
+def capture_code(generation, intent_version, pins, requested_model='gpt-6.1-sol', plan_source='static'):
     profile = profile_dir(generation)
     return f'''import json, os
 from contextlib import closing
@@ -113,7 +113,8 @@ with closing(SQLiteRunStore('/var/lib/ai4r', input_root='/workspace/input', reco
     result = capture_local_profile(store, Path({profile!r}), development_builtin_catalog=True,
         requested_model={requested_model!r}, evidence_aware_review=True,
         screening_version={SELECTIONS['screening_version']!r}, requirements_version={SELECTIONS['requirements_version']!r},
-        intent_version={intent_version!r}, public_dataset_path={DATASET_IN_CONTAINER!r}, scoring_pins={pins!r})
+        intent_version={intent_version!r}, public_dataset_path={DATASET_IN_CONTAINER!r}, scoring_pins={pins!r},
+        plan_source={plan_source!r})
 print(json.dumps(result, sort_keys=True))'''
 
 
@@ -168,7 +169,8 @@ def commands(step, args, build_id='<verified build_id from the build receipt>'):
             container(image, fresh, state_ro),
             ['docker', 'volume', 'inspect', INPUT_VOLUME, '--format', '{{.Name}}'],
             container(image, preflight_code(dataset_sha), [INPUT_MOUNT]),
-            container(image, capture_code(args.generation, args.intent_version, pins), [STATE_MOUNT, INPUT_MOUNT]),
+            container(image, capture_code(args.generation, args.intent_version, pins, plan_source=args.plan_source),
+                      [STATE_MOUNT, INPUT_MOUNT]),
             base + ['up', '-d', '--no-build', '--pull', 'never', 'ai4r'],
             base + ['exec', '-T', '--user', '10001:10001', 'ai4r', python, '-c', WAIT_PORTS],
             base + ['exec', '-T', '--user', '10001:10001', 'ai4r', python, '-m', 'jiuwenswarm.research.initialize', '--json'],
@@ -277,6 +279,8 @@ def parser():
     p.add_argument('--fixture', type=Path, required=True, help='clean fixture directory with inputs/')
     p.add_argument('--check-image', help='existing image used for the pre-build profile freshness check (build step)')
     p.add_argument('--intent-version', default='m1-8')
+    p.add_argument('--plan-source', choices=('static', 'planned'), default='static',
+                   help='static reproduces the recorded r5 runs; planned lets the Planner compose the pipeline')
     p.add_argument('--expected-branch', help='refuse to build unless the checkout is on this branch')
     p.add_argument('--execute', action='store_true')
     return p

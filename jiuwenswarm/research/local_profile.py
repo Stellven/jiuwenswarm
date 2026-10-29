@@ -111,7 +111,8 @@ def _require_science_resources(store, static_ref, inventory_ref):
 def capture_local_profile(store, directory, *, input_root=Path('/workspace/input'), development_builtin_catalog=True,
                           public_dataset_path=None, scoring_pins=None, legacy_checking_refresh=False, capability_dag=False,
                           requested_model='gpt-6.1-sol', evidence_aware_review=False, screening_version='m1-4', requirements_version='m1-8',
-                          intent_version=_UNSET, delivery_version='m1-5', allow_missing_science=False, model_backend=None):
+                          intent_version=_UNSET, delivery_version='m1-5', allow_missing_science=False, model_backend=None,
+                          plan_source=_UNSET):
     from .releases import RELEASES, capture_default, implicit_release, release_facts, require_release
     # An unnamed Intent release adopts what an existing profile froze; a new profile
     # takes the current capture default. A checking-only refresh never moves it.
@@ -124,6 +125,13 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         if legacy_checking_refresh and value != implicit_release(stage):
             raise ResearchError('local_profile_conflict', 'Checking-only refresh cannot change the %s release; use a fresh profile'
                                 % ('captured Screening' if stage == 'screening' else RELEASES[stage]['label']))
+    # An unnamed plan source adopts what an existing profile froze; a new profile
+    # takes 'static', the library default. The product entry (main) names 'planned'.
+    plan_adopts_frozen = plan_source is _UNSET
+    if plan_adopts_frozen:
+        plan_source = 'static'
+    if plan_source not in {'static', 'planned'}:
+        raise ResearchError('local_profile_conflict', 'Plan source must be static or planned')
     if requested_model not in {'gpt-6-luna', 'gpt-6.1-sol'} or type(evidence_aware_review) is not bool:
         raise ResearchError('local_profile_conflict', 'Pilot model and review mode must be explicit supported selections')
     from .fixed_subscription import HOST_CODEX_BACKEND, deployment_backend
@@ -162,6 +170,8 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
         operator = OperatorConfiguration.load(config_path, resolve_profile=store.read_record)
         if store.read_record(binding['configuration_ref']) != operator.snapshot():
             raise ResearchError('local_profile_conflict', 'Local configuration differs from its captured identity')
+        if not plan_adopts_frozen and operator.snapshot()['cc']['plan_source'] != plan_source:
+            raise ResearchError('local_profile_conflict', 'Frozen plan source changed; use a fresh profile directory')
         from .capability_planning import is_capability_policy
         if capability_dag != is_capability_policy(store.read_record(operator.snapshot()['cc']['plan_policy_ref'])):
             raise ResearchError('local_profile_conflict', 'Policy selection changed; use a fresh explicit profile directory')
@@ -249,7 +259,7 @@ def capture_local_profile(store, directory, *, input_root=Path('/workspace/input
     from .capability_planning import capability_plan_policy
     policy_ref = store.put_record('plan-policy', capability_plan_policy() if capability_dag else integrated_plan_policy())
     operator = OperatorConfiguration.from_mapping({'schema_version': '1.0.0',
-        'cc': {'plan_source': 'static', 'plan_policy_ref': policy_ref, 'static_template_ref': static_ref,
+        'cc': {'plan_source': plan_source, 'plan_policy_ref': policy_ref, 'static_template_ref': static_ref,
                'evaluation_profile_ref': None, 'router': {'enabled': False, 'deadline_s': 30, 'profile_ref': None}},
         'codex': {'route_id': 'codex-cli-default'},
         'role_aliases': {role: 'codex-cli-default' for role in ('worker', 'planner', 'verifier')},
@@ -342,7 +352,16 @@ def main():
         # Release selections are protected settings. An unset one keeps its capture default
         # (or, for an existing profile directory, what that profile froze).
         from .releases import release_options_from_environment
-        capture_local_profile(store, root / 'operator' / PROFILE_NAME, **release_options_from_environment(os.environ))
+        directory = root / 'operator' / PROFILE_NAME
+        options = release_options_from_environment(os.environ)
+        # The Planner is the product path. JIUWENSWARM_M1_PLAN_SOURCE=static is an
+        # explicit bench/RSI reproduction setting. Unset, an existing profile keeps
+        # what it froze and a new one is captured as 'planned'.
+        if 'JIUWENSWARM_M1_PLAN_SOURCE' in os.environ:
+            options['plan_source'] = os.environ['JIUWENSWARM_M1_PLAN_SOURCE']
+        elif not ((directory / 'config.json').exists() or (directory / 'bootstrap.json').exists()):
+            options['plan_source'] = 'planned'
+        capture_local_profile(store, directory, **options)
     finally:
         store.close()
 

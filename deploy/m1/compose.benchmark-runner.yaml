@@ -23,6 +23,9 @@ services:
       JIUWENSWARM_M1_LOCAL_WORKSPACE: ${AI4R_LOCAL_WORKSPACE:-0}
       JIUWENSWARM_M1_LOCAL_CHAT: ${AI4R_LOCAL_CHAT:-0}
       JIUWENSWARM_M1_LOCAL_RESEARCH: ${AI4R_LOCAL_RESEARCH:-1}
+      # Recorded benchmark runs used the static template. Keep reruns identical;
+      # set AI4R_PLAN_SOURCE=planned (with a fresh state volume) for a Planner run.
+      JIUWENSWARM_M1_PLAN_SOURCE: ${AI4R_PLAN_SOURCE:-static}
       AI4R_EXECUTION_MODE: m1_app_process
       AI4R_PILOT_BUDGET_DIRECTORY: ${AI4R_PILOT_BUDGET_DIRECTORY:-}
       JIUWENSWARM_M1_ORIGIN: http://127.0.0.1:5175

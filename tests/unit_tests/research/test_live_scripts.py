@@ -37,6 +37,15 @@ def test_deploy_plan_uses_the_given_generation_and_image(tmp_path, capsys):
     assert __import__('hashlib').sha256(b'{"train":[],"test":[]}').hexdigest() in text
 
 
+def test_deploy_captures_static_unless_planned_is_named(tmp_path):
+    deploy = _load('deploy_live')
+    base = ['initialize', '--generation', 'g9', '--image-tag', 'ai4r:live-g9', '--out', str(tmp_path / 'out'),
+            '--fixture', str(_fixture(tmp_path))]
+    text = lambda extra: json.dumps(deploy.commands('initialize', deploy.parser().parse_args(base + extra)))
+    assert "plan_source='static'" in text([])
+    assert "plan_source='planned'" in text(['--plan-source', 'planned'])
+
+
 def test_deploy_refuses_unsafe_names(tmp_path):
     deploy = _load('deploy_live')
     with pytest.raises(SystemExit):
