@@ -113,3 +113,14 @@ SKIP_DEPLOY=1 sh cycle.sh GEN PREV_IMAGE
 - The model selection must be `codex`. The script selects it inside the container.
 - Receipts are write-once. A crashed generation needs a new name. This is why pl9 was rerun as pl9b.
 - The fixture is `deploy/m1/examples/poc-planned`. The plan source is `planned`.
+
+## 7. Handoff (2026-10-30)
+
+State: run pl14 completed every stage on the planned path and was fully collected. Demo page: https://claude.ai/artifact/SLYpdR4hk88QEmruDbiPux (private to its owner until shared). Collected records: `outputs/planned-poc-20261029/sessions/trap-pl14-1793389434/recollect/` on Muk's machine.
+
+Open items, in order:
+1. Re-run the full step-0 test baseline and diff it against `baseline-failures.txt`. Each change on this branch was tested with its affected suites only. The research_sidecar suite has 25 failures that predate this branch and are not in the baseline list (mount and permission checks in the verify container).
+2. Decide the D39 amendment: `D39-amendment-proposal.md` in this folder has the amended text, the AGENTS.md sentence, every follow-up edit in `docs/architecture/design-package`, and three open questions.
+3. `benchmark-runner:local` was rebuilt from this branch for collection; the previous image is tagged `benchmark-runner:pre-20261030` for exact benchmark reruns.
+4. Known gaps in section 5 remain, notably: the verifier binding runs outside its try block (a binding error is recorded as a refused start), and the hardware probe likely refuses on the DGX Spark (GPU device nodes, ARM CPU).
+5. Reply repair (runner, one re-ask) covers reply-schema violations and out-of-bounds source spans. It never fired in pl14. A generic per-stage regeneration remains M2 work.
