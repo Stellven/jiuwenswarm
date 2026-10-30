@@ -5,7 +5,7 @@ import copy
 import json
 from importlib.resources import files
 
-from ..contracts import contract_schema
+from ..contracts import contract_schema, field_meanings
 
 
 def _compact(schema):
@@ -25,7 +25,7 @@ def _compact(schema):
     return value
 
 
-def frozen_output_instructions(base,declaration):
+def frozen_output_instructions(base,declaration,*,meanings=False):
     """Derive only from installed schema IDs in this declaration.
 
     No request, input artifact, prior output, runtime record or lookup tool is
@@ -42,4 +42,15 @@ def frozen_output_instructions(base,declaration):
         +json.dumps(context,ensure_ascii=False,allow_nan=False,separators=(',',':'))
         +'\nUse these fixed definitions to assess the selected exact output. For a text output, check its declared text constraints; '
         'for an archive projection, assess its shown file contents rather than treating the projection as literal ZIP bytes. '
-        'These are type definitions only, not user input or external evidence. No reference lookup is available.').encode('utf-8')
+        'These are type definitions only, not user input or external evidence. No reference lookup is available.'
+        +(_meanings_block(declaration) if meanings else '')).encode('utf-8')
+
+
+def _meanings_block(declaration):
+    """Fixed contract meanings of each declared output's fields; empty when a port has none."""
+    table={port['name']:dict(field_meanings(port['schema_ref'])) for port in declaration['ports']['outputs']}
+    table={name:value for name,value in table.items() if value}
+    if not table:return ''
+    return ('\n\nFixed field meanings from the output contracts (contract text, not evidence). Use them to read what each '
+        'field means and to judge consistency and conformance; do not use them to infer unseen inputs:\n'
+        +json.dumps(table,ensure_ascii=False,allow_nan=False,separators=(',',':')))

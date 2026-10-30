@@ -151,6 +151,34 @@ def _contracts() -> tuple[dict[str, dict], Registry]:
     return schemas, Registry().with_resources(resources.items())
 
 
+@lru_cache(maxsize=None)
+def field_meanings(contract_id: str) -> tuple:
+    """(Owner.field, meaning) pairs for a field-contract interface and every type it reaches.
+
+    Reviewers judge outputs against these contract meanings. URN schemas and
+    unknown ids have none and return ().
+    """
+    fields = json.loads(files("jiuwenswarm.research_contracts").joinpath("field-contracts.json").read_text("utf-8"))
+    types = dict(fields["types"])
+    for entry in fields["interfaces"]:
+        alias = "".join(part[:1].upper() + part[1:] for part in entry["name"].split("-"))
+        types.setdefault(alias, {"fields": entry["fields"]})
+    interface = next((entry for entry in fields["interfaces"] if contract_id in (entry["id"], entry["name"])), None)
+    if interface is None:
+        return ()
+    pairs, pending, seen = [], [(interface["name"], interface["fields"])], set()
+    while pending:
+        owner, table = pending.pop(0)
+        for name, field in table.items():
+            if field.get("meaning"):
+                pairs.append((owner + "." + name, field["meaning"]))
+            base = field.get("type", "").removeprefix("nullable-").removesuffix("[]")
+            if base in types and base not in seen:
+                seen.add(base)
+                pending.append((base, types[base]["fields"]))
+    return tuple(pairs)
+
+
 def contract_schema(contract_id: str) -> dict:
     schemas, _ = _contracts()
     key = contract_id
