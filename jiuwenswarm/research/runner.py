@@ -1215,6 +1215,9 @@ class CapsuleRunner:
                 observed=envelope['record']
                 if observed['node_contract_ref']==contract['node_contract_ref'] and observed['subnode_id'] in subjects:
                     read_ceiling.extend(observed['output_refs'])
+            # Binding admitted review_evidence only as the exact host projection of
+            # the subject's original inputs and passing Tier 1 (validate_child_authority).
+            read_ceiling.extend(ref for port in contract['inputs'] if port['name']=='review_evidence' for ref in port['artifact_refs'])
         elif binding['role']=='verifier' and validated_parent is not None:
             # The exact registered projection grants only the original subject
             # declaration and selected original output. No source/global scan
