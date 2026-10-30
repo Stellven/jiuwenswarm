@@ -361,6 +361,13 @@ def main():
             options['plan_source'] = os.environ['JIUWENSWARM_M1_PLAN_SOURCE']
         elif not ((directory / 'config.json').exists() or (directory / 'bootstrap.json').exists()):
             options['plan_source'] = 'planned'
+        # A new product profile also selects the current Requirements and Screening
+        # releases (the library defaults stay m1-8 and m1-4 for benches and RSI).
+        # JIUWENSWARM_M1_REQUIREMENTS_VERSION / _SCREENING_VERSION override; an
+        # existing profile keeps what it froze.
+        if not ((directory / 'config.json').exists() or (directory / 'bootstrap.json').exists()):
+            options.setdefault('requirements_version', 'm1-9')
+            options.setdefault('screening_version', 'm1-5')
         capture_local_profile(store, directory, **options)
     finally:
         store.close()

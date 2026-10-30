@@ -218,3 +218,13 @@ def test_product_entry_captures_planned_and_benches_pin_static(tmp_path):
     assert _main_options(tmp_path / 'new', {})['plan_source'] == 'planned'
     assert 'plan_source' not in _main_options(tmp_path / 'old', {}, existing=True)
     assert _main_options(tmp_path / 'bench', {'JIUWENSWARM_M1_PLAN_SOURCE': 'static'}, existing=True)['plan_source'] == 'static'
+
+
+def test_product_entry_selects_current_releases_for_new_profiles_only(tmp_path):
+    new = _main_options(tmp_path / 'new', {})
+    assert (new['requirements_version'], new['screening_version']) == ('m1-9', 'm1-5')
+    old = _main_options(tmp_path / 'old', {}, existing=True)
+    assert 'requirements_version' not in old and 'screening_version' not in old
+    named = _main_options(tmp_path / 'named', {'JIUWENSWARM_M1_REQUIREMENTS_VERSION': 'm1-8',
+                                               'JIUWENSWARM_M1_SCREENING_VERSION': 'm1-4'})
+    assert (named['requirements_version'], named['screening_version']) == ('m1-8', 'm1-4')

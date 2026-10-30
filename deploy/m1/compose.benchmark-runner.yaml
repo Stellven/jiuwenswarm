@@ -26,6 +26,10 @@ services:
       # Recorded benchmark runs used the static template. Keep reruns identical;
       # set AI4R_PLAN_SOURCE=planned (with a fresh state volume) for a Planner run.
       JIUWENSWARM_M1_PLAN_SOURCE: ${AI4R_PLAN_SOURCE:-static}
+      # The product entry now defaults new profiles to Requirements m1-9 and
+      # Screening m1-5; recorded benchmark runs used the library releases.
+      JIUWENSWARM_M1_REQUIREMENTS_VERSION: ${AI4R_REQUIREMENTS_VERSION:-m1-8}
+      JIUWENSWARM_M1_SCREENING_VERSION: ${AI4R_SCREENING_VERSION:-m1-4}
       AI4R_EXECUTION_MODE: m1_app_process
       AI4R_PILOT_BUDGET_DIRECTORY: ${AI4R_PILOT_BUDGET_DIRECTORY:-}
       JIUWENSWARM_M1_ORIGIN: http://127.0.0.1:5175
