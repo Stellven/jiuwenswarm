@@ -1137,7 +1137,18 @@ class CapsuleRunner:
             'ended_at':None if outcome=='interrupted' else utc_now(),'outcome':outcome,
             'gate_decision_ref':None,'output_gate_decision_refs':[],'output_refs':[],
             'elapsed_s':elapsed_s,'model_calls_used':None}
-        return self.store.put_record('dispatch-record',record,scope=record)
+        dispatch_ref=self.store.put_record('dispatch-record',record,scope=record)
+        # The closed dispatch record has no cause field. Keep class, code and a
+        # constant reason identifier (e.g. ExecutorBlocked WHOLE_ATTEMPT_RESOURCE_HELD_OR_UNKNOWN),
+        # never a message, so a refused start says why.
+        code=getattr(error,'code',None);reason=getattr(error,'reason',None)
+        if outcome!='interrupted':self.store.append_record('start-failure-cause',{'id':'start-failure-cause:'+uuid.uuid4().hex,
+            'run_id':parent['run_id'],'node_id':parent['node_id'],'attempt_id':parent['attempt_id'],'dispatch_ref':dispatch_ref,
+            'exception_class':type(error).__name__,
+            'code':code if isinstance(code,str) and code.replace('_','').isalnum() and len(code)<=64 else None,
+            'reason':reason if isinstance(reason,str) and reason.replace('_','').isalnum() and len(reason)<=64 else None,
+            'recorded_at':utc_now()})
+        return dispatch_ref
 
     def _check_verifier(self,verifier_ref,vcontract,observation,observation_ref,assessment_ref,subject_contract,subject_plan,port,output_ref):
         plans=[e for e in self.store.iter_records(run_id=vcontract['run_id'],kinds=('bound-check-plan',)) if e['record']['contract_ref']==verifier_ref]

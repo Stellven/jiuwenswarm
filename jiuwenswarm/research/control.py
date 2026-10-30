@@ -18,6 +18,9 @@ def status_reasons(run,records):
     reasons=[run['reason']] if run['reason'] else []
     for envelope in records:
         fault=envelope['record'].get('executor_fault') if envelope['kind']=='protected-invocation-stop' else None
+        if envelope['kind']=='start-failure-cause':
+            cause=envelope['record']
+            reasons.append('start refused in %s: %s'%(cause.get('node_id'),' '.join(x for x in (cause.get('exception_class'),cause.get('code'),cause.get('reason')) if x)))
         if isinstance(fault,dict):
             from .private_rpc import fault_cause_text
             reasons.append('executor fault in %s: %s %s at %s'%(envelope['record'].get('node_id'),fault.get('exception_class'),fault.get('code') or '',fault.get('frame'))+fault_cause_text(fault))

@@ -415,6 +415,13 @@ def _inspect(store, request):
                 and type(dispatch['elapsed_s']) in (int,float) and math.isfinite(dispatch['elapsed_s']) and dispatch['elapsed_s'] >= 0,
                 'Original Scheduler processing chronology is unavailable', 'integrity_fault')
             if dispatch['outcome'] != 'interrupted' and state != 'cancelled':state='terminal'
+        elif (starts and dispatch['gate_decision_ref'] is None and dispatch['outcome'] in {'failed','budget_exhausted'}
+                and dispatch['ended_at'] is not None and state != 'cancelled'):
+            # A started attempt whose final dispatch failed before any Node Gate
+            # (e.g. its observation could not be recorded) has finished. The
+            # broker's own process/job cessation checks still gate releasing
+            # its resources; without this its lease blocks every later start.
+            state='terminal'
     return {'node_contract_ref':copy.deepcopy(ref),'run_plan_ref':plan_ref,**scope,'state':state,
         'dispatch_ref':dispatch_ref,'source_outcome':dispatch['outcome'] if dispatch else None,'cancellation_record':cancel}
 

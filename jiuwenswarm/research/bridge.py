@@ -640,7 +640,7 @@ class GovernedBridge:
             raw_code=raw_code if isinstance(raw_code,str) and raw_code.isidentifier() and len(raw_code)<=64 else None
             if observation is not None:
                 call_record.update({key:observation[key] for key in ('identity','usage','provider_request_id')})
-            if observation is not None or raw_code is not None:
+                # Same capture set as before (evaluation pins it); the code rides along.
                 provider_ref=await self._capture('model-provider-observation',{
                     'id':'provider-observation:'+uuid.uuid4().hex,'run_id':protected['run_id'],
                     'invocation_id':protected['invocation_id'],'call_id':protected['call_id'],'observation':observation,
