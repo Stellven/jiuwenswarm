@@ -75,4 +75,15 @@ def test_evaluation_carrier_recomputes_owned_fields_and_keeps_judgment():
 def test_evaluation_carrier_leaves_misaligned_findings_for_the_checks():
     payload = {"metrics": [{"metric_id": "accuracy", "baseline": {"value": 0.5}, "treatment": {"value": 0.7}}]}
     verdict = {"findings": [], "plausibility": {"status": "plausible", "notes": []}, "completeness": {"status": "complete", "notes": []}}
-    assert fill_recomputed(verdict, _blueprint(), payload) is verdict
+    assert fill_recomputed(verdict, _blueprint(), payload) == verdict
+
+
+def test_evaluation_carrier_makes_report_text_single_line_and_labels_followups_only():
+    payload = {"metrics": [{"metric_id": "accuracy", "baseline": {"value": 0.5}, "treatment": {"value": 0.7}}]}
+    verdict = {"findings": [{"metric_id": "accuracy", "rationale": "Recommendation: keep\nit."}],
+               "completeness": {"status": "complete", "notes": ["a\n## b"]}, "plausibility": {"status": "plausible", "notes": []},
+               "blockers": [], "residual_risks": ["Small set. ", "Recommendation: retry"], "followups": ["Try more\n- data "]}
+    filled = fill_recomputed(verdict, _blueprint(), payload)
+    assert filled["findings"][0]["rationale"] == "Recommendation - keep it."
+    assert filled["residual_risks"] == ["Small set.", "Recommendation - retry"]
+    assert filled["followups"] == ["Try more - data"] and filled["completeness"]["notes"] == ["a ## b"]

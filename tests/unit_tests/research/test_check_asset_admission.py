@@ -98,6 +98,11 @@ def test_evidence_aware_asset_is_a_distinct_opt_in_release(tmp_path):
     assert new_profile['version'] == '2.0.0' and new_profile['review_mode'] == 'task_sources_tier1_v1'
     assert new_profile['evidence_criterion_ids'] == [selected]
     assert new_profile['review_evidence_input_names'] == ['brief']
+    # The reviewer keeps the base reply format; the evidence rules are added after it.
+    base_text = store.read_blob(profile['instruction_ref']).decode()
+    new_text = store.read_blob(new_profile['instruction_ref']).decode()
+    assert new_text.startswith(base_text.rstrip('\n')) and 'required_correction' in new_text
+    assert new_text.endswith('Tier 1 scores only for the named criterion.')
     # Legacy and evidence-aware pairs are independently admissible and exact.
     library._validate_association(base['declaration_ref'], base['bundle_ref'], base['profile_ref'])
     library._validate_association(evidence['declaration_ref'], evidence['bundle_ref'], evidence['profile_ref'])

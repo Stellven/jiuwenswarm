@@ -75,7 +75,8 @@ def prepare_evidence_aware_release(store, asset, *, version_label, evidence_crit
                   target_cc_version_range=version_label)
     profile.update(id=profile['profile_id'] + ':' + version_label,
                    version=EVIDENCE_REVIEW_PROFILE_VERSION, target_cc_version_range=version_label,
-                   instruction_ref=store.put_blob(reviewer_instructions.encode('utf-8'), media_type='text/plain'),
+                   instruction_ref=store.put_blob(store.read_blob(profile['instruction_ref']).rstrip(b'\n') + b'\n\n' +
+                                                  reviewer_instructions.encode('utf-8'), media_type='text/plain'),
                    review_mode=EVIDENCE_REVIEW_MODE, review_evidence_max_bytes=max_evidence_bytes,
                    review_evidence_input_names=input_names, evidence_criterion_ids=selected)
     validate('capsule-declaration', declaration)
