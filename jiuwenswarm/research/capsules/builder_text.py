@@ -118,7 +118,7 @@ async def execute(ctx, inputs):
         'archive_ref': bundle_ref,
         'files': [{'path': name, 'artifact_ref': ctx.store.put_blob(data),
             'media_type': 'text/plain' if name.endswith('.txt') else 'text/x-python',
-            'audience': 'authorized researcher'} for name, data in files.items()],
+            'audience': 'researcher'} for name, data in files.items()],
         'dependencies': checked['dependencies']}
     manifest_ref = captured(ctx, manifest)
     receipt = {'schema_version': '2.0.0', 'id': 'build_receipt', 'manifest_ref': manifest_ref,

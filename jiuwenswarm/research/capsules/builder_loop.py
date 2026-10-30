@@ -110,7 +110,7 @@ async def execute(ctx, inputs):
                     'environment_ref': ctx.input_ref('lock'), 'archive_ref': archive_ref,
                     'files': [{'path': name, 'artifact_ref': ctx.store.put_blob(raw),
                                'media_type': 'text/plain' if name.endswith('.txt') else 'text/x-python',
-                               'audience': 'authorized researcher'} for name, raw in files.items()],
+                               'audience': 'researcher'} for name, raw in files.items()],
                     'dependencies': checked['dependencies']}
                 manifest_ref = captured(ctx, manifest)
                 tests_ref = ctx.store.put_blob(reply['tests'].encode(), media_type='text/x-python')

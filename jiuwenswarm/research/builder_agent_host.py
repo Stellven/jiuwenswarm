@@ -80,7 +80,7 @@ class BuilderAgentHost(BuilderTestService):
             'blueprint_ref': _input_ref(contract, 'blueprint'), 'environment_ref': _input_ref(contract, 'lock'),
             'archive_ref': archive_ref, 'files': [{'path': name, 'artifact_ref': self.store.put_blob(raw),
                 'media_type': 'text/plain' if name.endswith('.txt') else 'text/x-python',
-                'audience': 'authorized researcher'} for name, raw in encoded.items()],
+                'audience': 'researcher'} for name, raw in encoded.items()],
             'dependencies': [{'name': k, 'version': v} for k,v in parse_requirements(encoded['requirements.txt']).items()]}
         return manifest, self.store.put_record('poc-manifest', manifest), bundle
 

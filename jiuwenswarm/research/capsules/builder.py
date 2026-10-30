@@ -43,7 +43,7 @@ async def execute(ctx, inputs):
     manifest = {'schema_version': '2.0.0', 'id': 'poc_manifest', 'blueprint_ref': ctx.input_ref('blueprint'),
                 'environment_ref': blueprint['environment_ref'], 'archive_ref': bundle_ref,
                 'files': [{'path': name, 'artifact_ref': ctx.store.put_blob(data, media_type='text/plain' if name.endswith('.txt') else 'text/x-python'),
-                           'media_type': 'text/plain' if name.endswith('.txt') else 'text/x-python', 'audience': 'authorized researcher'} for name, data in files.items()],
+                           'media_type': 'text/plain' if name.endswith('.txt') else 'text/x-python', 'audience': 'researcher'} for name, data in files.items()],
                 'dependencies': [{'name': n, 'version': v} for n, v in parse_requirements(files['requirements.txt']).items()]}
     manifest_ref = captured(ctx, manifest)
     forbidden_ref = ctx.store.put_blob(('\n'.join(sorted(FORBIDDEN_MODULES)) + '\n').encode(), media_type='text/plain')
