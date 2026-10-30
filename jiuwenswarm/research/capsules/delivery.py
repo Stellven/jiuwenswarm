@@ -67,6 +67,10 @@ async def execute(ctx, inputs):
     limitations = [*verdict['blockers'], *verdict['residual_risks'],
         *verdict['completeness']['notes'], *verdict['plausibility']['notes']]
     limitation_lines = ['- ' + text for text in limitations]
+    if inputs['opportunity_card']['risks']:
+        # Card risks were written at Screening; label them so they do not read as current measurement claims.
+        limitation_lines += ['', 'Recorded on the opportunity card at Screening, before any measurement; '
+                             'sections 5 and 6 report what was measured:']
     limitation_lines += ['- Risk from the opportunity card: ' + risk for risk in inputs['opportunity_card']['risks']]
     if not limitation_lines:
         limitation_lines = ['No additional limitations were recorded in the accepted inputs.']
