@@ -19,7 +19,7 @@ class _Store:
 
     def read_record(self, ref, contract_id=None):
         outcome, code = self.outcomes[ref]
-        return {'execution_id': 'e', 'invocation_id': 'i', 'call_id': ref, 'outcome': outcome, 'provider_error_code': code}
+        return {'execution_id': 'e', 'invocation_id': 'i', 'id': ref, 'outcome': outcome, 'provider_error_code': code}
 
     def append_record(self, kind, record):
         self.records.append((kind, record))
@@ -88,3 +88,13 @@ def test_evaluation_owned_calls_keep_their_measured_single_call():
     with pytest.raises(RuntimeError):
         asyncio.run(ctx.model('p'))
     assert calls == [1] and transient_retries(store, 'run:1') == 0
+
+
+def test_retry_record_names_the_failed_call_and_counts_per_subnode_attempt():
+    ctx, calls, store = _context([('failed', 'timeout'), ('ok', 'answer')])
+    asyncio.run(ctx.model('p'))
+    retry = [r for k, r in store.records if k == 'model-call-retry'][0]
+    assert retry['failed_call_id'] == 'call:1'
+    # host_limits counts the granted retry for exactly this subnode attempt.
+    assert transient_retries(store, 'run:1', subnode_id='screening', attempt_id='screening-a1') == 1
+    assert transient_retries(store, 'run:1', subnode_id='screening.verifier', attempt_id='screening-a1') == 0

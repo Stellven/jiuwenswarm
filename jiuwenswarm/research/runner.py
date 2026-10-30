@@ -259,7 +259,7 @@ class InvocationContext:
                     self._retried=True
                     self._runner.store.append_record('model-call-retry',{'id':'model-call-retry:'+uuid.uuid4().hex,
                         **{k:self.contract[k] for k in ('run_id','node_id','subnode_id','attempt_id')},
-                        'invocation_id':self.invocation_id,'failed_call_id':captured.get('call_id'),
+                        'invocation_id':self.invocation_id,'failed_call_id':captured.get('id'),
                         'failed_call_ordinal':self._ordinal,'reason_code':captured['provider_error_code'],'recorded_at':utc_now()})
                     from .builder_mode import builder_mode
                     try:agent_builder=builder_mode(self._runner._executions[self.execution_id]['declaration'])=='agent'
@@ -278,14 +278,16 @@ class InvocationContext:
 TRANSIENT_PROVIDER_CODES=frozenset({'provider_error','rate_limited','timeout','network_error'})
 
 
-def transient_retries(store,run_id,*,node_id=None,invocation_id=None):
+def transient_retries(store,run_id,*,node_id=None,invocation_id=None,subnode_id=None,attempt_id=None):
     """Granted one-shot retries of failed transient model calls (model-call-retry records).
 
     Each is a stopgap allowance on top of the frozen invocation, node and run
     call limits; reviewer reservations are never used for them."""
     return sum(1 for row in store.iter_records(run_id=run_id,kinds=('model-call-retry',))
                if (node_id is None or row['record'].get('node_id')==node_id)
-               and (invocation_id is None or row['record'].get('invocation_id')==invocation_id))
+               and (invocation_id is None or row['record'].get('invocation_id')==invocation_id)
+               and (subnode_id is None or row['record'].get('subnode_id')==subnode_id)
+               and (attempt_id is None or row['record'].get('attempt_id')==attempt_id))
 
 
 class CapsuleRunner:
@@ -1201,7 +1203,9 @@ class CapsuleRunner:
         scoped=scoped and (ceiling['network']=='allowlist' or authority['network']=='none')
         scoped=scoped and (declared['needs']['network']['mode']=='allowlist' or authority['network']=='none')
         limited=observation['duration_s'] is not None and observation['duration_s']<=min(contract['subnode_limits']['time_s'],binding['limits']['time_s'])
-        limited=limited and observation['model_calls'] is not None and observation['model_calls']<=min(contract['subnode_limits']['model_calls'],binding['limits']['model_calls'])
+        # A granted transient retry is an explicit extra call for this invocation.
+        retried=transient_retries(self.store,contract['run_id'],subnode_id=contract['subnode_id'],attempt_id=contract['attempt_id'])
+        limited=limited and observation['model_calls'] is not None and observation['model_calls']<=min(contract['subnode_limits']['model_calls'],binding['limits']['model_calls'])+retried
         identified=admission['status']=='admitted' and admission['candidate_ref']==binding['declaration_ref'] and admission['cc']['declaration_sha256']==binding['declaration_ref']['sha256']
         identity=declared['identity']
         expected_identity={**{key:contract[key] for key in ('run_id','node_id','subnode_id','attempt_id','node_contract_ref','input_refs')},
