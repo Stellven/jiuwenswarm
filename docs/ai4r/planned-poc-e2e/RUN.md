@@ -12,6 +12,8 @@ Terms used here:
 
 Run pl11b (app run `run:1953a2c076924e4fbee0ff199ff959eb`, 2026-10-30) completed every stage on the planned path: Intent compiler, Planner, Search, Screening, Hypothesis, Builder, Benchmark, Evaluation and Delivery. Every node gate advanced (Screening PASS, the rest PASS_WITH_KNOWN_LIMITATIONS). The trusted host scorer measured accuracy 0.5 for the majority-class baseline and 1.0 for the Builder's treatment over 3 repeats each, so Evaluation classified the result PASS under the pre-registered rule (treatment > baseline) and judged it plausible. The run made 35 model calls with no transient retry and no reply repair. Its residual risks note that identical fixed-seed repeats give no uncertainty estimate and that the payload reports no test sample count or confidence interval. The benchmark-runner sidecar then failed to collect the run (`collection_failure`, empty detail); that is outside the product path and is being diagnosed.
 
+Run pl14 (app run `run:0949443d659b40cba01fa09cb4c62c16`) repeated the full pass at `ca890df24` in 11 min 43 s: baseline accuracy 0.5, treatment 1.0, Evaluation PASS, and the sidecar collected every record (59,740 files, re-collected with the rebuilt runner image after the run's own collector hit the old manifest cap).
+
 ## 2. Error census
 
 ### Stored runs before this branch's fixes
@@ -39,7 +41,10 @@ The fixes on this branch follow from that: tell the model the rule, let the carr
 | pl9b | Screening | `opportunity_statement` was 807 characters against `maxLength` 800. | reply over limit | `882bb7063` |
 | pl10 | Evaluation (start refused) | Evaluation passed all 10 checks. Then the verifier binding was refused (`input_authority`): the host bound the optional `review_evidence` port as required. | harness bug | 680c56b3a |
 | pl11 | Builder (stopped) | Stopped during its image build to add the verifier host_authority fix found by look-ahead. Not a halt. | n/a | `8fae99885` |
-| pl11b | Delivery (completed) | All stages completed and every gate advanced. Collection by the sidecar failed afterwards. | sidecar | under diagnosis |
+| pl11b | Delivery (completed) | All stages completed and every gate advanced. Collection by the sidecar failed afterwards. | sidecar | `c1dcb206e` |
+| pl12 | Intent compiler | Schema-valid reply with guessed source spans past the end of the task text (`source_spans`). | reply over limit | `5a8144949` |
+| pl13 | Delivery | Reviewer failed the report: section 7 carried Screening-time risks as current limitations. Collection then hit a 32 MiB retrieval-manifest cap (33.8 MB for 59,740 files). | harness bug | `a9c916059`, `ca890df24` |
+| pl14 | Delivery (completed) | All nine stages completed, every gate advanced, 329/329 deterministic checks passed, 36 model calls with no retry. Records re-collected with the fixed collector (`completed`, `complete`). | none | n/a |
 
 Final node status of the last two runs, from the cycle logs:
 - pl9b: Intent compiler, Planner and Search completed. Screening failed. The other four nodes failed as dependents.
