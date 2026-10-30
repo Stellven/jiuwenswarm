@@ -99,7 +99,8 @@ class VerifierBindings:
         inputs=[input_port('subject_declaration','capsule-declaration',declaration_ref),
                 input_port('subject_output','opaque-bytes',output_ref)]
         if review_evidence_ref is not None:
-            inputs.append(input_port('review_evidence','opaque-bytes',review_evidence_ref))
+            # The verifier declares review_evidence as an optional port.
+            inputs.append(dict(input_port('review_evidence','opaque-bytes',review_evidence_ref),required=False))
         ref,_,_=self.factory.bind_subnode(self.parent_ref,self.assignments[port],inputs,role='verifier')
         return ref
 
