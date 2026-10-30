@@ -287,3 +287,45 @@ async def test_native_repair_rechecks_current_snapshot_then_submits():
     assert service.inspect()["jobs"] == 3
     assert set(outcome["files"]) == {"requirements.txt", "poc_patch.py", "run_benchmark.py"}
     assert len(outcome["journal"]) == len(actions)
+
+
+@pytest.mark.asyncio
+async def test_retryable_transient_failure_is_asked_again_once_and_ordinal_follows_both_calls():
+    calls = []
+    dispatched = []
+
+    async def model_call(prompt, system):
+        calls.append(prompt)
+        if len(calls) == 1:
+            error = RuntimeError("provider_error")
+            error.retryable = True
+            raise error
+        return json.dumps({"action": "report_blocked", "arguments": {"reason": "fixture"}})
+
+    async def dispatch(name, args, ordinal):
+        dispatched.append((name, args, ordinal))
+        return {"blocked": True, "reason": "fixture"}
+
+    outcome = await run_builder_agent(model_call=model_call, dispatch=dispatch, task={"objective": "stop"},
+                                      session_id="test-transient-retry", max_model_calls=3, timeout_s=10)
+    assert outcome == {"blocked": True, "reason": "fixture"}
+    assert len(calls) == 2
+    # The failed call consumed ordinal 1; the action joins the completed call at ordinal 2.
+    assert dispatched == [("report_blocked", {"reason": "fixture"}, 2)]
+
+
+@pytest.mark.asyncio
+async def test_non_retryable_model_failure_is_not_asked_again():
+    calls = []
+
+    async def model_call(prompt, system):
+        calls.append(prompt)
+        raise RuntimeError("provider_error")
+
+    async def dispatch(name, args, ordinal):
+        raise AssertionError("no action without a completed call")
+
+    with pytest.raises(Exception):
+        await run_builder_agent(model_call=model_call, dispatch=dispatch, task={"objective": "stop"},
+                                session_id="test-no-retry", max_model_calls=3, timeout_s=10)
+    assert len(calls) == 1

@@ -60,7 +60,17 @@ class _BuilderClient(BaseModelClient):
                                     metadata={'runtime_source':'localfinalization'})
         scope["model_calls"] += 1
         system, prompt = _messages_to_prompt(messages, kwargs.get("tools"))
-        raw = await scope["model_call"](prompt, system)
+        try:
+            raw = await scope["model_call"](prompt, system)
+        except Exception as error:
+            # The governed context marks one definitely failed transient call
+            # retryable; ask again once so this counter and the context's call
+            # ordinal advance together.
+            if not getattr(error, "retryable", False) or scope.get("retried"):
+                raise
+            scope["retried"] = True
+            scope["model_calls"] += 1
+            raw = await scope["model_call"](prompt, system)
         if not isinstance(raw, str) or len(raw.encode("utf-8")) > MAX_MESSAGE_BYTES:
             raise ValueError("Builder model response exceeds the message limit")
         try:

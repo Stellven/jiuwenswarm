@@ -173,7 +173,7 @@ class InvocationContext:
         self.store=CapsuleArtifacts(runner.store,allowed,scope={k:contract[k] for k in ('run_id','node_id','subnode_id','attempt_id')})
         self.connectors=None
         self.executor=None
-        self.inputs=inputs;self._ordinal=0
+        self.inputs=inputs;self._ordinal=0;self._retried=False
 
     def _bind_active_capabilities(self):
         runner=self._runner;contract=self.contract;execution_id=self.execution_id
@@ -249,9 +249,43 @@ class InvocationContext:
                 if captured['execution_id']!=self.execution_id or captured['invocation_id']!=self.invocation_id:
                     raise ResearchError('integrity_fault','Failed governed call belongs to another invocation') from error
                 self._runner._executions[self.execution_id]['calls'].append(dict(captured,call_ref=ref,route_ref=getattr(error,'route_ref',None)))
+                # Stopgap: one retry of a call that definitely failed (never an
+                # unknown outcome) with a transient provider code. The failed
+                # call keeps its claim, record and ordinal.
+                # Product path only: evaluation/replay owners keep their exact
+                # measured one-call budgets.
+                if (captured.get('outcome')=='failed' and captured.get('provider_error_code') in TRANSIENT_PROVIDER_CODES
+                        and not self._retried and self._runner.resolve_evaluation_owner(execution_id=self.execution_id) is None):
+                    self._retried=True
+                    self._runner.store.append_record('model-call-retry',{'id':'model-call-retry:'+uuid.uuid4().hex,
+                        **{k:self.contract[k] for k in ('run_id','node_id','subnode_id','attempt_id')},
+                        'invocation_id':self.invocation_id,'failed_call_id':captured.get('call_id'),
+                        'failed_call_ordinal':self._ordinal,'reason_code':captured['provider_error_code'],'recorded_at':utc_now()})
+                    from .builder_mode import builder_mode
+                    try:agent_builder=builder_mode(self._runner._executions[self.execution_id]['declaration'])=='agent'
+                    except Exception:agent_builder=False
+                    if agent_builder:
+                        # The Builder runtime keeps its own model ordinal; it
+                        # re-asks through this context so both advance together.
+                        error.retryable=True
+                    else:
+                        return await self.model(prompt,system)
             raise
         self._runner._executions[self.execution_id]['calls'].append(result)
         return result['text']
+
+
+TRANSIENT_PROVIDER_CODES=frozenset({'provider_error','rate_limited','timeout','network_error'})
+
+
+def transient_retries(store,run_id,*,node_id=None,invocation_id=None):
+    """Granted one-shot retries of failed transient model calls (model-call-retry records).
+
+    Each is a stopgap allowance on top of the frozen invocation, node and run
+    call limits; reviewer reservations are never used for them."""
+    return sum(1 for row in store.iter_records(run_id=run_id,kinds=('model-call-retry',))
+               if (node_id is None or row['record'].get('node_id')==node_id)
+               and (invocation_id is None or row['record'].get('invocation_id')==invocation_id))
 
 
 class CapsuleRunner:
@@ -357,15 +391,18 @@ class CapsuleRunner:
         # Product automatic routing has its own versioned per-worker selection
         # capacity. Worker/reviewer invocation ceilings and the run total stay
         # unchanged. Selection claims are included in node and run usage.
-        node_call_ceiling = parent['node_limits']['model_calls'] + node_routing_allowance(self.store, parent)
+        retries_run=transient_retries(self.store,run_id)
+        retries_node=transient_retries(self.store,run_id,node_id=node_id)
+        retries_own=0 if execution is None else transient_retries(self.store,run_id,invocation_id=execution['invocation_id'])
+        node_call_ceiling = parent['node_limits']['model_calls'] + node_routing_allowance(self.store, parent) + retries_node
         node_remaining={'time_s':max(0,parent['node_limits']['time_s']-(now-node_started)),
                         'model_calls':max(0,node_call_ceiling-node_used),'memory_mb':parent['node_limits']['memory_mb']}
         run_remaining={'time_s':max(0,frozen['run_limits']['time_s']-(now-run_started)),
-                       'model_calls':max(0,frozen['run_limits']['model_calls']-run_used),'memory_mb':frozen['run_limits']['memory_mb']}
+                       'model_calls':max(0,frozen['run_limits']['model_calls']+retries_run-run_used),'memory_mb':frozen['run_limits']['memory_mb']}
         elapsed=0 if execution is None else now-execution['started']
         own=contract['bindings'][0]['limits']
         subremaining={'time_s':max(0,min(own['time_s'],contract['subnode_limits']['time_s'])-elapsed),
-                      'model_calls':max(0,min(own['model_calls'],contract['subnode_limits']['model_calls'])-used),
+                      'model_calls':max(0,min(own['model_calls'],contract['subnode_limits']['model_calls'])+retries_own-used),
                       'memory_mb':min(own['memory_mb'],contract['subnode_limits']['memory_mb'])}
         reserved_calls=sum(r['model_calls'] for r in reserved.values());reserved_time=sum(r['time_s'] for r in reserved.values())
         spendable={'time_s':min(subremaining['time_s'],node_remaining['time_s']-reserved_time,run_remaining['time_s']-reserved_time),
@@ -422,8 +459,9 @@ class CapsuleRunner:
             except ResearchError as exc:
                 if exc.code in {'TASK_MISMATCH','BUDGET_UNVERIFIABLE','PROFILE_UNAVAILABLE'}:protected['routing_export_error']=exc.code
                 else:raise
-        call_id,claim_ref=self.store.claim_model_call(protected,invocation_limit=min(contract['subnode_limits']['model_calls'],binding['limits']['model_calls']),
-            node_limit=budget['node_call_ceiling'],run_limit=frozen['run_limits']['model_calls'],
+        call_id,claim_ref=self.store.claim_model_call(protected,invocation_limit=min(contract['subnode_limits']['model_calls'],binding['limits']['model_calls'])
+            +transient_retries(self.store,contract['run_id'],invocation_id=execution['invocation_id']),
+            node_limit=budget['node_call_ceiling'],run_limit=frozen['run_limits']['model_calls']+transient_retries(self.store,contract['run_id']),
             reserved_node_calls=budget['reserved_calls'],reserved_run_calls=budget['reserved_calls'])
         return dict(protected,call_id=call_id,call_claim_ref=claim_ref)
 
@@ -1199,8 +1237,9 @@ class CapsuleRunner:
             if row['record'].get('contract_ref') and self.store.read_record(row['record']['contract_ref']).get('node_contract_ref') == parent_ref
             and self.store.read_record(row['record']['call_claim_ref']).get('purpose') == 'routing_selection']
         allowance = node_routing_allowance(self.store, parent)
-        within=(all(c is not None for c in counts) and sum(counts)<=limits['model_calls']
-            and len(routing_starts)<=allowance and sum(counts)+len(routing_starts)<=limits['model_calls']+allowance
+        retried = transient_retries(self.store, parent['run_id'], node_id=parent['node_id'])
+        within=(all(c is not None for c in counts) and sum(counts)<=limits['model_calls']+retried
+            and len(routing_starts)<=allowance and sum(counts)+len(routing_starts)<=limits['model_calls']+allowance+retried
             and duration<=limits['time_s'])
         if allowance:
             self.store.append_record('node-routing-budget', {'id':'node-routing-budget:'+uuid.uuid4().hex,
