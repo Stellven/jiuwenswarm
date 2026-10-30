@@ -13,6 +13,11 @@ import httpx
 from jiuwenswarm.research_records.contracts import ContractData
 
 
+
+# A completed run's artifact manifest and export archive are built server side from every
+# retained record (pl11b: 63,387 files, 31 s); match the product proxy's download allowance.
+BULK_DEADLINE_S = 300
+
 class ClientError(ValueError):
     def __init__(self,message,*,status_code=None,response_record=None):
         super().__init__(message);self.status_code=status_code;self.response_record=copy.deepcopy(response_record)
@@ -71,9 +76,10 @@ class ResearchClient:
         self.validate=ContractData().validate
     @property
     def transport_observations(self):return copy.deepcopy(getattr(self.transport,'observations',[]))
-    async def _request(self,method,path,**kwargs):
-        async with asyncio.timeout(self.timeout):
-            response=await self.http.request(method,path,**kwargs)
+    async def _request(self,method,path,*,deadline=None,**kwargs):
+        deadline=self.timeout if deadline is None else deadline
+        async with asyncio.timeout(deadline):
+            response=await self.http.request(method,path,timeout=deadline,**kwargs)
             if path.startswith('/api/v1/evaluation/'):
                 import base64,hashlib
                 self.evaluation_http_captures.append({'method':method,'path':path,'status_code':response.status_code,
@@ -164,7 +170,8 @@ class ResearchClient:
             raise ClientError('unsupported events response')
         return value
     async def artifacts(self,run_id,audience='researcher'):
-        value=await self._request('GET','/api/v1/runs/'+quote(run_id,safe='')+'/artifacts',params={'audience':audience})
+        value=await self._request('GET','/api/v1/runs/'+quote(run_id,safe='')+'/artifacts',params={'audience':audience},
+                                  deadline=max(self.timeout,BULK_DEADLINE_S))
         if (not isinstance(value,dict) or value.get('schema_version')!='1.0.0' or value.get('run_id')!=run_id
                 or value.get('audience')!=audience or not isinstance(value.get('artifacts'),list)):
             raise ClientError('unsupported artifact manifest')
@@ -182,7 +189,7 @@ class ResearchClient:
                 raise ClientError('unsafe artifact inventory')
             names.add(path);identities.add(item['artifact_id'])
         return value
-    async def _stream_file(self,path,destination,*,params=None,sha256=None,size=None,max_bytes=1024*1024*1024,headers=None):
+    async def _stream_file(self,path,destination,*,params=None,sha256=None,size=None,max_bytes=1024*1024*1024,headers=None,deadline=None):
         if type(max_bytes) is not int or max_bytes<=0 or size is not None and (type(size) is not int or size<0 or size>max_bytes):
             raise ClientError('bounded download size required')
         if sha256 is not None and (not isinstance(sha256,str) or re.fullmatch('[0-9a-f]{64}',sha256) is None):
@@ -203,8 +210,9 @@ class ResearchClient:
         try:
             descriptor=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600)
             with os.fdopen(descriptor,'wb') as stream:
-                async with asyncio.timeout(self.timeout):
-                    async with self.http.stream('GET',path,params=params,headers=headers) as response:
+                deadline=self.timeout if deadline is None else deadline
+                async with asyncio.timeout(deadline):
+                    async with self.http.stream('GET',path,params=params,headers=headers,timeout=deadline) as response:
                         if response.status_code!=200:raise ClientError('artifact download unavailable',status_code=response.status_code)
                         declared=response.headers.get('content-length')
                         if declared is not None and (not declared.isdigit() or int(declared)>max_bytes or size is not None and int(declared)!=size):
@@ -229,7 +237,7 @@ class ResearchClient:
             params={'audience':audience},sha256=sha256,size=size,max_bytes=max_bytes)
     async def stream_export_archive(self,run_id,destination,*,audience='researcher',max_bytes=1024*1024*1024):
         return await self._stream_file('/api/v1/runs/'+quote(run_id,safe='')+'/export',destination,
-            params={'audience':audience},max_bytes=max_bytes,headers={'Accept':'application/zip'})
+            params={'audience':audience},max_bytes=max_bytes,headers={'Accept':'application/zip'},deadline=max(self.timeout,BULK_DEADLINE_S))
     async def confirm_collection(self,run_id,manifest_sha256,artifacts,audience='researcher'):
         value=await self._request('POST','/api/v1/runs/'+quote(run_id,safe='')+'/collection-confirmation',
             json={'manifest_sha256':manifest_sha256,'artifacts':artifacts,'audience':audience})

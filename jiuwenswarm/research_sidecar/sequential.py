@@ -262,6 +262,7 @@ class SequentialRunner:
     def error(self, row, category, error):
         # API errors deliberately omit request headers and credentials.
         detail = str(error) if not isinstance(error, httpx.HTTPError) else type(error).__name__
+        detail = detail or type(error).__name__  # a bare TimeoutError has no message
         row['errors'].append({'at': utc(), 'category': category, 'detail': detail[:4000]})
         self.save(row, category)
 

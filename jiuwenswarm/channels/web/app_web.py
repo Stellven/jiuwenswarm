@@ -623,7 +623,7 @@ class _SpaStaticHandler(SimpleHTTPRequestHandler):
         evaluation_archive = (bearer_request and evaluation_path
                               and self.headers.get("Accept", "").split(";", 1)[0].strip().lower() == "application/zip")
         download_request = self.command in {"GET", "HEAD"} and (
-            re.fullmatch(r"/api/v1/runs/[^/]+/(?:export|artifacts/[^/]+)", request_path) is not None
+            re.fullmatch(r"/api/v1/runs/[^/]+/(?:export|artifacts(?:/[^/]+)?)", request_path) is not None
             or evaluation_archive)
         finite_evaluation = (bearer_request and self.command == "POST"
                              and request_path in {"/api/v1/evaluation/single-cc", "/api/v1/evaluation/node-replay"})

@@ -10,7 +10,7 @@ Terms used here:
 
 ## 1. Status
 
-Furthest point reached: run pl10. Intent compiler, Search, Screening, Hypothesis, Planner, Builder and Benchmark all completed. Builder and Benchmark completed for the first time in pl10. Evaluation's own work passed all 10 checks. Then its evidence-aware verifier binding was refused (`start refused in evaluation: ResearchError input_authority`): the host bound the optional `review_evidence` port as required. Delivery was skipped because Evaluation failed. The fix is `680c56b3a`. Delivery has not run live. Run pl11 tests that fix.
+Run pl11b (app run `run:1953a2c076924e4fbee0ff199ff959eb`, 2026-10-30) completed every stage on the planned path: Intent compiler, Planner, Search, Screening, Hypothesis, Builder, Benchmark, Evaluation and Delivery. Every node gate advanced (Screening PASS, the rest PASS_WITH_KNOWN_LIMITATIONS). The trusted host scorer measured accuracy 0.5 for the majority-class baseline and 1.0 for the Builder's treatment over 3 repeats each, so Evaluation classified the result PASS under the pre-registered rule (treatment > baseline) and judged it plausible. The run made 35 model calls with no transient retry and no reply repair. Its residual risks note that identical fixed-seed repeats give no uncertainty estimate and that the payload reports no test sample count or confidence interval. The benchmark-runner sidecar then failed to collect the run (`collection_failure`, empty detail); that is outside the product path and is being diagnosed.
 
 ## 2. Error census
 
@@ -38,6 +38,8 @@ The fixes on this branch follow from that: tell the model the rule, let the carr
 | pl9 | none | Docker engine crashed because drive C: was full. The cycle stopped at `build`. | environment | none (see section 5) |
 | pl9b | Screening | `opportunity_statement` was 807 characters against `maxLength` 800. | reply over limit | `882bb7063` |
 | pl10 | Evaluation (start refused) | Evaluation passed all 10 checks. Then the verifier binding was refused (`input_authority`): the host bound the optional `review_evidence` port as required. | harness bug | 680c56b3a |
+| pl11 | Builder (stopped) | Stopped during its image build to add the verifier host_authority fix found by look-ahead. Not a halt. | n/a | `8fae99885` |
+| pl11b | Delivery (completed) | All stages completed and every gate advanced. Collection by the sidecar failed afterwards. | sidecar | under diagnosis |
 
 Final node status of the last two runs, from the cycle logs:
 - pl9b: Intent compiler, Planner and Search completed. Screening failed. The other four nodes failed as dependents.

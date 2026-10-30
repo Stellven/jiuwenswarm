@@ -210,3 +210,29 @@ def test_ambiguous_started_evaluation_is_read_only_reconciled_without_second_pos
             assert seen==['POST','GET','GET']
         finally:await client.close();ledger.close()
     asyncio.run(work())
+
+
+def test_bulk_manifest_and_archive_get_the_longer_deadline(tmp_path):
+    """Live run pl11b: a completed run's manifest (63,387 files) took 31 s, past the 30 s client deadline."""
+    import pytest
+    from jiuwenswarm.research_sidecar.client import BULK_DEADLINE_S, ClientError
+    token=tmp_path/'token';token.write_text('disposable-test-token');token.chmod(0o600);seen={}
+    def handle(req):
+        seen[req.url.path]=req.extensions['timeout']['read']
+        return httpx.Response(503)
+    async def work():
+        client=ResearchClient('http://test',token,transport=httpx.MockTransport(handle))
+        try:
+            for call in (client.artifacts('run:1'),client.context(),client.stream_export_archive('run:1',tmp_path/'a.zip')):
+                with pytest.raises(ClientError):await call
+        finally:await client.close()
+    asyncio.run(work())
+    assert seen=={'/api/v1/runs/run:1/artifacts':BULK_DEADLINE_S,'/api/v1/context':30,'/api/v1/runs/run:1/export':BULK_DEADLINE_S}
+
+
+def test_empty_error_message_records_the_exception_type():
+    from jiuwenswarm.research_sidecar.sequential import SequentialRunner
+    row={'errors':[]};saved=[]
+    runner=object.__new__(SequentialRunner);runner.save=lambda row,category:saved.append(category)
+    runner.error(row,'collection_failure',TimeoutError())
+    assert row['errors'][0]['detail']=='TimeoutError' and saved==['collection_failure']
