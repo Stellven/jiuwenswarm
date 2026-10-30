@@ -58,6 +58,45 @@ def reply_problems(text, schema, limit=8):
     return problems
 
 
+def span_problems(text, prompt, read_text, limit=8):
+    """Source spans outside their source, as the compiler checks judge them.
+
+    Only sources whose Ref the model was shown in this prompt are read, and a
+    finding names the bound and the source length, never the source text.
+    """
+    try:
+        value = strict_json(text)
+    except ResearchError:
+        return []
+    problems, lengths = [], {}
+
+    def walk(item, path):
+        if len(problems) >= limit:
+            return
+        if isinstance(item, dict):
+            ref = item.get('source_ref')
+            if (isinstance(ref, dict) and isinstance(ref.get('sha256'), str) and ref['sha256'] in prompt
+                    and type(item.get('start')) is int and type(item.get('end')) is int):
+                if ref['sha256'] not in lengths:
+                    try:
+                        lengths[ref['sha256']] = len(read_text(ref))
+                    except Exception:
+                        lengths[ref['sha256']] = None
+                size = lengths[ref['sha256']]
+                if size is not None and not 0 <= item['start'] < item['end'] <= size:
+                    problems.append('%s: span start %d end %d must satisfy 0 <= start < end <= %d, the length of '
+                                    'source %s in Unicode code points' % (path or '(root)', item['start'], item['end'],
+                                                                           size, ref['sha256'][:12]))
+            for key, child in item.items():
+                walk(child, path + '/' + key if path else key)
+        elif isinstance(item, list):
+            for index, child in enumerate(item):
+                walk(child, path + '/' + str(index) if path else str(index))
+
+    walk(value, '')
+    return problems
+
+
 def repair_prompt(prompt, text, problems):
     """The original payload plus the previous reply and the validator findings."""
     try:

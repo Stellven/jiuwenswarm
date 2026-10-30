@@ -93,3 +93,22 @@ def test_only_one_extra_call_even_if_the_repair_is_still_invalid():
     system = asyncio.run(_ask_system())
     ctx, calls, _ = _context([('ok', '{"statement": "much too long"}'), ('ok', '{"statement": "still too long"}')])
     assert asyncio.run(ctx.model('{}', system)) == '{"statement": "still too long"}' and calls == [1, 2]
+
+
+def test_span_outside_its_shown_source_is_flagged_with_the_length_only():
+    """Live run pl12: Intent returned a span 850..1380 in a shorter task source."""
+    from jiuwenswarm.research.reply_repair import span_problems
+    ref = {'id': 'blob:' + 'a' * 64, 'sha256': 'a' * 64}
+    hidden = {'id': 'blob:' + 'b' * 64, 'sha256': 'b' * 64}
+    reply = json.dumps({'constraints': [{'source_spans': [{'source_ref': ref, 'start': 850, 'end': 1380},
+                                                          {'source_ref': ref, 'start': 0, 'end': 10},
+                                                          {'source_ref': hidden, 'start': 0, 'end': 99}]}]})
+    read = {ref['sha256']: 'x' * 1000, hidden['sha256']: 'y'}
+    problems = span_problems(reply, 'prompt naming ' + ref['sha256'], lambda r: read[r['sha256']])
+    assert problems == ['constraints/0/source_spans/0: span start 850 end 1380 must satisfy 0 <= start < end <= 1000, '
+                        'the length of source aaaaaaaaaaaa in Unicode code points']
+    assert 'x' not in problems[0].split('source')[0]
+    assert span_problems('{"a": {"source_ref": %s, "start": 3, "end": 3}}' % json.dumps(ref), ref['sha256'],
+                         lambda r: 'abcdef') == ['a: span start 3 end 3 must satisfy 0 <= start < end <= 6, the length of '
+                                                 'source aaaaaaaaaaaa in Unicode code points']
+    assert span_problems('not json', ref['sha256'], lambda r: '') == []
