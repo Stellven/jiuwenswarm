@@ -79,8 +79,9 @@ class AgentBuilderChecks(ResearchChecks):
                     ctx.store.record_kind(output_ref) == 'model-call-output', 'bounded_development')
             call = ctx.read_json(call_ref)
             output = ctx.read_json(output_ref)
+            # model-call records carry no contract_ref (closed schema); the
+            # contract join is the model-call-start record checked below.
             require(call.get('outcome') == 'completed' and call.get('observed_runtime') is True
-                    and call.get('contract_ref')==journal['contract_ref']
                     and call.get('invocation_id')==journal['invocation_id']
                     and call.get('execution_id')==journal['execution_id']
                     and call_ref in ctx.observation['trace_refs'] and output_ref in call.get('evidence_refs', [])

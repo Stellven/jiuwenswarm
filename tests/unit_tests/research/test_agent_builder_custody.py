@@ -119,8 +119,9 @@ async def test_agent_actions_and_submitted_snapshot_pass_independent_custody_che
         output_ref = store.append_record('model-call-output', {'run_id': contract['run_id'],
             'call_id': call_id, 'invocation_id': binding.invocation_id,
             'text': json.dumps({'action': action, 'arguments': arguments}, separators=(',', ':'))})
+        # Real model-call records (closed schema) carry no contract_ref.
         call_ref = store.append_record('model-call', {'id': call_id, 'run_id': contract['run_id'],
-            'contract_ref': contract_ref, 'invocation_id': binding.invocation_id,
+            'invocation_id': binding.invocation_id,
             'execution_id': binding.execution_id, 'outcome': 'completed',
             'observed_runtime': True, 'evidence_refs': [output_ref]})
         store.append_record('model-call-start', {'run_id': contract['run_id'],
