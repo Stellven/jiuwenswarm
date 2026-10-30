@@ -272,6 +272,19 @@ class InvocationContext:
                         return await self.model(prompt,system)
             raise
         self._runner._executions[self.execution_id]['calls'].append(result)
+        from .reply_repair import carrier_reply_schema,reply_problems,repair_prompt
+        carrier,schema=carrier_reply_schema(system)
+        if carrier and not self._retried and self._runner.resolve_evaluation_owner(execution_id=self.execution_id) is None:
+            # Stopgap: one re-ask of a reply that fails its own reply schema,
+            # sharing this invocation's single retry allowance.
+            problems=reply_problems(result['text'],schema)
+            if problems:
+                self._retried=True
+                self._runner.store.append_record('model-call-retry',{'id':'model-call-retry:'+uuid.uuid4().hex,
+                    **{k:self.contract[k] for k in ('run_id','node_id','subnode_id','attempt_id')},
+                    'invocation_id':self.invocation_id,'failed_call_id':result.get('id'),
+                    'failed_call_ordinal':self._ordinal,'reason_code':'reply_invalid','recorded_at':utc_now()})
+                return await self.model(repair_prompt(prompt,result['text'],problems),system)
         return result['text']
 
 
