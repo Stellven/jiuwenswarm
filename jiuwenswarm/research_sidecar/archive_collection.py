@@ -14,6 +14,8 @@ import zipfile
 from jiuwenswarm.research_records.contracts import ContractData
 
 
+METADATA_CEILING_BYTES = 128 * 1024 * 1024  # retrieval manifest and central directory
+
 def encoded(value):
     return json.dumps(value,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode('utf8')
 
@@ -90,7 +92,8 @@ def validate_archive(path,source,*,max_total_bytes,max_member_bytes,max_members,
         raise ValueError('authorized archive member size exceeds policy')
     if sum(item['size'] for item in artifacts)>max_total_bytes:raise ValueError('authorized archive expanded bytes exceed policy')
     # Metadata is separately bounded; the actual artifact byte policy is unchanged.
-    metadata_limit=min(32*1024*1024,max(1024*1024,max_members*2048))
+    # A completed planned POC run retains ~60k files; its retrieval manifest is ~34 MB (pl13).
+    metadata_limit=min(METADATA_CEILING_BYTES,max(1024*1024,max_members*2048))
     verified=[];total=0
     # The stdlib footer parser reads only the bounded EOCD tail/ZIP64 footer;
     # inspect counts and central-directory bytes before ZipFile allocates rows.
@@ -98,7 +101,7 @@ def validate_archive(path,source,*,max_total_bytes,max_member_bytes,max_members,
         footer=zipfile._EndRecData(stream)
     if (footer is None or footer[zipfile._ECD_ENTRIES_TOTAL]!=len(artifacts)+1
             or footer[zipfile._ECD_ENTRIES_TOTAL]>max_members+1
-            or footer[zipfile._ECD_SIZE]>32*1024*1024 or footer[zipfile._ECD_SIZE]<0
+            or footer[zipfile._ECD_SIZE]>METADATA_CEILING_BYTES or footer[zipfile._ECD_SIZE]<0
             or footer[zipfile._ECD_OFFSET]<0
             or footer[zipfile._ECD_OFFSET]+footer[zipfile._ECD_SIZE]>Path(path).stat().st_size):
         raise ValueError('archive central directory exceeds authorized metadata policy')

@@ -80,3 +80,11 @@ def test_deep_readable_paths_are_portable_and_original_paths_remain_in_archive(t
         assert source['artifacts'][0]['path'] in archive.namelist()
     inventory=json.loads((tmp_path/'originals.inventory.json').read_bytes())
     assert inventory['client_retrieval']['files'][0]['path']==source['artifacts'][0]['path']
+
+
+def test_metadata_ceiling_admits_a_completed_planned_poc_run():
+    """Live run pl13: 59,740 retained files gave a 33,790,417-byte client_retrieval.json, past the old 32 MiB cap."""
+    from jiuwenswarm.research_sidecar.archive_collection import METADATA_CEILING_BYTES
+    from jiuwenswarm.research_sidecar.sequential_cases import DEFAULT_LIMITS
+    limit = min(METADATA_CEILING_BYTES, max(1024 * 1024, DEFAULT_LIMITS['archive_member_limit'] * 2048))
+    assert limit >= 33_790_417 and limit <= 128 * 1024 * 1024
