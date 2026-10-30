@@ -19,7 +19,8 @@ def status_reasons(run,records):
     for envelope in records:
         fault=envelope['record'].get('executor_fault') if envelope['kind']=='protected-invocation-stop' else None
         if isinstance(fault,dict):
-            reasons.append('executor fault in %s: %s %s at %s'%(envelope['record'].get('node_id'),fault.get('exception_class'),fault.get('code') or '',fault.get('frame')))
+            from .private_rpc import fault_cause_text
+            reasons.append('executor fault in %s: %s %s at %s'%(envelope['record'].get('node_id'),fault.get('exception_class'),fault.get('code') or '',fault.get('frame'))+fault_cause_text(fault))
     return reasons
 
 

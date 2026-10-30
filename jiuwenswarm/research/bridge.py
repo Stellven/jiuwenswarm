@@ -634,11 +634,17 @@ class GovernedBridge:
                         call_record['outcome']='failed'
                         call_record['ended_at']=utc_now()
             observation=failure_observation(failure,choice.model_id)
+            # The provider's own short code (e.g. TURN_FAILED, RUNTIME_DISCONNECTED)
+            # before it collapses into provider_error; an identifier, never a message.
+            raw_code=getattr(failure,'code',None) or (str(failure) if type(failure).__name__=='CodexError' else None)
+            raw_code=raw_code if isinstance(raw_code,str) and raw_code.isidentifier() and len(raw_code)<=64 else None
             if observation is not None:
                 call_record.update({key:observation[key] for key in ('identity','usage','provider_request_id')})
+            if observation is not None or raw_code is not None:
                 provider_ref=await self._capture('model-provider-observation',{
                     'id':'provider-observation:'+uuid.uuid4().hex,'run_id':protected['run_id'],
-                    'invocation_id':protected['invocation_id'],'call_id':protected['call_id'],'observation':observation}, context=protected)
+                    'invocation_id':protected['invocation_id'],'call_id':protected['call_id'],'observation':observation,
+                    'failure_code':raw_code,'exception_class':type(failure).__name__}, context=protected)
                 call_record['evidence_refs'].append(provider_ref)
         try:
             call_ref = await self._capture("model-call", call_record, context=protected)

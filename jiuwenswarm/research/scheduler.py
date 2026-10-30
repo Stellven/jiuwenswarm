@@ -389,7 +389,8 @@ class Scheduler:
                         or stopped.get('reason_code') not in {'integrity_fault','security_fault','AUDIT_UNAVAILABLE','CONTAINMENT_UNCERTAIN','run_budget_exhausted'}):
                     raise ResearchError('protected_stop','Protected stop receipt does not join the exact completed invocation')
                 fault=stopped.get('executor_fault')
-                cause=(' Executor cause: %s %s at %s in %s.'%(fault.get('exception_class'),fault.get('code') or '',fault.get('frame'),fault.get('operation'))
+                from .private_rpc import fault_cause_text
+                cause=(' Executor cause: %s %s at %s in %s%s.'%(fault.get('exception_class'),fault.get('code') or '',fault.get('frame'),fault.get('operation'),fault_cause_text(fault))
                        if isinstance(fault,dict) else '')
                 raise ResearchError('protected_stop','An actual protected integrity/security/persistence/run-budget failure halts the whole run.'+cause)
             if observation['failure_reason_code'] in {'integrity_fault','security_fault','AUDIT_UNAVAILABLE'}:

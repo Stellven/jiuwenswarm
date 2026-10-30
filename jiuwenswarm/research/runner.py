@@ -984,6 +984,7 @@ class CapsuleRunner:
             if rows:
                 last=rows[-1]
                 fault={key:last.get(key) for key in ('operation','exception_class','code','frame')}
+                if isinstance(last.get('cause_chain'),list) and last['cause_chain']:fault['cause_chain']=last['cause_chain']
         return self.store.append_record('protected-invocation-stop',{'schema':'ai4r-protected-invocation-stop:1',
             'id':'protected-stop:'+uuid.uuid4().hex,**{key:contract[key] for key in ('run_id','node_id','attempt_id')},
             'contract_ref':contract_ref,'worker_observation_ref':observation_ref,'failure_observation_ref':failed_ref,

@@ -53,3 +53,26 @@ def test_status_reasons_show_the_executor_cause_after_the_run_reason():
     assert status_reasons({'reason': None}, []) == []
     assert status_reasons({'reason': 'protected_stop'}, [{'kind': 'protected-invocation-stop',
                                                           'record': {'node_id': 'b', 'executor_fault': None}}]) == ['protected_stop']
+
+
+def test_masked_cause_chain_survives_into_stop_and_status_without_messages():
+    from jiuwenswarm.research.private_rpc import fault_summary
+
+    def inner():
+        raise TypeError('secret detail: missing max_stdout_bytes')
+
+    try:
+        try:
+            inner()
+        except Exception as exc:
+            raise RuntimeError('protected check runner failed') from exc
+    except RuntimeError as wrapped:
+        summary = fault_summary(wrapped)
+    assert summary['exception_class'] == 'RuntimeError'
+    assert [c['exception_class'] for c in summary['cause_chain']] == ['TypeError']
+    assert summary['cause_chain'][-1]['frame'].split(':')[1] == 'inner'
+    assert 'secret' not in str(summary) and 'max_stdout_bytes' not in str(summary)
+    stop = _stop([{'kind': 'executor-rpc-fault', 'record': dict(FAULT, cause_chain=summary['cause_chain'])}])
+    assert stop['executor_fault']['cause_chain'] == summary['cause_chain']
+    reasons = status_reasons({'reason': 'protected_stop'}, [{'kind': 'protected-invocation-stop', 'record': stop}])
+    assert 'caused by TypeError' in reasons[-1]

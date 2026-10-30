@@ -18,8 +18,7 @@ from .router_client import (MAX_IPC_FRAME_BYTES, PlatformIntegrityError, close_w
                             encode_frame, peer_credentials, read_frame)
 
 
-def fault_summary(error):
-    """Exception class, short code and the innermost in-package frame (module:function:line)."""
+def _summary(error):
     code = getattr(error, 'code', None)
     frames, tb = [], error.__traceback__
     while tb is not None:
@@ -30,6 +29,33 @@ def fault_summary(error):
     return {'exception_class': type(error).__name__,
             'code': code if isinstance(code, str) and code.isidentifier() and len(code) <= 64 else None,
             'frame': f'{module}:{function}:{line}'}
+
+
+def fault_summary(error):
+    """Exception class, short code and the innermost in-package frame (module:function:line).
+
+    A masking wrapper (raise X from exc) hides the real cause, so the chained
+    causes are summarized the same way, innermost last: class, code and frame
+    only, never message or args.
+    """
+    summary, chain, seen, cause = _summary(error), [], {id(error)}, error
+    while len(chain) < 8:
+        cause = cause.__cause__ or (None if cause.__suppress_context__ else cause.__context__)
+        if cause is None or id(cause) in seen:
+            break
+        seen.add(id(cause)); chain.append(_summary(cause))
+    if chain:
+        summary['cause_chain'] = chain
+    return summary
+
+
+def fault_cause_text(fault):
+    """' caused by <class> <code> at <frame>' for the innermost recorded cause, else ''."""
+    chain = fault.get('cause_chain') if isinstance(fault, dict) else None
+    if not isinstance(chain, list) or not chain or not isinstance(chain[-1], dict):
+        return ''
+    inner = chain[-1]
+    return ' caused by %s %s at %s' % (inner.get('exception_class'), inner.get('code') or '', inner.get('frame'))
 
 
 class PrivateRPCServer:
