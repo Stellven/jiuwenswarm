@@ -98,3 +98,11 @@ def test_retry_record_names_the_failed_call_and_counts_per_subnode_attempt():
     # host_limits counts the granted retry for exactly this subnode attempt.
     assert transient_retries(store, 'run:1', subnode_id='screening', attempt_id='screening-a1') == 1
     assert transient_retries(store, 'run:1', subnode_id='screening.verifier', attempt_id='screening-a1') == 0
+
+
+def test_trace_ref_limit_matches_the_observation_schema():
+    import json
+    from importlib.resources import files
+    from jiuwenswarm.research.runner import TRACE_REF_LIMIT
+    schema = json.loads(files('jiuwenswarm.research_contracts').joinpath('schemas/invocation-observation.v4.schema.json').read_text())
+    assert schema['properties']['trace_refs']['maxItems'] == TRACE_REF_LIMIT

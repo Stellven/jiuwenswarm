@@ -275,6 +275,7 @@ class InvocationContext:
         return result['text']
 
 
+TRACE_REF_LIMIT=64  # invocation-observation trace_refs maxItems
 TRANSIENT_PROVIDER_CODES=frozenset({'provider_error','rate_limited','timeout','network_error'})
 
 
@@ -1311,8 +1312,11 @@ class CapsuleRunner:
         if evidence is not None and execution.get('evaluation_owner') is None:
             try:evidence.capture_invocation_traces(c,execution['invocation_id'])
             except Exception as error:evidence.missing(c['run_id'],'native-trace:'+execution['invocation_id'],'Original native trace file capture failed: '+type(error).__name__)
-            for ref in evidence.invocation_trace_refs(c):
-                if ref not in traces:traces.append(ref)
+            # The observation schema bounds trace_refs at 64. Call and route refs
+            # always stay (checks join on them); static capsule declaration/body
+            # copies go last. Every file remains a run-evidence-file record.
+            for ref in sorted(evidence.invocation_trace_refs(c),key=lambda r:'/capsule/' in r['id']):
+                if ref not in traces and len(traces)<TRACE_REF_LIMIT:traces.append(ref)
         route_id=None;decision_source=None
         if starts:
             route_ref=starts[-1]['record'].get('route_ref')
