@@ -38,6 +38,50 @@ def zip_projection(data: bytes) -> bytes:
         raise ResearchError("projection_failed", "Captured zip cannot be projected under the pinned rule") from exc
 
 
+def strip_json_fence(text):
+    """Remove exactly one outer markdown code fence around a JSON reply; content is unchanged."""
+    if not isinstance(text, str):
+        return text
+    body = text.strip()
+    if body.startswith('```') and body.endswith('```') and body.count('```') == 2:
+        first = body.find('\n')
+        if first != -1:
+            return body[first + 1:-3].strip()
+    return text
+
+
+def normalize_reply(reply, criteria):
+    """Meaning-preserving cleanup of a reviewer reply before assembly.
+
+    Upper-cases outcomes, strips criterion ids, drops blank uncertainty and
+    limitation strings and maps a blank correction to null. A correction that
+    accompanies no non-PASS blocking finding cannot be required, so it is kept
+    as a limitation instead of rejecting an advancing review. Anything else is
+    left for assemble_assessment to judge.
+    """
+    if not isinstance(reply, dict):
+        return reply
+    reply = dict(reply)
+    findings = reply.get('findings')
+    if isinstance(findings, list):
+        reply['findings'] = [dict(f, outcome=f['outcome'].strip().upper()) if isinstance(f, dict) and isinstance(f.get('outcome'), str) else f
+                             for f in findings]
+        reply['findings'] = [dict(f, criterion_id=f['criterion_id'].strip()) if isinstance(f, dict) and isinstance(f.get('criterion_id'), str) else f
+                             for f in reply['findings']]
+    for key in ('uncertainties', 'limitations'):
+        if isinstance(reply.get(key), list):
+            reply[key] = [x.strip() for x in reply[key] if not (isinstance(x, str) and not x.strip())]
+    correction = reply.get('required_correction')
+    if isinstance(correction, str) and not correction.strip():
+        reply['required_correction'] = correction = None
+    if isinstance(correction, str) and isinstance(reply.get('findings'), list) and isinstance(reply.get('limitations'), list):
+        blocking = {c['criterion_id'] for c in criteria if c.get('blocking')}
+        if not any(isinstance(f, dict) and f.get('criterion_id') in blocking and f.get('outcome') != 'PASS' for f in reply['findings']):
+            reply['limitations'] = [*reply['limitations'], 'Non-blocking correction: ' + correction.strip()]
+            reply['required_correction'] = None
+    return reply
+
+
 def assemble_assessment(reply: Mapping, criteria: list[dict], declaration_ref: Ref,
                         subject_ref: Ref, review_context_ref: Ref) -> dict:
     if not isinstance(reply, dict) or set(reply) != {"findings", "uncertainties", "limitations", "required_correction"}:
@@ -101,10 +145,10 @@ class SemanticVerifier:
         payload = {"subject_declaration": declaration.decode("utf-8"), "subject_output": output.decode("utf-8")}
         raw = await invoke(json.dumps(payload, ensure_ascii=False), system=instructions)
         try:
-            reply = json.loads(raw)
+            reply = json.loads(strip_json_fence(raw))
         except (ValueError, TypeError) as exc:
             raise ResearchError("assessment_invalid", "Verifier returned malformed JSON") from exc
-        assessment = assemble_assessment(reply, criteria, declaration_ref, subject_ref, review_context_ref)
+        assessment = assemble_assessment(normalize_reply(reply, criteria), criteria, declaration_ref, subject_ref, review_context_ref)
         return self.store.put_record("verifier-assessment", assessment,
                                      record_id="assessment:" + uuid.uuid4().hex)
 

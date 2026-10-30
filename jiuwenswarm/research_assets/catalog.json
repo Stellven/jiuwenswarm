@@ -74,7 +74,7 @@
       "body": [
         {
           "path": "research/gate.py",
-          "sha256": "be6b075f91153106c45ba535e0ec97fdbb901442e490ea494fc648b4c6ea9c6b"
+          "sha256": "834fab52850eb4a49ad0efd8df849a80a2a7bdbd623fd43f51fffbe6835ed0fe"
         },
         {
           "path": "research_assets/compiler/verifier.txt",
@@ -82,7 +82,7 @@
         }
       ],
       "declaration_path": "compiler/verifier.declaration.json",
-      "declaration_sha256": "eb456abf1c4c137e7ffd80a95ef6c2311d285a7d993ea303095995c0195fea93"
+      "declaration_sha256": "2223e51e436eb65c549c10e2dcba53449d0c6d6897539d5670dc2b3783186fd6"
     }
   },
   "schema_version": "1.0.0",
@@ -92,6 +92,6 @@
     "interface_revision": "M1-IF-002@r2",
     "meaning": "Bounded native Builder actions and protected compile/unit/smoke checks; independent reviews, gates and schema-routed Benchmark retained.",
     "path": "planner/static-template.json",
-    "sha256": "847d761afcc84c9272b9bc4bbaafc2cce77b4056fc7f6daa2aa8d40e3174a69b"
+    "sha256": "e6de5330201daadb85669f73d9cb721856b9554713711c87f7b88d529726c550"
   }
 }
