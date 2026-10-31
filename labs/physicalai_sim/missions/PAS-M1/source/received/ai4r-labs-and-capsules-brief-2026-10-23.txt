@@ -1,0 +1,72 @@
+AI4Research Labs and Capability Capsules
+Preliminary direction for application developers; deployment details remain open.
+
+A lab is a persistent research project. Its sandbox contains an independent fork of master AI4Research (AI4R), shared and domain-specific capability capsules (CCs), and installed applications such as a robot simulator or workload profiler.
+
+CCs package and vendor functionality from skills, tools, MCPs, repositories, or new code, with declarations of purpose, interfaces, dependencies, permissions, and verification expectations. They connect that functionality to planning, execution, verification, RSI, and reusable workflows such as proof-of-concept generation. Underlying code authors only need to understand their own functionality and interface.
+
+How the pieces fit
+Boxes show logical containment, not a required process or container layout. Dashed arrows show distribution and contribution.
+
+flowchart TB
+    MASTER["Master AI4R code"]
+    LIB["Approved CC library"]
+    CENTRAL["Central qualification"]
+    CENTRAL -->|"accepted system changes"| MASTER
+    CENTRAL -->|"approved CCs"| LIB
+    INFRA["Lab infrastructure<br/>Lifecycle, isolation, resources, recovery"]
+
+    subgraph LAB["Lab — persistent project"]
+        subgraph BOX["Sandbox"]
+            subgraph FORK["AI4R fork — independent code and configuration"]
+                RUN["Harness and planner"]
+                RSI["RSI / capability development"]
+                CHECK["Independent verification<br/>and admission controls"]
+            end
+            CC["Shared + domain CCs<br/>Including verifier CCs"]
+            APP["Installed application code<br/>Robot sim / profiler / other tools"]
+            RUN -->|"select and execute"| CC
+            CC <-->|"operate / collect outputs"| APP
+            CC -->|"evidence"| CHECK
+            CHECK -->|"results / feedback"| RUN
+            RSI -->|"candidate CC and harness changes"| CHECK
+            CHECK -->|"qualified future versions"| CC
+            CHECK -->|"qualified harness updates"| RUN
+        end
+        STATE["Durable goals, knowledge, code,<br/>experiments, results and checkpoints"]
+        RUN <--> STATE
+        STATE -->|"feedback"| RSI
+    end
+
+    MASTER -.->|"fork"| FORK
+    LIB -.->|"select versions"| CC
+    INFRA -->|"manage"| BOX
+    INFRA -->|"preserve / restore"| STATE
+    CHECK -.->|"selected candidates + evidence"| CENTRAL
+    MASTER -.->|"independent fork"| OTHER["Other labs<br/>Own sandbox, CC selection, apps and state"]
+    LIB -.->|"select versions"| OTHER
+Responsibilities and research loop
+Owner    Responsibility
+Lab infrastructure    Manage sandbox lifecycle, isolation, resources, and durable state.
+AI4R harness and planner    Sustain autonomous work across sessions through task records, checkpoints, and recovery.
+Application code    Own domain behavior: physics, controls, observations, or profiling.
+CCs    Supply reusable functionality and contracts for planning, verification, and improvement.
+Library and admission    Approve versions using evidence of quality, malicious-behavior checks, and declared behavior. Approval reflects tested scope.
+Verification    Verifier CCs assess outputs; system-owned controls decide acceptance.
+RSI    Create or adjust CCs and edit the harness; independently qualify changes before adoption. Candidates cannot alter their own acceptance rules.
+Robotics loop: plan an experiment → use CCs to configure and drive the simulator → collect and verify results → retain findings → plan further research or develop improvements. Both AI4R and the simulator belong to the lab sandbox. Time-sensitive control stays in application code.
+
+Selected improvements can return to master through separate qualification. Other labs and ongoing work do not update automatically.
+
+Patterns to reuse
+Adapt these checked first-party references without committing to entire frameworks:
+
+Reference    Apply here
+Anthropic, Effective harnesses for long-running agents; Temporal    Progress records, startup checks, checkpoints, and recovery that reconciles interrupted operations before retrying.
+MCP; Paper2Agent    Existing tool interfaces and an inspect–adapt–test pipeline for producing candidate CCs.
+MLflow Model Registry    Versioned library entries, lineage, evaluation evidence, and explicit promotion.
+NVIDIA Isaac Lab    Modular scenes, actions, observations, and events within the robotics application.
+Darwin Gödel Machine    Parent–candidate–evaluation–archive cycles for code and harness improvement; a research precedent with limited reliability evidence.
+Reuse suitable upstream code under its license. Start with one lab, one application, and a few manually packaged CCs; demonstrate an experiment, retained findings, restart/continuation, and one evaluated improvement.
+
+Checked against the lab and capability notes for design consistency. Whole-harness RSI is the broader target; current M1 scope is narrower. This brief does not establish runtime validation.

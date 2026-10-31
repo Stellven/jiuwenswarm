@@ -1,0 +1,2 @@
+# Pin source input bytes, including the received brief (same rule as M0/source).
+* -text whitespace=cr-at-eol,-blank-at-eol,-blank-at-eof
