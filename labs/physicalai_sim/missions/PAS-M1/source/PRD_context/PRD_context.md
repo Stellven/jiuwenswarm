@@ -1,6 +1,6 @@
 # SIMLAB: product context
 
-**PRD Context · r0.4.1.** Read [PRD Main](../PRD_main_body/PRD_main_body.md) first. This page gives sources, user stories, scope and terms.
+**PRD Context · r0.4.2.** Read [PRD Main](../PRD_main_body/PRD_main_body.md) first. This page gives sources, user stories, scope and terms.
 
 ## Sources
 

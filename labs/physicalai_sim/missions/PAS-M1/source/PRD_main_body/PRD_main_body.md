@@ -1,6 +1,6 @@
 # SIMLAB: simulation lab for AI4Research
 
-**PRD Main Body · r0.4.1 · Milestone PAS-M1 (local workstation only) · October 30, 2026 · Owner: Suraj.** What SIMLAB must do. [PRD Context](../PRD_context/PRD_context.md) holds sources, user stories and scope; the architecture says how.
+**PRD Main Body · r0.4.2 · Milestone PAS-M1 (local workstation only) · October 30, 2026 · Owner: Suraj.** What SIMLAB must do. [PRD Context](../PRD_context/PRD_context.md) holds sources, user stories and scope; the architecture says how.
 
 **Description:** SIMLAB is a general simulation environment for experiments. A request comes in from AI4Research or another agent. SIMLAB constructs the experiment, runs it, returns all the data, and takes the next request, often a follow-up that changes what was built. The scientific requester does the science: it decides what to test, what counts as success and what to ask next. In the integrated journey that is AI4R; in direct use it is the agent or person making the request. SIMLAB builds, runs, records and reports. Any research objective is a valid starting point, including mechanism investigations, design comparisons, robustness studies and hypotheses arising from earlier experiments, even when they no longer test a particular paper claim.
 

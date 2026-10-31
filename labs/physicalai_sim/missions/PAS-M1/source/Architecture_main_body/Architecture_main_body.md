@@ -1,6 +1,6 @@
 # SIMLAB: architecture
 
-**Architecture Design Main Body · r0.4.1 · Milestone PAS-M1 (local workstation only) · October 30, 2026.** Start here. [Context](../Architecture_context/Architecture_context.md) holds the interfaces, flows, failure behavior, worked example, required reading and open inputs. Private classes, algorithms and file layouts belong to implementers; shared fields and authority do not.
+**Architecture Design Main Body · r0.4.2 · Milestone PAS-M1 (local workstation only) · October 30, 2026.** Start here. [Context](../Architecture_context/Architecture_context.md) holds the interfaces, flows, failure behavior, worked example, required reading and open inputs. Private classes, algorithms and file layouts belong to implementers; shared fields and authority do not.
 
 ## Completion boundary
 
@@ -37,8 +37,8 @@ Following the labs brief (a lab is an AI4R fork, its capsules and installed appl
 | Phase | Build |
 |---|---|
 | **1. Base simulator** | A first check that the real local setup fits (AI4R, model route and simulator together); experiment core, MuJoCo, authoring tools, records, checks, world-state save and branch, traces, tool interface, doctor |
-| **2. Builder and first demonstration** | Builder and construction tools, feasibility records, the first demonstration (Fit2Form unless decided otherwise), a changed follow-up, and a thin AI4R connection |
-| **3. Libraries** | Numerical engine, actuators, forces, flexible parts, solvers, frozen policies, world models, model interface and memory |
+| **2. Builder and first demonstration** | The builder using phase 1's authoring path (extended where needed), feasibility records, the first demonstration (Fit2Form unless decided otherwise), a changed follow-up, and a thin AI4R connection that keeps working afterwards |
+| **3. Libraries** | First the shared contracts they need (runtime, observation and model interfaces, timing, save and restore), proven on interacting components; then numerical engine, actuators, forces, flexible parts, solvers, frozen policies, world models, model interface and memory, in parallel where those contracts are ready, merged through one integration path |
 | **4. AI4R journey and scale** | Full AI4R journey with follow-ups, whole-state checkpoints, concurrency, recovery, live view |
 | **5. First research runs** | Hypothesis-register candidates end to end; final report |
 
@@ -52,29 +52,30 @@ During development, a general core improvement is fine if it is reviewed and the
 | X1.2 | Phase 1 test benches pass to their frozen specifications | BOUNDARY |
 | X1.3 | A malformed experiment returns all findings at once with typed errors, and clean controls pass | BLOCK, BOUNDARY |
 | X1.4 | A coding agent with no other access builds, runs and inspects an experiment only through the tools | BOUNDARY |
-| X1.5 | Replay is identical on the same machine and build; save, restore and branch reproduce the continuation; a fresh checkout reproduces a result | BOUNDARY |
-| X2.1 | First demonstration: the source reference, the MuJoCo rebuild's agreement with it (declared unit and tolerance) and any discrepancy diagnosis are reported separately; an explained discrepancy is not a PASS | BOUNDARY |
+| X1.5 | Replay is identical on the same machine and build, and save, restore and branch reproduce the continuation, each checked with its own comparison rule | BOUNDARY |
+| X1.6 | A fresh checkout rebuilds the images from the lockfile and reproduces a recorded result with no hidden files | BOUNDARY |
+| X2.1 | First demonstration, with acceptance rules declared before running: the source reference, the MuJoCo rebuild's agreement with it (declared unit and tolerance) and any discrepancy diagnosis are reported separately; a difference is a valid comparison result but not a successful reproduction | BOUNDARY |
 | X2.2 | The builder rebuilds the first demonstration from AI4R-style inputs | BOUNDARY |
 | X2.3 | Planted defects are caught, paired clean controls pass, and false alarms are reported | BOUNDARY |
 | X2.4 | A missing dependency is BLOCKED with its reason, never proxied | BOUNDARY |
 | X2.5 | A scripted next question produces a materially changed follow-up (a new procedure, apparatus or measurement, not just a parameter change) with no core change | BOUNDARY |
 | X2.6 | One real AI4R request reaches SIMLAB through the capsules and gets its data back | SYSTEM |
-| X3.1 | Each library passes its known-answer case and, where it adapts released code, an adapter conformance check | BOUNDARY |
-| X3.2 | Two components whose behavior depends on each other pass the runtime contract; one scene uses at least three libraries | BOUNDARY |
+| X3.1 | Each library passes its applicable check (an analytic or independent reference for physics; interface conformance for adapters such as policies, whose task performance is reported, not required), and each stateful one shows its own save and restore | BOUNDARY |
+| X3.2 | Two components whose behavior depends on each other pass the runtime contract; in one scene at least three libraries interact, each affecting the others' results | BOUNDARY |
 | X3.3 | A real model drives a simulated robot in two timing modes; replay reproduces its decisions; a fresh replication is recorded as new | BOUNDARY |
 | X3.4 | World-model scoring is verified, and a real world model's error against physics is reported for a declared domain | BOUNDARY |
 | X4.1 | An AI4R question reaches a report, every number traced to a run | SYSTEM |
 | X4.2 | The overall test inside AI4R: it inspects the data, asks a next question, and SIMLAB builds the follow-up with no core change | SYSTEM |
-| X4.3 | [confirm: 1,000] runs are characterized (workload, concurrency, throughput, latency, peak memory, failures); a killed worker loses nothing completed and duplicates nothing | SYSTEM |
+| X4.3 | [confirm: 1,000] runs with a declared workload are characterized (concurrency, throughput, latency, peak memory, failures); completed, durably committed records survive a killed worker, interrupted attempts remain identifiable, and recovery does not duplicate completed trials | SYSTEM |
 | X4.4 | A whole-state checkpoint at a quiescent point restores, and a follow-up branches from it | SYSTEM |
 | X4.5 | Live view pauses and cancels without changing the experiment (Conditional) | SYSTEM |
-| X5.1 | At least [confirm: 3] of [confirm: 5] register candidates complete end to end with valid checks, on held-out cases not used during development; blocked candidates are reported separately | SYSTEM |
+| X5.1 | Five register candidates, frozen with their selection rule before the campaign, are all attempted; at least [confirm: 3] complete end to end with valid checks (negative or null findings count). Blocked and invalid ones are reported separately. A held-out case that guides a fix is recorded and retired | SYSTEM |
 | X5.2 | The final test report covers every exit with evidence | SYSTEM |
 
-**M2 (later):** the DGX Spark and native arm64; models too large for the laptop; scale beyond the laptop; then use as an RL environment, full input lineage and further engines.
+**M2 (later):** the DGX Spark and native arm64; models too large for the laptop; scale beyond the laptop; then use as an RL environment, full input lineage (minimum provenance is already required in M1) and further engines.
 
-Mocks do not count at BOUNDARY or SYSTEM level. Fixture checks cannot prove a real model's behavior. BLOCKED and NOT_RUN are not PASS.
+A capability counts only when it works through the real system with its evidence, and earlier exits' checks keep running in later phases. Each exit stands on its own; passing one never offsets failing another. Mocks do not count at BOUNDARY or SYSTEM level. Fixture checks cannot prove a real model's behavior. BLOCKED and NOT_RUN are not PASS.
 
 ## AI4R connection and prompt use
 
-SIMLAB consumes AI4R's capsule format, Planner, gates and process rules without modifying them. The AI4R baseline is pinned; merging a newer `AI4Research-Main` is a recorded update followed by rerunning the affected checks. Nothing in `labs/physicalai_sim/` imports AI4R code; an import check enforces this. Any agent reaches the lab through its MCP server; AI4R's journeys reach it through the two capsules. The owner's coding prompt points the coding agent at these four documents and [Verification](../Verification/README.md). Phase 3 libraries can be built in parallel once the library interface has passed its first interacting-components check (X3.2).
+SIMLAB consumes AI4R's capsule format, Planner, gates and process rules without modifying them. The AI4R baseline is pinned; merging a newer `AI4Research-Main` is a recorded update followed by rerunning the affected checks. Nothing in `labs/physicalai_sim/` imports AI4R code; an import check enforces this. Any agent reaches the lab through its MCP server; AI4R's journeys reach it through the two capsules. The owner's coding prompt points the coding agent at these four documents and [Verification](../Verification/README.md). Phase 3 parallel work starts only where shared contracts and dependencies are ready, and joins the working baseline continuously; phase 4 is never the first time libraries are connected.

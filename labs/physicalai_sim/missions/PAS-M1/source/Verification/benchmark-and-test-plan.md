@@ -1,6 +1,6 @@
 # SIMLAB benchmark and test plan
 
-**Verification · r0.4.1 · October 30, 2026.** How SIMLAB is proven: test benches with known answers, SIMLAB's own benchmark families, official external benchmarks, what each phase tests, and the reports. Exit IDs refer to [Architecture Main](../Architecture_main_body/Architecture_main_body.md).
+**Verification · r0.4.2 · October 30, 2026.** How SIMLAB is proven: test benches with known answers, SIMLAB's own benchmark families, official external benchmarks, what each phase tests, and the reports. Exit IDs refer to [Architecture Main](../Architecture_main_body/Architecture_main_body.md).
 
 ## Rules
 
@@ -37,7 +37,7 @@ Each case freezes its model assumptions, initial conditions, measurement definit
 | F1 Known-answer physics | The test benches, frozen as cases | Analytic formulas | 1, 3 |
 | F2 Reproduction | First demonstration against the authors' code | Reference code run separately | 2 |
 | F3 Planted defects | Wrong units, hollow collision shapes, unstable steps, tampered measurements, changed predicates, ambiguous protocols, hidden grasp welds, repeats with nothing random; each paired with a clean control | The expected finding per defect; clean controls pass; false alarms are reported | 2 |
-| F4 Hypothesis cases | Register hypotheses with analytic anchors | Analytic predictions plus an independent implementation | 2 (development), 5 (a separate held-out set never used during development) |
+| F4 Hypothesis cases | Register hypotheses with analytic anchors | Analytic predictions plus an independent implementation | 2 (development), 5 (a separate held-out set never used during development; a case that guides a fix is retired) |
 | F5 Agreement | Replay; MuJoCo vs numerical; x86 vs arm64 in M2 | Identity or tolerance | 1–3 |
 | F6 Operations | Crash and resume, pause, cancel, limits, timeout and source-change negative controls | Expected statuses and exit codes | 4 |
 | F7 Follow-up construction | An experiment plus a scripted next question (new sensor, new objects, an intervention, a model-in-the-loop controller, a branch from a checkpoint) | The follow-up runs, the core is unchanged, and the required changes are present | 2, 4 |
@@ -78,7 +78,7 @@ Checked October 30, 2026. The full catalogue, with versions, licenses, sources a
 
 | Phase | BLOCK | BOUNDARY | SYSTEM | Families |
 |---|---|---|---|---|
-| 1 | Schemas, statuses, measurements, typed errors | Local feasibility (X1.1); TB-01 to TB-09 through the tools; clean controls (X1.3); agent-only use (X1.4); replay, save and branch, fresh-checkout reproduction (X1.5) | | F1, F5 |
+| 1 | Schemas, statuses, measurements, typed errors | Local feasibility (X1.1); TB-01 to TB-09 through the tools; clean controls (X1.3); agent-only use (X1.4); replay, save and branch (X1.5); fresh-checkout rebuild (X1.6) | | F1, F5 |
 | 2 | Builder tools and halts; feasibility inspection | Authors' code (X2.1); builder rebuild (X2.2); defects with clean controls (X2.3); honesty (X2.4); follow-up (X2.5) | Thin AI4R connection (X2.6) | F2, F3, F4, F5, F7, F10 |
 | 3 | Library units; TB-16 and TB-17 machinery | TB-10 to TB-15; interacting components and three libraries in one scene (X3.2); a real model (X3.3); a real world model (X3.4) | | F1, F5, F8, F9 |
 | 4 | Concurrency, resume and checkpoint units | Payload compatibility; negative controls | X4.1 to X4.5 on the workstation | F6, F7 |
