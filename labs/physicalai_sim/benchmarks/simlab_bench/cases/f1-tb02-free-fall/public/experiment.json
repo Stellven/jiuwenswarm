@@ -1,0 +1,87 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; a free body under uniform gravity",
+ "header": {
+  "objective": "Measure free-fall distance against g t^2 / 2",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {}
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.001,
+   "integrator": "RK4"
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-02"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-02"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "fall",
+    "duration_s": 1.0
+   }
+  ]
+ },
+ "measurements": [
+  {
+   "measurement_id": "drop",
+   "scope": "trial",
+   "unit": "m",
+   "required": true,
+   "definition": {
+    "kind": "displacement",
+    "signal": "xpos:ball",
+    "component": 2
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "xpos:ball",
+   "unit": "m"
+  }
+ ]
+}

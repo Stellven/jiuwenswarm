@@ -1,0 +1,64 @@
+{
+  "command": [
+    "/opt/simlab/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=",
+    "-p",
+    "no:cacheprovider",
+    "-q",
+    "-rA",
+    "tests/core",
+    "tests/boundary/test_x13_findings.py",
+    "tests/boundary/test_requests.py",
+    "tests/boundary/test_authoring.py",
+    "tests/boundary/test_runner.py",
+    "tests/boundary/test_checks.py",
+    "tests/boundary/test_data.py",
+    "tests/boundary/test_tool_parity.py",
+    "tests/boundary/test_doctor.py",
+    "--tb=short",
+    "--junitxml=/evidence/junit.xml"
+  ],
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 88,
+    "skipped": 0,
+    "tests": 88
+  },
+  "elapsed_s": 151.054,
+  "exit_code": 0,
+  "files": {
+    "junit.xml": "b9274e3d4ce0dfb5f55079b73e0aeb6dac1e3858141b4c80d9f1ea5dfdeacae8",
+    "launch.json": "dc8a0de3d6c782d76f8dea4743540c83378ad591c22180388bf346e5e2472f61",
+    "pytest.log": "2b5e9e72f2ac13b7cecc412e07282a39c5ff919d5b66a6608bee09bf9b194d56",
+    "source-manifest.json": "fffd4ee522932cddc482ca44e415993d4a9c349c1fd3a7bc3045e2a19fc146c9"
+  },
+  "group": "core",
+  "python": "3.12.16 (main, Oct 28 2026, 02:01:20) [GCC 14.2.0]",
+  "resources_container": {
+    "cpu_s": 140.705,
+    "memory_max": "4294967296",
+    "memory_peak_mb": 302.0
+  },
+  "schema": "simlab-check-group:1",
+  "scope": "SIMLAB phase 1 checks inside simlab-runner; live and model-dependent tests are opt-in (--live)",
+  "skipped_tests": [],
+  "source_changes": [],
+  "source_manifest_sha256": "a03824db204653cb32fe0f0db93d558ffe18ce2cc3cf23a85a23409b03425777",
+  "status": "passed",
+  "targets": [
+    "tests/core",
+    "tests/boundary/test_x13_findings.py",
+    "tests/boundary/test_requests.py",
+    "tests/boundary/test_authoring.py",
+    "tests/boundary/test_runner.py",
+    "tests/boundary/test_checks.py",
+    "tests/boundary/test_data.py",
+    "tests/boundary/test_tool_parity.py",
+    "tests/boundary/test_doctor.py"
+  ],
+  "timeout_s": 1800
+}

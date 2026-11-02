@@ -1,0 +1,30 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-fdd60d71558a43ff9a66"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "repeat-identical",
+   "reason": "second execution run-9fa6e3fe8f0747c29f74: trajectories and measurements equal",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "replay-identical",
+   "reason": "replay run-2a2feeccfcee412088bf kind replay: equal (SIMLAB's own replay_identity check: pass)",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "primary_metric": "identity (all comparisons bitwise equal)",
+  "primary_value": true,
+  "tolerance": "identity"
+ }
+}

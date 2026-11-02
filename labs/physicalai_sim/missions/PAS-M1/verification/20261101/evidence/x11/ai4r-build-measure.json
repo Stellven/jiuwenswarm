@@ -1,0 +1,2585 @@
+{
+ "record": "simlab-operator-measure",
+ "cmd": [
+  "docker",
+  "build",
+  "-f",
+  "deploy/m1/Dockerfile.app",
+  "--target",
+  "production",
+  "-t",
+  "ai4r:local",
+  "."
+ ],
+ "start_utc": "2026-10-31T23:00:10Z",
+ "exit_code": 0,
+ "wall_s": 967.61,
+ "cpu_s_host_children": 33.16,
+ "host": {
+  "n_samples": 213,
+  "vm_total_mb": 5924,
+  "vm_used_peak_mb": 5297,
+  "vm_available_min_mb": 627,
+  "swap_used_peak_mb": 2048,
+  "container_mem_peak_mb": {},
+  "gpu_mem_peak_mb": 0.0
+ },
+ "samples": [
+  {
+   "t_s": 0.0,
+   "utc": "2026-10-31T23:00:10Z",
+   "vm": {
+    "total": 5924,
+    "available": 2709,
+    "used": 3215,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 5.7,
+   "utc": "2026-10-31T23:00:16Z",
+   "vm": {
+    "total": 5924,
+    "available": 2681,
+    "used": 3243,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 10.23,
+   "utc": "2026-10-31T23:00:20Z",
+   "vm": {
+    "total": 5924,
+    "available": 2603,
+    "used": 3321,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 15.05,
+   "utc": "2026-10-31T23:00:25Z",
+   "vm": {
+    "total": 5924,
+    "available": 2627,
+    "used": 3297,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 19.64,
+   "utc": "2026-10-31T23:00:30Z",
+   "vm": {
+    "total": 5924,
+    "available": 2511,
+    "used": 3413,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 24.31,
+   "utc": "2026-10-31T23:00:31Z",
+   "vm": {
+    "total": 5924,
+    "available": 2280,
+    "used": 3644,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 29.25,
+   "utc": "2026-10-31T23:00:36Z",
+   "vm": {
+    "total": 5924,
+    "available": 2278,
+    "used": 3646,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 34.15,
+   "utc": "2026-10-31T23:00:41Z",
+   "vm": {
+    "total": 5924,
+    "available": 2041,
+    "used": 3883,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 38.89,
+   "utc": "2026-10-31T23:00:46Z",
+   "vm": {
+    "total": 5924,
+    "available": 1945,
+    "used": 3979,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 43.47,
+   "utc": "2026-10-31T23:00:51Z",
+   "vm": {
+    "total": 5924,
+    "available": 2187,
+    "used": 3737,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 47.96,
+   "utc": "2026-10-31T23:00:55Z",
+   "vm": {
+    "total": 5924,
+    "available": 2149,
+    "used": 3775,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 52.4,
+   "utc": "2026-10-31T23:01:00Z",
+   "vm": {
+    "total": 5924,
+    "available": 2100,
+    "used": 3824,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 56.81,
+   "utc": "2026-10-31T23:01:01Z",
+   "vm": {
+    "total": 5924,
+    "available": 2048,
+    "used": 3876,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 61.32,
+   "utc": "2026-10-31T23:01:06Z",
+   "vm": {
+    "total": 5924,
+    "available": 2008,
+    "used": 3916,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 65.93,
+   "utc": "2026-10-31T23:01:10Z",
+   "vm": {
+    "total": 5924,
+    "available": 1972,
+    "used": 3952,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 70.33,
+   "utc": "2026-10-31T23:01:15Z",
+   "vm": {
+    "total": 5924,
+    "available": 1993,
+    "used": 3931,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 74.76,
+   "utc": "2026-10-31T23:01:19Z",
+   "vm": {
+    "total": 5924,
+    "available": 2050,
+    "used": 3874,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 79.13,
+   "utc": "2026-10-31T23:01:24Z",
+   "vm": {
+    "total": 5924,
+    "available": 2021,
+    "used": 3903,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 83.7,
+   "utc": "2026-10-31T23:01:28Z",
+   "vm": {
+    "total": 5924,
+    "available": 1965,
+    "used": 3959,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 88.31,
+   "utc": "2026-10-31T23:01:30Z",
+   "vm": {
+    "total": 5924,
+    "available": 1942,
+    "used": 3982,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 92.92,
+   "utc": "2026-10-31T23:01:35Z",
+   "vm": {
+    "total": 5924,
+    "available": 1956,
+    "used": 3968,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 97.45,
+   "utc": "2026-10-31T23:01:39Z",
+   "vm": {
+    "total": 5924,
+    "available": 1952,
+    "used": 3972,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 101.82,
+   "utc": "2026-10-31T23:01:44Z",
+   "vm": {
+    "total": 5924,
+    "available": 1926,
+    "used": 3998,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 106.24,
+   "utc": "2026-10-31T23:01:48Z",
+   "vm": {
+    "total": 5924,
+    "available": 1933,
+    "used": 3991,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 110.63,
+   "utc": "2026-10-31T23:01:52Z",
+   "vm": {
+    "total": 5924,
+    "available": 1929,
+    "used": 3995,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 114.99,
+   "utc": "2026-10-31T23:01:54Z",
+   "vm": {
+    "total": 5924,
+    "available": 1920,
+    "used": 4004,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 119.47,
+   "utc": "2026-10-31T23:01:59Z",
+   "vm": {
+    "total": 5924,
+    "available": 1918,
+    "used": 4006,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 123.99,
+   "utc": "2026-10-31T23:02:03Z",
+   "vm": {
+    "total": 5924,
+    "available": 1905,
+    "used": 4019,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 128.45,
+   "utc": "2026-10-31T23:02:08Z",
+   "vm": {
+    "total": 5924,
+    "available": 2588,
+    "used": 3336,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 132.89,
+   "utc": "2026-10-31T23:02:12Z",
+   "vm": {
+    "total": 5924,
+    "available": 2257,
+    "used": 3667,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 137.33,
+   "utc": "2026-10-31T23:02:16Z",
+   "vm": {
+    "total": 5924,
+    "available": 1962,
+    "used": 3962,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 141.76,
+   "utc": "2026-10-31T23:02:21Z",
+   "vm": {
+    "total": 5924,
+    "available": 1892,
+    "used": 4032,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 146.38,
+   "utc": "2026-10-31T23:02:23Z",
+   "vm": {
+    "total": 5924,
+    "available": 1873,
+    "used": 4051,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 150.86,
+   "utc": "2026-10-31T23:02:27Z",
+   "vm": {
+    "total": 5924,
+    "available": 1806,
+    "used": 4118,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 155.32,
+   "utc": "2026-10-31T23:02:32Z",
+   "vm": {
+    "total": 5924,
+    "available": 1734,
+    "used": 4190,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 159.79,
+   "utc": "2026-10-31T23:02:36Z",
+   "vm": {
+    "total": 5924,
+    "available": 1672,
+    "used": 4252,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 164.19,
+   "utc": "2026-10-31T23:02:41Z",
+   "vm": {
+    "total": 5924,
+    "available": 1609,
+    "used": 4315,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 168.66,
+   "utc": "2026-10-31T23:02:45Z",
+   "vm": {
+    "total": 5924,
+    "available": 1538,
+    "used": 4386,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 173.18,
+   "utc": "2026-10-31T23:02:50Z",
+   "vm": {
+    "total": 5924,
+    "available": 2446,
+    "used": 3478,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 177.57,
+   "utc": "2026-10-31T23:02:51Z",
+   "vm": {
+    "total": 5924,
+    "available": 2170,
+    "used": 3754,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 181.94,
+   "utc": "2026-10-31T23:02:56Z",
+   "vm": {
+    "total": 5924,
+    "available": 1996,
+    "used": 3928,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 186.37,
+   "utc": "2026-10-31T23:03:00Z",
+   "vm": {
+    "total": 5924,
+    "available": 1524,
+    "used": 4400,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 190.87,
+   "utc": "2026-10-31T23:03:05Z",
+   "vm": {
+    "total": 5924,
+    "available": 1174,
+    "used": 4750,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 195.38,
+   "utc": "2026-10-31T23:03:09Z",
+   "vm": {
+    "total": 5924,
+    "available": 1151,
+    "used": 4773,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 199.82,
+   "utc": "2026-10-31T23:03:14Z",
+   "vm": {
+    "total": 5924,
+    "available": 972,
+    "used": 4952,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 204.21,
+   "utc": "2026-10-31T23:03:15Z",
+   "vm": {
+    "total": 5924,
+    "available": 977,
+    "used": 4947,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 208.79,
+   "utc": "2026-10-31T23:03:20Z",
+   "vm": {
+    "total": 5924,
+    "available": 970,
+    "used": 4954,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 213.47,
+   "utc": "2026-10-31T23:03:25Z",
+   "vm": {
+    "total": 5924,
+    "available": 996,
+    "used": 4928,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 217.97,
+   "utc": "2026-10-31T23:03:29Z",
+   "vm": {
+    "total": 5924,
+    "available": 901,
+    "used": 5023,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 222.7,
+   "utc": "2026-10-31T23:03:34Z",
+   "vm": {
+    "total": 5924,
+    "available": 627,
+    "used": 5297,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 227.32,
+   "utc": "2026-10-31T23:03:38Z",
+   "vm": {
+    "total": 5924,
+    "available": 2572,
+    "used": 3352,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 231.8,
+   "utc": "2026-10-31T23:03:43Z",
+   "vm": {
+    "total": 5924,
+    "available": 2566,
+    "used": 3358,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 236.32,
+   "utc": "2026-10-31T23:03:45Z",
+   "vm": {
+    "total": 5924,
+    "available": 2564,
+    "used": 3360,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 240.82,
+   "utc": "2026-10-31T23:03:49Z",
+   "vm": {
+    "total": 5924,
+    "available": 2569,
+    "used": 3355,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 245.38,
+   "utc": "2026-10-31T23:03:54Z",
+   "vm": {
+    "total": 5924,
+    "available": 2570,
+    "used": 3354,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 249.83,
+   "utc": "2026-10-31T23:03:58Z",
+   "vm": {
+    "total": 5924,
+    "available": 2567,
+    "used": 3357,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 254.2,
+   "utc": "2026-10-31T23:04:03Z",
+   "vm": {
+    "total": 5924,
+    "available": 2580,
+    "used": 3344,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 258.56,
+   "utc": "2026-10-31T23:04:07Z",
+   "vm": {
+    "total": 5924,
+    "available": 2583,
+    "used": 3341,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 263.06,
+   "utc": "2026-10-31T23:04:11Z",
+   "vm": {
+    "total": 5924,
+    "available": 2581,
+    "used": 3343,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 267.57,
+   "utc": "2026-10-31T23:04:13Z",
+   "vm": {
+    "total": 5924,
+    "available": 2580,
+    "used": 3344,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 272.07,
+   "utc": "2026-10-31T23:04:18Z",
+   "vm": {
+    "total": 5924,
+    "available": 2576,
+    "used": 3348,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 276.6,
+   "utc": "2026-10-31T23:04:22Z",
+   "vm": {
+    "total": 5924,
+    "available": 2573,
+    "used": 3351,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 281.07,
+   "utc": "2026-10-31T23:04:27Z",
+   "vm": {
+    "total": 5924,
+    "available": 2541,
+    "used": 3383,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 285.58,
+   "utc": "2026-10-31T23:04:31Z",
+   "vm": {
+    "total": 5924,
+    "available": 2540,
+    "used": 3384,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 290.08,
+   "utc": "2026-10-31T23:04:36Z",
+   "vm": {
+    "total": 5924,
+    "available": 2574,
+    "used": 3350,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 294.48,
+   "utc": "2026-10-31T23:04:38Z",
+   "vm": {
+    "total": 5924,
+    "available": 2573,
+    "used": 3351,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 298.99,
+   "utc": "2026-10-31T23:04:42Z",
+   "vm": {
+    "total": 5924,
+    "available": 2580,
+    "used": 3344,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 303.49,
+   "utc": "2026-10-31T23:04:47Z",
+   "vm": {
+    "total": 5924,
+    "available": 2557,
+    "used": 3367,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 307.84,
+   "utc": "2026-10-31T23:04:51Z",
+   "vm": {
+    "total": 5924,
+    "available": 2567,
+    "used": 3357,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 312.31,
+   "utc": "2026-10-31T23:04:55Z",
+   "vm": {
+    "total": 5924,
+    "available": 2557,
+    "used": 3367,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 316.74,
+   "utc": "2026-10-31T23:05:00Z",
+   "vm": {
+    "total": 5924,
+    "available": 2557,
+    "used": 3367,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 321.2,
+   "utc": "2026-10-31T23:05:04Z",
+   "vm": {
+    "total": 5924,
+    "available": 2577,
+    "used": 3347,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 325.58,
+   "utc": "2026-10-31T23:05:06Z",
+   "vm": {
+    "total": 5924,
+    "available": 2578,
+    "used": 3346,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 329.93,
+   "utc": "2026-10-31T23:05:10Z",
+   "vm": {
+    "total": 5924,
+    "available": 2574,
+    "used": 3350,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 334.32,
+   "utc": "2026-10-31T23:05:15Z",
+   "vm": {
+    "total": 5924,
+    "available": 2578,
+    "used": 3346,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 338.75,
+   "utc": "2026-10-31T23:05:19Z",
+   "vm": {
+    "total": 5924,
+    "available": 2579,
+    "used": 3345,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 343.14,
+   "utc": "2026-10-31T23:05:23Z",
+   "vm": {
+    "total": 5924,
+    "available": 2578,
+    "used": 3346,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 347.62,
+   "utc": "2026-10-31T23:05:28Z",
+   "vm": {
+    "total": 5924,
+    "available": 2576,
+    "used": 3348,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 352.03,
+   "utc": "2026-10-31T23:05:32Z",
+   "vm": {
+    "total": 5924,
+    "available": 2568,
+    "used": 3356,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 356.45,
+   "utc": "2026-10-31T23:05:34Z",
+   "vm": {
+    "total": 5924,
+    "available": 2563,
+    "used": 3361,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 360.91,
+   "utc": "2026-10-31T23:05:39Z",
+   "vm": {
+    "total": 5924,
+    "available": 2525,
+    "used": 3399,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 365.29,
+   "utc": "2026-10-31T23:05:43Z",
+   "vm": {
+    "total": 5924,
+    "available": 2527,
+    "used": 3397,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 369.86,
+   "utc": "2026-10-31T23:05:48Z",
+   "vm": {
+    "total": 5924,
+    "available": 2555,
+    "used": 3369,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 374.36,
+   "utc": "2026-10-31T23:05:52Z",
+   "vm": {
+    "total": 5924,
+    "available": 2555,
+    "used": 3369,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 378.77,
+   "utc": "2026-10-31T23:05:56Z",
+   "vm": {
+    "total": 5924,
+    "available": 2554,
+    "used": 3370,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 383.13,
+   "utc": "2026-10-31T23:06:01Z",
+   "vm": {
+    "total": 5924,
+    "available": 2565,
+    "used": 3359,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 387.5,
+   "utc": "2026-10-31T23:06:02Z",
+   "vm": {
+    "total": 5924,
+    "available": 2562,
+    "used": 3362,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 391.97,
+   "utc": "2026-10-31T23:06:07Z",
+   "vm": {
+    "total": 5924,
+    "available": 2563,
+    "used": 3361,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 396.49,
+   "utc": "2026-10-31T23:06:11Z",
+   "vm": {
+    "total": 5924,
+    "available": 2564,
+    "used": 3360,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 401.16,
+   "utc": "2026-10-31T23:06:16Z",
+   "vm": {
+    "total": 5924,
+    "available": 2563,
+    "used": 3361,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 405.65,
+   "utc": "2026-10-31T23:06:21Z",
+   "vm": {
+    "total": 5924,
+    "available": 2563,
+    "used": 3361,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 410.14,
+   "utc": "2026-10-31T23:06:25Z",
+   "vm": {
+    "total": 5924,
+    "available": 2565,
+    "used": 3359,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 414.64,
+   "utc": "2026-10-31T23:06:27Z",
+   "vm": {
+    "total": 5924,
+    "available": 2564,
+    "used": 3360,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 419.24,
+   "utc": "2026-10-31T23:06:32Z",
+   "vm": {
+    "total": 5924,
+    "available": 2557,
+    "used": 3367,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 423.98,
+   "utc": "2026-10-31T23:06:36Z",
+   "vm": {
+    "total": 5924,
+    "available": 2550,
+    "used": 3374,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 428.8,
+   "utc": "2026-10-31T23:06:41Z",
+   "vm": {
+    "total": 5924,
+    "available": 2549,
+    "used": 3375,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 433.37,
+   "utc": "2026-10-31T23:06:46Z",
+   "vm": {
+    "total": 5924,
+    "available": 2544,
+    "used": 3380,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 438.07,
+   "utc": "2026-10-31T23:06:50Z",
+   "vm": {
+    "total": 5924,
+    "available": 2538,
+    "used": 3386,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 442.72,
+   "utc": "2026-10-31T23:06:55Z",
+   "vm": {
+    "total": 5924,
+    "available": 2533,
+    "used": 3391,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 447.19,
+   "utc": "2026-10-31T23:06:57Z",
+   "vm": {
+    "total": 5924,
+    "available": 2532,
+    "used": 3392,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 451.67,
+   "utc": "2026-10-31T23:07:01Z",
+   "vm": {
+    "total": 5924,
+    "available": 2534,
+    "used": 3390,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 456.24,
+   "utc": "2026-10-31T23:07:06Z",
+   "vm": {
+    "total": 5924,
+    "available": 2523,
+    "used": 3401,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 460.79,
+   "utc": "2026-10-31T23:07:10Z",
+   "vm": {
+    "total": 5924,
+    "available": 2524,
+    "used": 3400,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 465.29,
+   "utc": "2026-10-31T23:07:15Z",
+   "vm": {
+    "total": 5924,
+    "available": 2549,
+    "used": 3375,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 469.8,
+   "utc": "2026-10-31T23:07:19Z",
+   "vm": {
+    "total": 5924,
+    "available": 2550,
+    "used": 3374,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 474.44,
+   "utc": "2026-10-31T23:07:21Z",
+   "vm": {
+    "total": 5924,
+    "available": 2555,
+    "used": 3369,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 478.93,
+   "utc": "2026-10-31T23:07:26Z",
+   "vm": {
+    "total": 5924,
+    "available": 2555,
+    "used": 3369,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 483.41,
+   "utc": "2026-10-31T23:07:30Z",
+   "vm": {
+    "total": 5924,
+    "available": 2546,
+    "used": 3378,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 488.04,
+   "utc": "2026-10-31T23:07:35Z",
+   "vm": {
+    "total": 5924,
+    "available": 2548,
+    "used": 3376,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 492.59,
+   "utc": "2026-10-31T23:07:40Z",
+   "vm": {
+    "total": 5924,
+    "available": 2552,
+    "used": 3372,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 497.09,
+   "utc": "2026-10-31T23:07:44Z",
+   "vm": {
+    "total": 5924,
+    "available": 2552,
+    "used": 3372,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 501.59,
+   "utc": "2026-10-31T23:07:49Z",
+   "vm": {
+    "total": 5924,
+    "available": 2553,
+    "used": 3371,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 506.07,
+   "utc": "2026-10-31T23:07:50Z",
+   "vm": {
+    "total": 5924,
+    "available": 2554,
+    "used": 3370,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 510.57,
+   "utc": "2026-10-31T23:07:55Z",
+   "vm": {
+    "total": 5924,
+    "available": 2552,
+    "used": 3372,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 515.04,
+   "utc": "2026-10-31T23:07:59Z",
+   "vm": {
+    "total": 5924,
+    "available": 2552,
+    "used": 3372,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 519.59,
+   "utc": "2026-10-31T23:08:04Z",
+   "vm": {
+    "total": 5924,
+    "available": 2552,
+    "used": 3372,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 524.07,
+   "utc": "2026-10-31T23:08:08Z",
+   "vm": {
+    "total": 5924,
+    "available": 2552,
+    "used": 3372,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 528.62,
+   "utc": "2026-10-31T23:08:13Z",
+   "vm": {
+    "total": 5924,
+    "available": 2546,
+    "used": 3378,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 533.11,
+   "utc": "2026-10-31T23:08:17Z",
+   "vm": {
+    "total": 5924,
+    "available": 2539,
+    "used": 3385,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 537.65,
+   "utc": "2026-10-31T23:08:19Z",
+   "vm": {
+    "total": 5924,
+    "available": 2534,
+    "used": 3390,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 542.2,
+   "utc": "2026-10-31T23:08:24Z",
+   "vm": {
+    "total": 5924,
+    "available": 2517,
+    "used": 3407,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 546.74,
+   "utc": "2026-10-31T23:08:28Z",
+   "vm": {
+    "total": 5924,
+    "available": 2519,
+    "used": 3405,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 551.23,
+   "utc": "2026-10-31T23:08:33Z",
+   "vm": {
+    "total": 5924,
+    "available": 2549,
+    "used": 3375,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 555.71,
+   "utc": "2026-10-31T23:08:37Z",
+   "vm": {
+    "total": 5924,
+    "available": 2542,
+    "used": 3382,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 560.2,
+   "utc": "2026-10-31T23:08:42Z",
+   "vm": {
+    "total": 5924,
+    "available": 2539,
+    "used": 3385,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 564.65,
+   "utc": "2026-10-31T23:08:44Z",
+   "vm": {
+    "total": 5924,
+    "available": 2540,
+    "used": 3384,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 569.12,
+   "utc": "2026-10-31T23:08:48Z",
+   "vm": {
+    "total": 5924,
+    "available": 2554,
+    "used": 3370,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 573.68,
+   "utc": "2026-10-31T23:08:53Z",
+   "vm": {
+    "total": 5924,
+    "available": 2553,
+    "used": 3371,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 578.15,
+   "utc": "2026-10-31T23:08:57Z",
+   "vm": {
+    "total": 5924,
+    "available": 2555,
+    "used": 3369,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 582.72,
+   "utc": "2026-10-31T23:09:02Z",
+   "vm": {
+    "total": 5924,
+    "available": 2555,
+    "used": 3369,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 587.34,
+   "utc": "2026-10-31T23:09:06Z",
+   "vm": {
+    "total": 5924,
+    "available": 2576,
+    "used": 3348,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 591.93,
+   "utc": "2026-10-31T23:09:11Z",
+   "vm": {
+    "total": 5924,
+    "available": 2559,
+    "used": 3365,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 596.58,
+   "utc": "2026-10-31T23:09:13Z",
+   "vm": {
+    "total": 5924,
+    "available": 2573,
+    "used": 3351,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 601.12,
+   "utc": "2026-10-31T23:09:17Z",
+   "vm": {
+    "total": 5924,
+    "available": 2543,
+    "used": 3381,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 605.77,
+   "utc": "2026-10-31T23:09:22Z",
+   "vm": {
+    "total": 5924,
+    "available": 2575,
+    "used": 3349,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 610.59,
+   "utc": "2026-10-31T23:09:27Z",
+   "vm": {
+    "total": 5924,
+    "available": 2593,
+    "used": 3331,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 616.35,
+   "utc": "2026-10-31T23:09:33Z",
+   "vm": {
+    "total": 5924,
+    "available": 2569,
+    "used": 3355,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 621.08,
+   "utc": "2026-10-31T23:09:37Z",
+   "vm": {
+    "total": 5924,
+    "available": 2564,
+    "used": 3360,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 625.65,
+   "utc": "2026-10-31T23:09:39Z",
+   "vm": {
+    "total": 5924,
+    "available": 2561,
+    "used": 3363,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 630.22,
+   "utc": "2026-10-31T23:09:44Z",
+   "vm": {
+    "total": 5924,
+    "available": 2576,
+    "used": 3348,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 634.98,
+   "utc": "2026-10-31T23:09:49Z",
+   "vm": {
+    "total": 5924,
+    "available": 2636,
+    "used": 3288,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 639.68,
+   "utc": "2026-10-31T23:09:53Z",
+   "vm": {
+    "total": 5924,
+    "available": 2631,
+    "used": 3293,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 644.38,
+   "utc": "2026-10-31T23:09:58Z",
+   "vm": {
+    "total": 5924,
+    "available": 2621,
+    "used": 3303,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 649.1,
+   "utc": "2026-10-31T23:10:03Z",
+   "vm": {
+    "total": 5924,
+    "available": 2615,
+    "used": 3309,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 653.7,
+   "utc": "2026-10-31T23:10:07Z",
+   "vm": {
+    "total": 5924,
+    "available": 2582,
+    "used": 3342,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 658.32,
+   "utc": "2026-10-31T23:10:09Z",
+   "vm": {
+    "total": 5924,
+    "available": 2591,
+    "used": 3333,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 663.12,
+   "utc": "2026-10-31T23:10:14Z",
+   "vm": {
+    "total": 5924,
+    "available": 2576,
+    "used": 3348,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 667.93,
+   "utc": "2026-10-31T23:10:19Z",
+   "vm": {
+    "total": 5924,
+    "available": 2570,
+    "used": 3354,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 672.55,
+   "utc": "2026-10-31T23:10:23Z",
+   "vm": {
+    "total": 5924,
+    "available": 2580,
+    "used": 3344,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 677.24,
+   "utc": "2026-10-31T23:10:28Z",
+   "vm": {
+    "total": 5924,
+    "available": 2630,
+    "used": 3294,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 681.94,
+   "utc": "2026-10-31T23:10:33Z",
+   "vm": {
+    "total": 5924,
+    "available": 2515,
+    "used": 3409,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 686.67,
+   "utc": "2026-10-31T23:10:35Z",
+   "vm": {
+    "total": 5924,
+    "available": 2587,
+    "used": 3337,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 691.18,
+   "utc": "2026-10-31T23:10:39Z",
+   "vm": {
+    "total": 5924,
+    "available": 2585,
+    "used": 3339,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 695.84,
+   "utc": "2026-10-31T23:10:44Z",
+   "vm": {
+    "total": 5924,
+    "available": 2611,
+    "used": 3313,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 700.45,
+   "utc": "2026-10-31T23:10:49Z",
+   "vm": {
+    "total": 5924,
+    "available": 2582,
+    "used": 3342,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 705.08,
+   "utc": "2026-10-31T23:10:53Z",
+   "vm": {
+    "total": 5924,
+    "available": 2609,
+    "used": 3315,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 709.67,
+   "utc": "2026-10-31T23:10:58Z",
+   "vm": {
+    "total": 5924,
+    "available": 2487,
+    "used": 3437,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 714.37,
+   "utc": "2026-10-31T23:11:00Z",
+   "vm": {
+    "total": 5924,
+    "available": 2495,
+    "used": 3429,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 719.34,
+   "utc": "2026-10-31T23:11:05Z",
+   "vm": {
+    "total": 5924,
+    "available": 2509,
+    "used": 3415,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 724.14,
+   "utc": "2026-10-31T23:11:10Z",
+   "vm": {
+    "total": 5924,
+    "available": 2508,
+    "used": 3416,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 728.73,
+   "utc": "2026-10-31T23:11:14Z",
+   "vm": {
+    "total": 5924,
+    "available": 2489,
+    "used": 3435,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 733.29,
+   "utc": "2026-10-31T23:11:19Z",
+   "vm": {
+    "total": 5924,
+    "available": 2486,
+    "used": 3438,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 737.89,
+   "utc": "2026-10-31T23:11:23Z",
+   "vm": {
+    "total": 5924,
+    "available": 2475,
+    "used": 3449,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 742.47,
+   "utc": "2026-10-31T23:11:28Z",
+   "vm": {
+    "total": 5924,
+    "available": 2469,
+    "used": 3455,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 747.04,
+   "utc": "2026-10-31T23:11:30Z",
+   "vm": {
+    "total": 5924,
+    "available": 2488,
+    "used": 3436,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 751.67,
+   "utc": "2026-10-31T23:11:34Z",
+   "vm": {
+    "total": 5924,
+    "available": 2508,
+    "used": 3416,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 756.26,
+   "utc": "2026-10-31T23:11:39Z",
+   "vm": {
+    "total": 5924,
+    "available": 2509,
+    "used": 3415,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 760.88,
+   "utc": "2026-10-31T23:11:44Z",
+   "vm": {
+    "total": 5924,
+    "available": 2507,
+    "used": 3417,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 765.43,
+   "utc": "2026-10-31T23:11:48Z",
+   "vm": {
+    "total": 5924,
+    "available": 2494,
+    "used": 3430,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 769.97,
+   "utc": "2026-10-31T23:11:53Z",
+   "vm": {
+    "total": 5924,
+    "available": 2478,
+    "used": 3446,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 774.54,
+   "utc": "2026-10-31T23:11:55Z",
+   "vm": {
+    "total": 5924,
+    "available": 2481,
+    "used": 3443,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 779.11,
+   "utc": "2026-10-31T23:11:59Z",
+   "vm": {
+    "total": 5924,
+    "available": 2479,
+    "used": 3445,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 783.64,
+   "utc": "2026-10-31T23:12:04Z",
+   "vm": {
+    "total": 5924,
+    "available": 2447,
+    "used": 3477,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 788.18,
+   "utc": "2026-10-31T23:12:08Z",
+   "vm": {
+    "total": 5924,
+    "available": 2450,
+    "used": 3474,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 792.9,
+   "utc": "2026-10-31T23:12:13Z",
+   "vm": {
+    "total": 5924,
+    "available": 2486,
+    "used": 3438,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 797.55,
+   "utc": "2026-10-31T23:12:18Z",
+   "vm": {
+    "total": 5924,
+    "available": 2485,
+    "used": 3439,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 802.12,
+   "utc": "2026-10-31T23:12:22Z",
+   "vm": {
+    "total": 5924,
+    "available": 2487,
+    "used": 3437,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 806.62,
+   "utc": "2026-10-31T23:12:24Z",
+   "vm": {
+    "total": 5924,
+    "available": 2522,
+    "used": 3402,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 811.14,
+   "utc": "2026-10-31T23:12:29Z",
+   "vm": {
+    "total": 5924,
+    "available": 2518,
+    "used": 3406,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 815.65,
+   "utc": "2026-10-31T23:12:33Z",
+   "vm": {
+    "total": 5924,
+    "available": 2523,
+    "used": 3401,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 820.18,
+   "utc": "2026-10-31T23:12:38Z",
+   "vm": {
+    "total": 5924,
+    "available": 2525,
+    "used": 3399,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 824.73,
+   "utc": "2026-10-31T23:12:42Z",
+   "vm": {
+    "total": 5924,
+    "available": 2524,
+    "used": 3400,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 829.2,
+   "utc": "2026-10-31T23:12:47Z",
+   "vm": {
+    "total": 5924,
+    "available": 2525,
+    "used": 3399,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 833.68,
+   "utc": "2026-10-31T23:12:51Z",
+   "vm": {
+    "total": 5924,
+    "available": 2518,
+    "used": 3406,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 838.19,
+   "utc": "2026-10-31T23:12:53Z",
+   "vm": {
+    "total": 5924,
+    "available": 2512,
+    "used": 3412,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 842.69,
+   "utc": "2026-10-31T23:12:57Z",
+   "vm": {
+    "total": 5924,
+    "available": 2510,
+    "used": 3414,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 847.23,
+   "utc": "2026-10-31T23:13:02Z",
+   "vm": {
+    "total": 5924,
+    "available": 2515,
+    "used": 3409,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 851.73,
+   "utc": "2026-10-31T23:13:06Z",
+   "vm": {
+    "total": 5924,
+    "available": 2512,
+    "used": 3412,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 856.23,
+   "utc": "2026-10-31T23:13:11Z",
+   "vm": {
+    "total": 5924,
+    "available": 2505,
+    "used": 3419,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 860.75,
+   "utc": "2026-10-31T23:13:15Z",
+   "vm": {
+    "total": 5924,
+    "available": 2506,
+    "used": 3418,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 865.44,
+   "utc": "2026-10-31T23:13:18Z",
+   "vm": {
+    "total": 5924,
+    "available": 2503,
+    "used": 3421,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 870.04,
+   "utc": "2026-10-31T23:13:22Z",
+   "vm": {
+    "total": 5924,
+    "available": 2518,
+    "used": 3406,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 874.61,
+   "utc": "2026-10-31T23:13:27Z",
+   "vm": {
+    "total": 5924,
+    "available": 2500,
+    "used": 3424,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 879.2,
+   "utc": "2026-10-31T23:13:31Z",
+   "vm": {
+    "total": 5924,
+    "available": 2501,
+    "used": 3423,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 883.85,
+   "utc": "2026-10-31T23:13:36Z",
+   "vm": {
+    "total": 5924,
+    "available": 2503,
+    "used": 3421,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 888.52,
+   "utc": "2026-10-31T23:13:41Z",
+   "vm": {
+    "total": 5924,
+    "available": 2504,
+    "used": 3420,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 893.05,
+   "utc": "2026-10-31T23:13:45Z",
+   "vm": {
+    "total": 5924,
+    "available": 2497,
+    "used": 3427,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 897.65,
+   "utc": "2026-10-31T23:13:47Z",
+   "vm": {
+    "total": 5924,
+    "available": 2495,
+    "used": 3429,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 902.23,
+   "utc": "2026-10-31T23:13:52Z",
+   "vm": {
+    "total": 5924,
+    "available": 2502,
+    "used": 3422,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 906.76,
+   "utc": "2026-10-31T23:13:56Z",
+   "vm": {
+    "total": 5924,
+    "available": 2498,
+    "used": 3426,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 911.26,
+   "utc": "2026-10-31T23:14:01Z",
+   "vm": {
+    "total": 5924,
+    "available": 2496,
+    "used": 3428,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 915.79,
+   "utc": "2026-10-31T23:14:05Z",
+   "vm": {
+    "total": 5924,
+    "available": 2511,
+    "used": 3413,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 920.32,
+   "utc": "2026-10-31T23:14:10Z",
+   "vm": {
+    "total": 5924,
+    "available": 2453,
+    "used": 3471,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 925.07,
+   "utc": "2026-10-31T23:14:12Z",
+   "vm": {
+    "total": 5924,
+    "available": 2476,
+    "used": 3448,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 929.87,
+   "utc": "2026-10-31T23:14:17Z",
+   "vm": {
+    "total": 5924,
+    "available": 2477,
+    "used": 3447,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 934.4,
+   "utc": "2026-10-31T23:14:21Z",
+   "vm": {
+    "total": 5924,
+    "available": 2448,
+    "used": 3476,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 938.99,
+   "utc": "2026-10-31T23:14:26Z",
+   "vm": {
+    "total": 5924,
+    "available": 2444,
+    "used": 3480,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 943.51,
+   "utc": "2026-10-31T23:14:30Z",
+   "vm": {
+    "total": 5924,
+    "available": 2444,
+    "used": 3480,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 948.03,
+   "utc": "2026-10-31T23:14:35Z",
+   "vm": {
+    "total": 5924,
+    "available": 2485,
+    "used": 3439,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 952.55,
+   "utc": "2026-10-31T23:14:39Z",
+   "vm": {
+    "total": 5924,
+    "available": 2426,
+    "used": 3498,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 957.07,
+   "utc": "2026-10-31T23:14:41Z",
+   "vm": {
+    "total": 5924,
+    "available": 2467,
+    "used": 3457,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 961.59,
+   "utc": "2026-10-31T23:14:46Z",
+   "vm": {
+    "total": 5924,
+    "available": 2476,
+    "used": 3448,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  },
+  {
+   "t_s": 966.14,
+   "utc": "2026-10-31T23:14:50Z",
+   "vm": {
+    "total": 5924,
+    "available": 2465,
+    "used": 3459,
+    "swap_used": 2048
+   },
+   "containers": {},
+   "gpu_mem_mb": 0.0
+  }
+ ]
+}

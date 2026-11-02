@@ -7,9 +7,9 @@ This folder holds everything for the lab and is self-contained, like `jiuwenbox/
 | Part | Location |
 |---|---|
 | Spec, Spec Kit task records, verification snapshots and reports for milestone PAS-M1 | `missions/PAS-M1/` |
-| SIMLAB application: runner, executors, libraries, model interface, tools (added with the code) | `pyproject.toml`, `src/simlab/`, `tests/`, `docker/` |
+| SIMLAB application: runner, executors, libraries, model interface, tools | `pyproject.toml`, `uv.lock`, `src/simlab/`, `tests/`, `tools/`, `docker/` |
 | Benchmarks | `benchmarks/` |
 | The simulator's own user and developer docs | `docs/` |
 | AI4R capsules that operate it (the only lab code inside AI4R, which loads capsules from there) | `jiuwenswarm/research/capsule_extensions/simlab_*/` |
 
-The build input in `missions/PAS-M1/source/` is the authority for what goes here.
+The build input in `missions/PAS-M1/source/` is the authority for what goes here. Start with [docs/README.md](docs/README.md) to install and use SIMLAB.

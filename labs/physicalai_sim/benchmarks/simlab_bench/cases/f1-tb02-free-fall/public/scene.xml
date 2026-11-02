@@ -1,0 +1,8 @@
+<mujoco model="tb02-free-fall">
+  <worldbody>
+    <body name="ball" pos="0 0 10">
+      <freejoint name="free"/>
+      <geom name="ball_geom" type="sphere" size="0.05" mass="1" contype="0" conaffinity="0"/>
+    </body>
+  </worldbody>
+</mujoco>

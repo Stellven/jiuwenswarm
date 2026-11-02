@@ -1,0 +1,65 @@
+{
+ "listeners": [
+  {
+   "family": "tcp",
+   "ip": "10.255.255.254",
+   "port": 53,
+   "pid": null,
+   "cmd": null
+  },
+  {
+   "family": "tcp",
+   "ip": "0.0.0.0",
+   "port": 22,
+   "pid": null,
+   "cmd": null
+  },
+  {
+   "family": "tcp",
+   "ip": "127.0.0.53",
+   "port": 53,
+   "pid": null,
+   "cmd": null
+  },
+  {
+   "family": "tcp",
+   "ip": "127.0.0.1",
+   "port": 46237,
+   "pid": 52130,
+   "cmd": "/home/ssubr/.nvm/versions/node/v24.11.0/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex workspace"
+  },
+  {
+   "family": "tcp",
+   "ip": "127.0.0.1",
+   "port": 5432,
+   "pid": null,
+   "cmd": null
+  },
+  {
+   "family": "tcp",
+   "ip": "127.0.0.54",
+   "port": 53,
+   "pid": null,
+   "cmd": null
+  },
+  {
+   "family": "tcp6",
+   "ip": "::",
+   "port": 22,
+   "pid": null,
+   "cmd": null
+  }
+ ],
+ "containers": [
+  {
+   "name": "simlab-runner",
+   "image": "simlab-runner:dev",
+   "ports": "",
+   "networks": "none"
+  }
+ ],
+ "port_5175_listening": false,
+ "problems": [],
+ "result": "PASS",
+ "note": "Listeners owned by unrelated host processes are recorded, not attributed to SIMLAB."
+}

@@ -1,0 +1,8 @@
+<mujoco model="tb01-pendulum">
+  <worldbody>
+    <body name="bob" pos="0 0 0">
+      <joint name="hinge" type="hinge" axis="0 1 0"/>
+      <inertial pos="0 0 -${L}" mass="1" diaginertia="1e-9 1e-9 1e-9"/>
+    </body>
+  </worldbody>
+</mujoco>

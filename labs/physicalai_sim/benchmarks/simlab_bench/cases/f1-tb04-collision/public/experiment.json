@@ -1,0 +1,145 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; a direct-stiffness contact sets the restitution",
+ "header": {
+  "objective": "1D collision: momentum is conserved and restitution sets the ratio of relative normal velocities",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "k": 1000000.0,
+     "b": 0.0,
+     "m1": 1.0,
+     "m2": 1.0,
+     "v1": 1.0
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 1e-05,
+   "integrator": "RK4",
+   "cone": "elliptic",
+   "gravity": [
+    0,
+    0,
+    0
+   ]
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-04"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-04"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "collide",
+    "duration_s": 0.3
+   }
+  ],
+  "initial_state": {
+   "qvel": {
+    "ja": "${v1}"
+   }
+  },
+  "events": [
+   {
+    "event_id": "touch",
+    "kind": "contact_begin",
+    "geoms": [
+     "ga",
+     "gb"
+    ]
+   },
+   {
+    "event_id": "release",
+    "kind": "contact_end",
+    "geoms": [
+     "ga",
+     "gb"
+    ]
+   }
+  ]
+ },
+ "measurements": [
+  {
+   "measurement_id": "restitution",
+   "scope": "trial",
+   "unit": "1",
+   "required": true,
+   "definition": {
+    "kind": "velocity_ratio_at_event",
+    "signal": "qvel:ja",
+    "signal_b": "qvel:jb",
+    "event_id": "touch",
+    "t_end_event": "release",
+    "window_s": 0.0
+   }
+  },
+  {
+   "measurement_id": "momentum_drift",
+   "scope": "trial",
+   "unit": "1",
+   "required": true,
+   "definition": {
+    "kind": "relative_drift",
+    "signal": "momentum:total",
+    "component": 0
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "qvel:ja",
+   "unit": "m/s"
+  },
+  {
+   "signal": "qvel:jb",
+   "unit": "m/s"
+  },
+  {
+   "signal": "momentum:total",
+   "unit": "kg m/s",
+   "rate_hz": 10000
+  }
+ ]
+}

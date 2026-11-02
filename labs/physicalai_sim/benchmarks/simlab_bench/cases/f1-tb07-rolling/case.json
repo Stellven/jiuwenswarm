@@ -1,0 +1,89 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb07-rolling",
+ "family": "F1",
+ "tb_id": "TB-07",
+ "title": "Rolling without slipping",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Rolling without slipping: a = g sin theta / (1 + I/mr^2)",
+ "primary_metric": {
+  "name": "acceleration relative error",
+  "definition": "|a - g sin th / (1 + I/mr^2)| / that value"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "arXiv 2603.14634, analytic rolling test",
+  "ContactBench contact criteria (rolling, no slip inside the friction cone)"
+ ],
+ "model_assumptions": "sphere, shell or cylinder (1 kg, radius 0.1 m) on a plane, friction 1, condim 3 (no rolling resistance); incline by tilted gravity (20 degrees); acceleration from a quadratic fit of the centre of mass along the slope.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "solid-sphere",
+   "split": "development",
+   "task": "Solid sphere, radius 0.1 m, 20 degree incline.",
+   "params": {
+    "gtype": "sphere",
+    "gsize": "0.1",
+    "geuler": "0 0 0",
+    "shell": "false"
+   },
+   "seed": 1
+  },
+  {
+   "id": "hollow-sphere",
+   "split": "development",
+   "task": "Thin spherical shell (shell inertia), radius 0.1 m.",
+   "params": {
+    "gtype": "sphere",
+    "gsize": "0.1",
+    "geuler": "0 0 0",
+    "shell": "true"
+   },
+   "seed": 2
+  },
+  {
+   "id": "solid-cylinder",
+   "split": "development",
+   "task": "Solid cylinder, radius 0.1 m, rolling about its axis.",
+   "params": {
+    "gtype": "cylinder",
+    "gsize": "0.1 0.05",
+    "geuler": "90 0 0",
+    "shell": "false"
+   },
+   "seed": 3
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

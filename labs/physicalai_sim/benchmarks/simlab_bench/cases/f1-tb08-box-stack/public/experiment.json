@@ -1,0 +1,128 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; resting contact in a stack",
+ "header": {
+  "objective": "Box stack at rest: stays still, contact forces balance gravity, penetration bounded",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "m1": 1.0,
+     "m2": 1.0,
+     "m3": 1.0
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.001,
+   "integrator": "implicitfast",
+   "cone": "elliptic"
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-08"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-08"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "settle",
+    "duration_s": 1.0
+   },
+   {
+    "step_id": "rest",
+    "duration_s": 1.0
+   }
+  ]
+ },
+ "measurements": [
+  {
+   "measurement_id": "floor_force",
+   "scope": "trial",
+   "unit": "N",
+   "required": true,
+   "definition": {
+    "kind": "final",
+    "signal": "contact:normal_force:floor:g1"
+   }
+  },
+  {
+   "measurement_id": "top_drift",
+   "scope": "trial",
+   "unit": "m",
+   "required": true,
+   "definition": {
+    "kind": "range",
+    "signal": "xpos:b3",
+    "component": 2,
+    "t_start": 1.0,
+    "t_end": 2.0
+   }
+  },
+  {
+   "measurement_id": "penetration",
+   "scope": "trial",
+   "unit": "m",
+   "required": true,
+   "definition": {
+    "kind": "max",
+    "signal": "contact:penetration_max"
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "contact:normal_force:floor:g1",
+   "unit": "N",
+   "rate_hz": 100
+  },
+  {
+   "signal": "xpos:b3",
+   "unit": "m",
+   "rate_hz": 200
+  },
+  {
+   "signal": "contact:penetration_max",
+   "unit": "m"
+  }
+ ]
+}

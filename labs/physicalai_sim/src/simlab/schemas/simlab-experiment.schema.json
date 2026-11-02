@@ -1,0 +1,2263 @@
+{
+  "$defs": {
+    "Arm": {
+      "additionalProperties": false,
+      "properties": {
+        "arm_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Arm Id",
+          "type": "string"
+        },
+        "components": {
+          "items": {
+            "$ref": "#/$defs/ComponentBinding"
+          },
+          "title": "Components",
+          "type": "array"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "description": "Model-file template parameters for this arm",
+          "title": "Params",
+          "type": "object"
+        },
+        "role": {
+          "$ref": "#/$defs/ArmRole"
+        }
+      },
+      "required": [
+        "arm_id",
+        "role",
+        "components"
+      ],
+      "title": "Arm",
+      "type": "object"
+    },
+    "ArmRole": {
+      "enum": [
+        "baseline",
+        "treatment",
+        "control",
+        "reference",
+        "other"
+      ],
+      "title": "ArmRole",
+      "type": "string"
+    },
+    "AssetsRef": {
+      "additionalProperties": false,
+      "properties": {
+        "manifest_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Manifest Id",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "manifest_id",
+        "manifest_sha256"
+      ],
+      "title": "AssetsRef",
+      "type": "object"
+    },
+    "CheckDecl": {
+      "additionalProperties": false,
+      "properties": {
+        "arm_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arm Id"
+        },
+        "arms": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+            "type": "string"
+          },
+          "title": "Arms",
+          "type": "array"
+        },
+        "check_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "check_kind": {
+          "enum": [
+            "known_answer",
+            "control_arm",
+            "rerun",
+            "recomputation"
+          ],
+          "title": "Check Kind",
+          "type": "string"
+        },
+        "condition_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Condition Id"
+        },
+        "expected": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected"
+        },
+        "measurement_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measurement Id"
+        },
+        "measurements": {
+          "description": "Empty: every standard trial measurement",
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+            "type": "string"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Origin"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "required_precision": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Tolerance"
+          },
+          "title": "Required Precision",
+          "type": "object"
+        },
+        "samples_per_arm": {
+          "default": 5,
+          "maximum": 1000,
+          "minimum": 1,
+          "title": "Samples Per Arm",
+          "type": "integer"
+        },
+        "tolerance": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Tolerance"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "IF-001 \u00a75 A1: comparison tolerance"
+        },
+        "variations": {
+          "items": {
+            "$ref": "#/$defs/Variation"
+          },
+          "title": "Variations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "check_id",
+        "check_kind"
+      ],
+      "title": "CheckDecl",
+      "type": "object"
+    },
+    "CheckpointPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_point_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Checkpoint Point Id",
+          "type": "string"
+        },
+        "step_end": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Step End"
+        },
+        "time_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time S"
+        }
+      },
+      "required": [
+        "checkpoint_point_id"
+      ],
+      "title": "CheckpointPoint",
+      "type": "object"
+    },
+    "Comparison": {
+      "additionalProperties": false,
+      "properties": {
+        "aggregation": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Aggregation"
+        },
+        "arms": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+            "type": "string"
+          },
+          "title": "Arms",
+          "type": "array"
+        },
+        "comparison_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Comparison Id",
+          "type": "string"
+        },
+        "counted": {
+          "default": true,
+          "title": "Counted",
+          "type": "boolean"
+        },
+        "measurement_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measurement Id"
+        },
+        "pairing": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pairing"
+        },
+        "required_precision": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Required Precision"
+        },
+        "unit_of_inference": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit Of Inference"
+        }
+      },
+      "required": [
+        "comparison_id"
+      ],
+      "title": "Comparison",
+      "type": "object"
+    },
+    "ComponentBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "description": "Artifact path in the bound manifest",
+          "minLength": 1,
+          "title": "Artifact",
+          "type": "string"
+        },
+        "extension_point": {
+          "enum": [
+            "scene",
+            "controller",
+            "measurement"
+          ],
+          "title": "Extension Point",
+          "type": "string"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        }
+      },
+      "required": [
+        "extension_point",
+        "artifact"
+      ],
+      "title": "ComponentBinding",
+      "type": "object"
+    },
+    "ComponentLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_s": {
+          "default": 30.0,
+          "exclusiveMinimum": 0,
+          "title": "Cpu S",
+          "type": "number"
+        },
+        "memory_mb": {
+          "default": 1536,
+          "minimum": 64,
+          "title": "Memory Mb",
+          "type": "integer"
+        }
+      },
+      "title": "ComponentLimits",
+      "type": "object"
+    },
+    "Condition": {
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Condition Id",
+          "type": "string"
+        },
+        "levels": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "factor_id -> level_id",
+          "title": "Levels",
+          "type": "object"
+        }
+      },
+      "required": [
+        "condition_id"
+      ],
+      "title": "Condition",
+      "type": "object"
+    },
+    "Design": {
+      "additionalProperties": false,
+      "properties": {
+        "comparisons": {
+          "items": {
+            "$ref": "#/$defs/Comparison"
+          },
+          "title": "Comparisons",
+          "type": "array"
+        },
+        "conditions": {
+          "description": "Empty with factors: full factorial; empty without: one nominal condition",
+          "items": {
+            "$ref": "#/$defs/Condition"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "episodes": {
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Episodes",
+          "type": "integer"
+        },
+        "factors": {
+          "items": {
+            "$ref": "#/$defs/Factor"
+          },
+          "title": "Factors",
+          "type": "array"
+        },
+        "pairing": {
+          "default": "none",
+          "enum": [
+            "none",
+            "paired"
+          ],
+          "title": "Pairing",
+          "type": "string"
+        },
+        "randomness": {
+          "$ref": "#/$defs/Randomness"
+        },
+        "replicates": {
+          "maximum": 100000,
+          "minimum": 0,
+          "title": "Replicates",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "replicates",
+        "episodes",
+        "randomness"
+      ],
+      "title": "Design",
+      "type": "object"
+    },
+    "Deviation": {
+      "additionalProperties": false,
+      "properties": {
+        "deviation": {
+          "title": "Deviation",
+          "type": "string"
+        },
+        "origin": {
+          "title": "Origin",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviation",
+        "reason",
+        "origin"
+      ],
+      "title": "Deviation",
+      "type": "object"
+    },
+    "Distribution": {
+      "additionalProperties": false,
+      "properties": {
+        "choices": {
+          "anyOf": [
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "integer"
+                  },
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Choices"
+        },
+        "high": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "High"
+        },
+        "kind": {
+          "enum": [
+            "normal",
+            "uniform",
+            "choice"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "low": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Low"
+        },
+        "mean": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mean"
+        },
+        "std": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Std"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Distribution",
+      "type": "object"
+    },
+    "EngineDecl": {
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "const": "mujoco",
+          "title": "Engine",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "why": {
+          "title": "Why",
+          "type": "string"
+        }
+      },
+      "required": [
+        "engine",
+        "version",
+        "why"
+      ],
+      "title": "EngineDecl",
+      "type": "object"
+    },
+    "EventDecl": {
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "default": 0,
+          "title": "Component",
+          "type": "integer"
+        },
+        "direction": {
+          "default": "any",
+          "enum": [
+            "up",
+            "down",
+            "any"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "event_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Event Id",
+          "type": "string"
+        },
+        "geoms": {
+          "description": "contact events: one or two geom names",
+          "items": {
+            "type": "string"
+          },
+          "title": "Geoms",
+          "type": "array"
+        },
+        "kind": {
+          "enum": [
+            "contact_begin",
+            "contact_end",
+            "threshold"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "signal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signal"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "event_id",
+        "kind"
+      ],
+      "title": "EventDecl",
+      "type": "object"
+    },
+    "Factor": {
+      "additionalProperties": false,
+      "properties": {
+        "factor_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Factor Id",
+          "type": "string"
+        },
+        "levels": {
+          "items": {
+            "$ref": "#/$defs/Level"
+          },
+          "title": "Levels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "factor_id",
+        "levels"
+      ],
+      "title": "Factor",
+      "type": "object"
+    },
+    "FeasibilityEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_arms": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+            "type": "string"
+          },
+          "title": "Affected Arms",
+          "type": "array"
+        },
+        "dependency_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Dependency Id",
+          "type": "string"
+        },
+        "dependency_kind": {
+          "enum": [
+            "engine",
+            "library",
+            "asset",
+            "code",
+            "weights",
+            "data",
+            "model",
+            "service",
+            "other"
+          ],
+          "title": "Dependency Kind",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Ref"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/FeasibilityStatus"
+        }
+      },
+      "required": [
+        "dependency_id",
+        "dependency_kind",
+        "status"
+      ],
+      "title": "FeasibilityEntry",
+      "type": "object"
+    },
+    "FeasibilityStatus": {
+      "enum": [
+        "inspected",
+        "missing",
+        "unverified",
+        "needs_calibration",
+        "ran"
+      ],
+      "title": "FeasibilityStatus",
+      "type": "string"
+    },
+    "InitialState": {
+      "additionalProperties": false,
+      "properties": {
+        "keyframe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Keyframe"
+        },
+        "qpos": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Qpos",
+          "type": "object"
+        },
+        "qvel": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              }
+            ]
+          },
+          "title": "Qvel",
+          "type": "object"
+        }
+      },
+      "title": "InitialState",
+      "type": "object"
+    },
+    "Intervention": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "set_qpos",
+            "set_qvel",
+            "add_qvel",
+            "apply_force",
+            "set_ctrl",
+            "set_gravity"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "at_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "description": "Simulation time, or a template parameter name '${name}'",
+          "title": "At S"
+        },
+        "bounds": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Bounds"
+        },
+        "duration_s": {
+          "default": 0.0,
+          "minimum": 0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "intervention_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Intervention Id",
+          "type": "string"
+        },
+        "target": {
+          "default": "",
+          "title": "Target",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string"
+            },
+            {
+              "items": {
+                "anyOf": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "string"
+                  }
+                ]
+              },
+              "type": "array"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "intervention_id",
+        "at_s",
+        "action",
+        "value"
+      ],
+      "title": "Intervention",
+      "type": "object"
+    },
+    "Level": {
+      "additionalProperties": false,
+      "properties": {
+        "level_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Level Id",
+          "type": "string"
+        },
+        "settings": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Settings",
+          "type": "object"
+        }
+      },
+      "required": [
+        "level_id"
+      ],
+      "title": "Level",
+      "type": "object"
+    },
+    "Limits": {
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "$ref": "#/$defs/ComponentLimits"
+        },
+        "max_sim_time_s": {
+          "exclusiveMinimum": 0,
+          "title": "Max Sim Time S",
+          "type": "number"
+        },
+        "max_wall_s": {
+          "description": "per attempt",
+          "exclusiveMinimum": 0,
+          "title": "Max Wall S",
+          "type": "number"
+        },
+        "watchdog": {
+          "$ref": "#/$defs/Watchdog"
+        }
+      },
+      "required": [
+        "max_sim_time_s",
+        "max_wall_s"
+      ],
+      "title": "Limits",
+      "type": "object"
+    },
+    "Measurement": {
+      "additionalProperties": false,
+      "properties": {
+        "definition": {
+          "$ref": "#/$defs/MeasurementDefinition"
+        },
+        "measurement_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Measurement Id",
+          "type": "string"
+        },
+        "required": {
+          "default": false,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "scope": {
+          "$ref": "#/$defs/MeasurementScope"
+        },
+        "signals": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Signals",
+          "type": "array"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "measurement_id",
+        "definition",
+        "scope",
+        "unit"
+      ],
+      "title": "Measurement",
+      "type": "object"
+    },
+    "MeasurementDefinition": {
+      "additionalProperties": false,
+      "properties": {
+        "arms": {
+          "description": "pair scope: [reference arm, compared arm]; set scope: arms included",
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+            "type": "string"
+          },
+          "title": "Arms",
+          "type": "array"
+        },
+        "artifact": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "component kind: artifact path of the measurement component",
+          "title": "Artifact"
+        },
+        "by_condition": {
+          "default": true,
+          "title": "By Condition",
+          "type": "boolean"
+        },
+        "component": {
+          "default": 0,
+          "title": "Component",
+          "type": "integer"
+        },
+        "direction": {
+          "default": "any",
+          "enum": [
+            "up",
+            "down",
+            "any"
+          ],
+          "title": "Direction",
+          "type": "string"
+        },
+        "event_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Event Id"
+        },
+        "kind": {
+          "enum": [
+            "final",
+            "initial",
+            "at_time",
+            "max",
+            "min",
+            "mean",
+            "max_abs",
+            "range",
+            "displacement",
+            "first_crossing_time",
+            "period",
+            "fit_acceleration",
+            "decay_rate",
+            "relative_drift",
+            "event_time",
+            "event_count",
+            "velocity_ratio_at_event",
+            "pair_difference",
+            "pair_ratio",
+            "set_mean",
+            "set_std",
+            "set_min",
+            "set_max",
+            "set_count",
+            "component"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Level"
+        },
+        "of": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "pair/set scope: the trial measurement aggregated",
+          "title": "Of"
+        },
+        "signal": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Signal"
+        },
+        "signal_b": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "velocity_ratio_at_event: subtract this signal (relative velocity)",
+          "title": "Signal B"
+        },
+        "t": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "T"
+        },
+        "t_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "T End"
+        },
+        "t_end_event": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "velocity_ratio_at_event: the event that ends the interaction",
+          "title": "T End Event"
+        },
+        "t_start": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "T Start"
+        },
+        "window_s": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "velocity_ratio_at_event: sample this long before and after",
+          "title": "Window S"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "MeasurementDefinition",
+      "type": "object"
+    },
+    "MeasurementScope": {
+      "enum": [
+        "trial",
+        "pair",
+        "set"
+      ],
+      "title": "MeasurementScope",
+      "type": "string"
+    },
+    "ObjectiveKind": {
+      "enum": [
+        "claim_test",
+        "assumption_test",
+        "mechanism",
+        "design_comparison",
+        "robustness",
+        "follow_up",
+        "exploration"
+      ],
+      "title": "ObjectiveKind",
+      "type": "string"
+    },
+    "ParentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checkpoint Id"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        }
+      },
+      "title": "ParentRef",
+      "type": "object"
+    },
+    "Predicate": {
+      "additionalProperties": false,
+      "properties": {
+        "measurement_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Measurement Id",
+          "type": "string"
+        },
+        "op": {
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "==",
+            "!="
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Origin"
+        },
+        "predicate_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Predicate Id",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "predicate_id",
+        "measurement_id",
+        "op",
+        "value"
+      ],
+      "title": "Predicate",
+      "type": "object"
+    },
+    "Procedure": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoints": {
+          "items": {
+            "$ref": "#/$defs/CheckpointPoint"
+          },
+          "title": "Checkpoints",
+          "type": "array"
+        },
+        "events": {
+          "items": {
+            "$ref": "#/$defs/EventDecl"
+          },
+          "title": "Events",
+          "type": "array"
+        },
+        "initial_state": {
+          "$ref": "#/$defs/InitialState"
+        },
+        "interventions": {
+          "items": {
+            "$ref": "#/$defs/Intervention"
+          },
+          "title": "Interventions",
+          "type": "array"
+        },
+        "steps": {
+          "items": {
+            "$ref": "#/$defs/Step"
+          },
+          "title": "Steps",
+          "type": "array"
+        }
+      },
+      "required": [
+        "steps"
+      ],
+      "title": "Procedure",
+      "type": "object"
+    },
+    "ProtocolItem": {
+      "additionalProperties": false,
+      "properties": {
+        "item_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Item Id",
+          "type": "string"
+        },
+        "item_kind": {
+          "enum": [
+            "predicate",
+            "threshold",
+            "arm",
+            "variable",
+            "trial_count",
+            "measurement",
+            "procedure",
+            "other"
+          ],
+          "title": "Item Kind",
+          "type": "string"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Source reference with locator, or 'requester_declared'",
+          "title": "Origin"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "item_id",
+        "item_kind"
+      ],
+      "title": "ProtocolItem",
+      "type": "object"
+    },
+    "RandomVariable": {
+      "additionalProperties": false,
+      "properties": {
+        "bounds": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Admissible range; a sample outside it cannot be applied as declared",
+          "title": "Bounds"
+        },
+        "distribution": {
+          "$ref": "#/$defs/Distribution"
+        },
+        "name": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "distribution"
+      ],
+      "title": "RandomVariable",
+      "type": "object"
+    },
+    "Randomness": {
+      "additionalProperties": false,
+      "properties": {
+        "base_seed": {
+          "exclusiveMaximum": 9223372036854775808,
+          "minimum": 0,
+          "title": "Base Seed",
+          "type": "integer"
+        },
+        "random_variables": {
+          "items": {
+            "$ref": "#/$defs/RandomVariable"
+          },
+          "title": "Random Variables",
+          "type": "array"
+        },
+        "seed_policy": {
+          "enum": [
+            "fixed",
+            "derived"
+          ],
+          "title": "Seed Policy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "seed_policy",
+        "base_seed"
+      ],
+      "title": "Randomness",
+      "type": "object"
+    },
+    "Requirement": {
+      "additionalProperties": false,
+      "properties": {
+        "component": {
+          "default": 0,
+          "title": "Component",
+          "type": "integer"
+        },
+        "op": {
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">=",
+            "abs<"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "signal": {
+          "title": "Signal",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "signal",
+        "op",
+        "value"
+      ],
+      "title": "Requirement",
+      "type": "object"
+    },
+    "ResolvedConfiguration": {
+      "additionalProperties": false,
+      "description": "Every effective engine and runner setting. Required fields have no default:\nnothing implicit. The executor records the effective engine options as run.",
+      "properties": {
+        "cone": {
+          "default": "pyramidal",
+          "enum": [
+            "pyramidal",
+            "elliptic"
+          ],
+          "title": "Cone",
+          "type": "string"
+        },
+        "control_every_steps": {
+          "default": 1,
+          "description": "Controller components are called every N steps",
+          "minimum": 1,
+          "title": "Control Every Steps",
+          "type": "integer"
+        },
+        "disable_flags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Disable Flags",
+          "type": "array"
+        },
+        "enable_flags": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Enable Flags",
+          "type": "array"
+        },
+        "engine": {
+          "const": "mujoco",
+          "title": "Engine",
+          "type": "string"
+        },
+        "gravity": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "number"
+              },
+              "maxItems": 3,
+              "minItems": 3,
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "m/s^2; None keeps the model file's value (recorded as run)",
+          "title": "Gravity"
+        },
+        "impratio": {
+          "default": 1.0,
+          "exclusiveMinimum": 0,
+          "title": "Impratio",
+          "type": "number"
+        },
+        "integrator": {
+          "enum": [
+            "Euler",
+            "RK4",
+            "implicit",
+            "implicitfast"
+          ],
+          "title": "Integrator",
+          "type": "string"
+        },
+        "iterations": {
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Iterations",
+          "type": "integer"
+        },
+        "ls_iterations": {
+          "default": 50,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Ls Iterations",
+          "type": "integer"
+        },
+        "noslip_iterations": {
+          "default": 0,
+          "maximum": 10000,
+          "minimum": 0,
+          "title": "Noslip Iterations",
+          "type": "integer"
+        },
+        "solver": {
+          "enum": [
+            "PGS",
+            "CG",
+            "Newton"
+          ],
+          "title": "Solver",
+          "type": "string"
+        },
+        "timestep": {
+          "exclusiveMinimum": 0,
+          "maximum": 1.0,
+          "title": "Timestep",
+          "type": "number"
+        },
+        "tolerance": {
+          "minimum": 0,
+          "title": "Tolerance",
+          "type": "number"
+        }
+      },
+      "required": [
+        "engine",
+        "timestep",
+        "integrator",
+        "solver",
+        "iterations",
+        "tolerance"
+      ],
+      "title": "ResolvedConfiguration",
+      "type": "object"
+    },
+    "SourceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "source_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "ref"
+      ],
+      "title": "SourceRef",
+      "type": "object"
+    },
+    "StandIn": {
+      "additionalProperties": false,
+      "properties": {
+        "origin": {
+          "title": "Origin",
+          "type": "string"
+        },
+        "stand_in": {
+          "title": "Stand In",
+          "type": "string"
+        },
+        "stands_in_for": {
+          "title": "Stands In For",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stands_in_for",
+        "stand_in",
+        "origin"
+      ],
+      "title": "StandIn",
+      "type": "object"
+    },
+    "Step": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "require": {
+          "description": "Protocol preconditions checked at the step's end",
+          "items": {
+            "$ref": "#/$defs/Requirement"
+          },
+          "title": "Require",
+          "type": "array"
+        },
+        "step_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Step Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "duration_s"
+      ],
+      "title": "Step",
+      "type": "object"
+    },
+    "Threshold": {
+      "additionalProperties": false,
+      "properties": {
+        "applies_to": {
+          "default": "",
+          "title": "Applies To",
+          "type": "string"
+        },
+        "origin": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Origin"
+        },
+        "threshold_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Threshold Id",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "threshold_id",
+        "value"
+      ],
+      "title": "Threshold",
+      "type": "object"
+    },
+    "Tolerance": {
+      "additionalProperties": false,
+      "properties": {
+        "abs": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Abs"
+        },
+        "rel": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Rel"
+        }
+      },
+      "title": "Tolerance",
+      "type": "object"
+    },
+    "TraceSignal": {
+      "additionalProperties": false,
+      "properties": {
+        "frame": {
+          "default": "world",
+          "title": "Frame",
+          "type": "string"
+        },
+        "rate_hz": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "None: every step",
+          "title": "Rate Hz"
+        },
+        "signal": {
+          "title": "Signal",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "signal",
+        "unit"
+      ],
+      "title": "TraceSignal",
+      "type": "object"
+    },
+    "Variation": {
+      "additionalProperties": false,
+      "properties": {
+        "setting": {
+          "description": "'config.<field>' or 'param:<template parameter>'",
+          "title": "Setting",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "setting",
+        "values"
+      ],
+      "title": "Variation",
+      "type": "object"
+    },
+    "Watchdog": {
+      "additionalProperties": false,
+      "properties": {
+        "energy_floor": {
+          "default": 1e-09,
+          "exclusiveMinimum": 0,
+          "title": "Energy Floor",
+          "type": "number"
+        },
+        "max_energy_growth": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "relative to max(|E0|, energy_floor)",
+          "title": "Max Energy Growth"
+        },
+        "max_penetration": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "m",
+          "title": "Max Penetration"
+        },
+        "max_speed": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "m/s or rad/s on any generalized velocity",
+          "title": "Max Speed"
+        }
+      },
+      "title": "Watchdog",
+      "type": "object"
+    }
+  },
+  "$id": "https://simlab.local/schemas/simlab-if-001@r1/simlab-experiment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "arms": {
+      "items": {
+        "$ref": "#/$defs/Arm"
+      },
+      "title": "Arms",
+      "type": "array"
+    },
+    "assets": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AssetsRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/CheckDecl"
+      },
+      "title": "Checks",
+      "type": "array"
+    },
+    "declared_stand_ins": {
+      "items": {
+        "$ref": "#/$defs/StandIn"
+      },
+      "title": "Declared Stand Ins",
+      "type": "array"
+    },
+    "design": {
+      "$ref": "#/$defs/Design"
+    },
+    "deviations": {
+      "items": {
+        "$ref": "#/$defs/Deviation"
+      },
+      "title": "Deviations",
+      "type": "array"
+    },
+    "engines": {
+      "items": {
+        "$ref": "#/$defs/EngineDecl"
+      },
+      "title": "Engines",
+      "type": "array"
+    },
+    "experiment_id": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Experiment Id"
+    },
+    "feasibility": {
+      "items": {
+        "$ref": "#/$defs/FeasibilityEntry"
+      },
+      "title": "Feasibility",
+      "type": "array"
+    },
+    "limits": {
+      "$ref": "#/$defs/Limits"
+    },
+    "measurements": {
+      "items": {
+        "$ref": "#/$defs/Measurement"
+      },
+      "title": "Measurements",
+      "type": "array"
+    },
+    "objective": {
+      "minLength": 1,
+      "title": "Objective",
+      "type": "string"
+    },
+    "objective_kind": {
+      "$ref": "#/$defs/ObjectiveKind"
+    },
+    "parent": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ParentRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "predicates": {
+      "items": {
+        "$ref": "#/$defs/Predicate"
+      },
+      "title": "Predicates",
+      "type": "array"
+    },
+    "probes": {
+      "items": {
+        "$ref": "#/$defs/TraceSignal"
+      },
+      "title": "Probes",
+      "type": "array"
+    },
+    "procedure": {
+      "$ref": "#/$defs/Procedure"
+    },
+    "protocol_items": {
+      "items": {
+        "$ref": "#/$defs/ProtocolItem"
+      },
+      "title": "Protocol Items",
+      "type": "array"
+    },
+    "record": {
+      "const": "simlab-experiment",
+      "default": "simlab-experiment",
+      "title": "Record",
+      "type": "string"
+    },
+    "resolved_configuration": {
+      "$ref": "#/$defs/ResolvedConfiguration"
+    },
+    "schema_version": {
+      "const": "simlab-if-001@r1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceRef"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "thresholds": {
+      "items": {
+        "$ref": "#/$defs/Threshold"
+      },
+      "title": "Thresholds",
+      "type": "array"
+    },
+    "trace_signals": {
+      "items": {
+        "$ref": "#/$defs/TraceSignal"
+      },
+      "title": "Trace Signals",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "objective",
+    "objective_kind",
+    "engines",
+    "resolved_configuration",
+    "arms",
+    "design",
+    "procedure",
+    "limits"
+  ],
+  "title": "Experiment",
+  "type": "object",
+  "x-simlab-interface": "simlab-if-001@r1"
+}

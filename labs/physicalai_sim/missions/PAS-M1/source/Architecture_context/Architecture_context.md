@@ -1,6 +1,6 @@
 # SIMLAB: supporting architecture context
 
-**Architecture Design Context · r0.4.2.** Read the [Main entrypoint](../Architecture_main_body/Architecture_main_body.md) first. This page gives the shared interfaces, flows, failure behavior, worked example, required reading and open inputs.
+**Architecture Design Context · r0.4.3.** Read the [Main entrypoint](../Architecture_main_body/Architecture_main_body.md) first. This page gives the shared interfaces, flows, failure behavior, worked example, required reading and open inputs.
 
 ## System picture
 
@@ -63,7 +63,7 @@ Fit2Form (CoRL 2020) compares gripper finger designs in PyBullet. The first demo
 | Read | Take from it |
 |---|---|
 | `AGENTS.md`, `.specify/memory/constitution.md`, `docs/code/Code_SOP.md`, `SPEC_KIT_WORKFLOW.md`, `VERIFICATION.md`, `GIT_WORKFLOW.md` | Rules, Spec Kit process, evidence, git |
-| AI4R design package (`design-method.md`, `principles.md`, `capsules.md`, `placement.md`, `reference/field-catalog.md`) | Capsule format, checking, placement, field conventions |
+| AI4R design package `docs/architecture/design-package/` (`method/design-method.md`, `method/principles.md`, `2-capability-capsules.md`, `platform/README.md`, `reference/field-catalog.md`) | Capsule format, checking, placement, field conventions |
 | `docs/capsules/agentic-builder.md`, `typed-planner-m1.md` | Builder tool-loop pattern; Planner selection |
 | Benchmark requirements v0.12, `benchmarks/harbor_suite/`, `deploy/m1/capsule_checks.py` | Benchmark rules and format, check runner, evidence files |
 

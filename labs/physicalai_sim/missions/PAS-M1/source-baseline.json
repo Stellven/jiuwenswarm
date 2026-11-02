@@ -1,11 +1,11 @@
 {
-  "revision": "r0.4",
-  "captured_utc": "2026-10-31T00:23:24Z",
-  "git_head": "0b5292625ac6a221e340c8955ffcdf3638b484c6",
+  "revision": "r0.4.3",
+  "captured_utc": "2026-10-31T22:38:48Z",
+  "git_head": "d3054741d2cdeae2d57f80e40a2f7a460902596b",
   "branch": "PhysicalAI-Sim (forked from AI4Research-Main)",
   "sources": {
     "digest_method": "SHA256 of UTF-8 compact JSON of ordered file receipts; sort_keys=True",
-    "sha256": "3d2308fc59dad81e4c5d9245ec2c577806510bdf34884edd0ccacd9ee02567a1",
+    "sha256": "3049f0bc9972e18b531c54b86003f154cac46bb6f8b5dd1b65e75f86aa4a3aba",
     "files": [
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/.gitattributes",
@@ -14,18 +14,18 @@
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/Architecture_context/Architecture_context.md",
-        "bytes": 8165,
-        "sha256": "9676370c2925999f21ad53256c29bed78c676acd5818066e152d5b3d92cd4932"
+        "bytes": 8234,
+        "sha256": "9e0b13c01e7a45984904cc883a22bd73b70e33821d8412fbd073e6ffdedf38af"
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/Architecture_main_body/Architecture_main_body.md",
-        "bytes": 10391,
-        "sha256": "29eceb0df75ad21b4caa0f25f578ec2b747d763f9474a3bbea72f07bc9b26f9b"
+        "bytes": 10885,
+        "sha256": "43ff166a6b223fcc772d59abeb193502b12b69b7be3193f796a33d586c8b6c03"
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/PRD_context/PRD_context.md",
         "bytes": 3565,
-        "sha256": "4bed52d9b4f8d6d96624f8b8b0b5b9374cdd6840447d882a6c115a64a536cedf"
+        "sha256": "f6f5b8278b4be56037ae5e11e6d203d9044c2c4c65d463fd6ba9bb8bd33ec2b0"
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/PRD_context/hypothesis-register.json",
@@ -35,12 +35,12 @@
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/PRD_main_body/PRD_main_body.md",
         "bytes": 7710,
-        "sha256": "705270d260a4b528b6b378c9ed19a287ae3457833e81487a22bdef7fa264af59"
+        "sha256": "f22451f532ae7d9c9e556ca467e47821865e65fc0b7167210c0503cec889023f"
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/README.md",
         "bytes": 563,
-        "sha256": "f4936151d6e8f4a2d41376f5651f8cf627ef88dce48d9b2c422fb1af57fdae30"
+        "sha256": "14978af243cd2692b356059f817f5a2cd732663391925fb2eacff56f39fe0a20"
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/Verification/README.md",
@@ -50,7 +50,7 @@
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/Verification/benchmark-and-test-plan.md",
         "bytes": 10919,
-        "sha256": "0c1c91dc555a3ebaa367b8f45633f5c64f4877a776f19009642bca0ea4d7792d"
+        "sha256": "7eb5ef323804821fed61a48056fb3e566667486682aeede99c25999ef7c7981e"
       },
       {
         "path": "labs/physicalai_sim/missions/PAS-M1/source/Verification/official-benchmarks-catalogue.md",

@@ -1,0 +1,114 @@
+{
+ "record": "simlab-fresh-checkout",
+ "v_id": "V-X1.6",
+ "ac": "PAS-M1-001/AC-017",
+ "mode": "rehearsal",
+ "started_utc": "2026-11-01T23:36:25Z",
+ "recorded_run": "run-73e46f157e694fc8ac49",
+ "work_dir": "/tmp/simlab-fresh-e6plreyl",
+ "source": {
+  "kind": "clean export of the working tree (tracked + untracked, not ignored, missions/ excluded)",
+  "files": 589,
+  "head": "d3054741d2cdeae2d57f80e40a2f7a460902596b"
+ },
+ "build": {
+  "exit_code": 0,
+  "wall_s": 53.8,
+  "tag": "simlab-runner:fresh-2c3fba9b",
+  "context": "/tmp/simlab-fresh-e6plreyl/checkout/labs/physicalai_sim",
+  "no_cache": true,
+  "image_id": "sha256:ae0c549515858ed98094d534660ebe9c1ca733202f4173fc9397bd9a18944b74",
+  "build_identity": {
+   "build_id": "d5339f6d04a99f79998cef47c7b02cf7ea4eacef8ad04403b4a906827192c0c6",
+   "lock_sha256": "85c504fe4dab931ac24040d216c93b2460bb16766d572d8c26a5ddcd82ee72d7",
+   "machine": "x86_64",
+   "mujoco": "3.17.0",
+   "pyproject_sha256": "b5edb5ac74608916210b08b3894f9fa8aaba92b244ebbac24116ad4c2d640ba0",
+   "python": "3.12.16",
+   "record": "simlab-build-identity",
+   "source_digest": "e3541133f017ca6791092a0fcb0ac00e708aa944c7e80be63371ad6bccde8a34",
+   "source_files": 39
+  }
+ },
+ "export": {
+  "exit_code": 0,
+  "stdout": "{\"experiment_id\": \"exp-aeee692243f9cf6533b40904\", \"manifest_sha256\": \"3a707b0a3f8d272b360eb5baa444d789bc981c3b114f2cd72765731f3c82d7e4\", \"run_id\": \"run-73e46f157e694fc8ac49\", \"artifacts\": 6}\n",
+  "stderr": ""
+ },
+ "declared_inputs": [
+  "artifacts/measurements/energy_drift.json",
+  "artifacts/observations/energy_total.json",
+  "artifacts/observations/qpos_j1.json",
+  "artifacts/observations/qpos_j2.json",
+  "artifacts/procedure.json",
+  "artifacts/scene.xml",
+  "experiment.json",
+  "manifest.json",
+  "recorded-result.json"
+ ],
+ "fresh_container": {
+  "command": [
+   "docker",
+   "run",
+   "-d",
+   "--name",
+   "simlab-fresh-f7b278",
+   "--network",
+   "none",
+   "--read-only",
+   "--tmpfs",
+   "/tmp:size=256m",
+   "--user",
+   "1000:1000",
+   "-e",
+   "HOME=/tmp",
+   "-e",
+   "SIMLAB_IN_CONTAINER=1",
+   "-e",
+   "SIMLAB_IMAGE_ID=sha256:ae0c549515858ed98094d534660ebe9c1ca733202f4173fc9397bd9a18944b74",
+   "-e",
+   "SIMLAB_HOST_ID=SurajS",
+   "-v",
+   "/tmp/simlab-fresh-e6plreyl/data:/data",
+   "-v",
+   "/tmp/simlab-fresh-e6plreyl/inputs:/inputs:ro",
+   "simlab-runner:fresh-2c3fba9b",
+   "serve"
+  ],
+  "mounts": {
+   "/data": "empty",
+   "/inputs": "declared inputs, read-only"
+  },
+  "network": "none"
+ },
+ "reproduction": {
+  "comparison": {
+   "differences": [],
+   "equal": true,
+   "rule": "bitwise-equal per-step state digests and equal measurement values, trial by trial",
+   "trials": 1
+  },
+  "identical_content": {
+   "experiment_id": true,
+   "manifest_sha256": true
+  },
+  "result_identity": {
+   "build_id": "d5339f6d04a99f79998cef47c7b02cf7ea4eacef8ad04403b4a906827192c0c6",
+   "cpu_model": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+   "engines": {
+    "mujoco": "3.17.0"
+   },
+   "host_id": "SurajS",
+   "image_digest": "sha256:ae0c549515858ed98094d534660ebe9c1ca733202f4173fc9397bd9a18944b74",
+   "lock_sha256": "85c504fe4dab931ac24040d216c93b2460bb16766d572d8c26a5ddcd82ee72d7",
+   "numpy": "2.5.4",
+   "python": "3.12.16",
+   "simlab_version": "0.1.0",
+   "source_revision": "unknown"
+  },
+  "run_id": "run-4162500c3e9242548bbb"
+ },
+ "wall_s": 63.8,
+ "result": "REHEARSAL_REPRODUCED",
+ "note": "A rehearsal from an export of uncommitted work is not X1.6 evidence; X1.6 needs a clean clone of an owner commit."
+}

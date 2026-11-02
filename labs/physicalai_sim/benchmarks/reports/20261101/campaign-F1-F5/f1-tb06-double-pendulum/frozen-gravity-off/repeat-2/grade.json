@@ -1,0 +1,37 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-5bc24e8367ae4167be53"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt INVALID missing_required_observation",
+   "status": "fail"
+  },
+  {
+   "evidence_refs": [],
+   "id": "trajectory",
+   "reason": "max angle error 2.329e+00 rad over 2001 samples to 2.0 s (tolerance 0.001)",
+   "status": "fail"
+  },
+  {
+   "evidence_refs": [],
+   "id": "energy-bounded",
+   "reason": "no energy measurement",
+   "status": "fail"
+  },
+  {
+   "evidence_refs": [],
+   "id": "moves",
+   "reason": "first joint moved 0 rad (a frozen simulation does not)",
+   "status": "fail"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "primary_metric": "max absolute angle error vs reference (rad)",
+  "primary_value": 2.328655800628841,
+  "samples": 2001,
+  "tolerance": 0.001
+ }
+}

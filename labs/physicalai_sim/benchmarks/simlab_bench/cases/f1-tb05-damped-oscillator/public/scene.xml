@@ -1,0 +1,8 @@
+<mujoco model="tb05-damped-oscillator">
+  <worldbody>
+    <body name="mass">
+      <joint name="s" type="slide" axis="1 0 0" stiffness="${k}" damping="${c}"/>
+      <geom type="sphere" size="0.05" mass="${m}" contype="0" conaffinity="0"/>
+    </body>
+  </worldbody>
+</mujoco>

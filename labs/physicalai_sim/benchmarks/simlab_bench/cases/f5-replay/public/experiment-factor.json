@@ -1,0 +1,136 @@
+{
+ "scene": "controlled.xml",
+ "engine_why": "MuJoCo is the admitted executor",
+ "header": {
+  "objective": "A replay of a recorded run reproduces it exactly on the same machine and build",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "controlled.xml"
+     },
+     {
+      "extension_point": "controller",
+      "artifact": "noisy.py"
+     }
+    ],
+    "params": {
+     "kp": 3.0,
+     "noise": 0.3
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.001,
+   "integrator": "RK4"
+  },
+  "design": {
+   "factors": [
+    {
+     "factor_id": "gain",
+     "levels": [
+      {
+       "level_id": "soft",
+       "settings": {
+        "kp": 1.0
+       }
+      },
+      {
+       "level_id": "stiff",
+       "settings": {
+        "kp": 6.0
+       }
+      }
+     ]
+    }
+   ],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": [
+     {
+      "name": "theta0",
+      "distribution": {
+       "kind": "normal",
+       "mean": 0.3,
+       "std": 0.1
+      }
+     }
+    ]
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-09 / F5"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-09 / F5"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "first",
+    "duration_s": 1.0
+   },
+   {
+    "step_id": "second",
+    "duration_s": 1.0
+   }
+  ],
+  "initial_state": {
+   "qpos": {
+    "hinge": "${theta0}"
+   }
+  },
+  "checkpoints": []
+ },
+ "measurements": [
+  {
+   "measurement_id": "final_angle",
+   "scope": "trial",
+   "unit": "rad",
+   "required": true,
+   "definition": {
+    "kind": "final",
+    "signal": "qpos:hinge"
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "qpos:hinge",
+   "unit": "rad"
+  }
+ ],
+ "components": {
+  "noisy.py": {
+   "extension_point": "controller",
+   "file": "noisy.py"
+  }
+ }
+}

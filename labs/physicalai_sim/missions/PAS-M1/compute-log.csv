@@ -1,0 +1,225 @@
+date,task,what ran,wall s,CPU s,peak RAM MB,peak VRAM MB,disk MB,notes
+2026-10-31 19:16:00 EDT,PAS-M1-001/T005,"docker build simlab-runner:dev (second attempt; first failed at useradd, 17.8 s)",42.0,n/a (BuildKit in Docker VM),n/a (not sampled),n/a (no GPU),174 (image size 173.9 MB),image sha256:2c83267ee2a0…; build_id 63d8c776…
+2026-10-31 19:14:52 EDT,PAS-M1-001/T007,"docker build ai4r:local (Dockerfile.app production, unmodified AI4R at d3054741d)",967.61,33.16 (client side only),"5297 (WSL VM used, peak)",n/a (no GPU use),,exit 0.
+2026-11-01T01:20:24Z,PAS-M1-001/T007,V-X1.1 feasibility run1-fail-unknown-session: AI4R app + simulator container + one codex.chat request,90.008,81.961 (simulator; AI4R not metered),"4249 (WSL VM peak; ai4r 510.2, sim 42.8)",0.0,0,"result FAIL: model request failed: ""Research request is not authorized or valid"""
+2026-11-01T01:23:05Z,PAS-M1-001/T007,V-X1.1 feasibility run2: AI4R app + simulator container + one codex.chat request,120.021,109.296 (simulator; AI4R not metered),"4296 (WSL VM peak; ai4r 529.7, sim 47.9)",0.0,0,"result FAIL: model request failed: ""Codex: TURN_FAILED"""
+2026-10-31 21:52:54 EDT,PAS-M1-001/T045-dev,check group core,1.36,,,n/a (no GPU),0.002,exit 1; None; evidence .test_logs/simlab/core/20261031T215252-17c056
+2026-10-31 21:55:26 EDT,PAS-M1-001/T045-dev,check group core,152.41,138.79,324.0,n/a (no GPU),0.03,"exit 1; {'errors': 0, 'failures': 2, 'passed': 86, 'skipped': 0, 'tests': 88}; evidence .test_logs/simlab/core/20261031T215307-105ff7"
+2026-11-01 01:15:15 EST,PAS-M1-001/T005,docker build simlab-runner:dev (final phase 1 source),14.62,2.11 (client side only),"3629 (WSL VM used, peak)",n/a (no GPU use),,exit 0.
+2026-11-01 01:18:55 EST,PAS-M1-001/T064,check group core,219.42,203.518,300.1,n/a (no GPU),0.04,"exit 0; {'errors': 0, 'failures': 0, 'passed': 88, 'skipped': 0, 'tests': 88}; evidence .test_logs/simlab/core/20261101T011531-760ea5"
+2026-11-01 01:19:30 EST,PAS-M1-001/T064,check group executors,37.94,33.832,165.9,n/a (no GPU),0.025,"exit 0; {'errors': 0, 'failures': 0, 'passed': 7, 'skipped': 0, 'tests': 7}; evidence .test_logs/simlab/executors/20261101T011855-144c40"
+2026-11-01 01:19:51 EST,PAS-M1-001/T064,check group benchmark,22.56,20.078,154.8,n/a (no GPU),0.03,"exit 0; {'errors': 0, 'failures': 0, 'passed': 34, 'skipped': 0, 'tests': 34}; evidence .test_logs/simlab/benchmark/20261101T011930-8de55c"
+2026-11-01 01:23:43 EST,PAS-M1-001/T064,check group all,253.23,234.541,258.5,n/a (no GPU),0.049,"exit 0; {'errors': 0, 'failures': 0, 'passed': 129, 'skipped': 0, 'tests': 129}; evidence .test_logs/simlab/all/20261101T011951-3bcfd2"
+2026-11-01 01:23:50 EST,PAS-M1-001/T048,check group core (negative control timeout),6.39,5.069,86.0,n/a (no GPU),0.023,exit 124; None; evidence .test_logs/simlab/core/20261101T012344-5fd352
+2026-11-01 01:26:54 EST,PAS-M1-001/T048,check group core (negative control source-change),197.03,183.474,268.3,n/a (no GPU),0.04,"exit 2; {'errors': 0, 'failures': 0, 'passed': 88, 'skipped': 0, 'tests': 88}; evidence .test_logs/simlab/core/20261101T012350-4c2581"
+2026-11-01 01:26:58 EST,PAS-M1-001/T048,check group executors (negative control timeout),6.49,5.037,93.2,n/a (no GPU),0.022,exit 124; None; evidence .test_logs/simlab/executors/20261101T012652-6f9eb0
+2026-11-01 01:27:26 EST,PAS-M1-001/T048,check group executors (negative control source-change),29.31,25.597,164.2,n/a (no GPU),0.025,"exit 2; {'errors': 0, 'failures': 0, 'passed': 7, 'skipped': 0, 'tests': 7}; evidence .test_logs/simlab/executors/20261101T012659-6f980b"
+2026-11-01 01:27:32 EST,PAS-M1-001/T048,check group benchmark (negative control timeout),6.23,4.986,92.3,n/a (no GPU),0.022,exit 124; None; evidence .test_logs/simlab/benchmark/20261101T012726-6cbdaa
+2026-11-01 01:28:00 EST,PAS-M1-001/T048,check group benchmark (negative control source-change),29.52,26.276,156.7,n/a (no GPU),0.03,"exit 2; {'errors': 0, 'failures': 0, 'passed': 34, 'skipped': 0, 'tests': 34}; evidence .test_logs/simlab/benchmark/20261101T012732-f25680"
+2026-11-01 06:28:40 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/small-swing repeat 1,3.447,1.584,86.1,n/a (no GPU),0.5,outcome PASS; run run-2dfbf2db0f5b44fcba4b
+2026-11-01 06:28:45 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/small-swing repeat 2,3.843,2.164,89.9,n/a (no GPU),0.5,outcome PASS; run run-04681cc7bd004cc49eeb
+2026-11-01 06:28:47 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/small-swing repeat 3,3.982,2.384,90.6,n/a (no GPU),0.5,outcome PASS; run run-87e294cd391541748f3b
+2026-11-01 06:28:50 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-1p2 repeat 1,2.767,1.32,91.0,n/a (no GPU),0.5,outcome PASS; run run-246480e19ee74ed5895f
+2026-11-01 06:28:53 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-1p2 repeat 2,2.584,1.297,92.0,n/a (no GPU),0.5,outcome PASS; run run-e200b9e671ec48659deb
+2026-11-01 06:28:57 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-1p2 repeat 3,4.033,1.554,92.0,n/a (no GPU),0.5,outcome PASS; run run-5ffeb0eddc5a4c5c9729
+2026-11-01 06:29:00 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-2p6 repeat 1,2.362,1.202,92.0,n/a (no GPU),0.5,outcome PASS; run run-6848397521944a30beef
+2026-11-01 06:29:02 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-2p6 repeat 2,2.2,1.057,92.0,n/a (no GPU),0.5,outcome PASS; run run-b330fc77a00d4b9aa591
+2026-11-01 06:29:05 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-2p6 repeat 3,2.759,1.36,92.0,n/a (no GPU),0.5,outcome PASS; run run-04855f68d1ed413680d1
+2026-11-01 06:29:07 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-1s repeat 1,1.11,0.066,92.0,n/a (no GPU),0.035,outcome PASS; run run-12186e39a9654a11872a
+2026-11-01 06:29:08 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-1s repeat 2,0.943,0.044,92.0,n/a (no GPU),0.035,outcome PASS; run run-1e5f31e1e13f43308ee1
+2026-11-01 06:29:09 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-1s repeat 3,0.982,0.053,92.0,n/a (no GPU),0.035,outcome PASS; run run-24d099183d434446b479
+2026-11-01 06:29:10 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/moon-0p5s repeat 1,0.887,0.037,92.0,n/a (no GPU),0.02,outcome PASS; run run-a96082db5de349adba92
+2026-11-01 06:29:11 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/moon-0p5s repeat 2,1.033,0.037,92.0,n/a (no GPU),0.02,outcome PASS; run run-6356a29a10654bacb2b0
+2026-11-01 06:29:11 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/moon-0p5s repeat 3,2.0,0.077,92.0,n/a (no GPU),0.02,outcome PASS; run run-825385bc5a954caa82b2
+2026-11-01 06:29:13 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-2s-euler repeat 1,1.679,0.541,92.0,n/a (no GPU),0.617,outcome PASS; run run-b2730fe9c2d64338b2f6
+2026-11-01 06:29:15 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-2s-euler repeat 2,1.839,0.428,92.1,n/a (no GPU),0.617,outcome PASS; run run-28141be52c0f4e3488f6
+2026-11-01 06:29:17 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-2s-euler repeat 3,1.867,0.661,92.1,n/a (no GPU),0.617,outcome PASS; run run-21a4889560fe4989a2f2
+2026-11-01 06:29:20 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-30deg-mu0p2 repeat 1,2.47,0.106,93.0,n/a (no GPU),0.035,outcome PASS; run run-198e2f0b8a6943a780e7
+2026-11-01 06:29:22 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-30deg-mu0p2 repeat 2,1.629,0.09,94.3,n/a (no GPU),0.035,outcome PASS; run run-c82f65f209d14703be79
+2026-11-01 06:29:24 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-30deg-mu0p2 repeat 3,1.72,0.102,95.4,n/a (no GPU),0.035,outcome PASS; run run-2df061294f684d17ac25
+2026-11-01 06:29:25 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-40deg-mu0p5 repeat 1,1.18,0.063,95.4,n/a (no GPU),0.035,outcome PASS; run run-8359a0cea0cb48d39a06
+2026-11-01 06:29:27 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-40deg-mu0p5 repeat 2,1.929,0.109,95.4,n/a (no GPU),0.035,outcome PASS; run run-a11cbced9bb14a6487b1
+2026-11-01 06:29:28 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-40deg-mu0p5 repeat 3,1.187,0.074,95.4,n/a (no GPU),0.035,outcome PASS; run run-237aa394c9fc412793d3
+2026-11-01 06:29:30 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/stick-20deg-mu0p5 repeat 1,1.277,0.088,95.4,n/a (no GPU),0.035,outcome PASS; run run-ffed75c6550243df9dd7
+2026-11-01 06:29:31 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/stick-20deg-mu0p5 repeat 2,1.328,0.075,95.4,n/a (no GPU),0.035,outcome PASS; run run-d768ed21db63499bbb80
+2026-11-01 06:29:34 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/stick-20deg-mu0p5 repeat 3,1.968,0.273,95.4,n/a (no GPU),0.035,outcome PASS; run run-16d337fe30b342c28d5b
+2026-11-01 06:29:37 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/elastic-1to1 repeat 1,3.429,1.572,105.6,n/a (no GPU),1.02,outcome PASS; run run-9d817ba7d7634ce9af4b
+2026-11-01 06:29:38 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/elastic-1to1 repeat 2,2.486,1.041,107.6,n/a (no GPU),1.02,outcome PASS; run run-f056117b9ebe4a1a9535
+2026-11-01 06:29:41 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/elastic-1to1 repeat 3,2.41,1.09,107.6,n/a (no GPU),1.02,outcome PASS; run run-664ec96f9f0c4c4b9b19
+2026-11-01 06:29:44 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-1to3 repeat 1,2.541,1.165,107.7,n/a (no GPU),1.02,outcome PASS; run run-7b21d0623185454e82bd
+2026-11-01 06:29:50 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-1to3 repeat 2,5.324,2.947,107.7,n/a (no GPU),1.02,outcome PASS; run run-e3a0a2009e3e4d78a58a
+2026-11-01 06:29:54 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-1to3 repeat 3,3.359,1.227,108.0,n/a (no GPU),1.02,outcome PASS; run run-0274fc1ee6e8413faef8
+2026-11-01 06:29:57 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-2to1 repeat 1,3.085,1.041,108.0,n/a (no GPU),1.02,outcome PASS; run run-a00a75c3c90e48a8b94f
+2026-11-01 06:30:00 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-2to1 repeat 2,2.545,0.994,108.0,n/a (no GPU),1.02,outcome PASS; run run-f929d16817dd4f198c48
+2026-11-01 06:30:03 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-2to1 repeat 3,2.111,0.963,108.0,n/a (no GPU),1.02,outcome PASS; run run-aab7c62c146a437c898d
+2026-11-01 06:30:06 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/light-damping repeat 1,3.349,1.792,108.0,n/a (no GPU),0.617,outcome PASS; run run-8485f274880f4c61ba2e
+2026-11-01 06:30:07 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/light-damping repeat 2,2.873,1.417,108.0,n/a (no GPU),0.617,outcome PASS; run run-7b2ff2252f854e4c87a8
+2026-11-01 06:30:10 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/light-damping repeat 3,2.598,1.474,108.0,n/a (no GPU),0.617,outcome PASS; run run-ebe2c300ed8946a5a6ed
+2026-11-01 06:30:14 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/medium-damping repeat 1,2.919,1.394,108.0,n/a (no GPU),0.617,outcome PASS; run run-d7fbaecab5554e75be87
+2026-11-01 06:30:16 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/medium-damping repeat 2,2.585,1.284,108.0,n/a (no GPU),0.617,outcome PASS; run run-13f14ea3de25400d85bd
+2026-11-01 06:30:20 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/medium-damping repeat 3,3.496,2.264,108.0,n/a (no GPU),0.617,outcome PASS; run run-dc0eed2f40ad42e5a1f2
+2026-11-01 06:30:25 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/stiff-light repeat 1,4.614,2.643,108.0,n/a (no GPU),0.617,outcome PASS; run run-561a0c6e7dbd4d94a2cd
+2026-11-01 06:30:29 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/stiff-light repeat 2,2.815,1.383,108.0,n/a (no GPU),0.617,outcome PASS; run run-b2aae46364dd4ca1b24f
+2026-11-01 06:30:32 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/stiff-light repeat 3,3.41,1.631,108.0,n/a (no GPU),0.617,outcome PASS; run run-fad943421e8f4b00927d
+2026-11-01 06:30:34 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-a repeat 1,1.943,0.418,108.0,n/a (no GPU),0.098,outcome PASS; run run-64eec4d664f540cebe81
+2026-11-01 06:30:34 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-a repeat 2,1.756,0.523,108.0,n/a (no GPU),0.098,outcome PASS; run run-ccef02e2161140ee991d
+2026-11-01 06:30:36 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-a repeat 3,2.135,0.701,108.0,n/a (no GPU),0.098,outcome PASS; run run-2d52a88749a74a228a95
+2026-11-01 06:30:38 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-b repeat 1,1.465,0.383,108.0,n/a (no GPU),0.098,outcome PASS; run run-e8c39604cc5d4402b34f
+2026-11-01 06:30:40 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-b repeat 2,1.43,0.337,108.0,n/a (no GPU),0.098,outcome PASS; run run-ad5223e6f1534213954b
+2026-11-01 06:30:41 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-b repeat 3,1.546,0.354,108.0,n/a (no GPU),0.098,outcome PASS; run run-a1bd14881a054d5b891f
+2026-11-01 06:30:43 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-c repeat 1,1.269,0.336,108.0,n/a (no GPU),0.098,outcome PASS; run run-8907e93d1cd2485db34f
+2026-11-01 06:30:44 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-c repeat 2,1.341,0.348,108.0,n/a (no GPU),0.098,outcome PASS; run run-003c871a45504abeb945
+2026-11-01 06:30:46 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-c repeat 3,1.301,0.332,108.0,n/a (no GPU),0.098,outcome PASS; run run-611ed50353234fa7860f
+2026-11-01 06:30:47 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/frozen-gravity-off repeat 1,1.53,0.322,108.0,n/a (no GPU),0.098,outcome PASS; run run-e0548ba23cb84f019309
+2026-11-01 06:30:49 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/frozen-gravity-off repeat 2,1.26,0.341,108.0,n/a (no GPU),0.098,outcome PASS; run run-493e3916cd9644d9a18b
+2026-11-01 06:30:50 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/frozen-gravity-off repeat 3,1.25,0.326,108.0,n/a (no GPU),0.098,outcome PASS; run run-de49eb54c61243a1bc83
+2026-11-01 06:30:52 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/over-damped repeat 1,1.371,0.345,108.0,n/a (no GPU),0.098,outcome PASS; run run-c79f3b06319d44fe9caf
+2026-11-01 06:30:53 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/over-damped repeat 2,1.257,0.364,108.0,n/a (no GPU),0.098,outcome PASS; run run-0d07b710e4fd46a1b799
+2026-11-01 06:30:54 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/over-damped repeat 3,1.337,0.361,108.0,n/a (no GPU),0.098,outcome PASS; run run-3484441dbb624ee9ad78
+2026-11-01 06:30:56 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-sphere repeat 1,1.029,0.116,108.0,n/a (no GPU),0.035,outcome PASS; run run-5c6631ba35344f27b686
+2026-11-01 06:30:58 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-sphere repeat 2,1.79,0.13,108.0,n/a (no GPU),0.035,outcome PASS; run run-2af46ff3bb134aa29e3e
+2026-11-01 06:31:00 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-sphere repeat 3,2.053,0.349,108.0,n/a (no GPU),0.035,outcome PASS; run run-7e40972ce0ae4193bfbb
+2026-11-01 06:31:02 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/hollow-sphere repeat 1,1.897,0.154,108.0,n/a (no GPU),0.035,outcome PASS; run run-6606a9eca1174088b35e
+2026-11-01 06:31:03 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/hollow-sphere repeat 2,1.103,0.117,108.0,n/a (no GPU),0.035,outcome PASS; run run-37c3195e3c5a4e06b4e7
+2026-11-01 06:31:02 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/hollow-sphere repeat 3,1.404,0.147,108.0,n/a (no GPU),0.035,outcome PASS; run run-73d801b5925e4e0a9388
+2026-11-01 06:31:04 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-cylinder repeat 1,1.224,0.105,108.0,n/a (no GPU),0.035,outcome PASS; run run-cb514dc8e9df4fb4a29b
+2026-11-01 06:31:05 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-cylinder repeat 2,1.045,0.115,108.0,n/a (no GPU),0.035,outcome PASS; run run-1d18680c67be4a2ea8f0
+2026-11-01 06:31:06 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-cylinder repeat 3,1.143,0.128,108.0,n/a (no GPU),0.035,outcome PASS; run run-b62b748d24e24c129c62
+2026-11-01 06:31:08 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/equal-masses repeat 1,1.368,0.144,108.0,n/a (no GPU),0.055,outcome PASS; run run-7cbd58d64e2943cab3dc
+2026-11-01 06:31:09 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/equal-masses repeat 2,1.087,0.138,108.0,n/a (no GPU),0.055,outcome PASS; run run-24eaee557248408bbd15
+2026-11-01 06:31:10 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/equal-masses repeat 3,1.586,0.159,108.0,n/a (no GPU),0.055,outcome PASS; run run-102c2d80af7a4329be85
+2026-11-01 06:31:12 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-bottom repeat 1,1.314,0.145,108.0,n/a (no GPU),0.055,outcome PASS; run run-cba076bf5c3e413595d8
+2026-11-01 06:31:14 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-bottom repeat 2,2.293,0.382,108.0,n/a (no GPU),0.055,outcome PASS; run run-b3679aca5be547798cc7
+2026-11-01 06:31:16 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-bottom repeat 3,1.791,0.399,108.0,n/a (no GPU),0.055,outcome PASS; run run-e245db9822184bd29bb4
+2026-11-01 06:31:18 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-top repeat 1,1.385,0.145,108.0,n/a (no GPU),0.055,outcome PASS; run run-f687111816b2410ca0c9
+2026-11-01 06:31:19 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-top repeat 2,1.061,0.128,108.0,n/a (no GPU),0.055,outcome PASS; run run-8488f13cc8f741668cd6
+2026-11-01 06:31:21 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-top repeat 3,1.373,0.16,108.0,n/a (no GPU),0.055,outcome PASS; run run-b2b4e5a73aa843df9dc4
+2026-11-01 06:31:22 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/gravity-off repeat 1,1.148,0.202,108.0,n/a (no GPU),0.055,outcome PASS; run run-ec46918b34a64bc0b8be
+2026-11-01 06:31:23 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/gravity-off repeat 2,1.06,0.157,108.0,n/a (no GPU),0.055,outcome PASS; run run-56f1dcaf3f9946be8da5
+2026-11-01 06:31:24 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/gravity-off repeat 3,1.137,0.133,108.0,n/a (no GPU),0.055,outcome PASS; run run-3518013cbcac4b108661
+2026-11-01 06:31:30 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/controlled-noisy repeat 1,6.023,0.178,108.0,n/a (no GPU),0.234,outcome PASS; run run-a43651a71e4d4716ae2c
+2026-11-01 06:31:35 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/controlled-noisy repeat 2,6.493,0.196,108.0,n/a (no GPU),0.234,outcome PASS; run run-226f57fac8e04b68a4aa
+2026-11-01 06:31:44 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/controlled-noisy repeat 3,9.095,0.571,108.0,n/a (no GPU),0.234,outcome PASS; run run-d734c66d34ab43a5bb16
+2026-11-01 06:31:50 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/contact-rich repeat 1,6.568,0.199,108.0,n/a (no GPU),0.398,outcome PASS; run run-c1fa066fef994fa98d3b
+2026-11-01 06:31:58 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/contact-rich repeat 2,7.405,0.174,108.0,n/a (no GPU),0.398,outcome PASS; run run-96377426d454442692b7
+2026-11-01 06:32:02 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/contact-rich repeat 3,6.569,0.21,108.0,n/a (no GPU),0.398,outcome PASS; run run-dc4cebe0d69f4bde9f8d
+2026-11-01 06:32:15 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/factor-random repeat 1,12.639,0.3,108.0,n/a (no GPU),0.172,outcome PASS; run run-8ff0add6712f48beaf93
+2026-11-01 06:32:23 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/factor-random repeat 2,7.622,0.196,108.0,n/a (no GPU),0.172,outcome PASS; run run-652b0d3b8ff848fa9868
+2026-11-01 06:32:30 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/factor-random repeat 3,9.475,0.235,108.0,n/a (no GPU),0.172,outcome PASS; run run-ea040d2e73c74a3c8786
+2026-11-01 06:32:38 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/controlled-noisy repeat 1,7.065,0.261,108.0,n/a (no GPU),0.188,outcome PASS; run run-fdd60d71558a43ff9a66
+2026-11-01 06:32:46 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/controlled-noisy repeat 2,7.843,0.288,108.0,n/a (no GPU),0.188,outcome PASS; run run-4361823f1097407bb28e
+2026-11-01 06:32:51 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/controlled-noisy repeat 3,5.458,0.171,108.0,n/a (no GPU),0.188,outcome PASS; run run-2b638938d13e4e1191a8
+2026-11-01 06:32:59 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/contact-rich repeat 1,9.492,0.194,108.0,n/a (no GPU),0.375,outcome PASS; run run-bdb0d143415144f9a0f5
+2026-11-01 06:33:08 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/contact-rich repeat 2,9.186,0.564,108.0,n/a (no GPU),0.375,outcome PASS; run run-c771b3f3263f4831ba73
+2026-11-01 06:33:16 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/contact-rich repeat 3,7.971,0.453,108.0,n/a (no GPU),0.375,outcome PASS; run run-9afc0ed874b340df8763
+2026-11-01 06:33:20 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/factor-random repeat 1,6.172,0.182,108.0,n/a (no GPU),0.125,outcome PASS; run run-d1b9fe7425524bd5ac8a
+2026-11-01 06:33:27 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/factor-random repeat 2,6.864,0.331,108.0,n/a (no GPU),0.125,outcome PASS; run run-1398ba5a8b364ad6b09d
+2026-11-01 06:33:33 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/factor-random repeat 3,5.656,0.19,108.0,n/a (no GPU),0.125,outcome PASS; run run-1b855c9a25b2429da056
+2026-11-01 01:35:36 EST,PAS-M1-001/T060-T062,"bench campaign F1+F5 total (20261101T062836-0451c6, 99 cells; per-cell rows above)",321.97,(sum of per-cell rows),(max of per-cell rows),n/a (no GPU),80 (raw evidence in data dir; 1.7 in repo),"90/90 F1 PASS, 9/9 F5 PASS"
+2026-11-01 01:35:36 EST,PAS-M1-001/T063,"simlab bench speed (20 boxes + actuated hinge, 20000 steps)",2.4705,2.2804,64.1,n/a (no GPU),0.01,"8095.6 steps/s, realtime x16.19"
+2026-11-01 01:39:22 EST,PAS-M1-001/T066,"fresh-checkout rehearsal (clean export, docker build --no-cache, reproduce run-64eec4d6)",107.33,9.79 (client side only),"3791 (WSL VM used, peak)",n/a (no GPU use),,exit 0.
+2026-11-01 01:41:12 EST,PAS-M1-001/T005,"docker build simlab-runner:dev (final source: in-group campaign test, admission caveat)",24.51,1.6 (client side only),"3721 (WSL VM used, peak)",n/a (no GPU use),,exit 0.
+2026-11-01 01:43:48 EST,PAS-M1-001/T064,check group core,153.13,140.705,302.0,n/a (no GPU),0.04,"exit 0; {'errors': 0, 'failures': 0, 'passed': 88, 'skipped': 0, 'tests': 88}; evidence .test_logs/simlab/core/20261101T014126-ff875a"
+2026-11-01 01:44:07 EST,PAS-M1-001/T064,check group executors,21.11,17.972,164.6,n/a (no GPU),0.025,"exit 0; {'errors': 0, 'failures': 0, 'passed': 7, 'skipped': 0, 'tests': 7}; evidence .test_logs/simlab/executors/20261101T014348-fc91d3"
+2026-11-01 18:23:08 EST,PAS-M1-001/T064,check group benchmark,264.45,245.578,328.0,n/a (no GPU),0.032,"exit 0; {'errors': 0, 'failures': 0, 'passed': 35, 'skipped': 0, 'tests': 35}; evidence .test_logs/simlab/benchmark/20261101T014407-bfbeb5"
+2026-11-01 18:30:09 EST,PAS-M1-001/T064,check group all,420.5,413.308,418.7,n/a (no GPU),0.05,"exit 0; {'errors': 0, 'failures': 0, 'passed': 130, 'skipped': 0, 'tests': 130}; evidence .test_logs/simlab/all/20261101T182309-9aeaad"
+2026-11-01 23:31:13 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/small-swing repeat 1,2.575,1.282,87.4,n/a (no GPU),0.5,outcome PASS; run run-d252297f77be44fb9a67
+2026-11-01 23:31:16 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/small-swing repeat 2,2.49,1.203,92.3,n/a (no GPU),0.5,outcome PASS; run run-63165a7cfde04d96b71e
+2026-11-01 23:31:18 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/small-swing repeat 3,2.288,1.26,93.1,n/a (no GPU),0.5,outcome PASS; run run-7ffa7cb85ff6403e97dc
+2026-11-01 23:31:21 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-1p2 repeat 1,2.289,1.252,94.1,n/a (no GPU),0.5,outcome PASS; run run-1ef6b86c34b346b083bd
+2026-11-01 23:31:24 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-1p2 repeat 2,2.375,1.269,94.1,n/a (no GPU),0.5,outcome PASS; run run-b7118db9da464cc68a83
+2026-11-01 23:31:27 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-1p2 repeat 3,2.652,1.384,94.1,n/a (no GPU),0.5,outcome PASS; run run-f0846cd0b16c4d6ea6f2
+2026-11-01 23:31:30 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-2p6 repeat 1,2.996,1.627,94.1,n/a (no GPU),0.5,outcome PASS; run run-eb9ea67964ee45cd85b9
+2026-11-01 23:31:33 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-2p6 repeat 2,2.488,1.274,94.1,n/a (no GPU),0.5,outcome PASS; run run-903d3261443c4d9f950c
+2026-11-01 23:31:35 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb01-pendulum/large-swing-2p6 repeat 3,2.392,1.201,94.1,n/a (no GPU),0.5,outcome PASS; run run-cb1b0f9baeaf409aa479
+2026-11-01 23:31:36 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-1s repeat 1,1.117,0.057,94.3,n/a (no GPU),0.035,outcome PASS; run run-b6d619effca24971b4c4
+2026-11-01 23:31:38 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-1s repeat 2,1.097,0.062,94.3,n/a (no GPU),0.035,outcome PASS; run run-eec6a16a5302445dbac4
+2026-11-01 23:31:39 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-1s repeat 3,1.095,0.072,94.3,n/a (no GPU),0.035,outcome PASS; run run-aa62af641a0c4c88b1e5
+2026-11-01 23:31:40 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/moon-0p5s repeat 1,1.094,0.049,94.3,n/a (no GPU),0.02,outcome PASS; run run-058821276da24fb59000
+2026-11-01 23:31:41 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/moon-0p5s repeat 2,1.102,0.052,94.3,n/a (no GPU),0.02,outcome PASS; run run-6be2cecefb564d7fade1
+2026-11-01 23:31:43 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/moon-0p5s repeat 3,1.483,0.064,94.3,n/a (no GPU),0.02,outcome PASS; run run-9b5df858f6394f31807f
+2026-11-01 23:31:44 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-2s-euler repeat 1,1.347,0.398,94.3,n/a (no GPU),0.617,outcome PASS; run run-01e59fa4f9ab46d99a3d
+2026-11-01 23:31:46 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-2s-euler repeat 2,1.432,0.394,98.9,n/a (no GPU),0.617,outcome PASS; run run-ebb62f8b6e3b4b60857c
+2026-11-01 23:31:48 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb02-free-fall/earth-2s-euler repeat 3,1.552,0.415,99.1,n/a (no GPU),0.617,outcome PASS; run run-7399c4f090344a7fac91
+2026-11-01 23:31:49 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-30deg-mu0p2 repeat 1,1.11,0.108,100.5,n/a (no GPU),0.035,outcome PASS; run run-6ad5a166f90748b7b042
+2026-11-01 23:31:50 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-30deg-mu0p2 repeat 2,1.315,0.082,100.5,n/a (no GPU),0.035,outcome PASS; run run-3f7b37f18da94c21851b
+2026-11-01 23:31:52 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-30deg-mu0p2 repeat 3,1.116,0.081,100.5,n/a (no GPU),0.035,outcome PASS; run run-75277fbc2297491881dd
+2026-11-01 23:31:53 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-40deg-mu0p5 repeat 1,1.096,0.087,100.5,n/a (no GPU),0.035,outcome PASS; run run-6186ce58f2c14c37bcbb
+2026-11-01 23:31:54 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-40deg-mu0p5 repeat 2,1.009,0.078,100.5,n/a (no GPU),0.035,outcome PASS; run run-94c9037328764446bf47
+2026-11-01 23:31:55 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/slide-40deg-mu0p5 repeat 3,1.141,0.084,100.7,n/a (no GPU),0.035,outcome PASS; run run-3c03c78a1e5345b0a71f
+2026-11-01 23:31:56 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/stick-20deg-mu0p5 repeat 1,1.026,0.087,100.7,n/a (no GPU),0.035,outcome PASS; run run-30b97fb2f7f24be5969e
+2026-11-01 23:31:58 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/stick-20deg-mu0p5 repeat 2,1.018,0.076,100.7,n/a (no GPU),0.035,outcome PASS; run run-3081dae2a311431396c4
+2026-11-01 23:31:59 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb03-incline/stick-20deg-mu0p5 repeat 3,1.025,0.077,100.7,n/a (no GPU),0.035,outcome PASS; run run-6ae4200e9e59401bae52
+2026-11-01 23:32:01 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/elastic-1to1 repeat 1,2.23,1.075,110.9,n/a (no GPU),1.02,outcome PASS; run run-37230993279a466bb0de
+2026-11-01 23:32:04 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/elastic-1to1 repeat 2,2.5,1.245,112.8,n/a (no GPU),1.02,outcome PASS; run run-5ac00ad490cb4370a406
+2026-11-01 23:32:07 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/elastic-1to1 repeat 3,2.586,1.253,112.8,n/a (no GPU),1.02,outcome PASS; run run-ab46cfeabe564d4e8f14
+2026-11-01 23:32:10 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-1to3 repeat 1,2.285,0.952,112.9,n/a (no GPU),1.02,outcome PASS; run run-bdb7220842f744b789c3
+2026-11-01 23:32:12 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-1to3 repeat 2,2.173,1.107,112.9,n/a (no GPU),1.02,outcome PASS; run run-fc201c304241477badd1
+2026-11-01 23:32:15 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-1to3 repeat 3,2.22,1.061,112.9,n/a (no GPU),1.02,outcome PASS; run run-f81987e46b5743399368
+2026-11-01 23:32:18 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-2to1 repeat 1,2.532,1.208,112.9,n/a (no GPU),1.02,outcome PASS; run run-c583758e35f04c439049
+2026-11-01 23:32:20 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-2to1 repeat 2,2.065,1.016,112.9,n/a (no GPU),1.02,outcome PASS; run run-e8cb1e1bdfeb48d08353
+2026-11-01 23:32:23 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb04-collision/damped-2to1 repeat 3,2.284,1.15,113.0,n/a (no GPU),1.02,outcome PASS; run run-8e50cd0094cb42d7a63e
+2026-11-01 23:32:26 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/light-damping repeat 1,2.651,1.539,113.0,n/a (no GPU),0.617,outcome PASS; run run-c17045f0b1c2492d98e7
+2026-11-01 23:32:29 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/light-damping repeat 2,2.741,1.544,113.0,n/a (no GPU),0.617,outcome PASS; run run-20b3a36981504feeb236
+2026-11-01 23:32:32 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/light-damping repeat 3,2.664,1.541,113.0,n/a (no GPU),0.617,outcome PASS; run run-ba84a49e6c214902a71f
+2026-11-01 23:32:35 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/medium-damping repeat 1,2.765,1.642,113.0,n/a (no GPU),0.617,outcome PASS; run run-c6e369fdf2e24fca8137
+2026-11-01 23:32:38 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/medium-damping repeat 2,2.643,1.524,113.0,n/a (no GPU),0.617,outcome PASS; run run-c719f69983d040efa153
+2026-11-01 23:32:41 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/medium-damping repeat 3,2.429,1.367,113.0,n/a (no GPU),0.617,outcome PASS; run run-a8186ae423e64a32a171
+2026-11-01 23:32:43 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/stiff-light repeat 1,2.399,1.468,113.0,n/a (no GPU),0.617,outcome PASS; run run-1e853a98863c43ecad81
+2026-11-01 23:32:46 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/stiff-light repeat 2,2.414,1.434,113.0,n/a (no GPU),0.617,outcome PASS; run run-d125788457334a21a8f0
+2026-11-01 23:32:48 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb05-damped-oscillator/stiff-light repeat 3,2.298,1.361,113.0,n/a (no GPU),0.617,outcome PASS; run run-50b2d195a048469684d0
+2026-11-01 23:32:50 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-a repeat 1,1.552,0.424,113.0,n/a (no GPU),0.098,outcome PASS; run run-73e46f157e694fc8ac49
+2026-11-01 23:32:52 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-a repeat 2,1.344,0.378,113.0,n/a (no GPU),0.098,outcome PASS; run run-2962afc927504f6ba5af
+2026-11-01 23:32:53 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-a repeat 3,1.22,0.365,113.0,n/a (no GPU),0.098,outcome PASS; run run-32466752d7eb47838f43
+2026-11-01 23:32:55 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-b repeat 1,1.437,0.394,113.0,n/a (no GPU),0.098,outcome PASS; run run-0d820be9501a4c9fa3b3
+2026-11-01 23:32:56 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-b repeat 2,1.45,0.405,113.0,n/a (no GPU),0.098,outcome PASS; run run-b2bd85831dcb4d05a667
+2026-11-01 23:32:58 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-b repeat 3,1.322,0.369,113.0,n/a (no GPU),0.098,outcome PASS; run run-30ab7a9424bd438f85ae
+2026-11-01 23:32:59 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-c repeat 1,1.248,0.396,113.0,n/a (no GPU),0.098,outcome PASS; run run-bf99ca26a8e942ca85e8
+2026-11-01 23:33:00 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-c repeat 2,1.236,0.379,113.0,n/a (no GPU),0.098,outcome PASS; run run-22cffa67863b4104927b
+2026-11-01 23:33:02 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/swing-c repeat 3,1.339,0.448,113.0,n/a (no GPU),0.098,outcome PASS; run run-e4f4ebeb3cbf4af3ab22
+2026-11-01 23:33:03 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/frozen-gravity-off repeat 1,1.233,0.368,113.0,n/a (no GPU),0.098,outcome PASS; run run-8f21807288044da380e6
+2026-11-01 23:33:05 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/frozen-gravity-off repeat 2,1.241,0.375,113.0,n/a (no GPU),0.098,outcome PASS; run run-5bc24e8367ae4167be53
+2026-11-01 23:33:06 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/frozen-gravity-off repeat 3,1.243,0.372,113.0,n/a (no GPU),0.098,outcome PASS; run run-05b444a8327442d289d1
+2026-11-01 23:33:07 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/over-damped repeat 1,1.232,0.384,113.0,n/a (no GPU),0.098,outcome PASS; run run-7520fb366ce14b58bad6
+2026-11-01 23:33:09 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/over-damped repeat 2,1.218,0.363,113.0,n/a (no GPU),0.098,outcome PASS; run run-84e39a2c9a1d45c3b306
+2026-11-01 23:33:10 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb06-double-pendulum/over-damped repeat 3,1.237,0.379,113.0,n/a (no GPU),0.098,outcome PASS; run run-bfefa50a405b44009bfd
+2026-11-01 23:33:11 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-sphere repeat 1,0.9,0.105,113.0,n/a (no GPU),0.035,outcome PASS; run run-0ab14d9ba4734f2e99db
+2026-11-01 23:33:12 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-sphere repeat 2,0.996,0.112,113.0,n/a (no GPU),0.035,outcome PASS; run run-413e76928b03471e9dce
+2026-11-01 23:33:13 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-sphere repeat 3,1.01,0.142,113.0,n/a (no GPU),0.035,outcome PASS; run run-f0a58bd48f6b4ed2b864
+2026-11-01 23:33:15 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/hollow-sphere repeat 1,1.004,0.138,113.0,n/a (no GPU),0.035,outcome PASS; run run-c90532f9c77343dbabae
+2026-11-01 23:33:16 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/hollow-sphere repeat 2,1.0,0.118,113.0,n/a (no GPU),0.035,outcome PASS; run run-bffc180e9aff4cb08385
+2026-11-01 23:33:17 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/hollow-sphere repeat 3,1.0,0.118,113.0,n/a (no GPU),0.035,outcome PASS; run run-02f0d428e2f045d0bd82
+2026-11-01 23:33:18 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-cylinder repeat 1,1.0,0.117,113.0,n/a (no GPU),0.035,outcome PASS; run run-924301427ac646199f79
+2026-11-01 23:33:19 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-cylinder repeat 2,1.027,0.111,113.0,n/a (no GPU),0.035,outcome PASS; run run-45e1007f8e044cc1bee1
+2026-11-01 23:33:20 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb07-rolling/solid-cylinder repeat 3,0.911,0.11,113.0,n/a (no GPU),0.035,outcome PASS; run run-20485063741a43c3befe
+2026-11-01 23:33:21 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/equal-masses repeat 1,1.045,0.167,113.0,n/a (no GPU),0.055,outcome PASS; run run-82903c49203647ffae33
+2026-11-01 23:33:22 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/equal-masses repeat 2,1.035,0.153,113.0,n/a (no GPU),0.055,outcome PASS; run run-f0f6a6c1e11343b286e7
+2026-11-01 23:33:23 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/equal-masses repeat 3,1.036,0.19,113.0,n/a (no GPU),0.055,outcome PASS; run run-0afb567a89f54bd79ebb
+2026-11-01 23:33:25 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-bottom repeat 1,1.027,0.154,113.0,n/a (no GPU),0.055,outcome PASS; run run-6c1ffdc143a44cc18de0
+2026-11-01 23:33:26 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-bottom repeat 2,1.031,0.148,113.0,n/a (no GPU),0.055,outcome PASS; run run-e389d6e5b0eb461ea091
+2026-11-01 23:33:27 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-bottom repeat 3,0.933,0.151,113.0,n/a (no GPU),0.055,outcome PASS; run run-1b42a366b83a471ca641
+2026-11-01 23:33:28 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-top repeat 1,1.028,0.156,113.0,n/a (no GPU),0.055,outcome PASS; run run-c474595ce82b40ddb390
+2026-11-01 23:33:29 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-top repeat 2,0.951,0.152,113.0,n/a (no GPU),0.055,outcome PASS; run run-cb006fd106094d4287d2
+2026-11-01 23:33:30 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/heavy-top repeat 3,1.038,0.154,113.0,n/a (no GPU),0.055,outcome PASS; run run-e8fb064184a8434c9ea4
+2026-11-01 23:33:31 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/gravity-off repeat 1,0.938,0.115,113.0,n/a (no GPU),0.055,outcome PASS; run run-5b1d0409b790425a88fb
+2026-11-01 23:33:32 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/gravity-off repeat 2,0.937,0.127,113.0,n/a (no GPU),0.055,outcome PASS; run run-15e0078598af48e5978b
+2026-11-01 23:33:33 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb08-box-stack/gravity-off repeat 3,1.024,0.132,113.0,n/a (no GPU),0.055,outcome PASS; run run-f357c52268c04308be5c
+2026-11-01 23:33:39 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/controlled-noisy repeat 1,6.109,0.249,113.0,n/a (no GPU),0.234,outcome PASS; run run-1d6c0a89e0234dcc9d76
+2026-11-01 23:33:46 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/controlled-noisy repeat 2,6.202,0.223,113.0,n/a (no GPU),0.234,outcome PASS; run run-850e13551a3840d7a78a
+2026-11-01 23:33:52 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/controlled-noisy repeat 3,6.508,0.225,113.0,n/a (no GPU),0.234,outcome PASS; run run-9d0a7def2f2b487d826d
+2026-11-01 23:33:58 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/contact-rich repeat 1,6.115,0.262,113.0,n/a (no GPU),0.398,outcome PASS; run run-453176792bf44ead9564
+2026-11-01 23:34:05 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/contact-rich repeat 2,6.088,0.221,114.8,n/a (no GPU),0.398,outcome PASS; run run-21e7f4985e214894bc28
+2026-11-01 23:34:11 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/contact-rich repeat 3,5.774,0.228,117.6,n/a (no GPU),0.398,outcome PASS; run run-8f32598475ff45899379
+2026-11-01 23:34:17 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/factor-random repeat 1,5.968,0.21,117.6,n/a (no GPU),0.172,outcome PASS; run run-dfeed0b9eb514efeaca7
+2026-11-01 23:34:23 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/factor-random repeat 2,6.368,0.21,117.6,n/a (no GPU),0.172,outcome PASS; run run-e85b11e26d7c4e5ba233
+2026-11-01 23:34:29 UTC,PAS-M1-001/T060-T062,bench campaign f1-tb09-determinism/factor-random repeat 3,5.964,0.211,117.6,n/a (no GPU),0.172,outcome PASS; run run-8d075cb02d0b4645ad19
+2026-11-01 23:34:34 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/controlled-noisy repeat 1,4.92,0.196,117.6,n/a (no GPU),0.188,outcome PASS; run run-a31dbaa62d4845598c40
+2026-11-01 23:34:39 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/controlled-noisy repeat 2,5.026,0.205,117.6,n/a (no GPU),0.188,outcome PASS; run run-456cadc406134623bc7a
+2026-11-01 23:34:44 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/controlled-noisy repeat 3,4.905,0.229,117.6,n/a (no GPU),0.188,outcome PASS; run run-b5b410de039843428932
+2026-11-01 23:34:50 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/contact-rich repeat 1,5.122,0.206,117.6,n/a (no GPU),0.375,outcome PASS; run run-2f399adbef0a476d9c57
+2026-11-01 23:34:55 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/contact-rich repeat 2,5.31,0.2,117.6,n/a (no GPU),0.375,outcome PASS; run run-3673e64321204de0b336
+2026-11-01 23:35:00 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/contact-rich repeat 3,5.233,0.2,118.3,n/a (no GPU),0.375,outcome PASS; run run-6bcb7e5a24fd49a2af57
+2026-11-01 23:35:06 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/factor-random repeat 1,5.019,0.186,119.5,n/a (no GPU),0.125,outcome PASS; run run-307f8a8041e64df893a4
+2026-11-01 23:35:11 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/factor-random repeat 2,4.899,0.188,119.5,n/a (no GPU),0.125,outcome PASS; run run-585129d697354073accd
+2026-11-01 23:35:16 UTC,PAS-M1-001/T060-T062,bench campaign f5-replay/factor-random repeat 3,5.002,0.213,119.5,n/a (no GPU),0.125,outcome PASS; run run-e0fca89189054cddab86
+2026-11-01 18:37:32 EST,PAS-M1-001/T066,"fresh-checkout rehearsal on the final source (clean export, docker build --no-cache, reproduce run-73e46f157e694fc8ac49)",64.78,6.05 (client side only),"3823 (WSL VM used, peak)",n/a (no GPU use),,exit 0.

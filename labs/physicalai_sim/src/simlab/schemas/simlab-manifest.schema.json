@@ -1,0 +1,138 @@
+{
+  "$defs": {
+    "ArtifactKind": {
+      "enum": [
+        "geometry",
+        "collision",
+        "model_file",
+        "procedure",
+        "intervention",
+        "measurement",
+        "observation",
+        "component"
+      ],
+      "title": "ArtifactKind",
+      "type": "string"
+    },
+    "ExtensionBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact": {
+          "title": "Artifact",
+          "type": "string"
+        },
+        "extension_point": {
+          "title": "Extension Point",
+          "type": "string"
+        }
+      },
+      "required": [
+        "extension_point",
+        "artifact"
+      ],
+      "title": "ExtensionBinding",
+      "type": "object"
+    },
+    "ManifestArtifact": {
+      "additionalProperties": false,
+      "properties": {
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "extension_point": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Extension Point"
+        },
+        "kind": {
+          "$ref": "#/$defs/ArtifactKind"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "kind",
+        "sha256",
+        "bytes"
+      ],
+      "title": "ManifestArtifact",
+      "type": "object"
+    }
+  },
+  "$id": "https://simlab.local/schemas/simlab-if-001@r1/simlab-manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "artifacts": {
+      "items": {
+        "$ref": "#/$defs/ManifestArtifact"
+      },
+      "title": "Artifacts",
+      "type": "array"
+    },
+    "experiment_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+      "title": "Experiment Id",
+      "type": "string"
+    },
+    "extension_bindings": {
+      "items": {
+        "$ref": "#/$defs/ExtensionBinding"
+      },
+      "title": "Extension Bindings",
+      "type": "array"
+    },
+    "manifest_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+      "title": "Manifest Id",
+      "type": "string"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "record": {
+      "const": "simlab-manifest",
+      "default": "simlab-manifest",
+      "title": "Record",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "simlab-if-001@r1",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "manifest_sha256",
+    "experiment_id",
+    "artifacts"
+  ],
+  "title": "Manifest",
+  "type": "object",
+  "x-simlab-interface": "simlab-if-001@r1"
+}

@@ -1,0 +1,138 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb06-double-pendulum",
+ "family": "F1",
+ "tb_id": "TB-06",
+ "title": "Passive double pendulum",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Passive double pendulum: bounded energy error and agreement with a high-accuracy reference over a short horizon",
+ "primary_metric": {
+  "name": "max absolute angle error vs reference (rad)",
+  "definition": "max over samples to 2 s of |phi_sim - phi_ref| for both absolute angles; plus energy relative drift"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "arXiv 2603.14634, analytic double-pendulum test",
+  "MuJoCo engine tests (multi-joint chains)",
+  "Textbook double-pendulum equations (point masses, massless rods)"
+ ],
+ "model_assumptions": "two point masses on massless rods; MuJoCo's second hinge angle is relative to the first, so phi1 = q1 and phi2 = q1 + q2; the reference is an independent pure-Python RK4 at 0.01 ms frozen in referee/ with its own convergence test.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "swing-a",
+   "split": "development",
+   "task": "Equal masses and lengths, released at 0.8 and 1.2 rad. MuJoCo's second angle is relative (q2 = phi2 - phi1).",
+   "params": {
+    "m1": 1.0,
+    "m2": 1.0,
+    "L1": 1.0,
+    "L2": 1.0,
+    "q1": 0.8,
+    "q2": 0.3999999999999999,
+    "damping": 0.0
+   },
+   "seed": 1
+  },
+  {
+   "id": "swing-b",
+   "split": "development",
+   "task": "Masses 1 and 2 kg, lengths 1.0 and 0.6 m, released at 1.5 and 0.5 rad. MuJoCo's second angle is relative (q2 = phi2 - phi1).",
+   "params": {
+    "m1": 1.0,
+    "m2": 2.0,
+    "L1": 1.0,
+    "L2": 0.6,
+    "q1": 1.5,
+    "q2": -1.0,
+    "damping": 0.0
+   },
+   "seed": 2
+  },
+  {
+   "id": "swing-c",
+   "split": "development",
+   "task": "Masses 2 and 1 kg, lengths 0.7 and 1.0 m, released at -0.5 and 2.0 rad. MuJoCo's second angle is relative (q2 = phi2 - phi1).",
+   "params": {
+    "m1": 2.0,
+    "m2": 1.0,
+    "L1": 0.7,
+    "L2": 1.0,
+    "q1": -0.5,
+    "q2": 2.5,
+    "damping": 0.0
+   },
+   "seed": 3
+  },
+  {
+   "id": "frozen-gravity-off",
+   "split": "development",
+   "task": "Negative control: gravity off, so the pendulum stays frozen.",
+   "params": {
+    "m1": 1.0,
+    "m2": 1.0,
+    "L1": 1.0,
+    "L2": 1.0,
+    "q1": 0.8,
+    "q2": 0.3999999999999999,
+    "damping": 0.0
+   },
+   "negative_control": true,
+   "seed": 9,
+   "config": {
+    "gravity": [
+     0,
+     0,
+     0
+    ]
+   }
+  },
+  {
+   "id": "over-damped",
+   "split": "development",
+   "task": "Negative control: heavy joint damping.",
+   "params": {
+    "m1": 1.0,
+    "m2": 1.0,
+    "L1": 1.0,
+    "L2": 1.0,
+    "q1": 0.8,
+    "q2": 0.3999999999999999,
+    "damping": 5.0
+   },
+   "negative_control": true,
+   "seed": 9
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

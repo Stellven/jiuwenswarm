@@ -1,0 +1,41 @@
+{
+  "$defs": {
+    "Severity": {
+      "enum": [
+        "error",
+        "warning"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "$id": "https://simlab.local/schemas/simlab-if-001@r1/simlab-error.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "code": {
+      "title": "Code",
+      "type": "string"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    },
+    "path": {
+      "default": "",
+      "title": "Path",
+      "type": "string"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity",
+      "default": "error"
+    }
+  },
+  "required": [
+    "code",
+    "message"
+  ],
+  "title": "TypedError",
+  "type": "object",
+  "x-simlab-interface": "simlab-if-001@r1"
+}

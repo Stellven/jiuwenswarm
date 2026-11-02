@@ -1,0 +1,133 @@
+{
+ "failed": [],
+ "items": [
+  {
+   "code": null,
+   "detail": {
+    "installed": "3.17.0",
+    "lock": "/opt/simlab/uv.lock",
+    "pinned": "3.17.0"
+   },
+   "item": "engine_version",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "installed": "2.5.4",
+    "pinned": "2.5.4"
+   },
+   "item": "numpy_version",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "version": "3.12.16"
+   },
+   "item": "python",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "build_id": "d5339f6d04a99f79998cef47c7b02cf7ea4eacef8ad04403b4a906827192c0c6",
+    "image_id": "sha256:daeb5923f7f0249c84de3a809e515db472db114f138cdecf9176917fe34c45a6",
+    "source": "image"
+   },
+   "item": "build_identity",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "free_gb": 622.1,
+    "path": "/data"
+   },
+   "item": "data_dir",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "note": "required inside the runner container and check groups",
+    "path": "/opt/simlab/src/simlab",
+    "read_only_filesystem": true,
+    "writable_by_this_user": false
+   },
+   "item": "source_read_only",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "variables": []
+   },
+   "item": "no_credentials_in_env",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "files": []
+   },
+   "item": "no_credential_files",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "non_loopback_routes": [],
+    "note": "phase 1 runs the runner with network_mode none"
+   },
+   "item": "container_network_none",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "errno": 13,
+    "seccomp_mode": 2,
+    "socket_fd": -1
+   },
+   "item": "seccomp_available",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "errno": 13,
+    "seccomp_mode": 2,
+    "socket_fd": -1
+   },
+   "item": "executor_network_denied",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "listeners": []
+   },
+   "item": "no_simlab_tcp_listener",
+   "status": "ready"
+  },
+  {
+   "code": null,
+   "detail": {
+    "cpu_threads": 16,
+    "gpu": "none visible",
+    "in_container": true,
+    "memory_mb": {
+     "MemAvailable": 2178,
+     "MemTotal": 5924,
+     "SwapFree": 0,
+     "SwapTotal": 2048
+    }
+   },
+   "item": "inventory",
+   "status": "info"
+  }
+ ],
+ "ready": true,
+ "record": "simlab-doctor"
+}

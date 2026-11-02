@@ -1,0 +1,93 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb04-collision",
+ "family": "F1",
+ "tb_id": "TB-04",
+ "title": "1D collisions",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "1D collision: momentum is conserved and restitution sets the ratio of relative normal velocities",
+ "primary_metric": {
+  "name": "restitution absolute error",
+  "definition": "|e_measured - e_contact_law|; plus momentum relative drift"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "ContactBench contact criteria (impulse balance, restitution)",
+  "Acosta et al. impact data (phase 5 real-data follow-up)",
+  "Schwager T., Poeschel T., Coefficient of restitution and linear-dashpot model revisited, Granular Matter 9 (2007)"
+ ],
+ "model_assumptions": "two spheres on frictionless slide joints with gravity off; contact stiffness k and damping b given directly (MuJoCo negative solref, per unit effective mass), impedance 0.9999; restitution measured as -(va - vb)after / (va - vb)before around the contact.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "elastic-1to1",
+   "split": "development",
+   "task": "Equal masses, undamped contact.",
+   "params": {
+    "k": 1000000.0,
+    "b": 0.0,
+    "m1": 1.0,
+    "m2": 1.0,
+    "v1": 1.0
+   },
+   "seed": 1
+  },
+  {
+   "id": "damped-1to3",
+   "split": "development",
+   "task": "Masses 1:3, damped contact.",
+   "params": {
+    "k": 1000000.0,
+    "b": 430.907524,
+    "m1": 1.0,
+    "m2": 3.0,
+    "v1": 1.0
+   },
+   "seed": 2
+  },
+  {
+   "id": "damped-2to1",
+   "split": "development",
+   "task": "Masses 2:1, lightly damped contact.",
+   "params": {
+    "k": 1000000.0,
+    "b": 141.7006,
+    "m1": 2.0,
+    "m2": 1.0,
+    "v1": 0.5
+   },
+   "seed": 3
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

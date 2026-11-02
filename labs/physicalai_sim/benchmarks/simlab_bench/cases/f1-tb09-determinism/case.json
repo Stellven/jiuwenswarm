@@ -1,0 +1,73 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb09-determinism",
+ "family": "F1",
+ "tb_id": "TB-09",
+ "title": "Determinism and checkpoint restore",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Two executions are identical, replay is identical, and restore-and-continue equals the uninterrupted run",
+ "primary_metric": {
+  "name": "identity",
+  "definition": "every comparison bitwise equal: per-step state digests (time, qpos, qvel, act, qacc_warmstart) and measurement values"
+ },
+ "procedure_kind": "determinism",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "MuJoCo state API (mj_getState with mjSTATE_INTEGRATION; 3.17 batch runs bit-identical to a plain loop)",
+  "SIMLAB test plan TB-09"
+ ],
+ "model_assumptions": "same machine and same build only (test plan Rules); seeds, recorded actions and checkpoints come from SIMLAB's own records.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/controlled.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "controlled-noisy",
+   "split": "development",
+   "task": "Controlled pendulum with a seeded noisy controller and a random start angle.",
+   "seed": 11
+  },
+  {
+   "id": "contact-rich",
+   "split": "development",
+   "task": "A box dropped onto a box from a random height (contact-rich).",
+   "experiment": "experiment-drop.json",
+   "seed": 12
+  },
+  {
+   "id": "factor-random",
+   "split": "development",
+   "task": "Two controller gains (a factor) with a normally distributed start angle.",
+   "experiment": "experiment-factor.json",
+   "seed": 13
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

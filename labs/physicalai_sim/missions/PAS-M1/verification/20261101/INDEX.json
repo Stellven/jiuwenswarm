@@ -1,0 +1,615 @@
+{
+ "snapshot": "20261101",
+ "phase": 1,
+ "task": "PAS-M1-001",
+ "items": [
+  {
+   "path": "evidence/RUN-bench-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-bench-20261101.md",
+   "sha256": "0cb8d6100076303dc576e18a6b06afa450b0d1ef28010027a0dc07b7eebe74bd",
+   "bytes": 11563,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/RUN-cg-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-cg-20261101.md",
+   "sha256": "048d6943f7726313a63168e504111be32251fd56219ed9539020807814efd067",
+   "bytes": 7725,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/RUN-ops-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-ops-20261101.md",
+   "sha256": "218d6ab0d6a90caaa37a34b959184023c03cc1e27307c52f215e898a0dc27e04",
+   "bytes": 4440,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/RUN-report-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-report-20261101.md",
+   "sha256": "5585ebfcd1e1a990c5204e2a6a5720c1b3956832b3788e36ac6088295218fb16",
+   "bytes": 2628,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/RUN-x11-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-x11-20261101.md",
+   "sha256": "23f2f96308e359e4dd478f559c6eb2629aa1462aef6b40f1405b2b060a3e01ba",
+   "bytes": 6242,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/RUN-x14b-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-x14b-20261101.md",
+   "sha256": "c4a794b7e6c76e21ea18dbe75d650c02d7a65700b1d85f4e909397bd1b556c6e",
+   "bytes": 4431,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/RUN-x16-rehearsal-20261101.md",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/RUN-x16-rehearsal-20261101.md",
+   "sha256": "011ab6839209d63c7ea67e98db20172fc117a0eecfa81a585fde0147d48e94c3",
+   "bytes": 3843,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "evidence/x11/run2/feasibility.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x11/run2/feasibility.json",
+   "sha256": "ae1a491ef038f8d3c725b47680d5f07241d6fe4c2543c8a2381eacb5182b5742",
+   "bytes": 755301,
+   "status": "FAIL",
+   "note": "X1.1 run 2: model entitlement"
+  },
+  {
+   "path": "evidence/x11/run2/models-available.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x11/run2/models-available.json",
+   "sha256": "82e3f823f28e33a4ed53b4aaaf03d69fc77459947e53763b863cc790bdeaf1ec",
+   "bytes": 600,
+   "status": "FAIL",
+   "note": "X1.1 run 2"
+  },
+  {
+   "path": "evidence/x11/run1-fail-unknown-session/feasibility.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x11/run1-fail-unknown-session/feasibility.json",
+   "sha256": "b429e6c4a0726cd63ab9906eaa7e99c6a65bbce1a85aaacfdd0f942b7e03f164",
+   "bytes": 754714,
+   "status": "FAIL",
+   "note": "X1.1 run 1: tool defect, fixed"
+  },
+  {
+   "path": "evidence/x11/run1-attempt1-static-capture-failed/start.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x11/run1-attempt1-static-capture-failed/start.json",
+   "sha256": "1a1812ca1835f77b1772a5576d7bbd0df5b3206aff26b062dc1f8cf12c7d9fdb",
+   "bytes": 1108,
+   "status": "FAIL",
+   "note": "X1.1 attempt 1: AI4R local-research capture"
+  },
+  {
+   "path": "evidence/x11/ai4r-build-measure.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x11/ai4r-build-measure.json",
+   "sha256": "5e28ad956dbfc1aae2e378363a24ebea2d69ebf8730701d6eb348fa4edb713b7",
+   "bytes": 43473,
+   "status": "info",
+   "note": "AI4R image build resources"
+  },
+  {
+   "path": "evidence/x14b/agent-only.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x14b/agent-only.json",
+   "sha256": "7627a258d9be60fd193dad022b02809ffde9188875eb78ce5f2e34d3b1cff986",
+   "bytes": 7792,
+   "status": "PASS",
+   "note": "X1.4 (b)"
+  },
+  {
+   "path": "evidence/x16/fresh-checkout.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/x16/fresh-checkout.json",
+   "sha256": "1f0f53270ed9574e7c24918cbceaedf75fa53a0152d0cda8134aa2ffe3d29da7",
+   "bytes": 3509,
+   "status": "REHEARSAL",
+   "note": "X1.6 rehearsal, not PASS"
+  },
+  {
+   "path": "evidence/ops/doctor-runner.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/ops/doctor-runner.json",
+   "sha256": "3c0994de86d9f4f43ae1759732ff31c24d93f4e6d9a5084aa9d9314fd8c40ae4",
+   "bytes": 2394,
+   "status": "PASS",
+   "note": "doctor in the runner"
+  },
+  {
+   "path": "evidence/ops/port-audit-during-campaign.json",
+   "source": "labs/physicalai_sim/missions/PAS-M1/PAS-M1-001/evidence/ops/port-audit-during-campaign.json",
+   "sha256": "62d8782166cc6cf11e5cdae062a02873bb8aaf06fbba3096f19bb8337c8f699d",
+   "bytes": 1154,
+   "status": "PASS",
+   "note": "host port audit during a run"
+  },
+  {
+   "path": "check-groups/core/result.json",
+   "source": ".test_logs/simlab/core/20261101T014126-ff875a/result.json",
+   "sha256": "961140de78a3396f753122eb45ac6ce6edcbfcb2d07816bdf998150fc3ceae9d",
+   "bytes": 1944,
+   "status": "PASS",
+   "note": ".test_logs/simlab/core/20261101T014126-ff875a"
+  },
+  {
+   "path": "check-groups/core/launch.json",
+   "source": ".test_logs/simlab/core/20261101T014126-ff875a/launch.json",
+   "sha256": "9f24670af6b105885a1dcc7b5eea1e8daeb54df84c3cffaadae4f6c7db951aa1",
+   "bytes": 1929,
+   "status": "PASS",
+   "note": ".test_logs/simlab/core/20261101T014126-ff875a"
+  },
+  {
+   "path": "check-groups/core/junit.xml",
+   "source": ".test_logs/simlab/core/20261101T014126-ff875a/junit.xml",
+   "sha256": "b9274e3d4ce0dfb5f55079b73e0aeb6dac1e3858141b4c80d9f1ea5dfdeacae8",
+   "bytes": 10308,
+   "status": "PASS",
+   "note": ".test_logs/simlab/core/20261101T014126-ff875a"
+  },
+  {
+   "path": "check-groups/core/source-manifest.json",
+   "source": ".test_logs/simlab/core/20261101T014126-ff875a/source-manifest.json",
+   "sha256": "fffd4ee522932cddc482ca44e415993d4a9c349c1fd3a7bc3045e2a19fc146c9",
+   "bytes": 20471,
+   "status": "PASS",
+   "note": ".test_logs/simlab/core/20261101T014126-ff875a"
+  },
+  {
+   "path": "check-groups/executors/result.json",
+   "source": ".test_logs/simlab/executors/20261101T014348-fc91d3/result.json",
+   "sha256": "9ef3d80a8f9db643eb9a4abb6b893d7e70952c0aa12babe8d4b0703a2f7bb570",
+   "bytes": 1505,
+   "status": "PASS",
+   "note": ".test_logs/simlab/executors/20261101T014348-fc91d3"
+  },
+  {
+   "path": "check-groups/executors/launch.json",
+   "source": ".test_logs/simlab/executors/20261101T014348-fc91d3/launch.json",
+   "sha256": "b7646c73ff4cd4276188f1e0e24be1d521dbb44faeb9181cc8abcff0a0f73da7",
+   "bytes": 1950,
+   "status": "PASS",
+   "note": ".test_logs/simlab/executors/20261101T014348-fc91d3"
+  },
+  {
+   "path": "check-groups/executors/junit.xml",
+   "source": ".test_logs/simlab/executors/20261101T014348-fc91d3/junit.xml",
+   "sha256": "90a1e36caa2aad0b26561e08ff2d47bd1228739e1fa1384f3acbb86a722a8cf8",
+   "bytes": 1054,
+   "status": "PASS",
+   "note": ".test_logs/simlab/executors/20261101T014348-fc91d3"
+  },
+  {
+   "path": "check-groups/executors/source-manifest.json",
+   "source": ".test_logs/simlab/executors/20261101T014348-fc91d3/source-manifest.json",
+   "sha256": "fffd4ee522932cddc482ca44e415993d4a9c349c1fd3a7bc3045e2a19fc146c9",
+   "bytes": 20471,
+   "status": "PASS",
+   "note": ".test_logs/simlab/executors/20261101T014348-fc91d3"
+  },
+  {
+   "path": "check-groups/benchmark/result.json",
+   "source": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5/result.json",
+   "sha256": "d55bb945e4e367b2b441bd4948e1ab6bc0a264d337ea235132d214396d8e2227",
+   "bytes": 1405,
+   "status": "PASS",
+   "note": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5"
+  },
+  {
+   "path": "check-groups/benchmark/launch.json",
+   "source": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5/launch.json",
+   "sha256": "45596e48aeeacedb3b00a0cea9fc9db499b963326f5802e2251157063e373523",
+   "bytes": 1954,
+   "status": "PASS",
+   "note": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5"
+  },
+  {
+   "path": "check-groups/benchmark/junit.xml",
+   "source": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5/junit.xml",
+   "sha256": "1324fe2e3fc010a51d2dffc35274fd7e213b075319e84055c30adc809efeb9a3",
+   "bytes": 4750,
+   "status": "PASS",
+   "note": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5"
+  },
+  {
+   "path": "check-groups/benchmark/source-manifest.json",
+   "source": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5/source-manifest.json",
+   "sha256": "fffd4ee522932cddc482ca44e415993d4a9c349c1fd3a7bc3045e2a19fc146c9",
+   "bytes": 20471,
+   "status": "PASS",
+   "note": ".test_logs/simlab/benchmark/20261101T014407-bfbeb5"
+  },
+  {
+   "path": "check-groups/all/result.json",
+   "source": ".test_logs/simlab/all/20261101T182309-9aeaad/result.json",
+   "sha256": "14fcb14e5c0ad20aa976b3f9f4f0b2b2226f5ac73b4d10b057acae76f55f2680",
+   "bytes": 2273,
+   "status": "PASS",
+   "note": ".test_logs/simlab/all/20261101T182309-9aeaad"
+  },
+  {
+   "path": "check-groups/all/launch.json",
+   "source": ".test_logs/simlab/all/20261101T182309-9aeaad/launch.json",
+   "sha256": "a639a00958e9b265d8aa3895f7ee5b9ccad75cad68f7fd6afa01e7adf656e5ea",
+   "bytes": 1925,
+   "status": "PASS",
+   "note": ".test_logs/simlab/all/20261101T182309-9aeaad"
+  },
+  {
+   "path": "check-groups/all/junit.xml",
+   "source": ".test_logs/simlab/all/20261101T182309-9aeaad/junit.xml",
+   "sha256": "c57d8183560275d1475530093f51f9e2ab5a2a5cf64ed79325cdfb25b36a8c44",
+   "bytes": 15613,
+   "status": "PASS",
+   "note": ".test_logs/simlab/all/20261101T182309-9aeaad"
+  },
+  {
+   "path": "check-groups/all/source-manifest.json",
+   "source": ".test_logs/simlab/all/20261101T182309-9aeaad/source-manifest.json",
+   "sha256": "fffd4ee522932cddc482ca44e415993d4a9c349c1fd3a7bc3045e2a19fc146c9",
+   "bytes": 20471,
+   "status": "PASS",
+   "note": ".test_logs/simlab/all/20261101T182309-9aeaad"
+  },
+  {
+   "path": "check-groups/neg-core-timeout/result.json",
+   "source": ".test_logs/simlab/core/20261101T012344-5fd352/result.json",
+   "sha256": "72d864c474ef42e904201d1e369baa4903ae298caa905d08521ff3a7b760afc6",
+   "bytes": 1724,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012344-5fd352"
+  },
+  {
+   "path": "check-groups/neg-core-timeout/launch.json",
+   "source": ".test_logs/simlab/core/20261101T012344-5fd352/launch.json",
+   "sha256": "5395a461df5fb2d8eff495c9a19945f8342c937fa70dba9ffe52aab6bf2365d5",
+   "bytes": 1853,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012344-5fd352"
+  },
+  {
+   "path": "check-groups/neg-core-timeout/source-manifest.json",
+   "source": ".test_logs/simlab/core/20261101T012344-5fd352/source-manifest.json",
+   "sha256": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a",
+   "bytes": 20369,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012344-5fd352"
+  },
+  {
+   "path": "check-groups/neg-core-source-change/result.json",
+   "source": ".test_logs/simlab/core/20261101T012350-4c2581/result.json",
+   "sha256": "f08d4313cae5ba684f4447e2a86e00dd40021d145a73e2452ab8f08ddd4b543f",
+   "bytes": 1996,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012350-4c2581"
+  },
+  {
+   "path": "check-groups/neg-core-source-change/launch.json",
+   "source": ".test_logs/simlab/core/20261101T012350-4c2581/launch.json",
+   "sha256": "8934c9672f7d67156aece84b1c4cd9d0e5262e33d941f29182b4bea3e8dcfbfd",
+   "bytes": 1948,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012350-4c2581"
+  },
+  {
+   "path": "check-groups/neg-core-source-change/junit.xml",
+   "source": ".test_logs/simlab/core/20261101T012350-4c2581/junit.xml",
+   "sha256": "ba689820979b9cf137ca1e085569b4fa158d05505b08f44153461f9bd3fa1fd4",
+   "bytes": 10308,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012350-4c2581"
+  },
+  {
+   "path": "check-groups/neg-core-source-change/source-manifest.json",
+   "source": ".test_logs/simlab/core/20261101T012350-4c2581/source-manifest.json",
+   "sha256": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a",
+   "bytes": 20369,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/core/20261101T012350-4c2581"
+  },
+  {
+   "path": "check-groups/neg-executors-timeout/result.json",
+   "source": ".test_logs/simlab/executors/20261101T012652-6f9eb0/result.json",
+   "sha256": "9cc759b0b514ad1360216e81d1c0a1d2871a93fdeee9820880aeab6ffb46b9c9",
+   "bytes": 1289,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012652-6f9eb0"
+  },
+  {
+   "path": "check-groups/neg-executors-timeout/launch.json",
+   "source": ".test_logs/simlab/executors/20261101T012652-6f9eb0/launch.json",
+   "sha256": "e9b7f3342cea634b41bcb2e49f2cf34d60e1735bbcdb5b7f656a86d71c5fb96c",
+   "bytes": 1878,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012652-6f9eb0"
+  },
+  {
+   "path": "check-groups/neg-executors-timeout/source-manifest.json",
+   "source": ".test_logs/simlab/executors/20261101T012652-6f9eb0/source-manifest.json",
+   "sha256": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a",
+   "bytes": 20369,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012652-6f9eb0"
+  },
+  {
+   "path": "check-groups/neg-executors-source-change/result.json",
+   "source": ".test_logs/simlab/executors/20261101T012659-6f980b/result.json",
+   "sha256": "020bd4379d02afe425fbd49e0e107d91676d6de33c3b5878770475b23dd95cfc",
+   "bytes": 1556,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012659-6f980b"
+  },
+  {
+   "path": "check-groups/neg-executors-source-change/launch.json",
+   "source": ".test_logs/simlab/executors/20261101T012659-6f980b/launch.json",
+   "sha256": "2104af2955001216f34a66a4cfe084b37abbd803dd6737b8d6acee38ac35bb58",
+   "bytes": 1968,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012659-6f980b"
+  },
+  {
+   "path": "check-groups/neg-executors-source-change/junit.xml",
+   "source": ".test_logs/simlab/executors/20261101T012659-6f980b/junit.xml",
+   "sha256": "879f2a284ad75d84a710816b367010459a4c78e82113e3857140dd692dd32b31",
+   "bytes": 1054,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012659-6f980b"
+  },
+  {
+   "path": "check-groups/neg-executors-source-change/source-manifest.json",
+   "source": ".test_logs/simlab/executors/20261101T012659-6f980b/source-manifest.json",
+   "sha256": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a",
+   "bytes": 20369,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/executors/20261101T012659-6f980b"
+  },
+  {
+   "path": "check-groups/neg-benchmark-timeout/result.json",
+   "source": ".test_logs/simlab/benchmark/20261101T012726-6cbdaa/result.json",
+   "sha256": "d99d05843c3bd19945d858628b0f5b8f57333de8e96baeddc4758e27cceeec7d",
+   "bytes": 1185,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012726-6cbdaa"
+  },
+  {
+   "path": "check-groups/neg-benchmark-timeout/launch.json",
+   "source": ".test_logs/simlab/benchmark/20261101T012726-6cbdaa/launch.json",
+   "sha256": "c0f108d52660354e6107df0cb873acaa55a6f9e283217be2b6918a247372924c",
+   "bytes": 1878,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012726-6cbdaa"
+  },
+  {
+   "path": "check-groups/neg-benchmark-timeout/source-manifest.json",
+   "source": ".test_logs/simlab/benchmark/20261101T012726-6cbdaa/source-manifest.json",
+   "sha256": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a",
+   "bytes": 20369,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012726-6cbdaa"
+  },
+  {
+   "path": "check-groups/neg-benchmark-source-change/result.json",
+   "source": ".test_logs/simlab/benchmark/20261101T012732-f25680/result.json",
+   "sha256": "e76ca139ff70c9d6c5f98d9186f6b6f2ea9676878b9cc2b33362972861ff5da3",
+   "bytes": 1455,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012732-f25680"
+  },
+  {
+   "path": "check-groups/neg-benchmark-source-change/launch.json",
+   "source": ".test_logs/simlab/benchmark/20261101T012732-f25680/launch.json",
+   "sha256": "f7f37016f4fc3fe5a20b46139c45c1df2b6fbfed87b26b922c6eb6da7f841d35",
+   "bytes": 1971,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012732-f25680"
+  },
+  {
+   "path": "check-groups/neg-benchmark-source-change/junit.xml",
+   "source": ".test_logs/simlab/benchmark/20261101T012732-f25680/junit.xml",
+   "sha256": "235468bc48311b2481c5096586cc186afc2e0ed032d8f9421f43d8f403437b7c",
+   "bytes": 4646,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012732-f25680"
+  },
+  {
+   "path": "check-groups/neg-benchmark-source-change/source-manifest.json",
+   "source": ".test_logs/simlab/benchmark/20261101T012732-f25680/source-manifest.json",
+   "sha256": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a",
+   "bytes": 20369,
+   "status": "NEGATIVE_CONTROL",
+   "note": ".test_logs/simlab/benchmark/20261101T012732-f25680"
+  },
+  {
+   "path": "check-groups/dev-core-import-check-failure/result.json",
+   "source": ".test_logs/simlab/core/20261031T215307-105ff7/result.json",
+   "sha256": "f67ab2da8826f3952564dc4ebb3dcf14a0def68653ad5fcedef904c6a812970d",
+   "bytes": 1942,
+   "status": "FAILED",
+   "note": ".test_logs/simlab/core/20261031T215307-105ff7"
+  },
+  {
+   "path": "check-groups/dev-core-import-check-failure/launch.json",
+   "source": ".test_logs/simlab/core/20261031T215307-105ff7/launch.json",
+   "sha256": "9f9ec94df0a3b133895c5f1e9cec98d94f52012e8aacc570f4127da321397ed8",
+   "bytes": 1928,
+   "status": "FAILED",
+   "note": ".test_logs/simlab/core/20261031T215307-105ff7"
+  },
+  {
+   "path": "check-groups/dev-core-import-check-failure/junit.xml",
+   "source": ".test_logs/simlab/core/20261031T215307-105ff7/junit.xml",
+   "sha256": "974b705094ac90c0aa19a4156e9c6cd7e39ebf5a8d7530c7d46042b7051202fa",
+   "bytes": 11894,
+   "status": "FAILED",
+   "note": ".test_logs/simlab/core/20261031T215307-105ff7"
+  },
+  {
+   "path": "check-groups/dev-core-import-check-failure/source-manifest.json",
+   "source": ".test_logs/simlab/core/20261031T215307-105ff7/source-manifest.json",
+   "sha256": "f89278376db66cf9e0260c139f6ff22d6d27409c8c1cacb98da831c453e932ff",
+   "bytes": 7581,
+   "status": "FAILED",
+   "note": ".test_logs/simlab/core/20261031T215307-105ff7"
+  },
+  {
+   "path": "bench/campaign-F1-F5/evidence-index.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/evidence-index.json",
+   "sha256": "7184ece9fc3b5d099444a0cbcec2c71f943edbef784d88b599a2cd9a6d40b3bd",
+   "bytes": 17852,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/family_F1.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/family_F1.json",
+   "sha256": "7751c3321bde8a7afd71b0382f76d49b2c59b2cae85c5018bd5a1c0f9b199e85",
+   "bytes": 121763,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/family_F1.md",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/family_F1.md",
+   "sha256": "c101e28c1ca7aa72da4c00464bb7c89a79a3091688d936dfe34e786da3b69e29",
+   "bytes": 13288,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/family_F5.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/family_F5.json",
+   "sha256": "0d4f6aad41144cb13521d6f86950eba47e7020e0d31c5adba43123bee00df5b1",
+   "bytes": 10297,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/family_F5.md",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/family_F5.md",
+   "sha256": "bc22e38e3247c96610318ffda3da0a76baefdad1c545bf8350d53979f0c010cf",
+   "bytes": 1455,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/profile.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/profile.json",
+   "sha256": "d383f923ca62463fa1ef222d95111265d2a0d11a01b6baf24c6b3ec4f5b80527",
+   "bytes": 427,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/release-check.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/release-check.json",
+   "sha256": "4dda1343216e7499d635b39ce8d18412ef10a179da16fff33fe8713739f5a50a",
+   "bytes": 54,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5/report.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5/report.json",
+   "sha256": "3f0614fab566f95552e5567984647c839a2ce490bca7f70d1faae27236021b03",
+   "bytes": 142075,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/evidence-index.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/evidence-index.json",
+   "sha256": "3ebf1578ddb452ef06592772a83b9cb1ec528d34b547ffabac3fe65e686519ea",
+   "bytes": 17852,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/family_F1.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/family_F1.json",
+   "sha256": "4af60bf6fec75e9219db8a5dea58da09547966ef2781f728abea90514fee89ae",
+   "bytes": 121752,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/family_F1.md",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/family_F1.md",
+   "sha256": "cb76fc43f526e067042166c80c631ff75036585961aa85d1c5a73ec9f286318c",
+   "bytes": 13288,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/family_F5.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/family_F5.json",
+   "sha256": "755c8c4d4b4c3a0d63049bc125fc953481b64fb3d2b0b41bcb03bdfccdfba1b8",
+   "bytes": 10303,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/family_F5.md",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/family_F5.md",
+   "sha256": "d3694ceff84f8caf894f9f0ead1224fdfa1f4687599fe70a6d35ac3a7f93d5f3",
+   "bytes": 1455,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/profile.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/profile.json",
+   "sha256": "d383f923ca62463fa1ef222d95111265d2a0d11a01b6baf24c6b3ec4f5b80527",
+   "bytes": 427,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/release-check.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/release-check.json",
+   "sha256": "4dda1343216e7499d635b39ce8d18412ef10a179da16fff33fe8713739f5a50a",
+   "bytes": 54,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/campaign-F1-F5-build-df0cfd61-superseded/report.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/campaign-F1-F5-build-df0cfd61-superseded/report.json",
+   "sha256": "ad9a1d87985649f63d0584694c9c947daf86c8ef2446aab683d1582bb0294cf9",
+   "bytes": 142070,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/speed.json",
+   "source": "labs/physicalai_sim/benchmarks/reports/20261101/speed.json",
+   "sha256": "ac615064900cee09a0d314e2c163df5c075837d884bc6a431e97d12d438a4177",
+   "bytes": 1451,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "bench/release-pas-m1-phase1-r1.json",
+   "source": "labs/physicalai_sim/benchmarks/simlab_bench/releases/pas-m1-phase1-r1.json",
+   "sha256": "fe34b4491687b72ab210a4c0ecce6e2335fe60574c545dd1e4961646e5b71885",
+   "bytes": 9577,
+   "status": "record",
+   "note": ""
+  },
+  {
+   "path": "compute-log.csv",
+   "source": "labs/physicalai_sim/missions/PAS-M1/compute-log.csv",
+   "sha256": "943ddf40ef30cb747f1ce1d5b0d8facf627a59d488e711c205df4d00267ab9f6",
+   "bytes": 42020,
+   "status": "record",
+   "note": ""
+  }
+ ]
+}

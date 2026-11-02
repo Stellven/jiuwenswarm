@@ -1,0 +1,32 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-b7118db9da464cc68a83"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer",
+   "reason": "period 1.97049697 s vs elliptic reference 1.97049697 s: relative error 7.813e-10 (tolerance 0.005)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 1.97049697192 vs oracle recomputation from the trace 1.97049697192",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": 1.9704969719187198,
+  "primary_metric": "period relative error",
+  "primary_value": 7.813470371264951e-10,
+  "reference": 1.9704969703790778,
+  "tolerance": 0.005
+ }
+}

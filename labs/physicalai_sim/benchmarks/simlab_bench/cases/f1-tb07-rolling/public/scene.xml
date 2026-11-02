@@ -1,0 +1,9 @@
+<mujoco model="tb07-rolling">
+  <worldbody>
+    <geom name="plane" type="plane" size="50 5 0.1" friction="1 0 0"/>
+    <body name="roller" pos="0 0 0.1">
+      <freejoint name="free"/>
+      <geom name="roller_geom" type="${gtype}" size="${gsize}" euler="${geuler}" shellinertia="${shell}" mass="1" friction="1 0 0"/>
+    </body>
+  </worldbody>
+</mujoco>

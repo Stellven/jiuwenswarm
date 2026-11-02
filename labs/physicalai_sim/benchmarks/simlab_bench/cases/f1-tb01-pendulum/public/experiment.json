@@ -1,0 +1,96 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; a rigid hinge with a point mass is the textbook pendulum",
+ "header": {
+  "objective": "Measure the pendulum period for small and large swings",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "L": 1.0,
+     "theta0": 0.05
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.0002,
+   "integrator": "RK4"
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-01"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-01"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "swing",
+    "duration_s": 13.0
+   }
+  ],
+  "initial_state": {
+   "qpos": {
+    "hinge": "${theta0}"
+   }
+  }
+ },
+ "measurements": [
+  {
+   "measurement_id": "period",
+   "scope": "trial",
+   "unit": "s",
+   "required": true,
+   "definition": {
+    "kind": "period",
+    "signal": "qpos:hinge",
+    "direction": "up"
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "qpos:hinge",
+   "unit": "rad",
+   "rate_hz": 2500
+  }
+ ]
+}

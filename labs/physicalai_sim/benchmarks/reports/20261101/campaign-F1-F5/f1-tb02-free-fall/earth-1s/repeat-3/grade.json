@@ -1,0 +1,38 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-aa62af641a0c4c88b1e5"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer",
+   "reason": "displacement -4.905 m vs -g t^2/2 = -4.905 m: relative error 6.519e-15 (tolerance 0.001)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement -4.905 vs oracle recomputation from the trace -4.905",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "duration",
+   "reason": "trace ends at t=1 s (declared 1.0 s)",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": -4.904999999999968,
+  "primary_metric": "fall distance relative error",
+  "primary_value": 6.51874069504679e-15,
+  "reference": -4.905,
+  "tolerance": 0.001
+ }
+}

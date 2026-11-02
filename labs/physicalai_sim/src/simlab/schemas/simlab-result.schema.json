@@ -1,0 +1,972 @@
+{
+  "$defs": {
+    "Anchoring": {
+      "enum": [
+        "anchored",
+        "unanchored"
+      ],
+      "title": "Anchoring",
+      "type": "string"
+    },
+    "Attempt": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended At"
+        },
+        "invalid_reason": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/InvalidReason"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "seeds": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Seeds",
+          "type": "object"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "state_digest": {
+          "anyOf": [
+            {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "State Digest"
+        },
+        "status": {
+          "$ref": "#/$defs/AttemptStatus"
+        },
+        "stop": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Why the trial stopped: completed, watchdog:<bound>, limit:<limit>, cancel",
+          "title": "Stop"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "status"
+      ],
+      "title": "Attempt",
+      "type": "object"
+    },
+    "AttemptStatus": {
+      "enum": [
+        "RUNNING",
+        "COMPLETED",
+        "INVALID",
+        "LIMIT_REACHED",
+        "INTERRUPTED",
+        "BLOCKED"
+      ],
+      "title": "AttemptStatus",
+      "type": "string"
+    },
+    "CapabilityGap": {
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "requested_change": {
+          "title": "Requested Change",
+          "type": "string"
+        }
+      },
+      "required": [
+        "requested_change",
+        "reason"
+      ],
+      "title": "CapabilityGap",
+      "type": "object"
+    },
+    "CheckKind": {
+      "enum": [
+        "known_answer",
+        "control_arm",
+        "rerun",
+        "recomputation",
+        "watchdog",
+        "replay_identity"
+      ],
+      "title": "CheckKind",
+      "type": "string"
+    },
+    "CheckResult": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_measurements": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Affected Measurements",
+          "type": "array"
+        },
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "check_kind": {
+          "$ref": "#/$defs/CheckKind"
+        },
+        "observed": {
+          "additionalProperties": true,
+          "title": "Observed",
+          "type": "object"
+        },
+        "required": {
+          "title": "Required",
+          "type": "boolean"
+        },
+        "status": {
+          "$ref": "#/$defs/CheckStatus"
+        }
+      },
+      "required": [
+        "check_id",
+        "check_kind",
+        "required",
+        "status"
+      ],
+      "title": "CheckResult",
+      "type": "object"
+    },
+    "CheckStatus": {
+      "enum": [
+        "pass",
+        "fail",
+        "not_run"
+      ],
+      "title": "CheckStatus",
+      "type": "string"
+    },
+    "CheckpointRef": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "checkpoint_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Checkpoint Id",
+          "type": "string"
+        },
+        "point": {
+          "title": "Point",
+          "type": "string"
+        },
+        "state_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "State Sha256",
+          "type": "string"
+        },
+        "time_s": {
+          "title": "Time S",
+          "type": "number"
+        },
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "checkpoint_id",
+        "point",
+        "trial_id",
+        "attempt_id",
+        "time_s",
+        "state_sha256"
+      ],
+      "title": "CheckpointRef",
+      "type": "object"
+    },
+    "CrossTrialMeasurement": {
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "additionalProperties": true,
+          "title": "Key",
+          "type": "object"
+        },
+        "measurement_id": {
+          "title": "Measurement Id",
+          "type": "string"
+        },
+        "n": {
+          "default": 0,
+          "title": "N",
+          "type": "integer"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "scope": {
+          "$ref": "#/$defs/MeasurementScope"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "validity": {
+          "default": "valid",
+          "enum": [
+            "valid",
+            "invalid"
+          ],
+          "title": "Validity",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "measurement_id",
+        "scope",
+        "value"
+      ],
+      "title": "CrossTrialMeasurement",
+      "type": "object"
+    },
+    "Deviation": {
+      "additionalProperties": false,
+      "properties": {
+        "deviation": {
+          "title": "Deviation",
+          "type": "string"
+        },
+        "origin": {
+          "title": "Origin",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "deviation",
+        "reason",
+        "origin"
+      ],
+      "title": "Deviation",
+      "type": "object"
+    },
+    "EvidenceLevel": {
+      "enum": [
+        "preview",
+        "simulation",
+        "measured",
+        "validated_range"
+      ],
+      "title": "EvidenceLevel",
+      "type": "string"
+    },
+    "FeasibilityEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_arms": {
+          "items": {
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+            "type": "string"
+          },
+          "title": "Affected Arms",
+          "type": "array"
+        },
+        "dependency_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Dependency Id",
+          "type": "string"
+        },
+        "dependency_kind": {
+          "enum": [
+            "engine",
+            "library",
+            "asset",
+            "code",
+            "weights",
+            "data",
+            "model",
+            "service",
+            "other"
+          ],
+          "title": "Dependency Kind",
+          "type": "string"
+        },
+        "evidence_ref": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Ref"
+        },
+        "reason": {
+          "default": "",
+          "title": "Reason",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/FeasibilityStatus"
+        }
+      },
+      "required": [
+        "dependency_id",
+        "dependency_kind",
+        "status"
+      ],
+      "title": "FeasibilityEntry",
+      "type": "object"
+    },
+    "FeasibilityStatus": {
+      "enum": [
+        "inspected",
+        "missing",
+        "unverified",
+        "needs_calibration",
+        "ran"
+      ],
+      "title": "FeasibilityStatus",
+      "type": "string"
+    },
+    "InvalidReason": {
+      "enum": [
+        "numerical_failure",
+        "protocol_violation",
+        "incorrect_intervention",
+        "missing_required_observation",
+        "corrupted_record",
+        "invalid_state_or_action_delivery"
+      ],
+      "title": "InvalidReason",
+      "type": "string"
+    },
+    "MeasurementScope": {
+      "enum": [
+        "trial",
+        "pair",
+        "set"
+      ],
+      "title": "MeasurementScope",
+      "type": "string"
+    },
+    "MeasurementValidity": {
+      "additionalProperties": false,
+      "properties": {
+        "failed_checks": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failed Checks",
+          "type": "array"
+        },
+        "measurement_id": {
+          "title": "Measurement Id",
+          "type": "string"
+        },
+        "validity": {
+          "enum": [
+            "valid",
+            "invalid"
+          ],
+          "title": "Validity",
+          "type": "string"
+        }
+      },
+      "required": [
+        "measurement_id",
+        "validity"
+      ],
+      "title": "MeasurementValidity",
+      "type": "object"
+    },
+    "MeasurementValue": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Attempt Id"
+        },
+        "measurement_id": {
+          "title": "Measurement Id",
+          "type": "string"
+        },
+        "note": {
+          "default": "",
+          "title": "Note",
+          "type": "string"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "validity": {
+          "default": "valid",
+          "enum": [
+            "valid",
+            "invalid"
+          ],
+          "title": "Validity",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "measurement_id",
+        "value"
+      ],
+      "title": "MeasurementValue",
+      "type": "object"
+    },
+    "ParentRef": {
+      "additionalProperties": false,
+      "properties": {
+        "checkpoint_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Checkpoint Id"
+        },
+        "run_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Run Id"
+        }
+      },
+      "title": "ParentRef",
+      "type": "object"
+    },
+    "Resources": {
+      "additionalProperties": false,
+      "properties": {
+        "cpu_s": {
+          "title": "Cpu S",
+          "type": "number"
+        },
+        "disk_written_mb": {
+          "title": "Disk Written Mb",
+          "type": "number"
+        },
+        "gpu": {
+          "title": "Gpu",
+          "type": "string"
+        },
+        "peak_ram_mb": {
+          "title": "Peak Ram Mb",
+          "type": "number"
+        },
+        "peak_vram_mb": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Peak Vram Mb"
+        },
+        "wall_s": {
+          "title": "Wall S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "wall_s",
+        "cpu_s",
+        "peak_ram_mb",
+        "gpu",
+        "peak_vram_mb",
+        "disk_written_mb"
+      ],
+      "title": "Resources",
+      "type": "object"
+    },
+    "RunKind": {
+      "enum": [
+        "original",
+        "replay",
+        "fresh_replication"
+      ],
+      "title": "RunKind",
+      "type": "string"
+    },
+    "RunStatus": {
+      "enum": [
+        "QUEUED",
+        "RUNNING",
+        "COMPLETED",
+        "CANCELLED",
+        "FAILED",
+        "PAUSED"
+      ],
+      "title": "RunStatus",
+      "type": "string"
+    },
+    "TraceRef": {
+      "additionalProperties": false,
+      "properties": {
+        "arm_id": {
+          "title": "Arm Id",
+          "type": "string"
+        },
+        "attempt_id": {
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "n": {
+          "title": "N",
+          "type": "integer"
+        },
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "signal": {
+          "title": "Signal",
+          "type": "string"
+        },
+        "t_end": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "T End"
+        },
+        "t_start": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "T Start"
+        },
+        "trial_id": {
+          "title": "Trial Id",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref",
+        "trial_id",
+        "attempt_id",
+        "arm_id",
+        "signal",
+        "unit",
+        "n",
+        "t_start",
+        "t_end",
+        "sha256"
+      ],
+      "title": "TraceRef",
+      "type": "object"
+    },
+    "Trial": {
+      "additionalProperties": false,
+      "properties": {
+        "arm_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Arm Id",
+          "type": "string"
+        },
+        "attempts": {
+          "items": {
+            "$ref": "#/$defs/Attempt"
+          },
+          "title": "Attempts",
+          "type": "array"
+        },
+        "condition": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Condition",
+          "type": "string"
+        },
+        "episode": {
+          "title": "Episode",
+          "type": "integer"
+        },
+        "measurements": {
+          "items": {
+            "$ref": "#/$defs/MeasurementValue"
+          },
+          "title": "Measurements",
+          "type": "array"
+        },
+        "pair_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pair Id"
+        },
+        "replicate": {
+          "title": "Replicate",
+          "type": "integer"
+        },
+        "trial_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "title": "Trial Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "trial_id",
+        "arm_id",
+        "condition",
+        "replicate",
+        "episode",
+        "attempts"
+      ],
+      "title": "Trial",
+      "type": "object"
+    }
+  },
+  "$id": "https://simlab.local/schemas/simlab-if-001@r1/simlab-result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "anchoring": {
+      "$ref": "#/$defs/Anchoring"
+    },
+    "capability_gaps": {
+      "items": {
+        "$ref": "#/$defs/CapabilityGap"
+      },
+      "title": "Capability Gaps",
+      "type": "array"
+    },
+    "checkpoints": {
+      "items": {
+        "$ref": "#/$defs/CheckpointRef"
+      },
+      "title": "Checkpoints",
+      "type": "array"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/CheckResult"
+      },
+      "title": "Checks",
+      "type": "array"
+    },
+    "counts_as_evidence": {
+      "default": true,
+      "title": "Counts As Evidence",
+      "type": "boolean"
+    },
+    "cross_trial_measurements": {
+      "items": {
+        "$ref": "#/$defs/CrossTrialMeasurement"
+      },
+      "title": "Cross Trial Measurements",
+      "type": "array"
+    },
+    "deviations": {
+      "items": {
+        "$ref": "#/$defs/Deviation"
+      },
+      "title": "Deviations",
+      "type": "array"
+    },
+    "evidence_level": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EvidenceLevel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "None while no level is earned (run not complete or a required check failed)"
+    },
+    "experiment_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+      "title": "Experiment Id",
+      "type": "string"
+    },
+    "feasibility": {
+      "items": {
+        "$ref": "#/$defs/FeasibilityEntry"
+      },
+      "title": "Feasibility",
+      "type": "array"
+    },
+    "hardware": {
+      "additionalProperties": true,
+      "title": "Hardware",
+      "type": "object"
+    },
+    "identity": {
+      "additionalProperties": true,
+      "title": "Identity",
+      "type": "object"
+    },
+    "manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Manifest Sha256",
+      "type": "string"
+    },
+    "measurement_validity": {
+      "items": {
+        "$ref": "#/$defs/MeasurementValidity"
+      },
+      "title": "Measurement Validity",
+      "type": "array"
+    },
+    "model_calls": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Model Calls",
+      "type": "array"
+    },
+    "parent": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ParentRef"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "provenance": {
+      "additionalProperties": true,
+      "title": "Provenance",
+      "type": "object"
+    },
+    "record": {
+      "const": "simlab-result",
+      "default": "simlab-result",
+      "title": "Record",
+      "type": "string"
+    },
+    "replay_of": {
+      "anyOf": [
+        {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Replay Of"
+    },
+    "resources": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Resources"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "run_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:\\-]*$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "run_kind": {
+      "$ref": "#/$defs/RunKind"
+    },
+    "schema_version": {
+      "const": "simlab-if-001@r1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/RunStatus"
+    },
+    "status_reason": {
+      "default": "",
+      "title": "Status Reason",
+      "type": "string"
+    },
+    "traces": {
+      "items": {
+        "$ref": "#/$defs/TraceRef"
+      },
+      "title": "Traces",
+      "type": "array"
+    },
+    "trials": {
+      "items": {
+        "$ref": "#/$defs/Trial"
+      },
+      "title": "Trials",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "experiment_id",
+    "manifest_sha256",
+    "run_kind",
+    "status",
+    "identity",
+    "hardware",
+    "trials",
+    "anchoring",
+    "provenance"
+  ],
+  "title": "Result",
+  "type": "object",
+  "x-simlab-interface": "simlab-if-001@r1"
+}

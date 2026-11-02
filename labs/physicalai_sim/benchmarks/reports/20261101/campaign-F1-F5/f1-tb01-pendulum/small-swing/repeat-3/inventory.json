@@ -1,0 +1,30 @@
+{
+ "hardware": {
+  "taken_at": "2026-11-01T23:31:16.343543Z",
+  "cpu_model": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics",
+  "threads": 16,
+  "machine": "x86_64",
+  "kernel": "6.6.114.1-microsoft-standard-WSL2",
+  "memory_total_mb": 5924,
+  "memory_available_mb": 2140,
+  "disk_free_gb": 622.1,
+  "gpu": "not used (MuJoCo CPU executor)",
+  "host_id": "SurajS",
+  "in_container": true
+ },
+ "identity": {
+  "simlab_version": "0.1.0",
+  "source_revision": "d3054741d2cdeae2d57f80e40a2f7a460902596b+uncommitted",
+  "build_id": "d5339f6d04a99f79998cef47c7b02cf7ea4eacef8ad04403b4a906827192c0c6",
+  "lock_sha256": "85c504fe4dab931ac24040d216c93b2460bb16766d572d8c26a5ddcd82ee72d7",
+  "image_digest": "sha256:daeb5923f7f0249c84de3a809e515db472db114f138cdecf9176917fe34c45a6",
+  "engines": {
+   "mujoco": "3.17.0"
+  },
+  "numpy": "2.5.4",
+  "python": "3.12.16",
+  "host_id": "SurajS",
+  "cpu_model": "AMD Ryzen 7 8845HS w/ Radeon 780M Graphics"
+ },
+ "python": "3.12.16"
+}

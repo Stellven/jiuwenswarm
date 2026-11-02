@@ -1,0 +1,112 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; joint stiffness and damping are a linear oscillator",
+ "header": {
+  "objective": "Damped oscillator decay rate and frequency",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "k": 100.0,
+     "c": 1.0,
+     "m": 1.0
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.0001,
+   "integrator": "RK4",
+   "gravity": [
+    0,
+    0,
+    0
+   ]
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-05"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-05"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "ring",
+    "duration_s": 8.0
+   }
+  ],
+  "initial_state": {
+   "qpos": {
+    "s": 0.1
+   }
+  }
+ },
+ "measurements": [
+  {
+   "measurement_id": "period",
+   "scope": "trial",
+   "unit": "s",
+   "required": true,
+   "definition": {
+    "kind": "period",
+    "signal": "qpos:s",
+    "direction": "up"
+   }
+  },
+  {
+   "measurement_id": "decay",
+   "scope": "trial",
+   "unit": "1/s",
+   "required": true,
+   "definition": {
+    "kind": "decay_rate",
+    "signal": "qpos:s"
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "qpos:s",
+   "unit": "m",
+   "rate_hz": 5000
+  }
+ ]
+}

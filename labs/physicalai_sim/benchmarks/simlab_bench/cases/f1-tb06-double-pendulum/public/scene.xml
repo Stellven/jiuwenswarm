@@ -1,0 +1,12 @@
+<mujoco model="tb06-double-pendulum">
+  <worldbody>
+    <body name="upper" pos="0 0 0">
+      <joint name="j1" type="hinge" axis="0 1 0" damping="${damping}"/>
+      <inertial pos="0 0 -${L1}" mass="${m1}" diaginertia="1e-9 1e-9 1e-9"/>
+      <body name="lower" pos="0 0 -${L1}">
+        <joint name="j2" type="hinge" axis="0 1 0" damping="${damping}"/>
+        <inertial pos="0 0 -${L2}" mass="${m2}" diaginertia="1e-9 1e-9 1e-9"/>
+      </body>
+    </body>
+  </worldbody>
+</mujoco>

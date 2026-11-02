@@ -1,0 +1,102 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb03-incline",
+ "family": "F1",
+ "tb_id": "TB-03",
+ "title": "Block on an incline",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Block on an incline: slides when tan theta > mu with a = g(sin theta - mu cos theta)",
+ "primary_metric": {
+  "name": "acceleration relative error (sliding) or travel while sticking",
+  "definition": "|a - g(sin th - mu cos th)| / that value; or |travel| between 0.1 and 1.0 s"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "Drake inclined-plane and friction tests (pattern)",
+  "ContactBench contact criteria (Coulomb law: stick inside the cone, slide on it)",
+  "arXiv 2603.14634, analytic sliding test"
+ ],
+ "model_assumptions": "flat box (0.2 x 0.2 x 0.04 m, 1 kg) on a plane with Coulomb friction mu on both geoms; the incline is represented by tilting gravity by theta (equivalent physics); acceleration from a quadratic fit of the box's centre of mass along the slope between 0.1 and 1.0 s.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "slide-30deg-mu0p2",
+   "split": "development",
+   "task": "30 degree incline (tilted gravity), friction 0.2.",
+   "params": {
+    "mu": 0.2
+   },
+   "config": {
+    "gravity": [
+     4.905,
+     0.0,
+     -8.495709211125
+    ]
+   },
+   "seed": 1
+  },
+  {
+   "id": "slide-40deg-mu0p5",
+   "split": "development",
+   "task": "40 degree incline, friction 0.5.",
+   "params": {
+    "mu": 0.5
+   },
+   "config": {
+    "gravity": [
+     6.305746451025,
+     0.0,
+     -7.514895986997
+    ]
+   },
+   "seed": 2
+  },
+  {
+   "id": "stick-20deg-mu0p5",
+   "split": "development",
+   "task": "20 degree incline, friction 0.5 (tan 20 = 0.364 < 0.5).",
+   "params": {
+    "mu": 0.5
+   },
+   "config": {
+    "gravity": [
+     3.355217606025,
+     0.0,
+     -9.21838460991
+    ]
+   },
+   "seed": 3
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

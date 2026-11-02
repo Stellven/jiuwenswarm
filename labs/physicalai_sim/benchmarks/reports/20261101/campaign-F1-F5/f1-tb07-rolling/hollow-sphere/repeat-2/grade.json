@@ -1,0 +1,32 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-bffc180e9aff4cb08385"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer",
+   "reason": "a 2.0103 vs g sin th / (1 + I/mr^2) = 2.01313 (I/mr^2 = 0.666667): relative error 1.404e-03 (tolerance 0.005)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 2.01030334866 vs oracle recomputation from the trace 2.01030334866",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": 2.0103033486647446,
+  "primary_metric": "acceleration relative error",
+  "primary_value": 0.0014043872768318326,
+  "reference": 2.0131305636148866,
+  "tolerance": 0.005
+ }
+}

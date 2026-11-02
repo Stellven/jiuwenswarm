@@ -1,0 +1,41 @@
+{
+ "traces": [
+  "qvel:ja",
+  "qvel:jb"
+ ],
+ "variants": {
+  "elastic-1to1": {
+   "k": 1000000.0,
+   "b": 0.0,
+   "m1": 1.0,
+   "m2": 1.0,
+   "v1": 1.0,
+   "tolerance_e": 0.005,
+   "tolerance_momentum": 1e-09,
+   "tolerance_reason": "Proposed 0.005 absolute [confirm]. The source gives none. The expected restitution comes from the contact law itself (linear spring-dashpot with force-based separation, Schwager and Poeschel 2007); MuJoCo's impedance 0.9999 and the step size leave a small residual (exploratory: up to 3e-4). Proposed 1e-9 relative [confirm]: equal and opposite contact forces conserve momentum to rounding (exploratory 1e-15).",
+   "confirm": true
+  },
+  "damped-1to3": {
+   "k": 1000000.0,
+   "b": 430.907524,
+   "m1": 1.0,
+   "m2": 3.0,
+   "v1": 1.0,
+   "tolerance_e": 0.005,
+   "tolerance_momentum": 1e-09,
+   "tolerance_reason": "Proposed 0.005 absolute [confirm]. The source gives none. The expected restitution comes from the contact law itself (linear spring-dashpot with force-based separation, Schwager and Poeschel 2007); MuJoCo's impedance 0.9999 and the step size leave a small residual (exploratory: up to 3e-4). Proposed 1e-9 relative [confirm]: equal and opposite contact forces conserve momentum to rounding (exploratory 1e-15).",
+   "confirm": true
+  },
+  "damped-2to1": {
+   "k": 1000000.0,
+   "b": 141.7006,
+   "m1": 2.0,
+   "m2": 1.0,
+   "v1": 0.5,
+   "tolerance_e": 0.005,
+   "tolerance_momentum": 1e-09,
+   "tolerance_reason": "Proposed 0.005 absolute [confirm]. The source gives none. The expected restitution comes from the contact law itself (linear spring-dashpot with force-based separation, Schwager and Poeschel 2007); MuJoCo's impedance 0.9999 and the step size leave a small residual (exploratory: up to 3e-4). Proposed 1e-9 relative [confirm]: equal and opposite contact forces conserve momentum to rounding (exploratory 1e-15).",
+   "confirm": true
+  }
+ }
+}

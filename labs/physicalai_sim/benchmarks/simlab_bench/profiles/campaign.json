@@ -1,0 +1,1 @@
+{"profile": "campaign", "variants": "all", "repeats": 3, "note": "every variant, three repeats (deterministic cases still repeat, to show it); failed runs kept; no retries"}

@@ -1,0 +1,102 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; rolling contact without rolling resistance (condim 3)",
+ "header": {
+  "objective": "Rolling without slipping: a = g sin theta / (1 + I/mr^2)",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "gtype": "sphere",
+     "gsize": "0.1",
+     "geuler": "0 0 0",
+     "shell": "false"
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.0002,
+   "integrator": "implicitfast",
+   "cone": "elliptic",
+   "impratio": 10,
+   "gravity": [
+    3.355217606025,
+    0.0,
+    -9.21838460991
+   ]
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-07"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-07"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "roll",
+    "duration_s": 1.0
+   }
+  ]
+ },
+ "measurements": [
+  {
+   "measurement_id": "accel",
+   "scope": "trial",
+   "unit": "m/s^2",
+   "required": true,
+   "definition": {
+    "kind": "fit_acceleration",
+    "signal": "xipos:roller",
+    "component": 0,
+    "t_start": 0.1,
+    "t_end": 1.0
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "xipos:roller",
+   "unit": "m",
+   "rate_hz": 1000
+  }
+ ]
+}

@@ -1,0 +1,31 @@
+{
+ "traces": [
+  "qpos:s"
+ ],
+ "variants": {
+  "light-damping": {
+   "k": 100.0,
+   "c": 1.0,
+   "m": 1.0,
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Proposed 0.5% [confirm], the same as the source's pendulum tolerance; the source gives none for TB-05. RK4 at 0.1 ms integrates this linear system far more accurately; peak and crossing interpolation at 5 kHz bound the measurement error.",
+   "confirm": true
+  },
+  "medium-damping": {
+   "k": 50.0,
+   "c": 4.0,
+   "m": 2.0,
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Proposed 0.5% [confirm], the same as the source's pendulum tolerance; the source gives none for TB-05. RK4 at 0.1 ms integrates this linear system far more accurately; peak and crossing interpolation at 5 kHz bound the measurement error.",
+   "confirm": true
+  },
+  "stiff-light": {
+   "k": 200.0,
+   "c": 0.5,
+   "m": 0.5,
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Proposed 0.5% [confirm], the same as the source's pendulum tolerance; the source gives none for TB-05. RK4 at 0.1 ms integrates this linear system far more accurately; peak and crossing interpolation at 5 kHz bound the measurement error.",
+   "confirm": true
+  }
+ }
+}

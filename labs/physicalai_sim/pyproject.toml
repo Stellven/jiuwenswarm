@@ -1,0 +1,39 @@
+[project]
+name = "simlab"
+version = "0.1.0"
+description = "SIMLAB: the PhysicalAI-Sim lab's simulation application (milestone PAS-M1, phase 1 base simulator)"
+readme = "README.md"
+requires-python = "==3.12.*"
+license = { text = "Proprietary (PhysicalAI-Sim lab)" }
+dependencies = [
+    "mujoco==3.17.0",
+    "numpy==2.5.4",
+    "pydantic==2.14.2",
+    "mcp==2.3.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest==9.2.0",
+]
+
+[project.scripts]
+simlab = "simlab.interface.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/simlab"]
+
+[tool.uv]
+# Exact pins above; uv.lock records every transitive version and hash.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "live: needs a live external service or model; opt-in only (--live), otherwise reported skipped",
+    "docker: needs the simlab-runner image and a Docker engine",
+]
+addopts = "-ra"

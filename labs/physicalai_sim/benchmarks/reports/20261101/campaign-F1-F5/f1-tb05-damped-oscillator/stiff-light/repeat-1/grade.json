@@ -1,0 +1,40 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-1e853a98863c43ecad81"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer-period",
+   "reason": "period 0.314257486 vs closed form 0.314257486: relative error 9.208e-11 (tolerance 0.005)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer-decay-rate",
+   "reason": "decay-rate 0.5 vs closed form 0.5: relative error 6.388e-11 (tolerance 0.005)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 0.314257486202 vs oracle recomputation from the trace 0.314257486202",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "decay-rate_measured": 0.49999999996806066,
+  "decay-rate_reference": 0.5,
+  "period_measured": 0.31425748620174504,
+  "period_reference": 0.3142574861728092,
+  "primary_metric": "max relative error of period and decay rate",
+  "primary_value": 9.207689549580431e-11,
+  "tolerance": 0.005
+ }
+}

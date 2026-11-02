@@ -1,0 +1,32 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-30b97fb2f7f24be5969e"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer",
+   "reason": "sticks (tan th 0.3640 <= mu 0.5): travel 7.884e-05 m (tolerance 0.001 m)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 7.88393671031e-05 vs oracle recomputation from the trace 7.88393671031e-05",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": 7.883936710306536e-05,
+  "primary_metric": "displacement while sticking (m)",
+  "primary_value": 7.883936710306536e-05,
+  "reference": 0.0,
+  "tolerance": 0.001
+ }
+}

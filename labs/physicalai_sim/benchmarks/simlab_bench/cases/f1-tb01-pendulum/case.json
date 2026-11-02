@@ -1,0 +1,84 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb01-pendulum",
+ "family": "F1",
+ "tb_id": "TB-01",
+ "title": "Pendulum, small and large swing",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Measure the pendulum period for small and large swings",
+ "primary_metric": {
+  "name": "period relative error",
+  "definition": "|T_measured - T_reference| / T_reference; reference 2 pi sqrt(L/g) (small) or 4 sqrt(L/g) K(sin(theta0/2)) (large)"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "arXiv 2603.14634, analytic pendulum test (the seven analytic tests)",
+  "MuJoCo engine tests (hinge dynamics)",
+  "Elliptic integral K by the arithmetic-geometric mean (Abramowitz and Stegun 17.6)"
+ ],
+ "model_assumptions": "point mass (inertia 1e-9) on a massless rigid rod, no damping, no contact, g = 9.81 m/s^2, RK4 with 0.2 ms steps, period = mean interval between upward zero crossings over 13 s.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "small-swing",
+   "split": "development",
+   "task": "Point-mass pendulum, length 1.0 m, released from 0.05 rad.",
+   "params": {
+    "L": 1.0,
+    "theta0": 0.05
+   },
+   "seed": 1
+  },
+  {
+   "id": "large-swing-1p2",
+   "split": "development",
+   "task": "Length 0.8 m, released from 1.2 rad.",
+   "params": {
+    "L": 0.8,
+    "theta0": 1.2
+   },
+   "seed": 2
+  },
+  {
+   "id": "large-swing-2p6",
+   "split": "development",
+   "task": "Length 1.2 m, released from 2.6 rad.",
+   "params": {
+    "L": 1.2,
+    "theta0": 2.6
+   },
+   "seed": 3
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

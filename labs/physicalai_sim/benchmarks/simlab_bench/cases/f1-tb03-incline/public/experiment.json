@@ -1,0 +1,112 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; Coulomb friction on a plane",
+ "header": {
+  "objective": "Block on an incline: slides when tan theta > mu with a = g(sin theta - mu cos theta)",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "mu": 0.2
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.0005,
+   "integrator": "implicitfast",
+   "cone": "elliptic",
+   "impratio": 10,
+   "gravity": [
+    4.905,
+    0.0,
+    -8.495709211125
+   ]
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-03; Drake inclined-plane test pattern"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-03; Drake inclined-plane test pattern"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "release",
+    "duration_s": 1.0
+   }
+  ]
+ },
+ "measurements": [
+  {
+   "measurement_id": "accel",
+   "scope": "trial",
+   "unit": "m/s^2",
+   "required": true,
+   "definition": {
+    "kind": "fit_acceleration",
+    "signal": "xipos:block",
+    "component": 0,
+    "t_start": 0.1,
+    "t_end": 1.0
+   }
+  },
+  {
+   "measurement_id": "travel",
+   "scope": "trial",
+   "unit": "m",
+   "required": true,
+   "definition": {
+    "kind": "displacement",
+    "signal": "xipos:block",
+    "component": 0,
+    "t_start": 0.1,
+    "t_end": 1.0
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "xipos:block",
+   "unit": "m",
+   "rate_hz": 1000
+  }
+ ]
+}

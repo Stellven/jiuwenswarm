@@ -1,0 +1,129 @@
+{
+ "scene": "drop.xml",
+ "engine_why": "MuJoCo is the admitted executor",
+ "header": {
+  "objective": "Two executions are identical, replay is identical, and restore-and-continue equals the uninterrupted run",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "drop.xml"
+     }
+    ],
+    "params": {
+     "z0": 0.4
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.001,
+   "integrator": "implicitfast",
+   "cone": "elliptic"
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 2,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": [
+     {
+      "name": "z0",
+      "distribution": {
+       "kind": "uniform",
+       "low": 0.3,
+       "high": 0.6
+      }
+     }
+    ]
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-09 / F5"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 2,
+    "origin": "SIMLAB test plan TB-09 / F5"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "first",
+    "duration_s": 0.8
+   },
+   {
+    "step_id": "second",
+    "duration_s": 0.8
+   }
+  ],
+  "checkpoints": [
+   {
+    "checkpoint_point_id": "midway",
+    "step_end": "first"
+   }
+  ]
+ },
+ "measurements": [
+  {
+   "measurement_id": "final_height",
+   "scope": "trial",
+   "unit": "m",
+   "required": true,
+   "definition": {
+    "kind": "final",
+    "signal": "xpos:top",
+    "component": 2
+   }
+  },
+  {
+   "measurement_id": "impact_speed",
+   "scope": "trial",
+   "unit": "m/s",
+   "required": true,
+   "definition": {
+    "kind": "min",
+    "signal": "qvel:ft",
+    "component": 2
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "xpos:top",
+   "unit": "m"
+  },
+  {
+   "signal": "qvel:ft",
+   "unit": "m/s"
+  },
+  {
+   "signal": "contacts",
+   "unit": "",
+   "rate_hz": 100
+  }
+ ]
+}

@@ -1,0 +1,98 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb02-free-fall",
+ "family": "F1",
+ "tb_id": "TB-02",
+ "title": "Free fall",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Measure free-fall distance against g t^2 / 2",
+ "primary_metric": {
+  "name": "fall distance relative error",
+  "definition": "|dz - (-g t^2/2)| / (g t^2/2)"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "arXiv 2603.14634, analytic free-fall test",
+  "MuJoCo engine tests (free joint integration)"
+ ],
+ "model_assumptions": "a free sphere with no contact (contype 0) under uniform gravity; displacement of the body origin from t = 0 to the declared time.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "earth-1s",
+   "split": "development",
+   "task": "Drop for 1.0 s at g = 9.81 m/s^2 (RK4, 1 ms).",
+   "seed": 1
+  },
+  {
+   "id": "moon-0p5s",
+   "split": "development",
+   "task": "Drop for 0.5 s at g = 1.62 m/s^2 (RK4, 1 ms).",
+   "config": {
+    "gravity": [
+     0,
+     0,
+     -1.62
+    ]
+   },
+   "procedure": {
+    "steps": [
+     {
+      "step_id": "fall",
+      "duration_s": 0.5
+     }
+    ]
+   },
+   "seed": 2
+  },
+  {
+   "id": "earth-2s-euler",
+   "split": "development",
+   "task": "Drop for 2.0 s at g = 9.81 m/s^2 with semi-implicit Euler, 0.1 ms.",
+   "config": {
+    "integrator": "Euler",
+    "timestep": 0.0001
+   },
+   "procedure": {
+    "steps": [
+     {
+      "step_id": "fall",
+      "duration_s": 2.0
+     }
+    ]
+   },
+   "seed": 3
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

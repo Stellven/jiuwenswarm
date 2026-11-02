@@ -1,0 +1,31 @@
+# SIMLAB runner for phase 1 (PAS-M1-001). No network, no published ports,
+# no secrets; read-only root except /data (declared data directory) and /tmp.
+# Start with tools/runner.py up, which passes the image ID for run identity.
+name: simlab
+services:
+  simlab-runner:
+    image: ${SIMLAB_IMAGE:-simlab-runner:dev}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: simlab-runner
+    network_mode: none
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=256m
+    volumes:
+      - ${SIMLAB_DATA_DIR:?set SIMLAB_DATA_DIR to a directory outside the repository}:/data
+    # Run as the data directory's owner so run data stays the operator's files (tools/runner.py sets these).
+    user: "${SIMLAB_UID:-11100}:${SIMLAB_GID:-11100}"
+    environment:
+      SIMLAB_IMAGE_ID: ${SIMLAB_IMAGE_ID:-unknown}
+      SIMLAB_HOST_ID: ${SIMLAB_HOST_ID:-unknown}
+      SIMLAB_SOURCE_REVISION: ${SIMLAB_SOURCE_REVISION:-unknown}
+      SIMLAB_IN_CONTAINER: "1"
+      HOME: /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 256
+    mem_limit: ${SIMLAB_MEM_LIMIT:-2g}
+    restart: "no"

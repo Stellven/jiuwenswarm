@@ -1,0 +1,16 @@
+{
+  "bootstrap_link_in_log": false,
+  "containers": [],
+  "exit_code": 0,
+  "host_after_start": {
+    "available": 2500,
+    "swap_used": 2048,
+    "total": 5924,
+    "used": 3424
+  },
+  "port_5175_open": true,
+  "seconds_to_port": 12.8,
+  "stderr": " Network ai4r-local_private  Creating\n Network ai4r-local_private  Created\n Volume \"ai4r-local_accounts\"  Creating\n Volume \"ai4r-local_accounts\"  Created\n Volume \"ai4r-local_ipc\"  Creating\n Volume \"ai4r-local_ipc\"  Created\n Volume \"ai4r-local_poc\"  Creating\n Volume \"ai4r-local_poc\"  Created\n Volume \"ai4r-local_inputs\"  Creating\n Volume \"ai4r-local_inputs\"  Created\n Volume \"ai4r-local_executor\"  Creating\n Volume \"ai4r-local_executor\"  Created\n Volume \"ai4r-local_private_qa\"  Creating\n Volume \"ai4r-local_private_qa\"  Created\n Volume \"ai4r-local_state\"  Creating\n Volume \"ai4r-local_state\"  Created\n Container ai4r-local-ai4r-1  Creating\n Container ai4r-local-ai4r-1  Created\n Container ai4r-local-ai4r-1  Starting\n Container ai4r-local-ai4r-1  Started\n",
+  "stdout": "",
+  "utc": "2026-10-31T23:16:49Z"
+}

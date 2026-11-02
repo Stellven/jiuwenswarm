@@ -1,0 +1,14 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+dist/
+# Evidence and run outputs are never committed (owner coding prompt RULES)
+missions/**/evidence/
+# Phase exit snapshots keep their evidence copies (test plan "Reports and evidence": committed byte-exact)
+!missions/*/verification/*/evidence/
+# Held-out SIMLAB-Bench cases live on a private volume, never in the repository
+benchmarks/simlab_bench/heldout/
+benchmarks/heldout/

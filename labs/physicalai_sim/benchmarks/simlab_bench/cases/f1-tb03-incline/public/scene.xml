@@ -1,0 +1,9 @@
+<mujoco model="tb03-incline">
+  <worldbody>
+    <geom name="plane" type="plane" size="30 2 0.1" friction="${mu} 0 0"/>
+    <body name="block" pos="0 0 0.02">
+      <freejoint name="free"/>
+      <geom name="block_geom" type="box" size="0.1 0.1 0.02" mass="1" friction="${mu} 0 0"/>
+    </body>
+  </worldbody>
+</mujoco>

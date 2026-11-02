@@ -1,0 +1,4504 @@
+{
+ "cases": {
+  "f1-tb01-pendulum": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "small-swing",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.0063801745337857,
+     "primary_metric": "period relative error",
+     "primary_value": 0.0001562728827274634,
+     "reference": 2.0060666807106475,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 2.00638017 s vs small_angle reference 2.00606668 s: relative error 1.563e-04 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.00638017453 vs oracle recomputation from the trace 2.00638017453"
+     }
+    ],
+    "run_id": "run-d252297f77be44fb9a67",
+    "wall_s": 2.575,
+    "simlab_resources": {
+     "wall_s": 2.293,
+     "cpu_s": 1.282,
+     "peak_ram_mb": 87.4,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "small-swing",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.0063801745337857,
+     "primary_metric": "period relative error",
+     "primary_value": 0.0001562728827274634,
+     "reference": 2.0060666807106475,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 2.00638017 s vs small_angle reference 2.00606668 s: relative error 1.563e-04 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.00638017453 vs oracle recomputation from the trace 2.00638017453"
+     }
+    ],
+    "run_id": "run-63165a7cfde04d96b71e",
+    "wall_s": 2.49,
+    "simlab_resources": {
+     "wall_s": 2.281,
+     "cpu_s": 1.203,
+     "peak_ram_mb": 92.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "small-swing",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.0063801745337857,
+     "primary_metric": "period relative error",
+     "primary_value": 0.0001562728827274634,
+     "reference": 2.0060666807106475,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 2.00638017 s vs small_angle reference 2.00606668 s: relative error 1.563e-04 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.00638017453 vs oracle recomputation from the trace 2.00638017453"
+     }
+    ],
+    "run_id": "run-7ffa7cb85ff6403e97dc",
+    "wall_s": 2.288,
+    "simlab_resources": {
+     "wall_s": 2.068,
+     "cpu_s": 1.26,
+     "peak_ram_mb": 93.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "large-swing-1p2",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 1.9704969719187198,
+     "primary_metric": "period relative error",
+     "primary_value": 7.813470371264951e-10,
+     "reference": 1.9704969703790778,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 1.97049697 s vs elliptic reference 1.97049697 s: relative error 7.813e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 1.97049697192 vs oracle recomputation from the trace 1.97049697192"
+     }
+    ],
+    "run_id": "run-1ef6b86c34b346b083bd",
+    "wall_s": 2.289,
+    "simlab_resources": {
+     "wall_s": 2.039,
+     "cpu_s": 1.252,
+     "peak_ram_mb": 94.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "large-swing-1p2",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 1.9704969719187198,
+     "primary_metric": "period relative error",
+     "primary_value": 7.813470371264951e-10,
+     "reference": 1.9704969703790778,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 1.97049697 s vs elliptic reference 1.97049697 s: relative error 7.813e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 1.97049697192 vs oracle recomputation from the trace 1.97049697192"
+     }
+    ],
+    "run_id": "run-b7118db9da464cc68a83",
+    "wall_s": 2.375,
+    "simlab_resources": {
+     "wall_s": 2.117,
+     "cpu_s": 1.269,
+     "peak_ram_mb": 94.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "large-swing-1p2",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 1.9704969719187198,
+     "primary_metric": "period relative error",
+     "primary_value": 7.813470371264951e-10,
+     "reference": 1.9704969703790778,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 1.97049697 s vs elliptic reference 1.97049697 s: relative error 7.813e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 1.97049697192 vs oracle recomputation from the trace 1.97049697192"
+     }
+    ],
+    "run_id": "run-f0846cd0b16c4d6ea6f2",
+    "wall_s": 2.652,
+    "simlab_resources": {
+     "wall_s": 2.345,
+     "cpu_s": 1.384,
+     "peak_ram_mb": 94.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "large-swing-2p6",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 3.8284852063362647,
+     "primary_metric": "period relative error",
+     "primary_value": 3.4598134019079505e-10,
+     "reference": 3.82848520501168,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 3.82848521 s vs elliptic reference 3.82848521 s: relative error 3.460e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 3.82848520634 vs oracle recomputation from the trace 3.82848520634"
+     }
+    ],
+    "run_id": "run-eb9ea67964ee45cd85b9",
+    "wall_s": 2.996,
+    "simlab_resources": {
+     "wall_s": 2.73,
+     "cpu_s": 1.627,
+     "peak_ram_mb": 94.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "large-swing-2p6",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 3.8284852063362647,
+     "primary_metric": "period relative error",
+     "primary_value": 3.4598134019079505e-10,
+     "reference": 3.82848520501168,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 3.82848521 s vs elliptic reference 3.82848521 s: relative error 3.460e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 3.82848520634 vs oracle recomputation from the trace 3.82848520634"
+     }
+    ],
+    "run_id": "run-903d3261443c4d9f950c",
+    "wall_s": 2.488,
+    "simlab_resources": {
+     "wall_s": 2.263,
+     "cpu_s": 1.274,
+     "peak_ram_mb": 94.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb01-pendulum",
+    "tb_id": "TB-01",
+    "variant_id": "large-swing-2p6",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 3.8284852063362647,
+     "primary_metric": "period relative error",
+     "primary_value": 3.4598134019079505e-10,
+     "reference": 3.82848520501168,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "period 3.82848521 s vs elliptic reference 3.82848521 s: relative error 3.460e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 3.82848520634 vs oracle recomputation from the trace 3.82848520634"
+     }
+    ],
+    "run_id": "run-cb1b0f9baeaf409aa479",
+    "wall_s": 2.392,
+    "simlab_resources": {
+     "wall_s": 2.159,
+     "cpu_s": 1.201,
+     "peak_ram_mb": 94.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.5
+    }
+   }
+  ],
+  "f1-tb02-free-fall": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "earth-1s",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -4.904999999999968,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 6.51874069504679e-15,
+     "reference": -4.905,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -4.905 m vs -g t^2/2 = -4.905 m: relative error 6.519e-15 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -4.905 vs oracle recomputation from the trace -4.905"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=1 s (declared 1.0 s)"
+     }
+    ],
+    "run_id": "run-b6d619effca24971b4c4",
+    "wall_s": 1.117,
+    "simlab_resources": {
+     "wall_s": 0.901,
+     "cpu_s": 0.057,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "earth-1s",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -4.904999999999968,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 6.51874069504679e-15,
+     "reference": -4.905,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -4.905 m vs -g t^2/2 = -4.905 m: relative error 6.519e-15 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -4.905 vs oracle recomputation from the trace -4.905"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=1 s (declared 1.0 s)"
+     }
+    ],
+    "run_id": "run-eec6a16a5302445dbac4",
+    "wall_s": 1.097,
+    "simlab_resources": {
+     "wall_s": 0.941,
+     "cpu_s": 0.062,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "earth-1s",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -4.904999999999968,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 6.51874069504679e-15,
+     "reference": -4.905,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -4.905 m vs -g t^2/2 = -4.905 m: relative error 6.519e-15 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -4.905 vs oracle recomputation from the trace -4.905"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=1 s (declared 1.0 s)"
+     }
+    ],
+    "run_id": "run-aa62af641a0c4c88b1e5",
+    "wall_s": 1.095,
+    "simlab_resources": {
+     "wall_s": 0.96,
+     "cpu_s": 0.072,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "moon-0p5s",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -0.2024999999999988,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 6.030841121420603e-15,
+     "reference": -0.2025,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -0.2025 m vs -g t^2/2 = -0.2025 m: relative error 6.031e-15 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -0.2025 vs oracle recomputation from the trace -0.2025"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=0.5 s (declared 0.5 s)"
+     }
+    ],
+    "run_id": "run-058821276da24fb59000",
+    "wall_s": 1.094,
+    "simlab_resources": {
+     "wall_s": 0.917,
+     "cpu_s": 0.049,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "moon-0p5s",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -0.2024999999999988,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 6.030841121420603e-15,
+     "reference": -0.2025,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -0.2025 m vs -g t^2/2 = -0.2025 m: relative error 6.031e-15 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -0.2025 vs oracle recomputation from the trace -0.2025"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=0.5 s (declared 0.5 s)"
+     }
+    ],
+    "run_id": "run-6be2cecefb564d7fade1",
+    "wall_s": 1.102,
+    "simlab_resources": {
+     "wall_s": 0.978,
+     "cpu_s": 0.052,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "moon-0p5s",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -0.2024999999999988,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 6.030841121420603e-15,
+     "reference": -0.2025,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -0.2025 m vs -g t^2/2 = -0.2025 m: relative error 6.031e-15 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -0.2025 vs oracle recomputation from the trace -0.2025"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=0.5 s (declared 0.5 s)"
+     }
+    ],
+    "run_id": "run-9b5df858f6394f31807f",
+    "wall_s": 1.483,
+    "simlab_resources": {
+     "wall_s": 1.317,
+     "cpu_s": 0.064,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "earth-2s-euler",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -19.62098099999759,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 4.999999987720258e-05,
+     "reference": -19.62,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -19.620981 m vs -g t^2/2 = -19.62 m: relative error 5.000e-05 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -19.620981 vs oracle recomputation from the trace -19.620981"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=2 s (declared 2.0 s)"
+     }
+    ],
+    "run_id": "run-01e59fa4f9ab46d99a3d",
+    "wall_s": 1.347,
+    "simlab_resources": {
+     "wall_s": 1.199,
+     "cpu_s": 0.398,
+     "peak_ram_mb": 94.3,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "earth-2s-euler",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -19.62098099999759,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 4.999999987720258e-05,
+     "reference": -19.62,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -19.620981 m vs -g t^2/2 = -19.62 m: relative error 5.000e-05 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -19.620981 vs oracle recomputation from the trace -19.620981"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=2 s (declared 2.0 s)"
+     }
+    ],
+    "run_id": "run-ebb62f8b6e3b4b60857c",
+    "wall_s": 1.432,
+    "simlab_resources": {
+     "wall_s": 1.255,
+     "cpu_s": 0.394,
+     "peak_ram_mb": 98.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb02-free-fall",
+    "tb_id": "TB-02",
+    "variant_id": "earth-2s-euler",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": -19.62098099999759,
+     "primary_metric": "fall distance relative error",
+     "primary_value": 4.999999987720258e-05,
+     "reference": -19.62,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "displacement -19.620981 m vs -g t^2/2 = -19.62 m: relative error 5.000e-05 (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement -19.620981 vs oracle recomputation from the trace -19.620981"
+     },
+     {
+      "id": "duration",
+      "status": "pass",
+      "reason": "trace ends at t=2 s (declared 2.0 s)"
+     }
+    ],
+    "run_id": "run-7399c4f090344a7fac91",
+    "wall_s": 1.552,
+    "simlab_resources": {
+     "wall_s": 1.312,
+     "cpu_s": 0.415,
+     "peak_ram_mb": 99.1,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   }
+  ],
+  "f1-tb03-incline": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "slide-30deg-mu0p2",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 3.2058204701052846,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 1.1755875585138173e-05,
+     "reference": 3.205858157774931,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "slides (tan th 0.5774 > mu 0.2): a 3.20582 vs g(sin th - mu cos th) 3.20586: relative error 1.176e-05 (tolerance 0.01)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 3.20582047011 vs oracle recomputation from the trace 3.20582047011"
+     }
+    ],
+    "run_id": "run-6ad5a166f90748b7b042",
+    "wall_s": 1.11,
+    "simlab_resources": {
+     "wall_s": 0.916,
+     "cpu_s": 0.108,
+     "peak_ram_mb": 100.5,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "slide-30deg-mu0p2",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 3.2058204701052846,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 1.1755875585138173e-05,
+     "reference": 3.205858157774931,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "slides (tan th 0.5774 > mu 0.2): a 3.20582 vs g(sin th - mu cos th) 3.20586: relative error 1.176e-05 (tolerance 0.01)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 3.20582047011 vs oracle recomputation from the trace 3.20582047011"
+     }
+    ],
+    "run_id": "run-3f7b37f18da94c21851b",
+    "wall_s": 1.315,
+    "simlab_resources": {
+     "wall_s": 1.108,
+     "cpu_s": 0.082,
+     "peak_ram_mb": 100.5,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "slide-30deg-mu0p2",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 3.2058204701052846,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 1.1755875585138173e-05,
+     "reference": 3.205858157774931,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "slides (tan th 0.5774 > mu 0.2): a 3.20582 vs g(sin th - mu cos th) 3.20586: relative error 1.176e-05 (tolerance 0.01)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 3.20582047011 vs oracle recomputation from the trace 3.20582047011"
+     }
+    ],
+    "run_id": "run-75277fbc2297491881dd",
+    "wall_s": 1.116,
+    "simlab_resources": {
+     "wall_s": 0.934,
+     "cpu_s": 0.081,
+     "peak_ram_mb": 100.5,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "slide-40deg-mu0p5",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.547612674679738,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.00026911402178958954,
+     "reference": 2.548298457526363,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "slides (tan th 0.8391 > mu 0.5): a 2.54761 vs g(sin th - mu cos th) 2.5483: relative error 2.691e-04 (tolerance 0.01)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.54761267468 vs oracle recomputation from the trace 2.54761267468"
+     }
+    ],
+    "run_id": "run-6186ce58f2c14c37bcbb",
+    "wall_s": 1.096,
+    "simlab_resources": {
+     "wall_s": 0.911,
+     "cpu_s": 0.087,
+     "peak_ram_mb": 100.5,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "slide-40deg-mu0p5",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.547612674679738,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.00026911402178958954,
+     "reference": 2.548298457526363,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "slides (tan th 0.8391 > mu 0.5): a 2.54761 vs g(sin th - mu cos th) 2.5483: relative error 2.691e-04 (tolerance 0.01)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.54761267468 vs oracle recomputation from the trace 2.54761267468"
+     }
+    ],
+    "run_id": "run-94c9037328764446bf47",
+    "wall_s": 1.009,
+    "simlab_resources": {
+     "wall_s": 0.858,
+     "cpu_s": 0.078,
+     "peak_ram_mb": 100.5,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "slide-40deg-mu0p5",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.547612674679738,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.00026911402178958954,
+     "reference": 2.548298457526363,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "slides (tan th 0.8391 > mu 0.5): a 2.54761 vs g(sin th - mu cos th) 2.5483: relative error 2.691e-04 (tolerance 0.01)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.54761267468 vs oracle recomputation from the trace 2.54761267468"
+     }
+    ],
+    "run_id": "run-3c03c78a1e5345b0a71f",
+    "wall_s": 1.141,
+    "simlab_resources": {
+     "wall_s": 0.953,
+     "cpu_s": 0.084,
+     "peak_ram_mb": 100.7,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "stick-20deg-mu0p5",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 7.883936710306536e-05,
+     "primary_metric": "displacement while sticking (m)",
+     "primary_value": 7.883936710306536e-05,
+     "reference": 0.0,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "sticks (tan th 0.3640 <= mu 0.5): travel 7.884e-05 m (tolerance 0.001 m)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 7.88393671031e-05 vs oracle recomputation from the trace 7.88393671031e-05"
+     }
+    ],
+    "run_id": "run-30b97fb2f7f24be5969e",
+    "wall_s": 1.026,
+    "simlab_resources": {
+     "wall_s": 0.897,
+     "cpu_s": 0.087,
+     "peak_ram_mb": 100.7,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "stick-20deg-mu0p5",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 7.883936710306536e-05,
+     "primary_metric": "displacement while sticking (m)",
+     "primary_value": 7.883936710306536e-05,
+     "reference": 0.0,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "sticks (tan th 0.3640 <= mu 0.5): travel 7.884e-05 m (tolerance 0.001 m)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 7.88393671031e-05 vs oracle recomputation from the trace 7.88393671031e-05"
+     }
+    ],
+    "run_id": "run-3081dae2a311431396c4",
+    "wall_s": 1.018,
+    "simlab_resources": {
+     "wall_s": 0.858,
+     "cpu_s": 0.076,
+     "peak_ram_mb": 100.7,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb03-incline",
+    "tb_id": "TB-03",
+    "variant_id": "stick-20deg-mu0p5",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 7.883936710306536e-05,
+     "primary_metric": "displacement while sticking (m)",
+     "primary_value": 7.883936710306536e-05,
+     "reference": 0.0,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "sticks (tan th 0.3640 <= mu 0.5): travel 7.884e-05 m (tolerance 0.001 m)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 7.88393671031e-05 vs oracle recomputation from the trace 7.88393671031e-05"
+     }
+    ],
+    "run_id": "run-6ae4200e9e59401bae52",
+    "wall_s": 1.025,
+    "simlab_resources": {
+     "wall_s": 0.85,
+     "cpu_s": 0.077,
+     "peak_ram_mb": 100.7,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   }
+  ],
+  "f1-tb04-collision": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "elastic-1to1",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.9999987317249608,
+     "momentum_relative_drift": 1.5543122344752192e-15,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 1.268275039212341e-06,
+     "reference": 1.0,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.999999 vs contact-model restitution 1 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 1.554e-15 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.999998731725 vs oracle recomputation from the trace 0.999998731725"
+     }
+    ],
+    "run_id": "run-37230993279a466bb0de",
+    "wall_s": 2.23,
+    "simlab_resources": {
+     "wall_s": 1.902,
+     "cpu_s": 1.075,
+     "peak_ram_mb": 110.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "elastic-1to1",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.9999987317249608,
+     "momentum_relative_drift": 1.5543122344752192e-15,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 1.268275039212341e-06,
+     "reference": 1.0,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.999999 vs contact-model restitution 1 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 1.554e-15 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.999998731725 vs oracle recomputation from the trace 0.999998731725"
+     }
+    ],
+    "run_id": "run-5ac00ad490cb4370a406",
+    "wall_s": 2.5,
+    "simlab_resources": {
+     "wall_s": 2.158,
+     "cpu_s": 1.245,
+     "peak_ram_mb": 112.8,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "elastic-1to1",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.9999987317249608,
+     "momentum_relative_drift": 1.5543122344752192e-15,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 1.268275039212341e-06,
+     "reference": 1.0,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.999999 vs contact-model restitution 1 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 1.554e-15 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.999998731725 vs oracle recomputation from the trace 0.999998731725"
+     }
+    ],
+    "run_id": "run-ab46cfeabe564d4e8f14",
+    "wall_s": 2.586,
+    "simlab_resources": {
+     "wall_s": 2.223,
+     "cpu_s": 1.253,
+     "peak_ram_mb": 112.8,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "damped-1to3",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.550678992197005,
+     "momentum_relative_drift": 2.6645352591003757e-15,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 0.00039582261549664377,
+     "reference": 0.5502831695815084,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.550679 vs contact-model restitution 0.550283 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 2.665e-15 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.550678992197 vs oracle recomputation from the trace 0.550678992197"
+     }
+    ],
+    "run_id": "run-bdb7220842f744b789c3",
+    "wall_s": 2.285,
+    "simlab_resources": {
+     "wall_s": 1.707,
+     "cpu_s": 0.952,
+     "peak_ram_mb": 112.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "damped-1to3",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.550678992197005,
+     "momentum_relative_drift": 2.6645352591003757e-15,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 0.00039582261549664377,
+     "reference": 0.5502831695815084,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.550679 vs contact-model restitution 0.550283 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 2.665e-15 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.550678992197 vs oracle recomputation from the trace 0.550678992197"
+     }
+    ],
+    "run_id": "run-fc201c304241477badd1",
+    "wall_s": 2.173,
+    "simlab_resources": {
+     "wall_s": 1.848,
+     "cpu_s": 1.107,
+     "peak_ram_mb": 112.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "damped-1to3",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.550678992197005,
+     "momentum_relative_drift": 2.6645352591003757e-15,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 0.00039582261549664377,
+     "reference": 0.5502831695815084,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.550679 vs contact-model restitution 0.550283 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 2.665e-15 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.550678992197 vs oracle recomputation from the trace 0.550678992197"
+     }
+    ],
+    "run_id": "run-f81987e46b5743399368",
+    "wall_s": 2.22,
+    "simlab_resources": {
+     "wall_s": 1.868,
+     "cpu_s": 1.061,
+     "peak_ram_mb": 112.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "damped-2to1",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.8079092044798819,
+     "momentum_relative_drift": 8.881784197001252e-16,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 0.00019013122882538536,
+     "reference": 0.8080993357087073,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.807909 vs contact-model restitution 0.808099 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 8.882e-16 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.80790920448 vs oracle recomputation from the trace 0.80790920448"
+     }
+    ],
+    "run_id": "run-c583758e35f04c439049",
+    "wall_s": 2.532,
+    "simlab_resources": {
+     "wall_s": 2.155,
+     "cpu_s": 1.208,
+     "peak_ram_mb": 112.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "damped-2to1",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.8079092044798819,
+     "momentum_relative_drift": 8.881784197001252e-16,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 0.00019013122882538536,
+     "reference": 0.8080993357087073,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.807909 vs contact-model restitution 0.808099 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 8.882e-16 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.80790920448 vs oracle recomputation from the trace 0.80790920448"
+     }
+    ],
+    "run_id": "run-e8cb1e1bdfeb48d08353",
+    "wall_s": 2.065,
+    "simlab_resources": {
+     "wall_s": 1.801,
+     "cpu_s": 1.016,
+     "peak_ram_mb": 112.9,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb04-collision",
+    "tb_id": "TB-04",
+    "variant_id": "damped-2to1",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.8079092044798819,
+     "momentum_relative_drift": 8.881784197001252e-16,
+     "primary_metric": "restitution absolute error",
+     "primary_value": 0.00019013122882538536,
+     "reference": 0.8080993357087073,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-restitution",
+      "status": "pass",
+      "reason": "velocity ratio 0.807909 vs contact-model restitution 0.808099 (tolerance 0.005)"
+     },
+     {
+      "id": "momentum-conserved",
+      "status": "pass",
+      "reason": "momentum relative drift 8.882e-16 (tolerance 1e-09)"
+     },
+     {
+      "id": "momentum-from-trace",
+      "status": "pass",
+      "reason": "oracle: p0 1, p_end 1"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.80790920448 vs oracle recomputation from the trace 0.80790920448"
+     }
+    ],
+    "run_id": "run-8e50cd0094cb42d7a63e",
+    "wall_s": 2.284,
+    "simlab_resources": {
+     "wall_s": 1.942,
+     "cpu_s": 1.15,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 1.02
+    }
+   }
+  ],
+  "f1-tb05-damped-oscillator": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "light-damping",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 0.49999999990558447,
+     "decay-rate_reference": 0.5,
+     "period_measured": 0.629105404327624,
+     "period_reference": 0.6291054045776003,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 3.9735213068549244e-10,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 0.629105404 vs closed form 0.629105405: relative error 3.974e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 0.5 vs closed form 0.5: relative error 1.888e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.629105404328 vs oracle recomputation from the trace 0.629105404328"
+     }
+    ],
+    "run_id": "run-c17045f0b1c2492d98e7",
+    "wall_s": 2.651,
+    "simlab_resources": {
+     "wall_s": 2.322,
+     "cpu_s": 1.539,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "light-damping",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 0.49999999990558447,
+     "decay-rate_reference": 0.5,
+     "period_measured": 0.629105404327624,
+     "period_reference": 0.6291054045776003,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 3.9735213068549244e-10,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 0.629105404 vs closed form 0.629105405: relative error 3.974e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 0.5 vs closed form 0.5: relative error 1.888e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.629105404328 vs oracle recomputation from the trace 0.629105404328"
+     }
+    ],
+    "run_id": "run-20b3a36981504feeb236",
+    "wall_s": 2.741,
+    "simlab_resources": {
+     "wall_s": 2.414,
+     "cpu_s": 1.544,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "light-damping",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 0.49999999990558447,
+     "decay-rate_reference": 0.5,
+     "period_measured": 0.629105404327624,
+     "period_reference": 0.6291054045776003,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 3.9735213068549244e-10,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 0.629105404 vs closed form 0.629105405: relative error 3.974e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 0.5 vs closed form 0.5: relative error 1.888e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.629105404328 vs oracle recomputation from the trace 0.629105404328"
+     }
+    ],
+    "run_id": "run-ba84a49e6c214902a71f",
+    "wall_s": 2.664,
+    "simlab_resources": {
+     "wall_s": 2.322,
+     "cpu_s": 1.541,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "medium-damping",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 1.000000000264784,
+     "decay-rate_reference": 1.0,
+     "period_measured": 1.2825498308185614,
+     "period_reference": 1.282549830161864,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 5.120248334305354e-10,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 1.28254983 vs closed form 1.28254983: relative error 5.120e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 1 vs closed form 1: relative error 2.648e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 1.28254983082 vs oracle recomputation from the trace 1.28254983082"
+     }
+    ],
+    "run_id": "run-c6e369fdf2e24fca8137",
+    "wall_s": 2.765,
+    "simlab_resources": {
+     "wall_s": 2.437,
+     "cpu_s": 1.642,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "medium-damping",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 1.000000000264784,
+     "decay-rate_reference": 1.0,
+     "period_measured": 1.2825498308185614,
+     "period_reference": 1.282549830161864,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 5.120248334305354e-10,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 1.28254983 vs closed form 1.28254983: relative error 5.120e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 1 vs closed form 1: relative error 2.648e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 1.28254983082 vs oracle recomputation from the trace 1.28254983082"
+     }
+    ],
+    "run_id": "run-c719f69983d040efa153",
+    "wall_s": 2.643,
+    "simlab_resources": {
+     "wall_s": 2.323,
+     "cpu_s": 1.524,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "medium-damping",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 1.000000000264784,
+     "decay-rate_reference": 1.0,
+     "period_measured": 1.2825498308185614,
+     "period_reference": 1.282549830161864,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 5.120248334305354e-10,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 1.28254983 vs closed form 1.28254983: relative error 5.120e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 1 vs closed form 1: relative error 2.648e-10 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 1.28254983082 vs oracle recomputation from the trace 1.28254983082"
+     }
+    ],
+    "run_id": "run-a8186ae423e64a32a171",
+    "wall_s": 2.429,
+    "simlab_resources": {
+     "wall_s": 2.046,
+     "cpu_s": 1.367,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "stiff-light",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 0.49999999996806066,
+     "decay-rate_reference": 0.5,
+     "period_measured": 0.31425748620174504,
+     "period_reference": 0.3142574861728092,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 9.207689549580431e-11,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 0.314257486 vs closed form 0.314257486: relative error 9.208e-11 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 0.5 vs closed form 0.5: relative error 6.388e-11 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.314257486202 vs oracle recomputation from the trace 0.314257486202"
+     }
+    ],
+    "run_id": "run-1e853a98863c43ecad81",
+    "wall_s": 2.399,
+    "simlab_resources": {
+     "wall_s": 2.185,
+     "cpu_s": 1.468,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "stiff-light",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 0.49999999996806066,
+     "decay-rate_reference": 0.5,
+     "period_measured": 0.31425748620174504,
+     "period_reference": 0.3142574861728092,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 9.207689549580431e-11,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 0.314257486 vs closed form 0.314257486: relative error 9.208e-11 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 0.5 vs closed form 0.5: relative error 6.388e-11 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.314257486202 vs oracle recomputation from the trace 0.314257486202"
+     }
+    ],
+    "run_id": "run-d125788457334a21a8f0",
+    "wall_s": 2.414,
+    "simlab_resources": {
+     "wall_s": 2.122,
+     "cpu_s": 1.434,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb05-damped-oscillator",
+    "tb_id": "TB-05",
+    "variant_id": "stiff-light",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "decay-rate_measured": 0.49999999996806066,
+     "decay-rate_reference": 0.5,
+     "period_measured": 0.31425748620174504,
+     "period_reference": 0.3142574861728092,
+     "primary_metric": "max relative error of period and decay rate",
+     "primary_value": 9.207689549580431e-11,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer-period",
+      "status": "pass",
+      "reason": "period 0.314257486 vs closed form 0.314257486: relative error 9.208e-11 (tolerance 0.005)"
+     },
+     {
+      "id": "known-answer-decay-rate",
+      "status": "pass",
+      "reason": "decay-rate 0.5 vs closed form 0.5: relative error 6.388e-11 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0.314257486202 vs oracle recomputation from the trace 0.314257486202"
+     }
+    ],
+    "run_id": "run-50b2d195a048469684d0",
+    "wall_s": 2.298,
+    "simlab_resources": {
+     "wall_s": 2.023,
+     "cpu_s": 1.361,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.617
+    }
+   }
+  ],
+  "f1-tb06-double-pendulum": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-a",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 9.075612881832562e-15,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 2.9560997816258094e-09,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 2.956e-09 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 9.076e-15 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.7 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-73e46f157e694fc8ac49",
+    "wall_s": 1.552,
+    "simlab_resources": {
+     "wall_s": 1.318,
+     "cpu_s": 0.424,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-a",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 9.075612881832562e-15,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 2.9560997816258094e-09,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 2.956e-09 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 9.076e-15 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.7 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-2962afc927504f6ba5af",
+    "wall_s": 1.344,
+    "simlab_resources": {
+     "wall_s": 1.139,
+     "cpu_s": 0.378,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-a",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 9.075612881832562e-15,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 2.9560997816258094e-09,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 2.956e-09 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 9.076e-15 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.7 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-32466752d7eb47838f43",
+    "wall_s": 1.22,
+    "simlab_resources": {
+     "wall_s": 1.092,
+     "cpu_s": 0.365,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-b",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 6.182267297830428e-14,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 1.1475758121548552e-08,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 1.148e-08 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 6.182e-14 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 2.98 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-0d820be9501a4c9fa3b3",
+    "wall_s": 1.437,
+    "simlab_resources": {
+     "wall_s": 1.213,
+     "cpu_s": 0.394,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-b",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 6.182267297830428e-14,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 1.1475758121548552e-08,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 1.148e-08 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 6.182e-14 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 2.98 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-b2bd85831dcb4d05a667",
+    "wall_s": 1.45,
+    "simlab_resources": {
+     "wall_s": 1.24,
+     "cpu_s": 0.405,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-b",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 6.182267297830428e-14,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 1.1475758121548552e-08,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 1.148e-08 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 6.182e-14 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 2.98 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-30ab7a9424bd438f85ae",
+    "wall_s": 1.322,
+    "simlab_resources": {
+     "wall_s": 1.132,
+     "cpu_s": 0.369,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-c",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 2.398650917465917e-14,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 5.108029221823074e-09,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 5.108e-09 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 2.399e-14 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.29 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-bf99ca26a8e942ca85e8",
+    "wall_s": 1.248,
+    "simlab_resources": {
+     "wall_s": 1.051,
+     "cpu_s": 0.396,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-c",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 2.398650917465917e-14,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 5.108029221823074e-09,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 5.108e-09 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 2.399e-14 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.29 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-22cffa67863b4104927b",
+    "wall_s": 1.236,
+    "simlab_resources": {
+     "wall_s": 1.048,
+     "cpu_s": 0.379,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "swing-c",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 2.398650917465917e-14,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 5.108029221823074e-09,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "pass",
+      "reason": "max angle error 5.108e-09 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "pass",
+      "reason": "energy relative drift 2.399e-14 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.29 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-e4f4ebeb3cbf4af3ab22",
+    "wall_s": 1.339,
+    "simlab_resources": {
+     "wall_s": 1.135,
+     "cpu_s": 0.448,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "frozen-gravity-off",
+    "repeat": 1,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 2.328655800628841,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "fail",
+      "reason": "run COMPLETED, attempt INVALID missing_required_observation"
+     },
+     {
+      "id": "trajectory",
+      "status": "fail",
+      "reason": "max angle error 2.329e+00 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "fail",
+      "reason": "no energy measurement"
+     },
+     {
+      "id": "moves",
+      "status": "fail",
+      "reason": "first joint moved 0 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-8f21807288044da380e6",
+    "wall_s": 1.233,
+    "simlab_resources": {
+     "wall_s": 1.027,
+     "cpu_s": 0.368,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "frozen-gravity-off",
+    "repeat": 2,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 2.328655800628841,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "fail",
+      "reason": "run COMPLETED, attempt INVALID missing_required_observation"
+     },
+     {
+      "id": "trajectory",
+      "status": "fail",
+      "reason": "max angle error 2.329e+00 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "fail",
+      "reason": "no energy measurement"
+     },
+     {
+      "id": "moves",
+      "status": "fail",
+      "reason": "first joint moved 0 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-5bc24e8367ae4167be53",
+    "wall_s": 1.241,
+    "simlab_resources": {
+     "wall_s": 1.069,
+     "cpu_s": 0.375,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "frozen-gravity-off",
+    "repeat": 3,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 2.328655800628841,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "fail",
+      "reason": "run COMPLETED, attempt INVALID missing_required_observation"
+     },
+     {
+      "id": "trajectory",
+      "status": "fail",
+      "reason": "max angle error 2.329e+00 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "fail",
+      "reason": "no energy measurement"
+     },
+     {
+      "id": "moves",
+      "status": "fail",
+      "reason": "first joint moved 0 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-05b444a8327442d289d1",
+    "wall_s": 1.243,
+    "simlab_resources": {
+     "wall_s": 1.051,
+     "cpu_s": 0.372,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "over-damped",
+    "repeat": 1,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 0.5622841182860002,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 0.5809077820447989,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "fail",
+      "reason": "max angle error 5.809e-01 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "fail",
+      "reason": "energy relative drift 5.623e-01 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.25 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-7520fb366ce14b58bad6",
+    "wall_s": 1.232,
+    "simlab_resources": {
+     "wall_s": 1.077,
+     "cpu_s": 0.384,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "over-damped",
+    "repeat": 2,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 0.5622841182860002,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 0.5809077820447989,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "fail",
+      "reason": "max angle error 5.809e-01 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "fail",
+      "reason": "energy relative drift 5.623e-01 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.25 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-84e39a2c9a1d45c3b306",
+    "wall_s": 1.218,
+    "simlab_resources": {
+     "wall_s": 1.01,
+     "cpu_s": 0.363,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb06-double-pendulum",
+    "tb_id": "TB-06",
+    "variant_id": "over-damped",
+    "repeat": 3,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "energy_relative_drift": 0.5622841182860002,
+     "primary_metric": "max absolute angle error vs reference (rad)",
+     "primary_value": 0.5809077820447989,
+     "samples": 2001,
+     "tolerance": 0.001
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "trajectory",
+      "status": "fail",
+      "reason": "max angle error 5.809e-01 rad over 2001 samples to 2.0 s (tolerance 0.001)"
+     },
+     {
+      "id": "energy-bounded",
+      "status": "fail",
+      "reason": "energy relative drift 5.623e-01 (tolerance 1e-06)"
+     },
+     {
+      "id": "moves",
+      "status": "pass",
+      "reason": "first joint moved 1.25 rad (a frozen simulation does not)"
+     }
+    ],
+    "run_id": "run-bfefa50a405b44009bfd",
+    "wall_s": 1.237,
+    "simlab_resources": {
+     "wall_s": 1.1,
+     "cpu_s": 0.379,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.098
+    }
+   }
+  ],
+  "f1-tb07-rolling": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "solid-sphere",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.394178943650452,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0010035369712329306,
+     "reference": 2.396584004303436,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.39418 vs g sin th / (1 + I/mr^2) = 2.39658 (I/mr^2 = 0.4): relative error 1.004e-03 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.39417894365 vs oracle recomputation from the trace 2.39417894365"
+     }
+    ],
+    "run_id": "run-0ab14d9ba4734f2e99db",
+    "wall_s": 0.9,
+    "simlab_resources": {
+     "wall_s": 0.749,
+     "cpu_s": 0.105,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "solid-sphere",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.394178943650452,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0010035369712329306,
+     "reference": 2.396584004303436,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.39418 vs g sin th / (1 + I/mr^2) = 2.39658 (I/mr^2 = 0.4): relative error 1.004e-03 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.39417894365 vs oracle recomputation from the trace 2.39417894365"
+     }
+    ],
+    "run_id": "run-413e76928b03471e9dce",
+    "wall_s": 0.996,
+    "simlab_resources": {
+     "wall_s": 0.833,
+     "cpu_s": 0.112,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "solid-sphere",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.394178943650452,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0010035369712329306,
+     "reference": 2.396584004303436,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.39418 vs g sin th / (1 + I/mr^2) = 2.39658 (I/mr^2 = 0.4): relative error 1.004e-03 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.39417894365 vs oracle recomputation from the trace 2.39417894365"
+     }
+    ],
+    "run_id": "run-f0a58bd48f6b4ed2b864",
+    "wall_s": 1.01,
+    "simlab_resources": {
+     "wall_s": 0.868,
+     "cpu_s": 0.142,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "hollow-sphere",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.0103033486647446,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0014043872768318326,
+     "reference": 2.0131305636148866,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.0103 vs g sin th / (1 + I/mr^2) = 2.01313 (I/mr^2 = 0.666667): relative error 1.404e-03 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.01030334866 vs oracle recomputation from the trace 2.01030334866"
+     }
+    ],
+    "run_id": "run-c90532f9c77343dbabae",
+    "wall_s": 1.004,
+    "simlab_resources": {
+     "wall_s": 0.842,
+     "cpu_s": 0.138,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "hollow-sphere",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.0103033486647446,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0014043872768318326,
+     "reference": 2.0131305636148866,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.0103 vs g sin th / (1 + I/mr^2) = 2.01313 (I/mr^2 = 0.666667): relative error 1.404e-03 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.01030334866 vs oracle recomputation from the trace 2.01030334866"
+     }
+    ],
+    "run_id": "run-bffc180e9aff4cb08385",
+    "wall_s": 1.0,
+    "simlab_resources": {
+     "wall_s": 0.84,
+     "cpu_s": 0.118,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "hollow-sphere",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.0103033486647446,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0014043872768318326,
+     "reference": 2.0131305636148866,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.0103 vs g sin th / (1 + I/mr^2) = 2.01313 (I/mr^2 = 0.666667): relative error 1.404e-03 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.01030334866 vs oracle recomputation from the trace 2.01030334866"
+     }
+    ],
+    "run_id": "run-02f0d428e2f045d0bd82",
+    "wall_s": 1.0,
+    "simlab_resources": {
+     "wall_s": 0.807,
+     "cpu_s": 0.118,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "solid-cylinder",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.2353499659367695,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0006535066803770761,
+     "reference": 2.2368117373498735,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.23535 vs g sin th / (1 + I/mr^2) = 2.23681 (I/mr^2 = 0.5): relative error 6.535e-04 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.23534996594 vs oracle recomputation from the trace 2.23534996594"
+     }
+    ],
+    "run_id": "run-924301427ac646199f79",
+    "wall_s": 1.0,
+    "simlab_resources": {
+     "wall_s": 0.818,
+     "cpu_s": 0.117,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "solid-cylinder",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.2353499659367695,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0006535066803770761,
+     "reference": 2.2368117373498735,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.23535 vs g sin th / (1 + I/mr^2) = 2.23681 (I/mr^2 = 0.5): relative error 6.535e-04 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.23534996594 vs oracle recomputation from the trace 2.23534996594"
+     }
+    ],
+    "run_id": "run-45e1007f8e044cc1bee1",
+    "wall_s": 1.027,
+    "simlab_resources": {
+     "wall_s": 0.826,
+     "cpu_s": 0.111,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb07-rolling",
+    "tb_id": "TB-07",
+    "variant_id": "solid-cylinder",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 2.2353499659367695,
+     "primary_metric": "acceleration relative error",
+     "primary_value": 0.0006535066803770761,
+     "reference": 2.2368117373498735,
+     "tolerance": 0.005
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "known-answer",
+      "status": "pass",
+      "reason": "a 2.23535 vs g sin th / (1 + I/mr^2) = 2.23681 (I/mr^2 = 0.5): relative error 6.535e-04 (tolerance 0.005)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 2.23534996594 vs oracle recomputation from the trace 2.23534996594"
+     }
+    ],
+    "run_id": "run-20485063741a43c3befe",
+    "wall_s": 0.911,
+    "simlab_resources": {
+     "wall_s": 0.789,
+     "cpu_s": 0.11,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.035
+    }
+   }
+  ],
+  "f1-tb08-box-stack": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "equal-masses",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 29.43,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 0.0,
+     "reference": 29.43,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 29.43 N vs total weight 29.43 N: relative error 0.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.0003688380123990369 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 29.43 vs oracle recomputation from the trace 29.43"
+     }
+    ],
+    "run_id": "run-82903c49203647ffae33",
+    "wall_s": 1.045,
+    "simlab_resources": {
+     "wall_s": 0.831,
+     "cpu_s": 0.167,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "equal-masses",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 29.43,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 0.0,
+     "reference": 29.43,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 29.43 N vs total weight 29.43 N: relative error 0.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.0003688380123990369 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 29.43 vs oracle recomputation from the trace 29.43"
+     }
+    ],
+    "run_id": "run-f0f6a6c1e11343b286e7",
+    "wall_s": 1.035,
+    "simlab_resources": {
+     "wall_s": 0.81,
+     "cpu_s": 0.153,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "equal-masses",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 29.43,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 0.0,
+     "reference": 29.43,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 29.43 N vs total weight 29.43 N: relative error 0.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.0003688380123990369 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 29.43 vs oracle recomputation from the trace 29.43"
+     }
+    ],
+    "run_id": "run-0afb567a89f54bd79ebb",
+    "wall_s": 1.036,
+    "simlab_resources": {
+     "wall_s": 0.856,
+     "cpu_s": 0.19,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "heavy-bottom",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 34.335000000000015,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 4.138882980982089e-16,
+     "reference": 34.335,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 4.139e-16 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.00023018261854698162 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335"
+     }
+    ],
+    "run_id": "run-6c1ffdc143a44cc18de0",
+    "wall_s": 1.027,
+    "simlab_resources": {
+     "wall_s": 0.808,
+     "cpu_s": 0.154,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "heavy-bottom",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 34.335000000000015,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 4.138882980982089e-16,
+     "reference": 34.335,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 4.139e-16 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.00023018261854698162 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335"
+     }
+    ],
+    "run_id": "run-e389d6e5b0eb461ea091",
+    "wall_s": 1.031,
+    "simlab_resources": {
+     "wall_s": 0.807,
+     "cpu_s": 0.148,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "heavy-bottom",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 34.335000000000015,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 4.138882980982089e-16,
+     "reference": 34.335,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 4.139e-16 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.00023018261854698162 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335"
+     }
+    ],
+    "run_id": "run-1b42a366b83a471ca641",
+    "wall_s": 0.933,
+    "simlab_resources": {
+     "wall_s": 0.802,
+     "cpu_s": 0.151,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "heavy-top",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 34.335,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 0.0,
+     "reference": 34.335,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 0.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.0006362245159384221 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335"
+     }
+    ],
+    "run_id": "run-c474595ce82b40ddb390",
+    "wall_s": 1.028,
+    "simlab_resources": {
+     "wall_s": 0.814,
+     "cpu_s": 0.156,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "heavy-top",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 34.335,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 0.0,
+     "reference": 34.335,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 0.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.0006362245159384221 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335"
+     }
+    ],
+    "run_id": "run-cb006fd106094d4287d2",
+    "wall_s": 0.951,
+    "simlab_resources": {
+     "wall_s": 0.801,
+     "cpu_s": 0.152,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "heavy-top",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 34.335,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 0.0,
+     "reference": 34.335,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "pass",
+      "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 0.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 0.0006362245159384221 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335"
+     }
+    ],
+    "run_id": "run-e8fb064184a8434c9ea4",
+    "wall_s": 1.038,
+    "simlab_resources": {
+     "wall_s": 0.819,
+     "cpu_s": 0.154,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "gravity-off",
+    "repeat": 1,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.0,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 1.0,
+     "reference": 29.43,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "fail",
+      "reason": "floor normal force 0 N vs total weight 29.43 N: relative error 1.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 1.3877787807814457e-17 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0 vs oracle recomputation from the trace 0"
+     }
+    ],
+    "run_id": "run-5b1d0409b790425a88fb",
+    "wall_s": 0.938,
+    "simlab_resources": {
+     "wall_s": 0.776,
+     "cpu_s": 0.115,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "gravity-off",
+    "repeat": 2,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.0,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 1.0,
+     "reference": 29.43,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "fail",
+      "reason": "floor normal force 0 N vs total weight 29.43 N: relative error 1.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 1.3877787807814457e-17 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0 vs oracle recomputation from the trace 0"
+     }
+    ],
+    "run_id": "run-15e0078598af48e5978b",
+    "wall_s": 0.937,
+    "simlab_resources": {
+     "wall_s": 0.799,
+     "cpu_s": 0.127,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb08-box-stack",
+    "tb_id": "TB-08",
+    "variant_id": "gravity-off",
+    "repeat": 3,
+    "negative_control": true,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "measured": 0.0,
+     "primary_metric": "floor contact force relative error",
+     "primary_value": 1.0,
+     "reference": 29.43,
+     "tolerance": 0.01
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "forces-balance-gravity",
+      "status": "fail",
+      "reason": "floor normal force 0 N vs total weight 29.43 N: relative error 1.000e+00 (tolerance 0.01)"
+     },
+     {
+      "id": "stays-still",
+      "status": "pass",
+      "reason": "top box height range after settling 0.0 m (tolerance 0.0001)"
+     },
+     {
+      "id": "penetration-bounded",
+      "status": "pass",
+      "reason": "max penetration 1.3877787807814457e-17 m (tolerance 0.001)"
+     },
+     {
+      "id": "measurement-matches-trace",
+      "status": "pass",
+      "reason": "SIMLAB measurement 0 vs oracle recomputation from the trace 0"
+     }
+    ],
+    "run_id": "run-f357c52268c04308be5c",
+    "wall_s": 1.024,
+    "simlab_resources": {
+     "wall_s": 0.805,
+     "cpu_s": 0.132,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.055
+    }
+   }
+  ],
+  "f1-tb09-determinism": [
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "controlled-noisy",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-ae7b7e0a09ee4a1faa88: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-9f1d13149d7647629679 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "1001 samples after the checkpoint at t=1.0000000000000007: bitwise equal"
+     }
+    ],
+    "run_id": "run-1d6c0a89e0234dcc9d76",
+    "wall_s": 6.109,
+    "simlab_resources": {
+     "wall_s": 1.644,
+     "cpu_s": 0.249,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.234
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "controlled-noisy",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-edab57d63e7c44ba9ab7: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-5ef4b0b068b74b8fb122 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "1001 samples after the checkpoint at t=1.0000000000000007: bitwise equal"
+     }
+    ],
+    "run_id": "run-850e13551a3840d7a78a",
+    "wall_s": 6.202,
+    "simlab_resources": {
+     "wall_s": 1.631,
+     "cpu_s": 0.223,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.234
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "controlled-noisy",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-679171e38c354382989c: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-c419041be4e74dd2b309 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "1001 samples after the checkpoint at t=1.0000000000000007: bitwise equal"
+     }
+    ],
+    "run_id": "run-9d0a7def2f2b487d826d",
+    "wall_s": 6.508,
+    "simlab_resources": {
+     "wall_s": 1.537,
+     "cpu_s": 0.225,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.234
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "contact-rich",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-652e57e35df8431ab23b: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-fe9e59022c8d46f4833a kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "801 samples after the checkpoint at t=0.8000000000000006: bitwise equal"
+     }
+    ],
+    "run_id": "run-453176792bf44ead9564",
+    "wall_s": 6.115,
+    "simlab_resources": {
+     "wall_s": 1.679,
+     "cpu_s": 0.262,
+     "peak_ram_mb": 113.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.398
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "contact-rich",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-628656d4122148e4831b: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-e51c188084454c26bae2 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "801 samples after the checkpoint at t=0.8000000000000006: bitwise equal"
+     }
+    ],
+    "run_id": "run-21e7f4985e214894bc28",
+    "wall_s": 6.088,
+    "simlab_resources": {
+     "wall_s": 1.634,
+     "cpu_s": 0.221,
+     "peak_ram_mb": 114.8,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.398
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "contact-rich",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-edb17e169c064bd5a55b: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-1453f5aa6045491bb567 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "801 samples after the checkpoint at t=0.8000000000000006: bitwise equal"
+     }
+    ],
+    "run_id": "run-8f32598475ff45899379",
+    "wall_s": 5.774,
+    "simlab_resources": {
+     "wall_s": 1.579,
+     "cpu_s": 0.228,
+     "peak_ram_mb": 117.6,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.398
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "factor-random",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-b4661e1427f04e01a690: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-e87b064124514bd79038 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "1001 samples after the checkpoint at t=1.0000000000000007: bitwise equal"
+     }
+    ],
+    "run_id": "run-dfeed0b9eb514efeaca7",
+    "wall_s": 5.968,
+    "simlab_resources": {
+     "wall_s": 1.566,
+     "cpu_s": 0.21,
+     "peak_ram_mb": 117.6,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.172
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "factor-random",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-7ddd24feb33b487f861f: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-cdf1cfab5141454e8924 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "1001 samples after the checkpoint at t=1.0000000000000007: bitwise equal"
+     }
+    ],
+    "run_id": "run-e85b11e26d7c4e5ba233",
+    "wall_s": 6.368,
+    "simlab_resources": {
+     "wall_s": 1.537,
+     "cpu_s": 0.21,
+     "peak_ram_mb": 117.6,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.172
+    }
+   },
+   {
+    "family": "F1",
+    "case_id": "f1-tb09-determinism",
+    "tb_id": "TB-09",
+    "variant_id": "factor-random",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-3c5f29c5551c498581d0: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-2b73e49843db4ae29e74 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     },
+     {
+      "id": "restore-continue",
+      "status": "pass",
+      "reason": "1001 samples after the checkpoint at t=1.0000000000000007: bitwise equal"
+     }
+    ],
+    "run_id": "run-8d075cb02d0b4645ad19",
+    "wall_s": 5.964,
+    "simlab_resources": {
+     "wall_s": 1.69,
+     "cpu_s": 0.211,
+     "peak_ram_mb": 117.6,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.172
+    }
+   }
+  ]
+ },
+ "counts": {
+  "PASS": 90,
+  "FAIL": 0,
+  "BLOCKED": 0
+ },
+ "note": "Per-case results; there is no aggregate score."
+}

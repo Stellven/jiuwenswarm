@@ -1,0 +1,28 @@
+{
+ "traces": [
+  "xpos:ball"
+ ],
+ "variants": {
+  "earth-1s": {
+   "g": 9.81,
+   "t": 1.0,
+   "tolerance_rel": 0.001,
+   "tolerance_reason": "Test plan TB-02 gives 0.1%.",
+   "confirm": false
+  },
+  "moon-0p5s": {
+   "g": 1.62,
+   "t": 0.5,
+   "tolerance_rel": 0.001,
+   "tolerance_reason": "Test plan TB-02 gives 0.1%.",
+   "confirm": false
+  },
+  "earth-2s-euler": {
+   "g": 9.81,
+   "t": 2.0,
+   "tolerance_rel": 0.001,
+   "tolerance_reason": "Test plan TB-02 gives 0.1%. Semi-implicit Euler's error here is dt/t = 5e-5.",
+   "confirm": false
+  }
+ }
+}

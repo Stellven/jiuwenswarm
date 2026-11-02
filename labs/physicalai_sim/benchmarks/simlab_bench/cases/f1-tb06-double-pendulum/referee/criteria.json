@@ -1,0 +1,78 @@
+{
+ "traces": [
+  "qpos:j1",
+  "qpos:j2"
+ ],
+ "variants": {
+  "swing-a": {
+   "m1": 1.0,
+   "m2": 1.0,
+   "L1": 1.0,
+   "L2": 1.0,
+   "p1": 0.8,
+   "p2": 1.2,
+   "reference": "reference_swing-a.json",
+   "horizon_s": 2.0,
+   "tolerance_angle_rad": 0.001,
+   "tolerance_energy_rel": 1e-06,
+   "tolerance_reason": "Proposed 1e-3 rad [confirm]: the source asks for agreement 'over a short horizon' without a number; RK4 at 0.1 ms agrees with the 0.01 ms reference to about 1e-7 rad over 2 s before chaotic growth, so 1e-3 rad fails a frozen, damped or wrongly coupled model by orders of magnitude. Proposed 1e-6 relative [confirm]: RK4 at 0.1 ms conserves energy far better on this passive system; an over-damped simulation loses most of it.",
+   "confirm": true
+  },
+  "swing-b": {
+   "m1": 1.0,
+   "m2": 2.0,
+   "L1": 1.0,
+   "L2": 0.6,
+   "p1": 1.5,
+   "p2": 0.5,
+   "reference": "reference_swing-b.json",
+   "horizon_s": 2.0,
+   "tolerance_angle_rad": 0.001,
+   "tolerance_energy_rel": 1e-06,
+   "tolerance_reason": "Proposed 1e-3 rad [confirm]: the source asks for agreement 'over a short horizon' without a number; RK4 at 0.1 ms agrees with the 0.01 ms reference to about 1e-7 rad over 2 s before chaotic growth, so 1e-3 rad fails a frozen, damped or wrongly coupled model by orders of magnitude. Proposed 1e-6 relative [confirm]: RK4 at 0.1 ms conserves energy far better on this passive system; an over-damped simulation loses most of it.",
+   "confirm": true
+  },
+  "swing-c": {
+   "m1": 2.0,
+   "m2": 1.0,
+   "L1": 0.7,
+   "L2": 1.0,
+   "p1": -0.5,
+   "p2": 2.0,
+   "reference": "reference_swing-c.json",
+   "horizon_s": 2.0,
+   "tolerance_angle_rad": 0.001,
+   "tolerance_energy_rel": 1e-06,
+   "tolerance_reason": "Proposed 1e-3 rad [confirm]: the source asks for agreement 'over a short horizon' without a number; RK4 at 0.1 ms agrees with the 0.01 ms reference to about 1e-7 rad over 2 s before chaotic growth, so 1e-3 rad fails a frozen, damped or wrongly coupled model by orders of magnitude. Proposed 1e-6 relative [confirm]: RK4 at 0.1 ms conserves energy far better on this passive system; an over-damped simulation loses most of it.",
+   "confirm": true
+  },
+  "frozen-gravity-off": {
+   "m1": 1.0,
+   "m2": 1.0,
+   "L1": 1.0,
+   "L2": 1.0,
+   "p1": 0.8,
+   "p2": 1.2,
+   "reference": "reference_swing-a.json",
+   "horizon_s": 2.0,
+   "tolerance_angle_rad": 0.001,
+   "tolerance_energy_rel": 1e-06,
+   "tolerance_reason": "Negative control (test plan TB-06: a frozen or over-damped simulation fails).",
+   "confirm": true
+  },
+  "over-damped": {
+   "m1": 1.0,
+   "m2": 1.0,
+   "L1": 1.0,
+   "L2": 1.0,
+   "p1": 0.8,
+   "p2": 1.2,
+   "reference": "reference_swing-a.json",
+   "horizon_s": 2.0,
+   "tolerance_angle_rad": 0.001,
+   "tolerance_energy_rel": 1e-06,
+   "tolerance_reason": "Negative control (test plan TB-06: a frozen or over-damped simulation fails).",
+   "confirm": true
+  }
+ }
+}

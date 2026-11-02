@@ -1,0 +1,44 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-e389d6e5b0eb461ea091"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "forces-balance-gravity",
+   "reason": "floor normal force 34.335 N vs total weight 34.335 N: relative error 4.139e-16 (tolerance 0.01)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "stays-still",
+   "reason": "top box height range after settling 0.0 m (tolerance 0.0001)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "penetration-bounded",
+   "reason": "max penetration 0.00023018261854698162 m (tolerance 0.001)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 34.335 vs oracle recomputation from the trace 34.335",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": 34.335000000000015,
+  "primary_metric": "floor contact force relative error",
+  "primary_value": 4.138882980982089e-16,
+  "reference": 34.335,
+  "tolerance": 0.01
+ }
+}

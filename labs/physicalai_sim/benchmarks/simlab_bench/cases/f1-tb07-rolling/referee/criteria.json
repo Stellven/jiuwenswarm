@@ -1,0 +1,35 @@
+{
+ "g": 9.81,
+ "traces": [
+  "xipos:roller"
+ ],
+ "variants": {
+  "solid-sphere": {
+   "theta_deg": 20,
+   "inertia_ratio": 0.4,
+   "t_start": 0.1,
+   "t_end": 1.0,
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Proposed 0.5% [confirm]: the source gives none. MuJoCo's soft contact lets the roller slip slightly (exploratory error at most 0.14%); 0.5% still separates the three inertias (their accelerations differ by 6% or more).",
+   "confirm": true
+  },
+  "hollow-sphere": {
+   "theta_deg": 20,
+   "inertia_ratio": 0.6666666666666666,
+   "t_start": 0.1,
+   "t_end": 1.0,
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Proposed 0.5% [confirm]: the source gives none. MuJoCo's soft contact lets the roller slip slightly (exploratory error at most 0.14%); 0.5% still separates the three inertias (their accelerations differ by 6% or more).",
+   "confirm": true
+  },
+  "solid-cylinder": {
+   "theta_deg": 20,
+   "inertia_ratio": 0.5,
+   "t_start": 0.1,
+   "t_end": 1.0,
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Proposed 0.5% [confirm]: the source gives none. MuJoCo's soft contact lets the roller slip slightly (exploratory error at most 0.14%); 0.5% still separates the three inertias (their accelerations differ by 6% or more).",
+   "confirm": true
+  }
+ }
+}

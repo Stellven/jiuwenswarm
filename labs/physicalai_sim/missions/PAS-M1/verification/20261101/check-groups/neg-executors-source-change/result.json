@@ -1,0 +1,54 @@
+{
+  "command": [
+    "/opt/simlab/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=",
+    "-p",
+    "no:cacheprovider",
+    "-q",
+    "-rA",
+    "tests/executors",
+    "tests/boundary/test_x15_replay_branch.py",
+    "tests/boundary/test_always.py",
+    "--tb=short",
+    "--junitxml=/evidence/junit.xml"
+  ],
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 7,
+    "skipped": 0,
+    "tests": 7
+  },
+  "elapsed_s": 28.06,
+  "exit_code": 2,
+  "files": {
+    "junit.xml": "879f2a284ad75d84a710816b367010459a4c78e82113e3857140dd692dd32b31",
+    "launch.json": "39505f08ea8a05ae85234e956df20987389cd9150a36cba81099d6a874568808",
+    "pytest.log": "cee2782353893821672fcaeee15218ee9e03ffad91a93aaee0a302a5265b953a",
+    "source-manifest.json": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a"
+  },
+  "group": "executors",
+  "python": "3.12.16 (main, Oct 28 2026, 02:01:20) [GCC 14.2.0]",
+  "resources_container": {
+    "cpu_s": 25.597,
+    "memory_max": "4294967296",
+    "memory_peak_mb": 164.2
+  },
+  "schema": "simlab-check-group:1",
+  "scope": "SIMLAB phase 1 checks inside simlab-runner; live and model-dependent tests are opt-in (--live)",
+  "skipped_tests": [],
+  "source_changes": [
+    "tests/_negative_control_46ac29.txt"
+  ],
+  "source_manifest_sha256": "35effd349effb1bf8881249e0f618b8a1266956b76a24a35f27e18010d1fdd4b",
+  "status": "source_changed",
+  "targets": [
+    "tests/executors",
+    "tests/boundary/test_x15_replay_branch.py",
+    "tests/boundary/test_always.py"
+  ],
+  "timeout_s": 1800
+}

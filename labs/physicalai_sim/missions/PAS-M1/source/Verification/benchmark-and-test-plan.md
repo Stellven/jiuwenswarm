@@ -1,6 +1,6 @@
 # SIMLAB benchmark and test plan
 
-**Verification · r0.4.2 · October 30, 2026.** How SIMLAB is proven: test benches with known answers, SIMLAB's own benchmark families, official external benchmarks, what each phase tests, and the reports. Exit IDs refer to [Architecture Main](../Architecture_main_body/Architecture_main_body.md).
+**Verification · r0.4.3 · October 31, 2026.** How SIMLAB is proven: test benches with known answers, SIMLAB's own benchmark families, official external benchmarks, what each phase tests, and the reports. Exit IDs refer to [Architecture Main](../Architecture_main_body/Architecture_main_body.md).
 
 ## Rules
 

@@ -1,0 +1,105 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb08-box-stack",
+ "family": "F1",
+ "tb_id": "TB-08",
+ "title": "Box stack at rest",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Box stack at rest: stays still, contact forces balance gravity, penetration bounded",
+ "primary_metric": {
+  "name": "floor contact force relative error",
+  "definition": "|F_floor - g sum(m)| / (g sum(m)); plus top box stillness and penetration"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "MuJoCo engine tests (resting contact)",
+  "ContactBench contact criteria (non-penetration, force balance)"
+ ],
+ "model_assumptions": "three 10 cm boxes stacked on a plane with MuJoCo's default soft contact; force = summed normal force between the floor and the bottom box at the end; stillness measured after a 1 s settle.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "equal-masses",
+   "split": "development",
+   "task": "Three 1 kg boxes.",
+   "params": {
+    "m1": 1.0,
+    "m2": 1.0,
+    "m3": 1.0
+   },
+   "seed": 1
+  },
+  {
+   "id": "heavy-bottom",
+   "split": "development",
+   "task": "Boxes of 2, 1 and 0.5 kg from the bottom.",
+   "params": {
+    "m1": 2.0,
+    "m2": 1.0,
+    "m3": 0.5
+   },
+   "seed": 2
+  },
+  {
+   "id": "heavy-top",
+   "split": "development",
+   "task": "Boxes of 0.5, 1 and 2 kg from the bottom.",
+   "params": {
+    "m1": 0.5,
+    "m2": 1.0,
+    "m3": 2.0
+   },
+   "seed": 3
+  },
+  {
+   "id": "gravity-off",
+   "split": "development",
+   "task": "Negative control: gravity off (contact forces vanish).",
+   "params": {
+    "m1": 1.0,
+    "m2": 1.0,
+    "m3": 1.0
+   },
+   "config": {
+    "gravity": [
+     0,
+     0,
+     0
+    ]
+   },
+   "negative_control": true,
+   "seed": 4
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

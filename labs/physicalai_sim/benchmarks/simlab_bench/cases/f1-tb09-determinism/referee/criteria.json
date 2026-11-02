@@ -1,0 +1,26 @@
+{
+ "traces": [
+  "qpos:hinge",
+  "xpos:top"
+ ],
+ "checkpoint_required": true,
+ "compare_signal": "qpos:hinge",
+ "variants": {
+  "controlled-noisy": {
+   "rule": "bitwise identity on the same machine and build (test plan Rules); no tolerance",
+   "tolerance_reason": "Identity rule, not a tolerance.",
+   "confirm": false
+  },
+  "contact-rich": {
+   "rule": "bitwise identity on the same machine and build (test plan Rules); no tolerance",
+   "tolerance_reason": "Identity rule, not a tolerance.",
+   "confirm": false,
+   "compare_signal": "xpos:top"
+  },
+  "factor-random": {
+   "rule": "bitwise identity on the same machine and build (test plan Rules); no tolerance",
+   "tolerance_reason": "Identity rule, not a tolerance.",
+   "confirm": false
+  }
+ }
+}

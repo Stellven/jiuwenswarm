@@ -1,0 +1,399 @@
+{
+ "cases": {
+  "f5-replay": [
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "controlled-noisy",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-9fa6e3fe8f0747c29f74: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-2a2feeccfcee412088bf kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-fdd60d71558a43ff9a66",
+    "wall_s": 7.065,
+    "simlab_resources": {
+     "wall_s": 2.438,
+     "cpu_s": 0.261,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.188
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "controlled-noisy",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-3966006a636441c4b0e8: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-6d24a57f8b1243b7ad57 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-4361823f1097407bb28e",
+    "wall_s": 7.843,
+    "simlab_resources": {
+     "wall_s": 3.517,
+     "cpu_s": 0.288,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.188
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "controlled-noisy",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-73c0f42638734a6390fe: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-ea26b08f9a2e4a08bceb kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-2b638938d13e4e1191a8",
+    "wall_s": 5.458,
+    "simlab_resources": {
+     "wall_s": 1.672,
+     "cpu_s": 0.171,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.188
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "contact-rich",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-b1f48adea24a4334a532: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-902f4406908f4b029202 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-bdb0d143415144f9a0f5",
+    "wall_s": 9.492,
+    "simlab_resources": {
+     "wall_s": 1.722,
+     "cpu_s": 0.194,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.375
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "contact-rich",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-ee81eb43529b44eaaabb: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-ed571a8cb17749c4adfd kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-c771b3f3263f4831ba73",
+    "wall_s": 9.186,
+    "simlab_resources": {
+     "wall_s": 4.595,
+     "cpu_s": 0.564,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.375
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "contact-rich",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-691dff2ed8cf49799e49: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-54233d8f0f654bda9301 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-9afc0ed874b340df8763",
+    "wall_s": 7.971,
+    "simlab_resources": {
+     "wall_s": 3.131,
+     "cpu_s": 0.453,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.375
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "factor-random",
+    "repeat": 1,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-68a78e9207674cb692ef: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-5dcc350f31dd48c383ad kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-d1b9fe7425524bd5ac8a",
+    "wall_s": 6.172,
+    "simlab_resources": {
+     "wall_s": 1.775,
+     "cpu_s": 0.182,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.125
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "factor-random",
+    "repeat": 2,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-721b36d33c4d4c6ebb1c: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-95b8817d951143358e31 kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-1398ba5a8b364ad6b09d",
+    "wall_s": 6.864,
+    "simlab_resources": {
+     "wall_s": 2.643,
+     "cpu_s": 0.331,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.125
+    }
+   },
+   {
+    "family": "F5",
+    "case_id": "f5-replay",
+    "tb_id": null,
+    "variant_id": "factor-random",
+    "repeat": 3,
+    "negative_control": false,
+    "split": "development",
+    "outcome": "PASS",
+    "execution_status": "COMPLETED",
+    "metrics": {
+     "primary_metric": "identity (all comparisons bitwise equal)",
+     "primary_value": true,
+     "tolerance": "identity"
+    },
+    "checks": [
+     {
+      "id": "execution",
+      "status": "pass",
+      "reason": "run COMPLETED, attempt COMPLETED"
+     },
+     {
+      "id": "repeat-identical",
+      "status": "pass",
+      "reason": "second execution run-42c57b1032b043d4b026: trajectories and measurements equal"
+     },
+     {
+      "id": "replay-identical",
+      "status": "pass",
+      "reason": "replay run-17b4a557008642759feb kind replay: equal (SIMLAB's own replay_identity check: pass)"
+     }
+    ],
+    "run_id": "run-1b855c9a25b2429da056",
+    "wall_s": 5.656,
+    "simlab_resources": {
+     "wall_s": 1.865,
+     "cpu_s": 0.19,
+     "peak_ram_mb": 108.0,
+     "gpu": "none",
+     "peak_vram_mb": null,
+     "disk_written_mb": 0.125
+    }
+   }
+  ]
+ },
+ "counts": {
+  "PASS": 9,
+  "FAIL": 0,
+  "BLOCKED": 0
+ },
+ "note": "Per-case results; there is no aggregate score."
+}

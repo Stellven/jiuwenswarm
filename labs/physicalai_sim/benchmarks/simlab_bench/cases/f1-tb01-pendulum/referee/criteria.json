@@ -1,0 +1,32 @@
+{
+ "g": 9.81,
+ "traces": [
+  "qpos:hinge"
+ ],
+ "variants": {
+  "small-swing": {
+   "L": 1.0,
+   "theta0": 0.05,
+   "model": "small_angle",
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Test plan TB-01 gives 0.5% ([confirm] value in the source, TASKS \u00a76 Q-01). The small-angle formula itself differs from the exact period by theta0^2/16 = 0.016% here.",
+   "confirm": true
+  },
+  "large-swing-1p2": {
+   "L": 0.8,
+   "theta0": 1.2,
+   "model": "elliptic",
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Test plan TB-01 gives 0.5% ([confirm] value in the source, TASKS \u00a76 Q-01).",
+   "confirm": true
+  },
+  "large-swing-2p6": {
+   "L": 1.2,
+   "theta0": 2.6,
+   "model": "elliptic",
+   "tolerance_rel": 0.005,
+   "tolerance_reason": "Test plan TB-01 gives 0.5% ([confirm] value in the source, TASKS \u00a76 Q-01).",
+   "confirm": true
+  }
+ }
+}

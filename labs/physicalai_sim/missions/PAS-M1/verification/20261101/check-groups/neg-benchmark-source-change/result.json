@@ -1,0 +1,52 @@
+{
+  "command": [
+    "/opt/simlab/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=",
+    "-p",
+    "no:cacheprovider",
+    "-q",
+    "-rA",
+    "benchmarks/simlab_bench/tests",
+    "tests/bench",
+    "--tb=short",
+    "--junitxml=/evidence/junit.xml"
+  ],
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 34,
+    "skipped": 0,
+    "tests": 34
+  },
+  "elapsed_s": 27.803,
+  "exit_code": 2,
+  "files": {
+    "junit.xml": "235468bc48311b2481c5096586cc186afc2e0ed032d8f9421f43d8f403437b7c",
+    "launch.json": "430dc91b8bd081e5558c6cfbf00c813f07809d0aa349962bac07f16632429678",
+    "pytest.log": "dacc45e4268a7fdc934b3a13b2d90ff4c873493e4e3ec2b9398fa727b93a7f3a",
+    "source-manifest.json": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a"
+  },
+  "group": "benchmark",
+  "python": "3.12.16 (main, Oct 28 2026, 02:01:20) [GCC 14.2.0]",
+  "resources_container": {
+    "cpu_s": 26.276,
+    "memory_max": "4294967296",
+    "memory_peak_mb": 156.7
+  },
+  "schema": "simlab-check-group:1",
+  "scope": "SIMLAB phase 1 checks inside simlab-runner; live and model-dependent tests are opt-in (--live)",
+  "skipped_tests": [],
+  "source_changes": [
+    "tests/_negative_control_ec98d6.txt"
+  ],
+  "source_manifest_sha256": "35effd349effb1bf8881249e0f618b8a1266956b76a24a35f27e18010d1fdd4b",
+  "status": "source_changed",
+  "targets": [
+    "benchmarks/simlab_bench/tests",
+    "tests/bench"
+  ],
+  "timeout_s": 1800
+}

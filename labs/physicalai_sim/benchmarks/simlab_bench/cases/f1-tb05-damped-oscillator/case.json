@@ -1,0 +1,86 @@
+{
+ "schema": "simlab-bench-case:1",
+ "id": "f1-tb05-damped-oscillator",
+ "family": "F1",
+ "tb_id": "TB-05",
+ "title": "Damped oscillator",
+ "milestone": "PAS-M1",
+ "phase": 1,
+ "classification": "phase1_exit",
+ "requirements": [
+  "B01",
+  "B02",
+  "B03",
+  "B05",
+  "B08",
+  "B12",
+  "B17"
+ ],
+ "objective": "Damped oscillator decay rate and frequency",
+ "primary_metric": {
+  "name": "max relative error of period and decay rate",
+  "definition": "against T_d = 2 pi / sqrt(k/m - (c/2m)^2) and sigma = c / 2m"
+ },
+ "procedure_kind": "single_run",
+ "engine": {
+  "mujoco": "3.17.0"
+ },
+ "references": [
+  "arXiv 2603.14634, analytic damped-oscillator test",
+  "MuJoCo engine tests (passive joint stiffness and damping)"
+ ],
+ "model_assumptions": "a mass on a slide joint with linear stiffness and viscous damping, no gravity, no contact; period from upward zero crossings, decay rate from a log-linear fit of the peaks.",
+ "budgets": {
+  "wall_time_s": 600,
+  "physical_memory_mb": 1024,
+  "gpu_required": false,
+  "max_model_calls": 0
+ },
+ "inputs": [
+  {
+   "path": "public/scene.xml",
+   "kind": "model_file"
+  },
+  {
+   "path": "public/experiment.json",
+   "kind": "experiment_template"
+  }
+ ],
+ "variants": [
+  {
+   "id": "light-damping",
+   "split": "development",
+   "task": "m 1 kg, k 100 N/m, c 1 N s/m.",
+   "params": {
+    "k": 100.0,
+    "c": 1.0,
+    "m": 1.0
+   },
+   "seed": 1
+  },
+  {
+   "id": "medium-damping",
+   "split": "development",
+   "task": "m 2 kg, k 50 N/m, c 4 N s/m.",
+   "params": {
+    "k": 50.0,
+    "c": 4.0,
+    "m": 2.0
+   },
+   "seed": 2
+  },
+  {
+   "id": "stiff-light",
+   "split": "development",
+   "task": "m 0.5 kg, k 200 N/m, c 0.5 N s/m.",
+   "params": {
+    "k": 200.0,
+    "c": 0.5,
+    "m": 0.5
+   },
+   "seed": 3
+  }
+ ],
+ "oracle_version": "1",
+ "grading": "referee/criteria.json via oracle.py (stdlib only, run in a separate isolated interpreter)"
+}

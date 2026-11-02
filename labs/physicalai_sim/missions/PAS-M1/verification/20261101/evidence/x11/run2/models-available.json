@@ -1,0 +1,5 @@
+{"captured_utc": "2026-11-01T01:31:00Z", "method": "codex.models.list (AI4R WebSocket; listing only, no model call)",
+ "account_plan": "free",
+ "models": [{"id": "gpt-6-luna", "name": "GPT-6-Luna", "default": true}, {"id": "gpt-5.6-terra", "name": "GPT-5.6-Terra", "default": false}, {"id": "gpt-5.6-luna", "name": "GPT-5.6-Luna", "default": false}],
+ "ai4r_required_model": "gpt-6.1-sol (jiuwenswarm/research/local_chat.py MODEL; substitution refused by design)",
+ "conclusion": "The signed-in Free account cannot serve AI4R's pinned route model; Codex ended the turn non-completed (TURN_FAILED)."}

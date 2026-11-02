@@ -1,0 +1,18 @@
+{
+ "profile": "campaign",
+ "variants": "all",
+ "repeats": 3,
+ "note": "every variant, three repeats (deterministic cases still repeat, to show it); failed runs kept; no retries",
+ "cases": [
+  "f1-tb01-pendulum",
+  "f1-tb02-free-fall",
+  "f1-tb03-incline",
+  "f1-tb04-collision",
+  "f1-tb05-damped-oscillator",
+  "f1-tb06-double-pendulum",
+  "f1-tb07-rolling",
+  "f1-tb08-box-stack",
+  "f1-tb09-determinism",
+  "f5-replay"
+ ]
+}

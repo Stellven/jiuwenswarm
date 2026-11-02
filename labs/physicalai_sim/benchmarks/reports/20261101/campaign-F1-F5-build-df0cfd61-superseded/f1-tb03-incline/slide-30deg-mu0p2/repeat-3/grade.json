@@ -1,0 +1,32 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-2df061294f684d17ac25"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer",
+   "reason": "slides (tan th 0.5774 > mu 0.2): a 3.20582 vs g(sin th - mu cos th) 3.20586: relative error 1.176e-05 (tolerance 0.01)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 3.20582047011 vs oracle recomputation from the trace 3.20582047011",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": 3.2058204701052846,
+  "primary_metric": "acceleration relative error",
+  "primary_value": 1.1755875585138173e-05,
+  "reference": 3.205858157774931,
+  "tolerance": 0.01
+ }
+}

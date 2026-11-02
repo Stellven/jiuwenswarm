@@ -1,0 +1,38 @@
+{
+ "g": 9.81,
+ "traces": [
+  "xipos:block"
+ ],
+ "variants": {
+  "slide-30deg-mu0p2": {
+   "theta_deg": 30,
+   "mu": 0.2,
+   "t_start": 0.1,
+   "t_end": 1.0,
+   "tolerance_rel": 0.01,
+   "tolerance_stick_m": null,
+   "tolerance_reason": "Proposed 1% [confirm]. The source gives no tolerance (TP 'Test benches'). MuJoCo friction is a soft, regularized constraint (elliptic cone, impratio 10); exploratory runs on this build differed from the formula by at most 0.03%, so 1% leaves margin for solver settings while still failing a wrong friction law (a frictionless block would be off by more than 30%).",
+   "confirm": true
+  },
+  "slide-40deg-mu0p5": {
+   "theta_deg": 40,
+   "mu": 0.5,
+   "t_start": 0.1,
+   "t_end": 1.0,
+   "tolerance_rel": 0.01,
+   "tolerance_stick_m": null,
+   "tolerance_reason": "Proposed 1% [confirm]. The source gives no tolerance (TP 'Test benches'). MuJoCo friction is a soft, regularized constraint (elliptic cone, impratio 10); exploratory runs on this build differed from the formula by at most 0.03%, so 1% leaves margin for solver settings while still failing a wrong friction law (a frictionless block would be off by more than 30%).",
+   "confirm": true
+  },
+  "stick-20deg-mu0p5": {
+   "theta_deg": 20,
+   "mu": 0.5,
+   "t_start": 0.1,
+   "t_end": 1.0,
+   "tolerance_rel": null,
+   "tolerance_stick_m": 0.001,
+   "tolerance_reason": "Proposed 1 mm over 0.9 s [confirm]. Soft contacts creep slightly while sticking (exploratory: 0.08 mm); a block that slid at these values would travel more than 0.1 m.",
+   "confirm": true
+  }
+ }
+}

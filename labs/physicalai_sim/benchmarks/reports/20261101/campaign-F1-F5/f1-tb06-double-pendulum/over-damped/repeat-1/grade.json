@@ -1,0 +1,38 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-7520fb366ce14b58bad6"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "trajectory",
+   "reason": "max angle error 5.809e-01 rad over 2001 samples to 2.0 s (tolerance 0.001)",
+   "status": "fail"
+  },
+  {
+   "evidence_refs": [],
+   "id": "energy-bounded",
+   "reason": "energy relative drift 5.623e-01 (tolerance 1e-06)",
+   "status": "fail"
+  },
+  {
+   "evidence_refs": [],
+   "id": "moves",
+   "reason": "first joint moved 1.25 rad (a frozen simulation does not)",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "energy_relative_drift": 0.5622841182860002,
+  "primary_metric": "max absolute angle error vs reference (rad)",
+  "primary_value": 0.5809077820447989,
+  "samples": 2001,
+  "tolerance": 0.001
+ }
+}

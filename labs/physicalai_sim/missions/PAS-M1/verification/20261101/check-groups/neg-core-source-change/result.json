@@ -1,0 +1,66 @@
+{
+  "command": [
+    "/opt/simlab/.venv/bin/python",
+    "-m",
+    "pytest",
+    "-o",
+    "addopts=",
+    "-p",
+    "no:cacheprovider",
+    "-q",
+    "-rA",
+    "tests/core",
+    "tests/boundary/test_x13_findings.py",
+    "tests/boundary/test_requests.py",
+    "tests/boundary/test_authoring.py",
+    "tests/boundary/test_runner.py",
+    "tests/boundary/test_checks.py",
+    "tests/boundary/test_data.py",
+    "tests/boundary/test_tool_parity.py",
+    "tests/boundary/test_doctor.py",
+    "--tb=short",
+    "--junitxml=/evidence/junit.xml"
+  ],
+  "counts": {
+    "errors": 0,
+    "failures": 0,
+    "passed": 88,
+    "skipped": 0,
+    "tests": 88
+  },
+  "elapsed_s": 194.434,
+  "exit_code": 2,
+  "files": {
+    "junit.xml": "ba689820979b9cf137ca1e085569b4fa158d05505b08f44153461f9bd3fa1fd4",
+    "launch.json": "4f9b1ac9ba29efa9bdd673f3781d16a1271aaac992478bd331aef4d41896e03a",
+    "pytest.log": "d6720636cd5e40f9b97af9fa3e7375522c7fd4630a54f0f8e383e348420859cf",
+    "source-manifest.json": "326820b09fd01ab327b689ef187e7e5a936c1244ed31dd4ca2d1c71badede95a"
+  },
+  "group": "core",
+  "python": "3.12.16 (main, Oct 28 2026, 02:01:20) [GCC 14.2.0]",
+  "resources_container": {
+    "cpu_s": 183.474,
+    "memory_max": "4294967296",
+    "memory_peak_mb": 268.3
+  },
+  "schema": "simlab-check-group:1",
+  "scope": "SIMLAB phase 1 checks inside simlab-runner; live and model-dependent tests are opt-in (--live)",
+  "skipped_tests": [],
+  "source_changes": [
+    "tests/_negative_control_0374a0.txt"
+  ],
+  "source_manifest_sha256": "35effd349effb1bf8881249e0f618b8a1266956b76a24a35f27e18010d1fdd4b",
+  "status": "source_changed",
+  "targets": [
+    "tests/core",
+    "tests/boundary/test_x13_findings.py",
+    "tests/boundary/test_requests.py",
+    "tests/boundary/test_authoring.py",
+    "tests/boundary/test_runner.py",
+    "tests/boundary/test_checks.py",
+    "tests/boundary/test_data.py",
+    "tests/boundary/test_tool_parity.py",
+    "tests/boundary/test_doctor.py"
+  ],
+  "timeout_s": 1800
+}

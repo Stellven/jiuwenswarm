@@ -1,0 +1,111 @@
+{
+ "scene": "scene.xml",
+ "engine_why": "MuJoCo is the admitted executor; two hinges with point masses are the textbook double pendulum",
+ "header": {
+  "objective": "Passive double pendulum: bounded energy error and agreement with a high-accuracy reference over a short horizon",
+  "objective_kind": "claim_test",
+  "arms": [
+   {
+    "arm_id": "sim",
+    "role": "baseline",
+    "components": [
+     {
+      "extension_point": "scene",
+      "artifact": "scene.xml"
+     }
+    ],
+    "params": {
+     "m1": 1.0,
+     "m2": 1.0,
+     "L1": 1.0,
+     "L2": 1.0,
+     "q1": 0.8,
+     "q2": 0.4,
+     "damping": 0.0
+    }
+   }
+  ],
+  "resolved_configuration": {
+   "engine": "mujoco",
+   "solver": "Newton",
+   "iterations": 100,
+   "tolerance": 1e-10,
+   "timestep": 0.0001,
+   "integrator": "RK4"
+  },
+  "design": {
+   "factors": [],
+   "conditions": [],
+   "replicates": 1,
+   "episodes": 1,
+   "randomness": {
+    "seed_policy": "derived",
+    "base_seed": 1,
+    "random_variables": []
+   }
+  },
+  "limits": {
+   "max_sim_time_s": 60,
+   "max_wall_s": 600
+  },
+  "protocol_items": [
+   {
+    "item_id": "arms",
+    "item_kind": "arm",
+    "value": [
+     "sim"
+    ],
+    "origin": "SIMLAB test plan TB-06"
+   },
+   {
+    "item_id": "trials",
+    "item_kind": "trial_count",
+    "value": 1,
+    "origin": "SIMLAB test plan TB-06"
+   }
+  ]
+ },
+ "procedure": {
+  "steps": [
+   {
+    "step_id": "swing",
+    "duration_s": 2.0
+   }
+  ],
+  "initial_state": {
+   "qpos": {
+    "j1": "${q1}",
+    "j2": "${q2}"
+   }
+  }
+ },
+ "measurements": [
+  {
+   "measurement_id": "energy_drift",
+   "scope": "trial",
+   "unit": "1",
+   "required": true,
+   "definition": {
+    "kind": "relative_drift",
+    "signal": "energy:total"
+   }
+  }
+ ],
+ "observations": [
+  {
+   "signal": "qpos:j1",
+   "unit": "rad",
+   "rate_hz": 1000
+  },
+  {
+   "signal": "qpos:j2",
+   "unit": "rad",
+   "rate_hz": 1000
+  },
+  {
+   "signal": "energy:total",
+   "unit": "J",
+   "rate_hz": 1000
+  }
+ ]
+}

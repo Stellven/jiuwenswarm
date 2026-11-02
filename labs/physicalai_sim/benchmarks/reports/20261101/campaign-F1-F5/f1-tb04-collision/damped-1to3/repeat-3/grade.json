@@ -1,0 +1,45 @@
+{
+ "checks": [
+  {
+   "evidence_refs": [
+    "run-f81987e46b5743399368"
+   ],
+   "id": "execution",
+   "reason": "run COMPLETED, attempt COMPLETED",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "known-answer-restitution",
+   "reason": "velocity ratio 0.550679 vs contact-model restitution 0.550283 (tolerance 0.005)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "momentum-conserved",
+   "reason": "momentum relative drift 2.665e-15 (tolerance 1e-09)",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "momentum-from-trace",
+   "reason": "oracle: p0 1, p_end 1",
+   "status": "pass"
+  },
+  {
+   "evidence_refs": [],
+   "id": "measurement-matches-trace",
+   "reason": "SIMLAB measurement 0.550678992197 vs oracle recomputation from the trace 0.550678992197",
+   "status": "pass"
+  }
+ ],
+ "critical_violations": [],
+ "metrics": {
+  "measured": 0.550678992197005,
+  "momentum_relative_drift": 2.6645352591003757e-15,
+  "primary_metric": "restitution absolute error",
+  "primary_value": 0.00039582261549664377,
+  "reference": 0.5502831695815084,
+  "tolerance": 0.005
+ }
+}
