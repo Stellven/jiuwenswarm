@@ -712,6 +712,12 @@ class CapsuleLoop:
         self.contexts = {}  # incumbent sha256 -> (ref, dependency context record)
 
     # ------------------------------------------------------------ helpers
+    def progress(self, stage, iteration=0):
+        from .progress import emit
+        emit(self.store, self.value, stage, iteration=iteration,
+             completed_iterations=self.loop.get('completed_iterations', 0),
+             model_calls=self.model_calls if self.model_calls_known else None, executions=self.executions)
+
     def deadline_init(self):
         self.started = self.clock()
         # Benchmarks run inside the loop: their materialized wall extends it.
@@ -735,6 +741,7 @@ class CapsuleLoop:
         return parent, candidate
 
     async def evaluate(self, role, body, ref, binding, iteration, trials):
+        self.progress('parent' if role == 'parent' else 'verify', iteration)
         raw = await self.runtime.evaluate(role, body=body, candidate_ref=ref, binding=binding,
                                           iteration=iteration, trials=trials)
         raw = validate_visible(raw, self.value, role, ref, iteration=iteration, trials=trials, objective=self.objective)
@@ -781,6 +788,7 @@ class CapsuleLoop:
 
     async def run_benchmark(self, parent_body, parent_ref, candidate_body, candidate_ref, iteration):
         """One Interface E call; its protected jobs count against the loop budget."""
+        self.progress('baseline' if iteration == 0 else 'benchmark', iteration)
         report = await self.benchmark(parent_body, candidate_body, iteration=iteration)
         report = validate_benchmark_report(report, parent_sha256=parent_ref['sha256'],
                                            candidate_sha256=candidate_ref['sha256'])
@@ -970,6 +978,7 @@ class CapsuleLoop:
         else:
             symptom = value['observed_symptom']
         await self.before_model()
+        self.progress('diagnose', iteration)
         try:
             diagnosed, public['diagnosis_ref'] = await diagnosis.diagnose(parent=self.parent_pin,
                 profile_ref=value['preparation_ref'], preparation_ref=value['preparation_ref'],
@@ -1006,6 +1015,7 @@ class CapsuleLoop:
                                     'read_only_dependencies': dependencies['text']},
                                    body=incumbent['body'], history=history, mutable_path=target.carrier_path)
         await self.before_model()
+        self.progress('propose', iteration)
         try:
             proposal = await proposer.propose(context, None)
         except Exception as error:
@@ -1097,6 +1107,7 @@ class CapsuleLoop:
                 public['benchmark_decision'] = self.benchmark_decision(report, incumbent)
                 entry['ratio'] = report['median_ratio']
         public['score'] = score
+        self.progress('select', iteration)
         public['score_ref'] = store.put(score)
         public['selection'] = {'against': incumbent['label'], 'against_sha256': incumbent['ref']['sha256'],
                                'score': selection}

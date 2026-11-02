@@ -165,6 +165,20 @@ def test_loop_keeps_best_feeds_back_failures_and_timings(tmp_path):
                                      spec(wall=0.05, tag='faster'), spec(fail=['held-a'], wall=0.04, tag='regressed')))
         result = run(value, runtime, backend)
         loop = result['loop']
+        progress = []
+        for path in store.root.glob('*.json'):
+            try:
+                record = json.loads(path.read_bytes())
+            except (ValueError, UnicodeError):
+                continue
+            if isinstance(record, dict) and record.get('schema') == 'ai4r-rsi-stage-event:1':
+                progress.append(record)
+        progress.sort(key=lambda row: row['at'])
+        assert progress[0]['stage'] == 'parent' and progress[-1]['stage'] == 'finalizing'
+        assert [(row['stage'], row['iteration']) for row in progress if row['stage'] in ('diagnose', 'propose')] == [
+            (stage, iteration) for iteration in range(1, 5) for stage in ('diagnose', 'propose')]
+        assert progress[-1]['completed_iterations'] == 4 and progress[-1]['model_calls'] == 8
+        assert SECRET not in json.dumps(progress)
         assert result['status'] == 'VISIBLE_EVALUATED_UNQUALIFIED', result
         assert loop['schema'] == 'ai4r-rsi-capsule-loop:1' and loop['stop_reason'] == 'max_iterations'
         assert loop['completed_iterations'] == 4

@@ -22,6 +22,23 @@ def docker_prefix():
     return ['docker']
 
 
+def lf_source_paths(root, paths):
+    """Apply the repository's LF contract even to an older Windows checkout.
+
+    Git can leave unchanged files with CRLF after a branch switch adds an
+    eol=lf attribute. Copying those bytes verbatim breaks pinned declarations.
+    Query attributes, not filename extensions: binary and -text assets keep
+    their exact bytes, and uncommitted source changes remain build inputs.
+    """
+    names = [path.relative_to(root).as_posix() for path in sorted(paths)]
+    result = subprocess.run(['git', '-C', str(root), 'check-attr', '-z', '--stdin', 'eol'],
+                            input=b''.join(name.encode() + b'\0' for name in names),
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+    fields = result.stdout.split(b'\0')
+    return {fields[index].decode() for index in range(0, len(fields) - 1, 3)
+            if fields[index + 2] == b'lf'}
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('role', choices=['ai4r', 'benchmark-runner'])
@@ -48,7 +65,7 @@ def main(argv=None):
              'jiuwenswarm', 'jiuwenbox', 'packages/jiuwenswarm-tui', 'scripts', 'deploy/m1'] if app else [
              'uv.lock', 'jiuwenswarm/research_sidecar', 'jiuwenswarm/research_records',
              'jiuwenswarm/research_contracts', 'deploy/m1']
-    denied = {'.git', '__pycache__', 'node_modules', 'dist', '.venv', 'private', 'protected', 'evidence'}
+    denied = {'.git', '__pycache__', 'node_modules', 'dist', '.venv', '.logs', 'logs', 'private', 'protected', 'evidence'}
     inventory = []
     paths = set()
     for name in roots:
@@ -65,6 +82,9 @@ def main(argv=None):
                         or path.suffix in {'.key', '.pem', '.p12', '.pyc'}):
                     continue
                 paths.add(path)
+    # Generated frontend assets must retain the exact bytes produced by Vite.
+    lf_sources = lf_source_paths(root, paths)
+    normalized_sources = []
     if app:
         generated = root / 'jiuwenswarm/channels/web/frontend/dist'
         if not (generated / 'index.html').is_file():
@@ -81,6 +101,9 @@ def main(argv=None):
                 raise ValueError('PUBLIC_CONTEXT_NONREGULAR_FILE')
             raw = path.read_bytes()
             relative = path.relative_to(root).as_posix()
+            if relative in lf_sources and b'\r\n' in raw:
+                raw = raw.replace(b'\r\n', b'\n')
+                normalized_sources.append(relative)
             inventory.append({'path': relative, 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()})
             info = tarfile.TarInfo(relative)
             info.size, info.mode, info.mtime = len(raw), 0o644, 0
@@ -93,6 +116,7 @@ def main(argv=None):
                         '--tag', args.tag, '--progress', 'plain', '-']
     receipt = {'schema': 'ai4r-two-image-build:1', 'role': args.role, 'tag': args.tag,
                'dependency_image_id': observed, 'files': inventory,
+               'lf_normalized_sources': normalized_sources,
                'context_sha256': hashlib.sha256(context.read_bytes()).hexdigest(),
                'context_bytes': context.stat().st_size, 'command': command}
     (output / 'source.json').write_text(json.dumps(receipt, indent=2) + '\n')

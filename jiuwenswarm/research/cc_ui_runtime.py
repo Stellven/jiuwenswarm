@@ -6,7 +6,7 @@ import types
 
 
 def module(name):
-    if name not in {'cc_rsi_installation', 'cc_rsi_operator', 'cc_rsi_library', 'cc_rsi_development', 'cc_rsi_capsule'}:
+    if name not in {'cc_rsi_installation', 'cc_rsi_operator', 'cc_rsi_library', 'cc_rsi_development', 'cc_rsi_capsule', 'cc_rsi_progress'}:
         raise ValueError('Unknown installed CC component')
     package = '_ai4r_cc_runtime'
     if package not in sys.modules:

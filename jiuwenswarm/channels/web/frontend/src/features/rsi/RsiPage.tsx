@@ -12,8 +12,22 @@ import { CreateExperimentDialog } from './components/CreateExperimentDialog';
 import { RsiIntroduction } from './components/RsiIntroduction';
 import type { RsiTaskListItem } from './types';
 import './styles/rsi.css';
+import { RsiConsole } from './RsiConsole';
 
 export function RsiPage() {
+  const [workspace, setWorkspace] = useState<'console' | 'harness'>('console');
+  if (workspace === 'console') return <RsiConsole onOpenHarness={() => setWorkspace('harness')} />;
+  return (
+    <div className="rsi-harness-workspace" data-testid="rsi-harness-workspace">
+      <button className="rsi-console-return" data-testid="rsi-return-console" onClick={() => setWorkspace('console')}>
+        ← RSI Console
+      </button>
+      <HarnessRsiPage />
+    </div>
+  );
+}
+
+function HarnessRsiPage() {
   const { t } = useTranslation();
   const list = useRsiStore((s) => s.list);
   const listLoading = useRsiStore((s) => s.listLoading);
