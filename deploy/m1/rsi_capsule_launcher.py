@@ -66,12 +66,13 @@ def load(path, digest):
     need(os.name == 'posix' and os.geteuid() == 0, 'ROOT_LAUNCHER_REQUIRED')
     raw = protected(path).read_bytes(); need(sha(raw) == digest, 'LAUNCH_CONFIGURATION_DIFFERS')
     value = json.loads(raw)
-    need(set(value) in (FIELDS, FIELDS | {'timeouts'}) and value['schema'] == 'ai4r-rsi-capsule-launcher:1'
+    need(FIELDS <= set(value) <= FIELDS | {'timeouts', 'progress'} and value['schema'] == 'ai4r-rsi-capsule-launcher:1'
          and value['launcher_sha256'] == sha(Path(__file__).read_bytes()), 'CLOSED_PINNED_LAUNCH_CONFIGURATION_REQUIRED')
     import re
     need(re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,79}', value['id']) is not None, 'FINITE_SESSION_ID_REQUIRED')
     timeouts(value)
     for key in ('configuration','runner','restore','seccomp','publisher','publication_template'): pinned(value[key])
+    if 'progress' in value: pinned(value['progress'])
     cfg = json.loads(pinned(value['configuration']).read_bytes())
     need(cfg['schema'] in ('ai4r-rsi-capsule-run-configuration:1','ai4r-rsi-capsule-run-configuration:2')
          and cfg['session']['id'] == value['id'], 'EXACT_SESSION_CONFIGURATION_REQUIRED')
@@ -242,6 +243,19 @@ def run(value, cfg):
     need(len(cid) == 64 and all(c in '0123456789abcdef' for c in cid), 'EXACT_WORKER_CID_REQUIRED')
     exclusive(control/'run-container.json',{'id':value['id'],'cid':cid,'image':IMAGE})
     docker(value,'start',cid); deadline = time.monotonic()+run_deadline_s(cfg)
+    if 'progress' in value:
+        # A separate read-only observer cannot delay or alter the worker.
+        # Its fixed module is pinned in this launch configuration.
+        try:
+            with (control/'progress-stderr.log').open('xb') as log:
+                subprocess.Popen(['/usr/bin/python3', '-B', str(pinned(value['progress'])),
+                    '--template', value['publication_template']['path'],
+                    '--sha256', value['publication_template']['sha256']],
+                    stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=log,
+                    env={'PATH': '/usr/sbin:/usr/bin:/sbin:/bin', 'PYTHONDONTWRITEBYTECODE': '1',
+                         'PYTHONPATH': cfg['source_root']}, close_fds=True)
+        except OSError:
+            pass  # Missing telemetry must not turn an accepted run into a retry.
     while True:
         info = json.loads(docker(value,'inspect',cid))[0]
         need(info['Id'] == cid and info['Image'] == IMAGE, 'WORKER_IDENTITY_DIFFERS')

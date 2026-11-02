@@ -1,0 +1,49 @@
+/* RSI Console palette, based on the supplied visual reference. */
+.rsi-console {
+  --color-console-bg: #f5f4fb;
+  --color-console-panel: #ffffff;
+  --color-console-inset: #f7f6fd;
+  --color-console-line: #e9e6f6;
+  --color-console-line-strong: #d9d4f0;
+  --color-console-text: #2b2847;
+  --color-console-secondary: #6b6788;
+  --color-console-muted: #88839f;
+  --color-console-accent: #7b5cf5;
+  --color-console-accent-end: #a78bfa;
+  --color-console-on-accent: #ffffff;
+  --color-console-accent-soft: rgba(123, 92, 245, 0.12);
+  --color-console-success: #23845e;
+  --color-console-success-soft: rgba(47, 179, 127, 0.14);
+  --color-console-danger: #c23f5d;
+  --color-console-danger-soft: rgba(239, 90, 122, 0.13);
+  --color-console-gradient-1: linear-gradient(135deg, #ece7ff, #f6f3ff);
+  --color-console-gradient-2: linear-gradient(135deg, #e6edff, #f3f6ff);
+  --color-console-gradient-3: linear-gradient(135deg, #e3f7ef, #f1fbf6);
+  --color-console-shadow: 0 8px 24px rgba(92, 72, 180, 0.06), 0 1px 2px rgba(92, 72, 180, 0.04);
+  --color-console-button-shadow: 0 6px 14px rgba(123, 92, 245, 0.22);
+  --color-console-overlay: rgba(43, 40, 71, 0.45);
+  color-scheme: light;
+}
+.rsi-console[data-appearance='dark'] {
+  --color-console-bg: #17162a;
+  --color-console-panel: #1f1d36;
+  --color-console-inset: #26243f;
+  --color-console-line: #312e4f;
+  --color-console-line-strong: #49446b;
+  --color-console-text: #ecebf7;
+  --color-console-secondary: #b6b3d1;
+  --color-console-muted: #9591b4;
+  --color-console-accent: #a18bff;
+  --color-console-accent-end: #8264e6;
+  --color-console-accent-soft: rgba(157, 133, 255, 0.16);
+  --color-console-success: #4fd19b;
+  --color-console-success-soft: rgba(79, 209, 155, 0.16);
+  --color-console-danger: #ff7a96;
+  --color-console-danger-soft: rgba(255, 122, 150, 0.16);
+  --color-console-gradient-1: linear-gradient(135deg, #2a2650, #232040);
+  --color-console-gradient-2: linear-gradient(135deg, #232a4e, #1f2340);
+  --color-console-gradient-3: linear-gradient(135deg, #1f3a35, #1d2b32);
+  --color-console-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --color-console-overlay: rgba(8, 7, 18, 0.65);
+  color-scheme: dark;
+}

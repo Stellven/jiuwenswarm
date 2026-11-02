@@ -174,6 +174,7 @@ async def execute(value, runtime, *, models=None):
         loop['stop_reason'], loop['stop_detail'] = 'error', str(error)[:4096]
     finally:
         rows = loop['iterations']
+        engine.progress('finalizing', loop.get('completed_iterations', 0))
         result['parent_visible'] = engine.raw_parent
         chosen = selected_iteration(loop)
         if chosen is not None:

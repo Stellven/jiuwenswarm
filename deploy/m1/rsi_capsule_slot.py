@@ -495,6 +495,9 @@ def prepare_revision(template, sequence, run_id, *, run_step, now=None, chown=Tr
         'launcher_sha256': launcher_pin['sha256']}
     if 'timeouts' in sources:
         launcher_value['timeouts'] = dict(sources['timeouts'])
+    progress = Path(run['source_root']) / 'deploy/m1/rsi_capsule_progress.py'
+    if progress.exists():
+        launcher_value['progress'] = file_pin(progress)
     launcher = write_exclusive(dirs['control'] / 'launcher-configuration.json', launcher_value)
     return {'configuration': configuration, 'launcher_configuration': launcher, 'publication_template': publication,
             'grant_sha256': grant_pin['sha256'], 'expires_unix_s': grant['expires_unix_s'], 'wall_s': deadline,

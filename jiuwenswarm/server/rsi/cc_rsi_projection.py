@@ -729,6 +729,8 @@ class CcRsiProjection:
             return unavailable("Public CC publication cannot be read. Check the installed read-only mount and app file permissions.")
         except ValueError:
             return unavailable("Public CC publication is invalid. Republish the approved finite view; no private records were exposed.")
+        from .cc_rsi_progress import read_overlay
+        view = read_overlay(view, self.path, self.workspace_id)
         # Publication cannot grant web actions. An installed broker must first
         # authenticate the human and independently rerun the real Library gates.
         for row in view["targets"]:
