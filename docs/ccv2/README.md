@@ -30,7 +30,7 @@ python demo/run_agent.py status       # expect state "ready"
 python demo/ccs/compute_service/build_image.py   # builds the image, pins its local id into cc.yaml
 python demo/run_agent.py run demo/prompts/01_discover_and_inspect.md   --name 01
 python demo/run_agent.py run demo/prompts/02_image_service_and_client.md --name 02
-python demo/run_agent.py run demo/prompts/03_build_from_request.md      --name 03
+python demo/run_agent.py run demo/prompts/03_build_from_request.md      --name 03 --build
 ```
 The agent workspace is `~/.jiuwenswarm-ccv2/agent-workspace` (override with `CCV2_DEMO_HOME`). Put the `sample/` data and `requests/` there as in the prompts. Transcripts go to `artifacts/ccv2-demo/sessions/`.
 

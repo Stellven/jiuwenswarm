@@ -10,6 +10,7 @@ widen them. Reading a material never grants execution.
 from __future__ import annotations
 
 import argparse
+import atexit
 import functools
 import json
 import uuid
@@ -32,6 +33,7 @@ class Catalog:
         self.host = Host(store, resources=resources, session_grants=list(grants))
         self.releases: dict[str, str] = {}
         self.errors: dict[str, dict] = {}
+        self.owned: dict[str, str] = {}  # instance id -> handle, for instances this session started
 
     # -- discovery ---------------------------------------------------------
     def scan(self) -> list[dict]:
@@ -47,6 +49,11 @@ class Catalog:
             except CCError as e:
                 self.errors[folder.name] = e.record()
                 entries.append({'folder': folder.name, 'usable': False, 'error': e.record()})
+                continue
+            if declaration['id'] in self.releases:
+                err = {'code': 'DUPLICATE_ID', 'path': '', 'message': f"{declaration['id']!r} in {folder} duplicates an earlier CC; the earlier one is kept"}
+                self.errors[folder.name] = err
+                entries.append({'folder': folder.name, 'usable': False, 'error': err})
                 continue
             self.releases[declaration['id']] = release
             entries.append(self.summary(declaration, release, folder.name))
@@ -112,7 +119,24 @@ class Catalog:
             self.host.resources[handle] = {'kind': 'environment', 'url': next(iter(endpoints.values())),
                                            'instance': instance['id']}
             instance = dict(instance, handle=handle)
+        if instance.get('id') and instance.get('state') in {'running', 'preparing'}:
+            self.owned[instance['id']] = instance.get('handle', '')
         return instance
+
+    def stop(self, instance: str) -> dict:
+        if instance not in self.owned:
+            raise CCError('NOT_OWNED', f'{instance!r} was not started by this session; refusing to stop it')
+        result = self.host.stop(instance)
+        if result.get('state') == 'stopped':
+            self.host.resources.pop(self.owned.pop(instance), None)
+        return result
+
+    def stop_all(self) -> None:
+        for instance in list(self.owned):
+            try:
+                self.stop(instance)
+            except Exception:
+                pass
 
 
 def build(catalog: Catalog):
@@ -177,7 +201,7 @@ def build(catalog: Catalog):
     @guarded
     def cc_stop(instance: str) -> Any:
         """Stop an instance this session owns and confirm it stopped. A state other than 'stopped' means stop was not confirmed."""
-        return catalog.host.stop(instance)
+        return catalog.stop(instance)
 
     return mcp
 
@@ -188,8 +212,14 @@ def main(argv=None):
     p.add_argument('--store', required=True)
     p.add_argument('--grant', action='append', default=[])
     p.add_argument('--workspace', help="path exposed as the 'workspace' handle")
+    p.add_argument('--allow-built', action='append', default=[], help='extra CC folder the agent may write into; its CCs run with the same grants as trusted ones')
     a = p.parse_args(argv)
-    build(Catalog([Path(c) for c in a.ccs], Path(a.store), a.grant, Path(a.workspace) if a.workspace else None)).run()
+    catalog = Catalog([Path(c) for c in a.ccs + a.allow_built], Path(a.store), a.grant, Path(a.workspace) if a.workspace else None)
+    atexit.register(catalog.stop_all)
+    try:
+        build(catalog).run()
+    finally:
+        catalog.stop_all()
 
 
 if __name__ == '__main__':

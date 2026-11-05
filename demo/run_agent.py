@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT))
 DEMO = ROOT / "demo"
 DATA = Path(os.environ.get("CCV2_DEMO_HOME") or (Path.home() / ".jiuwenswarm-ccv2")).resolve()
 WORKSPACE = DATA / "agent-workspace"
+ALLOW_BUILT = False  # set by `run --build`: lets the agent add CCs that then run with the operator grants
 BUILT = WORKSPACE / "built-ccs"   # CCs the agent constructs land here; the catalog scans it
 DEFAULT_GRANTS = ["process.exec", "network.listen", "network.request", "workspace.read", "workspace.write"]
 
@@ -59,7 +60,7 @@ def configure(grants: list[str]) -> Path:
     WORKSPACE.mkdir(parents=True, exist_ok=True)
     store = DATA / "ccstore"
     BUILT.mkdir(parents=True, exist_ok=True)
-    args = ["-m", "jiuwenswarm.ccv2.agent_mcp", "--ccs", str(DEMO / "ccs"), "--ccs", str(BUILT), "--store", str(store),
+    args = ["-m", "jiuwenswarm.ccv2.agent_mcp", "--ccs", str(DEMO / "ccs"), *(["--allow-built", str(BUILT)] if ALLOW_BUILT else []), "--store", str(store),
             "--workspace", str(WORKSPACE)]
     for grant in grants:
         args += ["--grant", grant]
@@ -113,6 +114,8 @@ async def cmd_login(_a):
 
 
 async def cmd_run(a):
+    global ALLOW_BUILT
+    ALLOW_BUILT = bool(a.build)
     configure(a.grant or DEFAULT_GRANTS)
     from jiuwenswarm.common.schema.agent import AgentRequest
     from jiuwenswarm.common.schema.message import ReqMethod
@@ -155,6 +158,7 @@ def main():
     r.add_argument("prompt_file")
     r.add_argument("--name", default="session")
     r.add_argument("--grant", action="append")
+    r.add_argument("--build", action="store_true", help="scan agent-written CCs in the workspace (they run with the same grants)")
     r.set_defaults(fn=cmd_run)
     a = p.parse_args()
     asyncio.run(a.fn(a))
