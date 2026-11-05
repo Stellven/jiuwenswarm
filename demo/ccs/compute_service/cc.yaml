@@ -1,0 +1,16 @@
+cc: '2'
+id: demo.compute_service
+version: 1.0.0
+bindings:
+  default:
+    kind: image
+    image: sha256:ec5b1df28d09604bf8895fbd83a423165d4970c90a7fed72a57e3bd5142f6551
+    command: []
+capabilities:
+  api:
+    does: Serve synthetic multiplication with its own pinned OS and Python independent of the host. A published Docker bridge port cannot enforce no-egress, so network.request is required.
+    changes: [process.exec, network.listen, network.request]
+    serves:
+      interfaces:
+        api: {protocol: http, port: 8080, path: '/', contract: api.json}
+      ready: {interface: api, path: /health}

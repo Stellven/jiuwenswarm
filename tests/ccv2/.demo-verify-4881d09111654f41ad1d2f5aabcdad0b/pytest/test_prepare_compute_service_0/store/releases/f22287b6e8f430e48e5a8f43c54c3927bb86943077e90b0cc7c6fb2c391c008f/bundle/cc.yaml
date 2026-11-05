@@ -1,0 +1,17 @@
+cc: '2'
+id: demo.compute_service
+version: 1.0.0
+bindings:
+  default:
+    kind: image
+    # Base-image digest only until build_image.py can bind the built application ID.
+    image: docker.io/library/python@sha256:b18b261e1b4974b4f321451ad5251ded85abb22c2b8b262da527dda1d031ab30
+    command: []
+capabilities:
+  api:
+    does: Serve synthetic multiplication with its own pinned OS and Python independent of the host. A published Docker bridge port cannot enforce no-egress, so network.request is required.
+    changes: [process.exec, network.listen, network.request]
+    serves:
+      interfaces:
+        api: {protocol: http, port: 8080, path: '/', contract: api.json}
+      ready: {interface: api, path: /health}

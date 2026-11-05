@@ -27,6 +27,41 @@ def child_environment(home: Path, source=None) -> dict[str, str]:
     return env
 
 
+AGENT_MARKER = "# jiuwenswarm-codex-agent-mode\n"
+
+
+def agent_mode_enabled() -> bool:
+    return os.environ.get("JIUWENSWARM_CODEX_AGENT") == "1"
+
+
+def agent_mode_config() -> str | None:
+    """Opt-in agent profile: workspace-write sandbox, Codex shell/patch tools and
+    caller-supplied MCP servers (e.g. the CC catalog). Off by default, so the
+    hardened text-only chat profile is unchanged.
+
+    JIUWENSWARM_CODEX_AGENT_MCP names a TOML file holding the [mcp_servers.*]
+    tables. The file belongs to the host operator; the model cannot edit it.
+    """
+    if not agent_mode_enabled():
+        return None
+    extra_path = os.environ.get("JIUWENSWARM_CODEX_AGENT_MCP", "")
+    extra = Path(extra_path).read_text(encoding="utf-8") if extra_path else ""
+    return (
+        AGENT_MARKER
+        + 'forced_login_method = "chatgpt"\n'
+        + 'cli_auth_credentials_store = "file"\n'
+        + 'model_provider = "openai"\n'
+        + 'approval_policy = "never"\n'
+        + 'sandbox_mode = "workspace-write"\n'
+        + 'web_search = "disabled"\n'
+        + '[sandbox_workspace_write]\nnetwork_access = false\n'
+        + '[features]\nshell_tool = true\napply_patch_freeform = true\nunified_exec = false\n'
+        + 'apps = false\nplugins = false\nmulti_agent = false\nbrowser_use = false\ncomputer_use = false\n'
+        + 'image_generation = false\ngoals = false\nhooks = false\nskill_mcp_dependency_install = false\n'
+        + extra.rstrip("\n") + "\n"
+    )
+
+
 class AppServerTransport:
     def __init__(self, root: Path):
         self.root = root.resolve()
@@ -97,6 +132,9 @@ class AppServerTransport:
                     '[mcp_servers]\n'
                 )
                 config_path = self.home / "config.toml"
+                agent_config = agent_mode_config()
+                if agent_config is not None:
+                    config = agent_config
                 # Refuse an unexpected user-customized profile rather than silently
                 # enabling providers/tools or overwriting their configuration.
                 if config_path.exists():
@@ -106,7 +144,7 @@ class AppServerTransport:
                     # import a user's desktop profile or accept arbitrary edits.
                     older = config[:config.index('multi_agent = false\n')] + '[mcp_servers]\n'
                     older_untrusted = older.replace('approval_policy = "never"', 'approval_policy = "untrusted"')
-                    if previous not in {config, legacy, older, older_untrusted}:
+                    if previous not in {config, legacy, older, older_untrusted} and not previous.startswith(AGENT_MARKER):
                         raise CodexError("PROFILE_CONFIG_CONFLICT")
                 config_path.write_text(config, encoding="utf-8")
                 kwargs = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}

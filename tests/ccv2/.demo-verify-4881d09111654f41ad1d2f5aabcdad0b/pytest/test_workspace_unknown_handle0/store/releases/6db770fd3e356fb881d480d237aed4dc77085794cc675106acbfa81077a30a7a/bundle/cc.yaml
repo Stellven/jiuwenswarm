@@ -1,0 +1,20 @@
+cc: '2'
+id: demo.workspace_inspect
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/inspect.py']
+capabilities:
+  inspect:
+    does: Read a bounded workspace inventory and retain its full summary without modifying the workspace.
+    takes:
+      workspace: handle
+      max_files:
+        kind: json
+        optional: true
+        description: Maximum ordinary files to inspect; defaults to 2000.
+        schema: {type: integer, minimum: 0}
+    gives: {report: json, summary: artifact}
+    needs: [workspace]
+    changes: [workspace.read]

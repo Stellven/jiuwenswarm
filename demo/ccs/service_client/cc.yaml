@@ -1,0 +1,23 @@
+cc: '2'
+id: demo.service_client
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/client.py']
+capabilities:
+  benchmark:
+    does: Record synthetic loopback client timings, NOT inference-engine TTFT or token-rate evidence; retain successful rows even on request failure.
+    takes:
+      engine: handle
+      workload:
+        kind: json
+        schema:
+          type: object
+          required: [points]
+          properties:
+            points: {type: array, items: {type: number}}
+          additionalProperties: false
+    gives: {metrics: json, series: artifact}
+    needs: [environment]
+    changes: [network.request]
