@@ -278,7 +278,7 @@ def snapshot(root):
     rows = tree_files(root)
     git = {}
     for key, arguments in [('head', ['rev-parse', 'HEAD']), ('index_path', ['rev-parse', '--git-path', 'index'])]:
-        proc = subprocess.run(['git', '-C', str(root), *arguments], capture_output=True, text=True)
+        proc = subprocess.run(['git', '-C', str(root), *arguments], capture_output=True, text=True, stdin=subprocess.DEVNULL)
         if proc.returncode == 0:
             git[key] = proc.stdout.strip()
     if 'index_path' in git:
@@ -731,7 +731,7 @@ class Host:
                 except subprocess.TimeoutExpired as e:
                     (attempt / 'stderr.log').write_bytes(e.stderr or b'')
                     if binding['kind'] == 'image':
-                        stopped = subprocess.run(['docker', 'rm', '-f', 'cc-' + receipt['call']], capture_output=True, timeout=20)
+                        stopped = subprocess.run(['docker', 'rm', '-f', 'cc-' + receipt['call']], capture_output=True, timeout=20, stdin=subprocess.DEVNULL)
                         require(stopped.returncode == 0, 'EXECUTION_UNKNOWN', 'Container stop could not be confirmed')
                     # Native grandchildren may survive direct-process termination.
                     raise CCError('EXECUTION_UNKNOWN' if binding['kind'] == 'native' else 'DEADLINE', 'Deadline reached; no automatic replay') from e

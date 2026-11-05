@@ -10,6 +10,7 @@ widen them. Reading a material never grants execution.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import uuid
 from pathlib import Path
@@ -106,19 +107,19 @@ def build(catalog: Catalog):
     mcp = FastMCP('cc-v2')
 
     def guarded(fn):
+        @functools.wraps(fn)  # keeps the real signature so MCP advertises the right arguments
         def run(*a, **k):
             try:
                 return fn(*a, **k)
             except CCError as e:
                 return {'error': e.record()}
-        run.__name__, run.__doc__ = fn.__name__, fn.__doc__
         return run
 
     @mcp.tool()
     @guarded
     def cc_list() -> Any:
         """List the Capability Capsules available to this session: their capabilities (finite or service), materials, and whether each declaration is usable. Start here."""
-        return catalog.scan()
+        return {'ccs': catalog.scan(), 'folder': str(catalog.ccs)}
 
     @mcp.tool()
     @guarded

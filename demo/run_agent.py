@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 DEMO = ROOT / "demo"
 DATA = Path(os.environ.get("CCV2_DEMO_HOME") or (Path.home() / ".jiuwenswarm-ccv2")).resolve()
 WORKSPACE = DATA / "agent-workspace"
@@ -69,6 +70,7 @@ def configure(grants: list[str]) -> Path:
         f"args = [{', '.join(toml_str(a) for a in args)}]\n"
         f"env_vars = [{', '.join(toml_str(v) for v in forward)}]\n"
         "startup_timeout_sec = 60\ntool_timeout_sec = 300\n"
+        'default_tools_approval_mode = "approve"\n'
         f"[mcp_servers.cc.env]\nPYTHONPATH = {toml_str(str(ROOT))}\n",
         encoding="utf-8")
     os.environ.update({
