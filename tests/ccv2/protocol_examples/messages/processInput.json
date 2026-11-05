@@ -1,0 +1,10 @@
+{
+  "call": "7b1ee4a2-a012-4134-af30-05a52983abe3",
+  "attempt": 1,
+  "capability": "trim",
+  "inputs": {
+    "text": "   "
+  },
+  "output_dir": "out",
+  "resources": {}
+}

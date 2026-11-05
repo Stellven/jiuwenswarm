@@ -1,0 +1,222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "sourceChange": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "cc-source-change/1"
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "base": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "patch": {
+          "$ref": "messages.schema.json#/$defs/artifact"
+        },
+        "tree": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "build": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "output": {
+              "type": "string",
+              "minLength": 1
+            },
+            "lock": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "command",
+            "output"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "format",
+        "repository",
+        "base",
+        "patch",
+        "tree",
+        "build"
+      ],
+      "additionalProperties": false
+    },
+    "observation": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "cc-observation/1"
+        },
+        "subject": {
+          "type": "object",
+          "properties": {
+            "release": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "call": {
+              "type": "string",
+              "minLength": 1
+            },
+            "instance": {
+              "type": "string",
+              "minLength": 1
+            },
+            "attempt": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "capability": {
+              "type": "string",
+              "minLength": 1
+            },
+            "benchmark_run": {
+              "type": "string",
+              "minLength": 1
+            },
+            "request": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "release"
+          ],
+          "additionalProperties": false,
+          "anyOf": [
+            {
+              "required": [
+                "call"
+              ]
+            },
+            {
+              "required": [
+                "instance"
+              ]
+            }
+          ]
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "kind": {
+              "enum": [
+                "runner",
+                "tool",
+                "observer"
+              ]
+            }
+          },
+          "required": [
+            "id",
+            "kind"
+          ],
+          "additionalProperties": false
+        },
+        "coverage": {
+          "type": "object",
+          "properties": {
+            "scope": {
+              "type": "string",
+              "minLength": 1
+            },
+            "status": {
+              "enum": [
+                "available",
+                "partial",
+                "unavailable",
+                "not_requested"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "window": {},
+            "sampling": {},
+            "loss": {},
+            "perturbation": {}
+          },
+          "required": [
+            "scope",
+            "status"
+          ],
+          "additionalProperties": false
+        },
+        "signals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "logs",
+                  "metrics",
+                  "traces",
+                  "profiles"
+                ]
+              },
+              "format": {
+                "type": "string",
+                "minLength": 1
+              },
+              "artifact": {
+                "$ref": "messages.schema.json#/$defs/artifact"
+              }
+            },
+            "required": [
+              "kind",
+              "format",
+              "artifact"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "trace_context": {
+          "type": "object",
+          "properties": {
+            "traceparent": {
+              "type": "string",
+              "minLength": 1
+            },
+            "tracestate": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "format",
+        "subject",
+        "source",
+        "coverage"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

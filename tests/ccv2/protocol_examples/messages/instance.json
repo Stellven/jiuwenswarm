@@ -1,0 +1,59 @@
+{
+  "format": "cc-instance/2",
+  "id": "33c95f06-8340-41df-a2b8-11537712689f",
+  "key": "fixture.start",
+  "release": "1b689328e253a236803851944896a87c4fa1f6a3acbcf7a119e3baf00669603f",
+  "capability": "api",
+  "state": "stopped",
+  "readiness": "not_ready",
+  "endpoints": {
+    "api": "http://127.0.0.1:52903/"
+  },
+  "identity": {
+    "kind": "native",
+    "pid": 20104,
+    "created": 1793830514.9718697
+  },
+  "inputs": {},
+  "effects": {
+    "declared": [
+      "process.exec",
+      "network.listen"
+    ],
+    "granted": [
+      "network.listen",
+      "process.exec"
+    ],
+    "assurance": "trusted_local",
+    "limits": "Native process-tree observation is not OS isolation; readiness is not semantic correctness"
+  },
+  "provenance": {
+    "binding": {
+      "command": [
+        "{python}",
+        "{bundle}/payload/server.py",
+        "--port",
+        "{port.api}"
+      ],
+      "kind": "native"
+    },
+    "started": 1793830514.9603186,
+    "owner": {
+      "pid": 13860,
+      "created": 1793830514.2407992
+    },
+    "executable_sha256": "4d6f5f81a4bca11191c4c7c6b43632694d0a4ce74e068619d8fdc161d469859a",
+    "command": [
+      "C:\\Users\\m50066326\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+      "D:\\cc-focused-fixture-store\\releases\\1b689328e253a236803851944896a87c4fa1f6a3acbcf7a119e3baf00669603f\\bundle/payload/server.py",
+      "--port",
+      "52903"
+    ],
+    "stopped": 1793830515.6021245
+  },
+  "diagnostics": [],
+  "logs": {
+    "stdout": "D:\\cc-focused-fixture-store\\instances\\33c95f06-8340-41df-a2b8-11537712689f\\stdout.log",
+    "stderr": "D:\\cc-focused-fixture-store\\instances\\33c95f06-8340-41df-a2b8-11537712689f\\stderr.log"
+  }
+}

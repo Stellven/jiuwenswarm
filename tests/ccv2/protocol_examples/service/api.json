@@ -1,0 +1,8 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Synthetic product API", "version": "1.0.0"},
+  "paths": {
+    "/health": {"get": {"responses": {"200": {"description": "Process reports ready"}}}},
+    "/compute": {"get": {"parameters": [{"name": "x", "in": "query", "required": true, "schema": {"type": "number"}}], "responses": {"200": {"description": "Value multiplied by the configured source revision's factor"}, "400": {"description": "Invalid argument"}}}}
+  }
+}

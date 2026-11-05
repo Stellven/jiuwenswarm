@@ -1,0 +1,18 @@
+cc: '2'
+id: native_code_delegation
+version: 1.0.0
+bindings:
+  default:
+    kind: delegate
+    agent: code_agent
+capabilities:
+  repair:
+    does: Delegate a bounded repair and execute its regression test in the supplied worktree.
+    takes:
+      workspace: handle
+      task: text
+    gives:
+      evidence: artifact
+      test: json
+    needs: [workspace]
+    changes: [workspace.read, workspace.write, process.exec]

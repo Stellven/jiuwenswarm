@@ -1,0 +1,24 @@
+cc: '2'
+id: cc.examples.portable
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/tool.py']
+capabilities:
+  trim:
+    does: Remove leading and trailing ASCII whitespace from text.
+    takes: {text: text}
+    gives: {trimmed: text}
+  empty:
+    does: Complete successfully without outputs.
+    takes: {}
+    gives: {}
+  echo:
+    does: Return a JSON value unchanged.
+    takes: {value: json}
+    gives: {value: json}
+  write-text:
+    does: Write UTF-8 text to a returned artifact.
+    takes: {text: text}
+    gives: {file: {kind: artifact, media_type: text/plain}}

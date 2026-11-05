@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "format": {
+      "const": "cc-request/2"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "desired": {
+      "type": "object",
+      "properties": {
+        "cc": {
+          "const": "2"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+        },
+        "bindings": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/binding"
+          }
+        },
+        "capabilities": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/capability"
+          }
+        },
+        "materials": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/material"
+          }
+        },
+        "defs": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "enum": [
+                  "json",
+                  "text",
+                  "artifact",
+                  "handle"
+                ]
+              },
+              {
+                "$ref": "#/$defs/portDescriptor"
+              }
+            ]
+          }
+        },
+        "provenance": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "cc"
+      ]
+    },
+    "open": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^/"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "enum": [
+              "requester",
+              "implementer"
+            ],
+            "default": "implementer"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "format",
+    "id",
+    "desired",
+    "open"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "portDescriptor": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "enum": [
+            "json",
+            "text",
+            "artifact",
+            "handle"
+          ]
+        },
+        "optional": {
+          "type": "boolean",
+          "default": false
+        },
+        "description": {
+          "type": "string"
+        },
+        "schema": {
+          "type": [
+            "object",
+            "boolean"
+          ]
+        },
+        "media_type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "port": {
+      "anyOf": [
+        {
+          "enum": [
+            "json",
+            "text",
+            "artifact",
+            "handle"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^\\$[a-z][a-z0-9._-]*$"
+        },
+        {
+          "$ref": "#/$defs/portDescriptor"
+        }
+      ]
+    },
+    "ports": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9._-]*$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/port"
+      }
+    },
+    "strings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    },
+    "binding": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "native"
+            },
+            "command": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "lock": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "image"
+            },
+            "command": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": []
+            },
+            "image": {
+              "type": "string",
+              "pattern": "^(?:[^\\s]+@)?sha256:[0-9a-f]{64}$"
+            },
+            "lock": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "delegate"
+            },
+            "agent": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "interface": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "const": "http"
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/(?!/)",
+          "default": "/"
+        },
+        "contract": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "serves": {
+      "type": "object",
+      "properties": {
+        "interfaces": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9._-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/interface"
+          }
+        },
+        "ready": {
+          "type": "object",
+          "properties": {
+            "interface": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9._-]*$"
+            },
+            "path": {
+              "type": "string",
+              "pattern": "^/(?!/)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "capability": {
+      "type": "object",
+      "properties": {
+        "does": {
+          "type": "string",
+          "minLength": 1
+        },
+        "using": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*$",
+          "default": "default"
+        },
+        "takes": {
+          "$ref": "#/$defs/ports"
+        },
+        "gives": {
+          "$ref": "#/$defs/ports"
+        },
+        "needs": {
+          "$ref": "#/$defs/strings"
+        },
+        "changes": {
+          "$ref": "#/$defs/strings"
+        },
+        "guarantees": {
+          "$ref": "#/$defs/strings"
+        },
+        "serves": {
+          "$ref": "#/$defs/serves"
+        }
+      },
+      "additionalProperties": false
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,31 @@
+cc: '2'
+id: mapie_split_conformal
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/method.py']
+    lock: requirements-lock.txt
+capabilities:
+  fit_calibrate:
+    does: Fit and conformalize a MAPIE SplitConformalRegressor on supplied training and calibration data.
+    takes:
+      data: json
+    gives:
+      model: artifact
+  predict_intervals:
+    does: Predict calibrated intervals with the fitted MAPIE model.
+    takes:
+      model: artifact
+      data: json
+    gives:
+      intervals: artifact
+  evaluate:
+    does: Measure empirical interval coverage and mean width on supplied labels.
+    takes:
+      intervals: artifact
+      labels: json
+    gives:
+      coverage: json
+      mean_width: json
+      count: json

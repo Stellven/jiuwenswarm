@@ -220,7 +220,7 @@ class SubscriptionService:
             if self.login_id:
                 raise CodexError("LOGIN_PENDING")
             self.epoch = uuid.uuid4().hex
-            login_type = 'chatgptDeviceCode' if os.environ.get('JIUWENSWARM_M1_PROFILE') == '1' else 'chatgpt'
+            login_type = 'chatgpt'
             result = await self.transport.request("account/login/start", {"type": login_type})
             url = result.get('verificationUrl' if login_type == 'chatgptDeviceCode' else 'authUrl', '')
             parsed = urlparse(url)
@@ -563,13 +563,7 @@ _services = {}
 
 def get_service():
     from jiuwenswarm.common.utils import get_user_workspace_dir
-    if os.environ.get("JIUWENSWARM_M1_PROFILE") == "1":
-        accounts = os.environ.get("JIUWENSWARM_M1_ACCOUNTS")
-        if not accounts or not Path(accounts).is_absolute():
-            raise CodexError("ACCOUNT_STORAGE_UNAVAILABLE")
-        root = Path(accounts).resolve() / "subscription"
-    else:
-        root = Path(get_user_workspace_dir()).resolve() / "subscription"
+    root = Path(get_user_workspace_dir()).resolve() / "subscription"
     if root not in _services:
         _services[root] = SubscriptionService(root)
     return _services[root]

@@ -1,0 +1,22 @@
+cc: '2'
+id: example.http_product
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/payload/server.py', '--port', '{port.api}']
+  inspect:
+    kind: native
+    command: ['{python}', '{bundle}/inspect.py']
+capabilities:
+  api:
+    does: Serve the synthetic compute API; startup readiness does not establish scientific quality.
+    changes: [process.exec, network.listen]
+    serves:
+      interfaces:
+        api: {protocol: http, port: 8080, path: '/', contract: api.json}
+      ready: {interface: api, path: /health}
+  inspect:
+    does: Describe this product package without starting its service.
+    using: inspect
+    gives: {report: json}
