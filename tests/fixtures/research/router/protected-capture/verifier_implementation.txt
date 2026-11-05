@@ -1,1 +1,0 @@
-Synthetic read-only verifier illustration. Assess the submitted artifact using protected criteria and evidence; output assessment only. No observed execution.

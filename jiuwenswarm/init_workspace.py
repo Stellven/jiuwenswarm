@@ -155,9 +155,6 @@ def run_init(force: bool = False, name: Optional[str] = None) -> int:
 
 
 def main() -> int:
-    if os.environ.get('JIUWENSWARM_M1_PROFILE')=='1':
-        from jiuwenswarm.research.initialize import main as initialize_research
-        return initialize_research()
     parser = argparse.ArgumentParser(
         description="Initialize jiuwenswarm workspace directory (~/.jiuwenswarm)"
     )

@@ -11,7 +11,6 @@ from typing import Generator
 import pytest
 
 
-pytest_plugins = ("tests.benchmark_case_assets",)
 
 
 @pytest.fixture

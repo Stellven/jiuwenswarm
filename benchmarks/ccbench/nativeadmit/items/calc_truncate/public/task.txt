@@ -1,1 +1,0 @@
-Our team uses calc_tool.py for this. Use it to compute the mean of the latency_ms column in runs.csv and give me the number.

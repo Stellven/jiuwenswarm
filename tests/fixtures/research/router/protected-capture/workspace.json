@@ -1,6 +1,0 @@
-{
-  "id": "workspace:example",
-  "path": "workspace",
-  "access": "authorized run workspace",
-  "synthetic": true
-}

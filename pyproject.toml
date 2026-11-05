@@ -161,7 +161,7 @@ package-dir = {"jiuwenbox" = "jiuwenbox/src/jiuwenbox"}
 [tool.setuptools.packages.find]
 where = [".", "jiuwenbox/src"]
 include = ["jiuwenswarm*", "jiuwenbox*"]
-exclude = ["jiuwenswarm.web*", "jiuwenswarm.research_sidecar*"]
+exclude = ["jiuwenswarm.web*"]
 namespaces = false
 
 [tool.setuptools.package-data]
@@ -190,10 +190,6 @@ jiuwenswarm = [
     "extensions/**/*.yaml",
     "extensions/**/*.yml",
     "extensions/**/*.md",
-    "research_contracts/**/*.json",
-    "research_assets/**/*",
-    "research/resources/**/*",
-    "research/capsule_extensions/**/*.json",
 ]
 jiuwenbox = [
     "configs/**/*",

@@ -15,12 +15,6 @@ from tests.unit_tests.runtime.test_codex_subscription import FakeTransport
 pytestmark = pytest.mark.filterwarnings('ignore:invalid escape sequence:SyntaxWarning')
 
 
-@pytest.fixture(autouse=True)
-def native_logging_in_owned_directory(tmp_path):
-    from jiuwenswarm.research.native_logging import configure_native_logging
-    configure_native_logging(tmp_path / "native-logs")
-
-
 def test_account_methods_forward_without_local_unknown_method_response():
     from jiuwenswarm.gateway.channel_manager.web.app_web_handlers import (
         _FORWARD_REQ_METHODS, _FORWARD_NO_LOCAL_HANDLER_METHODS,

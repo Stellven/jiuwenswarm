@@ -1117,11 +1117,6 @@ class AgentWebSocketServer:
         self._runtime_push_handler = None
         self._previous_runtime_push_handler = None
         self._runtime_services_started = False
-        # RSI 服务域分发句柄（懒加载，见 _get_rsi_handlers）
-        self._rsi_handlers = None
-        # Optional production Provider injection point.  The concrete class is
-        # supplied by the composition root once it is available.
-        self._rsi_harness_provider: Any = None
         self._heartbeat_runtime = HeartbeatRailRuntime(self)
         self._runtime.set_admission_controller(self._heartbeat_runtime.admission)
         self._runtime.set_session_delete_lifecycle(self._heartbeat_runtime)
@@ -1233,13 +1228,6 @@ class AgentWebSocketServer:
         self._on_runtime_ready = on_ready
         self._on_runtime_warmup_retry = on_warmup_retry
         self._on_runtime_failed = on_failed
-
-    def set_rsi_harness_provider(self, provider: Any) -> None:
-        """Install the production ``HarnessProvider`` at the RSI seam."""
-        self._rsi_harness_provider = provider
-        handlers = self._rsi_handlers
-        if handlers is not None:
-            handlers.context.register_harness_provider(provider)
 
     @staticmethod
     def _ws_capabilities_key(ws: Any) -> int:
@@ -2685,13 +2673,6 @@ class AgentWebSocketServer:
                 return
             if request.req_method == ReqMethod.HARNESS_PACKAGES_DELETE:
                 await self._handle_harness_packages_delete(ws, request, send_lock)
-                return
-            # RSI 优化平台：16 个 rsi.* web method 统一分发（B2）
-            if (
-                isinstance(request.req_method, ReqMethod)
-                and request.req_method.value.startswith("rsi.")
-            ):
-                await self._handle_rsi_request(ws, request, send_lock)
                 return
             # Schedule task management
             if request.req_method == ReqMethod.SCHEDULE_CHECK_CONFIG:
@@ -11597,214 +11578,6 @@ class AgentWebSocketServer:
     ) -> None:
         """Public test helper that delegates to ACP tool-response handling."""
         await self._handle_acp_tool_response(ws, request, send_lock)
-
-    # ------------------------------------------------------------------
-    # RSI 优化平台分发（B2）：统一走 RsiAgentServerHandlers（服务域/推送见 rsi 包）
-    # ------------------------------------------------------------------
-
-    async def _handle_rsi_request(
-        self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock
-    ) -> None:
-        """Handle any rsi.* unary method (including Harness installation).
-
-        Builds the RSI service context lazily (one per server process) and
-        wires:
-        - harness_refs 快照提供方 = RSI active version, then controlled generic fallback;
-        - send_push 包装 = ``self.send_push``（E2A server_push，零改动）。
-        """
-        try:
-            handlers = self._get_rsi_handlers()
-            # Production handlers expose ``handle_async`` because Harness
-            # installation awaits the DeepAgent load chain.  Keep a small
-            # compatibility fallback for injected/test handler objects that
-            # only implement the original synchronous ``handle`` method.
-            handle_async = getattr(handlers, "handle_async", None)
-            if callable(handle_async):
-                result = handle_async(request)
-            else:
-                result = handlers.handle(request)
-            if inspect.isawaitable(result):
-                result = await result
-            if result.get("ok"):
-                resp = AgentResponse(
-                    request_id=request.request_id,
-                    channel_id=request.channel_id,
-                    ok=True,
-                    payload=result.get("payload"),
-                )
-            else:
-                resp = AgentResponse(
-                    request_id=request.request_id,
-                    channel_id=request.channel_id,
-                    ok=False,
-                    payload={
-                        "error": str(result.get("error") or "rsi request failed"),
-                        "code": str(result.get("code") or "INTERNAL_ERROR"),
-                    },
-                )
-        except Exception as exc:
-            logger.exception("[AgentServer] rsi request failed: %s", exc)
-            resp = AgentResponse(
-                request_id=request.request_id,
-                channel_id=request.channel_id,
-                ok=False,
-                payload={"error": str(exc), "code": "INTERNAL_ERROR"},
-            )
-
-        wire = encode_agent_response_for_wire(resp, response_id=request.request_id)
-        async with send_lock:
-            await send_wire_payload(ws, wire)
-
-    def _get_rsi_handlers(self):
-        """Lazily construct the RSI service context + AgentServer handlers once."""
-        if self._rsi_handlers is not None:
-            return self._rsi_handlers
-        from jiuwenswarm.agents.harness.common.rsi import build_rsi_service_context
-        from jiuwenswarm.server.rsi import RsiAgentServerHandlers
-
-        provider_mode = os.environ.get("RSI_PROVIDER_MODE", "").strip().lower()
-        if not provider_mode:
-            provider_mode = (
-                "mock"
-                if os.environ.get("RSI_USE_MOCK_PROVIDER", "").strip().lower() == "true"
-                else "real"
-            )
-        # Both modes materialize task-private datasets, model configs, and the
-        # Validation profile. Mock mode alone may omit a source Harness because
-        # its provider does not execute or publish a real Harness package.
-        context = build_rsi_service_context(
-            None,
-            enable_harness_materialization=True,
-            allow_missing_harness=(provider_mode == "mock"),
-        )
-        if provider_mode == "mock":
-            from jiuwenswarm.agents.harness.common.rsi.provider_factory import build_rsi_adapters
-
-            context.register_adapters(
-                build_rsi_adapters(
-                    context.tasks_root,
-                    mode="mock",
-                    model_resolver=self._resolve_model,
-                )
-            )
-        else:
-            harness_provider = getattr(self, "_rsi_harness_provider", None)
-            if harness_provider is None:
-                from jiuwenswarm.agents.harness.common.rsi.harness_provider import HarnessProvider
-
-                harness_provider = HarnessProvider(
-                    context.tasks_root,
-                    model_resolver=context.model_resolver,
-                )
-                self._rsi_harness_provider = harness_provider
-            from jiuwenswarm.agents.harness.common.rsi.provider_factory import build_rsi_adapters
-
-            context.register_adapters(
-                build_rsi_adapters(
-                    context.tasks_root,
-                    mode="real",
-                    model_resolver=self._resolve_model,
-                )
-            )
-            context.register_harness_provider(harness_provider)
-        context.bind_harness_installer(self._agent_manager)
-        handlers = RsiAgentServerHandlers(
-            context,
-            send_push=self.send_push,
-            harness_refs_provider=(
-                None if provider_mode == "mock" else self._rsi_harness_refs_provider
-            ),
-            default_channel_id="web",
-        )
-        self._rsi_handlers = handlers
-        return handlers
-
-    @staticmethod
-    def _rsi_harness_refs_provider(params: dict[str, Any] | None = None) -> str | None:
-        """Resolve an explicit installed Plugin, or use the active Harness.
-
-        ``package_id`` uses the same Plugin registry as chat. Omitting it keeps
-        the existing baseline fallback; ``harness_id`` remains a legacy registry
-        selector. Arbitrary browser-supplied paths are not resolved here.
-        """
-        from jiuwenswarm.agents.harness.common.rsi.harness_activation import (
-            RsiHarnessActivationStore,
-            resolve_native_harness_baseline,
-        )
-        from jiuwenswarm.agents.harness.common.rsi.context import get_rsi_workspace_root
-        from jiuwenswarm.common.utils import get_user_workspace_dir
-        requested_id = str(
-            (params or {}).get("package_id") or ""
-        ).strip()
-        if requested_id:
-            from jiuwenswarm.agents.harness.common.rsi.errors import RsiInvalidHarness
-            from jiuwenswarm.server.runtime import extension_package_manager as equipment
-
-            # Resolve the existing package selector through the same registry
-            # as chat.send. Never silently replace an explicit selection by H0.
-            try:
-                if not equipment.is_plugin_allowed(requested_id):
-                    raise ValueError(f"Plugin is not installed: {requested_id}")
-                package = equipment.resolve_plugin_dir(requested_id)
-                manifest = json.loads((package / "manifest.json").read_text(encoding="utf-8"))
-                if manifest.get("mcps"):
-                    raise ValueError("RSI isolated evaluation does not yet support Plugin MCP dependencies")
-                return str(package.resolve())
-            except (ValueError, OSError) as exc:
-                raise RsiInvalidHarness(str(exc)) from exc
-        try:
-            active = RsiHarnessActivationStore(
-                get_rsi_workspace_root() / "tasks"
-            ).resolve_active_runtime_path()
-            if active:
-                return active
-        except Exception as exc:
-            logger.warning("[RSI] active Harness 定位失败，回退 generic registry: %s", exc)
-        configured_harness_root = os.environ.get("RSI_HARNESS_ROOT", "").strip()
-        harness_root = (
-            Path(configured_harness_root).expanduser().resolve()
-            if configured_harness_root
-            else (Path(get_user_workspace_dir()) / "rsi" / "harness").resolve()
-        )
-        initial_refs = harness_root / "initial_harness_refs.yaml"
-        if initial_refs.is_file():
-            # This is a trusted baseline input.  RsiTaskMaterializer copies
-            # the selected package/ref into the task directory before the
-            # engine sees it, so the external seed is never task output.
-            return str(initial_refs)
-        from jiuwenswarm.agents.harness.common.auto_harness.service import (
-            _HARNESS_PACKAGES_FILE,
-        )
-        try:
-            data = {}
-            if _HARNESS_PACKAGES_FILE.is_file():
-                with _HARNESS_PACKAGES_FILE.open("r", encoding="utf-8") as fh:
-                    data = json.load(fh)
-            active_ids = data.get("active_package_ids") or []
-            packages = data.get("packages") or []
-            by_id = {str(p.get("id")): p for p in packages if isinstance(p, dict)}
-            legacy_id = str((params or {}).get("harness_id") or "").strip()
-            for package_id in ([legacy_id] if legacy_id else active_ids):
-                package = by_id.get(str(package_id))
-                if not package:
-                    continue
-                runtime_path = str(package.get("runtime_path") or "")
-                if runtime_path and Path(runtime_path).expanduser().is_dir():
-                    # openjiuwen's epoch checkpoint composes retained changes
-                    # by copying the referenced role directory.  Prefer the
-                    # package root; load_plugin also accepts this directory.
-                    return str(Path(runtime_path).expanduser().resolve())
-                config_path = str(package.get("config_path") or "")
-                if config_path and Path(config_path).expanduser().is_file():
-                    return str(Path(config_path).expanduser().resolve())
-        except Exception as exc:
-            logger.warning("[RSI] harness refs 定位失败: %s", exc)
-        baseline = resolve_native_harness_baseline()
-        if baseline is not None:
-            logger.info("[RSI] No active Harness found; using native Agent baseline")
-            return str(baseline)
-        return None
-
 
     async def _handle_harness_packages_get(
         self, ws: Any, request: AgentRequest, send_lock: asyncio.Lock
