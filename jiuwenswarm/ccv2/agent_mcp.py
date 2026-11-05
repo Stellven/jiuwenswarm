@@ -26,6 +26,7 @@ class Catalog:
         self.roots = [Path(c).resolve() for c in ([ccs] if isinstance(ccs, (str, Path)) else ccs)]
         self.ccs = self.roots[0]
         resources = {}
+        self.workspace = Path(workspace).resolve() if workspace else None
         if workspace:
             resources['workspace'] = {'kind': 'workspace', 'path': str(Path(workspace).resolve())}
         self.host = Host(store, resources=resources, session_grants=list(grants))
@@ -79,6 +80,17 @@ class Catalog:
         if cc not in self.releases:
             raise CCError('UNKNOWN_CC', f'{cc!r} not found in {self.ccs}; known: {sorted(self.releases)}')
         return self.releases[cc]
+
+    def workspace_file(self, path: str) -> Path:
+        root = self.workspace
+        if root is None:
+            raise CCError('NO_WORKSPACE', 'No workspace is configured; artifacts cannot be registered')
+        target = (root / path).resolve() if not Path(path).is_absolute() else Path(path).resolve()
+        if root != target and root not in target.parents:
+            raise CCError('OUTSIDE_WORKSPACE', f'{path!r} is outside the workspace')
+        if not target.is_file():
+            raise CCError('NOT_A_FILE', f'{path!r} is not a file in the workspace')
+        return target
 
     # -- use ---------------------------------------------------------------
     def material(self, cc: str, name: str) -> dict:
@@ -140,8 +152,8 @@ def build(catalog: Catalog):
     @mcp.tool()
     @guarded
     def cc_artifact(path: str) -> Any:
-        """Register a local file as an artifact ({uri, sha256}) usable as an artifact input."""
-        return catalog.host.put_artifact(Path(path))
+        """Register a file inside the workspace as an artifact ({uri, sha256}) usable as an artifact input. Paths outside the workspace are refused."""
+        return catalog.host.put_artifact(catalog.workspace_file(path))
 
     @mcp.tool()
     @guarded

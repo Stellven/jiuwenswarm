@@ -73,6 +73,18 @@ class AgentMcpTests(unittest.IsolatedAsyncioTestCase):
             unknown = payload(await session.call_tool("cc_call", {"cc": "nope.nope", "capability": "x"}))
             self.assertEqual(unknown["error"]["code"], "UNKNOWN_CC")
 
+    async def test_artifact_registration_is_limited_to_the_workspace(self):
+        outside = Path(self.tmp.name) / "secret.txt"
+        outside.write_text("do not register", encoding="utf-8")
+        async with stdio_client(self.params()) as (read, write), ClientSession(read, write) as session:
+            await session.initialize()
+            refused = payload(await session.call_tool("cc_artifact", {"path": str(outside)}))
+            self.assertEqual(refused["error"]["code"], "OUTSIDE_WORKSPACE")
+            traversal = payload(await session.call_tool("cc_artifact", {"path": "../secret.txt"}))
+            self.assertEqual(traversal["error"]["code"], "OUTSIDE_WORKSPACE")
+            ok = payload(await session.call_tool("cc_artifact", {"path": "sample/study.json"}))
+            self.assertIn("sha256", ok)
+
     async def test_passive_material_cannot_be_called(self):
         async with stdio_client(self.params()) as (read, write), ClientSession(read, write) as session:
             await session.initialize()
