@@ -1,0 +1,20 @@
+cc: '2'
+id: demo.compute_service_native
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/server.py', '--port', '{port.api}']
+capabilities:
+  api:
+    does: Serve synthetic finite numeric multiplication by two with self-reported runtime metadata; no inference.
+    changes: [process.exec, network.listen]
+    serves:
+      interfaces:
+        api: {protocol: http, port: 8080, path: '/', contract: api.json}
+      ready: {interface: api, path: /health}
+materials:
+  ontology:
+    path: ontology/inference_ontology_standin.md
+    media_type: text/markdown
+    description: STAND-IN synthetic service vocabulary; not a real inference specification.

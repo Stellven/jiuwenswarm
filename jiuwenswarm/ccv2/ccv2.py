@@ -710,7 +710,7 @@ class Host:
                     for pname, value in staged.items():
                         if port(cap['takes'][pname], decl['defs'])['kind'] == 'artifact':
                             value['path'] = '/cc/in/' + pname
-                    command = ['docker', 'run', '--rm', '--name', 'cc-' + receipt['call'], '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges',
+                    command = ['docker', 'run', '--rm', '--pull=never', '--name', 'cc-' + receipt['call'], '--read-only', '--cap-drop=ALL', '--security-opt=no-new-privileges',
                                '--tmpfs', '/tmp', '--mount', f'type=bind,src={bundle},dst=/cc/bundle,readonly',
                                '--mount', f'type=bind,src={indir},dst=/cc/in,readonly', '--mount', f'type=bind,src={outdir},dst=/cc/out',
                                '-e', 'CC_OUTPUT_DIR=/cc/out', '-e', 'PYTHONDONTWRITEBYTECODE=1']

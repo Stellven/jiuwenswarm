@@ -55,6 +55,7 @@ def agent_mode_config() -> str | None:
         + 'sandbox_mode = "workspace-write"\n'
         + 'web_search = "disabled"\n'
         + '[sandbox_workspace_write]\nnetwork_access = false\n'
+        + ('[windows]\nsandbox = "unelevated"\n' if os.name == "nt" else "")
         + '[features]\nshell_tool = true\napply_patch_freeform = true\nunified_exec = false\n'
         + 'apps = false\nplugins = false\nmulti_agent = false\nbrowser_use = false\ncomputer_use = false\n'
         + 'image_generation = false\ngoals = false\nhooks = false\nskill_mcp_dependency_install = false\n'

@@ -1,0 +1,21 @@
+{
+  "Id": "sha256:ec5b1df28d09604bf8895fbd83a423165d4970c90a7fed72a57e3bd5142f6551",
+  "RepoTags": [
+    "cc-demo/compute:1"
+  ],
+  "Created": "2026-11-05T06:26:05.766733087Z",
+  "Architecture": "amd64",
+  "Os": "linux",
+  "Size": 177337853,
+  "Config": {
+    "Entrypoint": [
+      "python",
+      "/app/server.py",
+      "--host",
+      "0.0.0.0",
+      "--port",
+      "8080"
+    ],
+    "User": "65532:65532"
+  }
+}

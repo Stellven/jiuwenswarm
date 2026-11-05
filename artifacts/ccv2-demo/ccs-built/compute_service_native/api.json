@@ -1,0 +1,17 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Synthetic compute service", "version": "1.0.0", "description": "Multiplies numbers by two. No real inference. Runtime metadata is self-reported."},
+  "paths": {
+    "/health": {"get": {"responses": {"200": {"description": "Ready", "content": {"application/json": {"schema": {"type": "object", "required": ["status"], "properties": {"status": {"const": "ok"}}}}}}}}},
+    "/compute": {"get": {
+      "parameters": [{"name": "x", "in": "query", "required": true, "description": "One finite number whose doubled result is finite.", "schema": {"type": "number"}}],
+      "responses": {
+        "200": {"description": "Synthetic x multiplied by two", "content": {"application/json": {"schema": {"type": "object", "required": ["value", "factor", "runtime"], "properties": {
+          "value": {"type": "number"}, "factor": {"const": 2},
+          "runtime": {"type": "object", "required": ["platform", "python", "os_release"], "properties": {"platform": {"type": "string"}, "python": {"type": "string"}, "os_release": {"type": ["string", "null"], "description": "PRETTY_NAME from /etc/os-release, or null when absent."}}}
+        }}}}},
+        "400": {"description": "Missing, repeated, invalid or nonfinite x, or nonfinite result"}
+      }
+    }}
+  }
+}

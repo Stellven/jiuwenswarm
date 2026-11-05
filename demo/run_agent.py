@@ -25,6 +25,7 @@ sys.path.insert(0, str(ROOT))
 DEMO = ROOT / "demo"
 DATA = Path(os.environ.get("CCV2_DEMO_HOME") or (Path.home() / ".jiuwenswarm-ccv2")).resolve()
 WORKSPACE = DATA / "agent-workspace"
+BUILT = WORKSPACE / "built-ccs"   # CCs the agent constructs land here; the catalog scans it
 DEFAULT_GRANTS = ["process.exec", "network.listen", "network.request", "workspace.read", "workspace.write"]
 
 SCRUB = [
@@ -57,7 +58,8 @@ def configure(grants: list[str]) -> Path:
     DATA.mkdir(parents=True, exist_ok=True)
     WORKSPACE.mkdir(parents=True, exist_ok=True)
     store = DATA / "ccstore"
-    args = ["-m", "jiuwenswarm.ccv2.agent_mcp", "--ccs", str(DEMO / "ccs"), "--store", str(store),
+    BUILT.mkdir(parents=True, exist_ok=True)
+    args = ["-m", "jiuwenswarm.ccv2.agent_mcp", "--ccs", str(DEMO / "ccs"), "--ccs", str(BUILT), "--store", str(store),
             "--workspace", str(WORKSPACE)]
     for grant in grants:
         args += ["--grant", grant]

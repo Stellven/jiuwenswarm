@@ -22,8 +22,9 @@ MAX_TEXT = 200_000
 
 
 class Catalog:
-    def __init__(self, ccs: Path, store: Path, grants=(), workspace: Path | None = None):
-        self.ccs = Path(ccs).resolve()
+    def __init__(self, ccs, store: Path, grants=(), workspace: Path | None = None):
+        self.roots = [Path(c).resolve() for c in ([ccs] if isinstance(ccs, (str, Path)) else ccs)]
+        self.ccs = self.roots[0]
         resources = {}
         if workspace:
             resources['workspace'] = {'kind': 'workspace', 'path': str(Path(workspace).resolve())}
@@ -36,7 +37,8 @@ class Catalog:
         self.releases.clear()
         self.errors.clear()
         entries = []
-        for folder in sorted(p for p in self.ccs.iterdir() if (p / 'cc.yaml').is_file()) if self.ccs.is_dir() else []:
+        folders = [p for root in self.roots if root.is_dir() for p in sorted(root.iterdir()) if (p / 'cc.yaml').is_file()]
+        for folder in folders:
             try:
                 release = self.host.prepare(folder)
                 release = release['release'] if isinstance(release, dict) else release
@@ -119,7 +121,9 @@ def build(catalog: Catalog):
     @guarded
     def cc_list() -> Any:
         """List the Capability Capsules available to this session: their capabilities (finite or service), materials, and whether each declaration is usable. Start here."""
-        return {'ccs': catalog.scan(), 'folder': str(catalog.ccs)}
+        return {'ccs': catalog.scan(), 'folders': [str(r) for r in catalog.roots],
+                'handles': {k: v['kind'] for k, v in catalog.host.resources.items()},
+                'note': 'Pass a listed handle name as the value of a handle input (e.g. workspace).'}
 
     @mcp.tool()
     @guarded
@@ -168,12 +172,12 @@ def build(catalog: Catalog):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--ccs', required=True, help='folder containing CC packages (each with cc.yaml)')
+    p.add_argument('--ccs', required=True, action='append', help='folder containing CC packages (each with cc.yaml); repeatable')
     p.add_argument('--store', required=True)
     p.add_argument('--grant', action='append', default=[])
     p.add_argument('--workspace', help="path exposed as the 'workspace' handle")
     a = p.parse_args(argv)
-    build(Catalog(Path(a.ccs), Path(a.store), a.grant, Path(a.workspace) if a.workspace else None)).run()
+    build(Catalog([Path(c) for c in a.ccs], Path(a.store), a.grant, Path(a.workspace) if a.workspace else None)).run()
 
 
 if __name__ == '__main__':
