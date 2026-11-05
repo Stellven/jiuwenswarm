@@ -1,4 +1,4 @@
-> **AI4Research on `ai4r_muk`:** [Full M1 design](architecture/design-package/README.md) and [compact M1 design](architecture/design-package-compact/README.md) share the PRD and authoritative contracts. Start with the assigned package README. The JiuwenSwarm documentation below describes the underlying platform.
+> **Branch `ai4r_ccv2`:** CC v2 runner and agent integration. Start at the [architecture page](architecture/README.md). The JiuwenSwarm documentation below describes the underlying platform.
 
 <h1 align="center">JiuwenSwarm 文档</h1>
 

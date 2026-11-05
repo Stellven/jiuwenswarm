@@ -1,25 +1,38 @@
-# AI4Research architecture
+# Architecture: JiuwenSwarm + Capability Capsules v2 (`ai4r_ccv2`)
 
-Updated October 15, 2026. The maintained design package is the shared architecture for `ai4r_muk` and `ai4r_main_branch`.
+## What this branch is for
+A reduced JiuwenSwarm in which a real agent discovers, reads and uses Capability Capsules (CCs) through a small runner. Base JiuwenSwarm and the Codex-as-model integration are kept. The earlier AI4Research M1 machinery (intent compiler, old capsule pipeline, RSI console, benchmarks, its design package) was removed on purpose and is not documented here. It remains in git history and on `AI4Research-Main`.
 
-| Package | Use |
+## How the pieces fit
+```
+Codex (model, ChatGPT login)        jiuwenswarm/server/runtime/codex_subscription/
+        |  agent mode (opt-in: JIUWENSWARM_CODEX_AGENT=1; workspace-write sandbox, shell + patch)
+        v
+JiuwenSwarm agent  --MCP stdio-->   jiuwenswarm/ccv2/agent_mcp.py   (8 tools: cc_list, cc_describe,
+                                    cc_material, cc_artifact, cc_call, cc_start, cc_instance, cc_stop)
+                                         |
+                                         v
+                                    jiuwenswarm/ccv2/ccv2.py   Host: prepare, call, start, stop, receipts
+                                         |                      applications.py: image services (docker CLI)
+                          +--------------+--------------+
+                          v                             v
+                 native binding                  image binding
+                 process, JSON on stdin/out      docker run, pinned local image id, --pull=never
+```
+- **Authority** comes only from operator flags (`--grant`, `--workspace`, `--allow-built`). The model cannot widen it.
+- **Native CCs** are cheap local clients and inspectors and are not sandboxed. **Image CCs** carry an application with its own OS and runtime and are started, probed and stopped by the host.
+- **Passive materials** (methodology, ontology) are readable and grant nothing. A **request CC** states a desired service and is not callable; the agent builds the implementation, which becomes an ordinary CC.
+
+## Where things are
+| Topic | Location |
 |---|---|
-| [design-package](design-package/README.md) | Full M1 architecture, responsibilities, rationale and implementation-facing reference |
+| Install, run, tests | [ccv2/README.md](ccv2/README.md) |
+| Base and source revisions | [ccv2/PROVENANCE.md](ccv2/PROVENANCE.md) |
+| Protocol and runner changes, with evidence | [ccv2/PROTOCOL-CHANGES.md](ccv2/PROTOCOL-CHANGES.md) |
+| Runner and agent front door | `jiuwenswarm/ccv2/` (schemas in `jiuwenswarm/ccv2/schemas/`) |
+| Demonstration CCs and request | `demo/ccs/`, `demo/requests/`, driver `demo/run_agent.py`, prompts `demo/prompts/` |
+| Live agent evidence, receipts, limitations, keep/remove/change, delegation | `artifacts/ccv2-demo/SUMMARY.md` |
+| Tests | `tests/ccv2/`, `tests/unit_tests/runtime/test_codex_agent_mode.py` |
 
-Start with the package README, then its system architecture and principles. The compact package was retired on October 14, 2026 (decision D27); the maintained design package is the sole current architecture. The PRD is supplied separately and owns product requirements. Its current receipt and clause mappings are in the maintained package.
-
-## Component reading
-
-The [Intention Compiler component](design-package/pipeline/intention-compiler.md) defines the preparation boundary through an accepted Research Brief or attributable halt. Accepted Intent IR is an intermediate result. The current [core build scope](design-package/3-build-plan.md) extends through the bounded Planner, protected freeze and governed research journey. Design scope does not establish implementation completion; use the live coding records and exact runtime evidence for that status.
-
-[Design method](design-package/method/design-method.md) explains design depth, review and change impact. [Decision review](design-package/method/decisions.md) records alternatives and authorized source exceptions. Detailed fields, schemas and examples belong to each package's reference layer.
-
-## Experiments and evidence
-
-The [experiment registry](experiments/README.md) identifies dated inputs, protocols, delivery receipts and prepared benchmark designs. The [routing-integration delivery receipt](experiments/design-package-routing-integration-2026-10-13/README.md) records the October 13 integration snapshot. Frozen comparisons retain their recorded versions; later edits to the maintained package do not update those inputs. Documentation checks establish package consistency, not agent quality or runtime acceptance.
-
-Local notes are outside the shared review package. Promote material decisions into the maintained design. Historical source evidence stays outside the delivery package and is not routine build input.
-
-## Model-routing owner integration
-
-The [routing overview](design-package/side-systems/model-routing.md) connects the separate router design and catalog to one [shared Capsule–routing contract](design-package/reference/model-routing-contract.md). Architecture owns binding, permissions and dispatch; the model-routing owner owns selection, provider integration and routing evidence. Phase 1 remains fixed Codex; APIs belong to Phase 3. The canonical [product receipt](../product/README.md) identifies PRD V10.
+## Rules for changing this branch
+See `AGENTS.md`. In short: do not restore the removed M1 packages, keep the protocol lightweight (no registry, planner or compiler), and keep live-agent evidence separate from tests.

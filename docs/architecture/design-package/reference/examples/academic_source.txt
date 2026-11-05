@@ -1,1 +1,0 @@
-Synthetic academic fixture: indexed lookup may reduce repeated retrieval work; applicability must be measured.

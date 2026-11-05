@@ -1,6 +1,6 @@
 # ai4r_ccv2 demonstration summary (2026-11-05)
 
-Base `141c1c401`, CC source `89893083`; see `docs/ccv2/PROVENANCE.md`. Reproduce with `docs/ccv2/README.md`.
+Base `141c1c401`, CC source `89893083`; see `docs/architecture/ccv2/PROVENANCE.md`. Reproduce with `docs/architecture/ccv2/README.md`.
 
 ## Live agent evidence
 A real JiuwenSwarm agent (the `JiuWenSwarm` facade, `codex_subscription` backend, Codex as the model on a ChatGPT login) used CCs through the `cc` MCP server. Logs in `sessions/` are the raw event streams, credentials scrubbed. Sessions that failed first are kept (`01`, `01b`, `01c`, `03`) because they show the defects that were fixed.
@@ -18,13 +18,13 @@ Native arm: `workspace_inspect`, `service_client`, the built `compute_service_na
 ## Tests
 - `tests/ccv2`: 81 vendored runner tests, 15 demo-CC tests (including real Docker start, ready, request, stop, no leftover), 7 MCP tests over real stdio.
 - Codex: 41 retained base tests plus 5 agent-mode tests (the default text-only profile still rejects tool activity).
-- Run commands are in `docs/ccv2/README.md`. Test results are not evidence of live agent behaviour; the sessions above are.
+- Run commands are in `docs/architecture/ccv2/README.md`. Test results are not evidence of live agent behaviour; the sessions above are.
 
 ## Keep / remove / change
 - **Kept:** base JiuwenSwarm (agents, gateway, channels, symphony, observability, instance_manager, jiuwenbox, packages, plugins), Codex subscription service/transport/adapters, `codex_start`, their tests and the web UI.
 - **Removed:** `research*`, `capsule_runtime`, `server/rsi`, the intent compiler and its assets, ccbench and harbor benchmarks, `deploy/m1`, about 480 tests and fixtures that imported them, and all `M1_PROFILE` branches in startup, gateway, agent server, CLI and web channel.
 - **Changed:** Codex service no longer imports `research.pilot_budget`; opt-in agent profile (`JIUWENSWARM_CODEX_AGENT=1`); `AGENTS.md` replaced by the branch purpose. Original is in git history.
-- **Added:** `jiuwenswarm/ccv2/`, `demo/`, `docs/ccv2/`, tests above.
+- **Added:** `jiuwenswarm/ccv2/`, `demo/`, `docs/architecture/ccv2/`, tests above.
 
 ## Independent review (Opus, given only the code)
 Fixed: `cc_artifact` could register any host file (now workspace-only, tested); a built CC could reuse a trusted CC's id and replace it (now `DUPLICATE_ID`, tested); `cc_stop` accepted any instance (now only instances this session started, tested); instances outlived the MCP server (now stopped on exit); agent-written CCs are scanned only with the explicit `run --build` flag.
@@ -39,4 +39,4 @@ Not fixed, by design or time: with `--build`, an agent-written native CC runs un
 - Single run per session; the agent's wording varies between runs.
 
 ## Delegation
-Codex children (`codex exec`, one at a time, briefs in `.ccv2-delegation/`): A1 strip hooks (first brief did nothing: read repo docs instead of editing; rewritten tighter, second run edited six files, verified by grep and compile), E1 write demo CCs (wrote them; could not reach Docker from its sandbox, so I built the image and ran its Docker test myself). A cheap Haiku watcher audited the strip commit (no out-of-scope deletions; flagged leftover `M1` references, which I removed).
+Codex children (`codex exec`, one at a time, briefs in `artifacts/ccv2-demo/delegation/`): A1 strip hooks (first brief did nothing: read repo docs instead of editing; rewritten tighter, second run edited six files, verified by grep and compile), E1 write demo CCs (wrote them; could not reach Docker from its sandbox, so I built the image and ran its Docker test myself). A cheap Haiku watcher audited the strip commit (no out-of-scope deletions; flagged leftover `M1` references, which I removed).

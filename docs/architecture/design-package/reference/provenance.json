@@ -1,9 +1,0 @@
-{
-  "revision_date": "2026-10-16",
-  "delivery_basis": [
-    "Maintained design package",
-    "Separately supplied PRD identified by reference/product-input.md"
-  ],
-  "current_product_sha256": "6d85972cdc8cf586a3d76b80d56510d695f03bfcf7838661afc7f71c35f4b3fc",
-  "runtime_compatibility": "NOT_RUN"
-}

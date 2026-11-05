@@ -1,1 +1,0 @@
-Synthetic calibration example: 10 planted bad and 3 planted good children; 20 cases per hidden split; relative timing noise 0.02; stronger child illustrates 0.20 relative time gain. No calibration was executed.

@@ -6,9 +6,10 @@ This branch is a deliberate scope reset. It is base JiuwenSwarm plus the preserv
 The M1 research machinery was removed on purpose: the Intention/intent Compiler, the old capsule pipeline and `capsule_runtime`, `jiuwenswarm/research*`, the RSI console, ccbench/harbor benchmarks and `deploy/m1`. **Do not restore, extend or re-create them, and do not follow the M1 PRD / TASKS / Spec Kit process that earlier versions of this file described.** The old file is kept on `AI4Research-Main` and in git history.
 
 Start here instead:
-- `docs/ccv2/README.md` — install, start, demo
-- `docs/ccv2/PROVENANCE.md` — base and source revisions
-- `docs/ccv2/PROTOCOL-CHANGES.md` — changes made to the CC protocol, with evidence
+- `docs/architecture/README.md` — what the branch is and how the pieces fit
+- `docs/architecture/ccv2/README.md` — install, start, demo
+- `docs/architecture/ccv2/PROVENANCE.md` — base and source revisions
+- `docs/architecture/ccv2/PROTOCOL-CHANGES.md` — changes made to the CC protocol, with evidence
 - `jiuwenswarm/ccv2/` — the runner; `demo/ccs/` — demonstration CCs
 
 ## Working rules

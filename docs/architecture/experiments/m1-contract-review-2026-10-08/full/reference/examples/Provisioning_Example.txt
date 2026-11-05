@@ -1,1 +1,0 @@
-Synthetic provisioning receipt: unchanged standard-library-only environment lock. No installation or enforcement is claimed.

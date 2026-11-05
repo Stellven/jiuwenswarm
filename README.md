@@ -1,6 +1,4 @@
-> **AI4Research M1:** See the [release notes and quick start](releases/AI4Research-M1.md) and [deployment operations](deploy/m1/OPERATIONS.md). The integrated release is maintained on `AI4Research-Main`.
->
-> **AI4Research architecture:** Start at the [architecture index](docs/architecture/README.md) for the maintained [design package](docs/architecture/design-package/README.md) and [experiment registry](docs/architecture/experiments/README.md). The JiuwenSwarm documentation below describes the underlying platform.
+> **Branch `ai4r_ccv2`:** JiuwenSwarm plus the Codex-as-model integration plus a Capability Capsule (CC) v2 runner that agents use as native tools. The earlier AI4Research M1 machinery is removed. See the [architecture page](docs/architecture/README.md), [install and run](docs/architecture/ccv2/README.md) and the [demonstration evidence](artifacts/ccv2-demo/SUMMARY.md). The JiuwenSwarm documentation below describes the underlying platform.
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />

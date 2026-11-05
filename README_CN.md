@@ -1,4 +1,4 @@
-> **AI4Research / `ai4r_muk`：** 当前项目架构与 PRD 入口为 [完整 design-package](docs/architecture/design-package/README.md)。[Very condensed design](docs/architecture/very-condensed-design.md) 保持相同 M1 范围，仅压缩设计细节；当前实验只构建意图编译与验证切片。下文是底层 JiuwenSwarm 平台使用文档。
+> **分支 `ai4r_ccv2`：** JiuwenSwarm + Codex 模型接入 + 供智能体作为原生工具使用的 Capability Capsule (CC) v2 运行器。早期 AI4Research M1 组件已移除。入口见 [架构说明](docs/architecture/README.md)。下文是底层 JiuwenSwarm 平台使用文档。
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />

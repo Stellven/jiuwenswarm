@@ -1,1 +1,0 @@
-Synthetic stderr: empty. Not executed.

@@ -1,2 +1,0 @@
-# Preserve byte-hashed exports, including captured CRLF receipts.
-* -text whitespace=cr-at-eol
