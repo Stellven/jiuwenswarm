@@ -10,3 +10,5 @@
 | Built image | `cc-demo/compute:1`, id `sha256:ec5b1df28d09604bf8895fbd83a423165d4970c90a7fed72a57e3bd5142f6551` |
 
 The vendored runner is copied from the reference code, then changed as listed in `PROTOCOL-CHANGES.md`.
+
+The runner fixes in `PROTOCOL-CHANGES.md` rows 1 and 2 (`stdin=DEVNULL` on helper children, `--pull=never` on finite image calls) were also applied to the reference copy as local commit `ea057c1` on branch `ccv2-runner-fixes` in `Muxite/tools`. That branch is not pushed. This branch is the place those changes are published.
