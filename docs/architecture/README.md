@@ -36,3 +36,6 @@ JiuwenSwarm agent  --MCP stdio-->   jiuwenswarm/ccv2/agent_mcp.py   (8 tools: cc
 
 ## Rules for changing this branch
 See `AGENTS.md`. In short: do not restore the removed M1 packages, keep the protocol lightweight (no registry, planner or compiler), and keep live-agent evidence separate from tests.
+
+## Iterative inference factory
+The factory is a substantial AI4Research runtime redesign using CC-v2; the old M1 control model does not remain. A real agent makes revisable, evidence-driven decisions while the host enforces authority, durable identity and job lifecycle. The feature-scoped [amendment](factory/AMENDMENT.md) permits this controller without restoring the removed compiler or pipeline. See [migration](factory/MIGRATION.md) for behavior and implementation status, and [lineage](factory/LINEAGE.md) for donor inventory and review limitations. The factory needs no web UI. The frontend code defaults to 5173 in `jiuwenswarm/channels/web/app_web.py`; the handoff and `AGENTS.md` require 5175 for local hosting, so configure `FRONTEND_PORT=5175` if using that frontend.

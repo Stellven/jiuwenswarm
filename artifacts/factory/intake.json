@@ -1,0 +1,98 @@
+{
+ "schema": "factory-intake/1",
+ "ts": "2026-11-12T00:06:51.493783Z",
+ "task": "T01",
+ "pins": {
+  "ai4r_target": {
+   "branch": "AI4Research-Main",
+   "reference": "141c1c401138f916af0a41aca791adf226d814c7",
+   "fetched": "141c1c401138f916af0a41aca791adf226d814c7"
+  },
+  "donor": {
+   "branch": "ai4r_ccv2",
+   "reference": "2889a1d6342e9baa7721648eca196bbce79a31d4",
+   "fetched": "2889a1d6342e9baa7721648eca196bbce79a31d4"
+  },
+  "feature": {
+   "branch": "ai4r/iterative-cc-factory",
+   "created_at": "2889a1d6342e9baa7721648eca196bbce79a31d4"
+  },
+  "ancestry_target_is_ancestor_of_feature": true,
+  "engine": {
+   "repo": "Muxite/siminfeng",
+   "reference": "682c6377da20d9229ef1fdb705f63a7a751d14cb",
+   "local_head": "682c6377da20d9229ef1fdb705f63a7a751d14cb",
+   "local_dirty_files": 154
+  },
+  "llama_cpp_base": {
+   "path": "/home/muk/projects/siminfeng/ref/llama.cpp-up1108",
+   "commit": "cf34d311332e362198f0a410c466d1e940287d02"
+  }
+ },
+ "host": {
+  "name": "Satay",
+  "model": "NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super",
+  "arch": "aarch64",
+  "kernel": "5.15.199-tegra",
+  "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+  "jetpack": "6.2.3+b81",
+  "nvcc": "Cuda compilation tools, release 12.6, V12.6.68",
+  "docker": "29.1.3",
+  "mem_total_mib": 7607,
+  "disk_free": "13G"
+ },
+ "python": {
+  "venv": ".venv",
+  "python": "Python 3.12.16",
+  "openjiuwen": "0.1.18",
+  "openai_codex_cli_bin": "0.163.0 (pinned manually; extra resolved 0.167.2 which transport.py rejects)",
+  "extra_installed": [
+   "rfc8785",
+   "psutil",
+   "pyyaml",
+   "jsonschema",
+   "pytest",
+   "pytest-asyncio",
+   "pytest-cov"
+  ],
+  "pywin32": "not installed (linux)"
+ },
+ "baseline_tests": {
+  "cmd": "pytest tests/ccv2 --no-cov",
+  "passed": 93,
+  "failed": 10,
+  "failure_classes": {
+   "git_2.34_lacks_apply_allow_empty (source_build.py:54-55)": 8,
+   "compute_service image not built for arm64": 1,
+   "test_exited_launcher_does_not_confirm_children_stopped (host process semantics)": 1
+  },
+  "note": "donor failures on this host before any factory change"
+ },
+ "queue_snapshot": "job-6183ff765e9049649ec3fe019cd193aa failed build build-om12\njob-afb187efd7f948bfa6bcf7bdf2408ead skipped_dep_failed gpu J-OM12-ab\njob-837d08c64f024d298907348c1f89d98e failed gpu ladder-acc-qwen9-r2\njob-6fb929d13869466a847d69512de6f5a2 failed gpu ladder-acc-gemma4-r2",
+ "operator_inputs": {
+  "model": {
+   "id": "qwen36-35b-a3b",
+   "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+   "bytes": 22360456160,
+   "over_memory": true
+  },
+  "workload": "llama-completion -f /om/prompts/p1.txt -n 64 -c 4096 --temp 0 -s 1 -no-cnv -ngl 99 -lm mmap -cmoe, LLAMA_EXPERT_* pregate K=8",
+  "correctness_contract": "v1 (to freeze in T06): greedy stdout sha256 byte-identical to base image campaign/llamacpp:jetson-up1108-om11 on same argv/env; scope = identical greedy continuation, not accuracy",
+  "baseline_image": {
+   "tag": "campaign/llamacpp:jetson-up1108-om11",
+   "id": "sha256:2dcf9fe7e9ae051caf6607ee67db3dc5442f680480a62356ebbec8582cac2754"
+  },
+  "queue_policy": "factory GPU/build jobs wait in jobq behind campaign jobs",
+  "publish": "feature branch may be pushed to Stellven/jiuwenswarm (operator authorized 2026-11-12); AI4Research-Main never modified",
+  "model_provider": "existing Codex ChatGPT login (credentials not exported)",
+  "budget": {
+   "agent_iterations": 12,
+   "wall_clock_s": 7200,
+   "job_deadline_s": {
+    "build": 5400,
+    "lab": 1800
+   }
+  }
+ },
+ "scope_amendment": "docs/architecture/factory/AMENDMENT.md"
+}

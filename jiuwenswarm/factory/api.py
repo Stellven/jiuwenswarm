@@ -1,0 +1,118 @@
+"""Native CC packet entry point for task-scoped evidence capabilities."""
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+import sqlite3
+import sys
+
+from .store import FactoryError, NotFound, ScopeDenied, Store
+
+
+def fields(value, allowed, required=()):
+    if not isinstance(value, dict) or set(value) - set(allowed) or set(required) - set(value):
+        raise ValueError('Invalid or missing input fields')
+
+
+def artifact_source(record, packet):
+    if ('path' in record) == ('text' in record):
+        raise ValueError('Supply exactly one of path or text')
+    if 'text' in record:
+        if not isinstance(record['text'], str):
+            raise ValueError('text must be a string')
+        return record['text'].encode('utf-8')
+    if not isinstance(record['path'], str) or not record['path']:
+        raise ValueError('path must be a nonempty string')
+    roots = [Path(value).expanduser().resolve() for value in
+             (packet.get('output_dir'), os.environ.get('FACTORY_WORKSPACE')) if isinstance(value, str) and value]
+    candidate = Path(record['path']).expanduser()
+    if not candidate.is_absolute():
+        if not roots:
+            raise ScopeDenied('Artifact publication requires an authorized directory')
+        candidate = roots[0] / candidate
+    candidate = candidate.resolve()
+    if not any(candidate.is_relative_to(root) for root in roots):
+        raise ScopeDenied('Artifact path is outside output_dir and workspace')
+    if not candidate.is_file():
+        raise ValueError('Artifact path must name an existing file')
+    return candidate
+
+
+def dispatch(store, task_id, capability, packet):
+    inputs = packet.get('inputs', {})
+    if capability == 'evidence.query':
+        fields(inputs, {'kinds', 'text', 'since', 'limit', 'task_id'})
+        options = dict(inputs)
+        target = options.pop('task_id', task_id)
+        return store.query(target, **options)
+    if capability == 'evidence.read':
+        fields(inputs, {'id', 'task_id'}, {'id'})
+        if not isinstance(inputs['id'], str) or not inputs['id']:
+            raise ValueError('id must be a nonempty string')
+        if 'task_id' in inputs:
+            return store.read(inputs['task_id'], inputs['id'])
+        # The advertised interface needs only an evidence id. Prefer the
+        # current task, then search explicitly granted tasks in stable order.
+        for target in [task_id, *sorted(store.readable - {task_id})]:
+            try:
+                return store.read(target, inputs['id'])
+            except NotFound:
+                continue
+        raise NotFound('Record not found')
+    if capability != 'evidence.publish':
+        raise ValueError('Unknown evidence capability')
+    fields(inputs, {'type', 'record', 'expected_rev'}, {'type', 'record'})
+    record = inputs['record']
+    if not isinstance(record, dict):
+        raise ValueError('record must be an object')
+    record = dict(record)
+    if record.get('task_id', task_id) != task_id:
+        raise ScopeDenied('Publication belongs to another task')
+    if inputs['type'] == 'observation':
+        if 'expected_rev' in inputs:
+            raise ValueError('expected_rev applies only to decisions')
+        return store.append_observation(task_id, record)
+    if inputs['type'] == 'decision':
+        if 'expected_rev' in record and 'expected_rev' in inputs and record['expected_rev'] != inputs['expected_rev']:
+            raise ValueError('Conflicting expected_rev values')
+        expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
+        return store.advance_decision(task_id, expected_rev, record)
+    if inputs['type'] == 'artifact':
+        if 'expected_rev' in inputs:
+            raise ValueError('expected_rev applies only to decisions')
+        fields(record, {'task_id', 'artifact_id', 'path', 'text', 'media_type', 'producer_attempt'})
+        source = artifact_source(record, packet)
+        return store.put_artifact(task_id, record.get('artifact_id'), source,
+                                  record.get('media_type', 'text/plain' if 'text' in record else 'application/octet-stream'),
+                                  record.get('producer_attempt', packet.get('attempt')))
+    raise ValueError('type must be observation, decision or artifact')
+
+
+def main():
+    try:
+        if len(sys.argv) != 2:
+            raise ValueError('One capability argument is required')
+        packet = json.load(sys.stdin)
+        if not isinstance(packet, dict):
+            raise ValueError('Packet must be an object')
+        if packet.get('capability', sys.argv[1]) != sys.argv[1]:
+            raise ValueError('Packet capability differs from command')
+        task_id = os.environ.get('FACTORY_TASK_ID', '').strip()
+        if not task_id:
+            raise ValueError('FACTORY_TASK_ID is required')
+        readable = frozenset(t.strip() for t in os.environ.get('FACTORY_READ_TASKS', '').split(',') if t.strip())
+        with Store(Path(os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory'))) as store:
+            outputs = dispatch(store.scoped(task_id, readable), task_id, sys.argv[1], packet)
+        result = {'outcome': 'ok', 'outputs': outputs}
+    except FactoryError as exc:
+        result = {'outcome': 'error', 'error': {'code': exc.code, 'message': str(exc)}}
+    except (ValueError, TypeError, KeyError, OverflowError, sqlite3.ProgrammingError):
+        result = {'outcome': 'error', 'error': {'code': 'INVALID_INPUT', 'message': 'Invalid packet or capability inputs'}}
+    except (OSError, sqlite3.Error):
+        result = {'outcome': 'error', 'error': {'code': 'PERSISTENCE_FAILED', 'message': 'Evidence persistence failed'}}
+    print(json.dumps(result, ensure_ascii=False, allow_nan=False))
+
+
+if __name__ == '__main__':
+    main()

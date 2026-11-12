@@ -8,6 +8,8 @@ import logging
 import sys
 from pathlib import Path
 
+from jiuwenswarm.factory.migration import check_legacy_config_or_exit
+
 
 def configure_profile():
     profile = (Path.home() / ".jiuwenswarm-ai4r").resolve()
@@ -25,6 +27,7 @@ def configure_profile():
 
 
 def main():
+    check_legacy_config_or_exit()
     parser = argparse.ArgumentParser(description="Start the local AI4R subscription preview in its own profile.")
     parser.add_argument("mode", nargs="?", default="all", choices=["all", "web", "app"])
     args = parser.parse_args()

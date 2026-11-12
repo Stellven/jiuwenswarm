@@ -16,11 +16,19 @@ Eight tools from one MCP server (`python -m jiuwenswarm.ccv2.agent_mcp`):
 Authority comes only from the operator's `--grant` flags and `--workspace`. The model cannot widen them.
 
 ## Install
-Windows or Linux, Python 3.11 to 3.13, Docker (for the image CC), a ChatGPT account for Codex.
+Python 3.11 to 3.13, Docker (for the image CC), a ChatGPT account for Codex.
+Windows:
 ```
 uv venv .venv --python 3.12
 uv pip install -p .venv/Scripts/python.exe -e . rfc8785 psutil pyyaml jsonschema pywin32 "openai-codex-cli-bin==0.163.0" pytest
 ```
+Linux/aarch64 (no `pywin32`):
+```sh
+uv venv .venv --python 3.12
+uv pip install -p .venv/bin/python -e ".[codex]" rfc8785 psutil pyyaml jsonschema pytest pytest-asyncio pytest-cov "openai-codex-cli-bin==0.163.0"
+```
+Pin Codex explicitly: the extra otherwise resolves 0.167.x (0.167.2 in the intake), which `jiuwenswarm/server/runtime/codex_subscription/transport.py` rejects.
+
 `openjiuwen` is pinned in `pyproject.toml`. If the git dependency is unreachable, point the venv at an existing site-packages that has it.
 
 ## Run the demonstrations
@@ -48,3 +56,6 @@ Live agent runs are separate evidence from these tests.
 - `demo/ccs/` workspace_inspect (native), compute_service (image), service_client (native), methodology (passive)
 - `demo/requests/` request CC for a service that does not exist yet
 - `artifacts/ccv2-demo/` evidence and `SUMMARY.md`
+
+## Factory and local ports
+The [factory migration guide](../factory/MIGRATION.md) describes the amended inference factory, which needs no web UI. The frontend default in `jiuwenswarm/channels/web/app_web.py` is 5173; the handoff and `AGENTS.md` require 5175 as the only local web host port. Set `FRONTEND_PORT=5175` for local frontend use; this documentation does not change the code default.

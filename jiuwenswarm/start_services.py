@@ -28,6 +28,9 @@ import sys
 import time
 from pathlib import Path
 
+from jiuwenswarm.factory.migration import check_legacy_config_or_exit
+check_legacy_config_or_exit()
+
 # --- Early --dotenv parsing (before jiuwenswarm imports) ---
 from jiuwenswarm.dotenv_early import parse_dotenv_early
 parse_dotenv_early("jiuwenswarm-start")
