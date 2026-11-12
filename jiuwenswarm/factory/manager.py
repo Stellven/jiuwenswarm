@@ -251,6 +251,11 @@ def freeze_reference(manager, contract_id, image):
     # image and use admit's receipt check with the already observed terminal state.
     admission = manager.admit(task, dict(tag=image, id=record['image']['Id']), build['attempt_id'])
     handle = manager.submit_run(task, admission['admission_id'], contract_id, {'env': {}}, 'reference-run')
+    n = 1
+    while handle['state'] in {'failed', 'cancelled', 'unknown'}:
+        # A terminal prior attempt stays visible; the operator rerun is a new linked attempt.
+        n += 1
+        handle = manager.jobs.retry(handle['attempt_id'], f'reference-run-r{n}')
     while True:
         result = manager.result(handle['attempt_id'])
         if result['evaluation']:

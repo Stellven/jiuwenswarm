@@ -50,7 +50,11 @@ class Jobs:
     def __init__(self, store, jobq_bin=Path('/home/muk/projects/siminfeng/bin/jobq'), jobq_dir=None):
         self.store = store
         self.jobq_bin = Path(jobq_bin).resolve()
-        self.jobq_dir = Path(jobq_dir or os.environ.get('JOBQ_DIR') or store.home / 'jobq').resolve()
+        # Default = the host's shared supervisor queue (jobq's own default, <repo>/lab/jobq), so
+        # factory gpu/build jobs are serialized with every other GPU/build job on the host and
+        # served by the running worker. A private queue would have no worker and no exclusivity.
+        self.jobq_dir = Path(jobq_dir or os.environ.get('JOBQ_DIR')
+                             or self.jobq_bin.parents[1] / 'lab' / 'jobq').resolve()
 
     @contextmanager
     def locked(self):
@@ -58,9 +62,14 @@ class Jobs:
             fcntl.flock(stream, fcntl.LOCK_EX)
             yield
 
-    def _call(self, *args, env_extra=None):
+    def _qdir(self, attempt):
+        # Reconcile an attempt against the queue it was submitted to (recorded before launch),
+        # not whatever queue this Jobs instance defaults to now.
+        return Path((attempt.get('resources') or {}).get('jobq_dir') or self.jobq_dir)
+
+    def _call(self, *args, env_extra=None, qdir=None):
         env = dict(os.environ, **(env_extra or {}))
-        env.update(JOBQ_DIR=str(self.jobq_dir),
+        env.update(JOBQ_DIR=str(qdir or self.jobq_dir),
                    PATH='/usr/local/cuda/bin:' + env.get('PATH', os.defpath),
                    DOCKER_CMD_PREFIX='sg docker -c')
         return subprocess.run([sys.executable, str(self.jobq_bin), *map(str, args)],
@@ -77,7 +86,7 @@ class Jobs:
             return attempt
         # The unique name is persisted before launch. Recover the acknowledgement
         # after a submitter crash; jobq has no idempotency key of its own.
-        for path in self.jobq_dir.glob('job-*.json'):
+        for path in self._qdir(attempt).glob('job-*.json'):
             job = json.loads(path.read_text())
             if job['name'] == 'factory:' + attempt['attempt_id']:
                 return metadata(self.store, attempt, jobq_id=job['id'])
@@ -125,9 +134,9 @@ class Jobs:
                 job = None
             else:
                 try:
-                    job = json.loads(self._call('show', attempt['jobq_id']).stdout)
+                    job = json.loads(self._call('show', attempt['jobq_id'], qdir=self._qdir(attempt)).stdout)
                 except subprocess.CalledProcessError:
-                    if (self.jobq_dir / (attempt['jobq_id'] + '.json')).exists():
+                    if (self._qdir(attempt) / (attempt['jobq_id'] + '.json')).exists():
                         raise
                     job = None
             state = job['state'] if job else 'unknown'
@@ -186,7 +195,7 @@ class Jobs:
             attempt = self.store.transition_attempt(attempt['task_id'], attempt_id, 'cancel_requested')
         if not attempt['jobq_id']:
             return self.status(attempt_id)
-        self._call('cancel', attempt['jobq_id'])
+        self._call('cancel', attempt['jobq_id'], qdir=self._qdir(attempt))
         while True:
             attempt = self.status(attempt_id)
             if attempt['state'] in TERMINAL | {'unknown'}:
@@ -201,7 +210,7 @@ class Jobs:
             raise KeyConflict('Retry requires a new idempotency key')
         r = attempt['resources']
         env = {}
-        job_path = self.jobq_dir / (attempt['jobq_id'] + '.json')
+        job_path = self._qdir(attempt) / (attempt['jobq_id'] + '.json')
         if job_path.exists():
             job = json.loads(job_path.read_text())
             if job.get('env_file'):
