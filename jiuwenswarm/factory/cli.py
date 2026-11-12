@@ -116,6 +116,13 @@ def main(argv=None):
         command.add_argument('--plain', action='store_true')
         if name == 'show':
             command.add_argument('id', nargs='?', help='evidence record ID; omit to show all records')
+    plan = sub.add_parser('plan', help='show revisable task graph and decision-linked history')
+    plan.add_argument('task_id')
+    plan.add_argument('--rev', type=int)
+    plan.add_argument('--home', default=argparse.SUPPRESS)
+    plan_format = plan.add_mutually_exclusive_group()
+    plan_format.add_argument('--dot', action='store_true')
+    plan_format.add_argument('--json', action='store_true')
     story = sub.add_parser('story', help='tell a task evidence story')
     story.add_argument('source')
     story.add_argument('--follow', action='store_true')
@@ -152,11 +159,18 @@ def main(argv=None):
         export_main([args.task_id, '--out', args.out] + (['--home', args.home] if args.home else [])
                     + [arg for path in args.extra_file for arg in ('--extra-file', path)])
         return
-    if args.command in {'story', 'capsules', 'status'}:
+    if args.command in {'story', 'capsules', 'status', 'plan'}:
         from .store import FactoryError
         import sqlite3
         try:
-            if args.command == 'story':
+            if args.command == 'plan':
+                from .story import load_source
+                from .taskgraph import from_records, render_text, to_dot, to_json
+                from .redact import sanitize
+                graph = sanitize(from_records(load_source(args.task_id, args.home), args.rev))
+                print(json.dumps(to_json(graph), indent=2) if args.json else
+                      to_dot(graph) if args.dot else render_text(graph))
+            elif args.command == 'story':
                 from .story import show_story
                 show_story(args.source, args.home, args.plain, args.json, args.follow)
             elif args.command == 'capsules':

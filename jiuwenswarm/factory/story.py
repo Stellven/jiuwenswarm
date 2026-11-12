@@ -385,6 +385,10 @@ def render_story(data, plain=False):
     lines = header(data)
     for event in build_events(data):
         lines.extend(event_lines(event, data['tasks'][0]['created']))
+    from .taskgraph import from_records, render_text
+    graph = from_records(data)
+    if graph['rev']:
+        lines.extend(render_text(graph).splitlines())
     return '\n'.join(paint(line, plain) for line in lines + footer(data))
 
 

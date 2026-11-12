@@ -105,6 +105,8 @@ class Store:
             for table in ('observations', 'artifacts', 'decisions', 'evaluations'):
                 for operation in ('UPDATE', 'DELETE'):
                     self._db.execute(f"CREATE TRIGGER IF NOT EXISTS {table}_{operation.lower()} BEFORE {operation} ON {table} BEGIN SELECT RAISE(ABORT, 'immutable record'); END")
+            from .taskgraph import initialize
+            initialize(self._db)
         self._json_columns = {table: {row['name'] for row in self._db.execute(f'PRAGMA table_info({table})') if row['type'] == 'JSON'} for table in TABLES}
 
     def close(self):
@@ -151,7 +153,7 @@ class Store:
     def _decode(self, table, row):
         result = dict(row)
         for key in self._json_columns[table]:
-            result[key] = json.loads(result[key])
+            result[key] = json.loads(result[key]) if result[key] is not None else None
         if table == 'artifacts':
             result['complete'] = bool(result['complete'])
         return result
@@ -228,6 +230,8 @@ class Store:
             self.validate_evidence(task_id, record.get('evidence_ids', []), readable)
             result = self._insert('decisions', dict(decision_id=f'{task_id}:decision:{expected_rev + 1}', evidence_ids=[], observations=[], hypothesis='', uncertainty='', action={}, expected_evidence='', budget={}, stop_condition='', reason_for_change='', created=time.time()) | record | protected)
             self._db.execute('UPDATE tasks SET current_decision_rev=? WHERE task_id=?', (expected_rev + 1, task_id))
+            from .taskgraph import apply_decision_patch
+            apply_decision_patch(self, task_id, result, readable)
         return result
 
     def _append(self, table, task_id, record, defaults):
@@ -493,7 +497,7 @@ class ScopedStore:
 
     def append_observation(self, task_id, record):
         self._agent_id(record.get('obs_id'))
-        if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention'}:
+        if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention', 'taskgraph_patch'}:
             raise ScopeDenied('Observation fields are reserved for the host')
         self._check(task_id, write=True)
         return self._store.append_observation(task_id, record)

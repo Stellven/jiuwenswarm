@@ -72,6 +72,7 @@ pre{margin:8px 0 0;padding:10px;background:#07090d;border-radius:6px;font:12px/1
   <section><h2>Timeline</h2><div id="timeline"></div></section>
   <section class="now"><h2>Now</h2><div id="now"></div><div id="job"></div></section>
   <section id="calls"><h2>Capsule calls</h2><div class="caps" id="caps"></div><div id="callrows"></div></section>
+  <section><details><summary>Task plan</summary><pre id="plan"></pre></details></section>
 </main>
 <script>
 const $ = id => document.getElementById(id);
@@ -177,7 +178,11 @@ async function poll() {
     $('selector').replaceChildren(...list.map(t => { const o = el('option', '', short(t.task_id) + ' · ' + t.objective.slice(0, 70)); o.value = t.task_id; o.selected = t.task_id === task; return o; }));
     if (!task) return;
     const q = encodeURIComponent(task);
-    const [s, tele] = await Promise.all([get('/api/story?task=' + q), get('/api/telemetry?task=' + q)]);
+    const [s, tele, plan] = await Promise.all([get('/api/story?task=' + q), get('/api/telemetry?task=' + q), get('/api/plan?task=' + q)]);
+    $('plan').textContent = `Graph rev ${plan.rev} · ready: ${plan.ready_frontier.join(', ') || 'none'}\n` +
+      plan.nodes.map(n => `[${n.state}] ${n.node_id}: ${n.title}` +
+        (plan.blocked_reasons[n.node_id] ? '\n  ' + plan.blocked_reasons[n.node_id].join('; ') : '')).join('\n') + '\n' +
+      plan.history.map(h => `graph ${h.rev} ← decision ${h.decision_rev}: ${Object.keys(h.patch).join(', ')}`).join('\n');
     header(s); chain(s.chain); stack(s.engine_stack); timeline(s.events, s.task.created); calls(tele);
     await now(s);
     $('error').textContent = '';

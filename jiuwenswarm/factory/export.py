@@ -42,7 +42,7 @@ def snapshot(home, task_id):
             for row in db.execute(f'SELECT * FROM {table} WHERE task_id=?', (task_id,)):
                 record = dict(row)
                 for key in columns:
-                    record[key] = json.loads(record[key])
+                    record[key] = json.loads(record[key]) if record[key] is not None else None
                 records.append(record)
             result[table] = sorted(records, key=lambda r: (r.get('rev', 0), r.get('created', 0), str(r)))
         if not result['tasks']:
