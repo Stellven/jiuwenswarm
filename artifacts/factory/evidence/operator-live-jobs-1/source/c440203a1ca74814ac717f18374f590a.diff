@@ -1,0 +1,34 @@
+commit 690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8
+Author:     Factory Agent <factory-agent@localhost>
+AuthorDate: Thu Nov 12 01:11:47 2026 +0000
+Commit:     Factory Agent <factory-agent@localhost>
+CommitDate: Thu Nov 12 01:11:47 2026 +0000
+
+    expert-fill : name worker threads (patch 0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030)
+    
+    Assisted-by: Codex
+
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index 0f8be12dd..2397bef76 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -22,6 +22,7 @@
+ #include <string>
+ #include <sys/mman.h>
+ #include <sys/stat.h>
++#include <pthread.h>
+ #include <thread>
+ #include <unistd.h>
+ #include <vector>
+@@ -434,6 +435,11 @@ private:
+         for (auto & t : workers_) { t.join(); }
+     }
+     void worker(size_t index) {
++#if defined(__linux__)
++        char name[16];
++        snprintf(name, sizeof(name), "xfill-%zu", index);
++        (void) pthread_setname_np(pthread_self(), name);
++#endif
+         for (;;) {
+             Range job {};
+             Async async;

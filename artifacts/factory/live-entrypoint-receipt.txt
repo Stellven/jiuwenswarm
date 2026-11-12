@@ -1,0 +1,18 @@
+# 2026-11-12T01:59:45Z operator live entrypoint checks (HEAD e2bef4a1)
+$ .venv/bin/jiuwenswarm factory status factory-d4b71bcce337406b96f627d469bec092
+Task: factory-d4b71bcce337406b96f627d469bec092
+Objective: Integrate component factory.engine_component into the owned checkout, build a jetson-orin image, and run it under contract qwen36-greedy-v1. Inspect evidence and decide bounded next actions. Operator note: attempt 1 (factory-aeaa9acc88d34a3ab1375154da98c385) ended report_inconclusive beca
+Outcome: accept
+Decision rev: 6; action: {'next_bounded_operation': 'Close task with contract-scoped acceptance of integrated commit690e4713, task-owned imagef02f8a93 and labcabd3a09. No further builds or evaluations.', 'type': 'accept'}
+Reason for change: cabd3a09443f493899c756ab0ce1a671:evaluation passes the immutable contract; :stdout.txt matches frozen reference hash; :stderr.txt and :threads.summary.json substantiate engagement; :result.json and :worker.json substantiate successful execution and reaping. All required evidence i
+rc=120
+$ JIUWENSWARM_M1_PROFILE=1 .venv/bin/jiuwenswarm factory status x
+Legacy configuration JIUWENSWARM_M1_PROFILE: the M1 pipeline was removed on this branch. See docs/architecture/factory/MIGRATION.md.
+rc=2
+$ .venv/bin/jiuwenswarm research
+Legacy configuration research: the M1 pipeline was removed on this branch. See docs/architecture/factory/MIGRATION.md.
+rc=0
+$ git merge-base --is-ancestor origin/AI4Research-Main HEAD
+rc=0
+$ git ls-remote origin AI4Research-Main
+141c1c401138f916af0a41aca791adf226d814c7	refs/heads/AI4Research-Main

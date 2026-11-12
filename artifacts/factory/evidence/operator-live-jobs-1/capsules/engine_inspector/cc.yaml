@@ -1,0 +1,81 @@
+cc: '2'
+id: factory.engine_inspector
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  inspect:
+    does: Inspect an authorized source checkout, host and optional local image; publish
+      evidence.
+    takes:
+      source:
+        kind: handle
+        description: Host-bound workspace handle; subpath selects its repository root.
+      subpath:
+        kind: text
+        optional: true
+      image:
+        kind: json
+        optional: true
+    gives:
+      source: json
+      host: json
+      image:
+        kind: json
+        optional: true
+      evidence: json
+    needs:
+    - python
+    - workspace
+    changes:
+    - workspace.read
+    - process.exec
+  preflight:
+    does: Resolve local image Id and reject unsupported flags using help cached by
+      immutable Id.
+    takes:
+      image: json
+      tool: text
+      argv:
+        kind: json
+        schema:
+          type: array
+          items:
+            type: string
+    gives:
+      ok: json
+      unsupported_flags: json
+      help_sha256: text
+      image: json
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
+  verify_effective_config:
+    does: Run one bounded CPU-only model config probe in an NVIDIA-runtime container
+      and publish actual stderr evidence.
+    takes:
+      image: json
+      env: json
+    gives:
+      requested: json
+      effective: json
+      mismatches: json
+      image: json
+      exit_status: json
+      aborted: json
+      invalid_line:
+        kind: text
+        optional: true
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use

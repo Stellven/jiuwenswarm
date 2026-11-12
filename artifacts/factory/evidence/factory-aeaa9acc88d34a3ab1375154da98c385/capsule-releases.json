@@ -1,0 +1,53 @@
+{
+  "algorithm": "sha256(sorted relative-path + NUL + file-sha256 + LF); excludes __pycache__ and .pyc",
+  "capsules": {
+    "builder": {
+      "files": {
+        "cc.yaml": "eeb1c70e86048c7c0e9cdcc661dd9eae07da9c0a7a72450c7c103bb6dc6a0aab",
+        "run.py": "f39c81fe8c4281d6527673c3dd4df28fa6d4af4ef5df807c1d1b601455ad25d6"
+      },
+      "sha256": "e51e13191c61c62c316a9921e870c3f3064d4fbce900dc43ef6e44a325be39f4"
+    },
+    "engine_component": {
+      "files": {
+        "09-thread-names.patch": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030",
+        "README.md": "58beb114b46848de1163ee0164652e505461a10b44c56166fb3e7aec225d55e9",
+        "cc.yaml": "a56cac69fd9aeaa3d9a4c901e169c25afe7fe90c384b34a1dad0b76efcfa6870",
+        "combined-01-02-03-04-05-06-07-08.patch": "87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497",
+        "component.yaml": "9c51767b0903fb99aa0f545b1c05682237c102a4d85b376835071ae8458ffeb5"
+      },
+      "sha256": "b3a3af6ece0b537980cc90aa50c61c89986994b36c4e129d3db31f664a90fadf"
+    },
+    "engine_inspector": {
+      "files": {
+        "cc.yaml": "842aad857966a4188a4b13a1d3df4d85ff80e651adae5d8f8f370e1be07706ec",
+        "run.py": "7f8472d6efec1954e0a59c5d587920eeaf7bcfd502ab978468fecba8727c7389"
+      },
+      "sha256": "978f07a9667c0616ad10b55394d3bb358f11cad722fc421f885e8c2278e68fad"
+    },
+    "evidence": {
+      "files": {
+        "cc.yaml": "8ed94e592e9a8a1ace9aab8099c3a839f5a433007e2f0049d3eca3b8c742c608",
+        "run.py": "51a0f1035aed1f17dbb8b8d5b90624b0dd02bbccbeb50616356f00dc3b75d145"
+      },
+      "sha256": "3d7e4370ce438ed23e45d8e20b019875240e7ca9bfa39ad9f366538d99846936"
+    },
+    "integration_skill": {
+      "files": {
+        "INTEGRATE.md": "15a132d6db597ba06f219428b2c95aeac6b7fd4e9e00c62ea02c4b10a206f4d7",
+        "PREFLIGHT.md": "2d92f236afd66eb1602da78bba03029902633789cdaeaab8c3740bc62646a058",
+        "REPAIR.md": "b51d1e5374c133f4fed714520f5efbc84e9ed96ff2a4f0f851cf15469e644464",
+        "cc.yaml": "868e8d168fc6fe55e87a90b0bda08b43082299937a947915a1b79c8f1f79f110"
+      },
+      "sha256": "9923230de60c6994a3ed6ad58a62aae9c9d0459e4369e29e51790185b76efbce"
+    },
+    "lab_client": {
+      "files": {
+        "cc.yaml": "3a8f3cd638c13454fdcfb97b7e3090430a25ad4c68fae6a72babb65a9e18d14b",
+        "run.py": "0afaf4adba6191cd837ec67314dd9269398c73d3e61cf648e5e9b8ba787558f1"
+      },
+      "sha256": "c6f57fb5d8acc31408c433acb4c6a55af888246301a35277548c08b5db8264c0"
+    }
+  },
+  "identity_scope": "export-time checkout; not an attestation of historical loaded bytes"
+}

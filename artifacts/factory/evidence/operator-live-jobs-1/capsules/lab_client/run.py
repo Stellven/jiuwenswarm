@@ -1,0 +1,25 @@
+"""Translate capsule capability names to the task-scoped factory native API."""
+import json
+import subprocess
+import sys
+
+PREFIX = 'lab'
+packet = json.load(sys.stdin)
+cap = packet['capability']
+packet['capability'] = PREFIX + '.' + cap
+try:
+    process = subprocess.run([sys.executable, '-m', 'jiuwenswarm.factory.api', packet['capability']],
+                             input=json.dumps(packet), capture_output=True, text=True, timeout=49)
+    result = json.loads(process.stdout)
+except subprocess.TimeoutExpired:
+    result = {'outcome': 'error', 'error': {'code': 'TIMEOUT', 'message': 'Factory API exceeded the bounded call deadline'}}
+except (ValueError, TypeError):
+    result = {'outcome': 'error', 'error': {'code': 'API_FAILED', 'message': 'Factory API did not return a JSON result'}}
+if result.get('outcome') == 'ok':
+    outputs = result['outputs']
+    if PREFIX == 'evidence' and cap in {'read', 'publish'}:
+        result['outputs'] = {'record': outputs}
+    elif PREFIX == 'builder':
+        if cap == 'submit':
+            result['outputs'] = {k: outputs[k] for k in ('attempt_id', 'state', 'jobq_id')}
+print(json.dumps(result))

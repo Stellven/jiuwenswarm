@@ -1,0 +1,78 @@
+{
+  "candidate_engagement_checks": [
+    "xfill_threads_present"
+  ],
+  "contract_id": "qwen36-greedy-v1",
+  "engagement_checks": [
+    "effective_config_matches_request",
+    "expert_fill: active",
+    "expert_fill: random advice applied at decode",
+    "expert_pregate: active",
+    "expert_pregate: stats"
+  ],
+  "model": {
+    "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "sha256": null,
+    "size": 22360456160
+  },
+  "pre_freeze_revisions": [
+    {
+      "at": "2026-11-12",
+      "by": "operator",
+      "change": "added -lv 4 (as J-OM11; engine log lines needed for engagement checks; stdout unaffected per J-OM11 hash 7a1541792364); moved xfill_threads_present to candidate-only checks (component patch 09 cannot engage on the reference image)",
+      "evidence": "reference attempt 3f49962fbb4643b3bb6a6fc6cf66c579: measurement_failed, stderr 27 lines, stdout sha 7a154179...; contract was unfrozen and unscored"
+    }
+  ],
+  "reference": {
+    "frozen_at": "2026-11-12T01:08:39.883331+00:00",
+    "image_id": "sha256:2dcf9fe7e9ae051caf6607ee67db3dc5442f680480a62356ebbec8582cac2754",
+    "image_tag": "campaign/llamacpp:jetson-up1108-om11",
+    "run_ref": "5a3647ebcb6e4760b9982f080fda1095",
+    "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+  },
+  "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+  "tolerance": "byte-identical stdout",
+  "version": 1,
+  "workload": {
+    "argv": [
+      "-m",
+      "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "-f",
+      "/om/prompts/p1.txt",
+      "-n",
+      "64",
+      "-c",
+      "4096",
+      "--temp",
+      "0",
+      "-s",
+      "1",
+      "-no-cnv",
+      "-ngl",
+      "99",
+      "-lm",
+      "mmap",
+      "-cmoe",
+      "-lv",
+      "4"
+    ],
+    "env": {
+      "LLAMA_EXPERT_FILL": "1",
+      "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+      "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+      "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+      "LLAMA_EXPERT_FILL_POPULATE": "0",
+      "LLAMA_EXPERT_FILL_RANDOM": "decode",
+      "LLAMA_EXPERT_FILL_THREADS": "16",
+      "LLAMA_EXPERT_PREFETCH": "0",
+      "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+      "LLAMA_EXPERT_PREGATE": "1",
+      "LLAMA_EXPERT_PREGATE_K": "8",
+      "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+      "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+      "LLAMA_EXPERT_PREGATE_ORDER": "after",
+      "LLAMA_MMAP_ADVICE": "default"
+    },
+    "tool": "llama-completion"
+  }
+}

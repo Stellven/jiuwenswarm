@@ -1,0 +1,172 @@
+[
+  {
+    "action": {
+      "next_bounded_operation": "One probe of existing image, omit only non-expert LLAMA_MMAP_ADVICE from inspector-specific input; keep full runtime request and K=48 unchanged.",
+      "type": "preflight"
+    },
+    "budget": "One 45-second CPU config probe.",
+    "created": 1794446764.2507486,
+    "decision_id": "factory-d4b71bcce337406b96f627d469bec092:decision:1",
+    "evidence_ids": [
+      "factory-d4b71bcce337406b96f627d469bec092",
+      "367f12bdba3c4c0b8c03b17a670fa0bd",
+      "11a4a68c41e94d93b79bc82815a9a5a0",
+      "78617274829b472bb8b701fb49e075f8",
+      "ea7c11f954974b1cb63ff5170e593266"
+    ],
+    "expected_evidence": "Exact parser invalid line, exit status and stderr artifact.",
+    "hypothesis": "Passing only the exact LLAMA_EXPERT_* subset will exercise parsing and reject K=48 explicitly.",
+    "observations": "Initial publish failed because observations used a list where storage requires text. I mistakenly continued read-only inspection/probe after that failure; no source mutation occurred. Source is clean at 690e4713. Probe rejected input envelope because LLAMA_MMAP_ADVICE is outside LLAMA_EXPERT_* namespace, before model execution. Initial full request remains unchanged in task record.",
+    "parent_rev": 0,
+    "reason_for_change": "11a4a68c41e94d93b79bc82815a9a5a0 identifies envelope restriction; 78617274829b472bb8b701fb49e075f8 confirms no model evidence.",
+    "rev": 1,
+    "stop_condition": "Inspect any failure before further action; no unsupported inference of success.",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+    "uncertainty": "No model parser rejection yet; prior build ownership for lab unresolved."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Preserve initial request and rejection; choose runtime env with only LLAMA_EXPERT_PREGATE_K changed to 8. Submit one fresh jetson-orin build from commit690e4713 with unique tag, CUDA PATH and deadline3600; end turn and inspect result next cycle.",
+      "type": "build"
+    },
+    "budget": "One build, deadline3600 seconds; no overlapping scored GPU work.",
+    "created": 1794446801.7805636,
+    "decision_id": "factory-d4b71bcce337406b96f627d469bec092:decision:2",
+    "evidence_ids": [
+      "factory-d4b71bcce337406b96f627d469bec092",
+      "abcedeb4176b4740acb2daf2bf094dd5",
+      "e25248518f9549c69640be5e84e7af23",
+      "367f12bdba3c4c0b8c03b17a670fa0bd",
+      "8183367a94e943b0a76a372e9e3c664c",
+      "351b2550a941444f94f545444d848d03:request",
+      "351b2550a941444f94f545444d848d03:build-record"
+    ],
+    "expected_evidence": "Task-owned durable build attempt followed by build receipt, source/tree, pinned base, toolchain, archive and image identity. Later preflight must confirm K8 and every requested expert value.",
+    "hypothesis": "Changing only K48 to documented K8 resolves parsing; a fresh task-owned build of identical clean source supplies admissible build provenance.",
+    "observations": "Actual parser rejects K48 with range1..32 and exit133. Source remains clean at integrated commit690e4713/tree43f95b17; inspector detects expected patch. Prior build successfully bound toolchain/base/archive, but belongs to prior task. Component recommends K8.",
+    "parent_rev": 1,
+    "reason_for_change": "abcedeb4176b4740acb2daf2bf094dd5 and stderr artifact e25248518f9549c69640be5e84e7af23 establish evidence-driven single-field K repair. Prior task build record supports reusing source, not claiming runtime pass.",
+    "rev": 2,
+    "stop_condition": "Build failure, identity drift, missing build evidence or deadline; no lab submission until successful build and preflight.",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+    "uncertainty": "Corrected config needs exact-image verification. Engagement and stdout identity remain unmeasured."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Run one corrected expert-env CPU probe and one llama-completion help preflight on immutable imagef02f8a93; inspect artifacts before lab admission.",
+      "type": "preflight"
+    },
+    "budget": "One config probe bounded45seconds and one help preflight.",
+    "created": 1794447069.0282617,
+    "decision_id": "factory-d4b71bcce337406b96f627d469bec092:decision:3",
+    "evidence_ids": [
+      "factory-d4b71bcce337406b96f627d469bec092",
+      "3216f10925b74aca8bfc8be140e65b7b",
+      "3216f10925b74aca8bfc8be140e65b7b:receipt",
+      "3216f10925b74aca8bfc8be140e65b7b:build-record",
+      "3216f10925b74aca8bfc8be140e65b7b:build-result",
+      "abcedeb4176b4740acb2daf2bf094dd5"
+    ],
+    "expected_evidence": "All requested expert values match K8, exit0, no mismatches; immutable help SHA and supported completion flags.",
+    "hypothesis": "K8 single-field repair will produce a matching effective configuration on the task-owned image; completion flags can be validated against immutable-image help.",
+    "observations": "Task-owned build succeeded with clean expected commit/tree, sm87 CUDA12.6.68, pinned runtime49853e9f, archive3da83cf9 and imagef02f8a93. Build record SHA1552324c retained. Config digest dda679b7 is distinct from local image Id. Patch label null because patch is committed; integration evidence supplies patch linkage. Contract is host-selected and not an evidence record.",
+    "parent_rev": 2,
+    "reason_for_change": "3216f10925b74aca8bfc8be140e65b7b:receipt and :build-record establish completed successful build; abcedeb4176b4740acb2daf2bf094dd5 justifies only K48->8.",
+    "rev": 3,
+    "stop_condition": "Any rejection/mismatch/missing effective line or unsupported flag stops lab submission until inspected.",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+    "uncertainty": "CPU config probe cannot establish Qwen engagement or correctness. Host contract exact argv is sealed; admission must validate it."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Submit one lab attempt using task-owned build3216f109, immutable imagef02f8a93, contractqwen36-greedy-v1 and initial full run_config changed only K48->8. End turn on queued/running attempt.",
+      "type": "evaluate"
+    },
+    "budget": "One fixed-contract lab evaluation; remaining wall budget over13000seconds; no concurrent build.",
+    "created": 1794447115.3028467,
+    "decision_id": "factory-d4b71bcce337406b96f627d469bec092:decision:4",
+    "evidence_ids": [
+      "factory-d4b71bcce337406b96f627d469bec092",
+      "3216f10925b74aca8bfc8be140e65b7b:receipt",
+      "3216f10925b74aca8bfc8be140e65b7b:build-record",
+      "04d617543cbb45c28a74e3ddbcd32b0a",
+      "1a8b182a7497456298878c8647cb6058",
+      "85bb8e5c40584e5a9d634ddf84e6818e",
+      "efa89423d29344bcb801743cdbeed198",
+      "abcedeb4176b4740acb2daf2bf094dd5"
+    ],
+    "expected_evidence": "Admission identity and bounded durable attempt; then actual contract invocation, candidate/baseline stdout hashes, config comparisons, decode thread observations, evaluation verdict and cleanup.",
+    "hypothesis": "The fixed qwen36-greedy-v1 lab run with unchanged full initial env except K8 will show xfill-* threads during decode, matching effective config, and byte-identical greedy stdout to om11.",
+    "observations": "Corrected exact-image CPU probe succeeded exit0, no mismatches, all expert values including K8 matched in both effective lines. Completion help preflight passed selected flag subset with helpSHA7d1881d1. This subset used placeholder model/prompt only for help validation, not a workload or the exact sealed contract argv. Task-owned build finished before any scored work.",
+    "parent_rev": 3,
+    "reason_for_change": "04d617543cbb45c28a74e3ddbcd32b0a and stderr1a8b182a7497456298878c8647cb6058 prove repaired parsing on built image; build receipt and preflight permit bounded contract admission, not acceptance.",
+    "rev": 4,
+    "stop_condition": "Admission failure, missing prerequisite, unsafe headroom, timeout or missing engagement/correctness evidence; inspect result before any retry or acceptance.",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+    "uncertainty": "Runtime worker engagement and byte identity remain unverified; no performance claim. Contract admission is responsible for exact fixed workload identities and preflight."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Retry lab submission once with image={tag:factory/llamacpp:d4b71bcc-thread-names-1,id:sha256:f02f8a93...}, same task-owned build, contract and K8 runtime config; fresh idempotency key.",
+      "type": "evaluate"
+    },
+    "budget": "One admission-envelope retry; one fixed-contract evaluation.",
+    "created": 1794447139.743208,
+    "decision_id": "factory-d4b71bcce337406b96f627d469bec092:decision:5",
+    "evidence_ids": [
+      "a9a1461528e24597b1dd17d2f178d4cb",
+      "3216f10925b74aca8bfc8be140e65b7b:build-record",
+      "3216f10925b74aca8bfc8be140e65b7b:receipt",
+      "04d617543cbb45c28a74e3ddbcd32b0a",
+      "85bb8e5c40584e5a9d634ddf84e6818e"
+    ],
+    "expected_evidence": "Admission result and owned lab attempt, followed later by evaluation artifacts.",
+    "hypothesis": "Supplying verified build tag and immutable id together resolves the admission envelope without changing source, configuration or contract.",
+    "observations": "Lab submission failed before an attempt was created: image requires tag and id. Inspector accepts image strings but lab admission requires a structured image identity.",
+    "parent_rev": 4,
+    "reason_for_change": "a9a1461528e24597b1dd17d2f178d4cb states exact missing image envelope fields; build-record supplies both.",
+    "rev": 5,
+    "stop_condition": "Inspect any rejection; end turn immediately after durable submission.",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+    "uncertainty": "Admission checks and live engagement/correctness remain pending."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Close task with contract-scoped acceptance of integrated commit690e4713, task-owned imagef02f8a93 and labcabd3a09. No further builds or evaluations.",
+      "type": "accept"
+    },
+    "budget": "Stop now; no additional execution. Host reports10 turns and13758seconds remaining at cycle start.",
+    "created": 1794447358.6795197,
+    "decision_id": "factory-d4b71bcce337406b96f627d469bec092:decision:6",
+    "evidence_ids": [
+      "factory-d4b71bcce337406b96f627d469bec092",
+      "8183367a94e943b0a76a372e9e3c664c",
+      "367f12bdba3c4c0b8c03b17a670fa0bd",
+      "3216f10925b74aca8bfc8be140e65b7b:build-record",
+      "3216f10925b74aca8bfc8be140e65b7b:receipt",
+      "abcedeb4176b4740acb2daf2bf094dd5",
+      "e25248518f9549c69640be5e84e7af23",
+      "04d617543cbb45c28a74e3ddbcd32b0a",
+      "1a8b182a7497456298878c8647cb6058",
+      "cabd3a09443f493899c756ab0ce1a671:evaluation",
+      "cabd3a09443f493899c756ab0ce1a671:observation",
+      "cabd3a09443f493899c756ab0ce1a671:manifest.json",
+      "cabd3a09443f493899c756ab0ce1a671:cmd.txt",
+      "cabd3a09443f493899c756ab0ce1a671:config.json",
+      "cabd3a09443f493899c756ab0ce1a671:stdout.txt",
+      "cabd3a09443f493899c756ab0ce1a671:stderr.txt",
+      "cabd3a09443f493899c756ab0ce1a671:threads.summary.json",
+      "cabd3a09443f493899c756ab0ce1a671:result.json",
+      "cabd3a09443f493899c756ab0ce1a671:worker.json"
+    ],
+    "expected_evidence": "Terminal decision revision6 citing successful build provenance, retained rejection/repair and complete passing contract evaluation.",
+    "hypothesis": "The component satisfies qwen36-greedy-v1 fixed-prompt greedy identity and required candidate engagement obligations with repaired K8.",
+    "observations": "Integrated observability patch0b4768b9 is committed at690e4713/tree43f95b17 and source was clean. Task-owned jetson-orin build3216f109 succeeded; build-recordSHA1552324c binds CUDA12.6.68/sm87, pinned runtime49853e9f, archive3da83cf9, imagef02f8a93 (config digestdda679b7 distinct). Initial K48 request and exact range1..32 rejection exit133 retained; only runtime repair K8. Exact-image CPU probe matched all expert values. Contract labcabd3a09 succeeded exit0, no OOM/watchdog trips, evaluation correctness=pass and evidence_completeness=complete. Full command/config matches frozen contractv1, with K8 and requested mmap advice default. Two effective lines match every expert setting; all required engagement checks true. Stderr records fill/pregate active, decode random advice and nonzero pregate/fill stats. Thread summary records xfill-0..15 with4542 samples each in estimated decode window, coverage_complete=true. Candidate stdout artifactSHA7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8 equals frozen om11 reference5a3647eb hash. Manifest binds inspected artifacts; worker reports cleanup=reaped.",
+    "parent_rev": 5,
+    "reason_for_change": "cabd3a09443f493899c756ab0ce1a671:evaluation passes the immutable contract; :stdout.txt matches frozen reference hash; :stderr.txt and :threads.summary.json substantiate engagement; :result.json and :worker.json substantiate successful execution and reaping. All required evidence is present, unlike earlier parsing/input failures.",
+    "rev": 6,
+    "stop_condition": "Terminal acceptance for qwen36-greedy-v1 only; additional accuracy/performance objectives require separate evidence.",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+    "uncertainty": "Acceptance limited to frozen contract's fixed prompt/model/greedy continuation; no general accuracy or speedup claim. Contract model hash is null (path/size identity only). LLAMA_MMAP_ADVICE=default is present in invocation but not independently emitted by expert effective lines; evaluator lists it unreported. Decode window is inferred from engine eval duration/last sample with31ms sampling bound and unknown teardown lag; sufficient for observed worker presence, not precise phase performance. Outer queue cleanup says containers_unverified; inner worker explicitly reports reaped. Prior operator inspector intervention and this task's initial decision-publish sequencing mistake remain recorded."
+  }
+]

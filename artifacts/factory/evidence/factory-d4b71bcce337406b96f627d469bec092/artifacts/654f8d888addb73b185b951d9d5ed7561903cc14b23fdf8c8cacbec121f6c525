@@ -1,0 +1,22 @@
+{
+  "admission_id": "admission:78856fb9c5c49df9a0550cd1342b810dab29f02dfee36929827780fe1f276aa2",
+  "contract_id": "qwen36-greedy-v1",
+  "files": {
+    "cmd.txt": "41584489b38e2071faa1700fbb24c950126a1102b8cce0e10a971a340c4671ea",
+    "config.json": "f5ed68f1f62be8e771133f3be445adea0a90c37c34839a1430232eba416275f5",
+    "container.id": "eae3ba3264bccacacfd661a5e9c04f257d0f5872a7ba532bb818bbab280cc901",
+    "launcher.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "launcher.stdout.txt": "4416bb0dce2365cd783b0390a43a8651afca844378a3a3fe4d4f5a65a4a8dfd2",
+    "result.json": "14669e27d4fd89d066174af545626b2f824968649a076501b4ac950e2d040e24",
+    "stderr.txt": "76e23407ec73a13a73277cc61ef1ba12c6d2d04fc2ba4f2f7ac90ac06c660d9c",
+    "stdout.txt": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+    "telemetry.jsonl": "e53b6e997f6998caf9a1970c6882b448f9f84821ef0de8a9b37401d23a3d4e60",
+    "threads.jsonl": "378fcc10833293e95ad69165d7d092a27d5f399305b67ff8dd30ab0d7bdbee05",
+    "threads.log": "b070a10993d9fb5f1c2e319b74aecad9e09cdc528b3d53402ad94d4ed6bb480e",
+    "threads.summary.json": "6bf9753704ce5baaeeefaa099df2cfbf145ee94920881ea2ac0020bd8e92a57f",
+    "watchdog.jsonl": "d2ef6332788e1222848996543c38e0ff09407179cf65d85bbf6d1a68dbd4a5c3",
+    "worker.json": "fc00f67f0fa0405753645738989b6d06d5c90ca220dcd81d9a2a3c87ea6e5e5e"
+  },
+  "lab_run_id": "cabd3a09443f493899c756ab0ce1a671",
+  "task_id": "factory-d4b71bcce337406b96f627d469bec092"
+}

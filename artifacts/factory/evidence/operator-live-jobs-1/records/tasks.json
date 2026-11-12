@@ -1,0 +1,21 @@
+[
+  {
+    "allowed_effects": [],
+    "budget": {},
+    "component_cc": "",
+    "constraints": {},
+    "contract_id": "",
+    "created": 1794447481.736755,
+    "current_decision_rev": 0,
+    "evidence_cursor": 191,
+    "initial_run_config": {},
+    "objective": "Operator live receipt: durable build survives client disconnect; duplicate submit; observed cancellation",
+    "operator_labels": {},
+    "revision": 1,
+    "source": {},
+    "target": {
+      "profile": "jetson-orin"
+    },
+    "task_id": "operator-live-jobs-1"
+  }
+]

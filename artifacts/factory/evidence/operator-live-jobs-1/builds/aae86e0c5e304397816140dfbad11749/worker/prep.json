@@ -1,0 +1,62 @@
+{
+  "status": "success",
+  "request_fingerprint": "fe6cb070092d71db74de65807922480ac5164dd46fcfe7a896bf127b78a043f5",
+  "cache_hit": true,
+  "toolchain": {
+    "nvcc": {
+      "path": "/usr/local/cuda/bin/nvcc",
+      "available": true,
+      "rc": 0,
+      "stdout": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2024 NVIDIA Corporation\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\nCuda compilation tools, release 12.6, V12.6.68\nBuild cuda_12.6.r12.6/compiler.34714021_0\n",
+      "stderr": ""
+    },
+    "gcc": {
+      "path": "/usr/bin/gcc",
+      "available": true,
+      "rc": 0,
+      "stdout": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+      "stderr": ""
+    },
+    "cmake": {
+      "path": "/home/muk/.local/bin/cmake",
+      "available": true,
+      "rc": 0,
+      "stdout": "cmake version 4.4.4\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n",
+      "stderr": ""
+    },
+    "ninja": {
+      "path": "/home/muk/.local/bin/ninja",
+      "available": true,
+      "rc": 0,
+      "stdout": "1.13.2.git.kitware.jobserver-pipe-1\n",
+      "stderr": ""
+    },
+    "docker": {
+      "path": "/usr/bin/docker",
+      "available": true,
+      "rc": 0,
+      "stdout": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b\n",
+      "stderr": ""
+    }
+  },
+  "nv_tegra_release": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia\n",
+  "nvidia-jetpack": {
+    "available": true,
+    "rc": 0,
+    "stdout": "6.2.3+b81",
+    "stderr": ""
+  },
+  "disk_free_bytes": 9477025792,
+  "ccache": {
+    "available": true,
+    "rc": 0,
+    "stdout": "Summary:\n  Cache directory:  /home/muk/.cache/ccache\n  Primary config:   /home/muk/.config/ccache/ccache.conf\n  Secondary config: /etc/ccache.conf\n  Stats updated:    Thu Nov 12 01:27:56 2026\n  Hits:             4670 /  6032 (77.42 %)\n    Direct:         4660 /  6032 (77.25 %)\n    Preprocessed:     10 /  1372 (0.73 %)\n  Misses:           1362\n    Direct:         1372\n    Preprocessed:   1362\nPrimary storage:\n  Hits:             9951 / 12064 (82.49 %)\n  Misses:           2113\n  Cache size (GB):  0.51 /  5.00 (10.30 %)\n  Files:            3540\n",
+    "stderr": ""
+  },
+  "base_images": {
+    "runtime": {
+      "reference": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1",
+      "cache_hit": true
+    }
+  }
+}

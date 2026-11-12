@@ -1,0 +1,11 @@
+{
+  "artifact_policy": "50 MiB limit; sanitized copies may have a different SHA256; artifacts.json maps original identities",
+  "exported_at": "2026-11-12T01:53:06.248875+00:00",
+  "factory_git_head": {
+    "available": true,
+    "stdout": "e2bef4a19e9ff3587bc3e5646eb06b1a9b42dd09\n"
+  },
+  "read_only": true,
+  "snapshot_cursor": 191,
+  "task_id": "operator-live-jobs-1"
+}

@@ -1,0 +1,6 @@
+[
+  {
+    "reason": "no agent session (operator task or unavailable)",
+    "source": "session.jsonl"
+  }
+]

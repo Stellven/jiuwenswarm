@@ -1,0 +1,1189 @@
+[
+  {
+    "created": 1794445745.547373,
+    "cursor": 71,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "kind": "task",
+    "record": {
+      "allowed_effects": [
+        "process.exec",
+        "workspace.read",
+        "workspace.write",
+        "gpu.use"
+      ],
+      "budget": {
+        "max_turns": 12,
+        "wall_clock_s": 14400
+      },
+      "component_cc": "factory.engine_component",
+      "constraints": {
+        "contract_immutable": true,
+        "local_commits_in_owned_checkout": true,
+        "owned_checkout_only": true,
+        "push_or_publish": false
+      },
+      "contract_id": "qwen36-greedy-v1",
+      "created": 1794445745.547048,
+      "current_decision_rev": 0,
+      "evidence_cursor": 0,
+      "initial_run_config": {
+        "env": {
+          "LLAMA_EXPERT_FILL": "1",
+          "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+          "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+          "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+          "LLAMA_EXPERT_FILL_POPULATE": "0",
+          "LLAMA_EXPERT_FILL_RANDOM": "decode",
+          "LLAMA_EXPERT_FILL_THREADS": "16",
+          "LLAMA_EXPERT_PREFETCH": "0",
+          "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+          "LLAMA_EXPERT_PREGATE": "1",
+          "LLAMA_EXPERT_PREGATE_K": "48",
+          "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+          "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+          "LLAMA_EXPERT_PREGATE_ORDER": "after",
+          "LLAMA_MMAP_ADVICE": "default"
+        }
+      },
+      "objective": "Integrate component factory.engine_component into the owned checkout, build a jetson-orin image, and run it under contract qwen36-greedy-v1. Inspect evidence and decide bounded next actions.",
+      "operator_labels": {
+        "LLAMA_EXPERT_PREGATE_K": "controlled-invalid: deliberately out of range (1..32) to demonstrate evidence-driven repair"
+      },
+      "revision": 1,
+      "source": {
+        "pre_integration_commit": "e14b87603",
+        "subpath": "llama.cpp"
+      },
+      "target": "jetson-orin",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "Integrate component factory.engine_component into the owned checkout, build a jetson-orin image, and run it under contract qwen36-greedy-v1. Inspect evidence and decide bounded next actions.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "task"
+  },
+  {
+    "created": 1794445845.9097385,
+    "cursor": 72,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:1",
+    "kind": "decision",
+    "record": {
+      "action": {
+        "next_bounded_operation": "Verify/apply candidate, review exact diff, locally commit under task authorization, inspect prerequisites.",
+        "type": "integrate"
+      },
+      "budget": "One integration and prerequisite inspection; at most one subsequent build.",
+      "created": 1794445845.8763802,
+      "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:1",
+      "evidence_ids": [
+        "factory-aeaa9acc88d34a3ab1375154da98c385"
+      ],
+      "expected_evidence": "Patch hashes/checks, diff, commit/tree, inspector output.",
+      "hypothesis": "Candidate integrates cleanly and can be built.",
+      "observations": "Clean owned checkout at e14b87603. Task permits local commits. Initial K=48 retained.",
+      "parent_rev": 0,
+      "reason_for_change": "Initial task factory-aeaa9acc88d34a3ab1375154da98c385 requires integration before build.",
+      "rev": 1,
+      "stop_condition": "Failed provenance/patch check, unrelated changes, missing prerequisites.",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "uncertainty": "Patch hashes, toolchain, runtime acceptance unverified."
+    },
+    "summary": "Candidate integrates cleanly and can be built.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "decision"
+  },
+  {
+    "created": 1794445895.993574,
+    "cursor": 73,
+    "id": "e48f54ebad994484a16602f65de5d811",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "e48f54ebad994484a16602f65de5d811",
+      "complete": true,
+      "created": 1794445895.9933417,
+      "location": "artifacts/81/8147a460bb34a1729af2a7d9972a1b2ce4193718ca0d0ce79bed8935d09fe74f",
+      "media_type": "text/plain",
+      "producer_attempt": "dd1b2788-b271-43b4-9705-1aa20c40da1c",
+      "sha256": "8147a460bb34a1729af2a7d9972a1b2ce4193718ca0d0ce79bed8935d09fe74f",
+      "size": 684,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "8147a460bb34a1729af2a7d9972a1b2ce4193718ca0d0ce79bed8935d09fe74f",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794445895.9957972,
+    "cursor": 74,
+    "id": "1293decfe93c4f25b1031bf336c3f9d1",
+    "kind": "inspector.inspect",
+    "record": {
+      "confidence": null,
+      "created": 1794445895.994853,
+      "error": {},
+      "host_run": {},
+      "kind": "inspector.inspect",
+      "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+      "obs_id": "1293decfe93c4f25b1031bf336c3f9d1",
+      "source_artifacts": [
+        "e48f54ebad994484a16602f65de5d811"
+      ],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {
+        "host": {
+          "arch": "aarch64",
+          "docker": true,
+          "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+          "nvcc_on_path": true
+        },
+        "source": {
+          "applied_patches": [
+            {
+              "name": "09-thread-names.patch",
+              "sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030"
+            }
+          ],
+          "branch": "factory/pre-integration",
+          "commit": "e14b876035009d585fe539a11ddd9a887b5834eb",
+          "dirty": true
+        }
+      }
+    },
+    "summary": "{'source': {'commit': 'e14b876035009d585fe539a11ddd9a887b5834eb', 'dirty': True, 'branch': 'factory/pre-integration', 'applied_patches': [{'name': '09-thread-names.patch', 'sha256': '0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030'}]}, 'host': {'arch': 'aarch64', 'l4t': '# R36 (rele",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794445923.8537855,
+    "cursor": 75,
+    "id": "8183367a94e943b0a76a372e9e3c664c",
+    "kind": "integration",
+    "record": {
+      "confidence": null,
+      "created": 1794445923.8532846,
+      "error": {},
+      "host_run": {},
+      "kind": "integration",
+      "limitations": "Build, engagement and correctness not yet verified.",
+      "obs_id": "8183367a94e943b0a76a372e9e3c664c",
+      "source_artifacts": [],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {
+        "base": "e14b876035009d585fe539a11ddd9a887b5834eb",
+        "checks": {
+          "apply": 0,
+          "candidate_forward": 0,
+          "candidate_reverse_before": 1,
+          "combined_reverse": 0,
+          "diff_check": 0
+        },
+        "combined_sha256": "87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497",
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "notes": "Exact material bytes restored after initial trailing-newline hash mismatch, before application. First commit failed missing identity; retried with per-command Factory Agent <factory-agent@localhost>; no global config changed.",
+        "patch_sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030",
+        "review": "Six added lines only: pthread header plus Linux worker thread naming via bounded snprintf; no data-path change.",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      }
+    },
+    "summary": "{'base': 'e14b876035009d585fe539a11ddd9a887b5834eb', 'checks': {'apply': 0, 'candidate_forward': 0, 'candidate_reverse_before': 1, 'combined_reverse': 0, 'diff_check': 0}, 'combined_sha256': '87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497', 'commit': '690e4713a55bae8dd6b40de3ccbdc8",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794445925.886278,
+    "cursor": 76,
+    "id": "7f0cbd8f9dfe43078d9af827a287106f",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "7f0cbd8f9dfe43078d9af827a287106f",
+      "complete": true,
+      "created": 1794445925.8858476,
+      "location": "artifacts/21/21ddcca17194e53ff74052375a624b632d9b08ff49832afbf07f07c457b415ef",
+      "media_type": "text/plain",
+      "producer_attempt": "f52fb15a-76ac-4856-b008-08c17f25ccae",
+      "sha256": "21ddcca17194e53ff74052375a624b632d9b08ff49832afbf07f07c457b415ef",
+      "size": 685,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "21ddcca17194e53ff74052375a624b632d9b08ff49832afbf07f07c457b415ef",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794445925.8880253,
+    "cursor": 77,
+    "id": "9cd387c0dd2b49b8945c68a933c56ba8",
+    "kind": "inspector.inspect",
+    "record": {
+      "confidence": null,
+      "created": 1794445925.8876643,
+      "error": {},
+      "host_run": {},
+      "kind": "inspector.inspect",
+      "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+      "obs_id": "9cd387c0dd2b49b8945c68a933c56ba8",
+      "source_artifacts": [
+        "7f0cbd8f9dfe43078d9af827a287106f"
+      ],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {
+        "host": {
+          "arch": "aarch64",
+          "docker": true,
+          "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+          "nvcc_on_path": true
+        },
+        "source": {
+          "applied_patches": [
+            {
+              "name": "09-thread-names.patch",
+              "sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030"
+            }
+          ],
+          "branch": "factory/pre-integration",
+          "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "dirty": false
+        }
+      }
+    },
+    "summary": "{'source': {'commit': '690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8', 'dirty': False, 'branch': 'factory/pre-integration', 'applied_patches': [{'name': '09-thread-names.patch', 'sha256': '0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030'}]}, 'host': {'arch': 'aarch64', 'l4t': '# R36 (rel",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794445945.1701112,
+    "cursor": 78,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:2",
+    "kind": "decision",
+    "record": {
+      "action": {
+        "next_bounded_operation": "Submit one durable jetson-orin build with unique factory tag, explicit PATH/CUDA_HOME and one-hour deadline; inspect result next turn.",
+        "type": "build"
+      },
+      "budget": "One build, 3600-second deadline; no GPU lab overlap.",
+      "created": 1794445945.1698227,
+      "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:2",
+      "evidence_ids": [
+        "8183367a94e943b0a76a372e9e3c664c",
+        "9cd387c0dd2b49b8945c68a933c56ba8",
+        "7f0cbd8f9dfe43078d9af827a287106f"
+      ],
+      "expected_evidence": "Owned build attempt, terminal receipt, immutable image identity, build provenance and archive hashes.",
+      "hypothesis": "A jetson-orin build of the isolated thread-naming change will succeed with the inherited CUDA PATH.",
+      "observations": "Clean committed source 690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8; exact candidate hash detected. aarch64 L4T R36.5.2, nvcc CUDA 12.6.68 on PATH.",
+      "parent_rev": 1,
+      "reason_for_change": "8183367a94e943b0a76a372e9e3c664c and 9cd387c0dd2b49b8945c68a933c56ba8 establish integrated clean source and prerequisites.",
+      "rev": 2,
+      "stop_condition": "Build failed/blocked, missing immutable identity, unsafe prerequisites or deadline.",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "uncertainty": "Build/base identity and runtime configuration not yet verified."
+    },
+    "summary": "A jetson-orin build of the isolated thread-naming change will succeed with the inherited CUDA PATH.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "decision"
+  },
+  {
+    "created": 1794445979.7151096,
+    "cursor": 79,
+    "id": "351b2550a941444f94f545444d848d03",
+    "kind": "build",
+    "record": {
+      "attempt_id": "351b2550a941444f94f545444d848d03",
+      "cleanup_state": "pending",
+      "ended": null,
+      "fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3",
+      "history": [
+        {
+          "created": 1794445979.7138598,
+          "state": "queued"
+        }
+      ],
+      "idem_key": "factory-aeaa9acc-build-1",
+      "jobq_id": null,
+      "kind": "build",
+      "owner": {},
+      "request": {
+        "deadline_s": 3600,
+        "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+        "env": {
+          "CUDA_HOME": "/usr/local/cuda",
+          "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+        "source": {
+          "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+          "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+        },
+        "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+        "target": "jetson-orin"
+      },
+      "resources": {
+        "argv": [
+          "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+          "-m",
+          "jiuwenswarm.factory.build_job",
+          "--task",
+          "factory-aeaa9acc88d34a3ab1375154da98c385",
+          "--attempt",
+          "{attempt_id}",
+          "--request",
+          "/home/muk/.jiuwenswarm-factory/requests/7c7b4caa73c2fa49c23cac176f3267194b925efe3490a1866a1486d841e6257a.json"
+        ],
+        "job_class": "build",
+        "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+        "timeout_s": 3600
+      },
+      "result_refs": [],
+      "started": null,
+      "state": "queued",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "queued",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "attempt"
+  },
+  {
+    "created": 1794445979.8118095,
+    "cursor": 80,
+    "id": "351b2550a941444f94f545444d848d03",
+    "kind": "build",
+    "record": {
+      "attempt_id": "351b2550a941444f94f545444d848d03",
+      "cleanup_state": "pending",
+      "ended": null,
+      "fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3",
+      "history": [
+        {
+          "created": 1794445979.7138598,
+          "state": "queued"
+        }
+      ],
+      "idem_key": "factory-aeaa9acc-build-1",
+      "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+      "kind": "build",
+      "owner": {},
+      "request": {
+        "deadline_s": 3600,
+        "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+        "env": {
+          "CUDA_HOME": "/usr/local/cuda",
+          "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+        "source": {
+          "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+          "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+        },
+        "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+        "target": "jetson-orin"
+      },
+      "resources": {
+        "argv": [
+          "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+          "-m",
+          "jiuwenswarm.factory.build_job",
+          "--task",
+          "factory-aeaa9acc88d34a3ab1375154da98c385",
+          "--attempt",
+          "{attempt_id}",
+          "--request",
+          "/home/muk/.jiuwenswarm-factory/requests/7c7b4caa73c2fa49c23cac176f3267194b925efe3490a1866a1486d841e6257a.json"
+        ],
+        "job_class": "build",
+        "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+        "timeout_s": 3600
+      },
+      "result_refs": [],
+      "started": null,
+      "state": "queued",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "queued",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "attempt"
+  },
+  {
+    "created": 1794445998.8448482,
+    "cursor": 81,
+    "id": "351b2550a941444f94f545444d848d03",
+    "kind": "build",
+    "record": {
+      "attempt_id": "351b2550a941444f94f545444d848d03",
+      "cleanup_state": "pending",
+      "ended": null,
+      "fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3",
+      "history": [
+        {
+          "created": 1794445979.7138598,
+          "state": "queued"
+        },
+        {
+          "created": 1794445998.844599,
+          "previous": "queued",
+          "state": "running"
+        }
+      ],
+      "idem_key": "factory-aeaa9acc-build-1",
+      "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+      "kind": "build",
+      "owner": {
+        "pgid": 951326,
+        "pid": 951326,
+        "runner_pid": 951324,
+        "wrapper_pgid": 951325
+      },
+      "request": {
+        "deadline_s": 3600,
+        "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+        "env": {
+          "CUDA_HOME": "/usr/local/cuda",
+          "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+        "source": {
+          "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+          "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+        },
+        "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+        "target": "jetson-orin"
+      },
+      "resources": {
+        "argv": [
+          "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+          "-m",
+          "jiuwenswarm.factory.build_job",
+          "--task",
+          "factory-aeaa9acc88d34a3ab1375154da98c385",
+          "--attempt",
+          "{attempt_id}",
+          "--request",
+          "/home/muk/.jiuwenswarm-factory/requests/7c7b4caa73c2fa49c23cac176f3267194b925efe3490a1866a1486d841e6257a.json"
+        ],
+        "error": null,
+        "job_class": "build",
+        "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+        "jobq_state": "running",
+        "rc": null,
+        "timeout_s": 3600
+      },
+      "result_refs": [],
+      "started": 1794445998.844599,
+      "state": "running",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "running",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "attempt"
+  },
+  {
+    "created": 1794446226.8655045,
+    "cursor": 82,
+    "id": "351b2550a941444f94f545444d848d03:request",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:request",
+      "complete": true,
+      "created": 1794446226.8651004,
+      "location": "artifacts/65/65a645936e6c3767103a04dc18a207abce70c91e04397425b2daa5772c50eaa3",
+      "media_type": "application/json",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "65a645936e6c3767103a04dc18a207abce70c91e04397425b2daa5772c50eaa3",
+      "size": 702,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "65a645936e6c3767103a04dc18a207abce70c91e04397425b2daa5772c50eaa3",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.875252,
+    "cursor": 83,
+    "id": "351b2550a941444f94f545444d848d03:prep",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:prep",
+      "complete": true,
+      "created": 1794446226.8751087,
+      "location": "artifacts/db/db5c6c23358cd36a37c312a69d66b92ccf84c7e5cd8f117c377270ee7744aabc",
+      "media_type": "application/json",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "db5c6c23358cd36a37c312a69d66b92ccf84c7e5cd8f117c377270ee7744aabc",
+      "size": 2789,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "db5c6c23358cd36a37c312a69d66b92ccf84c7e5cd8f117c377270ee7744aabc",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.882524,
+    "cursor": 84,
+    "id": "351b2550a941444f94f545444d848d03:build-record",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:build-record",
+      "complete": true,
+      "created": 1794446226.8823879,
+      "location": "artifacts/bd/bdd027168b404bd0ed25f4dec11d22f14e1ac76467f66d4ea84fb4abdb01b59f",
+      "media_type": "application/json",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "bdd027168b404bd0ed25f4dec11d22f14e1ac76467f66d4ea84fb4abdb01b59f",
+      "size": 15525,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "bdd027168b404bd0ed25f4dec11d22f14e1ac76467f66d4ea84fb4abdb01b59f",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.885212,
+    "cursor": 85,
+    "id": "351b2550a941444f94f545444d848d03:stdout",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:stdout",
+      "complete": true,
+      "created": 1794446226.8851228,
+      "location": "artifacts/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "media_type": "text/plain",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.9104528,
+    "cursor": 86,
+    "id": "351b2550a941444f94f545444d848d03:stdout-tail",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:stdout-tail",
+      "complete": true,
+      "created": 1794446226.91024,
+      "location": "artifacts/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "media_type": "text/plain",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.9209208,
+    "cursor": 87,
+    "id": "351b2550a941444f94f545444d848d03:stderr",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:stderr",
+      "complete": true,
+      "created": 1794446226.9208057,
+      "location": "artifacts/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "media_type": "text/plain",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.924326,
+    "cursor": 88,
+    "id": "351b2550a941444f94f545444d848d03:stderr-tail",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:stderr-tail",
+      "complete": true,
+      "created": 1794446226.9241421,
+      "location": "artifacts/e3/e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "media_type": "text/plain",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size": 0,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.9285097,
+    "cursor": 89,
+    "id": "351b2550a941444f94f545444d848d03:receipt",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "351b2550a941444f94f545444d848d03:receipt",
+      "complete": true,
+      "created": 1794446226.928315,
+      "location": "artifacts/70/70871c29feefb280243ea7b6a5321c4c6d4782fef100218afead903f68d5878b",
+      "media_type": "application/json",
+      "producer_attempt": "351b2550a941444f94f545444d848d03",
+      "sha256": "70871c29feefb280243ea7b6a5321c4c6d4782fef100218afead903f68d5878b",
+      "size": 632,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "70871c29feefb280243ea7b6a5321c4c6d4782fef100218afead903f68d5878b",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446226.9302716,
+    "cursor": 90,
+    "id": "351b2550a941444f94f545444d848d03:build-result",
+    "kind": "build_result",
+    "record": {
+      "confidence": null,
+      "created": 1794446226.9298112,
+      "error": {},
+      "host_run": {
+        "attempt_id": "351b2550a941444f94f545444d848d03",
+        "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+        "receipt": {
+          "build_record": {
+            "artifact_id": "351b2550a941444f94f545444d848d03:build-record",
+            "sha256": "bdd027168b404bd0ed25f4dec11d22f14e1ac76467f66d4ea84fb4abdb01b59f"
+          },
+          "image_id": "sha256:89ad6ac43df111090aab1ce8ace54009ae707550db39ed1b3f2614a84f0cd093",
+          "prep": {
+            "artifact_id": "351b2550a941444f94f545444d848d03:prep",
+            "sha256": "db5c6c23358cd36a37c312a69d66b92ccf84c7e5cd8f117c377270ee7744aabc"
+          },
+          "request": {
+            "artifact_id": "351b2550a941444f94f545444d848d03:request",
+            "sha256": "65a645936e6c3767103a04dc18a207abce70c91e04397425b2daa5772c50eaa3"
+          },
+          "request_fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3"
+        }
+      },
+      "kind": "build_result",
+      "limitations": "",
+      "obs_id": "351b2550a941444f94f545444d848d03:build-result",
+      "source_artifacts": [
+        "351b2550a941444f94f545444d848d03:request",
+        "351b2550a941444f94f545444d848d03:prep",
+        "351b2550a941444f94f545444d848d03:build-record",
+        "351b2550a941444f94f545444d848d03:stdout",
+        "351b2550a941444f94f545444d848d03:stdout-tail",
+        "351b2550a941444f94f545444d848d03:stderr",
+        "351b2550a941444f94f545444d848d03:stderr-tail",
+        "351b2550a941444f94f545444d848d03:receipt"
+      ],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {
+        "base_images": {
+          "runtime": {
+            "digest": "sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1",
+            "reference": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+          }
+        },
+        "build_wall_seconds": 167.05182179401163,
+        "cache_hit": false,
+        "failure_stage": null,
+        "image_id": "sha256:89ad6ac43df111090aab1ce8ace54009ae707550db39ed1b3f2614a84f0cd093",
+        "patch_sha256": null,
+        "source_commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "source_tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3",
+        "status": "success",
+        "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+        "toolchain": {
+          "cmake": "cmake version 4.4.4\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+          "gcc": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+          "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+          "nv_tegra_release": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+          "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2024 NVIDIA Corporation\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\nCuda compilation tools, release 12.6, V12.6.68\nBuild cuda_12.6.r12.6/compiler.34714021_0",
+          "nvidia-jetpack": "6.2.3+b81"
+        }
+      }
+    },
+    "summary": "{'status': 'success', 'failure_stage': None, 'image_id': 'sha256:89ad6ac43df111090aab1ce8ace54009ae707550db39ed1b3f2614a84f0cd093', 'tag': 'factory/llamacpp:aeaa9acc-thread-names-1', 'source_commit': '690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8', 'source_tree': '43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794446226.9316015,
+    "cursor": 91,
+    "id": "351b2550a941444f94f545444d848d03",
+    "kind": "build",
+    "record": {
+      "attempt_id": "351b2550a941444f94f545444d848d03",
+      "cleanup_state": "pending",
+      "ended": null,
+      "fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3",
+      "history": [
+        {
+          "created": 1794445979.7138598,
+          "state": "queued"
+        },
+        {
+          "created": 1794445998.844599,
+          "previous": "queued",
+          "state": "running"
+        }
+      ],
+      "idem_key": "factory-aeaa9acc-build-1",
+      "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+      "kind": "build",
+      "owner": {
+        "pgid": 951326,
+        "pid": 951326,
+        "runner_pid": 951324,
+        "wrapper_pgid": 951325
+      },
+      "request": {
+        "deadline_s": 3600,
+        "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+        "env": {
+          "CUDA_HOME": "/usr/local/cuda",
+          "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+        "source": {
+          "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+          "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+        },
+        "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+        "target": "jetson-orin"
+      },
+      "resources": {
+        "argv": [
+          "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+          "-m",
+          "jiuwenswarm.factory.build_job",
+          "--task",
+          "factory-aeaa9acc88d34a3ab1375154da98c385",
+          "--attempt",
+          "{attempt_id}",
+          "--request",
+          "/home/muk/.jiuwenswarm-factory/requests/7c7b4caa73c2fa49c23cac176f3267194b925efe3490a1866a1486d841e6257a.json"
+        ],
+        "error": null,
+        "job_class": "build",
+        "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+        "jobq_state": "running",
+        "rc": null,
+        "timeout_s": 3600
+      },
+      "result_refs": [
+        "351b2550a941444f94f545444d848d03:request",
+        "351b2550a941444f94f545444d848d03:prep",
+        "351b2550a941444f94f545444d848d03:build-record",
+        "351b2550a941444f94f545444d848d03:stdout",
+        "351b2550a941444f94f545444d848d03:stdout-tail",
+        "351b2550a941444f94f545444d848d03:stderr",
+        "351b2550a941444f94f545444d848d03:stderr-tail",
+        "351b2550a941444f94f545444d848d03:receipt",
+        "351b2550a941444f94f545444d848d03:build-result"
+      ],
+      "started": 1794445998.844599,
+      "state": "running",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "running",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "attempt"
+  },
+  {
+    "created": 1794446232.2482603,
+    "cursor": 92,
+    "id": "351b2550a941444f94f545444d848d03",
+    "kind": "build",
+    "record": {
+      "attempt_id": "351b2550a941444f94f545444d848d03",
+      "cleanup_state": "process_groups_reaped;containers_unverified",
+      "ended": 1794446232.2479467,
+      "fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3",
+      "history": [
+        {
+          "created": 1794445979.7138598,
+          "state": "queued"
+        },
+        {
+          "created": 1794445998.844599,
+          "previous": "queued",
+          "state": "running"
+        },
+        {
+          "created": 1794446232.2479467,
+          "previous": "running",
+          "state": "succeeded"
+        }
+      ],
+      "idem_key": "factory-aeaa9acc-build-1",
+      "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+      "kind": "build",
+      "owner": {
+        "pgid": 951326,
+        "pid": 951326,
+        "runner_pid": 951324,
+        "wrapper_pgid": 951325
+      },
+      "request": {
+        "deadline_s": 3600,
+        "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+        "env": {
+          "CUDA_HOME": "/usr/local/cuda",
+          "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        },
+        "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+        "source": {
+          "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+          "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+        },
+        "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+        "target": "jetson-orin"
+      },
+      "resources": {
+        "argv": [
+          "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+          "-m",
+          "jiuwenswarm.factory.build_job",
+          "--task",
+          "factory-aeaa9acc88d34a3ab1375154da98c385",
+          "--attempt",
+          "{attempt_id}",
+          "--request",
+          "/home/muk/.jiuwenswarm-factory/requests/7c7b4caa73c2fa49c23cac176f3267194b925efe3490a1866a1486d841e6257a.json"
+        ],
+        "error": null,
+        "job_class": "build",
+        "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+        "jobq_state": "succeeded",
+        "rc": 0,
+        "timeout_s": 3600
+      },
+      "result_refs": [
+        "351b2550a941444f94f545444d848d03:request",
+        "351b2550a941444f94f545444d848d03:prep",
+        "351b2550a941444f94f545444d848d03:build-record",
+        "351b2550a941444f94f545444d848d03:stdout",
+        "351b2550a941444f94f545444d848d03:stdout-tail",
+        "351b2550a941444f94f545444d848d03:stderr",
+        "351b2550a941444f94f545444d848d03:stderr-tail",
+        "351b2550a941444f94f545444d848d03:receipt",
+        "351b2550a941444f94f545444d848d03:build-result"
+      ],
+      "started": 1794445998.844599,
+      "state": "succeeded",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "succeeded",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "attempt"
+  },
+  {
+    "created": 1794446269.6142585,
+    "cursor": 93,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:3",
+    "kind": "decision",
+    "record": {
+      "action": {
+        "next_bounded_operation": "Probe exact immutable build image with unchanged initial environment using verify_effective_config, retain actual stderr and exit status.",
+        "type": "preflight"
+      },
+      "budget": "One bounded CPU-only config probe (45-second subprocess deadline).",
+      "created": 1794446269.6139948,
+      "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:3",
+      "evidence_ids": [
+        "351b2550a941444f94f545444d848d03:build-record",
+        "351b2550a941444f94f545444d848d03:receipt",
+        "351b2550a941444f94f545444d848d03:build-result",
+        "8183367a94e943b0a76a372e9e3c664c"
+      ],
+      "expected_evidence": "Actual invalid line, exit status, requested/effective configuration and probe artifacts.",
+      "hypothesis": "The preserved initial K=48 will cause explicit model-independent config rejection.",
+      "observations": "Build succeeded for integrated commit and sm_87. Build record bdd02716... binds pinned runtime, CUDA12.6.68, image89ad6ac4..., config3b04d1e7..., archive2ca616c1.... Record patch_sha256 is null because patch was committed; integration evidence links exact patch to source tree.",
+      "parent_rev": 2,
+      "reason_for_change": "Build receipt and build-result establish successful image construction; runtime validation is next, preserving task's initial K48.",
+      "rev": 3,
+      "stop_condition": "Probe timeout, missing output, or unanticipated failure; inspect receipt before any repair.",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "uncertainty": "No runtime engagement or correctness evidence; initial config rejection is not yet observed."
+    },
+    "summary": "The preserved initial K=48 will cause explicit model-independent config rejection.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "decision"
+  },
+  {
+    "created": 1794446271.3031042,
+    "cursor": 94,
+    "id": "58379e369b1c440c948c3fdb6dc7ee9a",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "58379e369b1c440c948c3fdb6dc7ee9a",
+      "complete": true,
+      "created": 1794446271.302751,
+      "location": "artifacts/32/3203bcf86c2eba136a6186a98a479f713a3c2cf9d8bfc1072864e17eb2c854b7",
+      "media_type": "text/plain",
+      "producer_attempt": "63253521-ae31-4b0f-97d1-7ec2923df731",
+      "sha256": "3203bcf86c2eba136a6186a98a479f713a3c2cf9d8bfc1072864e17eb2c854b7",
+      "size": 23,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "3203bcf86c2eba136a6186a98a479f713a3c2cf9d8bfc1072864e17eb2c854b7",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446271.3047132,
+    "cursor": 95,
+    "id": "73feee22ee734fddab0aecc98dae9e19",
+    "kind": "inspector.verify_effective_config",
+    "record": {
+      "confidence": null,
+      "created": 1794446271.3043349,
+      "error": {
+        "code": "INVALID_INPUT",
+        "message": "Invalid inspector inputs or local tool response"
+      },
+      "host_run": {},
+      "kind": "inspector.verify_effective_config",
+      "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+      "obs_id": "73feee22ee734fddab0aecc98dae9e19",
+      "source_artifacts": [
+        "58379e369b1c440c948c3fdb6dc7ee9a"
+      ],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {}
+    },
+    "summary": "{}",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794446291.6102767,
+    "cursor": 96,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:4",
+    "kind": "decision",
+    "record": {
+      "action": {
+        "next_bounded_operation": "Retry config probe using recorded build tag with unchanged initial env; check returned immutable image identity.",
+        "type": "preflight"
+      },
+      "budget": "One additional bounded probe; no source/config changes.",
+      "created": 1794446291.6100047,
+      "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:4",
+      "evidence_ids": [
+        "73feee22ee734fddab0aecc98dae9e19",
+        "58379e369b1c440c948c3fdb6dc7ee9a",
+        "351b2550a941444f94f545444d848d03:build-result"
+      ],
+      "expected_evidence": "Resolved image Id and actual config output or concrete failure artifacts.",
+      "hypothesis": "Inspector expects named image reference; build tag resolves to recorded immutable image.",
+      "observations": "Inspector rejected bare sha256 image input with INVALID_INPUT and empty artifact; no model rejection or effective config exists.",
+      "parent_rev": 3,
+      "reason_for_change": "73feee22ee734fddab0aecc98dae9e19 and 58379e369b1c440c948c3fdb6dc7ee9a show input failure, not a configuration failure.",
+      "rev": 4,
+      "stop_condition": "Different image identity or repeated unexplained input rejection.",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "uncertainty": "Input shape/reference acceptance; K48 has still not been probed."
+    },
+    "summary": "Inspector expects named image reference; build tag resolves to recorded immutable image.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "decision"
+  },
+  {
+    "created": 1794446292.5112603,
+    "cursor": 97,
+    "id": "a0e9a2bab10f48d8ad5c420f149f06dd",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "a0e9a2bab10f48d8ad5c420f149f06dd",
+      "complete": true,
+      "created": 1794446292.510957,
+      "location": "artifacts/32/3203bcf86c2eba136a6186a98a479f713a3c2cf9d8bfc1072864e17eb2c854b7",
+      "media_type": "text/plain",
+      "producer_attempt": "f105d495-5aef-4498-843e-4ed6356e4359",
+      "sha256": "3203bcf86c2eba136a6186a98a479f713a3c2cf9d8bfc1072864e17eb2c854b7",
+      "size": 23,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "3203bcf86c2eba136a6186a98a479f713a3c2cf9d8bfc1072864e17eb2c854b7",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446292.5133004,
+    "cursor": 98,
+    "id": "48d0c0e686b6431d866abd98a5e42621",
+    "kind": "inspector.verify_effective_config",
+    "record": {
+      "confidence": null,
+      "created": 1794446292.5127347,
+      "error": {
+        "code": "INVALID_INPUT",
+        "message": "Invalid inspector inputs or local tool response"
+      },
+      "host_run": {},
+      "kind": "inspector.verify_effective_config",
+      "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+      "obs_id": "48d0c0e686b6431d866abd98a5e42621",
+      "source_artifacts": [
+        "a0e9a2bab10f48d8ad5c420f149f06dd"
+      ],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {}
+    },
+    "summary": "{}",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794446314.4233215,
+    "cursor": 99,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:5",
+    "kind": "decision",
+    "record": {
+      "action": {
+        "next_bounded_operation": "One read-only inspector.inspect using image={ref:build tag}; if this fails stop missing prerequisite for usable API schema.",
+        "type": "inspect"
+      },
+      "budget": "One read-only schema/identity inspection, no further blind retries.",
+      "created": 1794446314.4230564,
+      "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:5",
+      "evidence_ids": [
+        "48d0c0e686b6431d866abd98a5e42621",
+        "a0e9a2bab10f48d8ad5c420f149f06dd",
+        "73feee22ee734fddab0aecc98dae9e19"
+      ],
+      "expected_evidence": "Resolved local image identity or explicit input failure.",
+      "hypothesis": "The image input requires a structured reference rather than a string. A read-only inspection can discriminate without running a model.",
+      "observations": "Both bare Id and named tag string inputs fail before model execution. Stop repeated string-reference probes.",
+      "parent_rev": 4,
+      "reason_for_change": "Two input-only failures 48d0c0e686b6431d866abd98a5e42621 and 73feee22ee734fddab0aecc98dae9e19 contradict string-reference hypothesis; switch to structured input once.",
+      "rev": 5,
+      "stop_condition": "Structured image reference rejected or resolves to different Id.",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "uncertainty": "Capsule listing does not expose nested image schema."
+    },
+    "summary": "The image input requires a structured reference rather than a string. A read-only inspection can discriminate without running a model.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "decision"
+  },
+  {
+    "created": 1794446318.1941986,
+    "cursor": 100,
+    "id": "858f7d4e9a4b416a8bb162c693c06d15",
+    "kind": "artifact",
+    "record": {
+      "artifact_id": "858f7d4e9a4b416a8bb162c693c06d15",
+      "complete": true,
+      "created": 1794446318.19388,
+      "location": "artifacts/1e/1eb9912686b8ccfd03b9f1c8831cec1e20e7909906a008f0515bafd8d21b6081",
+      "media_type": "text/plain",
+      "producer_attempt": "af345785-6d08-4210-94d8-cb6030d9a8dd",
+      "sha256": "1eb9912686b8ccfd03b9f1c8831cec1e20e7909906a008f0515bafd8d21b6081",
+      "size": 123,
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+    },
+    "summary": "1eb9912686b8ccfd03b9f1c8831cec1e20e7909906a008f0515bafd8d21b6081",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "artifact"
+  },
+  {
+    "created": 1794446318.2083383,
+    "cursor": 101,
+    "id": "5042a89afae042868280d93b44990221",
+    "kind": "inspector.inspect",
+    "record": {
+      "confidence": null,
+      "created": 1794446318.2077348,
+      "error": {
+        "code": "INVALID_INPUT",
+        "message": "Invalid inspector inputs or local tool response"
+      },
+      "host_run": {},
+      "kind": "inspector.inspect",
+      "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+      "obs_id": "5042a89afae042868280d93b44990221",
+      "source_artifacts": [
+        "858f7d4e9a4b416a8bb162c693c06d15"
+      ],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {}
+    },
+    "summary": "{}",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  },
+  {
+    "created": 1794446355.208035,
+    "cursor": 102,
+    "id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:6",
+    "kind": "decision",
+    "record": {
+      "action": {
+        "next_bounded_operation": "Stop at bounded preflight stop condition. Preserve local commit, successful image, all failed receipts and unchanged initial configuration; require actionable inspector schema/local-tool diagnostics before resuming.",
+        "type": "report_inconclusive"
+      },
+      "budget": "One build completed, two config invocation failures and one structured-image inspection failure; stop despite remaining task budget because bounded diagnostic hypothesis was exhausted.",
+      "created": 1794446355.2077382,
+      "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:6",
+      "evidence_ids": [
+        "351b2550a941444f94f545444d848d03:build-record",
+        "351b2550a941444f94f545444d848d03:receipt",
+        "351b2550a941444f94f545444d848d03:build-result",
+        "8183367a94e943b0a76a372e9e3c664c",
+        "73feee22ee734fddab0aecc98dae9e19",
+        "58379e369b1c440c948c3fdb6dc7ee9a",
+        "48d0c0e686b6431d866abd98a5e42621",
+        "a0e9a2bab10f48d8ad5c420f149f06dd",
+        "5042a89afae042868280d93b44990221",
+        "858f7d4e9a4b416a8bb162c693c06d15"
+      ],
+      "expected_evidence": "No pass claim. Future resumption requires successful exact-image preflight and actual config rejection before any one-variable repair, then immutable-contract lab receipt with engagement and correctness artifacts.",
+      "hypothesis": "A usable inspector image/config invocation or local-tool prerequisite must be established before safe contract submission; the available generic diagnostics do not identify which prerequisite failed.",
+      "observations": "Integration and jetson-orin build succeeded. Initial K=48 is preserved. Config probes using image Id and tag strings returned failed INVALID_INPUT with no model stdout/stderr. Structured-image inspection also failed. No runtime configuration acceptance/rejection, engagement or greedy output comparison exists.",
+      "parent_rev": 5,
+      "reason_for_change": "5042a89afae042868280d93b44990221 and 858f7d4e9a4b416a8bb162c693c06d15 reject the final bounded input-shape hypothesis. Earlier failed probe evidence also contains no model rejection. Build success in 351b2550a941444f94f545444d848d03:build-result cannot satisfy runtime obligations.",
+      "rev": 6,
+      "stop_condition": "Reached decision5 stop condition: structured image reference rejected without actionable diagnostics.",
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "uncertainty": "Root cause of inspector INVALID_INPUT is unresolved. K48 invalid-range rejection was not observed. Qwen worker activation and byte-identical greedy stdout are untested. Build cleanup reports containers_unverified."
+    },
+    "summary": "A usable inspector image/config invocation or local-tool prerequisite must be established before safe contract submission; the available generic diagnostics do not identify which prerequisite failed.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "decision"
+  },
+  {
+    "created": 1794446389.0265377,
+    "cursor": 103,
+    "id": "ea7c11f954974b1cb63ff5170e593266",
+    "kind": "operator_intervention",
+    "record": {
+      "confidence": "high",
+      "created": 1794446389.0260313,
+      "error": {},
+      "host_run": {
+        "actor": "operator (Claude Opus, orchestrator)"
+      },
+      "kind": "operator_intervention",
+      "limitations": "intervention during a live run; recorded so the run is not presented as fully autonomous",
+      "obs_id": "ea7c11f954974b1cb63ff5170e593266",
+      "source_artifacts": [],
+      "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+      "values": {
+        "at_decision_rev": 5,
+        "change": "engine_inspector now accepts image as a reference string or {tag|id|ref}, and INVALID_INPUT errors state the actual reason",
+        "code": "jiuwenswarm/factory/inspector.py (Inspector.image, dispatch error text)",
+        "scope": "tool usability only; no grants, contract, component, build or evaluation changed",
+        "why": "observations 73feee22, 48d0c0e6 and the {ref} inspect failure were caused by a factory tool defect (opaque error, over-strict image input), not by the agent or the engine"
+      }
+    },
+    "summary": "{'change': 'engine_inspector now accepts image as a reference string or {tag|id|ref}, and INVALID_INPUT errors state the actual reason', 'why': 'observations 73feee22, 48d0c0e6 and the {ref} inspect failure were caused by a factory tool defect (opaque error, over-strict image input), not by the agen",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "type": "observation"
+  }
+]

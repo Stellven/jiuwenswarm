@@ -1,0 +1,292 @@
+[
+  {
+    "attempt_id": "3216f10925b74aca8bfc8be140e65b7b",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794447026.2696226,
+    "fingerprint": "be8658737d77259d2348a144e55d948e34e8a1a3a67244061d508941a905fe50",
+    "history": [
+      {
+        "created": 1794446802.7109132,
+        "state": "queued"
+      },
+      {
+        "created": 1794446822.4738703,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794447026.2696226,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "d4b71bcc-build-1",
+    "jobq_id": "job-5542cc6b196f403d8ee384ba9b6c9a06",
+    "kind": "build",
+    "owner": {
+      "pgid": 957180,
+      "pid": 957180,
+      "runner_pid": 957178,
+      "wrapper_pgid": 957179
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "CUDA_HOME": "/usr/local/cuda",
+        "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      },
+      "tag": "factory/llamacpp:d4b71bcc-thread-names-1",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-d4b71bcce337406b96f627d469bec092",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/eb19f7f390ee0c2ff772f583263150c7aa029759997c8b5d9f59d293ae0aeff0.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "3216f10925b74aca8bfc8be140e65b7b:request",
+      "3216f10925b74aca8bfc8be140e65b7b:prep",
+      "3216f10925b74aca8bfc8be140e65b7b:build-record",
+      "3216f10925b74aca8bfc8be140e65b7b:stdout",
+      "3216f10925b74aca8bfc8be140e65b7b:stdout-tail",
+      "3216f10925b74aca8bfc8be140e65b7b:stderr",
+      "3216f10925b74aca8bfc8be140e65b7b:stderr-tail",
+      "3216f10925b74aca8bfc8be140e65b7b:receipt",
+      "3216f10925b74aca8bfc8be140e65b7b:build-result"
+    ],
+    "started": 1794446822.4738703,
+    "state": "succeeded",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092"
+  },
+  {
+    "attempt_id": "cabd3a09443f493899c756ab0ce1a671",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794447299.149739,
+    "fingerprint": "18aea4a51d6410f24eb9da86c90ecdfadede8204ce7249f015348588dee89061",
+    "history": [
+      {
+        "created": 1794447140.9858727,
+        "state": "queued"
+      },
+      {
+        "created": 1794447160.5248542,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794447299.149739,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "d4b71bcc-qwen36-k8-2",
+    "jobq_id": "job-21e7d2c015a34f0cb6d5d2bd7b5c3a88",
+    "kind": "lab",
+    "owner": {
+      "pgid": 959523,
+      "pid": 959523,
+      "runner_pid": 959520,
+      "wrapper_pgid": 959521
+    },
+    "request": {
+      "admission": {
+        "admission_id": "admission:78856fb9c5c49df9a0550cd1342b810dab29f02dfee36929827780fe1f276aa2",
+        "architecture": "arm64",
+        "build_attempt_id": "3216f10925b74aca8bfc8be140e65b7b",
+        "delivery": "same_host_local_image",
+        "image": {
+          "id": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+          "tag": "factory/llamacpp:d4b71bcc-thread-names-1"
+        },
+        "target_profile": "jetson-orin",
+        "task_id": "factory-d4b71bcce337406b96f627d469bec092"
+      },
+      "argv": [
+        "-m",
+        "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "-f",
+        "/om/prompts/p1.txt",
+        "-n",
+        "64",
+        "-c",
+        "4096",
+        "--temp",
+        "0",
+        "-s",
+        "1",
+        "-no-cnv",
+        "-ngl",
+        "99",
+        "-lm",
+        "mmap",
+        "-cmoe",
+        "-lv",
+        "4"
+      ],
+      "contract": {
+        "candidate_engagement_checks": [
+          "xfill_threads_present"
+        ],
+        "contract_id": "qwen36-greedy-v1",
+        "engagement_checks": [
+          "effective_config_matches_request",
+          "expert_fill: active",
+          "expert_fill: random advice applied at decode",
+          "expert_pregate: active",
+          "expert_pregate: stats"
+        ],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "added -lv 4 (as J-OM11; engine log lines needed for engagement checks; stdout unaffected per J-OM11 hash 7a1541792364); moved xfill_threads_present to candidate-only checks (component patch 09 cannot engage on the reference image)",
+            "evidence": "reference attempt 3f49962fbb4643b3bb6a6fc6cf66c579: measurement_failed, stderr 27 lines, stdout sha 7a154179...; contract was unfrozen and unscored"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T01:08:39.883331+00:00",
+          "image_id": "sha256:2dcf9fe7e9ae051caf6607ee67db3dc5442f680480a62356ebbec8582cac2754",
+          "image_tag": "campaign/llamacpp:jetson-up1108-om11",
+          "run_ref": "5a3647ebcb6e4760b9982f080fda1095",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {
+            "LLAMA_EXPERT_FILL": "1",
+            "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+            "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+            "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+            "LLAMA_EXPERT_FILL_POPULATE": "0",
+            "LLAMA_EXPERT_FILL_RANDOM": "decode",
+            "LLAMA_EXPERT_FILL_THREADS": "16",
+            "LLAMA_EXPERT_PREFETCH": "0",
+            "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+            "LLAMA_EXPERT_PREGATE": "1",
+            "LLAMA_EXPERT_PREGATE_K": "8",
+            "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+            "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+            "LLAMA_EXPERT_PREGATE_ORDER": "after",
+            "LLAMA_MMAP_ADVICE": "default"
+          },
+          "tool": "llama-completion"
+        }
+      },
+      "env": {
+        "LLAMA_EXPERT_FILL": "1",
+        "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+        "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+        "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+        "LLAMA_EXPERT_FILL_POPULATE": "0",
+        "LLAMA_EXPERT_FILL_RANDOM": "decode",
+        "LLAMA_EXPERT_FILL_THREADS": "16",
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+        "LLAMA_EXPERT_PREGATE": "1",
+        "LLAMA_EXPERT_PREGATE_K": "8",
+        "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+        "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+        "LLAMA_EXPERT_PREGATE_ORDER": "after",
+        "LLAMA_MMAP_ADVICE": "default"
+      },
+      "role": "candidate"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+        "-m",
+        "jiuwenswarm.factory.lab_runner",
+        "--task",
+        "factory-d4b71bcce337406b96f627d469bec092",
+        "--run",
+        "{attempt_id}",
+        "--admission",
+        "admission:78856fb9c5c49df9a0550cd1342b810dab29f02dfee36929827780fe1f276aa2",
+        "--contract",
+        "qwen36-greedy-v1",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/3ac01d1142312dd7b45488758cdd7f8b883144c78ffd07cc0f6c2293d6bc3353.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 1800
+    },
+    "result_refs": [
+      "cabd3a09443f493899c756ab0ce1a671:manifest.json",
+      "cabd3a09443f493899c756ab0ce1a671:cmd.txt",
+      "cabd3a09443f493899c756ab0ce1a671:config.json",
+      "cabd3a09443f493899c756ab0ce1a671:container.id",
+      "cabd3a09443f493899c756ab0ce1a671:launcher.stderr.txt",
+      "cabd3a09443f493899c756ab0ce1a671:launcher.stdout.txt",
+      "cabd3a09443f493899c756ab0ce1a671:result.json",
+      "cabd3a09443f493899c756ab0ce1a671:stderr.txt",
+      "cabd3a09443f493899c756ab0ce1a671:stdout.txt",
+      "cabd3a09443f493899c756ab0ce1a671:telemetry.jsonl",
+      "cabd3a09443f493899c756ab0ce1a671:threads.jsonl",
+      "cabd3a09443f493899c756ab0ce1a671:threads.log",
+      "cabd3a09443f493899c756ab0ce1a671:threads.summary.json",
+      "cabd3a09443f493899c756ab0ce1a671:watchdog.jsonl",
+      "cabd3a09443f493899c756ab0ce1a671:worker.json",
+      "cabd3a09443f493899c756ab0ce1a671:observation",
+      "cabd3a09443f493899c756ab0ce1a671:evaluation"
+    ],
+    "started": 1794447160.5248542,
+    "state": "succeeded",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092"
+  }
+]

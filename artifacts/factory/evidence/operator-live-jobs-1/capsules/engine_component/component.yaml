@@ -1,0 +1,46 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+  pre_integration_commit: e14b87603
+  pre_integration_patch:
+    file: combined-01-02-03-04-05-06-07-08.patch
+    sha256: 87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497
+change:
+  patch: 09-thread-names.patch
+  sha256: 0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030
+  touches:
+  - src/llama-expert-fill.h
+  kind: observability
+supported:
+  host:
+    name: jetson-orin
+    arch: aarch64
+    cuda_arch: sm_87
+  models: qwen35moe/expert-fill path
+  dtype: any
+configuration:
+  env:
+    LLAMA_EXPERT_FILL: '1'
+    LLAMA_EXPERT_FILL_RANDOM: decode
+    LLAMA_EXPERT_FILL_THREADS: '16'
+    LLAMA_EXPERT_FILL_CHUNK_KIB: '2048'
+    LLAMA_EXPERT_PREFETCH: '0'
+    LLAMA_EXPERT_PREFETCH_NEXT: '0'
+    LLAMA_MMAP_ADVICE: default
+    LLAMA_EXPERT_FILL_MAX_TOKENS: '1'
+    LLAMA_EXPERT_FILL_MIN_TOKENS: '0'
+    LLAMA_EXPERT_FILL_POPULATE: '0'
+    LLAMA_EXPERT_PREGATE: '1'
+    LLAMA_EXPERT_PREGATE_K: '8'
+    LLAMA_EXPERT_PREGATE_ORDER: after
+    LLAMA_EXPERT_PREGATE_MAX_INFLIGHT: '4'
+    LLAMA_EXPERT_PREGATE_LOOKAHEAD: '1'
+  source: J-OM11 pg8
+engagement_checks:
+- threads named xfill-* observed during decode
+- expert_config effective line matches request
+correctness_obligations:
+- greedy stdout byte-identical to om11 under contract qwen36-greedy-v1
+rollback:
+  source: rebuild from pre-integration commit e14b87603
+  image: campaign/llamacpp:jetson-up1108-om11

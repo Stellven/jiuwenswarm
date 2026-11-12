@@ -1,0 +1,52 @@
+{
+  "buildx.build.provenance": {
+    "buildType": "https://mobyproject.org/buildkit@v1",
+    "builder": {
+      "id": ""
+    },
+    "invocation": {
+      "configSource": {
+        "entryPoint": "Dockerfile"
+      },
+      "environment": {
+        "ProvenanceCustomEnv": null,
+        "platform": "linux/arm64"
+      },
+      "parameters": {
+        "args": {
+          "build-arg:BASE_RUNTIME": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1",
+          "build-arg:PATCH_SHA256": "",
+          "build-arg:SOURCE_COMMIT": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+          "build-arg:SOURCE_TREE": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3",
+          "build-arg:TARGET_PROFILE": "jetson-orin",
+          "build-arg:TOOLCHAIN": "{\"cmake\": \"cmake version 4.4.4\\n\\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\", \"gcc\": \"gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\\nCopyright (C) 2021 Free Software Foundation, Inc.\\nThis is free software; see the source for copying conditions.  There is NO\\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\", \"ninja\": \"1.13.2.git.kitware.jobserver-pipe-1\", \"nv_tegra_release\": \"# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\", \"nvcc\": \"nvcc: NVIDIA (R) Cuda compiler driver\\nCopyright (c) 2005-2024 NVIDIA Corporation\\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\\nCuda compilation tools, release 12.6, V12.6.68\\nBuild cuda_12.6.r12.6/compiler.34714021_0\", \"nvidia-jetpack\": \"6.2.3+b81\"}"
+        },
+        "frontend": "dockerfile.v0",
+        "locals": [
+          {
+            "name": "context"
+          },
+          {
+            "name": "dockerfile"
+          }
+        ]
+      }
+    },
+    "materials": [
+      {
+        "digest": {
+          "sha256": "49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+        },
+        "uri": "pkg:docker/nvcr.io/nvidia/<redacted>?digest=sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1&platform=linux%2Farm64"
+      }
+    ]
+  },
+  "buildx.build.ref": "default/default/qdsme92aaca9iqfhgm9251p37",
+  "containerimage.descriptor": {
+    "digest": "sha256:17308606c8fef5d376da020a3090337aef7c4d5c0359464a72b04ac34fec3234",
+    "mediaType": "application/vnd.oci.image.index.v1+json",
+    "size": 856
+  },
+  "containerimage.digest": "sha256:17308606c8fef5d376da020a3090337aef7c4d5c0359464a72b04ac34fec3234",
+  "image.name": "docker.io/factory/llamacpp:livejobs-1"
+}

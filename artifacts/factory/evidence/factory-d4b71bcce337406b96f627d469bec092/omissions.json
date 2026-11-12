@@ -1,0 +1,8 @@
+[
+  {
+    "reason": "over_50_MiB",
+    "sha256": "3da83cf9adf45a2086ae4ab60144a8780c0ff29bd758dc04b444ae888bf83c24",
+    "size": 1392989184,
+    "source": "/home/muk/.jiuwenswarm-factory/builds/3216f10925b74aca8bfc8be140e65b7b/engine/engine-image.docker.tar"
+  }
+]

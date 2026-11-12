@@ -61,9 +61,16 @@ def main(argv=None):
             command.add_argument('--json', action='store_true')
         if name == 'show':
             command.add_argument('id', nargs='?', help='evidence record ID; omit to show all records')
+    export = sub.add_parser('export', help='export a read-only sanitized evidence bundle')
+    export.add_argument('task_id')
+    export.add_argument('--out', required=True)
     sub.add_parser('login', help='sign in under the factory data directory')
     sub.add_parser('auth-status', help='show factory account status without tokens')
     args = parser.parse_args(argv)
+    if args.command == 'export':
+        from .export import main as export_main
+        export_main([args.task_id, '--out', args.out] + (['--home', args.home] if args.home else []))
+        return
     from .controller import Controller, factory_home, scrub
     from .store import FactoryError
     home = args.home or factory_home()

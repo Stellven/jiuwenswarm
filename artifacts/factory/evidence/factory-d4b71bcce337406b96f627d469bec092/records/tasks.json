@@ -1,0 +1,58 @@
+[
+  {
+    "allowed_effects": [
+      "process.exec",
+      "workspace.read",
+      "workspace.write",
+      "gpu.use"
+    ],
+    "budget": {
+      "max_turns": 12,
+      "wall_clock_s": 14400
+    },
+    "component_cc": "factory.engine_component",
+    "constraints": {
+      "contract_immutable": true,
+      "local_commits_in_owned_checkout": true,
+      "owned_checkout_only": true,
+      "push_or_publish": false,
+      "read_tasks": [
+        "factory-aeaa9acc88d34a3ab1375154da98c385"
+      ]
+    },
+    "contract_id": "qwen36-greedy-v1",
+    "created": 1794446649.4721587,
+    "current_decision_rev": 6,
+    "evidence_cursor": 158,
+    "initial_run_config": {
+      "env": {
+        "LLAMA_EXPERT_FILL": "1",
+        "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+        "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+        "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+        "LLAMA_EXPERT_FILL_POPULATE": "0",
+        "LLAMA_EXPERT_FILL_RANDOM": "decode",
+        "LLAMA_EXPERT_FILL_THREADS": "16",
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+        "LLAMA_EXPERT_PREGATE": "1",
+        "LLAMA_EXPERT_PREGATE_K": "48",
+        "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+        "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+        "LLAMA_EXPERT_PREGATE_ORDER": "after",
+        "LLAMA_MMAP_ADVICE": "default"
+      }
+    },
+    "objective": "Integrate component factory.engine_component into the owned checkout, build a jetson-orin image, and run it under contract qwen36-greedy-v1. Inspect evidence and decide bounded next actions. Operator note: attempt 1 (factory-aeaa9acc88d34a3ab1375154da98c385) ended report_inconclusive because the engine_inspector returned opaque INVALID_INPUT errors; the operator fixed the inspector's input handling and error text (see that task's operator_intervention observation). Its evidence is readable; this is a new attempt with its own decisions.",
+    "operator_labels": {
+      "LLAMA_EXPERT_PREGATE_K": "controlled-invalid: deliberately out of range (1..32) to demonstrate evidence-driven repair"
+    },
+    "revision": 1,
+    "source": {
+      "pre_integration_commit": "e14b87603",
+      "subpath": "llama.cpp"
+    },
+    "target": "jetson-orin",
+    "task_id": "factory-d4b71bcce337406b96f627d469bec092"
+  }
+]

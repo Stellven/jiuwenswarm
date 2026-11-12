@@ -1,0 +1,231 @@
+[
+  {
+    "attempt_id": "aae86e0c5e304397816140dfbad11749",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794447690.7926776,
+    "fingerprint": "fe6cb070092d71db74de65807922480ac5164dd46fcfe7a896bf127b78a043f5",
+    "history": [
+      {
+        "created": 1794447481.8351634,
+        "state": "queued"
+      },
+      {
+        "created": 1794447493.994546,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794447690.7926776,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "livejobs-build-1",
+    "jobq_id": "job-d3db0f96f23745c0a1e75a98fcea3a24",
+    "kind": "build",
+    "owner": {
+      "pgid": 960517,
+      "pid": 960517,
+      "runner_pid": 960514,
+      "wrapper_pgid": 960516
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "CUDA_HOME": "/usr/local/cuda",
+        "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      },
+      "tag": "factory/llamacpp:livejobs-1",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "operator-live-jobs-1",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/ee51e5cd5ef85635c4c3059796b9dbbcd82d417c92e6dc3911e7d3785b7d9cb3.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "aae86e0c5e304397816140dfbad11749:request",
+      "aae86e0c5e304397816140dfbad11749:prep",
+      "aae86e0c5e304397816140dfbad11749:build-record",
+      "aae86e0c5e304397816140dfbad11749:stdout",
+      "aae86e0c5e304397816140dfbad11749:stdout-tail",
+      "aae86e0c5e304397816140dfbad11749:stderr",
+      "aae86e0c5e304397816140dfbad11749:stderr-tail",
+      "aae86e0c5e304397816140dfbad11749:receipt",
+      "aae86e0c5e304397816140dfbad11749:build-result"
+    ],
+    "started": 1794447493.994546,
+    "state": "succeeded",
+    "task_id": "operator-live-jobs-1"
+  },
+  {
+    "attempt_id": "c36b4f1bc09b47bcb0e7d2bdd7046b2a",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794447726.781788,
+    "fingerprint": "dcfa7276ca68982f6991d51d02394e077b9988919cdf9e17aed8b2d3979a3c49",
+    "history": [
+      {
+        "created": 1794447706.4488976,
+        "state": "queued"
+      },
+      {
+        "created": 1794447726.781788,
+        "previous": "queued",
+        "state": "failed"
+      }
+    ],
+    "idem_key": "livejobs-cancel-1",
+    "jobq_id": "job-a69d72560e1447e9b33d8fb54b494ed4",
+    "kind": "build",
+    "owner": {
+      "pgid": 962747,
+      "pid": 962747,
+      "runner_pid": 962740,
+      "wrapper_pgid": 962741
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "CUDA_HOME": "/usr/local/cuda",
+        "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      },
+      "tag": "factory/llamacpp:livejobs-cancel-1",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "operator-live-jobs-1",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/b4e6a1de035bf79e5fba7e688e227369c44e4922fea8574d9a78a3d206e52f53.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "failed",
+      "rc": 1,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:request",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:prep",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:stdout",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:stdout-tail",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:stderr",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:stderr-tail",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:receipt",
+      "c36b4f1bc09b47bcb0e7d2bdd7046b2a:build-result"
+    ],
+    "started": null,
+    "state": "failed",
+    "task_id": "operator-live-jobs-1"
+  },
+  {
+    "attempt_id": "c440203a1ca74814ac717f18374f590a",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794447794.4590433,
+    "fingerprint": "44e9454bc686e97cd80954a9bd6a83bf70549636d180259909cf42e2512d5a66",
+    "history": [
+      {
+        "created": 1794447757.3614736,
+        "state": "queued"
+      },
+      {
+        "created": 1794447757.5931213,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794447791.7767367,
+        "previous": "running",
+        "state": "cancel_requested"
+      },
+      {
+        "created": 1794447794.4590433,
+        "previous": "cancel_requested",
+        "state": "cancelled"
+      }
+    ],
+    "idem_key": "livejobs-cancel-2",
+    "jobq_id": "job-739c26cf60e4401d823ea88e0eae49b4",
+    "kind": "build",
+    "owner": {
+      "pgid": 962973,
+      "pid": 962973,
+      "runner_pid": 962971,
+      "wrapper_pgid": 962972
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "CUDA_HOME": "/usr/local/cuda",
+        "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      },
+      "tag": "factory/llamacpp:livejobs-cancel-2",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "operator-live-jobs-1",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/f12314e4cf5c06094f97866bf8bb2b455bb4db3bce9af42238d0663985fb4a31.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "cancelled",
+      "rc": 1,
+      "timeout_s": 3600
+    },
+    "result_refs": [],
+    "started": 1794447757.5931213,
+    "state": "cancelled",
+    "task_id": "operator-live-jobs-1"
+  }
+]

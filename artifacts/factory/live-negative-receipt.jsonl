@@ -1,0 +1,9 @@
+{"check": "cross_task_read_without_grant", "message": "Task is outside the authorized scope", "result": "ScopeDenied", "t": 1794448423.4549744}
+{"check": "wrong_image_for_build", "code": null, "message": "image requires tag and id", "result": "ValueError", "t": 1794448423.4559228}
+{"check": "x86_or_foreign_image", "code": null, "message": "image requires tag and id", "result": "ValueError", "t": 1794448423.4561524}
+{"check": "call_without_required_grant", "error": "None", "result": "receipt", "state": "blocked", "t": 1794448423.963103}
+{"check": "cross_task_read_without_grant", "message": "Task is outside the authorized scope", "result": "ScopeDenied", "t": 1794448437.4351575}
+{"check": "wrong_image_for_build", "code": "BAD_DIGEST", "message": "Local image Id differs from build receipt or requested Id", "result": "AdmissionError", "t": 1794448437.6623635}
+{"check": "non_engine_base_image", "code": "BAD_DIGEST", "message": "Local image Id differs from build receipt or requested Id", "result": "AdmissionError", "t": 1794448437.8908136}
+{"check": "right_tag_wrong_id", "code": "BAD_DIGEST", "message": "Local image Id differs from build receipt or requested Id", "result": "AdmissionError", "t": 1794448438.1640177}
+{"check": "call_without_required_grant", "error": "None", "result": "receipt", "state": "blocked", "t": 1794448438.691194}

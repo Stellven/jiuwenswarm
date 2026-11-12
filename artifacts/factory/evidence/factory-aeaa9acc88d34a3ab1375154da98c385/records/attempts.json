@@ -1,0 +1,82 @@
+[
+  {
+    "attempt_id": "351b2550a941444f94f545444d848d03",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794446232.2479467,
+    "fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3",
+    "history": [
+      {
+        "created": 1794445979.7138598,
+        "state": "queued"
+      },
+      {
+        "created": 1794445998.844599,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794446232.2479467,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "factory-aeaa9acc-build-1",
+    "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+    "kind": "build",
+    "owner": {
+      "pgid": 951326,
+      "pid": 951326,
+      "runner_pid": 951324,
+      "wrapper_pgid": 951325
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "CUDA_HOME": "/usr/local/cuda",
+        "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      },
+      "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/.local/share/uv/python/cpython-3.12.16-linux-aarch64-gnu/bin/python3.12",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-aeaa9acc88d34a3ab1375154da98c385",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/7c7b4caa73c2fa49c23cac176f3267194b925efe3490a1866a1486d841e6257a.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "351b2550a941444f94f545444d848d03:request",
+      "351b2550a941444f94f545444d848d03:prep",
+      "351b2550a941444f94f545444d848d03:build-record",
+      "351b2550a941444f94f545444d848d03:stdout",
+      "351b2550a941444f94f545444d848d03:stdout-tail",
+      "351b2550a941444f94f545444d848d03:stderr",
+      "351b2550a941444f94f545444d848d03:stderr-tail",
+      "351b2550a941444f94f545444d848d03:receipt",
+      "351b2550a941444f94f545444d848d03:build-result"
+    ],
+    "started": 1794445998.844599,
+    "state": "succeeded",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385"
+  }
+]

@@ -1,0 +1,293 @@
+{
+  "app_files": {
+    "/app/libggml-base.so.0.29.0": "6bd1ed7f776f7072cf54e04522565252ab2957d2dd437b51c3f3ba29d71babbb",
+    "/app/libggml-cpu.so.0.29.0": "1c7decbaada175f8588060361ba275fedd77bfecb631162e8ae82642ae6f6bf7",
+    "/app/libggml-cuda.so.0.29.0": "68e1e5dbb74c4f7450faf8157f6deca9086bde2d83657442ce03f2dced54368c",
+    "/app/libggml.so.0.29.0": "8679c83a2b580411483d6e7d273e8dc2ff2b1370e363d81e322ae1395b8c7d77",
+    "/app/libgomp.so.1": "53d7318d8e1addc4d2990c028daba609f8dc1af16a501255eb5c4d59b7e2b601",
+    "/app/libllama-bench-impl.so": "36da1707daa9b2623848d8d9dc53ca5f888c9595d9e04f9690ab76ba168d13ea",
+    "/app/libllama-cli-impl.so": "dd78b4dec10435d3b6d46b6785ef27983261f03af1552bd9bc89fdbf6cfa3cda",
+    "/app/libllama-common.so.0.9.0": "7a0c6cf320ed6e4861eef25583d0d83552c11f3ba9556833c16943345286537f",
+    "/app/libllama-completion-impl.so": "384fc8269a0271c197d806088dfaa98dd1696f2aa3de9416595a734b1bf06b8d",
+    "/app/libllama-perplexity-impl.so": "9fd73f6026a506afa69dd69fd9c664792b8526f194dc53a2c8c3db0d2b6e3b6c",
+    "/app/libllama-server-impl.so": "a9e33d62b423828a682559c7e0cd41eaa2315d5e4b72e589dc8c28380590bbcc",
+    "/app/libllama.so.0.9.0": "c25998a66f0387df8d3d45f6667107839adf586cd94bf3c6ed4d84712e7490c9",
+    "/app/libmtmd.so.0.9.0": "60f6ef3dd004520a07546d625a1e500c43e81301ec23cd43370629500742de9c",
+    "/app/llama-bench": "e50d0916d41cba59facd67ca634621162b31916b09a27aa060d98652b0dbdc84",
+    "/app/llama-cli": "54cec398c48cb61a98bcbafdfcd882f41dfcf1575213e1c98051b1b6410954b3",
+    "/app/llama-completion": "9a78bf7c4c2a78400420cc1a33aaf560c8cb1ac5fdccbfac20e5940e727d82d2",
+    "/app/llama-eval-callback": "e76fd9e40cc5edba61081c0494f471079b7a7c487c9590f8abfccd7268cb5d64",
+    "/app/llama-perplexity": "0c67f379c62440ac708eece62a2222bd9931894422ad7430cc86b423886dbf4a",
+    "/app/llama-server": "29c95019eef7d6ae004f2dddd3e254a3e203f1da3dba9ce6929648740e9f4fa4",
+    "/app/llama-tokenize": "0df57e3efdacd7a68d3c497d48e0994c195d35602b83f2927ac807bfea51e31a"
+  },
+  "archive": {
+    "bytes": 1392989184,
+    "path": "engine-image.docker.tar",
+    "sha256": "3da83cf9adf45a2086ae4ab60144a8780c0ff29bd758dc04b444ae888bf83c24"
+  },
+  "base_images": {
+    "runtime": {
+      "digest": "sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1",
+      "reference": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+    }
+  },
+  "build_wall_seconds": 124.487375237979,
+  "builder": "host-native",
+  "buildx_metadata": {
+    "buildx.build.provenance": {
+      "buildType": "https://mobyproject.org/buildkit@v1",
+      "builder": {
+        "id": ""
+      },
+      "invocation": {
+        "configSource": {
+          "entryPoint": "Dockerfile"
+        },
+        "environment": {
+          "ProvenanceCustomEnv": null,
+          "platform": "linux/arm64"
+        },
+        "parameters": {
+          "args": {
+            "build-arg:BASE_RUNTIME": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1",
+            "build-arg:PATCH_SHA256": "",
+            "build-arg:SOURCE_COMMIT": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+            "build-arg:SOURCE_TREE": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3",
+            "build-arg:TARGET_PROFILE": "jetson-orin",
+            "build-arg:TOOLCHAIN": "{\"cmake\": \"cmake version 4.4.4\\n\\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\", \"gcc\": \"gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\\nCopyright (C) 2021 Free Software Foundation, Inc.\\nThis is free software; see the source for copying conditions.  There is NO\\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\", \"ninja\": \"1.13.2.git.kitware.jobserver-pipe-1\", \"nv_tegra_release\": \"# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\", \"nvcc\": \"nvcc: NVIDIA (R) Cuda compiler driver\\nCopyright (c) 2005-2024 NVIDIA Corporation\\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\\nCuda compilation tools, release 12.6, V12.6.68\\nBuild cuda_12.6.r12.6/compiler.34714021_0\", \"nvidia-jetpack\": \"6.2.3+b81\"}"
+          },
+          "frontend": "dockerfile.v0",
+          "locals": [
+            {
+              "name": "context"
+            },
+            {
+              "name": "dockerfile"
+            }
+          ]
+        }
+      },
+      "materials": [
+        {
+          "digest": {
+            "sha256": "49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+          },
+          "uri": "pkg:docker/nvcr.io/nvidia/<redacted>?digest=sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1&platform=linux%2Farm64"
+        }
+      ]
+    },
+    "buildx.build.ref": "default/default/azw16qv4nckjm7nnyjvxjzvq0",
+    "containerimage.descriptor": {
+      "digest": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+      "mediaType": "application/vnd.oci.image.index.v1+json",
+      "size": 856
+    },
+    "containerimage.digest": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+    "image.name": "docker.io/factory/llamacpp:d4b71bcc-thread-names-1"
+  },
+  "ccache": {
+    "after": {
+      "counters": {
+        "autoconf_test": 0,
+        "bad_compiler_arguments": 0,
+        "bad_output_file": 0,
+        "cache_miss": 1362,
+        "cache_size_kibibyte": 502760,
+        "called_for_link": 0,
+        "called_for_preprocessing": 0,
+        "cleanups_performed": 0,
+        "compile_failed": 0,
+        "compiler_check_failed": 0,
+        "compiler_produced_empty_output": 0,
+        "compiler_produced_no_output": 0,
+        "compiler_produced_stdout": 0,
+        "could_not_find_compiler": 0,
+        "could_not_use_modules": 0,
+        "could_not_use_precompiled_header": 0,
+        "direct_cache_hit": 4660,
+        "direct_cache_miss": 1372,
+        "error_hashing_extra_file": 0,
+        "files_in_cache": 3540,
+        "internal_error": 0,
+        "missing_cache_file": 0,
+        "multiple_source_files": 0,
+        "no_input_file": 0,
+        "output_to_stdout": 0,
+        "preprocessed_cache_hit": 10,
+        "preprocessed_cache_miss": 1362,
+        "preprocessor_error": 0,
+        "primary_storage_hit": 9951,
+        "primary_storage_miss": 2113,
+        "recache": 0,
+        "secondary_storage_error": 0,
+        "secondary_storage_hit": 0,
+        "secondary_storage_miss": 0,
+        "secondary_storage_timeout": 0,
+        "stats_updated_timestamp": 1794446876,
+        "stats_zeroed_timestamp": 1794275160,
+        "unsupported_code_directive": 0,
+        "unsupported_compiler_option": 0,
+        "unsupported_source_language": 0
+      },
+      "hits": 4670,
+      "misses": 1362,
+      "summary": "Summary:\n  Cache directory:  /home/muk/.cache/ccache\n  Primary config:   /home/muk/.config/ccache/ccache.conf\n  Secondary config: /etc/ccache.conf\n  Stats updated:    Thu Nov 12 01:27:56 2026\n  Hits:             4670 /  6032 (77.42 %)\n    Direct:         4660 /  6032 (77.25 %)\n    Preprocessed:     10 /  1372 (0.73 %)\n  Misses:           1362\n    Direct:         1372\n    Preprocessed:   1362\nPrimary storage:\n  Hits:             9951 / 12064 (82.49 %)\n  Misses:           2113\n  Cache size (GB):  0.51 /  5.00 (10.30 %)\n  Files:            3540\n",
+      "uncacheable": 0
+    },
+    "before": {
+      "counters": {
+        "autoconf_test": 0,
+        "bad_compiler_arguments": 0,
+        "bad_output_file": 0,
+        "cache_miss": 1347,
+        "cache_size_kibibyte": 501452,
+        "called_for_link": 0,
+        "called_for_preprocessing": 0,
+        "cleanups_performed": 0,
+        "compile_failed": 0,
+        "compiler_check_failed": 0,
+        "compiler_produced_empty_output": 0,
+        "compiler_produced_no_output": 0,
+        "compiler_produced_stdout": 0,
+        "could_not_find_compiler": 0,
+        "could_not_use_modules": 0,
+        "could_not_use_precompiled_header": 0,
+        "direct_cache_hit": 4354,
+        "direct_cache_miss": 1356,
+        "error_hashing_extra_file": 0,
+        "files_in_cache": 3510,
+        "internal_error": 0,
+        "missing_cache_file": 0,
+        "multiple_source_files": 0,
+        "no_input_file": 0,
+        "output_to_stdout": 0,
+        "preprocessed_cache_hit": 9,
+        "preprocessed_cache_miss": 1347,
+        "preprocessor_error": 0,
+        "primary_storage_hit": 9338,
+        "primary_storage_miss": 2082,
+        "recache": 0,
+        "secondary_storage_error": 0,
+        "secondary_storage_hit": 0,
+        "secondary_storage_miss": 0,
+        "secondary_storage_timeout": 0,
+        "stats_updated_timestamp": 1794446105,
+        "stats_zeroed_timestamp": 1794275160,
+        "unsupported_code_directive": 0,
+        "unsupported_compiler_option": 0,
+        "unsupported_source_language": 0
+      },
+      "hits": 4363,
+      "misses": 1347,
+      "summary": "Summary:\n  Cache directory:  /home/muk/.cache/ccache\n  Primary config:   /home/muk/.config/ccache/ccache.conf\n  Secondary config: /etc/ccache.conf\n  Stats updated:    Thu Nov 12 01:15:05 2026\n  Hits:             4363 /  5710 (76.41 %)\n    Direct:         4354 /  5710 (76.25 %)\n    Preprocessed:      9 /  1356 (0.66 %)\n  Misses:           1347\n    Direct:         1356\n    Preprocessed:   1347\nPrimary storage:\n  Hits:             9338 / 11420 (81.77 %)\n  Misses:           2082\n  Cache size (GB):  0.51 /  5.00 (10.27 %)\n  Files:            3510\n",
+      "uncacheable": 0
+    },
+    "delta": {
+      "hits": 307,
+      "misses": 15,
+      "uncacheable": 0
+    },
+    "enabled": true,
+    "version": "ccache version 4.5.1"
+  },
+  "cmake_flags": [
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DGGML_CUDA=ON",
+    "-DCMAKE_CUDA_ARCHITECTURES=87",
+    "-DGGML_NATIVE=OFF",
+    "-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16",
+    "-DLLAMA_CURL=OFF",
+    "-DLLAMA_BUILD_TESTS=OFF",
+    "-DBUILD_SHARED_LIBS=ON",
+    "-DCMAKE_C_COMPILER_LAUNCHER=ccache",
+    "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
+    "-DCMAKE_CUDA_COMPILER_LAUNCHER=ccache"
+  ],
+  "extra_targets": [],
+  "failure_stage": null,
+  "finished_at": "2026-11-12T01:30:14.102134+00:00",
+  "image": {
+    "Architecture": "arm64",
+    "Created": "2026-11-12T01:28:20.622403847Z",
+    "Id": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+    "Os": "linux",
+    "RepoDigests": [
+      "factory/llamacpp@sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0"
+    ],
+    "config_digest": "sha256:dda679b7e3f7c9c37a943b748d109b3b8d84dda4b834f1c25b2cf0b8f7daffae",
+    "docker_id_in_archive_index": true,
+    "docker_reported_id": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+    "id_note": "Id/docker_reported_id is whatever `docker image inspect` returned (containerd store: an index digest). config_digest is the image config digest. They are different objects.",
+    "index_digest": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+    "index_manifests": [
+      {
+        "digest": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+        "mediaType": "application/vnd.oci.image.index.v1+json"
+      }
+    ]
+  },
+  "patch_sha256": null,
+  "platform": "linux/arm64",
+  "provenance": {
+    "attestation_manifests": [
+      {
+        "attestation_annotation": true,
+        "manifest": "sha256:01ae5b83537fce5c0d79ddedc2b1db57fc21491323668d62f2a769ae2d0032ea",
+        "predicate_type": "https://slsa.dev/provenance/v0.2",
+        "statement": "sha256:34321f0cec273aa57f392320e49f00e50d623fab62073b4532f895831e479660"
+      }
+    ],
+    "reason": "Inspected reachable OCI manifests and predicates",
+    "retained": true
+  },
+  "recipes": {
+    "Dockerfile": {
+      "bytes": 668,
+      "sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2"
+    }
+  },
+  "schema_version": 2,
+  "source": {
+    "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+    "dirty": false,
+    "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+    "requested_commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+    "status_porcelain": "",
+    "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+  },
+  "started_at": "2026-11-12T01:26:43.678765+00:00",
+  "status": "success",
+  "tag": "factory/llamacpp:d4b71bcc-thread-names-1",
+  "target_profile": "jetson-orin",
+  "target_requirements": {
+    "cuda_arch": "sm_87",
+    "jetpack": ">=6.1",
+    "l4t_major": 36,
+    "platform": "linux/arm64",
+    "runtime": "nvidia (NVIDIA_VISIBLE_DEVICES required)"
+  },
+  "toolchain": {
+    "cmake": "cmake version 4.4.4\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "gcc": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "nv_tegra_release": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+    "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2024 NVIDIA Corporation\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\nCuda compilation tools, release 12.6, V12.6.68\nBuild cuda_12.6.r12.6/compiler.34714021_0",
+    "nvidia-jetpack": "6.2.3+b81"
+  },
+  "tools": {
+    "/app/llama-bench": "e50d0916d41cba59facd67ca634621162b31916b09a27aa060d98652b0dbdc84",
+    "/app/llama-cli": "54cec398c48cb61a98bcbafdfcd882f41dfcf1575213e1c98051b1b6410954b3",
+    "/app/llama-completion": "9a78bf7c4c2a78400420cc1a33aaf560c8cb1ac5fdccbfac20e5940e727d82d2",
+    "/app/llama-eval-callback": "e76fd9e40cc5edba61081c0494f471079b7a7c487c9590f8abfccd7268cb5d64",
+    "/app/llama-perplexity": "0c67f379c62440ac708eece62a2222bd9931894422ad7430cc86b423886dbf4a",
+    "/app/llama-server": "29c95019eef7d6ae004f2dddd3e254a3e203f1da3dba9ce6929648740e9f4fa4",
+    "/app/llama-tokenize": "0df57e3efdacd7a68d3c497d48e0994c195d35602b83f2927ac807bfea51e31a"
+  },
+  "versions": {
+    "buildx": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b",
+    "docker": "{\"Client\":{\"Version\":\"29.1.3\",\"ApiVersion\":\"1.52\",\"DefaultAPIVersion\":\"1.52\",\"GitCommit\":\"29.1.3-0ubuntu3~22.04.2\",\"GoVersion\":\"go1.24.4\",\"Os\":\"linux\",\"Arch\":\"arm64\",\"BuildTime\":\"Wed Apr 29 22:18:59 2026\",\"Context\":\"default\"},\"Server\":{\"Platform\":{\"Name\":\"\"},\"Version\":\"29.1.3\",\"ApiVersion\":\"1.52\",\"MinAPIVersion\":\"1.44\",\"Os\":\"linux\",\"Arch\":\"arm64\",\"Components\":[{\"Name\":\"Engine\",\"Version\":\"29.1.3\",\"Details\":{\"ApiVersion\":\"1.52\",\"Arch\":\"arm64\",\"BuildTime\":\"Wed Apr 29 22:18:59 2026\",\"Experimental\":\"false\",\"GitCommit\":\"29.1.3-0ubuntu3~22.04.2\",\"GoVersion\":\"go1.24.4\",\"KernelVersion\":\"5.15.199-tegra\",\"MinAPIVersion\":\"1.44\",\"Os\":\"linux\"}},{\"Name\":\"containerd\",\"Version\":\"2.2.1\",\"Details\":{\"GitCommit\":\"\"}},{\"Name\":\"runc\",\"Version\":\"1.3.4-0ubuntu1~22.04.1\",\"Details\":{\"GitCommit\":\"\"}},{\"Name\":\"docker-init\",\"Version\":\"0.19.0\",\"Details\":{\"GitCommit\":\"\"}}],\"GitCommit\":\"29.1.3-0ubuntu3~22.04.2\",\"GoVersion\":\"go1.24.4\",\"KernelVersion\":\"5.15.199-tegra\",\"BuildTime\":\"2026-04-29T22:18:59.000000000+00:00\"}}\n"
+  },
+  "wall_seconds": 210.4233678090386,
+  "with_tests": false
+}

@@ -1,0 +1,14 @@
+{
+  "attempt_id": "351b2550a941444f94f545444d848d03",
+  "error": null,
+  "integration_diff_available": true,
+  "log": {
+    "available": true,
+    "stdout": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8 43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3 e14b876035009d585fe539a11ddd9a887b5834eb expert-fill : name worker threads (patch 0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030)\ne14b876035009d585fe539a11ddd9a887b5834eb 86ed6e3888f176c1c03021509d0843de62f0447f cf34d311332e362198f0a410c466d1e940287d02 pre-integration: cf34d311 + combined-01..08 (= om11 source; siminfeng cc/mmap_advice/patches)\ncf34d311332e362198f0a410c466d1e940287d02 2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6 a691b2345844ce1b430201fc5fd404ce062e05f2 moe-cache : ensure CPU part does not wait for the cached experts (#31888)\n"
+  },
+  "source": {
+    "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+    "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+    "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+  }
+}

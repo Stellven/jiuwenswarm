@@ -1,0 +1,146 @@
+[
+  {
+    "action": {
+      "next_bounded_operation": "Verify/apply candidate, review exact diff, locally commit under task authorization, inspect prerequisites.",
+      "type": "integrate"
+    },
+    "budget": "One integration and prerequisite inspection; at most one subsequent build.",
+    "created": 1794445845.8763802,
+    "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:1",
+    "evidence_ids": [
+      "factory-aeaa9acc88d34a3ab1375154da98c385"
+    ],
+    "expected_evidence": "Patch hashes/checks, diff, commit/tree, inspector output.",
+    "hypothesis": "Candidate integrates cleanly and can be built.",
+    "observations": "Clean owned checkout at e14b87603. Task permits local commits. Initial K=48 retained.",
+    "parent_rev": 0,
+    "reason_for_change": "Initial task factory-aeaa9acc88d34a3ab1375154da98c385 requires integration before build.",
+    "rev": 1,
+    "stop_condition": "Failed provenance/patch check, unrelated changes, missing prerequisites.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "uncertainty": "Patch hashes, toolchain, runtime acceptance unverified."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Submit one durable jetson-orin build with unique factory tag, explicit PATH/CUDA_HOME and one-hour deadline; inspect result next turn.",
+      "type": "build"
+    },
+    "budget": "One build, 3600-second deadline; no GPU lab overlap.",
+    "created": 1794445945.1698227,
+    "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:2",
+    "evidence_ids": [
+      "8183367a94e943b0a76a372e9e3c664c",
+      "9cd387c0dd2b49b8945c68a933c56ba8",
+      "7f0cbd8f9dfe43078d9af827a287106f"
+    ],
+    "expected_evidence": "Owned build attempt, terminal receipt, immutable image identity, build provenance and archive hashes.",
+    "hypothesis": "A jetson-orin build of the isolated thread-naming change will succeed with the inherited CUDA PATH.",
+    "observations": "Clean committed source 690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8; exact candidate hash detected. aarch64 L4T R36.5.2, nvcc CUDA 12.6.68 on PATH.",
+    "parent_rev": 1,
+    "reason_for_change": "8183367a94e943b0a76a372e9e3c664c and 9cd387c0dd2b49b8945c68a933c56ba8 establish integrated clean source and prerequisites.",
+    "rev": 2,
+    "stop_condition": "Build failed/blocked, missing immutable identity, unsafe prerequisites or deadline.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "uncertainty": "Build/base identity and runtime configuration not yet verified."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Probe exact immutable build image with unchanged initial environment using verify_effective_config, retain actual stderr and exit status.",
+      "type": "preflight"
+    },
+    "budget": "One bounded CPU-only config probe (45-second subprocess deadline).",
+    "created": 1794446269.6139948,
+    "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:3",
+    "evidence_ids": [
+      "351b2550a941444f94f545444d848d03:build-record",
+      "351b2550a941444f94f545444d848d03:receipt",
+      "351b2550a941444f94f545444d848d03:build-result",
+      "8183367a94e943b0a76a372e9e3c664c"
+    ],
+    "expected_evidence": "Actual invalid line, exit status, requested/effective configuration and probe artifacts.",
+    "hypothesis": "The preserved initial K=48 will cause explicit model-independent config rejection.",
+    "observations": "Build succeeded for integrated commit and sm_87. Build record bdd02716... binds pinned runtime, CUDA12.6.68, image89ad6ac4..., config3b04d1e7..., archive2ca616c1.... Record patch_sha256 is null because patch was committed; integration evidence links exact patch to source tree.",
+    "parent_rev": 2,
+    "reason_for_change": "Build receipt and build-result establish successful image construction; runtime validation is next, preserving task's initial K48.",
+    "rev": 3,
+    "stop_condition": "Probe timeout, missing output, or unanticipated failure; inspect receipt before any repair.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "uncertainty": "No runtime engagement or correctness evidence; initial config rejection is not yet observed."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Retry config probe using recorded build tag with unchanged initial env; check returned immutable image identity.",
+      "type": "preflight"
+    },
+    "budget": "One additional bounded probe; no source/config changes.",
+    "created": 1794446291.6100047,
+    "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:4",
+    "evidence_ids": [
+      "73feee22ee734fddab0aecc98dae9e19",
+      "58379e369b1c440c948c3fdb6dc7ee9a",
+      "351b2550a941444f94f545444d848d03:build-result"
+    ],
+    "expected_evidence": "Resolved image Id and actual config output or concrete failure artifacts.",
+    "hypothesis": "Inspector expects named image reference; build tag resolves to recorded immutable image.",
+    "observations": "Inspector rejected bare sha256 image input with INVALID_INPUT and empty artifact; no model rejection or effective config exists.",
+    "parent_rev": 3,
+    "reason_for_change": "73feee22ee734fddab0aecc98dae9e19 and 58379e369b1c440c948c3fdb6dc7ee9a show input failure, not a configuration failure.",
+    "rev": 4,
+    "stop_condition": "Different image identity or repeated unexplained input rejection.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "uncertainty": "Input shape/reference acceptance; K48 has still not been probed."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "One read-only inspector.inspect using image={ref:build tag}; if this fails stop missing prerequisite for usable API schema.",
+      "type": "inspect"
+    },
+    "budget": "One read-only schema/identity inspection, no further blind retries.",
+    "created": 1794446314.4230564,
+    "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:5",
+    "evidence_ids": [
+      "48d0c0e686b6431d866abd98a5e42621",
+      "a0e9a2bab10f48d8ad5c420f149f06dd",
+      "73feee22ee734fddab0aecc98dae9e19"
+    ],
+    "expected_evidence": "Resolved local image identity or explicit input failure.",
+    "hypothesis": "The image input requires a structured reference rather than a string. A read-only inspection can discriminate without running a model.",
+    "observations": "Both bare Id and named tag string inputs fail before model execution. Stop repeated string-reference probes.",
+    "parent_rev": 4,
+    "reason_for_change": "Two input-only failures 48d0c0e686b6431d866abd98a5e42621 and 73feee22ee734fddab0aecc98dae9e19 contradict string-reference hypothesis; switch to structured input once.",
+    "rev": 5,
+    "stop_condition": "Structured image reference rejected or resolves to different Id.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "uncertainty": "Capsule listing does not expose nested image schema."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Stop at bounded preflight stop condition. Preserve local commit, successful image, all failed receipts and unchanged initial configuration; require actionable inspector schema/local-tool diagnostics before resuming.",
+      "type": "report_inconclusive"
+    },
+    "budget": "One build completed, two config invocation failures and one structured-image inspection failure; stop despite remaining task budget because bounded diagnostic hypothesis was exhausted.",
+    "created": 1794446355.2077382,
+    "decision_id": "factory-aeaa9acc88d34a3ab1375154da98c385:decision:6",
+    "evidence_ids": [
+      "351b2550a941444f94f545444d848d03:build-record",
+      "351b2550a941444f94f545444d848d03:receipt",
+      "351b2550a941444f94f545444d848d03:build-result",
+      "8183367a94e943b0a76a372e9e3c664c",
+      "73feee22ee734fddab0aecc98dae9e19",
+      "58379e369b1c440c948c3fdb6dc7ee9a",
+      "48d0c0e686b6431d866abd98a5e42621",
+      "a0e9a2bab10f48d8ad5c420f149f06dd",
+      "5042a89afae042868280d93b44990221",
+      "858f7d4e9a4b416a8bb162c693c06d15"
+    ],
+    "expected_evidence": "No pass claim. Future resumption requires successful exact-image preflight and actual config rejection before any one-variable repair, then immutable-contract lab receipt with engagement and correctness artifacts.",
+    "hypothesis": "A usable inspector image/config invocation or local-tool prerequisite must be established before safe contract submission; the available generic diagnostics do not identify which prerequisite failed.",
+    "observations": "Integration and jetson-orin build succeeded. Initial K=48 is preserved. Config probes using image Id and tag strings returned failed INVALID_INPUT with no model stdout/stderr. Structured-image inspection also failed. No runtime configuration acceptance/rejection, engagement or greedy output comparison exists.",
+    "parent_rev": 5,
+    "reason_for_change": "5042a89afae042868280d93b44990221 and 858f7d4e9a4b416a8bb162c693c06d15 reject the final bounded input-shape hypothesis. Earlier failed probe evidence also contains no model rejection. Build success in 351b2550a941444f94f545444d848d03:build-result cannot satisfy runtime obligations.",
+    "rev": 6,
+    "stop_condition": "Reached decision5 stop condition: structured image reference rejected without actionable diagnostics.",
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "uncertainty": "Root cause of inspector INVALID_INPUT is unresolved. K48 invalid-range rejection was not observed. Qwen worker activation and byte-identical greedy stdout are untested. Build cleanup reports containers_unverified."
+  }
+]

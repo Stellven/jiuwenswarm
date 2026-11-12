@@ -49,8 +49,9 @@ printf '%s\n' "$FACTORY_DEMO_TASK" > "$FACTORY_HOME/demo-task-id"
 The existing durable campaign jobq worker must be available for submitted work;
 Docker/group access, Jetson toolchain, model/prompt/reference-image prerequisites
 belong to the operator. No worker, Docker/GPU run or reference freeze is launched
-by init/configure. The example forbids commits. The agent must stop with bounded
-evidence if integration/build requires authority or prerequisites it lacks.
+by init/configure. The current example permits local commits only in the owned checkout and forbids
+push/publication. The agent must stop with bounded evidence if integration/build
+requires authority or prerequisites it lacks.
 A scored accept also requires a frozen reference under qwen36-greedy-v1; the
 agent must never edit/freeze the contract itself.
 

@@ -1,0 +1,228 @@
+[
+  {
+    "confidence": null,
+    "created": 1794445895.994853,
+    "error": {},
+    "host_run": {},
+    "kind": "inspector.inspect",
+    "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+    "obs_id": "1293decfe93c4f25b1031bf336c3f9d1",
+    "source_artifacts": [
+      "e48f54ebad994484a16602f65de5d811"
+    ],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {
+      "host": {
+        "arch": "aarch64",
+        "docker": true,
+        "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+        "nvcc_on_path": true
+      },
+      "source": {
+        "applied_patches": [
+          {
+            "name": "09-thread-names.patch",
+            "sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030"
+          }
+        ],
+        "branch": "factory/pre-integration",
+        "commit": "e14b876035009d585fe539a11ddd9a887b5834eb",
+        "dirty": true
+      }
+    }
+  },
+  {
+    "confidence": null,
+    "created": 1794445923.8532846,
+    "error": {},
+    "host_run": {},
+    "kind": "integration",
+    "limitations": "Build, engagement and correctness not yet verified.",
+    "obs_id": "8183367a94e943b0a76a372e9e3c664c",
+    "source_artifacts": [],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {
+      "base": "e14b876035009d585fe539a11ddd9a887b5834eb",
+      "checks": {
+        "apply": 0,
+        "candidate_forward": 0,
+        "candidate_reverse_before": 1,
+        "combined_reverse": 0,
+        "diff_check": 0
+      },
+      "combined_sha256": "87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497",
+      "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+      "notes": "Exact material bytes restored after initial trailing-newline hash mismatch, before application. First commit failed missing identity; retried with per-command Factory Agent <factory-agent@localhost>; no global config changed.",
+      "patch_sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030",
+      "review": "Six added lines only: pthread header plus Linux worker thread naming via bounded snprintf; no data-path change.",
+      "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    }
+  },
+  {
+    "confidence": null,
+    "created": 1794445925.8876643,
+    "error": {},
+    "host_run": {},
+    "kind": "inspector.inspect",
+    "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+    "obs_id": "9cd387c0dd2b49b8945c68a933c56ba8",
+    "source_artifacts": [
+      "7f0cbd8f9dfe43078d9af827a287106f"
+    ],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {
+      "host": {
+        "arch": "aarch64",
+        "docker": true,
+        "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+        "nvcc_on_path": true
+      },
+      "source": {
+        "applied_patches": [
+          {
+            "name": "09-thread-names.patch",
+            "sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030"
+          }
+        ],
+        "branch": "factory/pre-integration",
+        "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+        "dirty": false
+      }
+    }
+  },
+  {
+    "confidence": null,
+    "created": 1794446226.9298112,
+    "error": {},
+    "host_run": {
+      "attempt_id": "351b2550a941444f94f545444d848d03",
+      "jobq_id": "job-03d9640bf26f4c9d89b5ca0085d4f8dc",
+      "receipt": {
+        "build_record": {
+          "artifact_id": "351b2550a941444f94f545444d848d03:build-record",
+          "sha256": "bdd027168b404bd0ed25f4dec11d22f14e1ac76467f66d4ea84fb4abdb01b59f"
+        },
+        "image_id": "sha256:89ad6ac43df111090aab1ce8ace54009ae707550db39ed1b3f2614a84f0cd093",
+        "prep": {
+          "artifact_id": "351b2550a941444f94f545444d848d03:prep",
+          "sha256": "db5c6c23358cd36a37c312a69d66b92ccf84c7e5cd8f117c377270ee7744aabc"
+        },
+        "request": {
+          "artifact_id": "351b2550a941444f94f545444d848d03:request",
+          "sha256": "65a645936e6c3767103a04dc18a207abce70c91e04397425b2daa5772c50eaa3"
+        },
+        "request_fingerprint": "b893cc51bbe956166ce101d01eda0f6f152f7d6c9b3ce06bc336e932e031bca3"
+      }
+    },
+    "kind": "build_result",
+    "limitations": "",
+    "obs_id": "351b2550a941444f94f545444d848d03:build-result",
+    "source_artifacts": [
+      "351b2550a941444f94f545444d848d03:request",
+      "351b2550a941444f94f545444d848d03:prep",
+      "351b2550a941444f94f545444d848d03:build-record",
+      "351b2550a941444f94f545444d848d03:stdout",
+      "351b2550a941444f94f545444d848d03:stdout-tail",
+      "351b2550a941444f94f545444d848d03:stderr",
+      "351b2550a941444f94f545444d848d03:stderr-tail",
+      "351b2550a941444f94f545444d848d03:receipt"
+    ],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {
+      "base_images": {
+        "runtime": {
+          "digest": "sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1",
+          "reference": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+        }
+      },
+      "build_wall_seconds": 167.05182179401163,
+      "cache_hit": false,
+      "failure_stage": null,
+      "image_id": "sha256:89ad6ac43df111090aab1ce8ace54009ae707550db39ed1b3f2614a84f0cd093",
+      "patch_sha256": null,
+      "source_commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+      "source_tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3",
+      "status": "success",
+      "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+      "toolchain": {
+        "cmake": "cmake version 4.4.4\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).",
+        "gcc": "gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\nCopyright (C) 2021 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+        "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+        "nv_tegra_release": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+        "nvcc": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2024 NVIDIA Corporation\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\nCuda compilation tools, release 12.6, V12.6.68\nBuild cuda_12.6.r12.6/compiler.34714021_0",
+        "nvidia-jetpack": "6.2.3+b81"
+      }
+    }
+  },
+  {
+    "confidence": null,
+    "created": 1794446271.3043349,
+    "error": {
+      "code": "INVALID_INPUT",
+      "message": "Invalid inspector inputs or local tool response"
+    },
+    "host_run": {},
+    "kind": "inspector.verify_effective_config",
+    "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+    "obs_id": "73feee22ee734fddab0aecc98dae9e19",
+    "source_artifacts": [
+      "58379e369b1c440c948c3fdb6dc7ee9a"
+    ],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {}
+  },
+  {
+    "confidence": null,
+    "created": 1794446292.5127347,
+    "error": {
+      "code": "INVALID_INPUT",
+      "message": "Invalid inspector inputs or local tool response"
+    },
+    "host_run": {},
+    "kind": "inspector.verify_effective_config",
+    "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+    "obs_id": "48d0c0e686b6431d866abd98a5e42621",
+    "source_artifacts": [
+      "a0e9a2bab10f48d8ad5c420f149f06dd"
+    ],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {}
+  },
+  {
+    "confidence": null,
+    "created": 1794446318.2077348,
+    "error": {
+      "code": "INVALID_INPUT",
+      "message": "Invalid inspector inputs or local tool response"
+    },
+    "host_run": {},
+    "kind": "inspector.inspect",
+    "limitations": "Local inspection/config probe only; no activation or correctness claim.",
+    "obs_id": "5042a89afae042868280d93b44990221",
+    "source_artifacts": [
+      "858f7d4e9a4b416a8bb162c693c06d15"
+    ],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {}
+  },
+  {
+    "confidence": "high",
+    "created": 1794446389.0260313,
+    "error": {},
+    "host_run": {
+      "actor": "operator (Claude Opus, orchestrator)"
+    },
+    "kind": "operator_intervention",
+    "limitations": "intervention during a live run; recorded so the run is not presented as fully autonomous",
+    "obs_id": "ea7c11f954974b1cb63ff5170e593266",
+    "source_artifacts": [],
+    "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+    "values": {
+      "at_decision_rev": 5,
+      "change": "engine_inspector now accepts image as a reference string or {tag|id|ref}, and INVALID_INPUT errors state the actual reason",
+      "code": "jiuwenswarm/factory/inspector.py (Inspector.image, dispatch error text)",
+      "scope": "tool usability only; no grants, contract, component, build or evaluation changed",
+      "why": "observations 73feee22, 48d0c0e6 and the {ref} inspect failure were caused by a factory tool defect (opaque error, over-strict image input), not by the agent or the engine"
+    }
+  }
+]
