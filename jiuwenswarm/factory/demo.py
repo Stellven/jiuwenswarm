@@ -125,7 +125,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
                           'let z=Math.min(innerWidth/1920,innerHeight/1080);s.style.transform=`scale(${z})`;'
                           's.style.left=(innerWidth-1920*z)/2+"px";s.style.top=(innerHeight-1080*z)/2+"px"}'
                           'onresize=fit;fit()</script>')
-        add(key, title, 45, 'RECONSTRUCTED', 'Opening explanation; offline local slide with system font fallback.',
+        add(key, title, 30, 'SLIDE', 'Opening explanation; offline local slide with system font fallback.',
             sources=[source], frame=frame, command=['capsules', '--plain'])
 
     contract_source = file(root / 'jiuwenswarm/factory/contracts/qwen36-bare-greedy-v1.json')
@@ -139,7 +139,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
     single = [e for e in d4['evaluations'] if 'run' in e.get('inputs', {})]
     baseline = single[0] if single else {}
     task_source = dict(task_id=run4, record_id=run4, path=str(home / 'factory.sqlite'))
-    add('baseline', 'Plain llama.cpp + the task contract', 45, 'RECORDED',
+    add('baseline', 'Plain llama.cpp + the task contract', 30, 'RECORDED',
         'Plain cf34d311; frozen greedy continuation. The Run 4 task is historical; the current brief is also copied.',
         dump(reference) + '\n\nGenerated output (frozen reference):\n' + stdout
         + '\nRun 4 task:\n' + dump(d4['tasks'][0]) + '\nBare evaluation:\n' + dump(baseline)
@@ -185,7 +185,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
                                   tool_call_id=pair['result']['tool_call_id'], receipts=receipts,
                                   result_status=result.get('status')))
     cc_asset = write('assets/run4-cc-receipts.json', dump(dict(materials=materials, calls=calls, transcript_pairs=pairs)))
-    add('capsules', 'JiuwenSwarm invokes Capability Capsules', 65, 'RECORDED',
+    add('capsules', 'JiuwenSwarm invokes Capability Capsules', 35, 'RECORDED',
         'Material reads and cc_call receipts from Run 4. Submission receipts and completed results are distinct evidence.',
         dump(dict(material_reads=materials, cc_call_receipts=compact_pairs, call_telemetry=calls)),
         [dict(task_id=run4, path=str(home / 'telemetry/events.jsonl'),
@@ -245,7 +245,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
         diff_sources.extend([request_source, receipt_source, build_source,
                              dict(task_id=run4, record_id=observation['obs_id'], commit=source['commit'],
                                   image_id=observation['values']['image_id'], path=diff_path, asset=asset)])
-    add('source', 'Source changes → built image', 70, 'RECORDED',
+    add('source', 'Source changes → built image', 35, 'RECORDED',
         'Run 4 expert_fill and expert_pregate integration commits; hook excerpts and completed build receipts.',
         '\n\n'.join(diff_text), diff_sources, command=['story', run4, '--plain'])
 
@@ -264,7 +264,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
                                    100*numbers['decode_selected_predicted']/numbers['decode_selected']))
         else:
             gaps.append('J-XS4 readiness counters')
-    add('activity', 'Selected vs predicted experts', 55, 'SEPARATE CAPTURE',
+    add('activity', 'Selected vs predicted experts', 35, 'SEPARATE CAPTURE',
         'Separate unscored capture run (J-XS4), image factory/llamacpp:xs-trace. '
         + activity_caption,
         sources=[activity, activity_log, activity_image,
@@ -290,7 +290,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
         gaps.append(f'{run5}: decision 13')
     cited = [r for table in ('observations', 'artifacts') for r in d5[table]
              if (r.get('obs_id') or r.get('artifact_id')) in (decision or {}).get('evidence_ids', [])]
-    add('revision', 'Evidence changes the plan', 75, 'RECORDED',
+    add('revision', 'Evidence changes the plan', 40, 'RECORDED',
         'Run 5 excerpt; Run 5 was held for later and kept no component. CONFIG_MISSING on the router-only image '
         '→ integrate 03–08 switched off for strict reporting; router measure moves after the new build.',
         (dump((decision or {}).get('observations', '')) + '\n\nHypothesis: ' + (decision or {}).get('hypothesis', '')
@@ -308,7 +308,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
     result = ('J-OM13: plain %.1f vs factory engine %.1f ms/token (%.2f×). 12-run ABBA; identical output.'
               % (float(means['base']), float(means['factory']), float(means['base'])/float(means['factory'])) if len(means)==2 else 'J-OM13 result unavailable')
     lab_values = [e.get('inputs', {}).get('run', {}).get('details', {}).get('eval_ms_per_token') for e in single]
-    add('result', 'Result: same output, faster engine', 125, 'RECORDED', result,
+    add('result', 'Result: same output, faster engine', 35, 'RECORDED', result,
         result + '\nRun 4 single lab runs (single-run, not ABBA): ' + ' → '.join(str(x) for x in lab_values)
         + '\n\nGenerated output:\n' + stdout + '\n\n' + report_text,
         [report, stdout_source, *[dict(task_id=run4, record_id=e['eval_id']) for e in single]],
@@ -317,7 +317,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
     handoff = file(root / 'RSI-START-HERE.md')
     manifest = file(root / 'jiuwenswarm/factory/ccs/expert_streaming/cc.yaml', 'expert-streaming-cc.yaml')
     handoff_text = (out / handoff['asset']).read_text() if handoff else ''
-    add('handoff', 'Handoff: engine.expert_streaming 2.0.0', 75, 'RECORDED',
+    add('handoff', 'Handoff: engine.expert_streaming 2.0.0', 25, 'RECORDED',
         'Versioned capsule, evidence and RSI starting point; tag cc-rsi-v1.',
         handoff_text, [handoff, manifest], command=['capsules', '--plain'])
 
@@ -344,7 +344,7 @@ def build(out=DEFAULT_PACK, home=None, *, root=ROOT, siminfeng=None, run4=RUN4, 
         except (ValueError, OSError, subprocess.TimeoutExpired) as exc:
             gaps.append(f'{section["id"]}: recorded command capture: {sanitize(str(exc))}')
             section['recorded_output'] = section['text']
-    pack = dict(schema='factory.demo/1', title='A software factory that uses CCs', budget=600,
+    pack = dict(schema='factory.demo/1', title='A software factory that uses CCs', budget=sum(s['duration'] for s in sections),
                 home=str(home), task_ids=[run4, run5], end_to_end=E2E, sections=sections,
                 backups=backups, gaps=gaps, assets=assets)
     write('index.html', Path(__file__).with_name('demo.html').read_text())

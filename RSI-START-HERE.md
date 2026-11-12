@@ -1,8 +1,8 @@
 # RSI START HERE — frozen CC baseline for the Satay software factory
 
-**Baseline release: tag `cc-rsi-v1`** on `Stellven/jiuwenswarm` branch `ai4r/iterative-cc-factory` (descends from AI4Research-Main `141c1c4`). It supersedes `cc-baseline-2026-11-12` (still present) by adding the revised CC-v2 runtime, the fast lab contract and the siminfeng submodule. The tag does not move. Improve CCs on your own branch from it.
+**Baseline release: tag `cc-rsi-v1`** on `Stellven/jiuwenswarm` branch `cc-siminfeng` (descends from AI4Research-Main `141c1c4`). It supersedes `cc-baseline-2026-11-12` (still present) by adding the revised CC-v2 runtime, the fast lab contract and the siminfeng submodule. The tag does not move. Improve CCs on your own branch from it.
 
-Clone: `git clone --recurse-submodules -b ai4r/iterative-cc-factory git@github.com:Stellven/jiuwenswarm.git && git checkout cc-rsi-v1` (the `lab/siminfeng` submodule is `Muxite/siminfeng`; ask the operator for read access if the clone fails).
+Clone: `git clone --recurse-submodules -b cc-siminfeng git@github.com:Stellven/jiuwenswarm.git && git checkout cc-rsi-v1` (the `lab/siminfeng` submodule is `Muxite/siminfeng`; ask the operator for read access if the clone fails).
 
 **Companion pin:** lab tools come from `Muxite/siminfeng` (branch `main` = `jetson/c1`), commit `468d994` or later (`bin/jobq`, `cc/om_run`, `cc/abrun`, `cc/build_engine`). The factory finds it at `SIMINFENG_ROOT` (default `~/projects/siminfeng`).
 

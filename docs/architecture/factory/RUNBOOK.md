@@ -4,7 +4,7 @@ The factory is one native JiuwenSwarm/Codex agent using six CCs. The host enforc
 
 ## Setup and pins
 
-Run from `/home/muk/projects/jiuwenswarm`, branch `ai4r/iterative-cc-factory`. Intake records Python 3.12.16, openjiuwen 0.1.18, CUDA 12.6.68, JetPack 6.2.3+b81, Docker 29.1.3, arm64 Jetson Orin Nano, 7,607 MiB RAM, and 13 GiB free at intake. Those are historical observations, not current resource guarantees. Source pins are in [intake.json](../../../artifacts/factory/intake.json); feature HEAD is recorded in the completion report and each bundle's `export.json`.
+Run from `/home/muk/projects/jiuwenswarm`, branch `cc-siminfeng`. Intake records Python 3.12.16, openjiuwen 0.1.18, CUDA 12.6.68, JetPack 6.2.3+b81, Docker 29.1.3, arm64 Jetson Orin Nano, 7,607 MiB RAM, and 13 GiB free at intake. Those are historical observations, not current resource guarantees. Source pins are in [intake.json](../../../artifacts/factory/intake.json); feature HEAD is recorded in the completion report and each bundle's `export.json`.
 
 For a fresh Linux/aarch64 environment (do not recreate an existing working `.venv`):
 

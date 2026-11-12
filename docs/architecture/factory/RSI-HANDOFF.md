@@ -6,7 +6,7 @@
 
 | Item | Boundary |
 | --- | --- |
-| Baseline branch | `ai4r/iterative-cc-factory` |
+| Baseline branch | `cc-siminfeng` |
 | Handoff tag | `cc-baseline-2026-11-12` |
 | Exact baseline commit | **tag `cc-baseline-2026-11-12` (resolve with `git rev-parse cc-baseline-2026-11-12`)**; the tag ref was absent in the local checkout when drafting. Resolve and record the tag's commit before a baseline/revision comparison; no tag is created by this docs task. |
 | This documentation worktree | `/home/muk/projects/jiuwenswarm-cl`, branch `ai4r/contract-loop` |

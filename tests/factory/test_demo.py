@@ -29,7 +29,7 @@ def test_build_and_control_api(tmp_path):
     pack = build(out, home, root=fixture_root, siminfeng=tmp_path/'lab',
                  run4='fixture-run4', run5='fixture-run5')
     assert (out/'index.html').is_file()
-    assert sum(s['duration'] for s in pack['sections']) == 600
+    assert sum(s['duration'] for s in pack['sections']) == pack['budget'] <= 360
     assert stdout.decode() in pack['sections'][2]['text']
     assert json.loads((out/'assets/run5-plan-12.json').read_text())['rev'] == 12
     assert json.loads((out/'assets/run5-plan-13.json').read_text())['rev'] == 13
@@ -65,9 +65,9 @@ def test_build_and_control_api(tmp_path):
     assert post('prev')['section'] == 1
     assert post('goto', 6)['section'] == 6
     assert not post('resume')['paused']
-    now[0] += 140
+    now[0] += 80
     assert request('/api/state')[1]['section'] == 8
-    assert request('/api/state')[1]['elapsed'] == 140
+    assert request('/api/state')[1]['elapsed'] == 80
     # Force the real read-only subprocess to fail, then exercise captured fallback.
     state.pack['home'] = str(tmp_path/'missing-store')
     assert post('live')['label'] == 'RECORDED FALLBACK'
