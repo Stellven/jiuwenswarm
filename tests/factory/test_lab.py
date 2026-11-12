@@ -96,6 +96,8 @@ def test_admit_ok_labeled_same_host(lab):
 
 def test_contract_freeze_once(tmp_path):
     c = dict(contract.load('qwen36-greedy-v1'))
+    # The shipped contract is frozen; exercise freeze-once on an unfrozen copy.
+    c['reference'] = dict(c['reference'], stdout_sha256=None, frozen_at=None, run_ref=None)
     p = tmp_path / 'contract.json';contract.atomic_json(p,c)
     loaded = contract.load(p)
     run = dict(execution_outcome='ok',evidence_completeness='complete',image_id=c['reference']['image_id'],stdout_sha256='a'*64,run_ref='fixture')

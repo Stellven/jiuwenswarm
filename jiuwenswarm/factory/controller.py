@@ -23,6 +23,14 @@ from .store import Store
 ROOT = Path(__file__).resolve().parents[2]
 ACTIVE = {'queued', 'running', 'cancel_requested'}
 TERMINAL = {'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
+
+
+def read_tasks(task):
+    constraints = task.get('constraints')
+    reads = constraints.get('read_tasks', []) if isinstance(constraints, dict) else []
+    if not isinstance(reads, list) or not all(isinstance(t, str) and t for t in reads):
+        raise ValueError('constraints.read_tasks must be a list of task ids')
+    return reads
 SCRUB = [
     (re.compile(r'eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}'), '<jwt>'),
     (re.compile(r'(?i)(bearer\s+)[A-Za-z0-9._\-]{16,}'), r'\1<token>'),
@@ -37,7 +45,7 @@ def scrub(value):
         for pattern, replacement in SCRUB:
             value = pattern.sub(replacement, value)
     elif isinstance(value, dict):
-        value = {k: ('<redacted>' if re.search(r'(?i)(token|secret|password|authorization|api_key)', k)
+        value = {k: ('<redacted>' if (re.search(r'(?i)(token|secret|password|authorization|api_key)', k) and not k.startswith('LLAMA_'))
                      else scrub(v)) for k, v in value.items()}
     elif isinstance(value, (list, tuple)):
         value = [scrub(v) for v in value]
@@ -62,6 +70,10 @@ def configure_agent(task, grants=(), home=None):
     env = {'FACTORY_HOME': str(home), 'FACTORY_TASK_ID': task['task_id'],
            'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': 'sg docker -c',
            'PYTHONPATH': str(ROOT), 'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
+    # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
+    reads = read_tasks(task)
+    if reads:
+        env['FACTORY_READ_TASKS'] = ','.join(reads)
     quote = json.dumps
     mcp = home / 'agent-mcp.toml'
     mcp.write_text('[mcp_servers.cc]\n' + f'command = {quote(sys.executable)}\n'
@@ -90,6 +102,9 @@ class Controller:
         (self.home / 'sessions').mkdir(parents=True, exist_ok=True)
 
     def init_task(self, task_file):
+        return self._init_task(task_file)
+
+    def _init_task(self, task_file):
         task = json.loads(Path(task_file).read_text(encoding='utf-8'))
         required = {'objective', 'constraints', 'allowed_effects', 'target', 'budget',
                     'contract_id', 'initial_run_config', 'component_cc', 'source'}
@@ -107,6 +122,8 @@ class Controller:
         for key in ('budget', 'source', 'initial_run_config', 'operator_labels'):
             if not isinstance(task.get(key, {}), dict):
                 raise ValueError(f'{key} must be an object')
+        for prior in read_tasks(task):
+            self.store.get_task(prior)  # must exist; raises NotFound otherwise
         budget = task['budget']
         if (type(budget.get('max_turns')) is not int or budget['max_turns'] < 1
                 or type(budget.get('wall_clock_s')) not in (int, float)
@@ -182,6 +199,8 @@ class Controller:
             # Only operator inputs and standing instructions; never producer prose.
             message['objective'] = task['objective']
             message['operator_labels'] = task.get('operator_labels', {})
+            if read_tasks(task):
+                message['readable_prior_tasks'] = read_tasks(task)  # ids only; query their evidence
             message['instructions'] = Path(__file__).with_name('AGENT.md').read_text()
         return json.dumps(message, ensure_ascii=False)
 

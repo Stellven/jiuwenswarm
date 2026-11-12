@@ -67,9 +67,15 @@ class Inspector:
         return self.run(command, timeout=timeout)
 
     def image(self, image):
-        if not isinstance(image, dict) or len(image) != 1 or not set(image) <= {'tag', 'id'}:
-            raise ValueError('image requires exactly one of tag or id')
-        value = next(iter(image.values()))
+        # Accept a plain reference string ("repo:tag" or "sha256:<64hex>") or {"tag"|"id"|"ref": str}.
+        if isinstance(image, str):
+            value = image
+        elif isinstance(image, dict) and len(image) == 1 and set(image) <= {'tag', 'id', 'ref'}:
+            value = next(iter(image.values()))
+        else:
+            raise ValueError('image must be a reference string ("repo:tag" or "sha256:<hex>") '
+                             'or an object with exactly one of "tag", "id", "ref"; got %s'
+                             % (type(image).__name__ if not isinstance(image, dict) else sorted(image)))
         if not isinstance(value, str) or not value or value.startswith('-'):
             raise ValueError('Invalid image reference')
         result = self.docker(['image', 'inspect', value], timeout=2)
@@ -238,8 +244,9 @@ def dispatch(store, task_id, capability, packet):
             raise ValueError('Unknown inspector capability')
     except InspectionError as exc:
         error = (exc.code, str(exc))
-    except (ValueError, TypeError, KeyError, IndexError):
-        error = ('INVALID_INPUT', 'Invalid inspector inputs or local tool response')
+    except (ValueError, TypeError, KeyError, IndexError) as exc:
+        # Say why: an agent can only repair a call it can diagnose.
+        error = ('INVALID_INPUT', (f'{type(exc).__name__}: {exc}')[:300])
     except OSError:
         error = ('PROCESS_FAILED', 'Inspector executable or local file unavailable')
     artifact = store.put_artifact(task_id, None,
