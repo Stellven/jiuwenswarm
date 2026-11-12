@@ -7,7 +7,10 @@ def path(key, default):
     return Path(os.environ.get(key, default)).expanduser()
 
 
-SIMINFENG_ROOT = path('SIMINFENG_ROOT', Path.home() / 'projects/siminfeng')
+_HOME_LAB = Path.home() / 'projects/siminfeng'
+_SUBMODULE_LAB = Path(__file__).resolve().parents[2] / 'lab/siminfeng'
+# Live host lab (shared job queue) first; the pinned submodule is the fallback on a fresh clone.
+SIMINFENG_ROOT = path('SIMINFENG_ROOT', _HOME_LAB if _HOME_LAB.is_dir() or not (_SUBMODULE_LAB / 'bin/jobq').exists() else _SUBMODULE_LAB)
 JOBQ_BIN = path('FACTORY_JOBQ_BIN', SIMINFENG_ROOT / 'bin/jobq')
 ENGINE = path('FACTORY_BUILD_ENGINE', SIMINFENG_ROOT / 'cc/build_engine/build_engine.py')
 RECIPE = path('FACTORY_BUILD_RECIPE', SIMINFENG_ROOT / 'builds/llamacpp-jetson/Dockerfile')

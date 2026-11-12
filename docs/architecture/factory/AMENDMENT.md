@@ -1,4 +1,4 @@
-# Feature-scoped amendment: iterative CC inference factory
+# Feature-scoped amendment: iterative inference-engine software factory using CCs
 
 Status: authorized by the operator, 2026-11-12, for branch `ai4r/iterative-cc-factory` only.
 

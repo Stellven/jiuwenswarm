@@ -1,1 +1,1 @@
-"""Durable, task-scoped evidence for the iterative CC factory."""
+"""Durable, task-scoped evidence for the iterative software factory that uses CCs."""

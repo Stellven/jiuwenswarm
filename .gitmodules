@@ -1,0 +1,3 @@
+[submodule "lab/siminfeng"]
+	path = lab/siminfeng
+	url = git@github.com:Muxite/siminfeng.git
