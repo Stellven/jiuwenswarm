@@ -315,7 +315,7 @@ class Host:
         self.resources = resources or {}
         self.delegates = delegates or {}
         self.checkers = {'core.complete': complete_result, **(checkers or {})}
-        self.python = python or sys.executable
+        self.python = os.fspath(python or os.environ.get('CCV2_PYTHON') or sys.executable)
         self.session_grants = None if session_grants is None else self.grant_list(session_grants)
         with self.db() as db:
             db.execute('CREATE TABLE IF NOT EXISTS calls (key TEXT PRIMARY KEY, fingerprint TEXT NOT NULL, receipt TEXT NOT NULL)')
@@ -428,7 +428,10 @@ class Host:
                 require(not Path(arg).is_absolute(), 'UNSEALED_IMPLEMENTATION', 'Put implementation files in the bundle and use {bundle}; absolute external arguments are unsupported')
             command = binding['command'][0].replace('{python}', self.python).replace('{bundle}', str(bundle))
             executable = shutil.which(command) or (str(Path(command).resolve()) if Path(command).is_file() else None)
-            executables[name] = ({'path': str(Path(executable).resolve()), 'sha256': file_sha(executable)}
+            # Resolving a venv symlink selects the base runtime and loses its packages.
+            executable_path = (os.path.abspath(executable) if '{python}' in binding['command'][0]
+                               else str(Path(executable).resolve())) if executable else None
+            executables[name] = ({'path': executable_path, 'sha256': file_sha(executable)}
                                  if executable else {'unavailable': command})
         manifest = {'format': 'cc-release/2', 'declaration': decl, 'files': [{k: row[k] for k in ('path','sha256','size')} for row in rows]}
         manifest['files'].sort(key=lambda row: row['path'].encode('utf-8'))

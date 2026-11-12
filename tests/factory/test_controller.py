@@ -59,7 +59,7 @@ def publish(controller, action='inspect'):
 def rig(tmp_path, monkeypatch):
     # configure_agent updates process environment; restore everything it changes.
     for key in ('FACTORY_HOME', 'FACTORY_TASK_ID', 'FACTORY_WORKSPACE', 'DOCKER_CMD_PREFIX',
-                'PYTHONPATH', 'PATH', 'JIUWENSWARM_DATA_DIR', 'JIUWENSWARM_AGENT_SDK',
+                'PYTHONPATH', 'PATH', 'CCV2_PYTHON', 'FACTORY_PYTHON', 'JIUWENSWARM_DATA_DIR', 'JIUWENSWARM_AGENT_SDK',
                 'JIUWENSWARM_CODEX_AGENT', 'JIUWENSWARM_CODEX_AGENT_MCP',
                 'JIUWENSWARM_CODEX_AGENT_CWD', 'JIUWENSWARM_SKIP_DOTENV'):
         monkeypatch.setenv(key, __import__('os').environ.get(key, ''))
@@ -309,13 +309,16 @@ def test_run_without_any_grant_fails_before_a_turn(tmp_path):
 
 
 def test_capsules_run_the_api_in_the_controller_venv(tmp_path):
-    # ccv2 seals the resolved base interpreter for native capsules, which lacks the venv's
-    # site-packages; the wrappers must launch the factory API with FACTORY_PYTHON instead.
+    # Native bindings must retain the controller's venv. Old capsule wrappers
+    # still receive FACTORY_PYTHON for compatibility.
     import sys
     from pathlib import Path
     from jiuwenswarm.factory.controller import configure_agent
     mcp = configure_agent({'task_id': 't', 'allowed_effects': []}, home=tmp_path)
     assert f'FACTORY_PYTHON = "{sys.executable}"' in mcp.read_text()
+    config = tomllib.loads(mcp.read_text())['mcp_servers']['cc']
+    assert config['env']['CCV2_PYTHON'] == sys.executable
+    assert config['args'].count('--ccs') == 1
     root = Path(__file__).resolve().parents[2] / 'jiuwenswarm/factory/ccs'
     for wrapper in root.glob('*/run.py'):
         assert "os.environ.get('FACTORY_PYTHON', sys.executable)" in wrapper.read_text(), wrapper

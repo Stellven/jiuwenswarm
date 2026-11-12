@@ -31,7 +31,7 @@ def _materialize(host, template, change, output, *, trusted_build=False, timeout
     records = attempt['steps']
     def run(arguments, cwd, code):
         try:
-            result = subprocess.run(arguments, cwd=cwd, env=env, capture_output=True, timeout=timeout)
+            result = subprocess.run(arguments, cwd=cwd, env=env, stdin=subprocess.DEVNULL, capture_output=True, timeout=timeout)
         except subprocess.TimeoutExpired as error:
             records.append({'command': arguments, 'exit_code': None, 'outcome': 'unknown',
                             'stdout': (error.stdout or b'').decode('utf-8', errors='replace'),
@@ -51,8 +51,10 @@ def _materialize(host, template, change, output, *, trusted_build=False, timeout
         run(['git', '-c', 'core.autocrlf=false', 'checkout', '--detach', 'FETCH_HEAD'], checkout, 'SOURCE_UNAVAILABLE')
         base = run(['git', 'rev-parse', 'HEAD'], checkout, 'SOURCE_UNAVAILABLE')
         core.require(base == change['base'], 'BASE_MISMATCH', 'Fetched source differs from requested base')
-        run(['git', 'apply', '--allow-empty', '--check', '--index', '--binary', str(patch)], checkout, 'PATCH_REJECTED')
-        run(['git', 'apply', '--allow-empty', '--index', '--binary', str(patch)], checkout, 'PATCH_REJECTED')
+        # Empty patches rebuild the exact base; older Git has no --allow-empty.
+        if patch.stat().st_size:
+            run(['git', 'apply', '--check', '--index', '--binary', str(patch)], checkout, 'PATCH_REJECTED')
+            run(['git', 'apply', '--index', '--binary', str(patch)], checkout, 'PATCH_REJECTED')
         tree = run(['git', 'write-tree'], checkout, 'SOURCE_INVALID')
         core.require(tree == change['tree'], 'TREE_MISMATCH', 'Patch does not reconstruct the declared source tree')
         entries = run(['git', 'ls-files', '--stage'], checkout, 'SOURCE_INVALID')
