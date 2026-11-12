@@ -145,7 +145,13 @@ def main(argv=None):
     monitor.add_argument('--bind', default='127.0.0.1')
     for command in (telemetry, monitor):
         command.add_argument('--home', default=argparse.SUPPRESS)
+    from .demo import add_parser as add_demo_parser
+    add_demo_parser(sub)
     args = parser.parse_args(argv)
+    if args.command == 'demo':
+        from .demo import main as demo_main
+        demo_main(args)
+        return
     if args.command == 'telemetry':
         from .telemetry import show
         show(args.home, args.task_id, args.since, args.json)
