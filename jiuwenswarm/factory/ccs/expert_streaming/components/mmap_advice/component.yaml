@@ -21,3 +21,7 @@ env_ranges:
 
 acceptance:
   type: performance
+
+implements: [expert_streaming.mmap_advice]
+modifies_region: ["M.page_cache"]
+quantities: ["faults.minflt", "fill.decode_bytes_read", "decode.ms_per_token"]

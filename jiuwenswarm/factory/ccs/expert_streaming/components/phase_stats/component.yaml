@@ -24,3 +24,7 @@ acceptance:
   type: observability
   signal: engagement
   overhead_bound: 0.03
+
+implements: [expert_streaming.phase_observation]
+modifies_region: ["L3"]
+quantities: ["faults.minflt", "latency.tok_ns_p95", "decode.ms_per_token", "prompt.ms_per_token"]

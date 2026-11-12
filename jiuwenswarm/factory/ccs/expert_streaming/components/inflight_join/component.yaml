@@ -22,3 +22,7 @@ env_ranges:
 dependency_note: Source prerequisite is patch 10 (shared dispatch tracking); readiness may stay switched off at run time. Requires expert_pregate enabled to engage.
 acceptance:
   type: performance
+
+implements: [expert_streaming.duplicate_read_elimination]
+modifies_region: ["M.read_request"]
+quantities: ["readiness.duplicate_demand_bytes", "join.join_waits", "fill.demand_wait_ns_per_token", "decode.ms_per_token"]

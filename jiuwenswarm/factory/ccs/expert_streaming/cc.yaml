@@ -11,6 +11,9 @@ materials:
   source_map:
     kind: reference
     path: SOURCE-MAP.md
+  ontology:
+    kind: reference
+    path: ONTOLOGY.yaml
   expert_fill:
     kind: component
     path: components/expert_fill/component.yaml
@@ -52,6 +55,9 @@ capabilities:
       argv:
         kind: json
         optional: true
+      observed:
+        kind: json
+        optional: true
     gives:
       expert_bytes: json
       other_bytes: json
@@ -61,6 +67,7 @@ capabilities:
       mmap: json
       verdict: json
       reasons: json
+      candidates: json
       evidence: json
     needs:
     - python
@@ -76,9 +83,13 @@ capabilities:
       evaluation_id:
         kind: text
         optional: true
+      requires_evidence:
+        kind: json
+        optional: true
     gives:
       runs: json
       status: json
+      missing_required: json
       evidence: json
     needs:
     - python

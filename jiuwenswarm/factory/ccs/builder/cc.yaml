@@ -15,6 +15,9 @@ capabilities:
     takes:
       request: json
       idem_key: text
+      node_id:
+        kind: text
+        optional: true
     gives:
       attempt_id: text
       state: text

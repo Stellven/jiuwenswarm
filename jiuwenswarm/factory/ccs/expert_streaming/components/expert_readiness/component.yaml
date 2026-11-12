@@ -27,3 +27,7 @@ acceptance:
   type: observability
   signal: engagement
   overhead_bound: 0.03
+
+implements: [expert_streaming.readiness_observation]
+modifies_region: ["M.readiness"]
+quantities: ["readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "readiness.duplicate_demand_bytes", "readiness.wasted_async_bytes"]

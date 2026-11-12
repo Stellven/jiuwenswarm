@@ -42,6 +42,10 @@ def artifact_source(record, packet):
 
 def dispatch(store, task_id, capability, packet):
     inputs = packet.get('inputs', {})
+    if capability in {'builder.submit', 'lab.submit', 'lab.ab_submit'} and 'node_id' in inputs:
+        from .taskgraph import dispatch_precondition
+        dispatch_precondition(store, task_id, inputs['node_id'])
+    node_link = {'node_id': inputs['node_id']} if 'node_id' in inputs else {}
     if capability.startswith('expert_streaming.'):
         from .expert_streaming import dispatch as streaming_dispatch
         return streaming_dispatch(store, task_id, capability.removeprefix('expert_streaming.'), inputs)
@@ -66,14 +70,14 @@ def dispatch(store, task_id, capability, packet):
         manager = Manager(host, host.home / 'lab-spool')
         if operation == 'ab_submit':
             required = {'base_image', 'candidate_image', 'base_env', 'candidate_env', 'rounds', 'idem_key', 'component'}
-            fields(inputs, required | {'contract_id'}, required)
+            fields(inputs, required | {'contract_id', 'node_id'}, required)
             return manager.ab_submit(task_id, **inputs)
         if operation == 'submit':
-            fields(inputs, {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key'},
+            fields(inputs, {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key', 'node_id'},
                    {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key'})
             admission = manager.admit(task_id, inputs['image'], inputs['build_attempt_id'])
             attempt = manager.submit_run(task_id, admission['admission_id'], inputs['contract_id'],
-                                         inputs['run_config'], inputs['idem_key'])
+                                         inputs['run_config'], inputs['idem_key'], **node_link)
             return dict(admission=admission, **{k: attempt[k] for k in ('attempt_id', 'state', 'jobq_id')})
         fields(inputs, {'attempt_id'}, {'attempt_id'})
         attempt = manager.jobs._get(inputs['attempt_id'])
@@ -96,8 +100,8 @@ def dispatch(store, task_id, capability, packet):
             host = store
         builder = Builder(host)
         if operation == 'submit':
-            fields(inputs, {'request', 'idem_key'}, {'request', 'idem_key'})
-            attempt = builder.submit(task_id, inputs['request'], inputs['idem_key'])
+            fields(inputs, {'request', 'idem_key', 'node_id'}, {'request', 'idem_key'})
+            attempt = builder.submit(task_id, inputs['request'], inputs['idem_key'], **node_link)
             return {key: attempt[key] for key in ('attempt_id', 'state', 'jobq_id')}
         fields(inputs, {'attempt_id'}, {'attempt_id'})
         attempt = builder.jobs._get(inputs['attempt_id'])

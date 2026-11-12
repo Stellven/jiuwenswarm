@@ -4,6 +4,9 @@
     {
       "type": "object",
       "properties": {
+        "implements": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "modifies_region": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "quantities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "base": {
           "type": "object",
           "properties": {
@@ -261,6 +264,9 @@
         "acceptance"
       ],
       "properties": {
+        "implements": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "modifies_region": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "quantities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
         "base": {
           "type": "object",
           "additionalProperties": false,

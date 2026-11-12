@@ -50,3 +50,7 @@ env_ranges:
 
 acceptance:
   type: performance
+
+implements: [expert_streaming.demand_fill]
+modifies_region: ["L4.selected_expert", "M.read_request"]
+quantities: ["fill.decode_bytes_read", "fill.demand_wait_ns_per_token", "faults.minflt", "decode.ms_per_token"]

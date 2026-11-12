@@ -28,3 +28,7 @@ env_ranges:
 
 acceptance:
   type: performance
+
+implements: [expert_streaming.router_prefetch]
+modifies_region: ["L4.router", "M.read_request"]
+quantities: ["readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]

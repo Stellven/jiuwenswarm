@@ -15,7 +15,8 @@ KINDS = frozenset('inspect integrate build measure tune investigate decide accep
 STATES = frozenset('proposed ready running blocked done failed cancelled superseded'.split())
 TERMINAL = {'cancelled', 'superseded'}
 NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on', 'state',
-               'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason'}
+               'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
+               'outcome', 'entities', 'requires_evidence', 'resources'}
 
 
 def initialize(db):
@@ -65,6 +66,18 @@ def _validate(nodes):
             _ids(node[field])
         if not isinstance(node['reason'], str):
             raise ValueError('Plan reason must be text')
+        if 'outcome' in node and (not isinstance(node['outcome'], str) or not node['outcome'].strip()):
+            raise ValueError('Plan outcome must be nonempty text')
+        if 'entities' in node:
+            _ids(node['entities'])
+        if 'requires_evidence' in node:
+            from .ontology import validate_quantities
+            _ids(node['requires_evidence'])
+            validate_quantities(node['requires_evidence'])
+        if 'resources' in node:
+            _object(node['resources'], {'class'}, {'class'})
+            if node['resources']['class'] not in {'gpu', 'build', 'cpu'}:
+                raise ValueError('Plan resource class must be gpu, build or cpu')
         if any(dep not in nodes for dep in node['depends_on']):
             raise ValueError('Plan dependency does not exist')
         if node['state'] == 'done' and not node['evidence_ids']:
@@ -110,7 +123,8 @@ def _apply(nodes, patch, decision_rev):
         nodes[key] = node
     for operation in ('update', 'cancel', 'supersede'):
         for change in patch.get(operation, []):
-            allowed = {'node_id', 'state', 'evidence_ids', 'attempt_ids', 'depends_on', 'reason'} if operation == 'update' else {'node_id', 'reason'} | ({'by'} if operation == 'supersede' else set())
+            allowed = {'node_id', 'state', 'evidence_ids', 'attempt_ids', 'depends_on', 'reason',
+                       'outcome', 'entities', 'requires_evidence', 'resources'} if operation == 'update' else {'node_id', 'reason'} | ({'by'} if operation == 'supersede' else set())
             required = {'node_id'} if operation == 'update' else allowed
             _object(change, allowed, required)
             key = identifier(change['node_id'])
@@ -197,6 +211,21 @@ def plan_get(store, task_id, rev=None):
     host.get_task(task_id)
     rows = host._db.execute('SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created', (task_id, KIND))
     return replay(task_id, [json.loads(r[0]) for r in rows], rev)
+
+
+def dispatch_precondition(store, task_id, node_id):
+    """Check an explicitly linked submission; the graph never schedules work."""
+    if not isinstance(node_id, str) or not node_id.strip():
+        raise ValueError('Dispatch node_id must be nonempty text')
+    nodes = {n['node_id']: n for n in plan_get(store, task_id)['nodes']}
+    if node_id not in nodes:
+        raise ValueError('Dispatch node does not exist: ' + node_id)
+    node = nodes[node_id]
+    if node['state'] in {'superseded', 'cancelled', 'done', 'failed'}:
+        raise ValueError(f"Dispatch node {node_id} is {node['state']}")
+    unfinished = [f"{dep} is {nodes[dep]['state']}" for dep in node['depends_on'] if nodes[dep]['state'] != 'done']
+    if unfinished:
+        raise ValueError('Dispatch dependencies not done: ' + ', '.join(unfinished))
 
 
 def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False):

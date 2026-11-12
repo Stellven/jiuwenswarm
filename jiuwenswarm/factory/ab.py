@@ -22,7 +22,7 @@ def environment(contract, requested):
 
 
 def submit(manager, task_id, base_image, candidate_image, base_env, candidate_env,
-           rounds, idem_key, component, contract_id=None):
+           rounds, idem_key, component, contract_id=None, node_id=None):
     task = manager.store.get_task(task_id)
     contract_id = contract_id or task.get('contract_id')
     if task.get('contract_id') and contract_id != task['contract_id']:
@@ -58,6 +58,8 @@ def submit(manager, task_id, base_image, candidate_image, base_env, candidate_en
     # There is no activation switch/log in patch 09: its obligation is sampled threads.
     request = dict(mode='ab', contract=contract, component=component, component_material=material,
                    admissions=dict(zip(('base', 'candidate'), admissions)), spec=spec)
+    if node_id is not None:
+        request['node_id'] = node_id
     digest = hashlib.sha256(encoded(request).encode()).hexdigest()
     config = manager.spool_root / 'configs' / (digest + '.json')
     if not config.exists():

@@ -7,6 +7,36 @@ import re
 import shlex
 import struct
 
+from . import components, ontology
+
+
+def _candidates(observed):
+    if not isinstance(observed, dict):
+        raise ValueError('observed must map quantity ids to values')
+    ontology.validate_quantities(list(observed))
+    if any(v is not None and (type(v) not in (int, float) or not math.isfinite(v)) for v in observed.values()):
+        raise ValueError('observed values must be finite numbers or null')
+    costs = {'fill.decode_bytes_read', 'fill.demand_wait_ns_per_token', 'faults.minflt',
+             'latency.tok_ns_p95', 'decode.ms_per_token', 'readiness.missing_bytes_predicted',
+             'readiness.missing_bytes_unpredicted', 'readiness.duplicate_demand_bytes',
+             'readiness.wasted_async_bytes'}
+    candidates = []
+    # Deliberately naive: positive costs/recall below .9 and missing evidence, not causal attribution.
+    for path in sorted(components.ROOT.glob('*/component.yaml')):
+        material = components.load(path.parent.name)
+        ids = material.get('quantities', [])
+        unmeasured = [q for q in ids if observed.get(q) is None]
+        bottleneck = [q for q in ids if observed.get(q) is not None and
+                      ((q in costs and observed[q] > 0) or (q == 'prediction.recall_at_k' and observed[q] < .9))]
+        addressed = ', '.join(f'{q} (unmeasured)' for q in unmeasured)
+        addressed += ('; ' if addressed and bottleneck else '') + ', '.join(f'{q} (bottleneck signal)' for q in bottleneck)
+        explanation = (f"component {path.parent.name} → implements {', '.join(material.get('implements', []))} "
+                       f"→ modifies_region {', '.join(material.get('modifies_region', []))} "
+                       f"→ quantity {addressed or ', '.join(ids)} [ONTOLOGY.yaml]")
+        candidates.append(dict(component=path.parent.name, score=len(unmeasured) + 2 * len(bottleneck),
+                               unmeasured=unmeasured, bottleneck=bottleneck, explanation=explanation))
+    return sorted(candidates, key=lambda c: (-c['score'], c['component']))
+
 
 def gguf_bytes(path):
     """Read GGUF v2/v3 metadata and tensor directory; never map/read weight data."""
@@ -75,7 +105,7 @@ def gguf_bytes(path):
         return expert, other
 
 
-def applicability(model_path, argv, meminfo='/proc/meminfo'):
+def applicability(model_path, argv, meminfo='/proc/meminfo', observed=None):
     argv = shlex.split(argv) if isinstance(argv, str) else list(argv)
     result = dict(expert_bytes=None, other_bytes=None, mem_total=None, mem_available=None,
                   experts_cpu_side=None, mmap=None, verdict='unknown', reasons=[])
@@ -115,13 +145,21 @@ def applicability(model_path, argv, meminfo='/proc/meminfo'):
             reasons.append('Expert bytes do not greatly exceed available memory (2x heuristic)')
     else:
         reasons.append('Need expert size, memory headroom, explicit CPU expert placement and mmap evidence')
+    result['candidates'] = _candidates({} if observed is None else observed)
     return result
 
 
-def parse_engagement(stderr):
+def parse_engagement(stderr, requires_evidence=None):
+    required = [] if requires_evidence is None else requires_evidence
+    ontology.validate_quantities(required)
+    specs = ontology.load()['quantities']
+    labels = {(s['source']['line'], s['source']['field']):
+              dict(quantity=q, unit=s['unit'], phase=s['phase']) for q, s in specs.items()}
     blocks = {}
+    measured = set()
     for block, marker in [('config','expert_config: effective'), ('fill','expert_fill: stats'),
-                          ('pregate','expert_pregate: stats'), ('readiness','expert_readiness: stats')]:
+                          ('pregate','expert_pregate: stats'), ('readiness','expert_readiness: stats'),
+                          ('phase','expert_phase: stats')]:
         rows = []
         for line in stderr.splitlines():
             if marker not in line:
@@ -134,6 +172,9 @@ def parse_engagement(stderr):
                     row[key] = value
             rows.append(row)
         blocks[block] = dict(status='measured', counters=rows) if rows else dict(status='not_measured')
+        if rows:
+            blocks[block]['labels'] = {key: labels[marker, key] for row in rows for key in row if (marker, key) in labels}
+            measured.update(label['quantity'] for label in blocks[block]['labels'].values())
     def counters(block):
         rows = blocks[block].get('counters', [])
         keys = {k for row in rows for k in row}
@@ -159,23 +200,35 @@ def parse_engagement(stderr):
         derived['recall_at_k'] = p['recall_at_k']
     for state in ('done','inflight','queued','resident'):
         derived['predicted_hits_' + state + '_share'] = div(p.get('hit_'+state),p.get('hits'))
-    return dict(**blocks, derived=derived)
+    timings = {}
+    for phase, pattern in [('prompt', r'prompt eval time[^\n]*?\(\s*([\d.]+) ms per token'),
+                           ('decode', r'(?<!prompt )\beval time[^\n]*?\(\s*([\d.]+) ms per token')]:
+        matches = re.findall(pattern, stderr)
+        if matches:
+            q = phase + '.ms_per_token'
+            spec = specs[q]
+            timings[phase] = dict(value=float(matches[-1]), quantity=q, unit=spec['unit'], phase=spec['phase'])
+            measured.add(q)
+    return dict(**blocks, derived=derived, timings=timings,
+                missing_required=[q for q in required if q not in measured])
 
 
 def dispatch(store, task_id, capability, inputs):
     from .api import fields
     if capability == 'applicability':
         from .contract import load
-        fields(inputs, {'model_path','argv'})
+        fields(inputs, {'model_path','argv','observed'})
         contract = load(store.get_task(task_id)['contract_id'])
         values = applicability(inputs.get('model_path',contract['model']['path']),
-                               inputs.get('argv',contract['workload']['argv']))
+                               inputs.get('argv',contract['workload']['argv']), observed=inputs.get('observed'))
         refs = []
     elif capability == 'engagement':
-        fields(inputs, {'attempt_id','evaluation_id'})
-        if len(inputs) != 1:
+        fields(inputs, {'attempt_id','evaluation_id','requires_evidence'})
+        if len({'attempt_id', 'evaluation_id'} & inputs.keys()) != 1:
             raise ValueError('Supply exactly one of attempt_id or evaluation_id')
-        record = store.read(task_id, next(iter(inputs.values())))
+        required = inputs.get('requires_evidence', [])
+        ontology.validate_quantities(required)
+        record = store.read(task_id, inputs.get('attempt_id', inputs.get('evaluation_id')))
         if 'evaluation_id' in inputs:
             refs = record.get('inputs', {}).get('source_artifacts', [])
         else:
@@ -183,8 +236,11 @@ def dispatch(store, task_id, capability, inputs):
                 raise ValueError('engagement requires a lab or A/B attempt')
             refs = record.get('result_refs', [])
         stderr_refs = [ref for ref in refs if ref.endswith(':stderr.txt') or ref.endswith('/stderr.txt')]
-        values = dict(runs=[dict(artifact_id=ref, **parse_engagement(store.artifact_bytes(task_id,ref).decode(errors='replace')))
+        values = dict(runs=[dict(artifact_id=ref, **parse_engagement(store.artifact_bytes(task_id,ref).decode(errors='replace'), required))
                             for ref in stderr_refs], status='measured' if stderr_refs else 'not_measured')
+        # All supplied runs must carry required evidence; another arm cannot fill its gaps.
+        values['missing_required'] = [q for q in required if not values['runs'] or
+                                      any(q in run['missing_required'] for run in values['runs'])]
         refs = stderr_refs
     else:
         raise ValueError('Unknown expert_streaming capability')
