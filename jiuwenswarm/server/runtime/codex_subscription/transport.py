@@ -34,6 +34,19 @@ def agent_mode_enabled() -> bool:
     return os.environ.get("JIUWENSWARM_CODEX_AGENT") == "1"
 
 
+AGENT_EFFORTS = {"none", "minimal", "low", "medium", "high", "xhigh", "max"}
+
+
+def _agent_effort_line() -> str:
+    """Operator-pinned reasoning effort for the agent profile (JIUWENSWARM_CODEX_AGENT_EFFORT)."""
+    effort = os.environ.get("JIUWENSWARM_CODEX_AGENT_EFFORT", "").strip()
+    if not effort:
+        return ""
+    if effort not in AGENT_EFFORTS:
+        raise CodexError("INVALID_REASONING_EFFORT")
+    return f'model_reasoning_effort = "{effort}"\n'
+
+
 def agent_mode_config() -> str | None:
     """Opt-in agent profile: workspace-write sandbox, Codex shell/patch tools and
     caller-supplied MCP servers (e.g. the CC catalog). Off by default, so the
@@ -54,6 +67,7 @@ def agent_mode_config() -> str | None:
         + 'approval_policy = "never"\n'
         + 'sandbox_mode = "workspace-write"\n'
         + 'web_search = "disabled"\n'
+        + _agent_effort_line()
         + '[sandbox_workspace_write]\nnetwork_access = false\n'
         + ('[windows]\nsandbox = "unelevated"\n' if os.name == "nt" else "")
         + '[features]\nshell_tool = true\napply_patch_freeform = true\nunified_exec = false\n'
