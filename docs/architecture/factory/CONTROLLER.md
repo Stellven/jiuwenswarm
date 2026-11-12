@@ -14,7 +14,13 @@ Required fields: objective (text), constraints (object/list), allowed_effects
 wall_clock_s), contract_id, initial_run_config (object), component_cc, source
 (subpath relative to agent-workspace and pre_integration_commit).
 Optional task_id defaults to a generated ID. Optional operator_labels is an
-object passed verbatim alongside the first-turn objective. The example uses
+object passed verbatim alongside the first-turn objective. Optional resources is
+also an object passed verbatim in that message. component_cc may name a whole
+capability capsule, such as engine.expert_streaming, rather than one component.
+The expert-streaming task is tasks/expert-streaming-qwen36.json: its source.branch
+is stream. For qwen36-bare-greedy-v1 the host accepts branch names matching
+[a-z][a-z0-9_-]* and creates the ref at cf34d3113 only if absent; it never switches
+or resets the checkout. The example uses
 J-OM11 pg8 environment with LLAMA_EXPERT_PREGATE_K="48", explicitly labeled
 controlled-invalid. Neither init nor the host loop repairs operator settings.
 

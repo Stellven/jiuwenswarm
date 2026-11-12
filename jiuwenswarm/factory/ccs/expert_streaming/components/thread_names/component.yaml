@@ -19,3 +19,8 @@ rollback: Revert this component commit, rebuild, and restore the last kept image
   environment; retain all evidence.
 dependency_note: Patch 09 applies to the worker context introduced by patch 06; expert_pregate
   is a source prerequisite even when disabled at runtime.
+
+acceptance:
+  type: observability
+  signal: engagement
+  overhead_bound: 0.03

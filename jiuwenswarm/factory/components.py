@@ -3,7 +3,7 @@ from pathlib import Path
 import re
 import yaml
 
-ROOT = Path(__file__).parent / 'ccs' / 'components'
+ROOT = Path(__file__).parent / 'ccs' / 'expert_streaming' / 'components'
 
 
 def load(component):
@@ -30,3 +30,29 @@ def dependents(component):
         frontier = {name for name, deps in needs.items() if deps & frontier} - found
         found |= frontier
     return found
+
+
+def allowed_knobs():
+    knobs = {}
+    for path in sorted(ROOT.glob('*/component.yaml')):
+        material = load(path.parent.name)
+        for key, value in material.get('enable_env', {}).items():
+            if key.startswith('LLAMA_EXPERT_') or key == 'LLAMA_MMAP_ADVICE':
+                knobs.setdefault(key, 'enable value ' + value)
+        for key, value in material.get('env_ranges', {}).items():
+            if key.startswith('LLAMA_EXPERT_') or key == 'LLAMA_MMAP_ADVICE':
+                knobs[key] = value
+    return knobs
+
+
+def environment(contract, requested):
+    if not isinstance(requested, dict):
+        raise ValueError('Engine environment must be an object')
+    knobs = allowed_knobs()
+    env = dict(contract['workload']['env'], **requested)
+    if any(k not in knobs for k in env):
+        raise ValueError('Unknown engine environment key. Allowed knobs and ranges: ' +
+                         '; '.join(f'{k}: {v}' for k, v in sorted(knobs.items())))
+    if any(not isinstance(v, str) or not re.fullmatch(r'[A-Za-z0-9_./:+-]+', v) for v in env.values()):
+        raise ValueError('Engine environment requires shell-safe string values')
+    return env

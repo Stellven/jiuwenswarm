@@ -8,7 +8,7 @@ cc/abrun/gate.py is the performance gate, not historical experiment numbers.
    Change one component per experiment; keep every other workload variable fixed.
 2. Record source commit, patch hashes, build receipt and immutable image IDs.
    Build the bare engine first. Current best starts there. Apply dependencies in
-   order in the owned evolve branch, with one integration commit per component.
+   order in the owned source.branch, with one integration commit per component.
    Dependencies are source requirements, not evidence of benefit: if a dependency
    was reverted, explicitly test its addition again or report the dependent blocked.
 3. Fix the contract's model, prompt, seed, context, offload and greedy argv.
@@ -44,11 +44,15 @@ cc/abrun/gate.py is the performance gate, not historical experiment numbers.
    speed improves. Identical greedy stdout is this contract's obligation; it is
    not a general accuracy or numerical-equivalence claim.
 9. Read ab_result: gate, ratio, aa_gap, output_class, per_arm_ms and evaluation.
-   Keep only gate improved, execution_outcome ok, correctness pass, complete
-   evidence, and engaged candidate. Publish keep_component {component,image,ratio}
-   citing the A/B observation and evaluation. Otherwise revert the integration
-   commit (never reset unrelated work), restore best env/image, and publish
-   revert_component {component,reason} citing the failed/null evidence.
+   Read acceptance.type/verdict/reasons. Performance requires gate improved;
+   observability requires every candidate engagement check passing, correctness
+   pass, and overhead 1/ratio - 1 <= max(overhead_bound, gate threshold).
+   thread_names is keepable on sampled signal plus bounded overhead; never claim
+   a speed gain from it. Missing capture is not_measured and acceptance invalid.
+   All keeps require valid complete evidence and correctness pass. Publish
+   keep_component {component,image,ratio} citing ab_result acceptance.verdict
+   accept and the evaluation. Otherwise revert with component and reason anytime,
+   restore best env/image and retain the failed/null evidence.
    Exception, dormant prerequisite: if a rejected component's source is required
    by components not yet measured and its switch is off by default, you may keep
    its commit with the switch OFF in every later arm and publish keep_dormant
@@ -64,3 +68,8 @@ cc/abrun/gate.py is the performance gate, not historical experiment numbers.
     OS-runtime calls (pread, futex, waits) with total times. Tracing slows the
     engine, so traced ms/token is never compared or cited as speed evidence.
     Use it to form the next hypothesis, then test that with an untraced A/B.
+
+Never multiply successive component ratios. Final claim = direct bare-vs-final
+ABBA if budget allows; otherwise explicitly state that comparison is not measured.
+Settings trials: one knob, justified hypothesis, at most 3 trials per component.
+Changing scoring rules requires a new contract id and a fresh reference.

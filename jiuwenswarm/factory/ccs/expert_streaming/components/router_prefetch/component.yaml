@@ -25,3 +25,6 @@ env_ranges:
   LLAMA_EXPERT_PREFETCH: '1 enables; otherwise off (08: strict 0|1)'
   LLAMA_EXPERT_PREFETCH_NEXT: '1 enables next-layer same-ID prediction; otherwise
     off (08: strict 0|1)'
+
+acceptance:
+  type: performance

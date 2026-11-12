@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -17,13 +18,7 @@ from .store import encoded
 
 
 def environment(contract, requested):
-    if not isinstance(requested, dict):
-        raise ValueError('A/B environment must be an object')
-    env = dict(contract['workload']['env'], **requested)
-    if any(k not in set(ENV_KEYS) | {'LLAMA_MMAP_ADVICE'} or not isinstance(v, str)
-           or not re.fullmatch(r'[A-Za-z0-9_./:+-]+', v) for k, v in env.items()):
-        raise ValueError('A/B environment requires supported keys and shell-safe string values')
-    return env
+    return components.environment(contract, requested)
 
 
 def submit(manager, task_id, base_image, candidate_image, base_env, candidate_env,
@@ -39,6 +34,8 @@ def submit(manager, task_id, base_image, candidate_image, base_env, candidate_en
     if type(rounds) is not int or not 1 <= rounds <= 100:
         raise ValueError('rounds must be an integer in 1..100')
     envs = [environment(contract, e) for e in (base_env, candidate_env)]
+    if any(e.get('LLAMA_EXPERT_FILL_DIAG') == '1' for e in envs):
+        raise ValueError('DIAG=1 is explain-only; use a lab run, then untraced ABBA for scoring')
     admissions = []
     for image in (base_image, candidate_image):
         if not isinstance(image, dict) or set(image) != {'tag', 'id', 'build_attempt_id'}:
@@ -52,6 +49,12 @@ def submit(manager, task_id, base_image, candidate_image, base_env, candidate_en
                     'base': dict(image=admissions[0]['image']['id'], env=envs[0], expect_switch=False),
                     'candidate': dict(image=admissions[1]['image']['id'], env=envs[1],
                                       expect_switch=bool(regexes), switch_regex=regexes)})
+    # Env-only tuning can compare two enabled configurations. abrun's per-arm
+    # config mode requires these assertions without treating base activation as leakage.
+    primary = next(iter(material.get('enable_env', {})), None)
+    base_enabled = primary and envs[0].get(primary) == material['enable_env'][primary]
+    if base_enabled and regexes:
+        spec['arms']['base'].update(switch_regex=regexes, switch_regex_is_config=True)
     # There is no activation switch/log in patch 09: its obligation is sampled threads.
     request = dict(mode='ab', contract=contract, component=component, component_material=material,
                    admissions=dict(zip(('base', 'candidate'), admissions)), spec=spec)
@@ -86,6 +89,7 @@ def analyse(request, content):
         problems.append('A/B worker did not complete successfully')
     if 'ab/REPORT.md' not in content:
         problems.append('A/B report missing')
+    engagement = []
     candidate_checks = request['component_material']['engagement_checks']
     for index, arm in enumerate(order, 1):
         prefix = f'ab/{index:03d}-{arm}/'
@@ -111,15 +115,20 @@ def analyse(request, content):
             problems.append(prefix + 'unsuccessful run')
         for regex in spec['arms']['candidate']['switch_regex']:
             matched = re.search(regex, stderr) is not None
-            if (arm == 'candidate') != matched:
+            expected = arm == 'candidate' or spec['arms']['base'].get('switch_regex_is_config', False)
+            if expected != matched:
                 problems.append(prefix + 'activation mismatch: ' + regex)
         if arm == 'candidate':
-            for check in candidate_checks:
+            for check_index, check in enumerate(candidate_checks):
+                status = 'pass' if re.search(check['regex'], stderr) else 'fail'
                 if check['source'] == 'threads':
-                    threads = json.loads(content.get(prefix + 'threads.summary.json', b'{}')).get('threads', {})
-                    if not any(re.search(check['regex'], t.get('comm', '')) and t.get('samples', 0) > 0
-                               for t in threads.values()):
-                        problems.append(prefix + 'missing sampled fill workers')
+                    capture = content.get(prefix + 'threads.summary.json')
+                    threads = json.loads(capture).get('threads', {}) if capture else None
+                    status = ('not_measured' if not threads or not any(t.get('samples', 0) > 0 for t in threads.values()) else 'pass' if any(
+                        re.search(check['regex'], t.get('comm', '')) and t.get('samples', 0) > 0
+                        for t in threads.values()) else 'fail')
+                engagement.append(dict(run=prefix, id=check.get('id', str(check_index)),
+                                       source=check['source'], status=status))
         # Preserve descriptive per-run summaries as artifacts; score only parsed evidence.
         grouped[arm].append(dict(summary, status='failed' if failed else summary.get('status'),
                                  output_sha=sha, eval_ms_per_token=metric))
@@ -135,7 +144,8 @@ def analyse(request, content):
                  and all(h == reference for h in base_hashes))
     comparison = recomputed['comparisons']['candidate']
     problems += recomputed['reasons']
-    values = dict(gate=comparison['verdict'] if not problems else 'invalid', ratio=comparison['ratio'],
+    signal_problems = [c['run'] + ' engagement ' + c['status'] for c in engagement if c['status'] != 'pass']
+    values = dict(engagement=engagement, gate=comparison['verdict'] if not problems else 'invalid', ratio=comparison['ratio'],
                   aa_gap=recomputed['aa_gap'], output_class=recomputed['output']['class'],
                   per_arm_ms=recomputed['means'], drift=recomputed['drift'],
                   threshold=recomputed['threshold'], component=request['component'],
@@ -146,6 +156,13 @@ def analyse(request, content):
                       ('measurement_failed' if problems else 'ok'),
                       correctness='pass' if identical else 'fail',
                       evidence_completeness='partial' if problems else 'complete')
+    values['acceptance'] = acceptance(request['component_material'], values, evaluation)
+    evaluation['acceptance'] = values['acceptance']
+    if signal_problems:
+        values['problems'] += signal_problems
+        if request['component_material'].get('acceptance', {}).get('type', 'performance') == 'performance':
+            values['gate'] = 'invalid'
+        evaluation.update(execution_outcome='measurement_failed' if identical else 'candidate_failed', evidence_completeness='partial')
     return values, evaluation, recomputed
 
 
@@ -194,8 +211,8 @@ def ingest(manager, task_id, run_id, root):
                     limitations=request['contract']['scope'], created=now))
                 manager.store._insert('evaluations', dict(eval_id=eval_id, task_id=task_id,
                     contract_id=request['contract']['contract_id'], contract_version=str(request['contract']['version']),
-                    contract=request['contract'], inputs=dict(ab_result=values, verdict=recomputed,
-                        source_artifacts=refs.copy(), observation_id=obs_id), **evaluation, created=now))
+                    contract=request['contract'], inputs=dict(acceptance=evaluation['acceptance'], ab_result=values, verdict=recomputed,
+                        source_artifacts=refs.copy(), observation_id=obs_id), **{k: v for k, v in evaluation.items() if k != 'acceptance'}, created=now))
                 refs += [obs_id, eval_id]
                 current = manager.store._get('attempts', task_id, run_id)
                 current['result_refs'] = refs
@@ -206,3 +223,39 @@ def ingest(manager, task_id, run_id, root):
                     upload_id=ack['upload_id'], sha256=digest, ack_state='durable', created=now))
         contracts.atomic_json(root / 'ack.json', ack)
         return ack
+
+
+def acceptance(material, values, evaluation):
+    rule = material.get('acceptance', {'type': 'performance'})
+    kind, reasons = rule['type'], []
+    result = dict(type=kind, verdict='accept', reasons=reasons)
+    checks = values.get('engagement', [])
+    if (values['gate'] == 'invalid' or evaluation['execution_outcome'] != 'ok'
+            or evaluation['evidence_completeness'] != 'complete'
+            or any(c['status'] == 'not_measured' for c in checks)):
+        result['verdict'] = 'invalid'
+        reasons.append('Incomplete or invalid measurement; required signal may be not_measured')
+    elif evaluation['correctness'] != 'pass':
+        result['verdict'] = 'reject'
+        reasons.append('Correctness did not pass')
+    elif any(c['status'] != 'pass' for c in checks):
+        result['verdict'] = 'reject'
+        reasons.append('Candidate engagement checks did not all pass')
+    elif kind == 'performance' and values['gate'] != 'improved':
+        result['verdict'] = 'reject'
+        reasons.append('Performance requires gate improved')
+    elif kind == 'observability':
+        ratio = values.get('ratio')
+        if not checks or ratio is None or ratio <= 0:
+            result['verdict'] = 'invalid'
+            reasons.append('Signal or overhead was not measured')
+        elif (1 / ratio - 1 > max(rule['overhead_bound'], values['threshold'])
+              and not math.isclose(1 / ratio - 1, max(rule['overhead_bound'], values['threshold']), rel_tol=1e-12)):
+            result['verdict'] = 'reject'
+            reasons.append('Candidate overhead exceeds max(overhead_bound, gate threshold)')
+    elif kind == 'prerequisite':
+        result['verdict'] = 'reject'
+        reasons.append('Use keep_dormant with source dependencies and runtime switch off')
+    if result['verdict'] == 'accept':
+        reasons.append('Correctness, engagement and module acceptance obligations passed')
+    return result

@@ -1,0 +1,66 @@
+{
+  "objective": "Starting from the identified, working llama.cpp revision cf34d3113 (owned checkout, branch `stream`), use the engine.expert_streaming capability to improve decode performance for Qwen3.6-35B-A3B on Satay without changing generated output on the frozen test workload. Inspect the existing engine and evidence, choose and integrate appropriate components, build identified candidate images, and use the lab to compare them with the baseline. If an approach fails, is incompatible, does not engage or does not improve the result, use the evidence to revise your next action. Return the source changes, image, comparison and an explanation of your final decisions. Work within the declared resources and evaluation contract.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false
+  },
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write",
+    "gpu.use"
+  ],
+  "target": "jetson-orin",
+  "budget": {
+    "max_turns": 40,
+    "wall_clock_s": 28800
+  },
+  "contract_id": "qwen36-bare-greedy-v1",
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "engine.expert_streaming",
+  "source": {
+    "subpath": "llama.cpp",
+    "pre_integration_commit": "cf34d3113",
+    "branch": "stream"
+  },
+  "operator_labels": {},
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp",
+      "base_commit": "cf34d311332e362198f0a410c466d1e940287d02",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "model": {
+      "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+      "bytes": 22360456160
+    },
+    "baseline": {
+      "image_tag": "factory/llamacpp:bare-cf34d311",
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "note": "plain-source build of cf34d3113; contract reference image"
+    },
+    "workload_contract": "qwen36-bare-greedy-v1 (frozen; byte-identical greedy stdout, 64 tokens)",
+    "capsules": [
+      "engine.expert_streaming@2.0.0",
+      "factory.methodology_ab",
+      "factory.integration_skill",
+      "factory.builder",
+      "factory.engine_inspector",
+      "factory.lab_client",
+      "factory.evidence"
+    ],
+    "host": {
+      "name": "Satay",
+      "board": "Jetson Orin Nano Super 8GB",
+      "l4t": "R36.5.2",
+      "mem_total_kib": 7789756
+    },
+    "evidence_workspace": "FACTORY_HOME store, task-scoped",
+    "budget_note": "builds ~2-3 min; one 2-round ABBA ~20-35 min; GPU work is serialized in the host queue"
+  }
+}

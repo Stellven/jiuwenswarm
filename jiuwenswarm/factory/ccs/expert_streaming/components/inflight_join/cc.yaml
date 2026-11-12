@@ -1,10 +1,10 @@
 cc: '2'
-id: factory.components.router_prefetch
+id: factory.components.inflight_join
 version: 1.0.0
 materials:
   component:
     kind: component
     path: component.yaml
-  patch_02:
+  patch_11:
     kind: component
-    path: 02-router-prefetch.patch
+    path: 11-inflight-join.patch

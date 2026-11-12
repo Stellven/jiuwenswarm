@@ -188,6 +188,9 @@ def build_events(data):
                        'keep_dormant': f"dormant {action.get('component')} · switch off · needed by "
                                        + ', '.join(action.get('needed_by') or []),
                        'revert_component': f"revert {action.get('component')} · {action.get('reason')}"}[kind]
+        if kind in {'keep_component', 'revert_component'}:
+            acceptance = decision_acceptance(data, d)
+            summary += f" · acceptance {acceptance['type']} {acceptance['verdict']}"
         if kind in TERMINAL:
             changes = []
             summary = d.get('reason_for_change', '')
@@ -206,7 +209,7 @@ def build_events(data):
             summary = f"{error.get('code', v.get('code', 'FAILED'))} {error.get('message', v.get('message', ''))}"
         elif kind == 'ab_result':
             mark = '✓' if v.get('gate') == 'improved' else '·'
-            summary = (f"{v.get('component')} · gate {v.get('gate')} · ratio {v.get('ratio')} · "
+            summary = (f"{v.get('component')} · acceptance {v.get('acceptance', {}).get('type')} {v.get('acceptance', {}).get('verdict')} · gate {v.get('gate')} · ratio {v.get('ratio')} · "
                        f"A/A {v.get('aa_gap')} · output {v.get('output_class')} · ms/token {v.get('per_arm_ms')}")
         elif kind == 'build_result':
             kind, mark = 'build', '✓' if v.get('status') == 'success' else '✗'
@@ -342,6 +345,26 @@ def footer(data):
     count = sum(len(v) for k, v in data.items() if isinstance(v, list) and k != 'events')
     return stack + wrap('chain: ' + ' → '.join(f'{name} {mark}' for name, mark in links)) + wrap(
         f"evidence: {count} records · {len(artifacts)} artifacts · {sum(a.get('size', 0) for a in artifacts)} bytes")
+
+
+def decision_acceptance(data, decision):
+    refs = decision.get('evidence_ids', [])
+    for observation in data.get('observations', []):
+        if observation.get('obs_id') in refs and observation.get('kind') == 'ab_result':
+            result = observation.get('values', {}).get('acceptance')
+            if result:
+                return result
+    for evaluation in data.get('evaluations', []):
+        if evaluation.get('eval_id') in refs:
+            result = evaluation.get('inputs', {}).get('acceptance')
+            if result:
+                return result
+    from .components import load
+    try:
+        kind = load(decision['action']['component'])['acceptance']['type']
+    except (ValueError, KeyError):
+        kind = 'unknown'
+    return dict(type=kind, verdict='not_measured')
 
 
 def decision_stack(data):

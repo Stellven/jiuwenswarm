@@ -1,0 +1,10 @@
+cc: '2'
+id: factory.components.expert_readiness
+version: 1.0.0
+materials:
+  component:
+    kind: component
+    path: component.yaml
+  patch_10:
+    kind: component
+    path: 10-expert-readiness.patch

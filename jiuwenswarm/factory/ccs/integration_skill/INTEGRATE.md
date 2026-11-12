@@ -7,8 +7,8 @@ The host enforces authority; this material grants none. Commit only when the
 operator has authorized committing; otherwise publish the pending diff and stop
 before a builder request that requires clean committed source.
 
-For the bare evolve task, use factory.components.<name> and methodology_ab.
-Start at cf34d3113 on evolve; verify every ordered patch hash and dependency.
+For engine capability tasks, read the task capsule guide/method, component
+materials and methodology_ab. Start at source.pre_integration_commit on source.branch; verify every ordered patch hash and dependency.
 The e14b87603/combined-patch instructions in step 1 apply only to the legacy
 factory.engine_component recorded demo. New components have ordered `patches`
 and `depends_on`; apply/check each patch once in that order. Patch detection in

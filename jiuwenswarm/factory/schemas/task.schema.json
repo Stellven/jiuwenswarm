@@ -3,32 +3,104 @@
   "title": "Operator factory task",
   "type": "object",
   "additionalProperties": false,
-  "required": ["objective", "constraints", "allowed_effects", "target", "budget", "contract_id", "initial_run_config", "component_cc", "source"],
+  "required": [
+    "objective",
+    "constraints",
+    "allowed_effects",
+    "target",
+    "budget",
+    "contract_id",
+    "initial_run_config",
+    "component_cc",
+    "source"
+  ],
   "properties": {
-    "task_id": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"},
-    "objective": {"type": "string", "minLength": 1},
-    "constraints": {"type": ["object", "array"]},
-    "allowed_effects": {"type": "array", "items": {"type": "string"}},
-    "target": {"type": ["string", "object"]},
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "constraints": {
+      "type": [
+        "object",
+        "array"
+      ]
+    },
+    "allowed_effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "target": {
+      "type": [
+        "string",
+        "object"
+      ]
+    },
     "budget": {
       "type": "object",
-      "required": ["max_turns", "wall_clock_s"],
+      "required": [
+        "max_turns",
+        "wall_clock_s"
+      ],
       "properties": {
-        "max_turns": {"type": "integer", "minimum": 1},
-        "wall_clock_s": {"type": "number", "exclusiveMinimum": 0}
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wall_clock_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
       }
     },
-    "contract_id": {"type": "string", "minLength": 1},
-    "initial_run_config": {"type": "object"},
-    "component_cc": {"type": "string", "minLength": 1},
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "initial_run_config": {
+      "type": "object"
+    },
+    "component_cc": {
+      "type": "string",
+      "minLength": 1
+    },
     "source": {
       "type": "object",
-      "required": ["subpath", "pre_integration_commit"],
+      "required": [
+        "subpath",
+        "pre_integration_commit"
+      ],
       "properties": {
-        "subpath": {"type": "string", "minLength": 1, "description": "Relative owned checkout path under FACTORY_HOME/agent-workspace; no .. components."},
-        "pre_integration_commit": {"type": "string", "minLength": 1}
+        "subpath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative owned checkout path under FACTORY_HOME/agent-workspace; no .. components."
+        },
+        "pre_integration_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "branch": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        }
       }
     },
-    "operator_labels": {"type": "object", "description": "Passed verbatim with the initial objective. May label controlled-invalid operator settings."}
+    "operator_labels": {
+      "type": "object",
+      "description": "Passed verbatim with the initial objective. May label controlled-invalid operator settings."
+    },
+    "resources": {
+      "type": "object"
+    },
+    "capability_cc": {
+      "type": "string",
+      "minLength": 1
+    }
   }
 }

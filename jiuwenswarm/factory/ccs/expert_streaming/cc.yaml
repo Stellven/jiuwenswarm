@@ -1,0 +1,83 @@
+cc: '2'
+id: engine.expert_streaming
+version: 2.0.0
+materials:
+  guide:
+    kind: skill
+    path: STREAMING.md
+  method:
+    kind: method
+    path: EVIDENCE.md
+  source_map:
+    kind: reference
+    path: SOURCE-MAP.md
+  expert_fill:
+    kind: component
+    path: components/expert_fill/component.yaml
+  expert_pregate:
+    kind: component
+    path: components/expert_pregate/component.yaml
+  mmap_advice:
+    kind: component
+    path: components/mmap_advice/component.yaml
+  router_prefetch:
+    kind: component
+    path: components/router_prefetch/component.yaml
+  thread_names:
+    kind: component
+    path: components/thread_names/component.yaml
+  expert_readiness:
+    kind: component
+    path: components/expert_readiness/component.yaml
+  inflight_join:
+    kind: component
+    path: components/inflight_join/component.yaml
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  applicability:
+    kind: tool
+    does: Inspect applicability and publish a task-scoped observation; no engine execution.
+    takes:
+      model_path:
+        kind: text
+        optional: true
+      argv:
+        kind: json
+        optional: true
+    gives:
+      expert_bytes: json
+      other_bytes: json
+      mem_total: json
+      mem_available: json
+      experts_cpu_side: json
+      mmap: json
+      verdict: json
+      reasons: json
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  engagement:
+    kind: tool
+    does: Inspect engagement and publish a task-scoped observation; no engine execution.
+    takes:
+      attempt_id:
+        kind: text
+        optional: true
+      evaluation_id:
+        kind: text
+        optional: true
+    gives:
+      runs: json
+      status: json
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec

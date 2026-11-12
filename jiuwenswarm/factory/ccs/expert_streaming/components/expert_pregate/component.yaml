@@ -36,3 +36,6 @@ env_ranges:
   LLAMA_EXPERT_PREGATE_MAX_INFLIGHT: 1..64 (also capped by fill threads)
   LLAMA_EXPERT_PREGATE_LOOKAHEAD: 1..2
   validation: 08 validates all LLAMA_EXPERT_* names and values even when disabled
+
+acceptance:
+  type: performance

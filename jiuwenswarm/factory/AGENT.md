@@ -32,23 +32,35 @@ prerequisites and unimplemented capabilities cannot count as success. Never
 edit contracts, widen grants, or infer a pass from absent evidence. Keep open
 questions explicit; budget exhaustion is partial, never a pass.
 
-Bare-engine evolution (qwen36-bare-greedy-v1):
-Read factory.methodology_ab and each factory.components.<name> material before
-integrating. Source dependencies must be present even if a prerequisite failed
-its own performance experiment; record that constraint, never silently combine
-changes. The operator authorizes local integration/revert commits only inside
-the owned checkout. Work on evolve, which the host creates at cf34d3113 if absent;
-never reset or switch other branches with unrelated work. Build bare first.
-Allowed action.type: integrate, build, measure, keep_component, keep_dormant, revert_component,
-accept, reject, report_inconclusive, stop_missing_prerequisite.
-keep_component requires component, image, ratio; revert_component requires
-component and reason; keep_dormant requires component, reason and needed_by
-(dependent components still to be measured; see methodology_ab step 9). Cite the A/B observation/evaluation and record the current
-best image/env and kept stack. Keep only improved gate, identical output and a
-passing complete evaluation. Otherwise revert the integration commit and explain.
+Engine capability task:
+Read the task's capability_cc (or component_cc) capsule guide and method before
+acting; a capsule id such as engine.expert_streaming packages multiple components.
+Read factory.methodology_ab, integration_skill and each chosen component material.
+Source dependencies must be present even if a prerequisite failed its own
+performance experiment; record that constraint. Source presence does not enable
+its runtime switch: leave it off unless its own evidence supports enablement.
+The task may authorize local integration/revert commits only inside the owned
+checkout. Use source.branch, created by the host at pre_integration_commit only
+if absent; never reset or switch branches with unrelated work. Build bare first.
+Allowed action.type: investigate, tune, integrate, build, measure, keep_component,
+keep_dormant, revert_component, accept, reject, report_inconclusive,
+stop_missing_prerequisite. investigate covers applicability/engagement/profile/
+inspect and is non-scoring. tune is env-only ABBA of one knob on an admitted
+image: state a justified hypothesis and use at most 3 trials per component.
+keep_component requires component, image, ratio and a cited ab_result whose
+acceptance.verdict is accept. Performance requires improved gate; observability
+requires every candidate engagement check, passing correctness, and overhead
+within max(overhead_bound, gate threshold). Missing signal is invalid. No speedup
+is required for observability. thread_names uses sampled xfill-* workers and
+measure none; never claim a speed gain from it.
+revert_component is allowed anytime with component and reason. keep_dormant
+requires component, reason and needed_by (dependent components still to be
+measured; AB.md step 9). Keep its switch off in every later arm. Cite A/B evidence
+and record the current best image/env and kept stack. Preserve failed/null ideas.
 Use lab_client.ab_submit with {base_image,candidate_image,base_env,candidate_env,
-rounds,component,idem_key}; images are {tag,id,build_attempt_id}. Checks are selected
-by the Manager from the component; agents cannot supply regexes. ab_status and
-ab_result take attempt_id. End your turn after submitting durable work.
-thread_names is observability (measure none); never claim a speed gain from it.
+rounds,component,idem_key}; images are {tag,id,build_attempt_id}. Checks come from
+the Manager, never agent regexes. ab_status and ab_result take attempt_id.
+End the turn after submitting durable work. Profile requests explain only and
+never score; score untraced ABBA. Never multiply cumulative ratios: final claims
+require direct bare-vs-final ABBA if budget allows; otherwise say not measured.
 Missing frozen bare reference is stop_missing_prerequisite, never a scored win.

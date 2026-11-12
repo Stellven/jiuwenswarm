@@ -81,14 +81,8 @@ class Manager:
         profile = run_config.get('profile')
         if profile not in (None, 'nsys'):
             raise ValueError('run_config.profile must be nsys when given')
-        env = dict(contract['workload']['env'])
-        requested = run_config.get('env', {})
-        if not isinstance(requested, dict):
-            raise ValueError('run_config.env must be an object')
-        env.update(requested)
-        if any(k not in set(ENV_KEYS) | {'LLAMA_MMAP_ADVICE'} or not isinstance(v, str)
-               or not re.fullmatch(r'[A-Za-z0-9_./:+-]+', v) for k, v in env.items()):
-            raise ValueError('Lab environment requires supported engine keys and shell-safe string values')
+        from .components import environment
+        env = environment(contract, run_config.get('env', {}))
         argv = contract['workload']['argv']
         if run_config.get('argv_overrides') not in (None, {}, [], argv):
             raise ValueError('Scored workload argv is fixed; use a version+1 contract for changes')
@@ -154,6 +148,8 @@ class Manager:
             evaluation = self.store._get('evaluations', attempt['task_id'], attempt_id + ':evaluation')
         except NotFound:
             pass
+        if evaluation and 'acceptance' in evaluation.get('inputs', {}):
+            evaluation['acceptance'] = evaluation['inputs']['acceptance']
         outcome = evaluation['execution_outcome'] if evaluation else (
             'cancelled' if result['state'] == 'cancelled' else 'upload_pending')
         return dict(result, execution_outcome=outcome, evaluation=evaluation,

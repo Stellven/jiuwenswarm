@@ -47,3 +47,6 @@ env_ranges:
   LLAMA_EXPERT_FILL_DIAG: 0|1
   LLAMA_EXPERT_FILL_POPULATE: 0|1
   LLAMA_EXPERT_FILL_DIAG_CSV: nonempty path; optional; only used with diagnostics
+
+acceptance:
+  type: performance

@@ -29,7 +29,7 @@ IMAGE = 'sha256:' + 'a' * 64
 
 def test_component_materials_and_discovery(tmp_path):
     for name in NAMES:
-        folder = CCS / 'components' / name
+        folder = CCS / 'expert_streaming/components' / name
         load(folder / 'cc.yaml')
         declaration = yaml.safe_load((folder / 'cc.yaml').read_text())
         assert declaration['cc'] == '2' and 'bindings' not in declaration and 'capabilities' not in declaration
@@ -45,7 +45,7 @@ def test_component_materials_and_discovery(tmp_path):
         assert set(c['depends_on']) <= set(NAMES[:NAMES.index(name)])
         for patch in c['patches']:
             assert hashlib.sha256((folder / patch['file']).read_bytes()).hexdigest() == patch['sha256']
-    catalog = Catalog([CCS, CCS / 'components'], tmp_path / 'ccstore')
+    catalog = Catalog([CCS, CCS / 'expert_streaming/components'], tmp_path / 'ccstore')
     entries = catalog.scan()
     assert all(e['usable'] for e in entries)
     assert {e['cc'] for e in entries} >= {'factory.components.' + n for n in NAMES} | {'factory.methodology_ab'}
@@ -69,7 +69,7 @@ def test_dependency_order_series_applies(tmp_path):
         stream.extractall(tree, filter='data')
     for name in NAMES:
         for patch in components.load(name)['patches']:
-            path = CCS / 'components' / name / patch['file']
+            path = CCS / 'expert_streaming/components' / name / patch['file']
             subprocess.run(['git', 'apply', '--check', str(path)], cwd=tree, capture_output=True, check=True)
             subprocess.run(['git', 'apply', str(path)], cwd=tree, capture_output=True, check=True)
 
@@ -197,7 +197,8 @@ def test_invalid_evolve_decisions(action):
 def test_evolve_publication_and_story(store):
     def publish(action):
         return dispatch(store.scoped('t'),'t','evidence.publish',{'inputs':dict(type='decision',
-            expected_rev=store.get_task('t')['current_decision_rev'],record=dict(action=action,evidence_ids=['t']))})
+            expected_rev=store.get_task('t')['current_decision_rev'],record=dict(action=action,evidence_ids=['t', 'accepted-ab']))})
+    store.append_observation('t', dict(obs_id='accepted-ab', kind='ab_result', values=dict(component='mmap_advice', acceptance=dict(type='performance', verdict='accept', reasons=[]))))
     publish(dict(type='keep_component',component='mmap_advice',image=IMAGE,ratio=1.2))
     publish(dict(type='revert_component',component='mmap_advice',reason='output mismatch'))
     with pytest.raises(ValueError):publish(dict(type='revert_component',component='mmap_advice'))
@@ -285,7 +286,7 @@ def test_keep_dormant_only_for_real_prerequisites():
     import pytest
     from jiuwenswarm.factory.controller import validate_action
     from jiuwenswarm.factory.components import dependents
-    assert dependents('mmap_advice') == {'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names'}
+    assert dependents('mmap_advice') == {'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join'}
     assert dependents('thread_names') == set()
     validate_action({'type': 'keep_dormant', 'component': 'mmap_advice', 'reason': 'source prerequisite',
                      'needed_by': ['expert_fill']})

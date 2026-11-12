@@ -1,0 +1,29 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 10-expert-readiness.patch
+  sha256: 020448e8ef98f75c4be9877f85c47c2ffa4559742f0e9aed795f97cf4c210abd
+depends_on:
+- expert_fill
+- expert_pregate
+enable_env:
+  LLAMA_EXPERT_READINESS: '1'
+engagement_checks:
+- source: stderr
+  regex: 'expert_readiness: active'
+- source: stderr
+  regex: 'expert_config: effective .*readiness=1'
+- source: stderr
+  regex: 'expert_readiness: stats decode_tokens=[1-9][0-9]*'
+hypothesis: At each layer arrival, before demand fill, classify the selected experts' bytes as resident or missing, split by whether pregate predicted them, and count wasted speculative bytes and demand bytes that overlapped an in-flight async read. Separates "predicted the right expert" from "its bytes were ready before demand".
+measure: none
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence.
+env_ranges:
+  LLAMA_EXPERT_READINESS: 0|1
+dependency_note: Patch 10 applies on top of patches 01-08 (with or without 09). It reuses the residency probe the demand path already performs; with the switch off the hot path pays one branch.
+acceptance:
+  type: observability
+  signal: engagement
+  overhead_bound: 0.03

@@ -19,14 +19,17 @@ import time
 import uuid
 
 from .jobs import Jobs
-from .store import Store
+from .store import Store, TASK_INPUTS
+
+# Controller-owned optional inputs use Store's existing additive schema boundary.
+TASK_INPUTS.update(resources="JSON NOT NULL DEFAULT '{}'", capability_cc="TEXT NOT NULL DEFAULT ''")
 
 ROOT = Path(__file__).resolve().parents[2]
 ACTIVE = {'queued', 'running', 'cancel_requested'}
 TERMINAL = {'reject', 'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
 
 
-EVOLVE_ACTIONS = {'integrate', 'build', 'measure', 'keep_component', 'keep_dormant', 'revert_component'}
+EVOLVE_ACTIONS = {'investigate', 'tune', 'integrate', 'build', 'measure', 'keep_component', 'keep_dormant', 'revert_component'}
 COMPONENT_ACTIONS = {'keep_component', 'keep_dormant', 'revert_component'}
 
 
@@ -49,10 +52,26 @@ def validate_action(action):
         if kind == 'keep_component':
             ratio = action.get('ratio')
             if (not isinstance(action.get('image'), (str, dict)) or not action['image']
-                    or type(ratio) not in (int, float) or not math.isfinite(ratio) or ratio <= 1):
-                raise ValueError('keep_component requires image and finite ratio > 1')
+                    or type(ratio) not in (int, float) or not math.isfinite(ratio) or ratio <= 0):
+                raise ValueError('keep_component requires image and finite ratio > 0')
         elif not isinstance(action.get('reason'), str) or not action['reason'].strip():
             raise ValueError('revert_component requires reason')
+
+
+def validate_keep_evidence(store, task_id, record):
+    action = record['action']
+    for ref in record.get('evidence_ids', []):
+        evidence = store.read(task_id, ref)
+        if (evidence.get('kind') == 'ab_result'
+                and evidence.get('values', {}).get('component', '').removeprefix('factory.components.')
+                    == action['component'].removeprefix('factory.components.')
+                and evidence['values'].get('acceptance', {}).get('verdict') == 'accept'):
+            return
+        if (evidence.get('inputs', {}).get('ab_result', {}).get('component', '').removeprefix('factory.components.')
+                == action['component'].removeprefix('factory.components.')
+                and evidence.get('inputs', {}).get('acceptance', {}).get('verdict') == 'accept'):
+            return
+    raise ValueError('keep_component requires a cited ab_result with acceptance.verdict == accept')
 
 
 def read_tasks(task):
@@ -77,7 +96,7 @@ def configure_agent(task, grants=(), home=None):
         directory.mkdir(parents=True, exist_ok=True)
     effective = sorted(set(task.get('allowed_effects', [])) & set(grants))
     args = ['-m', 'jiuwenswarm.ccv2.agent_mcp', '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs'),
-            '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs/components'),
+            '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs/expert_streaming/components'),
             '--store', str(home / 'ccstore'), '--workspace', str(workspace)]
     for grant in effective:
         args += ['--grant', grant]
@@ -112,6 +131,15 @@ class Controller:
                  sleep=asyncio.sleep, clock=time.time):
         self.home = Path(home or (store.home if store else factory_home())).resolve()
         self.store = store or Store(self.home)
+        if store is not None:
+            # An injected Store may have been opened before importing Controller.
+            columns = {row['name'] for row in store._db.execute('PRAGMA table_info(tasks)')}
+            with store._transaction(inject=False):
+                for name in ('resources', 'capability_cc'):
+                    if name not in columns:
+                        store._db.execute(f'ALTER TABLE tasks ADD COLUMN {name} {TASK_INPUTS[name]}')
+                        if name == 'resources':
+                            store._json_columns['tasks'].add(name)
         self.jobs = jobs or Jobs(self.store)
         self.grants = list(grants)
         self.facade = facade
@@ -123,7 +151,7 @@ class Controller:
         task = json.loads(Path(task_file).read_text(encoding='utf-8'))
         required = {'objective', 'constraints', 'allowed_effects', 'target', 'budget',
                     'contract_id', 'initial_run_config', 'component_cc', 'source'}
-        if not isinstance(task, dict) or required - task.keys() or task.keys() - required - {'operator_labels', 'task_id'}:
+        if not isinstance(task, dict) or required - task.keys() or task.keys() - required - {'operator_labels', 'task_id', 'resources', 'capability_cc'}:
             raise ValueError('Invalid task fields')
         if not isinstance(task['objective'], str) or not task['objective'].strip():
             raise ValueError('objective must be nonempty text')
@@ -134,7 +162,7 @@ class Controller:
             raise ValueError('constraints must be object/list and target must be text/object')
         if not isinstance(task['allowed_effects'], list) or not all(isinstance(g, str) for g in task['allowed_effects']):
             raise ValueError('allowed_effects must be a list of grants')
-        for key in ('budget', 'source', 'initial_run_config', 'operator_labels'):
+        for key in ('budget', 'source', 'initial_run_config', 'operator_labels', 'resources'):
             if not isinstance(task.get(key, {}), dict):
                 raise ValueError(f'{key} must be an object')
         for prior in read_tasks(task):
@@ -163,16 +191,16 @@ class Controller:
         checkout = (workspace / source['subpath']).resolve()
         if not checkout.is_relative_to(workspace):
             raise ValueError('Owned checkout escapes workspace')
-        if source.get('branch') != 'evolve' or source['pre_integration_commit'] != 'cf34d3113':
-            raise ValueError('Bare evolution requires evolve at cf34d3113')
+        if not isinstance(source.get('branch'), str) or not re.fullmatch(r'[a-z][a-z0-9_-]*', source['branch']) or source['pre_integration_commit'] != 'cf34d3113':
+            raise ValueError('Engine capability task requires a valid source.branch at cf34d3113')
         def git(*args, check=True):
             return subprocess.run(['git', '-C', str(checkout), *args], check=check,
                                   capture_output=True, text=True)
         if not checkout.is_dir() or git('rev-parse', '--show-toplevel').stdout.strip() != str(checkout):
             raise ValueError('Evolution requires an existing owned git checkout')
-        if git('show-ref', '--verify', '--quiet', 'refs/heads/evolve', check=False).returncode:
+        if git('show-ref', '--verify', '--quiet', 'refs/heads/' + source['branch'], check=False).returncode:
             # Create only the named ref: never switch/reset the current branch or worktree.
-            git('branch', 'evolve', 'cf34d3113')
+            git('branch', source['branch'], 'cf34d3113')
 
     def _state_path(self, task_id):
         if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', task_id):
@@ -232,6 +260,7 @@ class Controller:
             # Only operator inputs and standing instructions; never producer prose.
             message['objective'] = task['objective']
             message['operator_labels'] = task.get('operator_labels', {})
+            message['resources'] = task.get('resources', {})
             if read_tasks(task):
                 message['readable_prior_tasks'] = read_tasks(task)  # ids only; query their evidence
             message['instructions'] = Path(__file__).with_name('AGENT.md').read_text()

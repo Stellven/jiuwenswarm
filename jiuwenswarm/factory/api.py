@@ -42,6 +42,9 @@ def artifact_source(record, packet):
 
 def dispatch(store, task_id, capability, packet):
     inputs = packet.get('inputs', {})
+    if capability.startswith('expert_streaming.'):
+        from .expert_streaming import dispatch as streaming_dispatch
+        return streaming_dispatch(store, task_id, capability.removeprefix('expert_streaming.'), inputs)
     if capability.startswith('lab.'):
         from .manager import Manager
         operation = capability.removeprefix('lab.')
@@ -126,6 +129,8 @@ def dispatch(store, task_id, capability, packet):
     if inputs['type'] == 'observation':
         if 'expected_rev' in inputs:
             raise ValueError('expected_rev applies only to decisions')
+        if record.get('kind') == 'ab_result':
+            raise ScopeDenied('A/B acceptance is reserved for Manager evidence')
         return store.append_observation(task_id, record)
     if inputs['type'] == 'decision':
         if 'expected_rev' in record and 'expected_rev' in inputs and record['expected_rev'] != inputs['expected_rev']:
@@ -134,6 +139,9 @@ def dispatch(store, task_id, capability, packet):
         if store.get_task(task_id).get('contract_id') == 'qwen36-bare-greedy-v1' or record.get('action', {}).get('type') in {'keep_component', 'keep_dormant', 'revert_component'}:
             from .controller import validate_action
             validate_action(record.get('action'))
+            if record['action']['type'] == 'keep_component':
+                from .controller import validate_keep_evidence
+                validate_keep_evidence(store, task_id, record)
         return store.advance_decision(task_id, expected_rev, record)
     if inputs['type'] == 'artifact':
         if 'expected_rev' in inputs:
@@ -149,7 +157,8 @@ def dispatch(store, task_id, capability, packet):
 def input_reason(exc):
     """Keep actionable validation text while redacting configured credentials."""
     from .redact import sanitize
-    return sanitize(str(exc))[:300]
+    message = sanitize(str(exc))
+    return message[:12000 if 'Allowed knobs and ranges:' in message else 300]
 
 
 def main():

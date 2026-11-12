@@ -169,11 +169,11 @@ def test_preflight_flags_and_id_cache(setup, tmp_path, monkeypatch):
 
 
 def test_catalog_factory_capsules(tmp_path):
-    catalog = Catalog([CCS, CCS / 'components'], tmp_path / 'catalog')
+    catalog = Catalog([CCS, CCS / 'expert_streaming/components'], tmp_path / 'catalog')
     rows = catalog.scan()
-    assert len(rows) == 12 and not catalog.errors
+    assert len(rows) == 15 and not catalog.errors
     by_id = {row['cc']: row for row in rows}
-    assert set(by_id) == {'factory.' + name for name in NAMES + ['methodology_ab'] + ['components.' + n for n in ['mmap_advice', 'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names']]}
+    assert set(by_id) == {'engine.expert_streaming'} | {'factory.' + name for name in NAMES + ['methodology_ab'] + ['components.' + n for n in ['mmap_advice', 'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join']]}
     assert set(by_id['factory.engine_inspector']['capabilities']) == {'inspect', 'preflight', 'verify_effective_config'}
     assert set(by_id['factory.builder']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
     assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}

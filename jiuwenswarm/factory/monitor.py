@@ -9,7 +9,7 @@ import tempfile
 from urllib.parse import parse_qs, urlsplit
 from .store import FactoryError
 from .redact import sanitize
-from .story import load_source, build_events, chain_links, ACTIVE
+from .story import load_source, build_events, chain_links, decision_acceptance, ACTIVE
 from .telemetry import home_path, read_events
 
 
@@ -53,6 +53,7 @@ def engine_stack(data):
             row['state'] = STATES[kind]
             if kind in {'keep_component', 'keep_dormant', 'revert_component'}:
                 row.update(reason=action.get('reason'), ratio=action.get('ratio', row['ratio']))
+                row['acceptance'] = decision_acceptance(data, decision)
     for obs in data.get('observations', []):
         values = obs.get('values', {})
         if obs.get('kind') == 'ab_result' and values.get('component'):
@@ -60,6 +61,8 @@ def engine_stack(data):
                                                             ms_per_token=None, ratio=None))
             arms = values.get('per_arm_ms') or {}
             row.update(ms_per_token=arms.get('candidate'), gate=values.get('gate'))
+            if 'acceptance' not in row:
+                row['acceptance'] = values.get('acceptance')
             row['ratio'] = row['ratio'] or values.get('ratio')
             base['ms_per_token'] = base['ms_per_token'] or arms.get('base')
     if not rows and task.get('component_cc'):

@@ -1,60 +1,150 @@
 {
-  "type": "object",
-  "properties": {
-    "base": {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
       "type": "object",
       "properties": {
-        "repo": {
-          "type": "string",
-          "minLength": 1
-        },
-        "commit": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{40}$"
-        },
-        "pre_integration_commit": {
-          "type": "string",
-          "minLength": 1
-        },
-        "pre_integration_patch": {
+        "base": {
           "type": "object",
           "properties": {
-            "file": {
+            "repo": {
+              "type": "string",
+              "minLength": 1
+            },
+            "commit": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            "pre_integration_commit": {
+              "type": "string",
+              "minLength": 1
+            },
+            "pre_integration_patch": {
+              "type": "object",
+              "properties": {
+                "file": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                }
+              },
+              "required": [
+                "file",
+                "sha256"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "repo",
+            "commit",
+            "pre_integration_commit",
+            "pre_integration_patch"
+          ],
+          "additionalProperties": false
+        },
+        "change": {
+          "type": "object",
+          "properties": {
+            "patch": {
               "type": "string",
               "minLength": 1
             },
             "sha256": {
               "type": "string",
               "pattern": "^[0-9a-f]{64}$"
+            },
+            "touches": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "kind": {
+              "const": "observability"
             }
           },
           "required": [
-            "file",
-            "sha256"
+            "patch",
+            "sha256",
+            "touches",
+            "kind"
           ],
           "additionalProperties": false
-        }
-      },
-      "required": [
-        "repo",
-        "commit",
-        "pre_integration_commit",
-        "pre_integration_patch"
-      ],
-      "additionalProperties": false
-    },
-    "change": {
-      "type": "object",
-      "properties": {
-        "patch": {
-          "type": "string",
-          "minLength": 1
         },
-        "sha256": {
-          "type": "string",
-          "pattern": "^[0-9a-f]{64}$"
+        "supported": {
+          "type": "object",
+          "properties": {
+            "host": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "const": "jetson-orin"
+                },
+                "arch": {
+                  "const": "aarch64"
+                },
+                "cuda_arch": {
+                  "const": "sm_87"
+                }
+              },
+              "required": [
+                "name",
+                "arch",
+                "cuda_arch"
+              ],
+              "additionalProperties": false
+            },
+            "models": {
+              "type": "string",
+              "minLength": 1
+            },
+            "dtype": {
+              "const": "any"
+            }
+          },
+          "required": [
+            "host",
+            "models",
+            "dtype"
+          ],
+          "additionalProperties": false
         },
-        "touches": {
+        "configuration": {
+          "type": "object",
+          "properties": {
+            "env": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "source": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "env",
+            "source"
+          ],
+          "additionalProperties": false
+        },
+        "engagement_checks": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "correctness_obligations": {
           "type": "array",
           "minItems": 1,
           "items": {
@@ -62,121 +152,278 @@
             "minLength": 1
           }
         },
-        "kind": {
-          "const": "observability"
-        }
-      },
-      "required": [
-        "patch",
-        "sha256",
-        "touches",
-        "kind"
-      ],
-      "additionalProperties": false
-    },
-    "supported": {
-      "type": "object",
-      "properties": {
-        "host": {
+        "rollback": {
           "type": "object",
           "properties": {
-            "name": {
-              "const": "jetson-orin"
+            "source": {
+              "type": "string",
+              "minLength": 1
             },
-            "arch": {
-              "const": "aarch64"
-            },
-            "cuda_arch": {
-              "const": "sm_87"
+            "image": {
+              "type": "string",
+              "minLength": 1
             }
           },
           "required": [
-            "name",
-            "arch",
-            "cuda_arch"
+            "source",
+            "image"
           ],
           "additionalProperties": false
         },
-        "models": {
-          "type": "string",
-          "minLength": 1
-        },
-        "dtype": {
-          "const": "any"
+        "acceptance": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "performance"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "prerequisite"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "observability"
+                },
+                "signal": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  ]
+                },
+                "overhead_bound": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "type",
+                "signal",
+                "overhead_bound"
+              ],
+              "additionalProperties": false
+            }
+          ]
         }
       },
       "required": [
-        "host",
-        "models",
-        "dtype"
+        "base",
+        "change",
+        "supported",
+        "configuration",
+        "engagement_checks",
+        "correctness_obligations",
+        "rollback"
       ],
       "additionalProperties": false
     },
-    "configuration": {
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
       "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "base",
+        "patches",
+        "depends_on",
+        "enable_env",
+        "engagement_checks",
+        "hypothesis",
+        "measure",
+        "correctness_obligation",
+        "rollback",
+        "acceptance"
+      ],
       "properties": {
-        "env": {
+        "base": {
           "type": "object",
-          "minProperties": 1,
+          "additionalProperties": false,
+          "required": [
+            "repo",
+            "commit"
+          ],
+          "properties": {
+            "repo": {
+              "type": "string"
+            },
+            "commit": {
+              "const": "cf34d311332e362198f0a410c466d1e940287d02"
+            }
+          }
+        },
+        "patches": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "sha256"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "pattern": "^[0-9]{2}-[a-z-]+[.]patch$"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "depends_on": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"
+          }
+        },
+        "enable_env": {
+          "type": "object",
           "additionalProperties": {
             "type": "string"
           }
         },
-        "source": {
-          "type": "string",
-          "minLength": 1
-        }
-      },
-      "required": [
-        "env",
-        "source"
-      ],
-      "additionalProperties": false
-    },
-    "engagement_checks": {
-      "type": "array",
-      "minItems": 2,
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
-    },
-    "correctness_obligations": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "type": "string",
-        "minLength": 1
-      }
-    },
-    "rollback": {
-      "type": "object",
-      "properties": {
-        "source": {
+        "engagement_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source",
+              "regex"
+            ],
+            "properties": {
+              "source": {
+                "enum": [
+                  "stderr",
+                  "threads"
+                ]
+              },
+              "regex": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        },
+        "hypothesis": {
           "type": "string",
           "minLength": 1
         },
-        "image": {
+        "measure": {
+          "enum": [
+            "perf",
+            "none"
+          ]
+        },
+        "correctness_obligation": {
+          "const": "identical greedy stdout"
+        },
+        "rollback": {
           "type": "string",
           "minLength": 1
+        },
+        "env_ranges": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "dependency_note": {
+          "type": "string"
+        },
+        "acceptance": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "performance"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "prerequisite"
+                }
+              },
+              "required": [
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "const": "observability"
+                },
+                "signal": {
+                  "oneOf": [
+                    {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  ]
+                },
+                "overhead_bound": {
+                  "type": "number",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "type",
+                "signal",
+                "overhead_bound"
+              ],
+              "additionalProperties": false
+            }
+          ]
         }
-      },
-      "required": [
-        "source",
-        "image"
-      ],
-      "additionalProperties": false
+      }
     }
-  },
-  "required": [
-    "base",
-    "change",
-    "supported",
-    "configuration",
-    "engagement_checks",
-    "correctness_obligations",
-    "rollback"
-  ],
-  "additionalProperties": false,
-  "$schema": "https://json-schema.org/draft/2020-12/schema"
+  ]
 }

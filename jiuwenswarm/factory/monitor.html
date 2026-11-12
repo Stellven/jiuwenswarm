@@ -118,6 +118,7 @@ function stack(rows) {
                 el('span', '', r.ratio ? r.ratio.toFixed(2) + '×' : base ? '' : ''));
       d.append(sp);
     }
+    if (r.acceptance) d.append(el('div', 'state', 'acceptance ' + r.acceptance.type + ' ' + r.acceptance.verdict));
     if (r.reason) d.append(el('div', 'state', r.reason));
     return d;
   }));
