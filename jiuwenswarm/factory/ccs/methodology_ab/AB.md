@@ -49,6 +49,12 @@ cc/abrun/gate.py is the performance gate, not historical experiment numbers.
    citing the A/B observation and evaluation. Otherwise revert the integration
    commit (never reset unrelated work), restore best env/image, and publish
    revert_component {component,reason} citing the failed/null evidence.
+   Exception, dormant prerequisite: if a rejected component's source is required
+   by components not yet measured and its switch is off by default, you may keep
+   its commit with the switch OFF in every later arm and publish keep_dormant
+   {component,reason,needed_by}. Its own rejection still stands; dependents are
+   measured against the current best with only their own switches on. If a
+   dependent is later rejected too, revert both in reverse order.
 10. Retain negative/null/invalid evidence and explain why. Finish with the best
     image, kept component stack, exact scope and evidence IDs. Budgets or missing
     prerequisites end inconclusively; they never imply a win.

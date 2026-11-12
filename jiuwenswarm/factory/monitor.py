@@ -35,7 +35,7 @@ def tasks(home):
 
 
 STATES = {'integrate': 'integrating', 'build': 'building', 'measure': 'measuring',
-          'keep_component': 'kept', 'revert_component': 'reverted'}
+          'keep_component': 'kept', 'keep_dormant': 'dormant', 'revert_component': 'reverted'}
 
 
 def engine_stack(data):
@@ -51,7 +51,7 @@ def engine_stack(data):
         if name and kind in STATES:
             row = rows.setdefault(name, dict(name=name, state=None, ms_per_token=None, ratio=None))
             row['state'] = STATES[kind]
-            if kind in {'keep_component', 'revert_component'}:
+            if kind in {'keep_component', 'keep_dormant', 'revert_component'}:
                 row.update(reason=action.get('reason'), ratio=action.get('ratio', row['ratio']))
     for obs in data.get('observations', []):
         values = obs.get('values', {})

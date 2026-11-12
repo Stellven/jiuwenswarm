@@ -175,15 +175,19 @@ def build_events(data):
         step = str(action.get('next_operation') or action.get('next_bounded_operation') or '')
         step = re.split(r'(?<=[.;])\s', step, maxsplit=1)[0].rstrip('.;')
         summary = '; '.join(changes) or step or d.get('reason_for_change', '').split(';')[0]
-        if action.get('component') and kind not in {'keep_component', 'revert_component'}:
+        if action.get('component') and kind not in {'keep_component', 'keep_dormant', 'revert_component'}:
             summary = f"{action['component']} · {summary}"
         if failure:
             summary += ' · because ' + short(failure)
-        if kind in {'keep_component', 'revert_component'}:
+        if kind in {'keep_component', 'keep_dormant', 'revert_component'}:
             changes = []
-            summary = (f"keep {action.get('component')} · image {action.get('image')} · ratio {action.get('ratio')}"
-                       if kind == 'keep_component' else
-                       f"revert {action.get('component')} · {action.get('reason')}")
+            ratio = action.get('ratio')
+            summary = {'keep_component': f"keep {action.get('component')} · "
+                                         f"{ratio:.2f}× · image {short(str(action.get('image')))}"
+                                         if isinstance(ratio, (int, float)) else f"keep {action.get('component')}",
+                       'keep_dormant': f"dormant {action.get('component')} · switch off · needed by "
+                                       + ', '.join(action.get('needed_by') or []),
+                       'revert_component': f"revert {action.get('component')} · {action.get('reason')}"}[kind]
         if kind in TERMINAL:
             changes = []
             summary = d.get('reason_for_change', '')
@@ -323,10 +327,14 @@ def chain_links(data):
 
 
 def footer(data):
+    stack = []
+    if any(d.get('action', {}).get('type') in {'keep_component', 'keep_dormant', 'revert_component'}
+           for d in data.get('decisions', [])):
+        stack = wrap('engine stack: ' + ' → '.join(decision_stack(data)))
     links = chain_links(data)
     artifacts = data.get('artifacts', [])
     count = sum(len(v) for k, v in data.items() if isinstance(v, list) and k != 'events')
-    return wrap('chain: ' + ' → '.join(f'{name} {mark}' for name, mark in links)) + wrap(
+    return stack + wrap('chain: ' + ' → '.join(f'{name} {mark}' for name, mark in links)) + wrap(
         f"evidence: {count} records · {len(artifacts)} artifacts · {sum(a.get('size', 0) for a in artifacts)} bytes")
 
 
@@ -337,6 +345,8 @@ def decision_stack(data):
         name = action.get('component')
         if action.get('type') == 'keep_component' and name not in stack:
             stack.append(name)
+        elif action.get('type') == 'keep_dormant' and name not in stack:
+            stack.append(name + ' (off)')
         elif action.get('type') == 'revert_component' and name in stack[1:]:
             stack.remove(name)
     return stack
@@ -346,8 +356,6 @@ def render_story(data, plain=False):
     lines = header(data)
     for event in build_events(data):
         lines.extend(event_lines(event, data['tasks'][0]['created']))
-    if any(d.get('action', {}).get('type') in {'keep_component', 'revert_component'} for d in data.get('decisions', [])):
-        lines += wrap('engine stack: ' + ' → '.join(decision_stack(data)))
     return '\n'.join(paint(line, plain) for line in lines + footer(data))
 
 

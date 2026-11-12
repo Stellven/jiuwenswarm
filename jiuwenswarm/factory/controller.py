@@ -26,7 +26,8 @@ ACTIVE = {'queued', 'running', 'cancel_requested'}
 TERMINAL = {'reject', 'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
 
 
-EVOLVE_ACTIONS = {'integrate', 'build', 'measure', 'keep_component', 'revert_component'}
+EVOLVE_ACTIONS = {'integrate', 'build', 'measure', 'keep_component', 'keep_dormant', 'revert_component'}
+COMPONENT_ACTIONS = {'keep_component', 'keep_dormant', 'revert_component'}
 
 
 def validate_action(action):
@@ -35,9 +36,16 @@ def validate_action(action):
     kind = action['type']
     if kind not in EVOLVE_ACTIONS | TERMINAL:
         raise ValueError('Unsupported evolve action type')
-    if kind in {'keep_component', 'revert_component'}:
-        from .components import load
+    if kind in COMPONENT_ACTIONS:
+        from .components import load, dependents
         load(action.get('component'))
+        if kind == 'keep_dormant':
+            # A rejected component may keep its default-off source only as a prerequisite
+            # of components still to be measured; its switch stays off in every arm.
+            needed = set(action.get('needed_by') or [])
+            if (not needed or not needed <= dependents(action['component'])
+                    or not isinstance(action.get('reason'), str) or not action['reason'].strip()):
+                raise ValueError('keep_dormant requires reason and needed_by naming dependent components')
         if kind == 'keep_component':
             ratio = action.get('ratio')
             if (not isinstance(action.get('image'), (str, dict)) or not action['image']

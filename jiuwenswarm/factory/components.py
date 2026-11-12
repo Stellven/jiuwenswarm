@@ -16,3 +16,14 @@ def load(component):
     if not path.is_file():
         raise ValueError('Unknown component: ' + name)
     return yaml.safe_load(path.read_text())
+
+
+def dependents(component):
+    """Components that need `component`'s source, directly or transitively."""
+    names = sorted(p.parent.name for p in ROOT.glob('*/component.yaml'))
+    needs = {name: set(load(name).get('depends_on') or []) for name in names}
+    found, frontier = set(), {component}
+    while frontier:
+        frontier = {name for name, deps in needs.items() if deps & frontier} - found
+        found |= frontier
+    return found

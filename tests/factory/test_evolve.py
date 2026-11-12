@@ -279,3 +279,18 @@ def test_ab_api_rejects_agent_regex_and_foreign_attempt(experiment,monkeypatch):
     m.store.create_task(dict(task_id='other',objective='scope'))
     with pytest.raises(ScopeDenied):
         dispatch(m.store.scoped('other',{'t'}),'other','lab.ab_result',{'inputs':{'attempt_id':h['attempt_id']}})
+
+
+def test_keep_dormant_only_for_real_prerequisites():
+    import pytest
+    from jiuwenswarm.factory.controller import validate_action
+    from jiuwenswarm.factory.components import dependents
+    assert dependents('mmap_advice') == {'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names'}
+    assert dependents('thread_names') == set()
+    validate_action({'type': 'keep_dormant', 'component': 'mmap_advice', 'reason': 'source prerequisite',
+                     'needed_by': ['expert_fill']})
+    for bad in ({'needed_by': []}, {'needed_by': ['expert_fill'], 'reason': ''},
+                {'needed_by': ['mmap_advice']}, {'component': 'thread_names', 'needed_by': ['expert_fill']}):
+        action = dict({'type': 'keep_dormant', 'component': 'mmap_advice', 'reason': 'r'}, **bad)
+        with pytest.raises(ValueError):
+            validate_action(action)

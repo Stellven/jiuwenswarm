@@ -39,10 +39,11 @@ its own performance experiment; record that constraint, never silently combine
 changes. The operator authorizes local integration/revert commits only inside
 the owned checkout. Work on evolve, which the host creates at cf34d3113 if absent;
 never reset or switch other branches with unrelated work. Build bare first.
-Allowed action.type: integrate, build, measure, keep_component, revert_component,
+Allowed action.type: integrate, build, measure, keep_component, keep_dormant, revert_component,
 accept, reject, report_inconclusive, stop_missing_prerequisite.
 keep_component requires component, image, ratio; revert_component requires
-component and reason. Cite the A/B observation/evaluation and record the current
+component and reason; keep_dormant requires component, reason and needed_by
+(dependent components still to be measured; see methodology_ab step 9). Cite the A/B observation/evaluation and record the current
 best image/env and kept stack. Keep only improved gate, identical output and a
 passing complete evaluation. Otherwise revert the integration commit and explain.
 Use lab_client.ab_submit with {base_image,candidate_image,base_env,candidate_env,
