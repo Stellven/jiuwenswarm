@@ -73,11 +73,13 @@ class Catalog:
                 'needs': cap.get('needs', []),
                 'effects': cap.get('changes', []),
                 'binding': (declaration['bindings'].get(cap.get('using', 'default')) or {}).get('kind'),
+                'module': cap.get('kind', 'tool'),
             }
         return {
             'cc': declaration['id'], 'version': declaration['version'], 'release': release,
             'folder': folder, 'usable': True, 'capabilities': caps,
             'materials': {k: v.get('description') for k, v in declaration.get('materials', {}).items()},
+            'material_kinds': {k: v.get('kind', 'reference') for k, v in declaration.get('materials', {}).items()},
             'callable': sorted(callable_), 'services': sorted(services),
         }
 

@@ -3,10 +3,14 @@ id: factory.engine_component
 version: 1.0.0
 materials:
   component:
+    kind: component
     path: component.yaml
   patch:
+    kind: component
     path: 09-thread-names.patch
   pre_integration_patch:
+    kind: component
     path: combined-01-02-03-04-05-06-07-08.patch
   readme:
+    kind: reference
     path: README.md

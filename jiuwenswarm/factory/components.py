@@ -15,6 +15,9 @@ def load(component):
     path = ROOT / name / 'component.yaml'
     if not path.is_file():
         raise ValueError('Unknown component: ' + name)
+    declared = (yaml.safe_load((path.parent / 'cc.yaml').read_text()).get('materials') or {}).get('component') or {}
+    if declared.get('kind') != 'component':
+        raise ValueError('Not a component module (cc.yaml materials.component.kind must be component): ' + name)
     return yaml.safe_load(path.read_text())
 
 

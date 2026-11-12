@@ -3,10 +3,14 @@ id: factory.components.expert_fill
 version: 1.0.0
 materials:
   component:
+    kind: component
     path: component.yaml
   patch_03:
+    kind: component
     path: 03-expert-fill.patch
   patch_04:
+    kind: component
     path: 04-fill-phase.patch
   patch_05:
+    kind: component
     path: 05-fill-diag.patch

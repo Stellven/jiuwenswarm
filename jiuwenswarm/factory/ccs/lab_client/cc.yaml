@@ -9,6 +9,7 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   submit:
+    kind: tool
     does: Admit a local image and submit a fixed lab evaluation through the GPU queue.
     takes:
       image: json
@@ -26,6 +27,7 @@ capabilities:
     changes:
     - process.exec
   status:
+    kind: tool
     does: Read the owned lab attempt from the durable queue.
     takes:
       attempt_id: text
@@ -50,6 +52,7 @@ capabilities:
     changes:
     - process.exec
   cancel:
+    kind: tool
     does: Cancel the owned lab attempt and reap its container.
     takes:
       attempt_id: text
@@ -74,6 +77,7 @@ capabilities:
     changes:
     - process.exec
   result:
+    kind: tool
     does: Read evaluation and evidence references for the owned lab attempt.
     takes:
       attempt_id: text
@@ -89,6 +93,7 @@ capabilities:
     changes:
     - process.exec
   ab_submit:
+    kind: tool
     does: Admit both images and queue one contract-bound ABBA experiment; checks come
       from component materials.
     takes:
@@ -120,6 +125,7 @@ capabilities:
     changes:
     - process.exec
   ab_status:
+    kind: tool
     does: Read the owned durable A/B job status.
     takes:
       attempt_id: text
@@ -144,6 +150,7 @@ capabilities:
     changes:
     - process.exec
   ab_result:
+    kind: tool
     does: Ingest and read verified A/B verdict, correctness and evidence.
     takes:
       attempt_id: text

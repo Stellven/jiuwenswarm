@@ -9,6 +9,7 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   submit:
+    kind: tool
     does: Submit a durable build job. This acknowledges submission, not success; inspect
       status and result separately.
     takes:
@@ -23,6 +24,7 @@ capabilities:
     changes:
     - process.exec
   status:
+    kind: tool
     does: Read and reconcile the owned build attempt.
     takes:
       attempt_id: text
@@ -47,6 +49,7 @@ capabilities:
     changes:
     - process.exec
   cancel:
+    kind: tool
     does: Request cancellation of the owned build attempt.
     takes:
       attempt_id: text
@@ -71,6 +74,7 @@ capabilities:
     changes:
     - process.exec
   result:
+    kind: tool
     does: Read build result references; submission alone is not success.
     takes:
       attempt_id: text

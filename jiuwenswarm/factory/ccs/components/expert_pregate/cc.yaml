@@ -3,10 +3,14 @@ id: factory.components.expert_pregate
 version: 1.0.0
 materials:
   component:
+    kind: component
     path: component.yaml
   patch_06:
+    kind: component
     path: 06-pregate.patch
   patch_07:
+    kind: component
     path: 07-pregate-sched.patch
   patch_08:
+    kind: component
     path: 08-pregate-observe.patch

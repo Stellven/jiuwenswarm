@@ -3,6 +3,8 @@ id: factory.components.router_prefetch
 version: 1.0.0
 materials:
   component:
+    kind: component
     path: component.yaml
   patch_02:
+    kind: component
     path: 02-router-prefetch.patch

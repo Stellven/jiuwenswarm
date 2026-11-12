@@ -3,6 +3,8 @@ id: factory.components.thread_names
 version: 1.0.0
 materials:
   component:
+    kind: component
     path: component.yaml
   patch_09:
+    kind: component
     path: 09-thread-names.patch

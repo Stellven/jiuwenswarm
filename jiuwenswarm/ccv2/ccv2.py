@@ -99,6 +99,8 @@ def unique_mapping(loader, node):
 
 UniqueLoader.add_constructor(yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG, unique_mapping)
 ID = re.compile(r'^[a-z][a-z0-9._-]*$')
+# Module kinds. A capsule packages one functional category; each capability or material is a module.
+MATERIAL_KINDS = {'component', 'skill', 'method', 'reference'}
 NEEDS = {'workspace', 'python', 'process', 'gpu', 'environment'}
 EFFECTS = {'workspace.read', 'workspace.write', 'process.exec', 'process.attach', 'process.control', 'gpu.use', 'dependency.install', 'network.listen', 'network.request', 'model.invoke', 'git.publish', 'deploy'}
 STATES = {'running', 'succeeded', 'failed', 'blocked', 'cancelled', 'unknown'}
@@ -154,7 +156,8 @@ def normalize(raw):
     require(isinstance(materials, dict), 'INVALID_DECLARATION', 'materials must be a map')
     for name, material in materials.items():
         require(isinstance(name, str) and ID.fullmatch(name), 'INVALID_ID', name)
-        fields(material, {'path', 'description', 'media_type'}, {'path'})
+        fields(material, {'path', 'description', 'media_type', 'kind'}, {'path'})
+        require(material.get('kind', 'reference') in MATERIAL_KINDS, 'INVALID_MATERIAL', 'kind must be one of ' + ', '.join(sorted(MATERIAL_KINDS)))
         require(isinstance(material['path'], str) and bool(material['path']), 'INVALID_MATERIAL', 'Material path must name a bundled file')
         for field in ('description', 'media_type'):
             require(field not in material or isinstance(material[field], str), 'INVALID_MATERIAL', field + ' must be text')
@@ -189,8 +192,9 @@ def normalize(raw):
         require(isinstance(cap, dict), 'INVALID_DECLARATION', 'Capability must be an object')
         application = 'serves' in cap
         require(ID.fullmatch(name), 'INVALID_ID', name)
-        allowed = {'does', 'takes', 'needs', 'changes', 'guarantees', 'using'} | ({'serves'} if application else {'gives'})
+        allowed = {'does', 'takes', 'needs', 'changes', 'guarantees', 'using', 'kind'} | ({'serves'} if application else {'gives'})
         fields(cap, allowed, {'does'})
+        require(cap.get('kind', 'tool') == 'tool', 'INVALID_DECLARATION', f'{name}.kind must be tool; components, skills and methods are materials')
         require(isinstance(cap['does'], str) and bool(cap['does'].strip()), 'INVALID_DECLARATION', f'{name}.does must explain the action')
         cap.setdefault('using', 'default')
         require(cap['using'] in result['bindings'], 'UNRESOLVED_REFERENCE', f'{name}.using')

@@ -9,6 +9,7 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   query:
+    kind: tool
     does: Query bounded task-scoped evidence summaries and cursor.
     takes:
       kinds:
@@ -34,6 +35,7 @@ capabilities:
     changes:
     - process.exec
   read:
+    kind: tool
     does: Read a task-scoped evidence record, with bounded artifact preview.
     takes:
       id: text
@@ -47,6 +49,7 @@ capabilities:
     changes:
     - process.exec
   publish:
+    kind: tool
     does: Publish an immutable observation/artifact or compare-and-swap decision revision.
     takes:
       type: text

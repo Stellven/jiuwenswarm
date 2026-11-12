@@ -347,6 +347,10 @@
         },
         "serves": {
           "$ref": "#/$defs/serves"
+        },
+        "kind": {
+          "const": "tool",
+          "description": "Module kind. A capability is always a tool module."
         }
       },
       "required": [
@@ -382,6 +386,15 @@
         },
         "media_type": {
           "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "component",
+            "skill",
+            "method",
+            "reference"
+          ],
+          "description": "Module kind: component (ships in the product), skill (how to act), method (how to judge), reference (context only)."
         }
       },
       "required": [

@@ -3,6 +3,8 @@ id: factory.components.mmap_advice
 version: 1.0.0
 materials:
   component:
+    kind: component
     path: component.yaml
   patch_01:
+    kind: component
     path: 01-mmap-advice-random.patch

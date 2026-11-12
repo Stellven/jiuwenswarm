@@ -3,4 +3,5 @@ id: factory.methodology_ab
 version: 1.0.0
 materials:
   methodology:
+    kind: method
     path: AB.md

@@ -9,6 +9,7 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   inspect:
+    kind: tool
     does: Inspect an authorized source checkout, host and optional local image; publish
       evidence.
     takes:
@@ -35,6 +36,7 @@ capabilities:
     - workspace.read
     - process.exec
   preflight:
+    kind: tool
     does: Resolve local image Id and reject unsupported flags using help cached by
       immutable Id.
     takes:
@@ -58,6 +60,7 @@ capabilities:
     - process.exec
     - gpu.use
   verify_effective_config:
+    kind: tool
     does: Run one bounded CPU-only model config probe in an NVIDIA-runtime container
       and publish actual stderr evidence.
     takes:
