@@ -50,8 +50,9 @@ def setup(tmp_path, monkeypatch):
     with Store(home) as store:
         store.create_task({'task_id': 'task', 'objective': 'offline capsule checks'})
     monkeypatch.setenv('FACTORY_HOME', str(home))
-    # The host seals the resolved interpreter; expose this checkout to that
-    # interpreter just as the controller must for source-based native APIs.
+    # Exercise the host interpreter binding without the legacy wrapper override.
+    monkeypatch.delenv('FACTORY_PYTHON', raising=False)
+    monkeypatch.setenv('CCV2_PYTHON', sys.executable)
     monkeypatch.setenv('PYTHONPATH', str(ROOT))
     monkeypatch.setenv('FACTORY_TASK_ID', 'task')
     monkeypatch.setenv('FACTORY_READ_TASKS', '')
@@ -94,6 +95,7 @@ def call(tmp_path, name, capability, inputs, grants):
 def test_evidence_host_roundtrip(setup, tmp_path):
     result = call(tmp_path, 'evidence', 'query', {}, ['process.exec'])
     assert result['state'] == 'succeeded', result
+    assert result['provenance']['resolved_executable']['path'] == sys.executable
     assert result['outputs']['items'][0]['type'] == 'task'
     published = call(tmp_path, 'evidence', 'publish', {'type': 'observation', 'record': {'obs_id': 'obs', 'values': {'count': 1}}}, ['process.exec'])
     assert published['state'] == 'succeeded', published

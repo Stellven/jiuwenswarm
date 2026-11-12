@@ -222,13 +222,20 @@ class ProductTests(unittest.TestCase):
         while not pidfile.exists() and time.monotonic() < deadline: time.sleep(.03)
         child = psutil.Process(int(pidfile.read_text()))
         try:
-            time.sleep(.4)
+            # Reap the foreground launcher before checking orphan semantics. A
+            # fixed sleep leaves a zombie on POSIX, which still has a PID.
+            self.host._applications().processes[app['id']].wait(timeout=4)
             with self.assertRaises(CCError) as error: self.host.stop(app['id'])
             self.assertEqual(error.exception.code, 'STOP_UNCONFIRMED')
             self.assertEqual(self.host.lookup_instance(app['key'])['state'], 'unknown')
             self.assertTrue(child.is_running())
         finally:
-            child.kill(); child.wait(timeout=3)
+            child.kill()
+            try:
+                child.wait(timeout=3)
+            except psutil.TimeoutExpired:
+                # Minimal container PID 1 may not reap an orphaned zombie.
+                self.assertEqual(child.status(), psutil.STATUS_ZOMBIE)
             self.host.reconcile_instance(app['id'], stopped=True, note='Test operator terminated observed orphan child')
 
 

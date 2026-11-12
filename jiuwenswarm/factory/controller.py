@@ -101,15 +101,15 @@ def configure_agent(task, grants=(), home=None):
         directory.mkdir(parents=True, exist_ok=True)
     effective = sorted(set(task.get('allowed_effects', [])) & set(grants))
     args = ['-m', 'jiuwenswarm.ccv2.agent_mcp', '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs'),
-            '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs/expert_streaming/components'),
             '--store', str(home / 'ccstore'), '--workspace', str(workspace)]
     for grant in effective:
         args += ['--grant', grant]
     env = {'FACTORY_HOME': str(home), 'FACTORY_TASK_ID': task['task_id'],
            'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': DOCKER_PREFIX,
            'PYTHONPATH': str(ROOT),
-           # ccv2 seals the resolved base interpreter (outside the venv); the API runs in the venv.
-           'FACTORY_PYTHON': sys.executable, 'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
+           # Bind native {python} to the controller's admitted environment.
+           'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable,
+           'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
     # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
     reads = read_tasks(task)
     if reads:

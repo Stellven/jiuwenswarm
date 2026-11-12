@@ -8,6 +8,7 @@ from pathlib import Path
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from jiuwenswarm.ccv2.agent_mcp import Catalog
 
 ROOT = Path(__file__).resolve().parents[2]
 EVIL_CC = chr(10).join([
@@ -21,6 +22,25 @@ def payload(result):
     if result.structuredContent is not None:
         return result.structuredContent.get("result", result.structuredContent)
     return json.loads(result.content[0].text)
+
+
+def test_nested_components_are_bounded_ordered_and_deduplicated(tmp_path):
+    root = tmp_path / 'ccs'
+    for folder, cc in [('parent', 'demo.parent'),
+                       ('parent/components/a', 'demo.a'),
+                       ('parent/components/z', 'demo.z'),
+                       ('parent/components/a/components/deep', 'demo.deep'),
+                       ('parent/payload/hidden', 'demo.hidden')]:
+        path = root / folder
+        path.mkdir(parents=True, exist_ok=True)
+        (path / 'cc.yaml').write_text(json.dumps({
+            'cc': '2', 'id': cc, 'version': '1.0.0',
+            'materials': {'doc': {'path': 'doc.txt'}}}))
+        (path / 'doc.txt').write_text(cc)
+    catalog = Catalog([root, root], tmp_path / 'store')
+    listing = catalog.scan()
+    assert [entry['cc'] for entry in listing] == ['demo.parent', 'demo.a', 'demo.z']
+    assert all(entry['usable'] for entry in listing)
 
 
 class AgentMcpTests(unittest.IsolatedAsyncioTestCase):

@@ -44,6 +44,22 @@ class HostTests(unittest.TestCase):
         with self.assertRaises(CCError):
             self.host.call(release, 'echo', {'value': 2}, key='repeat')
 
+    def test_configured_python_preserves_venv_and_explicit_override(self):
+        import venv
+        environment = self.root / 'venv'
+        venv.EnvBuilder(with_pip=False, symlinks=os.name != 'nt').create(environment)
+        python = environment / ('Scripts/python.exe' if os.name == 'nt' else 'bin/python')
+        with patch.dict(os.environ, {'CCV2_PYTHON': str(python)}):
+            self.host = Host(self.root / 'venv-store')
+            self.assertEqual(Host(self.root / 'explicit', python=sys.executable).python, sys.executable)
+        (self.bundle / 'tool.py').write_text(
+            "import json,sys\njson.load(sys.stdin)\n"
+            "print(json.dumps({'outcome':'ok','outputs':{'value':sys.prefix}}))\n")
+        receipt = self.host.call(self.seal(), 'echo', {'value': None})
+        self.assertEqual(receipt['state'], 'succeeded', receipt)
+        self.assertEqual(Path(receipt['outputs']['value']), environment)
+        self.assertEqual(receipt['provenance']['resolved_executable']['path'], str(python))
+
     def test_invalid_input_and_missing_output(self):
         release = self.seal()
         self.assertEqual(self.host.call(release, 'echo', {})['reason'], 'INVALID_INPUT')

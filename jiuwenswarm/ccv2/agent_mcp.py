@@ -2,7 +2,7 @@
 
 One stdio server per agent session. It wraps one `Host` (so receipts, call keys
 and instance records persist in `--store`) and one folder of CC packages
-(`--ccs DIR`, each child holding a `cc.yaml`).
+(`--ccs DIR`, each child holding a `cc.yaml`, optionally with components/*/cc.yaml).
 
 Authority comes only from `--grant` flags and `--workspace`; an agent cannot
 widen them. Reading a material never grants execution.
@@ -40,7 +40,16 @@ class Catalog:
         self.releases.clear()
         self.errors.clear()
         entries = []
-        folders = [p for root in self.roots if root.is_dir() for p in sorted(root.iterdir()) if (p / 'cc.yaml').is_file()]
+        folders = []
+        seen = set()
+        for root in self.roots:
+            # Only packages and their immediate components; never recurse through payloads.
+            candidates = set(root.glob('*/cc.yaml')) | set(root.glob('*/components/*/cc.yaml'))
+            for path in sorted(candidates):
+                folder = path.parent
+                if path.is_file() and folder.resolve() not in seen:
+                    seen.add(folder.resolve())
+                    folders.append(folder)
         for folder in folders:
             try:
                 release = self.host.prepare(folder)
@@ -210,7 +219,7 @@ def build(catalog: Catalog):
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--ccs', required=True, action='append', help='folder containing CC packages (each with cc.yaml); repeatable')
+    p.add_argument('--ccs', required=True, action='append', help='folder containing CC packages, including their components/* packages; repeatable')
     p.add_argument('--store', required=True)
     p.add_argument('--grant', action='append', default=[])
     p.add_argument('--workspace', help="path exposed as the 'workspace' handle")
