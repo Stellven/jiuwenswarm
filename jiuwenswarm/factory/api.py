@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from pathlib import Path
 import sqlite3
 import sys
@@ -41,6 +42,29 @@ def artifact_source(record, packet):
 
 def dispatch(store, task_id, capability, packet):
     inputs = packet.get('inputs', {})
+    if capability.startswith('lab.'):
+        from .manager import Manager
+        operation = capability.removeprefix('lab.')
+        if operation not in {'submit', 'status', 'cancel', 'result'}:
+            raise ValueError('Unknown lab capability')
+        if hasattr(store, '_check'):
+            store._check(task_id, write=True)
+            host = store._store
+        else:
+            host = store
+        manager = Manager(host, host.home / 'lab-spool')
+        if operation == 'submit':
+            fields(inputs, {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key'},
+                   {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key'})
+            admission = manager.admit(task_id, inputs['image'], inputs['build_attempt_id'])
+            attempt = manager.submit_run(task_id, admission['admission_id'], inputs['contract_id'],
+                                         inputs['run_config'], inputs['idem_key'])
+            return dict(admission=admission, **{k: attempt[k] for k in ('attempt_id', 'state', 'jobq_id')})
+        fields(inputs, {'attempt_id'}, {'attempt_id'})
+        attempt = manager.jobs._get(inputs['attempt_id'])
+        if attempt['task_id'] != task_id or attempt['kind'] != 'lab':
+            raise ScopeDenied('Lab attempt belongs to another task or capability')
+        return getattr(manager, operation)(inputs['attempt_id'])
     if capability.startswith('builder.'):
         from .builder import Builder
         operation = capability.removeprefix('builder.')
@@ -111,6 +135,16 @@ def dispatch(store, task_id, capability, packet):
     raise ValueError('type must be observation, decision or artifact')
 
 
+def input_reason(exc):
+    """Keep actionable validation text while redacting configured credentials."""
+    message = str(exc)
+    for key, value in os.environ.items():
+        if value and re.search(r'(?i)(secret|token|password|credential|api_key|private_key)', key):
+            message = message.replace(value, '[redacted]')
+    message = re.sub(r'(?i)(bearer\s+)[\w.\-]+', r'\1[redacted]', message)
+    return message[:300]
+
+
 def main():
     try:
         if len(sys.argv) != 2:
@@ -137,8 +171,8 @@ def main():
         result = {'outcome': 'ok', 'outputs': outputs}
     except FactoryError as exc:
         result = {'outcome': 'error', 'error': {'code': exc.code, 'message': str(exc)}}
-    except (ValueError, TypeError, KeyError, OverflowError, sqlite3.ProgrammingError):
-        result = {'outcome': 'error', 'error': {'code': 'INVALID_INPUT', 'message': 'Invalid packet or capability inputs'}}
+    except (ValueError, TypeError, KeyError, OverflowError, sqlite3.ProgrammingError) as exc:
+        result = {'outcome': 'error', 'error': {'code': 'INVALID_INPUT', 'message': input_reason(exc)}}
     except (OSError, sqlite3.Error):
         result = {'outcome': 'error', 'error': {'code': 'PERSISTENCE_FAILED', 'message': 'Evidence persistence failed'}}
     print(json.dumps(result, ensure_ascii=False, allow_nan=False))

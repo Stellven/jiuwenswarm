@@ -16,6 +16,10 @@ from jiuwenswarm.factory.migration import check_legacy_config_or_exit
 
 def main() -> None:
     check_legacy_config_or_exit()
+    if sys.argv[1:2] == ["factory"]:
+        from jiuwenswarm.factory.cli import main as factory_main
+        factory_main(sys.argv[2:])
+        return
     # 启动阶段（模块导入、YAML 配置加载、日志 handler 创建、dotenv 解析、
     # 参数解析）被 Ctrl+C 中断时，避免抛出裸 KeyboardInterrupt 堆栈——与
     # run_chat 内部的优雅退出语义（exit 130）保持一致。

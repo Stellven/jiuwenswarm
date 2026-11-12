@@ -136,6 +136,7 @@ test = [
 ]
 
 [project.scripts]
+jiuwenswarm-factory = "jiuwenswarm.factory.cli:main"
 jiuwenswarm = "jiuwenswarm.channels.cli.main:main"
 jiuwenswarm-process = "jiuwenswarm.channels.process_cli.main:main"
 jiuwenswarm-app = "jiuwenswarm.app:main"
@@ -167,6 +168,11 @@ namespaces = false
 [tool.setuptools.package-data]
 "*" = ["LICENSE"]
 jiuwenswarm = [
+    "factory/AGENT.md",
+    "factory/ccs/**/*",
+    "factory/schemas/*.json",
+    "factory/tasks/*.json",
+    "factory/contracts/*.json",
     "channels/web/frontend/dist/**/*",
     "channels/web/frontend/dist/*",
     # Frozen Node22 TUI output and the complete pruned, locked npm tree.

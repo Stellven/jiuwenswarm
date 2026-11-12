@@ -1,0 +1,66 @@
+{
+  "contract_id": "qwen36-greedy-v1",
+  "version": 1,
+  "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+  "model": {
+    "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "size": 22360456160,
+    "sha256": null
+  },
+  "workload": {
+    "tool": "llama-completion",
+    "argv": [
+      "-m",
+      "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "-f",
+      "/om/prompts/p1.txt",
+      "-n",
+      "64",
+      "-c",
+      "4096",
+      "--temp",
+      "0",
+      "-s",
+      "1",
+      "-no-cnv",
+      "-ngl",
+      "99",
+      "-lm",
+      "mmap",
+      "-cmoe"
+    ],
+    "env": {
+      "LLAMA_EXPERT_FILL": "1",
+      "LLAMA_EXPERT_FILL_RANDOM": "decode",
+      "LLAMA_EXPERT_FILL_THREADS": "16",
+      "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+      "LLAMA_EXPERT_PREFETCH": "0",
+      "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+      "LLAMA_MMAP_ADVICE": "default",
+      "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+      "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+      "LLAMA_EXPERT_FILL_POPULATE": "0",
+      "LLAMA_EXPERT_PREGATE": "1",
+      "LLAMA_EXPERT_PREGATE_K": "8",
+      "LLAMA_EXPERT_PREGATE_ORDER": "after",
+      "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+      "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1"
+    }
+  },
+  "reference": {
+    "image_tag": "campaign/llamacpp:jetson-up1108-om11",
+    "image_id": "sha256:2dcf9fe7e9ae051caf6607ee67db3dc5442f680480a62356ebbec8582cac2754",
+    "stdout_sha256": null,
+    "frozen_at": null,
+    "run_ref": null
+  },
+  "tolerance": "byte-identical stdout",
+  "engagement_checks": [
+    "effective_config_matches_request",
+    "xfill_threads_present",
+    "expert_fill: active",
+    "expert_fill: random advice applied at decode",
+    "expert_pregate: active",
+    "expert_pregate: stats"
+  ]
+}

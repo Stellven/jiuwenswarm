@@ -9,7 +9,7 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   submit:
-    does: Submit a lab evaluation; return NOT_IMPLEMENTED until the lab API is installed.
+    does: Admit a local image and submit a fixed lab evaluation through the GPU queue.
     takes:
       image: json
       build_attempt_id: text
@@ -17,6 +17,7 @@ capabilities:
       run_config: json
       idem_key: text
     gives:
+      admission: json
       attempt_id: text
       state: text
       jobq_id: json
@@ -25,8 +26,7 @@ capabilities:
     changes:
     - process.exec
   status:
-    does: Access the owned lab attempt; return NOT_IMPLEMENTED until the lab API is
-      installed.
+    does: Read the owned lab attempt from the durable queue.
     takes:
       attempt_id: text
     gives:
@@ -50,8 +50,7 @@ capabilities:
     changes:
     - process.exec
   cancel:
-    does: Access the owned lab attempt; return NOT_IMPLEMENTED until the lab API is
-      installed.
+    does: Cancel the owned lab attempt and reap its container.
     takes:
       attempt_id: text
     gives:
@@ -75,14 +74,16 @@ capabilities:
     changes:
     - process.exec
   result:
-    does: Access the owned lab attempt; return NOT_IMPLEMENTED until the lab API is
-      installed.
+    does: Read evaluation and evidence references for the owned lab attempt.
     takes:
       attempt_id: text
     gives:
       attempt_id: text
       state: text
       result_refs: json
+      execution_outcome: text
+      evaluation: json
+      evidence_refs: json
     needs:
     - python
     changes:

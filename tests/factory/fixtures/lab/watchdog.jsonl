@@ -1,0 +1,1 @@
+{"schema": "resource-observe/0", "ts": "2026-11-11T18:51:55.787657+00:00", "mono_s": 863189.501768081, "host_id": "jetson-arm", "backend": "watchdog", "seq": 0, "metrics": [], "unavailable": [], "parse_errors": [], "event": "watchdog_sample", "values": {"available_mib": 5327.62890625, "swap_used_mib": 958.9765625, "swap_rate_mibs": null}, "crossed": []}

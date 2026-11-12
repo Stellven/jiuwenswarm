@@ -1,0 +1,48 @@
+{
+  "objective": "Integrate component factory.engine_component into the owned checkout, build a jetson-orin image, and run it under contract qwen36-greedy-v1. Inspect evidence and decide bounded next actions.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false
+  },
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write",
+    "gpu.use"
+  ],
+  "target": "jetson-orin",
+  "budget": {
+    "max_turns": 12,
+    "wall_clock_s": 14400
+  },
+  "contract_id": "qwen36-greedy-v1",
+  "initial_run_config": {
+    "env": {
+      "LLAMA_EXPERT_FILL": "1",
+      "LLAMA_EXPERT_FILL_RANDOM": "decode",
+      "LLAMA_EXPERT_FILL_THREADS": "16",
+      "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+      "LLAMA_EXPERT_PREFETCH": "0",
+      "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+      "LLAMA_MMAP_ADVICE": "default",
+      "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+      "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+      "LLAMA_EXPERT_FILL_POPULATE": "0",
+      "LLAMA_EXPERT_PREGATE": "1",
+      "LLAMA_EXPERT_PREGATE_K": "48",
+      "LLAMA_EXPERT_PREGATE_ORDER": "after",
+      "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+      "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1"
+    }
+  },
+  "component_cc": "factory.engine_component",
+  "source": {
+    "subpath": "llama.cpp",
+    "pre_integration_commit": "e14b87603"
+  },
+  "operator_labels": {
+    "LLAMA_EXPERT_PREGATE_K": "controlled-invalid: deliberately out of range (1..32) to demonstrate evidence-driven repair"
+  }
+}

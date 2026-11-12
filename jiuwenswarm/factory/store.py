@@ -63,6 +63,13 @@ TABLES = {
     'evaluations': ('eval_id', 'eval_id TEXT NOT NULL, task_id TEXT NOT NULL REFERENCES tasks(task_id), contract_id TEXT NOT NULL, contract_version TEXT NOT NULL, contract JSON NOT NULL, inputs JSON NOT NULL, execution_outcome TEXT NOT NULL, correctness TEXT NOT NULL, evidence_completeness TEXT NOT NULL, created REAL NOT NULL, PRIMARY KEY(task_id, eval_id)'),
     'uploads': ('upload_id', 'upload_id TEXT NOT NULL, task_id TEXT NOT NULL REFERENCES tasks(task_id), lab_run_id TEXT NOT NULL, sha256 TEXT NOT NULL, ack_state TEXT NOT NULL, created REAL NOT NULL, PRIMARY KEY(task_id, upload_id)'),
 }
+TASK_INPUTS = {
+    'contract_id': "TEXT NOT NULL DEFAULT ''",
+    'initial_run_config': "JSON NOT NULL DEFAULT '{}'",
+    'component_cc': "TEXT NOT NULL DEFAULT ''",
+    'source': "JSON NOT NULL DEFAULT '{}'",
+    'operator_labels': "JSON NOT NULL DEFAULT '{}'",
+}
 TYPES = {name[:-1] if name != 'observations' else 'observation': name for name in TABLES}
 STATES = frozenset({'queued', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled', 'unknown'})
 TRANSITIONS = {
@@ -88,6 +95,10 @@ class Store:
         with self._transaction(inject=False):
             for table, (_, columns) in TABLES.items():
                 self._db.execute(f'CREATE TABLE IF NOT EXISTS {table} ({columns})')
+            columns = {r['name'] for r in self._db.execute('PRAGMA table_info(tasks)')}
+            for name, declaration in TASK_INPUTS.items():
+                if name not in columns:
+                    self._db.execute(f'ALTER TABLE tasks ADD COLUMN {name} {declaration}')
             self._db.execute('CREATE TABLE IF NOT EXISTS evidence (cursor INTEGER PRIMARY KEY AUTOINCREMENT, task_id TEXT NOT NULL REFERENCES tasks(task_id), id TEXT NOT NULL, type TEXT NOT NULL, kind TEXT NOT NULL, summary TEXT NOT NULL, created REAL NOT NULL, record JSON NOT NULL)')
             self._db.execute('CREATE INDEX IF NOT EXISTS evidence_task_cursor ON evidence(task_id, cursor)')
             for table in ('observations', 'artifacts', 'decisions', 'evaluations'):

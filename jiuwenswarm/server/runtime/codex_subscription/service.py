@@ -222,6 +222,12 @@ class SubscriptionService:
         tmp.write_text(json.dumps(self.bindings), encoding="utf-8")
         tmp.replace(self.binding_path)
 
+    def _revoke_agent_resumes(self):
+        if any(binding.get("agent") for binding in self.bindings.values()):
+            for binding in self.bindings.values():
+                binding["agent"] = False
+            self._save()
+
     async def _status(self):
         await self.transport.start()
         generation = self._observation_generation
@@ -230,6 +236,7 @@ class SubscriptionService:
         kind = account.get("type")
         fingerprint = hashlib.sha256(str(account.get("email")).encode()).hexdigest() if kind == "chatgpt" and account.get("email") else None
         if self.account_fingerprint is not None and fingerprint != self.account_fingerprint:
+            self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
             # A changed/unknown identity is not permission to reuse old threads.
             for run in self.active.values():
@@ -259,6 +266,7 @@ class SubscriptionService:
                 raise CodexError("BUSY")
             if self.login_id:
                 raise CodexError("LOGIN_PENDING")
+            self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
             login_type = 'chatgpt'
             result = await self.transport.request("account/login/start", {"type": login_type})
@@ -286,6 +294,7 @@ class SubscriptionService:
 
     async def logout(self):
         async with self._account_lock:
+            self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
             self.account_fingerprint = None
             self._observation_identity_verified = False
@@ -527,6 +536,20 @@ class SubscriptionService:
             if session_id in self.active:
                 raise CodexError("BUSY")
             binding = self.bindings.get(session_id)
+            if (binding and agent_mode_enabled()
+                    and binding.get("agent") is True and not binding.get("inflight")
+                    and binding.get("epoch") not in {self.epoch, "interrupted"}
+                    and binding.get("owner") == self.account_fingerprint
+                    and self.account_fingerprint):
+                # Factory controllers survive process restarts. Resume only a
+                # completed, same-account agent thread; never replay an
+                # interrupted/unknown-delivery turn or a text-only session.
+                agent_cwd = Path(os.environ.get("JIUWENSWARM_CODEX_AGENT_CWD") or (self.root / "agent-workspace"))
+                await self.transport.request("thread/resume", {
+                    "threadId": binding["thread"], "cwd": str(agent_cwd.resolve()),
+                    "sandbox": "workspace-write", "approvalPolicy": "never"})
+                binding["epoch"] = self.epoch
+                self._save()
             if binding and (binding.get("epoch") != self.epoch or binding.get("owner") != self.account_fingerprint):
                 raise CodexError("NEW_SESSION_REQUIRED")
             if not self.account_fingerprint:
@@ -538,7 +561,8 @@ class SubscriptionService:
                     result = await self.transport.request("thread/start", {"cwd": str(agent_cwd.resolve()), "sandbox": "workspace-write", "approvalPolicy": "never", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": agent_instructions()})
                 else:
                     result = await self.transport.request("thread/start", {"cwd": str(self.root / "chat-workspace"), "sandbox": "read-only", "approvalPolicy": "never", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": "Answer ordinary text conversations. Tools are unavailable in this milestone. Do not claim to have executed actions."})
-                binding = {"thread": result["thread"]["id"], "epoch": self.epoch, "owner": self.account_fingerprint}
+                binding = {"thread": result["thread"]["id"], "epoch": self.epoch, "owner": self.account_fingerprint,
+                           "agent": agent_mode_enabled()}
                 self.bindings[session_id] = binding
                 self._save()
             run["thread"] = binding["thread"]
@@ -560,6 +584,9 @@ class SubscriptionService:
         parts = []
         completed = False
         try:
+            if agent_mode_enabled():
+                binding["inflight"] = True
+                self._save()
             result = await self.transport.request("turn/start", {"threadId": run["thread"], "input": [{"type": "text", "text": text}], "model": model})
             run["turn"] = result["turn"]["id"]
             if run["cancel"]:
@@ -590,6 +617,9 @@ class SubscriptionService:
                         yield {"event_type": "chat.delta", "content": delta, "session_id": session_id}
                 elif method == "turn/completed":
                     completed = True
+                    if agent_mode_enabled():
+                        binding["inflight"] = False
+                        self._save()
                     status = params["turn"].get("status")
                     if status not in {"completed", "interrupted"}:
                         raise CodexError("TURN_FAILED")

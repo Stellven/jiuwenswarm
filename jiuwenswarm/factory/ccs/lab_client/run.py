@@ -15,14 +15,11 @@ except subprocess.TimeoutExpired:
     result = {'outcome': 'error', 'error': {'code': 'TIMEOUT', 'message': 'Factory API exceeded the bounded call deadline'}}
 except (ValueError, TypeError):
     result = {'outcome': 'error', 'error': {'code': 'API_FAILED', 'message': 'Factory API did not return a JSON result'}}
-if PREFIX == 'lab' and result.get('error', {}).get('code') == 'INVALID_INPUT':
-    # F06 installs lab.* dispatch. Until then the evidence API rejects it.
-    result = {'outcome': 'error', 'error': {'code': 'NOT_IMPLEMENTED', 'message': 'Lab API is not installed'}}
 if result.get('outcome') == 'ok':
     outputs = result['outputs']
     if PREFIX == 'evidence' and cap in {'read', 'publish'}:
         result['outputs'] = {'record': outputs}
-    elif PREFIX in {'builder', 'lab'}:
+    elif PREFIX == 'builder':
         if cap == 'submit':
             result['outputs'] = {k: outputs[k] for k in ('attempt_id', 'state', 'jobq_id')}
 print(json.dumps(result))

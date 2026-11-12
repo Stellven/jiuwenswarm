@@ -182,9 +182,9 @@ def test_catalog_six_capsules(tmp_path):
     assert by_id['factory.integration_skill']['capabilities'] == {}
 
 
-def test_lab_unimplemented(setup, tmp_path):
+def test_lab_unknown_attempt_is_not_found(setup, tmp_path):
     result = call(tmp_path, 'lab_client', 'status', {'attempt_id': 'not-yet'}, ['process.exec'])
-    assert result['state'] == 'failed' and result['reason'] == 'NOT_IMPLEMENTED', result
+    assert result['state'] == 'failed' and result['reason'] == 'NOT_FOUND', result
 
 
 def test_inspect_checkout_and_source_containment(setup, tmp_path):

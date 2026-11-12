@@ -189,7 +189,8 @@ class Inspector:
                                 ['-m', '/probe/' + PROBE.name, '-p', 'x', '-n', '1', '-ngl', '0',
                                  '-c', '256', '--temp', '0', '-no-cnv'], extra=extra, timeout=45)
         output = {'requested': env, 'effective': {}, 'mismatches': {}, 'image': image,
-                  'exit_status': result.returncode, 'aborted': result.returncode in {-6, 134}}
+                  'exit_status': result.returncode, 'aborted': result.returncode < 0 or
+                  result.returncode > 128 or bool(getattr(result, 'signal', None))}
         invalid = re.search(r'^expert_config: invalid .*$', result.stderr, re.MULTILINE)
         if invalid:
             output['invalid_line'] = invalid.group(0)
