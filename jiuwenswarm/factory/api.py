@@ -41,6 +41,28 @@ def artifact_source(record, packet):
 
 def dispatch(store, task_id, capability, packet):
     inputs = packet.get('inputs', {})
+    if capability.startswith('builder.'):
+        from .builder import Builder
+        operation = capability.removeprefix('builder.')
+        if operation not in {'submit', 'status', 'cancel', 'result'}:
+            raise ValueError('Unknown builder capability')
+        # Unwrap only after enforcing the current task's write boundary. Read
+        # grants must never allow cancellation or use of another task's build.
+        if hasattr(store, '_check'):
+            store._check(task_id, write=True)
+            host = store._store
+        else:
+            host = store
+        builder = Builder(host)
+        if operation == 'submit':
+            fields(inputs, {'request', 'idem_key'}, {'request', 'idem_key'})
+            attempt = builder.submit(task_id, inputs['request'], inputs['idem_key'])
+            return {key: attempt[key] for key in ('attempt_id', 'state', 'jobq_id')}
+        fields(inputs, {'attempt_id'}, {'attempt_id'})
+        attempt = builder.jobs._get(inputs['attempt_id'])
+        if attempt['task_id'] != task_id:
+            raise ScopeDenied('Attempt belongs to another task')
+        return getattr(builder, operation)(inputs['attempt_id'])
     if capability == 'evidence.query':
         fields(inputs, {'kinds', 'text', 'since', 'limit', 'task_id'})
         options = dict(inputs)
@@ -103,6 +125,14 @@ def main():
             raise ValueError('FACTORY_TASK_ID is required')
         readable = frozenset(t.strip() for t in os.environ.get('FACTORY_READ_TASKS', '').split(',') if t.strip())
         with Store(Path(os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory'))) as store:
+            # Inspector dispatch: returns a native envelope, including failed
+            # probes with their observation/artifact references (F04).
+            if sys.argv[1].startswith('inspector.'):
+                from .inspector import dispatch as inspector_dispatch
+                result = inspector_dispatch(store.scoped(task_id), task_id, sys.argv[1], packet)
+                print(json.dumps(result, ensure_ascii=False, allow_nan=False))
+                return
+            # End inspector dispatch.
             outputs = dispatch(store.scoped(task_id, readable), task_id, sys.argv[1], packet)
         result = {'outcome': 'ok', 'outputs': outputs}
     except FactoryError as exc:

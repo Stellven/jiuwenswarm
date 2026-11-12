@@ -1,0 +1,182 @@
+{
+  "type": "object",
+  "properties": {
+    "base": {
+      "type": "object",
+      "properties": {
+        "repo": {
+          "type": "string",
+          "minLength": 1
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "pre_integration_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pre_integration_patch": {
+          "type": "object",
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "file",
+            "sha256"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "repo",
+        "commit",
+        "pre_integration_commit",
+        "pre_integration_patch"
+      ],
+      "additionalProperties": false
+    },
+    "change": {
+      "type": "object",
+      "properties": {
+        "patch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "touches": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "kind": {
+          "const": "observability"
+        }
+      },
+      "required": [
+        "patch",
+        "sha256",
+        "touches",
+        "kind"
+      ],
+      "additionalProperties": false
+    },
+    "supported": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "const": "jetson-orin"
+            },
+            "arch": {
+              "const": "aarch64"
+            },
+            "cuda_arch": {
+              "const": "sm_87"
+            }
+          },
+          "required": [
+            "name",
+            "arch",
+            "cuda_arch"
+          ],
+          "additionalProperties": false
+        },
+        "models": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dtype": {
+          "const": "any"
+        }
+      },
+      "required": [
+        "host",
+        "models",
+        "dtype"
+      ],
+      "additionalProperties": false
+    },
+    "configuration": {
+      "type": "object",
+      "properties": {
+        "env": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "env",
+        "source"
+      ],
+      "additionalProperties": false
+    },
+    "engagement_checks": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "correctness_obligations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "rollback": {
+      "type": "object",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "image": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "source",
+        "image"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "base",
+    "change",
+    "supported",
+    "configuration",
+    "engagement_checks",
+    "correctness_obligations",
+    "rollback"
+  ],
+  "additionalProperties": false,
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

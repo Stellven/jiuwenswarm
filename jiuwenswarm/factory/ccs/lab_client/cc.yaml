@@ -1,0 +1,89 @@
+cc: '2'
+id: factory.lab_client
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  submit:
+    does: Submit a lab evaluation; return NOT_IMPLEMENTED until the lab API is installed.
+    takes:
+      image: json
+      build_attempt_id: text
+      contract_id: text
+      run_config: json
+      idem_key: text
+    gives:
+      attempt_id: text
+      state: text
+      jobq_id: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  status:
+    does: Access the owned lab attempt; return NOT_IMPLEMENTED until the lab API is
+      installed.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  cancel:
+    does: Access the owned lab attempt; return NOT_IMPLEMENTED until the lab API is
+      installed.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  result:
+    does: Access the owned lab attempt; return NOT_IMPLEMENTED until the lab API is
+      installed.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+    needs:
+    - python
+    changes:
+    - process.exec
