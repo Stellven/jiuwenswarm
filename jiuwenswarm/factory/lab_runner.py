@@ -69,7 +69,11 @@ def collect(root, config):
     xfill = any(row.get('comm', '').startswith('xfill-') and row.get('samples', 0) > 0
                 for row in threads.get('threads', {}).values())
     checks = {'effective_config_matches_request': config_ok, 'xfill_threads_present': xfill}
-    for check in contract['engagement_checks']:
+    required = list(contract['engagement_checks'])
+    if config.get('role', 'candidate') == 'candidate':
+        # Component-specific checks (e.g. patch 09 thread names) cannot hold on the reference image.
+        required += contract.get('candidate_engagement_checks', [])
+    for check in required:
         if check not in checks:
             checks[check] = check in stderr
     missing = sorted(name for name in REQUIRED if not (root / name).is_file())
@@ -81,7 +85,7 @@ def collect(root, config):
             outcome = 'config_rejected'
         elif (result.get('oom_killed') or result.get('watchdog_trips') or 'watchdog_trip' in watchdog
               or result.get('exit_code') != 0 or result.get('status') != 'ok'
-              or not config_ok or not all(checks.get(k, False) for k in contract['engagement_checks'])):
+              or not config_ok or not all(checks.get(k, False) for k in required)):
             outcome = 'measurement_failed'
     complete = not missing and bool(result) and bool(threads)
     stdout = root / 'stdout.txt'

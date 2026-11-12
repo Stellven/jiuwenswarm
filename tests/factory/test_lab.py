@@ -366,7 +366,8 @@ def test_reference_helper_uses_lab_and_freezes(lab,monkeypatch,capsys):
     contract.atomic_json(record,{'image':{'Id':IMAGE}})
     monkeypatch.setattr(module,'BASELINE_RECORD',record)
     original=manager.submit_run
-    def submit(task,a,contract_id,config,key):
+    def submit(task,a,contract_id,config,key,role="candidate"):
+        assert role == "reference"
         h=original(task,a,contract_id,config,key)
         root=manager.spool_root/h['attempt_id'];root.mkdir()
         for name in lab_runner.REQUIRED:shutil.copyfile(FIXTURES/name,root/name)

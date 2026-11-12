@@ -70,7 +70,10 @@ class Manager:
             raise ValueError('Admission identity differs')
         return record
 
-    def submit_run(self, task_id, admission_id, contract_id, run_config, idem_key):
+    def submit_run(self, task_id, admission_id, contract_id, run_config, idem_key, role='candidate'):
+        # role is set only by the Manager (freeze_reference -> 'reference'); agents cannot pass it.
+        if role not in {'candidate', 'reference'}:
+            raise ValueError('role must be candidate or reference')
         admission = self._admission(task_id, admission_id)
         contract = contracts.load(contract_id)
         if not isinstance(run_config, dict) or set(run_config) - {'env', 'argv_overrides'}:
@@ -86,7 +89,7 @@ class Manager:
         argv = contract['workload']['argv']
         if run_config.get('argv_overrides') not in (None, {}, [], argv):
             raise ValueError('Scored workload argv is fixed; use a version+1 contract for changes')
-        config = dict(admission=admission, contract=dict(contract), env=env, argv=argv)
+        config = dict(admission=admission, contract=dict(contract), env=env, argv=argv, role=role)
         digest = hashlib.sha256(encoded(config).encode()).hexdigest()
         path = self.spool_root / 'configs' / (digest + '.json')
         if not path.exists():
@@ -250,12 +253,14 @@ def freeze_reference(manager, contract_id, image):
     # Imported historical builds have no jobq id to reconcile. Validate the raw
     # image and use admit's receipt check with the already observed terminal state.
     admission = manager.admit(task, dict(tag=image, id=record['image']['Id']), build['attempt_id'])
-    handle = manager.submit_run(task, admission['admission_id'], contract_id, {'env': {}}, 'reference-run')
+    # Key binds the contract content: an amended (still unfrozen) contract can never reuse an older run.
+    ckey = hashlib.sha256(encoded(dict(contract)).encode()).hexdigest()[:12]
+    handle = manager.submit_run(task, admission['admission_id'], contract_id, {'env': {}}, 'reference-run-' + ckey, role='reference')
     n = 1
     while handle['state'] in {'failed', 'cancelled', 'unknown'}:
         # A terminal prior attempt stays visible; the operator rerun is a new linked attempt.
         n += 1
-        handle = manager.jobs.retry(handle['attempt_id'], f'reference-run-r{n}')
+        handle = manager.jobs.retry(handle['attempt_id'], f'reference-run-{ckey}-r{n}')
     while True:
         result = manager.result(handle['attempt_id'])
         if result['evaluation']:
