@@ -56,7 +56,9 @@
     "depends_on": {
       "type": "array",
       "uniqueItems": true,
-      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9_]*$"
       }
     },
     "enable_env": {
@@ -176,6 +178,24 @@
           "additionalProperties": false
         }
       ]
+    },
+    "implements": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "modifies_region": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "quantities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     }
   }
 }
