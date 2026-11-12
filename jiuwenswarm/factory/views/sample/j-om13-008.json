@@ -1,0 +1,1196 @@
+{
+  "schema": "expert_activity/1",
+  "provenance": {
+    "run_id": "J-OM13/008-factory",
+    "task_id": null,
+    "mode": "replay",
+    "origin": "recorded evidence",
+    "image_id": null,
+    "image_ref": "factory/llamacpp:bd173c08-restored-0b514fba",
+    "effective_config_line": "expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0",
+    "effective_config": {
+      "fill": 1,
+      "random": "decode",
+      "max_tokens": 1,
+      "threads": 16,
+      "chunk_kib": 2048,
+      "pregate": 1,
+      "k": 8,
+      "order": "after",
+      "max_inflight": 4,
+      "lookahead": 1,
+      "min_tokens": 0,
+      "diag": 0,
+      "populate": 0,
+      "diag_csv": "(unset)",
+      "prefetch": 0,
+      "prefetch_next": 0
+    },
+    "source_files": [
+      {
+        "path": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/result.json",
+        "sha256": "d6d3f73c8ca66b466225d46f1069d5ebf3bd5353c2d1143f904c6bfbb925a846",
+        "kind": "run-result",
+        "coverage": "recorded run metadata",
+        "overhead": {
+          "mode": "offline metadata; collection cost UNKNOWN",
+          "measured_ratio": null,
+          "evidence_id": null
+        }
+      },
+      {
+        "path": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/summary.json",
+        "sha256": "c86277f926ac63d514c7bb69fd3cdde466c9a42c32b836b9037601622d02ad95",
+        "kind": "run-summary",
+        "coverage": "recorded run metadata",
+        "overhead": {
+          "mode": "offline metadata; collection cost UNKNOWN",
+          "measured_ratio": null,
+          "evidence_id": null
+        }
+      },
+      {
+        "path": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/threads.summary.json",
+        "sha256": "2d1d7a2dcc73d71a3972cecfbf83a3dc76f7dd22139e1f5251d16afe27f4cd9f",
+        "kind": "thread-summary",
+        "coverage": {
+          "clock": "mono_s",
+          "decode_start": 934833.128333,
+          "decode_end": 934878.523003,
+          "method": "last_thread_sample_before_exit_minus_eval_ms_total",
+          "sampling_error_bound_s": 0.017054000054486096,
+          "coverage_start": 934745.123365,
+          "tokens": 63,
+          "coverage_complete": true,
+          "absolute_error_bound_s": null,
+          "error_note": "Engine teardown/exit lag is unknown. Counter deltas crossing the window edge are prorated; first observation is a baseline."
+        },
+        "overhead": {
+          "mode": "external thread sampler; self CPU is not engine overhead A/B",
+          "measured_ratio": null,
+          "evidence_id": null
+        }
+      },
+      {
+        "path": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt",
+        "sha256": "fd41933fb76874a5814ba0991e744793fe8b14ac3090c54be033aec03011fe76",
+        "kind": "engine-stats",
+        "coverage": "load/prompt/decode teardown counters; no per-event data",
+        "overhead": {
+          "mode": "stats lines: negligible emission",
+          "measured_ratio": null,
+          "evidence_id": null
+        }
+      }
+    ],
+    "phase_coverage": {
+      "load": {
+        "coverage": "aggregate counters only",
+        "trace_records": 0,
+        "trace_tokens": 0,
+        "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:345"
+      },
+      "prompt": {
+        "coverage": "aggregate counters only",
+        "trace_records": 0,
+        "trace_tokens": 0,
+        "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:346"
+      },
+      "decode": {
+        "coverage": "aggregate counters only",
+        "trace_records": 0,
+        "trace_tokens": 0,
+        "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:347"
+      }
+    },
+    "sampling": {
+      "stats": "teardown totals; no per-token interpolation; ambiguous contexts not summed",
+      "trace": {
+        "mode": "unknown"
+      },
+      "phase_definition": "ubatch_size for existing engine counters/CSV",
+      "notes": "All available valid trace rows retained. Missing cells UNKNOWN; observed rows do not prove full coverage."
+    },
+    "overhead": {
+      "mode": "offline view: outside engine timing window; source instrumentation declared separately",
+      "measured_ratio": null,
+      "evidence_id": null
+    },
+    "placement": {
+      "experts": "CPU (inferred from -cmoe)",
+      "non_expert": "GPU (inferred from full layer offload log)",
+      "source": [
+        "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/result.json",
+        "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:163"
+      ],
+      "note": "Placement is inferred from argv/logs, not timed backend attribution. Page-cache residency does not place experts on GPU."
+    }
+  },
+  "model": {
+    "n_layers": 40,
+    "n_expert_used": 8
+  },
+  "stats": {
+    "snapshots": {
+      "pregate": [
+        {
+          "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt",
+          "line": 355,
+          "values": {
+            "predictions": 2457,
+            "arrivals": 2457,
+            "hits": 15908,
+            "actual": 19656,
+            "predicted": 19656,
+            "recall_at_k": 0.80932,
+            "precision": 0.80932,
+            "async_bytes_read": 8541995008,
+            "async_reads": 37216,
+            "async_errors": 0,
+            "dropped": 0,
+            "cancelled_jobs": 3418,
+            "cancelled_bytes": 2288197632,
+            "inflight_at_arrival": 1174,
+            "inflight_reads": 3907,
+            "pending_reads": 7325,
+            "sync_bytes_with_prediction": 4669349888,
+            "sync_bytes_without_prediction": 600432640,
+            "sync_calls_with_prediction": 2457,
+            "sync_calls_without_prediction": 63,
+            "skips": 0,
+            "pred_done": 3191,
+            "pred_inflight": 1679,
+            "pred_queued": 1399,
+            "pred_resident_at_predict": 13387,
+            "hit_done": 2423,
+            "hit_inflight": 1094,
+            "hit_queued": 759,
+            "hit_resident": 11632,
+            "recall_at_k_d1": 0.80932,
+            "recall_at_k_d2": 0.0,
+            "actual_d1": 19656,
+            "actual_d2": 0,
+            "hits_d1": 15908,
+            "hits_d2": 0,
+            "demand_wait_ns_total": 15657048894,
+            "demand_wait_ns_per_token": 248524585.619
+          }
+        }
+      ],
+      "fill": [
+        {
+          "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt",
+          "line": 356,
+          "values": {
+            "calls": 2520,
+            "ranges": 60480,
+            "bytes_requested": 38969561088,
+            "bytes_skipped_resident": 33699778560,
+            "bytes_read": 5269782528,
+            "read_syscalls": 22321,
+            "total_fill_wall_ns": 15657048894,
+            "max_single_fill_ns": 68666292,
+            "prompt_calls": 0,
+            "prompt_bytes_read": 0,
+            "prompt_fill_wall_ns": 0,
+            "decode_calls": 2520,
+            "decode_bytes_read": 5269782528,
+            "decode_fill_wall_ns": 15657048894,
+            "populate_calls": 0,
+            "populate_ns": 0,
+            "populate_errors": 0,
+            "demand_wait_ns_total": 15657048894,
+            "demand_wait_ns_per_token": 248524585.619
+          }
+        }
+      ]
+    },
+    "config_lines": [
+      {
+        "line": 6,
+        "text": "expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0",
+        "values": {
+          "fill": 1,
+          "random": "decode",
+          "max_tokens": 1,
+          "threads": 16,
+          "chunk_kib": 2048,
+          "pregate": 1,
+          "k": 8,
+          "order": "after",
+          "max_inflight": 4,
+          "lookahead": 1,
+          "min_tokens": 0,
+          "diag": 0,
+          "populate": 0,
+          "diag_csv": "(unset)",
+          "prefetch": 0,
+          "prefetch_next": 0
+        }
+      },
+      {
+        "line": 292,
+        "text": "expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0",
+        "values": {
+          "fill": 1,
+          "random": "decode",
+          "max_tokens": 1,
+          "threads": 16,
+          "chunk_kib": 2048,
+          "pregate": 1,
+          "k": 8,
+          "order": "after",
+          "max_inflight": 4,
+          "lookahead": 1,
+          "min_tokens": 0,
+          "diag": 0,
+          "populate": 0,
+          "diag_csv": "(unset)",
+          "prefetch": 0,
+          "prefetch_next": 0
+        }
+      }
+    ],
+    "timings": {
+      "load": {
+        "duration_ns": 50411660000,
+        "tokens": null,
+        "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:345"
+      },
+      "prompt": {
+        "duration_ns": 34451160000,
+        "tokens": 195,
+        "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:346"
+      },
+      "decode": {
+        "duration_ns": 45394670000,
+        "tokens": 63,
+        "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:347"
+      }
+    },
+    "model": {
+      "n_layers": 40,
+      "n_expert_used": 8
+    },
+    "placement": [
+      {
+        "line": 163,
+        "text": "0.42.069.295 I load_tensors: offloaded 41/41 layers to GPU"
+      },
+      {
+        "line": 328,
+        "text": "0.47.061.196 I expert_fill: active threads=16 chunk_kib=2048 random=decode files=1"
+      }
+    ],
+    "notes": [],
+    "fill": {
+      "calls": 2520,
+      "ranges": 60480,
+      "bytes_requested": 38969561088,
+      "bytes_skipped_resident": 33699778560,
+      "bytes_read": 5269782528,
+      "read_syscalls": 22321,
+      "total_fill_wall_ns": 15657048894,
+      "max_single_fill_ns": 68666292,
+      "prompt_calls": 0,
+      "prompt_bytes_read": 0,
+      "prompt_fill_wall_ns": 0,
+      "decode_calls": 2520,
+      "decode_bytes_read": 5269782528,
+      "decode_fill_wall_ns": 15657048894,
+      "populate_calls": 0,
+      "populate_ns": 0,
+      "populate_errors": 0,
+      "demand_wait_ns_total": 15657048894,
+      "demand_wait_ns_per_token": 248524585.619
+    },
+    "pregate": {
+      "predictions": 2457,
+      "arrivals": 2457,
+      "hits": 15908,
+      "actual": 19656,
+      "predicted": 19656,
+      "recall_at_k": 0.80932,
+      "precision": 0.80932,
+      "async_bytes_read": 8541995008,
+      "async_reads": 37216,
+      "async_errors": 0,
+      "dropped": 0,
+      "cancelled_jobs": 3418,
+      "cancelled_bytes": 2288197632,
+      "inflight_at_arrival": 1174,
+      "inflight_reads": 3907,
+      "pending_reads": 7325,
+      "sync_bytes_with_prediction": 4669349888,
+      "sync_bytes_without_prediction": 600432640,
+      "sync_calls_with_prediction": 2457,
+      "sync_calls_without_prediction": 63,
+      "skips": 0,
+      "pred_done": 3191,
+      "pred_inflight": 1679,
+      "pred_queued": 1399,
+      "pred_resident_at_predict": 13387,
+      "hit_done": 2423,
+      "hit_inflight": 1094,
+      "hit_queued": 759,
+      "hit_resident": 11632,
+      "recall_at_k_d1": 0.80932,
+      "recall_at_k_d2": 0.0,
+      "actual_d1": 19656,
+      "actual_d2": 0,
+      "hits_d1": 15908,
+      "hits_d2": 0,
+      "demand_wait_ns_total": 15657048894,
+      "demand_wait_ns_per_token": 248524585.619
+    },
+    "readiness": null,
+    "effective_config_line": "expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0",
+    "effective_config": {
+      "fill": 1,
+      "random": "decode",
+      "max_tokens": 1,
+      "threads": 16,
+      "chunk_kib": 2048,
+      "pregate": 1,
+      "k": 8,
+      "order": "after",
+      "max_inflight": 4,
+      "lookahead": 1,
+      "min_tokens": 0,
+      "diag": 0,
+      "populate": 0,
+      "diag_csv": "(unset)",
+      "prefetch": 0,
+      "prefetch_next": 0
+    },
+    "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt"
+  },
+  "phases": {
+    "load": {
+      "duration_ns": 50411660000,
+      "tokens": null,
+      "demand_read_bytes": null,
+      "demand_wait_ns": null,
+      "demand_calls": null,
+      "trace_records": 0,
+      "trace_tokens": 0,
+      "coverage": "aggregate counters only",
+      "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:345",
+      "sources": {
+        "duration_ns": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:345",
+        "tokens": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:345",
+        "demand_read_bytes": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:356",
+        "demand_wait_ns": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:356"
+      }
+    },
+    "prompt": {
+      "duration_ns": 34451160000,
+      "tokens": 195,
+      "demand_read_bytes": 0,
+      "demand_wait_ns": 0,
+      "demand_calls": 0,
+      "trace_records": 0,
+      "trace_tokens": 0,
+      "coverage": "aggregate counters only",
+      "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:346",
+      "sources": {
+        "duration_ns": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:346",
+        "tokens": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:346",
+        "demand_read_bytes": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:356",
+        "demand_wait_ns": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:356"
+      }
+    },
+    "decode": {
+      "duration_ns": 45394670000,
+      "tokens": 63,
+      "demand_read_bytes": 5269782528,
+      "demand_wait_ns": 15657048894,
+      "demand_calls": 2520,
+      "trace_records": 0,
+      "trace_tokens": 0,
+      "coverage": "aggregate counters only",
+      "source": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:347",
+      "sources": {
+        "duration_ns": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:347",
+        "tokens": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:347",
+        "demand_read_bytes": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:356",
+        "demand_wait_ns": "/home/muk/projects/siminfeng/experiments/jetson/OM/J-OM13/008-factory/stderr.txt:356"
+      }
+    }
+  },
+  "totals": {
+    "demand_read_bytes": 5269782528,
+    "speculative_read_bytes": 8541995008,
+    "speculative_issued_bytes": null,
+    "speculative_used_bytes": null,
+    "speculative_unused_target_bytes": null,
+    "speculative_unused_lifetime_bytes": null,
+    "duplicate_demand_bytes": null,
+    "demand_wait_ns": 15657048894,
+    "demand_wait_ns_per_token": 248524585.619,
+    "join_waits": null,
+    "join_wait_ns": null,
+    "join_bytes": null
+  },
+  "activity": {
+    "status": "unknown",
+    "events": [],
+    "layers": [],
+    "sessions": [],
+    "metadata": {},
+    "trace_format": null,
+    "source": null
+  },
+  "predictions": [],
+  "timeline": [],
+  "changes": [],
+  "threads": {
+    "pid": 1090608,
+    "groups": {
+      "main": {
+        "samples": 4540,
+        "states": {
+          "S": 2774,
+          "R": 1710,
+          "D": 56
+        },
+        "cpu_seconds": 13.569999999999759,
+        "minflt": 69696.0,
+        "majflt": 23831.0,
+        "fractions": {
+          "R": 0.3766519823788546,
+          "D": 0.012334801762114538,
+          "S": 0.6110132158590308
+        },
+        "cpu_seconds_per_token": 0.21539682539682156,
+        "minflt_per_token": 1106.2857142857142,
+        "majflt_per_token": 378.26984126984127
+      },
+      "cpu_workers": {
+        "samples": 97300,
+        "states": {
+          "S": 71947,
+          "D": 15095,
+          "R": 10258
+        },
+        "cpu_seconds": 58.394689999965145,
+        "minflt": 211903.0,
+        "majflt": 5741.0,
+        "fractions": {
+          "R": 0.10542651593011305,
+          "D": 0.1551387461459404,
+          "S": 0.7394347379239465
+        },
+        "cpu_seconds_per_token": 0.926899841269288,
+        "minflt_per_token": 3363.5396825396824,
+        "majflt_per_token": 91.12698412698413
+      },
+      "cuda_driver": {
+        "samples": 4518,
+        "states": {
+          "S": 4518
+        },
+        "cpu_seconds": 0.0,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "fractions": {
+          "R": 0.0,
+          "D": 0.0,
+          "S": 1.0
+        },
+        "cpu_seconds_per_token": 0.0,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      }
+    },
+    "threads": {
+      "1090608": {
+        "samples": 4540,
+        "states": {
+          "S": 2774,
+          "R": 1710,
+          "D": 56
+        },
+        "cpu_seconds": 13.569999999999759,
+        "minflt": 69696.0,
+        "majflt": 23831.0,
+        "comm": "llama-completio",
+        "group": "main",
+        "fractions": {
+          "R": 0.3766519823788546,
+          "D": 0.012334801762114538,
+          "S": 0.6110132158590308
+        },
+        "cpu_seconds_per_token": 0.21539682539682156,
+        "minflt_per_token": 1106.2857142857142,
+        "majflt_per_token": 378.26984126984127
+      },
+      "1090671": {
+        "samples": 4518,
+        "states": {
+          "S": 4517,
+          "R": 1
+        },
+        "cpu_seconds": 0.0,
+        "minflt": 0.0,
+        "majflt": 2.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.0002213368747233289,
+          "D": 0.0,
+          "S": 0.9997786631252766
+        },
+        "cpu_seconds_per_token": 0.0,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.031746031746031744
+      },
+      "1090672": {
+        "samples": 4518,
+        "states": {
+          "S": 4518
+        },
+        "cpu_seconds": 0.0,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "cuda-EvtHandlr",
+        "group": "cuda_driver",
+        "fractions": {
+          "R": 0.0,
+          "D": 0.0,
+          "S": 1.0
+        },
+        "cpu_seconds_per_token": 0.0,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090710": {
+        "samples": 4387,
+        "states": {
+          "D": 907,
+          "S": 3194,
+          "R": 286
+        },
+        "cpu_seconds": 1.330000000000001,
+        "minflt": 0.0,
+        "majflt": 44.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06519261454296786,
+          "D": 0.2067472076589925,
+          "S": 0.7280601777980397
+        },
+        "cpu_seconds_per_token": 0.021111111111111126,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.6984126984126984
+      },
+      "1090711": {
+        "samples": 4387,
+        "states": {
+          "S": 3154,
+          "D": 936,
+          "R": 297
+        },
+        "cpu_seconds": 1.400000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06770002279462047,
+          "D": 0.21335764759516754,
+          "S": 0.718942329610212
+        },
+        "cpu_seconds_per_token": 0.022222222222222237,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090712": {
+        "samples": 4387,
+        "states": {
+          "S": 3116,
+          "D": 984,
+          "R": 287
+        },
+        "cpu_seconds": 1.420000000000001,
+        "minflt": 0.0,
+        "majflt": 77.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06542056074766354,
+          "D": 0.22429906542056074,
+          "S": 0.7102803738317757
+        },
+        "cpu_seconds_per_token": 0.022539682539682557,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 1.2222222222222223
+      },
+      "1090713": {
+        "samples": 4387,
+        "states": {
+          "D": 937,
+          "S": 3149,
+          "R": 301
+        },
+        "cpu_seconds": 1.380000000000001,
+        "minflt": 0.0,
+        "majflt": 111.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06861180761340324,
+          "D": 0.21358559379986322,
+          "S": 0.7178025985867336
+        },
+        "cpu_seconds_per_token": 0.02190476190476192,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 1.7619047619047619
+      },
+      "1090714": {
+        "samples": 4387,
+        "states": {
+          "S": 3143,
+          "D": 961,
+          "R": 283
+        },
+        "cpu_seconds": 1.380000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06450877592888078,
+          "D": 0.21905630271255982,
+          "S": 0.7164349213585594
+        },
+        "cpu_seconds_per_token": 0.02190476190476192,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090715": {
+        "samples": 4387,
+        "states": {
+          "D": 914,
+          "S": 3156,
+          "R": 317
+        },
+        "cpu_seconds": 1.3746899999681033,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.0722589468885343,
+          "D": 0.20834283109186233,
+          "S": 0.7193982220196034
+        },
+        "cpu_seconds_per_token": 0.021820476189969892,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090716": {
+        "samples": 4387,
+        "states": {
+          "S": 3151,
+          "D": 928,
+          "R": 308
+        },
+        "cpu_seconds": 1.350000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.07020743104627308,
+          "D": 0.211534077957602,
+          "S": 0.7182584909961249
+        },
+        "cpu_seconds_per_token": 0.021428571428571443,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090717": {
+        "samples": 4387,
+        "states": {
+          "D": 953,
+          "S": 3126,
+          "R": 308
+        },
+        "cpu_seconds": 1.390000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.07020743104627308,
+          "D": 0.2172327330749943,
+          "S": 0.7125598358787326
+        },
+        "cpu_seconds_per_token": 0.02206349206349208,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090718": {
+        "samples": 4387,
+        "states": {
+          "D": 920,
+          "S": 3172,
+          "R": 295
+        },
+        "cpu_seconds": 1.360000000000001,
+        "minflt": 0.0,
+        "majflt": 141.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06724413038522908,
+          "D": 0.20971050832003646,
+          "S": 0.7230453612947344
+        },
+        "cpu_seconds_per_token": 0.021587301587301603,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 2.238095238095238
+      },
+      "1090719": {
+        "samples": 4387,
+        "states": {
+          "R": 314,
+          "S": 3136,
+          "D": 937
+        },
+        "cpu_seconds": 1.420000000000001,
+        "minflt": 0.0,
+        "majflt": 14.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.07157510827444723,
+          "D": 0.21358559379986322,
+          "S": 0.7148392979256896
+        },
+        "cpu_seconds_per_token": 0.022539682539682557,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.2222222222222222
+      },
+      "1090720": {
+        "samples": 4387,
+        "states": {
+          "D": 986,
+          "S": 3122,
+          "R": 279
+        },
+        "cpu_seconds": 1.400000000000001,
+        "minflt": 0.0,
+        "majflt": 208.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06359699111009802,
+          "D": 0.22475495782995214,
+          "S": 0.7116480510599499
+        },
+        "cpu_seconds_per_token": 0.022222222222222237,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 3.3015873015873014
+      },
+      "1090721": {
+        "samples": 4387,
+        "states": {
+          "S": 3112,
+          "D": 980,
+          "R": 295
+        },
+        "cpu_seconds": 1.390000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06724413038522908,
+          "D": 0.22338728060177798,
+          "S": 0.7093685890129929
+        },
+        "cpu_seconds_per_token": 0.02206349206349208,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090722": {
+        "samples": 4387,
+        "states": {
+          "R": 302,
+          "D": 922,
+          "S": 3163
+        },
+        "cpu_seconds": 1.380000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06883975381809893,
+          "D": 0.21016640072942785,
+          "S": 0.7209938454524732
+        },
+        "cpu_seconds_per_token": 0.02190476190476192,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090723": {
+        "samples": 4387,
+        "states": {
+          "D": 919,
+          "S": 3161,
+          "R": 307
+        },
+        "cpu_seconds": 1.390000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06997948484157739,
+          "D": 0.20948256211534078,
+          "S": 0.7205379530430819
+        },
+        "cpu_seconds_per_token": 0.02206349206349208,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090724": {
+        "samples": 4387,
+        "states": {
+          "S": 3171,
+          "D": 919,
+          "R": 297
+        },
+        "cpu_seconds": 1.390000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.06770002279462047,
+          "D": 0.20948256211534078,
+          "S": 0.7228174150900387
+        },
+        "cpu_seconds_per_token": 0.02206349206349208,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090725": {
+        "samples": 4387,
+        "states": {
+          "S": 3141,
+          "R": 310,
+          "D": 936
+        },
+        "cpu_seconds": 1.400000000000001,
+        "minflt": 0.0,
+        "majflt": 0.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.07066332345566446,
+          "D": 0.21335764759516754,
+          "S": 0.715979028949168
+        },
+        "cpu_seconds_per_token": 0.022222222222222237,
+        "minflt_per_token": 0.0,
+        "majflt_per_token": 0.0
+      },
+      "1090726": {
+        "samples": 4518,
+        "states": {
+          "S": 3398,
+          "R": 1104,
+          "D": 16
+        },
+        "cpu_seconds": 7.199999999999891,
+        "minflt": 40134.0,
+        "majflt": 1063.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.24435590969455512,
+          "D": 0.0035413899955732625,
+          "S": 0.7521027003098716
+        },
+        "cpu_seconds_per_token": 0.11428571428571256,
+        "minflt_per_token": 637.047619047619,
+        "majflt_per_token": 16.873015873015873
+      },
+      "1090727": {
+        "samples": 4518,
+        "states": {
+          "S": 3432,
+          "R": 1076,
+          "D": 10
+        },
+        "cpu_seconds": 7.24999999999989,
+        "minflt": 41647.0,
+        "majflt": 1027.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.2381584772023019,
+          "D": 0.002213368747233289,
+          "S": 0.7596281540504648
+        },
+        "cpu_seconds_per_token": 0.11507936507936332,
+        "minflt_per_token": 661.063492063492,
+        "majflt_per_token": 16.3015873015873
+      },
+      "1090728": {
+        "samples": 4518,
+        "states": {
+          "S": 3436,
+          "R": 1074,
+          "D": 8
+        },
+        "cpu_seconds": 7.209999999999892,
+        "minflt": 42479.0,
+        "majflt": 1002.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.23771580345285526,
+          "D": 0.0017706949977866313,
+          "S": 0.7605135015493582
+        },
+        "cpu_seconds_per_token": 0.11444444444444273,
+        "minflt_per_token": 674.2698412698413,
+        "majflt_per_token": 15.904761904761905
+      },
+      "1090729": {
+        "samples": 4518,
+        "states": {
+          "S": 3379,
+          "R": 1129,
+          "D": 10
+        },
+        "cpu_seconds": 7.27999999999989,
+        "minflt": 40918.0,
+        "majflt": 992.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.24988933156263834,
+          "D": 0.002213368747233289,
+          "S": 0.7478972996901284
+        },
+        "cpu_seconds_per_token": 0.11555555555555382,
+        "minflt_per_token": 649.4920634920635,
+        "majflt_per_token": 15.746031746031745
+      },
+      "1090730": {
+        "samples": 4518,
+        "states": {
+          "S": 3418,
+          "R": 1088,
+          "D": 12
+        },
+        "cpu_seconds": 7.29999999999989,
+        "minflt": 46725.0,
+        "majflt": 1060.0,
+        "comm": "llama-completio",
+        "group": "cpu_workers",
+        "fractions": {
+          "R": 0.24081451969898185,
+          "D": 0.0026560424966799467,
+          "S": 0.7565294378043382
+        },
+        "cpu_seconds_per_token": 0.11587301587301412,
+        "minflt_per_token": 741.6666666666666,
+        "majflt_per_token": 16.825396825396826
+      }
+    },
+    "overhead": {
+      "type": "end",
+      "elapsed_s": 133.4116151529597,
+      "self_cpu_s": 4.243810944,
+      "self_cpu_percent": 3.180990605004194,
+      "samples": 13341,
+      "missed_deadlines": 0
+    },
+    "phase_window": {
+      "clock": "mono_s",
+      "decode_start": 934833.128333,
+      "decode_end": 934878.523003,
+      "method": "last_thread_sample_before_exit_minus_eval_ms_total",
+      "sampling_error_bound_s": 0.017054000054486096,
+      "coverage_start": 934745.123365,
+      "tokens": 63,
+      "coverage_complete": true,
+      "absolute_error_bound_s": null,
+      "error_note": "Engine teardown/exit lag is unknown. Counter deltas crossing the window edge are prorated; first observation is a baseline."
+    },
+    "rd_histogram": {
+      "0,0": 486,
+      "0,1": 123,
+      "0,10": 21,
+      "0,11": 14,
+      "0,12": 13,
+      "0,13": 15,
+      "0,14": 14,
+      "0,15": 12,
+      "0,16": 108,
+      "0,2": 89,
+      "0,3": 104,
+      "0,4": 128,
+      "0,5": 49,
+      "0,6": 55,
+      "0,7": 38,
+      "0,8": 25,
+      "0,9": 30,
+      "1,0": 417,
+      "1,1": 61,
+      "1,10": 20,
+      "1,11": 13,
+      "1,12": 16,
+      "1,13": 13,
+      "1,14": 13,
+      "1,15": 97,
+      "1,2": 98,
+      "1,3": 135,
+      "1,4": 81,
+      "1,5": 50,
+      "1,6": 30,
+      "1,7": 25,
+      "1,8": 18,
+      "1,9": 21,
+      "10,0": 6,
+      "10,1": 6,
+      "10,2": 11,
+      "10,3": 9,
+      "10,4": 3,
+      "10,5": 1,
+      "10,7": 1,
+      "11,0": 6,
+      "11,1": 5,
+      "11,2": 8,
+      "11,3": 6,
+      "11,4": 4,
+      "12,0": 3,
+      "12,1": 2,
+      "12,2": 3,
+      "12,3": 2,
+      "12,4": 4,
+      "13,0": 1,
+      "13,1": 3,
+      "13,2": 4,
+      "13,3": 9,
+      "13,4": 1,
+      "14,0": 1,
+      "14,1": 3,
+      "14,2": 1,
+      "14,3": 6,
+      "14,4": 1,
+      "15,0": 2,
+      "15,1": 1,
+      "15,2": 2,
+      "15,3": 2,
+      "16,0": 1,
+      "16,1": 2,
+      "16,2": 2,
+      "16,3": 1,
+      "17,0": 1,
+      "17,2": 3,
+      "17,4": 1,
+      "18,0": 3,
+      "18,2": 1,
+      "18,3": 1,
+      "19,2": 1,
+      "2,0": 84,
+      "2,1": 31,
+      "2,10": 6,
+      "2,11": 3,
+      "2,12": 6,
+      "2,13": 1,
+      "2,14": 40,
+      "2,15": 1,
+      "2,2": 51,
+      "2,3": 76,
+      "2,4": 52,
+      "2,5": 10,
+      "2,6": 10,
+      "2,7": 7,
+      "2,8": 3,
+      "2,9": 9,
+      "21,0": 1,
+      "21,1": 1,
+      "22,0": 1,
+      "3,0": 77,
+      "3,1": 19,
+      "3,13": 6,
+      "3,2": 27,
+      "3,3": 79,
+      "3,4": 56,
+      "3,5": 3,
+      "3,6": 2,
+      "3,7": 1,
+      "3,8": 3,
+      "4,0": 56,
+      "4,1": 21,
+      "4,12": 3,
+      "4,13": 1,
+      "4,2": 36,
+      "4,3": 109,
+      "4,4": 69,
+      "4,5": 3,
+      "4,7": 2,
+      "4,8": 3,
+      "5,0": 52,
+      "5,1": 25,
+      "5,10": 1,
+      "5,11": 1,
+      "5,12": 1,
+      "5,2": 40,
+      "5,3": 89,
+      "5,4": 68,
+      "5,6": 1,
+      "5,7": 1,
+      "6,0": 93,
+      "6,1": 25,
+      "6,10": 1,
+      "6,2": 50,
+      "6,3": 110,
+      "6,4": 73,
+      "6,5": 1,
+      "6,6": 1,
+      "6,8": 1,
+      "7,0": 13,
+      "7,1": 19,
+      "7,2": 68,
+      "7,3": 110,
+      "7,4": 8,
+      "8,0": 8,
+      "8,1": 13,
+      "8,2": 52,
+      "8,3": 14,
+      "8,4": 7,
+      "8,6": 1,
+      "8,8": 1,
+      "8,9": 1,
+      "9,0": 14,
+      "9,1": 13,
+      "9,2": 5,
+      "9,3": 16,
+      "9,4": 5,
+      "9,7": 2,
+      "9,8": 1
+    },
+    "cpu_workers_r_fraction": 0.10542651593011305,
+    "main_workers_d_fraction": 0.1487725844461901,
+    "majflt_per_token": 469.3968253968254
+  },
+  "notes": [
+    "aggregate, no per-token trace — selected IDs, per-layer recall, readiness and per-token waits UNKNOWN.",
+    "Engine decode counters use n_tokens == 1; a one-token prompt may be included. Load, prompt and decode totals are kept separate.",
+    "hit_done/pred_done are completion buckets, not proof of residency at arrival; no readiness cells are inferred from aggregates.",
+    "Bytes are pread volume, not physical device traffic. Cancelled request bytes are not wasted reads.",
+    "Fill pread/wait counters cover explicit demand fill only. Zero prompt fill calls do not establish zero fault-driven I/O or zero compute stalls.",
+    "Target-arrival unused predictions may be reused later. Lifetime unused speculative bytes remain UNKNOWN unless end_of_run tracking is supplied."
+  ]
+}
