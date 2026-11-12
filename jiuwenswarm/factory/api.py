@@ -40,6 +40,9 @@ def artifact_source(record, packet):
     return candidate
 
 
+from .controller import ENGINE_CONTRACTS  # noqa: E402
+
+
 def dispatch(store, task_id, capability, packet):
     inputs = packet.get('inputs', {})
     if capability in {'builder.submit', 'lab.submit', 'lab.ab_submit'} and 'node_id' in inputs:
@@ -148,7 +151,7 @@ def dispatch(store, task_id, capability, packet):
         if 'expected_rev' in record and 'expected_rev' in inputs and record['expected_rev'] != inputs['expected_rev']:
             raise ValueError('Conflicting expected_rev values')
         expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
-        if store.get_task(task_id).get('contract_id') == 'qwen36-bare-greedy-v1' or record.get('action', {}).get('type') in {'keep_component', 'keep_dormant', 'revert_component'}:
+        if store.get_task(task_id).get('contract_id') in ENGINE_CONTRACTS or record.get('action', {}).get('type') in {'keep_component', 'keep_dormant', 'revert_component'}:
             from .controller import validate_action
             validate_action(record.get('action'))
             if record['action']['type'] == 'keep_component':

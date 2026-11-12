@@ -1,6 +1,8 @@
 # RSI START HERE — frozen CC baseline for the Satay software factory
 
-**Baseline release:** tag `cc-baseline-2026-11-12` → commit `4fe167f9` on `Stellven/jiuwenswarm` branch `ai4r/iterative-cc-factory` (descends from AI4Research-Main `141c1c4`). This tag does not move. Improve CCs on your own branch from it.
+**Baseline release: tag `cc-rsi-v1`** on `Stellven/jiuwenswarm` branch `ai4r/iterative-cc-factory` (descends from AI4Research-Main `141c1c4`). It supersedes `cc-baseline-2026-11-12` (still present) by adding the revised CC-v2 runtime, the fast lab contract and the siminfeng submodule. The tag does not move. Improve CCs on your own branch from it.
+
+Clone: `git clone --recurse-submodules -b ai4r/iterative-cc-factory git@github.com:Stellven/jiuwenswarm.git && git checkout cc-rsi-v1` (the `lab/siminfeng` submodule is `Muxite/siminfeng`; ask the operator for read access if the clone fails).
 
 **Companion pin:** lab tools come from `Muxite/siminfeng` (branch `main` = `jetson/c1`), commit `468d994` or later (`bin/jobq`, `cc/om_run`, `cc/abrun`, `cc/build_engine`). The factory finds it at `SIMINFENG_ROOT` (default `~/projects/siminfeng`).
 
@@ -19,7 +21,15 @@ T=$(jiuwenswarm factory init jiuwenswarm/factory/tasks/rsi-small-fill.json)
 jiuwenswarm factory run "$T" --grant process.exec --grant workspace.read --grant workspace.write --grant gpu.use
 jiuwenswarm factory story "$T"; jiuwenswarm factory plan "$T"; jiuwenswarm factory telemetry "$T"
 ```
-Small representative task: `tasks/rsi-small-fill.json` (integrate expert_fill only, 1 build, 1 ABBA, ≤12 turns, ≤2 h; ~45–90 min wall on Satay).
+Small representative task: `tasks/rsi-small-fill.json` under the **fast contract `qwen36-quick-v1`** (8-word prompt, 32 generated tokens, same model/image/offload; frozen reference `cad62aa9…`). One engine run takes ~106 s; one lab round (build ~2–3 min + 1-round ABBA = 4 runs ~7 min) takes **~10 min**, vs ~35 min with `qwen36-bare-greedy-v1`. Ask the agent for `rounds: 1`. Quick results are screening evidence and are not comparable with the 64-token contract.
+
+## How fast each check is
+| Check | Time | GPU |
+|---|---|---|
+| Replay recorded read-only CC calls (Run 4) | seconds | no |
+| `pytest tests/factory` | ~2 min | no |
+| One lab round, quick contract | ~10 min | yes (queue) |
+| One lab round, full contract | ~35 min | yes (queue) |
 
 ## Evaluate a CC change
 1. Offline, no GPU: `python -m jiuwenswarm.factory.replay <task_id> --capability <cap>` replays recorded read-only calls from Run 4 (`factory-bd173c082bf34ae3b8471938c19b8068`) against a disposable store copy and records per-call latency as `factory.telemetry/1`.

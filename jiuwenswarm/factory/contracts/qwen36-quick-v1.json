@@ -1,0 +1,57 @@
+{
+  "contract_id": "qwen36-quick-v1",
+  "engagement_checks": [],
+  "model": {
+    "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "sha256": null,
+    "size": 22360456160
+  },
+  "pre_freeze_revisions": [
+    {
+      "at": "2026-11-12",
+      "by": "operator",
+      "change": "quick variant of qwen36-bare-greedy-v1 for fast lab rounds: short prompt p0-short.txt (8 words), 32 generated tokens; same model, image, offload argv. Use with 1-round ABBA. A separate contract: results are not comparable with qwen36-bare-greedy-v1.",
+      "evidence": "operator decision to cut lab round time"
+    }
+  ],
+  "reference": {
+    "frozen_at": "2026-11-12T22:04:09.538245+00:00",
+    "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+    "image_tag": "factory/llamacpp:bare-cf34d311",
+    "run_ref": "ca3ae3865dd74313a90685953e876bda",
+    "stdout_sha256": "cad62aa93e814cf151547379322059831eb4540889d8dcc78ea315658ed681fe"
+  },
+  "reference_image": {
+    "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+    "image_tag": "factory/llamacpp:bare-cf34d311"
+  },
+  "scope": "identical greedy continuation of a short fixed prompt (32 tokens); fast screening contract, not an accuracy benchmark",
+  "tolerance": "byte-identical stdout",
+  "version": 1,
+  "workload": {
+    "argv": [
+      "-m",
+      "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "-f",
+      "/om/prompts/p0-short.txt",
+      "-n",
+      "32",
+      "-c",
+      "4096",
+      "--temp",
+      "0",
+      "-s",
+      "1",
+      "-no-cnv",
+      "-ngl",
+      "99",
+      "-lm",
+      "mmap",
+      "-cmoe",
+      "-lv",
+      "4"
+    ],
+    "env": {},
+    "tool": "llama-completion"
+  }
+}

@@ -130,6 +130,7 @@ def configure_agent(task, grants=(), home=None):
 
 
 STALL_TURNS = 3
+ENGINE_CONTRACTS = {'qwen36-bare-greedy-v1', 'qwen36-quick-v1'}
 
 class Controller:
     def __init__(self, home=None, *, store=None, jobs=None, grants=(), facade=None,
@@ -187,7 +188,7 @@ class Controller:
         task.setdefault('task_id', 'factory-' + uuid.uuid4().hex)
         # Paths use task IDs; prohibit traversal even for operator-supplied IDs.
         self._state_path(task['task_id'])
-        if task['contract_id'] == 'qwen36-bare-greedy-v1':
+        if task['contract_id'] in ENGINE_CONTRACTS:
             self._init_evolve(source)
         task = self.store.create_task(task)
         if seed_plan is not None:
