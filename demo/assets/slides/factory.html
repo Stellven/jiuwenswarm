@@ -1,0 +1,35 @@
+<section id="factory" data-transition="fade" style="background:#EEF1F5;color:#14213D;font-family:'IBM Plex Sans', Arial, sans-serif;padding:88px 128px 160px;display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-size:24px;font-weight:600;color:#B5531C;letter-spacing:2px;text-transform:uppercase">How the factory makes the change</p>
+<h2 style="font-size:56px;font-weight:700;line-height:1.1">A contract, a plan that can change, and shared evidence</h2>
+</div>
+<div style="display:flex;gap:24px;align-items:stretch">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px">
+<div style="background:#14213D;border-radius:12px;padding:18px 22px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;line-height:1.3;color:#F7F6F2"><b>Task contract</b></p><p style="font-size:24px;line-height:1.3;color:#BFD0E6">goal, limits, frozen output check, budget</p></div>
+<div style="background:#FFFFFF;border:1px solid #D5DAE1;border-radius:12px;padding:18px 22px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;line-height:1.3"><b>Engine ontology</b></p><p style="font-size:24px;line-height:1.3;color:#4A5568">router, expert, weight range, readiness, CPU/GPU, quantities</p></div>
+<div style="background:#FBE3D3;border:2px solid #B5531C;border-radius:12px;padding:18px 22px;display:flex;flex-direction:column;gap:6px"><p style="font-size:26px;line-height:1.3"><b>engine.expert_streaming</b></p><p style="font-size:24px;line-height:1.3;color:#4A5568">guidance · components · tools</p></div>
+</div>
+<x-connector style="width:48px;align-self:center;color:#14213D"></x-connector>
+<div style="flex:1.5;display:flex;flex-direction:column;gap:12px">
+<div style="background:#FFFFFF;border:1px solid #D5DAE1;border-radius:12px;padding:16px 22px"><p style="font-size:26px;line-height:1.3"><b>Plan</b>: the agent picks the next useful work; the task graph records it and can be revised</p></div>
+<div style="background:#FFFFFF;border:1px solid #D5DAE1;border-radius:12px;padding:16px 22px"><p style="font-size:26px;line-height:1.3"><b>Schedule</b>: one heavy job at a time on Satay (build or lab)</p></div>
+<div style="background:#FFFFFF;border:1px solid #D5DAE1;border-radius:12px;padding:16px 22px"><p style="font-size:26px;line-height:1.3"><b>Run CCs</b>: integrate, build an image, A/B it in the lab</p></div>
+<div style="background:#FFFFFF;border:1px solid #D5DAE1;border-radius:12px;padding:16px 22px"><p style="font-size:26px;line-height:1.3"><b>Assess</b>: output check, engagement, the module’s own acceptance rule</p></div>
+<p style="font-size:26px;font-weight:600;color:#B5531C">↺ evidence changes the next decision</p>
+</div>
+<x-connector style="width:48px;align-self:center;color:#14213D"></x-connector>
+<div style="flex:0.9;background:#E3EDE6;border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:12px">
+<p style="font-size:26px;line-height:1.3;font-weight:600">Shared environment</p>
+<p style="font-size:24px;line-height:1.35">source checkout · model · image store · append-only evidence store</p>
+<p style="font-size:24px;line-height:1.35">Work reads what it needs by identity, not via the previous step’s message</p>
+</div>
+</div>
+<div style="display:flex;gap:24px">
+<p style="flex:1;font-size:24px;line-height:1.35"><b>Reused from JiuwenSwarm:</b> controller, evidence store, durable jobs, image admission, CC runtime.</p>
+<p style="flex:1;font-size:24px;line-height:1.35"><b>Held fixed:</b> the output reference, grants, which image runs, the evidence record.</p>
+</div>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#6A7179">The engine’s own request scheduler is unrelated to the factory’s job scheduler. Branch ai4r/iterative-cc-factory, from AI4Research-Main 141c1c4.</p>
+<aside>The task arrives as a contract: what to achieve, what must not change, the frozen output check and the budget. It does not fix the route. The engine ontology is a small vocabulary of the engine: router, selected expert, weight range, readiness, where computation runs, and the quantities we can measure. The capsule uses it to explain which component addresses which quantity, and the evidence tool uses it to keep "predicted the right expert" apart from "its weights were ready in time".
+The loop: the agent chooses the next useful work, and the task graph records it as revisable work rather than a frozen plan. The job queue makes sure only one heavy thing runs on Satay at a time. The capsules do the actual integration, build and lab runs. Each result is assessed by the rule that fits the module: a performance component must be faster, an observability component must deliver its signal within an overhead bound. Everything goes into the shared evidence store, and the next decision queries it. In Run 5 you will see the graph change when a measurement turned out to be impossible as planned.
+What we reused: the existing controller, store, durable jobs, image admission and CC runtime. What changed: the old freeze-then-execute policy is replaced by this revisable loop, as recorded in the design-change note.</aside>
+</section>
