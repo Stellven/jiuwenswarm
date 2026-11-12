@@ -177,7 +177,7 @@ def test_catalog_factory_capsules(tmp_path):
     assert set(by_id['factory.engine_inspector']['capabilities']) == {'inspect', 'preflight', 'verify_effective_config'}
     assert set(by_id['factory.builder']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
     assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}
-    assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish'}
+    assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish', 'plan_get', 'plan_patch'}
     assert by_id['factory.engine_component']['capabilities'] == {}
     assert by_id['factory.integration_skill']['capabilities'] == {}
 

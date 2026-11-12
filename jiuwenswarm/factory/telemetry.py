@@ -118,7 +118,12 @@ def record(home, table, value):
     """Called only after the containing evidence transaction commits."""
     try:
         task_id = value['task_id']
-        if table == 'attempts':
+        if table == 'plan_patches':
+            emit(home, 'plan.patch', task_id, graph_rev=value['rev'],
+                 decision_rev=value['decision_rev'], origin=value['origin'],
+                 patch=value['patch'],
+                 operations={k: len(v) for k, v in value['patch'].items()})
+        elif table == 'attempts':
             history = value['history']
             latest = history[-1]
             if latest.get('state') != value['state']:

@@ -7,10 +7,10 @@ def test_real_capsules(capsys):
     assert len(rows) == 12
     assert all(r['valid'] for r in rows)
     assert sum(r['binding'] == 'material-only' for r in rows) == 8
-    assert sum(len(r['capabilities']) for r in rows) == 17
+    assert sum(len(r['capabilities']) for r in rows) == 19
     output = format_capsules(rows, True)
     assert output.count('✓ valid') == 12
-    assert '12 capsules · 17 capabilities' in output
+    assert '12 capsules · 19 capabilities' in output
     assert 'factory.components.expert_fill' in output
     assert '\x1b' not in output
     assert max(map(len, output.splitlines())) <= 100

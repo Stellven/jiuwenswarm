@@ -25,6 +25,18 @@ For long work, submit and then END YOUR TURN saying which attempt you wait on.
 The host waits and reconciles without model calls; use status/result and read
 receipts on your next turn. Do not spin or sleep inside the model turn.
 
+Use factory.evidence.plan_get({rev?}) to inspect the revisable work graph, ready
+frontier and blocked reasons. Initial proposed nodes are suggestions: cancel,
+supersede, retry or reorder them from evidence. Publish a decision before
+factory.evidence.plan_patch({patch,expected_graph_rev,decision_rev}); alternatively
+include plan_patch and expected_graph_rev in the decision record for atomic CAS
+publication. Patches contain add/update/cancel/supersede lists; update may change
+state, depends_on, reason and append evidence_ids/attempt_ids. Cancel requires
+reason; supersede also requires by (an existing/replacement node ID). Mark done
+only with evidence; executing build/measure nodes require durable attempt IDs.
+Cancelled/superseded nodes stay terminal: add replacement work instead. A ready
+frontier is advisory; all task authority, contracts and job lifecycle still apply.
+
 Terminal decisions have action.type in accept, report_inconclusive,
 stop_missing_prerequisite, and cite supporting evidence_ids. Accept only when
 evidence supports the contract and engagement/correctness obligations. Missing

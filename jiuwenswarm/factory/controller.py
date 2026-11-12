@@ -21,6 +21,11 @@ import uuid
 from .jobs import Jobs
 from .store import Store
 
+try:
+    from .taskgraph import seed_plan
+except ImportError:
+    seed_plan = None
+
 ROOT = Path(__file__).resolve().parents[2]
 ACTIVE = {'queued', 'running', 'cancel_requested'}
 TERMINAL = {'reject', 'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
@@ -156,7 +161,10 @@ class Controller:
         self._state_path(task['task_id'])
         if task['contract_id'] == 'qwen36-bare-greedy-v1':
             self._init_evolve(source)
-        return self.store.create_task(task)['task_id']
+        task = self.store.create_task(task)
+        if seed_plan is not None:
+            seed_plan(self.store, task)
+        return task['task_id']
 
     def _init_evolve(self, source):
         workspace = (self.home / 'agent-workspace').resolve()

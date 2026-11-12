@@ -42,6 +42,14 @@ def artifact_source(record, packet):
 
 def dispatch(store, task_id, capability, packet):
     inputs = packet.get('inputs', {})
+    if capability in {'evidence.plan_get', 'evidence.plan_patch'}:
+        from .taskgraph import plan_get, plan_patch
+        if capability == 'evidence.plan_get':
+            fields(inputs, {'rev'})
+            return {'plan': plan_get(store, task_id, **inputs)}
+        fields(inputs, {'patch', 'expected_graph_rev', 'decision_rev'},
+               {'patch', 'expected_graph_rev', 'decision_rev'})
+        return {'plan': plan_patch(store, task_id, **inputs)}
     if capability.startswith('lab.'):
         from .manager import Manager
         operation = capability.removeprefix('lab.')

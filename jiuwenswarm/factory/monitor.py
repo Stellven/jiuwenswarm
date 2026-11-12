@@ -122,6 +122,9 @@ def make_handler(home=None):
                 else:
                     if url.path == '/api/tasks':
                         value = tasks(home)
+                    elif url.path == '/api/plan':
+                        from .taskgraph import from_records, to_json
+                        value = to_json(from_records(load_source(arg('task'), home)))
                     elif url.path == '/api/story':
                         data = load_source(arg('task'), home)
                         value = dict(events=build_events(data), task=data['tasks'][0], meta=data['_meta'], chain=chain_links(data),
