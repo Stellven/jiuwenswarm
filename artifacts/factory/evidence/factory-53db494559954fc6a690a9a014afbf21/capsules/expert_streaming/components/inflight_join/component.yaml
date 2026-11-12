@@ -1,0 +1,28 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 11-inflight-join.patch
+  sha256: 66809ccc4dbf247094f92b4a1620afcf383e23889533e3107edd22da725670a3
+depends_on:
+- expert_readiness
+enable_env:
+  LLAMA_EXPERT_PREGATE_JOIN: '1'
+engagement_checks:
+- source: stderr
+  regex: 'expert_config: effective .*join=1'
+- source: stderr
+  regex: 'expert_pregate: stats .*join_waits=[1-9][0-9]*'
+hypothesis: When demand fill needs pages an async pregate read is already fetching, wait for that read instead of issuing a duplicate pread; claim queued-but-unstarted chunks. Removes duplicate IO on the critical path in the hit_inflight case.
+measure: perf
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence.
+env_ranges:
+  LLAMA_EXPERT_PREGATE_JOIN: 0|1
+dependency_note: Source prerequisite is patch 10 (shared dispatch tracking); readiness may stay switched off at run time. Requires expert_pregate enabled to engage.
+acceptance:
+  type: performance
+
+implements: [expert_streaming.duplicate_read_elimination]
+modifies_region: ["M.read_request"]
+quantities: ["readiness.duplicate_demand_bytes", "join.join_waits", "fill.demand_wait_ns_per_token", "decode.ms_per_token"]

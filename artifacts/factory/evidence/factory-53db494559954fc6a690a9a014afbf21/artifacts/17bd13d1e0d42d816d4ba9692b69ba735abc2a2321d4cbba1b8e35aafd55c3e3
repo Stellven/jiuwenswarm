@@ -1,0 +1,37 @@
+# ab
+
+Status: completed
+
+Page-cache protocol: carryover
+
+| # | Arm | Status | Metric | Wall s | Output SHA | Switch matches | Cache start resident % | Cache end resident % |
+|---|---|---|---:|---:|---|---|---:|---:|
+| 1 | base | ok | 871.96 | 148.85 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 0} | 6.5484837944379395 | 13.45250266128739 |
+| 2 | candidate | ok | 1849.13 | 284.83 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 1} | 13.45250266128739 | 13.54209625390755 |
+| 3 | candidate | ok | 1826.24 | 284.2 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 1} | 13.54209625390755 | 13.885706274428706 |
+| 4 | base | ok | 927.02 | 145.51 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 0} | 13.885706274428706 | 11.784662339375101 |
+| 5 | base | ok | 886.68 | 149.02 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 0} | 11.784662339375101 | 12.176632017331796 |
+| 6 | candidate | ok | 1939.47 | 294.68 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 1} | 12.176632017331796 | 11.403408721872873 |
+| 7 | candidate | ok | 1870.56 | 292.22 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 1} | 11.403408721872873 | 13.648322637797207 |
+| 8 | base | ok | 896.77 | 145.23 | 7a1541792364 | {"llama_mmap: LLAMA_MMAP_ADVICE=random": 0} | 13.648322637797207 | 12.7764199958969 |
+
+Metric: eval_ms_per_token (lower is better)
+
+| Arm | Mean | A/B | Gate |
+|---|---:|---:|---|
+| base | 895.6075 | — | base |
+| candidate | 1871.35 | 0.47858898656050447 | regressed |
+
+## Secondary metrics (descriptive; no verdict)
+
+| Arm | ms/token | NVMe GiB/token (decode) | gpu_util med (%) | J/token | NVMe GiB/token (whole) | Prompt t/s | Eval t/s | CPU workers R | Main+workers D | Threads majflt/token |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| base | 895.607 | 0.288224 | 16.5 | 6.00019 | 0.913515 | 5.6225 | 1.12 | 0.194694 | 0.445976 | 5391.6 |
+| candidate | 1871.35 | 0.158579 | 0 | 11.7697 | 0.393705 | 1.485 | 0.535 | 0.138627 | 0.599597 | 40448.8 |
+
+A/A gap: 0.061477823711838; drift: 0.00867009264661149; threshold: 0.122955647423676
+
+Output class: identical
+
+Output details: `{"class": "identical", "hashes": {"base": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"], "candidate": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"]}}`
+

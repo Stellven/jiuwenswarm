@@ -1,0 +1,37 @@
+# ab
+
+Status: completed
+
+Page-cache protocol: carryover
+
+| # | Arm | Status | Metric | Wall s | Output SHA | Switch matches | Cache start resident % | Cache end resident % |
+|---|---|---|---:|---:|---|---|---:|---:|
+| 1 | base | ok | 925.72 | 149.23 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 0, "expert_prefetch: advise calls=[1-9][0-9]*": 0} | 3.0573012066852217 | 12.28648537552912 |
+| 2 | candidate | ok | 1420.04 | 240.3 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 1, "expert_prefetch: advise calls=[1-9][0-9]*": 1} | 12.28648537552912 | 13.824029393146334 |
+| 3 | candidate | ok | 1420.95 | 238.49 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 1, "expert_prefetch: advise calls=[1-9][0-9]*": 1} | 13.824029393146334 | 13.960114201892024 |
+| 4 | base | ok | 906.36 | 145.42 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 0, "expert_prefetch: advise calls=[1-9][0-9]*": 0} | 13.960114201892024 | 11.719541664305654 |
+| 5 | base | ok | 894.25 | 149.32 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 0, "expert_prefetch: advise calls=[1-9][0-9]*": 0} | 11.719541664305654 | 12.367909116931003 |
+| 6 | candidate | ok | 1430.17 | 241.01 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 1, "expert_prefetch: advise calls=[1-9][0-9]*": 1} | 12.367909116931003 | 13.478935610408406 |
+| 7 | candidate | ok | 1456.67 | 242.18 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 1, "expert_prefetch: advise calls=[1-9][0-9]*": 1} | 13.478935610408406 | 12.573181208303222 |
+| 8 | base | ok | 931.89 | 148.74 | 7a1541792364 | {"expert_prefetch: CPU host-consumer hook enabled": 0, "expert_prefetch: advise calls=[1-9][0-9]*": 0} | 12.469867394690931 | 11.511961498374012 |
+
+Metric: eval_ms_per_token (lower is better)
+
+| Arm | Mean | A/B | Gate |
+|---|---:|---:|---|
+| base | 914.5550000000001 | — | base |
+| candidate | 1431.9575 | 0.638674681336562 | regressed |
+
+## Secondary metrics (descriptive; no verdict)
+
+| Arm | ms/token | NVMe GiB/token (decode) | gpu_util med (%) | J/token | NVMe GiB/token (whole) | Prompt t/s | Eval t/s | CPU workers R | Main+workers D | Threads majflt/token |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| base | 914.555 | 0.300694 | 15.75 | 6.16325 | 0.93543 | 5.53 | 1.0925 | 0.19263 | 0.452726 | 5474.7 |
+| candidate | 1431.96 | 0.158157 | 2.25 | 9.13935 | 0.398078 | 1.4775 | 0.6975 | 0.154116 | 0.393656 | 24206.9 |
+
+A/A gap: 0.041156628086883765; drift: 0.003247481015357225; threshold: 0.08231325617376753
+
+Output class: identical
+
+Output details: `{"class": "identical", "hashes": {"base": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"], "candidate": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"]}}`
+

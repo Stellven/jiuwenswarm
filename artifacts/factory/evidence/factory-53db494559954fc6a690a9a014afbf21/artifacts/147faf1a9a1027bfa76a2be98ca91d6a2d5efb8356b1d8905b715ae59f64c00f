@@ -1,0 +1,24 @@
+{
+  "admission_id": "admission:875b3c870eef63b14447264e82116c5336879ca49719a5cff0ec5199bac5a0ed",
+  "contract_id": "qwen36-bare-greedy-v1",
+  "files": {
+    "cmd.txt": "fef11c71895dd225968f60c5c5e28ae34d6d70099524673577cf2ce849f1888e",
+    "config.json": "d879bc17eb8d50ca85865af60c121335b63798e3c5ca3637886b744c131b385d",
+    "container.id": "aeb997ce1bb54ef05be105835fa93a0c067a5e0f8c52a60f006e9768779b6cba",
+    "launcher.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "launcher.stdout.txt": "96de390037959606f2fc21b41a23336fe5e83349b63639b18f5eb0873bd48267",
+    "page_cache.end.json": "2f949abd1e52d3f18808709469e28efe84d6a4f45d7e2fd26b863aabbb3ad329",
+    "page_cache.start.json": "10b118078ddde159b1a27d3042385399c1981b3ed518bd9674e945b03a12ca3c",
+    "result.json": "7735be36088c4391526f0da74b073d92ecf150ed3de44e6d70f6d7ad91cba314",
+    "stderr.txt": "2480c67010941c2c372548f5128e9b1a9d1f6af74586dbeecf9452540cc4895b",
+    "stdout.txt": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+    "telemetry.jsonl": "7a44174c820ce003493c3a1758775502f685a58fb27868a17c8b746f87080233",
+    "threads.jsonl": "023507693d40abf3efcde5b37a576b3c0d769c0c076c03d459fc0df7fa3d5160",
+    "threads.log": "808ea15a1ab796ef9403c4aef232ba5b472af6f9268845edc8c6d2368e377792",
+    "threads.summary.json": "d03932cd60ba81adfa25f3499287be84e557d0564d7cee08f5afda7ce33ebce7",
+    "watchdog.jsonl": "29ecd088f51c793d145d085499401306092e5215110f35a22250c253dc05c903",
+    "worker.json": "fc00f67f0fa0405753645738989b6d06d5c90ca220dcd81d9a2a3c87ea6e5e5e"
+  },
+  "lab_run_id": "d2465c6a3a5e42fc8b2acee68f095fd8",
+  "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+}

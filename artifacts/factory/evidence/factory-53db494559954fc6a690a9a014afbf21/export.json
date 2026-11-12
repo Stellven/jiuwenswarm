@@ -1,0 +1,11 @@
+{
+  "artifact_policy": "50 MiB limit; sanitized copies may have a different SHA256; artifacts.json maps original identities",
+  "exported_at": "2026-11-12T21:21:55.941416+00:00",
+  "factory_git_head": {
+    "available": true,
+    "stdout": "f38eb60ef41d6237c9a807718b00d5f7bcd71a19\n"
+  },
+  "read_only": true,
+  "snapshot_cursor": 2058,
+  "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+}

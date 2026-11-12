@@ -1,0 +1,96 @@
+{
+  "admission": {
+    "admission_id": "admission:875b3c870eef63b14447264e82116c5336879ca49719a5cff0ec5199bac5a0ed",
+    "architecture": "arm64",
+    "build_attempt_id": "6b540bdd51564bc190b96d6e2738fe14",
+    "delivery": "same_host_local_image",
+    "image": {
+      "id": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+      "tag": "factory/llamacpp:53db-bare-cf34d311"
+    },
+    "target_profile": "jetson-orin",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  "argv": [
+    "-m",
+    "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "-f",
+    "/om/prompts/p1.txt",
+    "-n",
+    "64",
+    "-c",
+    "4096",
+    "--temp",
+    "0",
+    "-s",
+    "1",
+    "-no-cnv",
+    "-ngl",
+    "99",
+    "-lm",
+    "mmap",
+    "-cmoe",
+    "-lv",
+    "4"
+  ],
+  "contract": {
+    "contract_id": "qwen36-bare-greedy-v1",
+    "engagement_checks": [],
+    "model": {
+      "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": null,
+      "size": 22360456160
+    },
+    "pre_freeze_revisions": [
+      {
+        "at": "2026-11-12",
+        "by": "operator",
+        "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+        "evidence": "operator-bare-build task"
+      }
+    ],
+    "reference": {
+      "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "image_tag": "factory/llamacpp:bare-cf34d311",
+      "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+      "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+    },
+    "reference_image": {
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "image_tag": "factory/llamacpp:bare-cf34d311"
+    },
+    "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+    "tolerance": "byte-identical stdout",
+    "version": 1,
+    "workload": {
+      "argv": [
+        "-m",
+        "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "-f",
+        "/om/prompts/p1.txt",
+        "-n",
+        "64",
+        "-c",
+        "4096",
+        "--temp",
+        "0",
+        "-s",
+        "1",
+        "-no-cnv",
+        "-ngl",
+        "99",
+        "-lm",
+        "mmap",
+        "-cmoe",
+        "-lv",
+        "4"
+      ],
+      "env": {},
+      "tool": "llama-completion"
+    }
+  },
+  "env": {},
+  "lab_run_id": "d2465c6a3a5e42fc8b2acee68f095fd8",
+  "role": "candidate"
+}

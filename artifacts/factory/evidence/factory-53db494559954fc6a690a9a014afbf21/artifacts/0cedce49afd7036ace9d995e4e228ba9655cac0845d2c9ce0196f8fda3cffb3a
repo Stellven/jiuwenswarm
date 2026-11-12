@@ -1,0 +1,33 @@
+{
+ "exit_code": 0,
+ "wall_s": 151.44,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=0 -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}

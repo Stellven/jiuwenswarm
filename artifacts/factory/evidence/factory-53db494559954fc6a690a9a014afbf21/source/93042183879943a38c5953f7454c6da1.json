@@ -1,0 +1,14 @@
+{
+  "attempt_id": "93042183879943a38c5953f7454c6da1",
+  "error": null,
+  "integration_diff_available": true,
+  "log": {
+    "available": true,
+    "stdout": "98d026ef19cfe040cd7da7a4d0692c45253aa1a9 86ed6e3888f176c1c03021509d0843de62f0447f 2a9295e8204fbbc8c4c2390b328d5d6639530fe5 expert : integrate pregate source and strict config\n2a9295e8204fbbc8c4c2390b328d5d6639530fe5 d63f6127e8a71b5ab060d2263dd02213d807dd85 e67d6ecad777bc9bdbdb502b7f643aa9c41a54e0 expert : integrate buffered fill component\ne67d6ecad777bc9bdbdb502b7f643aa9c41a54e0 29717242a81049eb426e4d35fb78487563351e63 c1e68ffbddceca6f56e4c5e50229412da5d2ebf8 expert : integrate router prefetch component\n"
+  },
+  "source": {
+    "commit": "e67d6ecad777bc9bdbdb502b7f643aa9c41a54e0",
+    "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+    "tree": "29717242a81049eb426e4d35fb78487563351e63"
+  }
+}

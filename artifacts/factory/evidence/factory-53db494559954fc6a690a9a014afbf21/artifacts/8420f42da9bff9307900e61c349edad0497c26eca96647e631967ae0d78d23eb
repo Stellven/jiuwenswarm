@@ -1,0 +1,4 @@
+{"host": {"arch": "aarch64", "docker": true, "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia", "nvcc_on_path": true}, "source": {"applied_patches": [{"name": "combined-01-02-03-04-05-06-07-08.patch", "sha256": "87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497"}], "branch": "stream", "commit": "98d026ef19cfe040cd7da7a4d0692c45253aa1a9", "dirty": false}}
+--- stderr tail ---
+error: patch failed: src/llama-expert-fill.h:22
+error: src/llama-expert-fill.h: patch does not apply

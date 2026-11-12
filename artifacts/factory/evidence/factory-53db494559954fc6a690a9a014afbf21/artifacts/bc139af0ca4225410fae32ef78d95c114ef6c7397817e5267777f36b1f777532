@@ -1,0 +1,572 @@
+{
+  "pid": 1184664,
+  "groups": {
+    "main": {
+      "samples": 5468,
+      "states": {
+        "R": 2391,
+        "D": 3049,
+        "S": 28
+      },
+      "cpu_seconds": 20.800000000000377,
+      "minflt": 533355.0,
+      "majflt": 20944.0,
+      "fractions": {
+        "R": 0.4372713972201902,
+        "D": 0.5576079005120702,
+        "S": 0.005120702267739576
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "cpu_workers": {
+      "samples": 11189,
+      "states": {
+        "S": 9949,
+        "R": 251,
+        "D": 989
+      },
+      "cpu_seconds": 1.8200000000000014,
+      "minflt": 5950.0,
+      "majflt": 13863.0,
+      "fractions": {
+        "R": 0.0224327464474037,
+        "D": 0.08839038341227992,
+        "S": 0.8891768701403164
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "cuda_driver": {
+      "samples": 5429,
+      "states": {
+        "S": 5429
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 1.0,
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    }
+  },
+  "threads": {
+    "1184664": {
+      "samples": 5468,
+      "states": {
+        "R": 2391,
+        "D": 3049,
+        "S": 28
+      },
+      "cpu_seconds": 20.800000000000377,
+      "minflt": 533355.0,
+      "majflt": 20944.0,
+      "comm": "llama-completio",
+      "group": "main",
+      "fractions": {
+        "R": 0.4372713972201902,
+        "D": 0.5576079005120702,
+        "S": 0.005120702267739576
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184726": {
+      "samples": 5460,
+      "states": {
+        "S": 5459,
+        "R": 1
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 3.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.00018315018315018315,
+        "D": 0.0,
+        "S": 0.9998168498168498
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184727": {
+      "samples": 5446,
+      "states": {
+        "S": 5446
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 1.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184806": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184807": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184808": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184809": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184810": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184811": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184812": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184813": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184814": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184815": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184816": {
+      "samples": 274,
+      "states": {
+        "S": 274
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184817": {
+      "samples": 273,
+      "states": {
+        "S": 273
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184818": {
+      "samples": 273,
+      "states": {
+        "S": 273
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184819": {
+      "samples": 273,
+      "states": {
+        "S": 273
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184820": {
+      "samples": 273,
+      "states": {
+        "S": 273
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184821": {
+      "samples": 273,
+      "states": {
+        "S": 273
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184822": {
+      "samples": 250,
+      "states": {
+        "D": 201,
+        "R": 27,
+        "S": 22
+      },
+      "cpu_seconds": 0.18000000000000002,
+      "minflt": 1362.0,
+      "majflt": 2825.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.108,
+        "D": 0.804,
+        "S": 0.088
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184823": {
+      "samples": 250,
+      "states": {
+        "D": 191,
+        "R": 40,
+        "S": 19
+      },
+      "cpu_seconds": 0.24000000000000007,
+      "minflt": 1037.0,
+      "majflt": 2730.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.16,
+        "D": 0.764,
+        "S": 0.076
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184824": {
+      "samples": 250,
+      "states": {
+        "D": 200,
+        "R": 31,
+        "S": 19
+      },
+      "cpu_seconds": 0.18000000000000002,
+      "minflt": 1235.0,
+      "majflt": 2701.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.124,
+        "D": 0.8,
+        "S": 0.076
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184825": {
+      "samples": 333,
+      "states": {
+        "D": 198,
+        "R": 117,
+        "S": 18
+      },
+      "cpu_seconds": 1.0300000000000007,
+      "minflt": 955.0,
+      "majflt": 2697.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.35135135135135137,
+        "D": 0.5945945945945946,
+        "S": 0.05405405405405406
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    },
+    "1184826": {
+      "samples": 250,
+      "states": {
+        "D": 199,
+        "R": 35,
+        "S": 16
+      },
+      "cpu_seconds": 0.19000000000000003,
+      "minflt": 1358.0,
+      "majflt": 2910.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.14,
+        "D": 0.796,
+        "S": 0.064
+      },
+      "cpu_seconds_per_token": null,
+      "minflt_per_token": null,
+      "majflt_per_token": null
+    }
+  },
+  "overhead": {
+    "type": "end",
+    "elapsed_s": 55.511311228969134,
+    "self_cpu_s": 0.861424192,
+    "self_cpu_percent": 1.5517993953463975,
+    "samples": 5551,
+    "missed_deadlines": 1
+  },
+  "phase_window": {
+    "clock": "mono_s",
+    "decode_start": null,
+    "decode_end": 957918.256386,
+    "method": "whole_capture",
+    "sampling_error_bound_s": 0.020429000025615096,
+    "coverage_start": 957862.755859,
+    "tokens": null,
+    "coverage_complete": null,
+    "absolute_error_bound_s": null,
+    "error_note": "Engine teardown/exit lag is unknown. Counter deltas crossing the window edge are prorated; first observation is a baseline."
+  },
+  "rd_histogram": {
+    "0,0": 20,
+    "0,1": 2853,
+    "0,6": 133,
+    "1,0": 2444,
+    "1,2": 1,
+    "1,3": 1,
+    "1,4": 2,
+    "1,5": 52,
+    "2,0": 2,
+    "2,4": 19,
+    "3,0": 1,
+    "3,3": 8,
+    "4,2": 5,
+    "5,0": 3,
+    "5,1": 4,
+    "6,0": 3
+  },
+  "cpu_workers_r_fraction": 0.0224327464474037,
+  "main_workers_d_fraction": 0.24242060395029116,
+  "majflt_per_token": null
+}

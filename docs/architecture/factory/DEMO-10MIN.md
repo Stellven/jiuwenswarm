@@ -1,8 +1,8 @@
 # Ten-minute factory demo: task, revision, evidence
 
-**Draft, 2026-11-12. This runbook supersedes the old Run-4-centred script in this file.** Start with exactly two opening slides, then show three moments: a task becomes capsule-backed engine work; evidence changes the next action; the result and reusable capsule pass to RSI. Run 5 is still running. TBD slots are preparation work, not claimed results.
+**2026-11-12. This runbook supersedes the old Run-4-centred script in this file.** Start with exactly two opening slides, then show three moments: a task becomes capsule-backed engine work; evidence changes the next action; the result and reusable capsule pass to RSI. Run 5 is still running. TBD slots are preparation work, not claimed results.
 
-Use the [opening deck](https://claude.ai/artifact/FedGTzXcaQ7YuNZJBQiuz2) for the two opening slides only. **TBD(DECK): confirm the two opening slide positions and an offline copy on the presentation machine.** The artifact could not be inspected from this drafting environment; the slide text below is a speaker cue, not a transcription of its contents.
+Use the [opening deck](https://claude.ai/artifact/FedGTzXcaQ7YuNZJBQiuz2) for the two opening slides only. ****two slides, engine + factory, confirmed** confirm the two opening slide positions and an offline copy on the presentation machine.** The artifact could not be inspected from this drafting environment; the slide text below is a speaker cue, not a transcription of its contents.
 
 ## Before the clock starts
 
@@ -99,7 +99,7 @@ rg -n 'cc_call|receipt' "$FACTORY_HOME/sessions/$RUN5.jsonl" | less -S
 
 Show one `cc_call` request and its corresponding tool result/receipt, keeping the capability, key and outcome visible. **Say:** “These are recorded native capsule calls with receipts, connected to task evidence. A submission receipt establishes a durable attempt; the later result establishes completion.”
 
-**TBD(CC-CALL-CUE):** select the exact request/result line pair and recording seek position for the talk; the transcript exists, but the presentation cut is not selected.
+****search the Run 5 recording for `cc_call` / `factory.expert_streaming` lines**** select the exact request/result line pair and recording seek position for the talk; the transcript exists, but the presentation cut is not selected.
 
 ### Source diff and completed build receipt, 3:35–4:30
 
@@ -119,7 +119,7 @@ The receipt artifact is `915b94fd95f04f73bc04db2a7503258d:receipt`; its image ID
 
 ### Activity and readiness, 4:30–5:15
 
-**Label: RECORDED** separate operator Qwen run, J-XS2 smoke. **TBD(ACTIVITY-VIEW-PATH):** path to the actual engine activity view/capture and its seek position. Until it exists, show the recorded counters:
+**Label: RECORDED** separate operator Qwen run, J-XS2 smoke. ****siminfeng `experiments/jetson/OM/J-XS4-activity/activity.html` (one recorded observability run, not scored; image factory/llamacpp:xs-trace; output 7a154179… = reference; 79% of selected experts predicted; 92% of predicted vs 55% of unpredicted expert bytes ready before demand; 0.94 GB duplicate demand reads, 2.47 GB unused speculative reads over 63 tokens)**** path to the actual engine activity view/capture and its seek position. Until it exists, show the recorded counters:
 
 ```sh
 rg -n 'expert_readiness: stats decode_tokens=[1-9]' "$OM/J-XS2-smoke/001-base/stderr.txt"
@@ -149,17 +149,17 @@ The patch added `fill-integrate`, `pregate-integrate`, `config-stack-build` and 
 
 ### Direct comparison, or the explicit fallback, 6:30–8:45
 
-**Preferred label: RECORDED**, only when an actual J-OM15 direct comparison is available. **TBD(J-OM15):** exact result path, baseline/candidate image IDs and settings, cache protocol, complete direct comparison, correctness and verdict. No J-OM15 result was available when drafting; use the fallback now.
+**Preferred label: RECORDED**, only when an actual J-OM15 direct comparison is available. ****not run by decision; the improvement claim uses J-OM13 (direct ABBA, plain llama.cpp 841.5 vs factory engine 711.4 ms/token, 12 runs, identical output) and Run 4 records**** exact result path, baseline/candidate image IDs and settings, cache protocol, complete direct comparison, correctness and verdict. No J-OM15 result was available when drafting; use the fallback now.
 
 ```sh
 # Once J-OM15 is available, substitute its verified report path in this command.
-# less 'TBD(J-OM15)'
+# less '**not run by decision; the improvement claim uses J-OM13 (direct ABBA, plain llama.cpp 841.5 vs factory engine 711.4 ms/token, 12 runs, identical output) and Run 4 records**'
 jiuwenswarm factory status "$RUN5"
 less "$B/STORY.txt"
 less "$OM/J-OM13/REPORT.md"
 ```
 
-For the fallback, label the status **LIVE** and the Run 4/J-OM13 results **RECORDED**. **Say:** “Run 5 is still running, so its final direct result is TBD. The fallback is Run 4's two single lab runs, plus the separate, direct J-OM13 comparison shown with its own conditions.”
+For the fallback, label the status **LIVE** and the Run 4/J-OM13 results **RECORDED**. **Say:** “Run 5 was stopped after it showed the integration and the plan change; the measured result is J-OM13. The fallback is Run 4's two single lab runs, plus the separate, direct J-OM13 comparison shown with its own conditions.”
 
 | Evidence | Result | Scope |
 | --- | --- | --- |
@@ -170,7 +170,7 @@ For the fallback, label the status **LIVE** and the Run 4/J-OM13 results **RECOR
 | Prior direct ABBA J-OM13 | Stock 841.5 vs factory 711.4 ms/token, **1.18×** | Separate operator comparison; see `spec.json`, `REPORT.md`, `verdict.json` and per-run cache state |
 | J-OM13 thread tuning | `-t 4`: 659.3 ms/token, **1.28×** versus stock | Separate tuning comparison, not the same-settings factory gain |
 
-Snapshot at **2026-11-12T20:29:16Z**: Run 5 decision 19, graph revision 22, 9/40 turns; chunk-size tuning lab still running. Its completed fill trial was 962.42 vs 871.19 ms/token (ratio 1.1047), but A/A gap 0.2041, gate `null`, acceptance `reject`; this is not an accepted improvement. **TBD(RUN5-FINAL):** terminal outcome, selected source/image/config and direct final comparison. Recheck status at presentation time.
+Snapshot at **2026-11-12T20:29:16Z**: Run 5 decision 19, graph revision 22, 9/40 turns; chunk-size tuning lab still running. Its completed fill trial was 962.42 vs 871.19 ms/token (ratio 1.1047), but A/A gap 0.2041, gate `null`, acceptance `reject`; this is not an accepted improvement. ****Run 5 stopped by the operator at decision 21 (11/40 turns, 170 min) to cut demo cost; no component kept: mmap_advice and router_prefetch regressed and stay dormant prerequisites; expert_fill was null in two trials (2048 KiB, then a tuning trial at 256 KiB) and was under investigation; cancelled jobs are recorded**** terminal outcome, selected source/image/config and direct final comparison. Recheck status at presentation time.
 
 ### Reusable capsule and RSI handoff, 8:45–10:00
 
@@ -188,7 +188,7 @@ The current inventory is **16 capsules / 21 capabilities**, including **8 expert
 
 ## Fallback when there is no live system
 
-Use recordings under `artifacts/factory/recording/{evolve-run4,stream-run5}.*`, keeping the **RECORDED** label on screen. The Run 4 pair exists in this worktree; **TBD(RUN5-RECORDING):** make the `stream-run5.typescript` / `.timing` pair available and select the rev-13 seek interval. The requested Run 5 pair was not present here when drafting.
+Use recordings under `artifacts/factory/recording/{evolve-run4,stream-run5}.*`, keeping the **RECORDED** label on screen. The Run 4 pair exists in this worktree; ****`artifacts/factory/recording/stream-run5.{typescript,timing}`**** make the `stream-run5.typescript` / `.timing` pair available and select the rev-13 seek interval. The requested Run 5 pair was not present here when drafting.
 
 ```sh
 scriptreplay -t "$DOCS/artifacts/factory/recording/evolve-run4.timing" "$DOCS/artifacts/factory/recording/evolve-run4.typescript" -d 200
@@ -200,4 +200,4 @@ less "$B/source/f4530d71c9e4478e9d4ca881b8d65f2c.diff"
 python -m json.tool "$B/artifacts/99951bdb8a3f9c5885ca931c4f1e4f4e52c8d452123b8dbc09a24c0acc30ae9a"
 ```
 
-Use the Run 4 bundled diff/receipt for Moment 1 if the live home is unavailable. If no Run 5 capture is available, explain rev 13 from this runbook as **RECONSTRUCTED**, with the recorded evidence ID, rather than presenting it as captured execution. Use a prepared local copy of J-OM13 and J-XS2-smoke when the siminfeng checkout is unavailable; **TBD(OFFLINE-PACK):** confirm those files, the two opening slides and the activity capture on the talk machine. Reading a prepared bundle is sufficient; do not run export or replay during the demo. Any local web view must use port **5175**.
+Use the Run 4 bundled diff/receipt for Moment 1 if the live home is unavailable. If no Run 5 capture is available, explain rev 13 from this runbook as **RECONSTRUCTED**, with the recorded evidence ID, rather than presenting it as captured execution. Use a prepared local copy of J-OM13 and J-XS2-smoke when the siminfeng checkout is unavailable; ****open**** confirm those files, the two opening slides and the activity capture on the talk machine. Reading a prepared bundle is sufficient; do not run export or replay during the demo. Any local web view must use port **5175**.

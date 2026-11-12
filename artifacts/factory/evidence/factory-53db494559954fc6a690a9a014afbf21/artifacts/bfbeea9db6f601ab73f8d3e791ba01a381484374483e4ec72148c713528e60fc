@@ -1,0 +1,73 @@
+{
+  "dir": "/home/muk/.jiuwenswarm-factory/lab-spool/f9ef3d25d1ae4be088df3169b22a8852/ab/006-candidate",
+  "reasons": {
+    "pp_avg_ts": "no matching llama-bench JSON row",
+    "pp_samples_ts": "no matching llama-bench JSON row",
+    "pp_steady": "no matching llama-bench JSON row",
+    "tg_avg_ts": "no matching llama-bench JSON row",
+    "tg_samples_ts": "no matching llama-bench JSON row",
+    "tg_steady": "no matching llama-bench JSON row",
+    "emc_freq_median": "no decode-window samples: emc_freq"
+  },
+  "warnings": [],
+  "status": "ok",
+  "wall_s": 294.68,
+  "cache_start_resident_pct": 12.176632017331796,
+  "cache_end_resident_pct": 11.403408721872873,
+  "output_sha": "7a1541792364",
+  "switch_matches": {
+    "llama_mmap: LLAMA_MMAP_ADVICE=random": 1
+  },
+  "switch_lines": [
+    "0.01.861.559 I llama_mmap: LLAMA_MMAP_ADVICE=random (no FADV_SEQUENTIAL, no WILLNEED, MADV_RANDOM)"
+  ],
+  "prompt_tps": 1.47,
+  "eval_tps": 0.52,
+  "load_s": 36.25902,
+  "eval_tokens": 63.0,
+  "eval_ms_per_token": 1939.47,
+  "prompt_ms_per_token": 679.47,
+  "eval_ms_total": 122186.89,
+  "eval_runs": 63,
+  "load_ms": 36259.02,
+  "bench": {
+    "pp": [],
+    "tg": []
+  },
+  "pp_avg_ts": null,
+  "pp_samples_ts": null,
+  "pp_steady": null,
+  "tg_avg_ts": null,
+  "tg_samples_ts": null,
+  "tg_steady": null,
+  "nvme_gib": 25.127704620361328,
+  "avg_kib_per_io": 4.100471265444674,
+  "nvme_gib_per_<redacted>,
+  "mem_available_min_mib": 2728.812,
+  "swap_max_mib": 1571.0,
+  "gpu_freq_median": 306.0,
+  "phase_windows": {
+    "clock": "mono_s",
+    "method": "last_telemetry_before_exit_minus_eval_ms_total",
+    "decode_start": 950141.836123092,
+    "decode_end": 950264.023013092,
+    "load_start": 949969.4667357,
+    "load_end": 950005.7257557,
+    "sampling_error_bound_s": 1.000379050965421,
+    "absolute_error_bound_s": null,
+    "error_note": "Endpoint sampling error is at most the largest observed backend interval assuming sampling continued until exit. Engine teardown/exit lag is unknown; no finite absolute phase alignment bound is available. Load begins at first telemetry sample; startup offset is also unknown."
+  },
+  "nvme_gib_decode": 10.429650612892146,
+  "nvme_gib_load": 3.054167546233657,
+  "nvme_gib_per_token_decode": 0.16555000972844677,
+  "gpu_util_median": 0.0,
+  "gpu_util_p90": 18,
+  "device_util_median": 97.54964078985057,
+  "power_in_w_median": 6.298,
+  "temp_tj_max": 51.343,
+  "emc_freq_median": null,
+  "energy_j_per_<redacted>,
+  "threads.cpu_workers_r_fraction": 0.13603463345351252,
+  "threads.main_workers_d_fraction": 0.6077260755048288,
+  "threads.majflt_per_<redacted>
+}

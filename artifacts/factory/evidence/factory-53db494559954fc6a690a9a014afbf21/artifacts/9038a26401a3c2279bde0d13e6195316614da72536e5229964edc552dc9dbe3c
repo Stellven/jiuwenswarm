@@ -1,0 +1,279 @@
+{
+  "pid": 1182546,
+  "groups": {
+    "main": {
+      "samples": 6376,
+      "states": {
+        "D": 3002,
+        "S": 1756,
+        "R": 1618
+      },
+      "cpu_seconds": 13.39999999999976,
+      "minflt": 36011.69641784439,
+      "majflt": 71604.04462676658,
+      "fractions": {
+        "R": 0.25376411543287325,
+        "D": 0.4708281053952321,
+        "S": 0.27540777917189463
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "cpu_workers": {
+      "samples": 38275,
+      "states": {
+        "S": 14366,
+        "D": 16296,
+        "R": 7613
+      },
+      "cpu_seconds": 57.939999999997404,
+      "minflt": 109032.11156691646,
+      "majflt": 272919.2900739828,
+      "fractions": {
+        "R": 0.198902677988243,
+        "D": 0.42576094056172437,
+        "S": 0.3753363814500327
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "cuda_driver": {
+      "samples": 6376,
+      "states": {
+        "S": 6376
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    }
+  },
+  "threads": {
+    "1182546": {
+      "samples": 6376,
+      "states": {
+        "D": 3002,
+        "S": 1756,
+        "R": 1618
+      },
+      "cpu_seconds": 13.39999999999976,
+      "minflt": 36011.69641784439,
+      "majflt": 71604.04462676658,
+      "comm": "llama-completio",
+      "group": "main",
+      "fractions": {
+        "R": 0.25376411543287325,
+        "D": 0.4708281053952321,
+        "S": 0.27540777917189463
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1182594": {
+      "samples": 6376,
+      "states": {
+        "S": 6376
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 3.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1182608": {
+      "samples": 6376,
+      "states": {
+        "S": 6376
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "cuda-EvtHandlr",
+      "group": "cuda_driver",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1182671": {
+      "samples": 6376,
+      "states": {
+        "D": 3028,
+        "R": 1430,
+        "S": 1918
+      },
+      "cpu_seconds": 11.06999999999981,
+      "minflt": 21373.02231338329,
+      "majflt": 54407.39283568878,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.2242785445420326,
+        "D": 0.4749058971141782,
+        "S": 0.3008155583437892
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1182672": {
+      "samples": 6376,
+      "states": {
+        "D": 3023,
+        "R": 1519,
+        "S": 1834
+      },
+      "cpu_seconds": 11.659999999999798,
+      "minflt": 20800.69641784439,
+      "majflt": 54615.39283568878,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.23823713927227103,
+        "D": 0.47412170639899626,
+        "S": 0.2876411543287328
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1182673": {
+      "samples": 6376,
+      "states": {
+        "D": 3150,
+        "R": 1527,
+        "S": 1699
+      },
+      "cpu_seconds": 11.279999999999806,
+      "minflt": 20828.348208922194,
+      "majflt": 55481.39283568878,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.2394918444165621,
+        "D": 0.4940401505646173,
+        "S": 0.26646800501882056
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1182674": {
+      "samples": 6376,
+      "states": {
+        "D": 3489,
+        "R": 1574,
+        "S": 1313
+      },
+      "cpu_seconds": 11.689999999999797,
+      "minflt": 19418.02231338329,
+      "majflt": 52165.71873122768,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.24686323713927227,
+        "D": 0.5472082810539524,
+        "S": 0.20592848180677542
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1182675": {
+      "samples": 6395,
+      "states": {
+        "D": 3606,
+        "R": 1563,
+        "S": 1226
+      },
+      "cpu_seconds": 12.239999999999785,
+      "minflt": 26612.02231338329,
+      "majflt": 56246.39283568878,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.2444096950742768,
+        "D": 0.5638780297107115,
+        "S": 0.19171227521501172
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    }
+  },
+  "overhead": {
+    "type": "end",
+    "elapsed_s": 192.63457251002546,
+    "self_cpu_s": 3.248051584,
+    "self_cpu_percent": 1.6861207942468162,
+    "samples": 19263,
+    "missed_deadlines": 2
+  },
+  "phase_window": {
+    "clock": "mono_s",
+    "decode_start": 956989.033716,
+    "decode_end": 957052.983356,
+    "method": "last_thread_sample_before_exit_minus_eval_ms_total",
+    "sampling_error_bound_s": 0.020367000019177794,
+    "coverage_start": 956860.359929,
+    "tokens": 63,
+    "coverage_complete": true,
+    "absolute_error_bound_s": null,
+    "error_note": "Engine teardown/exit lag is unknown. Counter deltas crossing the window edge are prorated; first observation is a baseline."
+  },
+  "rd_histogram": {
+    "0,0": 858,
+    "0,1": 92,
+    "0,2": 321,
+    "0,3": 40,
+    "0,4": 40,
+    "0,5": 42,
+    "0,6": 1817,
+    "1,0": 247,
+    "1,1": 33,
+    "1,2": 8,
+    "1,3": 32,
+    "1,4": 25,
+    "1,5": 717,
+    "2,0": 80,
+    "2,1": 44,
+    "2,2": 22,
+    "2,3": 29,
+    "2,4": 457,
+    "3,0": 103,
+    "3,1": 17,
+    "3,2": 13,
+    "3,3": 275,
+    "4,0": 90,
+    "4,1": 18,
+    "4,2": 141,
+    "5,0": 148,
+    "5,1": 171,
+    "6,0": 515
+  },
+  "cpu_workers_r_fraction": 0.198902677988243,
+  "main_workers_d_fraction": 0.43219636738258943,
+  "majflt_per_<redacted>
+}

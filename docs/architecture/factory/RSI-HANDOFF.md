@@ -8,7 +8,7 @@
 | --- | --- |
 | Baseline branch | `ai4r/iterative-cc-factory` |
 | Handoff tag | `cc-baseline-2026-11-12` |
-| Exact baseline commit | **TBD(BASELINE-COMMIT)**; the tag ref was absent in the local checkout when drafting. Resolve and record the tag's commit before a baseline/revision comparison; no tag is created by this docs task. |
+| Exact baseline commit | **tag `cc-baseline-2026-11-12` (resolve with `git rev-parse cc-baseline-2026-11-12`)**; the tag ref was absent in the local checkout when drafting. Resolve and record the tag's commit before a baseline/revision comparison; no tag is created by this docs task. |
 | This documentation worktree | `/home/muk/projects/jiuwenswarm-cl`, branch `ai4r/contract-loop` |
 | Factory agent capsule | `engine.expert_streaming@2.0.0`; record capsule version/tree hash and host-code revision with each later comparison |
 | Run 4 | `factory-bd173c082bf34ae3b8471938c19b8068` |
@@ -62,7 +62,7 @@ Default home: `$HOME/.jiuwenswarm-factory` (override `FACTORY_HOME`). Preserve t
 | `$FACTORY_HOME/ccstore/calls.sqlite` and `ccstore/artifacts/` | CC-v2 call/receipt state and artifacts; correlate receipts with task records and durable attempts |
 | `artifacts/factory/evidence/factory-bd173c082bf34ae3b8471938c19b8068/` | Existing slim Run 4 export bundle: `INDEX.md`, `STORY.txt`, `records/*.json`, `source/*.diff`, build records, artifacts, `telemetry.jsonl`, `artifacts.json`, `MANIFEST.json` and omission metadata |
 | `jiuwenswarm/factory/replay.py`; [TELEMETRY.md](TELEMETRY.md) | Offline read-only capability replay against a disposable store copy, producing `replay:true` events; not agent replay, historical time travel, image inference or a correctness benchmark |
-| Run 5 handoff bundle | **TBD(RUN5-BUNDLE):** prepared path, snapshot time, manifest and omissions after operator preparation; F24 performs no export/replay |
+| Run 5 handoff bundle | ****`artifacts/factory/evidence/factory-53db494559954fc6a690a9a014afbf21/` (slim; STORY.txt, PLAN.txt, SLIM-OMISSIONS.json; full export verified 639 files, secrets scan clean)**** prepared path, snapshot time, manifest and omissions after operator preparation; F24 performs no export/replay |
 
 An existing export may lack a session or large artifact bytes; inspect `omissions.json` and any `SLIM-OMISSIONS.json` before assuming completeness. Older runs may have empty/partial telemetry; no retrospective token or call counts are invented. Token fields stay null when unavailable. Telemetry excludes raw prompts/output bodies, and evidence transactions and JSONL emission are not one atomic commit; [TELEMETRY.md](TELEMETRY.md) documents these limits.
 
@@ -94,9 +94,9 @@ These are proposed directions, not claims that a fix or accepted speedup exists.
 | Dispatch check is not atomic with concurrent graph revisions | [api.py](../../../jiuwenswarm/factory/api.py): `dispatch` calls [taskgraph.py](../../../jiuwenswarm/factory/taskgraph.py): `dispatch_precondition` before job submission. Graph-patch CAS does not make this check and submission one transaction; close that race while retaining lifecycle/idempotency. |
 | Engagement tool does not read per-token traces | `expert_streaming.py:dispatch` parses stderr artifacts. Integrate actual per-token evidence before making temporal or critical-path claims; summary readiness alone is insufficient. |
 | Adaptive read policies absent | Current fill/pregate/inflight settings do not provide adaptive inflight limits, concurrency selection or speculation throttling. Duplicate/unused reads in J-XS2-smoke motivate bounded policy comparisons under comparable cache state. |
-| `p12` trace / `p13` populate / `p14` pin / `p15` temporal predictor | Candidates on siminfeng `xs-dev` / `llama-opt` branches are **CPU-tested only**. They are not claimed Jetson image results or part of the eight-component inventory. **TBD(CANDIDATE-PINS):** exact branch/commit/patch hashes and CPU evidence paths before integration. |
-| F19 placement experiments | `op-offload` prefill-threshold experiments are **pending runs**. Expert placement is separate from streaming; no prefill/decode gain is claimed. **TBD(F19-RUNS):** experiment paths, settings and completed results. |
-| `io_bench` full sweep | Not run; device/read-policy headroom is unresolved. **TBD(IO-BENCH):** full-sweep plan/result path when separately performed. |
+| `p12` trace / `p13` populate / `p14` pin / `p15` temporal predictor | Candidates on siminfeng `xs-dev` / `llama-opt` branches are **CPU-tested only**. They are not claimed Jetson image results or part of the eight-component inventory. ****xs-dev/llama-opt branches p12 dba475c0d, p13 c49dfdcde, p14 3d8ad673c, p15 57a881379**** exact branch/commit/patch hashes and CPU evidence paths before integration. |
+| F19 placement experiments | `op-offload` prefill-threshold experiments are **pending runs**. Expert placement is separate from streaming; no prefill/decode gain is claimed. ****deferred (open headroom; scripts in xs-dev/placement)**** experiment paths, settings and completed results. |
+| `io_bench` full sweep | Not run; device/read-policy headroom is unresolved. ****deferred (open headroom)**** full-sweep plan/result path when separately performed. |
 
 Known tool costs also offer genuine headroom. Approximate timings below are operator-reported observations, not freshly profiled distributions:
 
@@ -108,10 +108,10 @@ Known tool costs also offer genuine headroom. Approximate timings below are oper
 | Publish has multiple fsyncs | Store artifact publication and telemetry durability paths; measure call cost while preserving acknowledged durability. |
 | Polling consumes turns | [controller.py](../../../jiuwenswarm/factory/controller.py), durable job status calls and turn events; improve waiting/batching using actual lifecycle evidence. |
 
-**TBD(TOOL-COST-EVIDENCE):** attach exact telemetry sequences/attempts, capsule release hashes, host revision and cache conditions for the ~7.9 s / ~4.1 s observations before using them as a scored baseline.
+****siminfeng `c2/RSI-SEED.md` (run-4 call counts and timings)**** attach exact telemetry sequences/attempts, capsule release hashes, host revision and cache conditions for the ~7.9 s / ~4.1 s observations before using them as a scored baseline.
 
 The next segment can choose one opportunity, create a separately versioned capsule/host revision and compare the same workflow with equivalent store contents, inputs, cache/warmup and correctness obligations. Preserve the baseline and negative evidence. Offline `replay` and future export preparation are documented capabilities, not work performed by this handoff.
 
 ## Remaining handoff slots
 
-**TBD(BASELINE-COMMIT)**; **TBD(RUN5-FINAL)** terminal decision, source/image/settings and direct comparison; **TBD(J-OM15)** report and acceptance; **TBD(RUN5-BUNDLE)**; **TBD(CANDIDATE-PINS)**; **TBD(F19-RUNS)**; **TBD(IO-BENCH)**; **TBD(TOOL-COST-EVIDENCE)**. Presentation captures/cues are tracked in [DEMO-10MIN.md](DEMO-10MIN.md). None of these slots implies the work has completed.
+**tag `cc-baseline-2026-11-12` (resolve with `git rev-parse cc-baseline-2026-11-12`)**; **Run 5 stopped by the operator at decision 21 (11/40 turns, 170 min) to cut demo cost; no component kept: mmap_advice and router_prefetch regressed and stay dormant prerequisites; expert_fill was null in two trials (2048 KiB, then a tuning trial at 256 KiB) and was under investigation; cancelled jobs are recorded** terminal decision, source/image/settings and direct comparison; **not run by decision; the improvement claim uses J-OM13 (direct ABBA, plain llama.cpp 841.5 vs factory engine 711.4 ms/token, 12 runs, identical output) and Run 4 records** report and acceptance; **`artifacts/factory/evidence/factory-53db494559954fc6a690a9a014afbf21/` (slim; STORY.txt, PLAN.txt, SLIM-OMISSIONS.json; full export verified 639 files, secrets scan clean)**; **xs-dev/llama-opt branches p12 dba475c0d, p13 c49dfdcde, p14 3d8ad673c, p15 57a881379**; **deferred (open headroom; scripts in xs-dev/placement)**; **deferred (open headroom)**; **siminfeng `c2/RSI-SEED.md` (run-4 call counts and timings)**. Presentation captures/cues are tracked in [DEMO-10MIN.md](DEMO-10MIN.md). None of these slots implies the work has completed.

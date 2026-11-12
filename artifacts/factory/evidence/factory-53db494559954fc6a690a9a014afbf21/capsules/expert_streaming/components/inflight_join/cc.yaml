@@ -1,0 +1,10 @@
+cc: '2'
+id: factory.components.inflight_join
+version: 1.0.0
+materials:
+  component:
+    kind: component
+    path: component.yaml
+  patch_11:
+    kind: component
+    path: 11-inflight-join.patch

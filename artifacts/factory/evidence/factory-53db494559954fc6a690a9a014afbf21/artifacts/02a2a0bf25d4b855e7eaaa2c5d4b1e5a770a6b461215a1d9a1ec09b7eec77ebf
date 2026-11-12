@@ -1,0 +1,73 @@
+{
+  "dir": "/home/muk/.jiuwenswarm-factory/lab-spool/f9ef3d25d1ae4be088df3169b22a8852/ab/003-candidate",
+  "reasons": {
+    "pp_avg_ts": "no matching llama-bench JSON row",
+    "pp_samples_ts": "no matching llama-bench JSON row",
+    "pp_steady": "no matching llama-bench JSON row",
+    "tg_avg_ts": "no matching llama-bench JSON row",
+    "tg_samples_ts": "no matching llama-bench JSON row",
+    "tg_steady": "no matching llama-bench JSON row",
+    "emc_freq_median": "no decode-window samples: emc_freq"
+  },
+  "warnings": [],
+  "status": "ok",
+  "wall_s": 284.2,
+  "cache_start_resident_pct": 13.54209625390755,
+  "cache_end_resident_pct": 13.885706274428706,
+  "output_sha": "7a1541792364",
+  "switch_matches": {
+    "llama_mmap: LLAMA_MMAP_ADVICE=random": 1
+  },
+  "switch_lines": [
+    "0.01.868.823 I llama_mmap: LLAMA_MMAP_ADVICE=random (no FADV_SEQUENTIAL, no WILLNEED, MADV_RANDOM)"
+  ],
+  "prompt_tps": 1.51,
+  "eval_tps": 0.55,
+  "load_s": 36.83213,
+  "eval_tokens": 63.0,
+  "eval_ms_per_token": 1826.24,
+  "prompt_ms_per_token": 660.89,
+  "eval_ms_total": 115053.34,
+  "eval_runs": 63,
+  "load_ms": 36832.13,
+  "bench": {
+    "pp": [],
+    "tg": []
+  },
+  "pp_avg_ts": null,
+  "pp_samples_ts": null,
+  "pp_steady": null,
+  "tg_avg_ts": null,
+  "tg_samples_ts": null,
+  "tg_steady": null,
+  "nvme_gib": 24.458812713623047,
+  "avg_kib_per_io": 4.111044535726457,
+  "nvme_gib_per_<redacted>,
+  "mem_available_min_mib": 2932.164,
+  "swap_max_mib": 1780.363,
+  "gpu_freq_median": 306.0,
+  "phase_windows": {
+    "clock": "mono_s",
+    "method": "last_telemetry_before_exit_minus_eval_ms_total",
+    "decode_start": 949541.477991344,
+    "decode_end": 949656.531331344,
+    "load_start": 949372.476840272,
+    "load_end": 949409.308970272,
+    "sampling_error_bound_s": 1.0004745109472424,
+    "absolute_error_bound_s": null,
+    "error_note": "Endpoint sampling error is at most the largest observed backend interval assuming sampling continued until exit. Engine teardown/exit lag is unknown; no finite absolute phase alignment bound is available. Load begins at first telemetry sample; startup offset is also unknown."
+  },
+  "nvme_gib_decode": 9.715884079936586,
+  "nvme_gib_load": 3.0545178660395322,
+  "nvme_gib_per_token_decode": 0.15422038222121565,
+  "gpu_util_median": 0.0,
+  "gpu_util_p90": 18,
+  "device_util_median": 96.81518312571023,
+  "power_in_w_median": 6.2785,
+  "temp_tj_max": 50.906,
+  "emc_freq_median": null,
+  "energy_j_per_<redacted>,
+  "threads.cpu_workers_r_fraction": 0.13746916267595413,
+  "threads.main_workers_d_fraction": 0.5989427203184278,
+  "threads.majflt_per_<redacted>
+}

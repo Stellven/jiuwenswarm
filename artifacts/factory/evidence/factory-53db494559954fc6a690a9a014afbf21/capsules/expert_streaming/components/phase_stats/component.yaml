@@ -1,0 +1,30 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 16-phase-rusage.patch
+  sha256: 7e296daf348c9f576d2e797bea73d08efc6263f11b3c0bde114150560d2c476e
+depends_on:
+- inflight_join
+enable_env:
+  LLAMA_EXPERT_PHASE_STATS: '1'
+engagement_checks:
+- source: stderr
+  regex: 'expert_config: effective .*phase_stats=1'
+- source: stderr
+  regex: 'expert_phase: stats decode_tokens=[1-9][0-9]*'
+hypothesis: Report decode-phase-only process counters (minor/major faults, voluntary/involuntary context switches, user/system CPU time) and the per-token latency distribution (p50, p95, max, first 8 tokens vs the rest), so decode cost can be attributed without a trace. Works with fill/pregate on or off.
+measure: none
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence.
+env_ranges:
+  LLAMA_EXPERT_PHASE_STATS: 0|1
+dependency_note: The patch file is rebased onto patches 01-11 (it edits the same config/validator lines as readiness and join), so inflight_join's source is a prerequisite even when join is switched off. Counts are process-wide over decode; they do not give fault cost or blocked duration.
+acceptance:
+  type: observability
+  signal: engagement
+  overhead_bound: 0.03
+
+implements: [expert_streaming.phase_observation]
+modifies_region: ["L3"]
+quantities: ["faults.minflt", "latency.tok_ns_p95", "decode.ms_per_token", "prompt.ms_per_token"]

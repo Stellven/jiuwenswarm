@@ -1,0 +1,232 @@
+From 2876f707c79681180161d072845769d85d2af7b8 Mon Sep 17 00:00:00 2001
+From: Codex <<redacted>>
+Date: Thu, 12 Nov 2026 17:49:13 +0000
+Subject: [PATCH] expert: join in-flight async reads
+
+Depends-on: 10-expert-readiness.patch
+Assisted-by: Codex
+---
+ src/llama-context.cpp   | 14 +++++---
+ src/llama-expert-fill.h | 75 +++++++++++++++++++++++++++++++++++++----
+ 2 files changed, 77 insertions(+), 12 deletions(-)
+
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 2fff33474..57bfebbca 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -864,15 +864,18 @@ void llama_context::expert_pregate_hook(size_t il, const ggml_tensor * t) {
+ 
+ void llama_context::expert_pregate_stats() {
+     uint64_t bytes=0, reads=0, errors=0, dropped=0, cancelled_jobs=0, cancelled_bytes=0, demand_ns=0;
++    uint64_t join_waits=0, join_wait_ns=0, join_bytes=0;
+     for (auto & entry : expert_fillers) {
+         entry.second->wait_async(); // teardown only, after graph synchronize
+-        demand_ns += entry.second->counters().total_fill_wall_ns;
++        const auto demand = entry.second->counters();
++        demand_ns += demand.total_fill_wall_ns;
++        join_waits += demand.join_waits; join_wait_ns += demand.join_wait_ns; join_bytes += demand.join_bytes;
+         const auto c = entry.second->async_counters();
+         bytes += c.bytes_read; reads += c.read_syscalls; errors += c.errors; dropped += c.dropped;
+         cancelled_jobs += c.cancelled_jobs; cancelled_bytes += c.cancelled_bytes;
+     }
+     const auto & t = pregate_timeliness;
+-    LLAMA_LOG_INFO("expert_pregate: stats predictions=%" PRIu64 " arrivals=%" PRIu64
++    fprintf(stderr, "expert_pregate: stats predictions=%" PRIu64 " arrivals=%" PRIu64
+         " hits=%" PRIu64 " actual=%" PRIu64 " predicted=%" PRIu64 " recall_at_k=%.6f precision=%.6f"
+         " async_bytes_read=%" PRIu64 " async_reads=%" PRIu64 " async_errors=%" PRIu64 " dropped=%" PRIu64
+         " cancelled_jobs=%" PRIu64 " cancelled_bytes=%" PRIu64
+@@ -883,7 +886,8 @@ void llama_context::expert_pregate_stats() {
+         " hit_done=%" PRIu64 " hit_inflight=%" PRIu64 " hit_queued=%" PRIu64 " hit_resident=%" PRIu64
+         " recall_at_k_d1=%.6f recall_at_k_d2=%.6f actual_d1=%" PRIu64 " actual_d2=%" PRIu64
+         " hits_d1=%" PRIu64 " hits_d2=%" PRIu64
+-        " demand_wait_ns_total=%" PRIu64 " demand_wait_ns_per_token=%.3f\n",
++        " demand_wait_ns_total=%" PRIu64 " demand_wait_ns_per_token=%.3f"
++        " join_waits=%" PRIu64 " join_wait_ns=%" PRIu64 " join_bytes=%" PRIu64 "\n",
+         pregate_predictions, pregate_arrivals, pregate_hits, pregate_actual, pregate_predicted,
+         pregate_actual ? double(pregate_hits)/pregate_actual : 0.0,
+         pregate_predicted ? double(pregate_hits)/pregate_predicted : 0.0,
+@@ -894,7 +898,7 @@ void llama_context::expert_pregate_stats() {
+         pregate_actual_d[0] ? double(pregate_hits_d[0])/pregate_actual_d[0] : 0.0,
+         pregate_actual_d[1] ? double(pregate_hits_d[1])/pregate_actual_d[1] : 0.0,
+         pregate_actual_d[0], pregate_actual_d[1], pregate_hits_d[0], pregate_hits_d[1],
+-        demand_ns, expert_demand_tokens ? double(demand_ns)/expert_demand_tokens : 0.0);
++        demand_ns, expert_demand_tokens ? double(demand_ns)/expert_demand_tokens : 0.0, join_waits, join_wait_ns, join_bytes);
+ }
+ 
+ static uint64_t expert_diag_now() {
+@@ -1250,7 +1254,7 @@ llama_context::~llama_context() {
+     synchronize();
+ 
+ #ifdef __linux__
+-    if (expert_pregate_enabled) { expert_pregate_stats(); }
++    if (expert_config.pregate) { expert_pregate_stats(); }
+     if (expert_config.readiness) {
+         uint64_t wasted = 0;
+         for (auto & entry : expert_fillers) { entry.second->wait_async(); wasted += entry.second->wasted_bytes(); }
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index 4dc7e7d44..d684e4a43 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -32,7 +32,7 @@ extern char ** environ;
+ struct ExpertConfig {
+     size_t fill = 0, threads = 8, chunk_kib = 1024, min_tokens = 0, max_tokens = 0;
+     size_t diag = 0, populate = 0, pregate = 0, k = 8, max_inflight = 4, lookahead = 1;
+-    size_t prefetch = 0, prefetch_next = 0, readiness = 0;
++    size_t prefetch = 0, prefetch_next = 0, readiness = 0, join = 0;
+     std::string random = "0", order = "after", diag_csv;
+     [[noreturn]] static void invalid(const char * name, const char * value, const std::string & range) {
+         fprintf(stderr, "expert_config: invalid %s=%s (range %s)\n", name, value, range.c_str());
+@@ -72,7 +72,7 @@ struct ExpertConfig {
+             "LLAMA_EXPERT_FILL_DIAG", "LLAMA_EXPERT_FILL_DIAG_CSV", "LLAMA_EXPERT_FILL_POPULATE",
+             "LLAMA_EXPERT_PREGATE", "LLAMA_EXPERT_PREGATE_K", "LLAMA_EXPERT_PREGATE_ORDER",
+             "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT", "LLAMA_EXPERT_PREGATE_LOOKAHEAD",
+-            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT", "LLAMA_EXPERT_READINESS"};
++            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT", "LLAMA_EXPERT_READINESS", "LLAMA_EXPERT_PREGATE_JOIN"};
+         for (char ** e = environ; e && *e; ++e) {
+             const std::string entry(*e);
+             const size_t eq = entry.find('=');
+@@ -83,6 +83,7 @@ struct ExpertConfig {
+             }
+         }
+         ExpertConfig c;
++        c.join = integer("LLAMA_EXPERT_PREGATE_JOIN", 0, 0, 1);
+         c.readiness = integer("LLAMA_EXPERT_READINESS", 0, 0, 1);
+         c.fill = integer("LLAMA_EXPERT_FILL", 0, 0, 1);
+         c.random = choice("LLAMA_EXPERT_FILL_RANDOM", "0", {"0", "1", "decode"});
+@@ -108,9 +109,9 @@ struct ExpertConfig {
+     void print() const {
+         fprintf(stderr, "expert_config: effective fill=%zu random=%s max_tokens=%zu threads=%zu chunk_kib=%zu "
+             "pregate=%zu k=%zu order=%s max_inflight=%zu lookahead=%zu min_tokens=%zu diag=%zu populate=%zu "
+-            "diag_csv=%s prefetch=%zu prefetch_next=%zu readiness=%zu\n",
++            "diag_csv=%s prefetch=%zu prefetch_next=%zu readiness=%zu join=%zu\n",
+             fill, random.c_str(), max_tokens, threads, chunk_kib, pregate, k, order.c_str(), max_inflight,
+-            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next, readiness);
++            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next, readiness, join);
+     }
+ };
+ 
+@@ -123,6 +124,7 @@ public:
+         uint64_t probe_ns = 0, duplicate_bytes = 0;
+     };
+     struct Counters {
++        uint64_t join_waits = 0, join_wait_ns = 0, join_bytes = 0;
+         uint64_t populate_calls = 0, populate_ns = 0, populate_errors = 0;
+         uint64_t thread_majflt = 0, thread_minflt = 0;
+         uint64_t calls = 0, ranges = 0, bytes_requested = 0;
+@@ -199,6 +201,7 @@ public:
+           threads_(config.threads), chunk_(config.chunk_kib * 1024) {
+         async_limit_ = std::min(threads_, config.max_inflight);
+         observe_ = config.readiness;
++        join_ = config.join;
+         diag_ = config.diag;
+         populate_ = config.populate;
+         const long page = sysconf(_SC_PAGESIZE);
+@@ -215,7 +218,7 @@ public:
+         }
+         try {
+             // Allocate before starting workers, so allocation failures cannot kill a worker.
+-            scratch_.resize(threads_); residency_.resize(threads_); active_.resize(threads_);
++            scratch_.resize(threads_); residency_.resize(threads_); active_.resize(threads_); active_chunks_.resize(threads_);
+             for (auto & b : scratch_) { b.resize(std::max(page_, chunk_)); }
+             for (auto & b : residency_) { b.resize((std::max(page_, chunk_) + page_ - 1) / page_); }
+             for (size_t i = 0; i < threads_; ++i) { workers_.emplace_back([this, i] { worker(i); }); }
+@@ -249,7 +252,7 @@ public:
+         auto batch = std::make_shared<AsyncBatch>();
+         // Construct off-lock; splice publishes the whole submission without allocation.
+         std::list<AsyncJob> submission;
+-        for (auto r : jobs) { submission.push_back({r, batch, layer, distance}); }
++        for (auto r : jobs) { submission.push_back({r, batch, layer, distance, join_ ? std::make_shared<Chunk>(r) : nullptr}); }
+         {
+             std::lock_guard<std::mutex> lock(mutex_);
+             // Bound speculative backlog; drop a whole submission, never block on IO.
+@@ -424,6 +427,48 @@ public:
+             }
+             {
+                 std::unique_lock<std::mutex> lock(mutex_);
++                if (join_) {
++                    // Demand owns queued overlaps; running chunks keep their worker.
++                    for (auto it = async_queue_.begin(); it != async_queue_.end();) {
++                        bool overlap = false;
++                        for (const auto & r : merged) {
++                            overlap |= r.offset < it->range.offset + it->range.len && it->range.offset < r.offset + r.len;
++                        }
++                        if (!overlap) { ++it; continue; }
++                        ++it->batch->cancelled_jobs; it->batch->cancelled_bytes += it->range.len;
++                        ++async_cancelled_jobs_; async_cancelled_bytes_ += it->range.len;
++                        --it->batch->pending; --async_pending_;
++                        it = async_queue_.erase(it);
++                    }
++                    if (!async_pending_) { async_done_.notify_all(); }
++                    const auto chunks = active_chunks_;
++                    for (const auto & chunk : chunks) {
++                        if (!chunk) { continue; }
++                        const auto & a = chunk->range;
++                        uint64_t overlap = 0;
++                        for (const auto & r : jobs) {
++                            const uint64_t first = std::max(r.offset, a.offset), end = std::min(r.offset + r.len, a.offset + a.len);
++                            if (first < end) { overlap += end - first; }
++                        }
++                        if (!overlap) { continue; }
++                        if (!chunk->done) {
++                            ++counters_.join_waits;
++                            const auto begin = std::chrono::steady_clock::now();
++                            chunk_done_.wait(lock, [&chunk] { return chunk->done; });
++                            counters_.join_wait_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - begin).count();
++                        }
++                        if (chunk->error) { continue; }
++                        counters_.join_bytes += overlap;
++                        std::vector<Range> remaining;
++                        for (const auto & r : jobs) {
++                            const uint64_t first = std::max(r.offset, a.offset), end = std::min(r.offset + r.len, a.offset + a.len);
++                            if (first >= end) { remaining.push_back(r); continue; }
++                            if (r.offset < first) { remaining.push_back({r.offset, size_t(first - r.offset)}); }
++                            if (end < r.offset + r.len) { remaining.push_back({end, size_t(r.offset + r.len - end)}); }
++                        }
++                        jobs.swap(remaining);
++                    }
++                }
+                 if (readiness) {
+                     for (const auto & r : jobs) {
+                         std::vector<Range> overlaps;
+@@ -512,6 +557,7 @@ private:
+                 } else {
+                     job = async_queue_.front().range; async = async_queue_.front().batch;
+                     if (observe_) { active_[index] = job; }
++                    if (join_) { active_chunks_[index] = async_queue_.front().chunk; }
+                     async_queue_.pop_front(); ++async->running;
+                     ++async_running_;
+                     async_max_inflight_.store(std::max<uint64_t>(async_max_inflight_.load(), async_running_));
+@@ -565,6 +611,12 @@ private:
+             {
+                 std::lock_guard<std::mutex> lock(mutex_);
+                 if (async) {
++                    if (join_ && active_chunks_[index]) {
++                        active_chunks_[index]->error = error;
++                        active_chunks_[index]->done = true;
++                        active_chunks_[index].reset();
++                        chunk_done_.notify_all();
++                    }
+                     if (observe_) {
+                         active_[index] = {};
+                         if (async->wasted) { wasted_bytes_ += bytes; }
+@@ -595,7 +647,16 @@ private:
+     mutable std::mutex fill_mutex_;
+     std::mutex mutex_;
+     std::condition_variable ready_, done_, async_done_;
+-    struct AsyncJob { Range range; Async batch; size_t layer, distance; };
++    struct Chunk {
++        explicit Chunk(Range r) : range(r) {}
++        Range range;
++        bool done = false;
++        int error = 0;
++    };
++    struct AsyncJob { Range range; Async batch; size_t layer, distance; std::shared_ptr<Chunk> chunk; };
++    std::vector<std::shared_ptr<Chunk>> active_chunks_;
++    std::condition_variable chunk_done_;
++    bool join_ = false;
+     std::list<AsyncJob> async_queue_;
+     size_t async_pending_ = 0, async_running_ = 0, async_limit_ = 4;
+     bool demand_active_ = false, observe_ = false;
+-- 
+2.34.1
+

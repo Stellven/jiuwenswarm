@@ -1,0 +1,2076 @@
+[
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794508354.4414032,
+    "eval_id": "d2465c6a3a5e42fc8b2acee68f095fd8:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "details": {
+        "aborted": false,
+        "effective": {},
+        "effective_line_count": 0,
+        "engagement_checks": {
+          "effective_config_matches_request": false,
+          "xfill_threads_present": false
+        },
+        "eval_ms_per_token": 886.92,
+        "exit_status": 0,
+        "invalid_message": null,
+        "mismatches": {},
+        "missing_files": [],
+        "nsys": null,
+        "requested": {},
+        "traced": false,
+        "unreported_requested": [],
+        "worker": {
+          "cleanup": "reaped",
+          "execution_outcome": "ok",
+          "reason": null
+        }
+      },
+      "observation_id": "d2465c6a3a5e42fc8b2acee68f095fd8:observation",
+      "run": {
+        "details": {
+          "aborted": false,
+          "effective": {},
+          "effective_line_count": 0,
+          "engagement_checks": {
+            "effective_config_matches_request": false,
+            "xfill_threads_present": false
+          },
+          "eval_ms_per_token": 886.92,
+          "exit_status": 0,
+          "invalid_message": null,
+          "mismatches": {},
+          "missing_files": [],
+          "nsys": null,
+          "requested": {},
+          "traced": false,
+          "unreported_requested": [],
+          "worker": {
+            "cleanup": "reaped",
+            "execution_outcome": "ok",
+            "reason": null
+          }
+        },
+        "evidence_completeness": "complete",
+        "execution_outcome": "ok",
+        "image_id": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+        "run_ref": "d2465c6a3a5e42fc8b2acee68f095fd8",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "source_artifacts": [
+        "d2465c6a3a5e42fc8b2acee68f095fd8:manifest.json",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:cmd.txt",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:config.json",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:container.id",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:launcher.stderr.txt",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:launcher.stdout.txt",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:page_cache.end.json",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:page_cache.start.json",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:result.json",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:stderr.txt",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:stdout.txt",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:telemetry.jsonl",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:threads.jsonl",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:threads.log",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:threads.summary.json",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:watchdog.jsonl",
+        "d2465c6a3a5e42fc8b2acee68f095fd8:worker.json"
+      ]
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794510650.129148,
+    "eval_id": "f9ef3d25d1ae4be088df3169b22a8852:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.061477823711838,
+        "acceptance": {
+          "reasons": [
+            "Performance requires gate improved"
+          ],
+          "type": "performance",
+          "verdict": "reject"
+        },
+        "component": "mmap_advice",
+        "drift": 0.00867009264661149,
+        "engagement": [
+          {
+            "id": "0",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          }
+        ],
+        "gate": "regressed",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 895.6075,
+          "candidate": 1871.35
+        },
+        "problems": [],
+        "ratio": 0.47858898656050447,
+        "threshold": 0.122955647423676
+      },
+      "acceptance": {
+        "reasons": [
+          "Performance requires gate improved"
+        ],
+        "type": "performance",
+        "verdict": "reject"
+      },
+      "observation_id": "f9ef3d25d1ae4be088df3169b22a8852:observation",
+      "source_artifacts": [
+        "f9ef3d25d1ae4be088df3169b22a8852:manifest.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/001-base/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/002-candidate/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/003-candidate/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/004-base/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/005-base/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/006-candidate/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/007-candidate/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/cmd.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/container.id",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/page_cache.end.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/page_cache.start.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/result.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/telemetry.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/threads.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/threads.log",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/threads.summary.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/008-base/watchdog.jsonl",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/REPORT.md",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/spec.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:ab/verdict.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:config.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:launcher.stderr.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:launcher.stdout.txt",
+        "f9ef3d25d1ae4be088df3169b22a8852:spec.json",
+        "f9ef3d25d1ae4be088df3169b22a8852:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.061477823711838,
+        "aa_gaps": {
+          "base": 0.061477823711838,
+          "candidate": 0.06050712052796111
+        },
+        "base": "base",
+        "cache_confound": null,
+        "comparisons": {
+          "candidate": {
+            "base_mean": 895.6075,
+            "change": -0.5214110134394956,
+            "mean": 1871.35,
+            "ratio": 0.47858898656050447,
+            "threshold": 0.122955647423676,
+            "verdict": "regressed"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.00867009264661149,
+        "drift_halves": [
+          899.49,
+          891.7249999999999
+        ],
+        "inputs": {
+          "base": [
+            871.96,
+            927.02,
+            886.68,
+            896.77
+          ],
+          "candidate": [
+            1849.13,
+            1826.24,
+            1939.47,
+            1870.56
+          ]
+        },
+        "means": {
+          "base": 895.6075,
+          "candidate": 1871.35
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 895.6075,
+            "eval_tps": 1.12,
+            "gpu_util_median": 16.5,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.2882238714909767,
+            "prompt_tps": 5.6225000000000005,
+            "threads.cpu_workers_r_fraction": 0.19469433525915325,
+            "threads.main_workers_d_fraction": 0.4459759469531709,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 1871.35,
+            "eval_tps": 0.535,
+            "gpu_util_median": 0.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.15857886074891644,
+            "prompt_tps": 1.4849999999999999,
+            "threads.cpu_workers_r_fraction": 0.13862708233193338,
+            "threads.main_workers_d_fraction": 0.5995966199461544,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.122955647423676
+      }
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794513363.2662206,
+    "eval_id": "e74e1eb3b0844891a28d4ae56bb69229:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.041156628086883765,
+        "acceptance": {
+          "reasons": [
+            "Performance requires gate improved"
+          ],
+          "type": "performance",
+          "verdict": "reject"
+        },
+        "component": "router_prefetch",
+        "drift": 0.003247481015357225,
+        "engagement": [
+          {
+            "id": "0",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          }
+        ],
+        "gate": "regressed",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 914.5550000000001,
+          "candidate": 1431.9575
+        },
+        "problems": [],
+        "ratio": 0.638674681336562,
+        "threshold": 0.08231325617376753
+      },
+      "acceptance": {
+        "reasons": [
+          "Performance requires gate improved"
+        ],
+        "type": "performance",
+        "verdict": "reject"
+      },
+      "observation_id": "e74e1eb3b0844891a28d4ae56bb69229:observation",
+      "source_artifacts": [
+        "e74e1eb3b0844891a28d4ae56bb69229:manifest.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/001-base/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/002-candidate/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/003-candidate/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/004-base/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/005-base/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/006-candidate/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/007-candidate/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/cmd.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/container.id",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/page_cache.end.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/page_cache.start.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/result.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/telemetry.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/threads.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/threads.log",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/threads.summary.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/008-base/watchdog.jsonl",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/REPORT.md",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/spec.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:ab/verdict.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:config.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:launcher.stderr.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:launcher.stdout.txt",
+        "e74e1eb3b0844891a28d4ae56bb69229:spec.json",
+        "e74e1eb3b0844891a28d4ae56bb69229:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.041156628086883765,
+        "aa_gaps": {
+          "base": 0.041156628086883765,
+          "candidate": 0.025580368132434174
+        },
+        "base": "base",
+        "cache_confound": null,
+        "comparisons": {
+          "candidate": {
+            "base_mean": 914.5550000000001,
+            "change": -0.361325318663438,
+            "mean": 1431.9575,
+            "ratio": 0.638674681336562,
+            "threshold": 0.08231325617376753,
+            "verdict": "regressed"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.003247481015357225,
+        "drift_halves": [
+          916.04,
+          913.0699999999999
+        ],
+        "inputs": {
+          "base": [
+            925.72,
+            906.36,
+            894.25,
+            931.89
+          ],
+          "candidate": [
+            1420.04,
+            1420.95,
+            1430.17,
+            1456.67
+          ]
+        },
+        "means": {
+          "base": 914.5550000000001,
+          "candidate": 1431.9575
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_<redacted>,
+            "eval_tps": 1.0925,
+            "gpu_util_median": 15.75,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.30069354122574554,
+            "prompt_tps": 5.529999999999999,
+            "threads.cpu_workers_r_fraction": 0.19263012682232022,
+            "threads.main_workers_d_fraction": 0.4527260636986783,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 1431.9575,
+            "eval_tps": 0.6975,
+            "gpu_util_median": 2.25,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.15815738537564777,
+            "prompt_tps": 1.4775,
+            "threads.cpu_workers_r_fraction": 0.15411623374157532,
+            "threads.main_workers_d_fraction": 0.3936559247396666,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.08231325617376753
+      }
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794514818.8950357,
+    "eval_id": "0864629c8ee748f2a54fb72fffe6a0c7:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.20414164294175102,
+        "acceptance": {
+          "reasons": [
+            "Performance requires gate improved"
+          ],
+          "type": "performance",
+          "verdict": "reject"
+        },
+        "component": "expert_fill",
+        "drift": 0.10026807422954634,
+        "engagement": [
+          {
+            "id": "0",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          }
+        ],
+        "gate": "null",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 962.4200000000001,
+          "candidate": 871.1925
+        },
+        "problems": [],
+        "ratio": 1.104715662726665,
+        "threshold": 0.40828328588350205
+      },
+      "acceptance": {
+        "reasons": [
+          "Performance requires gate improved"
+        ],
+        "type": "performance",
+        "verdict": "reject"
+      },
+      "observation_id": "0864629c8ee748f2a54fb72fffe6a0c7:observation",
+      "source_artifacts": [
+        "0864629c8ee748f2a54fb72fffe6a0c7:manifest.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/001-base/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/002-candidate/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/003-candidate/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/004-base/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/005-base/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/006-candidate/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/007-candidate/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/cmd.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/container.id",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/page_cache.end.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/page_cache.start.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/result.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/telemetry.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/threads.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/threads.log",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/threads.summary.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/008-base/watchdog.jsonl",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/REPORT.md",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/spec.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:ab/verdict.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:config.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:launcher.stderr.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:launcher.stdout.txt",
+        "0864629c8ee748f2a54fb72fffe6a0c7:spec.json",
+        "0864629c8ee748f2a54fb72fffe6a0c7:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.20414164294175102,
+        "aa_gaps": {
+          "base": 0.20414164294175102,
+          "candidate": 0.046155126450239226
+        },
+        "base": "base",
+        "cache_confound": null,
+        "comparisons": {
+          "candidate": {
+            "base_mean": 962.4200000000001,
+            "change": 0.104715662726665,
+            "mean": 871.1925,
+            "ratio": 1.104715662726665,
+            "threshold": 0.40828328588350205,
+            "verdict": "null"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.10026807422954634,
+        "drift_halves": [
+          1010.6700000000001,
+          914.1700000000001
+        ],
+        "inputs": {
+          "base": [
+            1097.16,
+            924.18,
+            927.65,
+            900.69
+          ],
+          "candidate": [
+            878.98,
+            894.32,
+            854.11,
+            857.36
+          ]
+        },
+        "means": {
+          "base": 962.4200000000001,
+          "candidate": 871.1925
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_<redacted>,
+            "eval_tps": 1.0450000000000002,
+            "gpu_util_median": 15.75,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.31230310118689886,
+            "prompt_tps": 5.43,
+            "threads.cpu_workers_r_fraction": 0.19694072927972245,
+            "threads.main_workers_d_fraction": 0.4494932571935395,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 871.1925,
+            "eval_tps": 1.15,
+            "gpu_util_median": 17.25,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.22568077858063806,
+            "prompt_tps": 5.365,
+            "threads.cpu_workers_r_fraction": 0.07123750345784252,
+            "threads.main_workers_d_fraction": 0.19436601289170669,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.40828328588350205
+      }
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794516355.7490404,
+    "eval_id": "989e981f7a2949e783addea1901aa700:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.14146737730577946,
+        "acceptance": {
+          "reasons": [
+            "Performance requires gate improved"
+          ],
+          "type": "performance",
+          "verdict": "reject"
+        },
+        "component": "expert_fill",
+        "drift": 0.0666804416680583,
+        "engagement": [
+          {
+            "id": "0",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/007-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          }
+        ],
+        "gate": "null",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 883.2425000000001,
+          "candidate": 848.995
+        },
+        "problems": [],
+        "ratio": 1.0403388712536588,
+        "threshold": 0.2829347546115589
+      },
+      "acceptance": {
+        "reasons": [
+          "Performance requires gate improved"
+        ],
+        "type": "performance",
+        "verdict": "reject"
+      },
+      "observation_id": "989e981f7a2949e783addea1901aa700:observation",
+      "source_artifacts": [
+        "989e981f7a2949e783addea1901aa700:manifest.json",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/001-base/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/002-candidate/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/003-candidate/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/004-base/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/005-base/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/006-candidate/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/007-candidate/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/cmd.txt",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/container.id",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/page_cache.end.json",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/page_cache.start.json",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/result.json",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/stderr.txt",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/stdout.txt",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/telemetry.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/threads.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/threads.log",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/threads.summary.json",
+        "989e981f7a2949e783addea1901aa700:ab/008-base/watchdog.jsonl",
+        "989e981f7a2949e783addea1901aa700:ab/REPORT.md",
+        "989e981f7a2949e783addea1901aa700:ab/spec.json",
+        "989e981f7a2949e783addea1901aa700:ab/verdict.json",
+        "989e981f7a2949e783addea1901aa700:config.json",
+        "989e981f7a2949e783addea1901aa700:launcher.stderr.txt",
+        "989e981f7a2949e783addea1901aa700:launcher.stdout.txt",
+        "989e981f7a2949e783addea1901aa700:spec.json",
+        "989e981f7a2949e783addea1901aa700:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.14146737730577946,
+        "aa_gaps": {
+          "base": 0.14146737730577946,
+          "candidate": 0.039375968056348916
+        },
+        "base": "base",
+        "cache_confound": null,
+        "comparisons": {
+          "candidate": {
+            "base_mean": 883.2425000000001,
+            "change": 0.04033887125365876,
+            "mean": 848.995,
+            "ratio": 1.0403388712536588,
+            "threshold": 0.2829347546115589,
+            "verdict": "null"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.0666804416680583,
+        "drift_halves": [
+          912.69,
+          853.7950000000001
+        ],
+        "inputs": {
+          "base": [
+            964.55,
+            860.83,
+            867.99,
+            839.6
+          ],
+          "candidate": [
+            857.34,
+            825.09,
+            858.52,
+            855.03
+          ]
+        },
+        "means": {
+          "base": 883.2425000000001,
+          "candidate": 848.995
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_<redacted>,
+            "eval_tps": 1.135,
+            "gpu_util_median": 16.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.24101379941912598,
+            "prompt_tps": 5.3225,
+            "threads.cpu_workers_r_fraction": 0.06775671385701908,
+            "threads.main_workers_d_fraction": 0.20298638878796563,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 848.995,
+            "eval_tps": 1.1775,
+            "gpu_util_median": 17.5,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.21477782147156263,
+            "prompt_tps": 5.255,
+            "threads.cpu_workers_r_fraction": 0.07599630144436365,
+            "threads.main_workers_d_fraction": 0.274620172388047,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.2829347546115589
+      }
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794516705.7232413,
+    "eval_id": "5dacbf5d0faf4cd4b77b2fe0aa92dd43:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "details": {
+        "aborted": false,
+        "effective": {},
+        "effective_line_count": 0,
+        "engagement_checks": {
+          "effective_config_matches_request": false,
+          "xfill_threads_present": false
+        },
+        "eval_ms_per_token": 949.91,
+        "exit_status": 0,
+        "invalid_message": null,
+        "mismatches": {},
+        "missing_files": [],
+        "nsys": null,
+        "requested": {},
+        "traced": false,
+        "unreported_requested": [],
+        "worker": {
+          "cleanup": "reaped",
+          "execution_outcome": "ok",
+          "reason": null
+        }
+      },
+      "observation_id": "5dacbf5d0faf4cd4b77b2fe0aa92dd43:observation",
+      "run": {
+        "details": {
+          "aborted": false,
+          "effective": {},
+          "effective_line_count": 0,
+          "engagement_checks": {
+            "effective_config_matches_request": false,
+            "xfill_threads_present": false
+          },
+          "eval_ms_per_token": 949.91,
+          "exit_status": 0,
+          "invalid_message": null,
+          "mismatches": {},
+          "missing_files": [],
+          "nsys": null,
+          "requested": {},
+          "traced": false,
+          "unreported_requested": [],
+          "worker": {
+            "cleanup": "reaped",
+            "execution_outcome": "ok",
+            "reason": null
+          }
+        },
+        "evidence_completeness": "complete",
+        "execution_outcome": "ok",
+        "image_id": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+        "run_ref": "5dacbf5d0faf4cd4b77b2fe0aa92dd43",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "source_artifacts": [
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:manifest.json",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:cmd.txt",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:config.json",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:container.id",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:launcher.stderr.txt",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:launcher.stdout.txt",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:page_cache.end.json",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:page_cache.start.json",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:result.json",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:stderr.txt",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:stdout.txt",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:telemetry.jsonl",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:threads.jsonl",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:threads.log",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:threads.summary.json",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:watchdog.jsonl",
+        "5dacbf5d0faf4cd4b77b2fe0aa92dd43:worker.json"
+      ]
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "fail",
+    "created": 1794517847.8721223,
+    "eval_id": "d5dcd3b747dc42e49fecafd3b645fdc6:evaluation",
+    "evidence_completeness": "partial",
+    "execution_outcome": "candidate_failed",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.08470120014847207,
+        "acceptance": {
+          "reasons": [
+            "Incomplete or invalid measurement; required signal may be not_measured"
+          ],
+          "type": "performance",
+          "verdict": "invalid"
+        },
+        "component": "expert_fill",
+        "drift": 0.0698900894956078,
+        "engagement": [
+          {
+            "id": "0",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/002-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/003-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "0",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "1",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          },
+          {
+            "id": "2",
+            "run": "ab/006-candidate/",
+            "source": "stderr",
+            "status": "pass"
+          }
+        ],
+        "gate": "invalid",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 969.88,
+          "candidate": 850.3299999999999
+        },
+        "problems": [
+          "A/B worker did not complete successfully",
+          "A/B report missing",
+          "ab/007-candidate/missing run evidence",
+          "ab/008-base/missing run evidence",
+          "abrun verdict is INVALID",
+          "abrun output classification differs from raw evidence"
+        ],
+        "ratio": 1.1405924758623123,
+        "threshold": 0.16940240029694414
+      },
+      "acceptance": {
+        "reasons": [
+          "Incomplete or invalid measurement; required signal may be not_measured"
+        ],
+        "type": "performance",
+        "verdict": "invalid"
+      },
+      "observation_id": "d5dcd3b747dc42e49fecafd3b645fdc6:observation",
+      "source_artifacts": [
+        "d5dcd3b747dc42e49fecafd3b645fdc6:manifest.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/page_cache.end.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/result.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/001-base/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/page_cache.end.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/result.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/002-candidate/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/page_cache.end.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/result.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/003-candidate/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/page_cache.end.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/result.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/004-base/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/page_cache.end.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/result.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/005-base/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/page_cache.end.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/result.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/006-candidate/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/cmd.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/container.id",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/page_cache.start.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/telemetry.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/threads.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/threads.log",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/threads.summary.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/007-candidate/watchdog.jsonl",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:ab/spec.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:config.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:launcher.stderr.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:launcher.stdout.txt",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:spec.json",
+        "d5dcd3b747dc42e49fecafd3b645fdc6:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.08470120014847207,
+        "aa_gaps": {
+          "base": 0.08470120014847207,
+          "candidate": 0.03250502745992731
+        },
+        "base": "base",
+        "cache_confound": null,
+        "comparisons": {
+          "candidate": {
+            "base_mean": 969.88,
+            "change": 0.14059247586231227,
+            "mean": 850.3299999999999,
+            "ratio": 1.1405924758623123,
+            "threshold": 0.16940240029694414,
+            "verdict": "null"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.0698900894956078,
+        "drift_halves": [
+          1015.07,
+          947.285
+        ],
+        "inputs": {
+          "base": [
+            1015.07,
+            932.92,
+            961.65
+          ],
+          "candidate": [
+            850.79,
+            863.92,
+            836.28
+          ]
+        },
+        "means": {
+          "base": 969.88,
+          "candidate": 850.3299999999999
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 969.88,
+            "eval_tps": 1.0333333333333334,
+            "gpu_util_median": 15.333333333333334,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.3209628091328976,
+            "prompt_tps": 5.1866666666666665,
+            "threads.cpu_workers_r_fraction": 0.18930302992596,
+            "threads.main_workers_d_fraction": 0.4551458096984487,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_<redacted>,
+            "eval_tps": 1.18,
+            "gpu_util_median": 18.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.23002383280175515,
+            "prompt_tps": 5.086666666666667,
+            "threads.cpu_workers_r_fraction": 0.07303771072712983,
+            "threads.main_workers_d_fraction": 0.1935735780340359,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.16940240029694414
+      }
+    },
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  }
+]

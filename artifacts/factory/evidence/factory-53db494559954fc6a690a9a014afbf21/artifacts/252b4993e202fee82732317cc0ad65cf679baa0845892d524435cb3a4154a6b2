@@ -1,0 +1,378 @@
+{
+ "exit_code": 0,
+ "wall_s": 148.85,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 284.83,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=random",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 284.2,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=random",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 145.51,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 149.02,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 294.68,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=random",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 292.22,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=random",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 145.23,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+ "env": "-e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+  "cache_confound": null,
+  "secondary_metrics": {
+    "base": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.6225000000000005,
+      "eval_tps": 1.12,
+      "eval_ms_per_token": 895.6075,
+      "nvme_gib_per_token_decode": 0.2882238714909767,
+      "gpu_util_median": 16.5,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.19469433525915325,
+      "threads.main_workers_d_fraction": 0.4459759469531709,
+      "threads.majflt_per_<redacted>
+    },
+    "candidate": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 1.4849999999999999,
+      "eval_tps": 0.535,
+      "eval_ms_per_token": 1871.35,
+      "nvme_gib_per_token_decode": 0.15857886074891644,
+      "gpu_util_median": 0.0,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.13862708233193338,
+      "threads.main_workers_d_fraction": 0.5995966199461544,
+      "threads.majflt_per_<redacted>
+    }
+  },
+  "metric": "eval_ms_per_token",
+  "direction": "lower",
+  "base": "base",
+  "inputs": {
+    "base": [
+      871.96,
+      927.02,
+      886.68,
+      896.77
+    ],
+    "candidate": [
+      1849.13,
+      1826.24,
+      1939.47,
+      1870.56
+    ]
+  },
+  "means": {
+    "base": 895.6075,
+    "candidate": 1871.35
+  },
+  "aa_gaps": {
+    "base": 0.061477823711838,
+    "candidate": 0.06050712052796111
+  },
+  "aa_gap": 0.061477823711838,
+  "drift_halves": [
+    899.49,
+    891.7249999999999
+  ],
+  "drift": 0.00867009264661149,
+  "threshold": 0.122955647423676,
+  "minimum_effect": 0.03,
+  "noise_multiplier": 2,
+  "comparisons": {
+    "candidate": {
+      "mean": 1871.35,
+      "base_mean": 895.6075,
+      "ratio": 0.47858898656050447,
+      "change": -0.5214110134394956,
+      "threshold": 0.122955647423676,
+      "verdict": "regressed"
+    }
+  },
+  "output": {
+    "class": "identical",
+    "hashes": {
+      "base": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "candidate": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ]
+    }
+  },
+  "reasons": [],
+  "status": "completed",
+  "invalid_reasons": [],
+  "cache_protocol": "carryover",
+  "planned_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ],
+  "executed_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ]
+}

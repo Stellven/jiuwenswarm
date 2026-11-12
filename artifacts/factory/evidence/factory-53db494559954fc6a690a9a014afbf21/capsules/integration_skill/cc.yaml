@@ -1,0 +1,13 @@
+cc: '2'
+id: factory.integration_skill
+version: 1.0.0
+materials:
+  integrate:
+    kind: skill
+    path: INTEGRATE.md
+  repair:
+    kind: skill
+    path: REPAIR.md
+  preflight:
+    kind: skill
+    path: PREFLIGHT.md

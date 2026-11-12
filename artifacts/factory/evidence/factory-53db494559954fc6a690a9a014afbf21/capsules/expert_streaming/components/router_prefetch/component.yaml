@@ -1,0 +1,34 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 02-router-prefetch.patch
+  sha256: 9fce108d33c500f57ab48d4eab1c24a191b20f8268b13009d25255e957e42f99
+depends_on:
+- mmap_advice
+enable_env:
+  LLAMA_EXPERT_PREFETCH: '1'
+  LLAMA_EXPERT_PREFETCH_NEXT: '0'
+  LLAMA_MMAP_ADVICE: default
+engagement_checks:
+- source: stderr
+  regex: 'expert_prefetch: CPU host-consumer hook enabled'
+- source: stderr
+  regex: 'expert_prefetch: advise calls=[1-9][0-9]*'
+hypothesis: Advise the selected host expert ranges before their CPU consumer touches
+  them.
+measure: perf
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and
+  environment; retain all evidence.
+env_ranges:
+  LLAMA_EXPERT_PREFETCH: '1 enables; otherwise off (08: strict 0|1)'
+  LLAMA_EXPERT_PREFETCH_NEXT: '1 enables next-layer same-ID prediction; otherwise
+    off (08: strict 0|1)'
+
+acceptance:
+  type: performance
+
+implements: [expert_streaming.router_prefetch]
+modifies_region: ["L4.router", "M.read_request"]
+quantities: ["readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]

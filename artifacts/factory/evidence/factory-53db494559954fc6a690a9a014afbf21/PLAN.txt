@@ -1,0 +1,50 @@
+Plan factory-53db494559954fc6a690a9a014afbf21 · graph rev 26
+[done] inspect: Inspect task source and constraints (factory.engine_inspector.inspect)
+  [done] applicability: Assess component applicability
+    [done] baseline-build: Build baseline (factory.builder.submit)
+      [done] baseline-measure: Measure baseline (factory.lab_client.submit)
+        [done] integrate: Integrate engine.expert_streaming
+          [done] candidate-build: Build candidate (factory.builder.submit)
+            [done] candidate-measure: Measure candidate against baseline (factory.lab_client.ab_submit)
+              [done] router-integrate: Integrate router_prefetch source
+                [done] router-build: Build router_prefetch source (factory.builder.submit)
+                  [done] fill-integrate: Integrate fill source03-05
+                    [done] pregate-integrate: Integrate06-08 source for strict config, runtime off
+                      [done] config-stack-build: Build source01-08 with strict config (factory.builder.submit)
+                        [done] router-measure: Measure router_prefetch (factory.lab_client.ab_submit)
+                          [done] fill-measure: Measure demand fill only (factory.lab_client.ab_submit)
+                            [done] fill-tune-chunk: Tune fill chunk2048 to256 (factory.lab_client.ab_submit)
+                              [done] bare-primer: Non-scoring fixed bare carryover primer (factory.lab_client.submit)
+                                [proposed] final-direct: Direct bare-versus-selected final ABBA (factory.lab_client.ab_submit)
+                                  [proposed] accept: Decide from comparable evidence
+                                    dependency final-direct is proposed
+                                    [proposed] report: Report result and limitations
+                                      dependency accept is proposed
+Ready frontier: final-direct
+Revision history:
+  graph 1 ← decision 0 (seed): add: inspect, applicability, baseline-build, baseline-measure, integrate, candidate-build, candidate-measure, accept, report
+  graph 2 ← decision 2 (decision): update: inspect, applicability
+  graph 3 ← decision 5 (decision): update: baseline-build
+  graph 4 ← decision 5 (decision): update: baseline-measure
+  graph 5 ← decision 6 (decision): update: baseline-measure, integrate
+  graph 6 ← decision 8 (decision): update: integrate
+  graph 7 ← decision 8 (decision): update: candidate-build
+  graph 8 ← decision 9 (decision): update: candidate-build
+  graph 9 ← decision 9 (decision): update: candidate-measure
+  graph 10 ← decision 10 (decision): add: router-integrate, router-build, router-measure; update: candidate-measure, accept
+  graph 11 ← decision 12 (decision): update: router-integrate
+  graph 12 ← decision 12 (decision): update: router-build
+  graph 13 ← decision 13 (decision): add: fill-integrate, pregate-integrate, config-stack-build, fill-measure; update: router-build, router-measure, accept
+  graph 14 ← decision 14 (decision): update: fill-integrate
+  graph 15 ← decision 15 (decision): update: pregate-integrate
+  graph 16 ← decision 15 (decision): update: config-stack-build
+  graph 17 ← decision 16 (decision): update: config-stack-build
+  graph 18 ← decision 16 (decision): update: router-measure
+  graph 19 ← decision 17 (decision): update: router-measure
+  graph 20 ← decision 18 (decision): update: fill-measure
+  graph 21 ← decision 19 (decision): add: fill-tune-chunk, final-direct; update: fill-measure, accept
+  graph 22 ← decision 19 (decision): update: fill-tune-chunk
+  graph 23 ← decision 20 (decision): add: bare-primer; update: fill-tune-chunk, final-direct
+  graph 24 ← decision 20 (decision): update: bare-primer
+  graph 25 ← decision 21 (decision): update: bare-primer
+  graph 26 ← decision 21 (decision): update: final-direct

@@ -1,0 +1,3 @@
+sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075
+-e LLAMA_MMAP_ADVICE=random
+llama-completion -m /om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf -f /om/prompts/p1.txt -n 64 -c 4096 --temp 0 -s 1 -no-cnv -ngl 99 -lm mmap -cmoe -lv 4

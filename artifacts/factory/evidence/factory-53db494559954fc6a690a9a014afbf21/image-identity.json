@@ -1,0 +1,114 @@
+[
+  {
+    "attempt_id": "60c41610d9964e999cc2e067bf21d410",
+    "evidence_id": "60c41610d9964e999cc2e067bf21d410:build-record",
+    "image": {
+      "Architecture": "arm64",
+      "Created": "2026-11-12T18:37:32.064171039Z",
+      "Id": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+      "Os": "linux",
+      "RepoDigests": [
+        "factory/llamacpp@sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075"
+      ],
+      "config_digest": "sha256:d16108d1ab43a1ad217b407e08583a6497c12d78d55b44fb205bb0f3fdbb0f91",
+      "docker_id_in_archive_index": true,
+      "docker_reported_id": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+      "id_note": "Id/docker_reported_id is whatever `docker image inspect` returned (containerd store: an index digest). config_digest is the image config digest. They are different objects.",
+      "index_digest": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+      "index_manifests": [
+        {
+          "digest": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+          "mediaType": "application/vnd.oci.image.index.v1+json"
+        }
+      ]
+    },
+    "inspect_error": "permission denied while trying to connect to the docker API at unix:///var/run/docker.sock\n",
+    "labels": null,
+    "labels_note": "Unavailable without Docker access; build record does not capture image labels",
+    "provenance": "build record only"
+  },
+  {
+    "attempt_id": "6b540bdd51564bc190b96d6e2738fe14",
+    "evidence_id": "6b540bdd51564bc190b96d6e2738fe14:build-record",
+    "image": {
+      "Architecture": "arm64",
+      "Created": "2026-11-12T18:26:49.53246259Z",
+      "Id": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+      "Os": "linux",
+      "RepoDigests": [
+        "factory/llamacpp@sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568"
+      ],
+      "config_digest": "sha256:b5adb6cbf290f2509f3158d5a56319ab985f3769640914219f93acff0472d38d",
+      "docker_id_in_archive_index": true,
+      "docker_reported_id": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+      "id_note": "Id/docker_reported_id is whatever `docker image inspect` returned (containerd store: an index digest). config_digest is the image config digest. They are different objects.",
+      "index_digest": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+      "index_manifests": [
+        {
+          "digest": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+          "mediaType": "application/vnd.oci.image.index.v1+json"
+        }
+      ]
+    },
+    "inspect_error": "permission denied while trying to connect to the docker API at unix:///var/run/docker.sock\n",
+    "labels": null,
+    "labels_note": "Unavailable without Docker access; build record does not capture image labels",
+    "provenance": "build record only"
+  },
+  {
+    "attempt_id": "915b94fd95f04f73bc04db2a7503258d",
+    "evidence_id": "915b94fd95f04f73bc04db2a7503258d:build-record",
+    "image": {
+      "Architecture": "arm64",
+      "Created": "2026-11-12T19:25:48.783487206Z",
+      "Id": "sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb",
+      "Os": "linux",
+      "RepoDigests": [
+        "factory/llamacpp@sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb"
+      ],
+      "config_digest": "sha256:96fbce64ace8c5771e9ee636e5f761678f7ed3cc4d0f7b91019b51fa46831e3e",
+      "docker_id_in_archive_index": true,
+      "docker_reported_id": "sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb",
+      "id_note": "Id/docker_reported_id is whatever `docker image inspect` returned (containerd store: an index digest). config_digest is the image config digest. They are different objects.",
+      "index_digest": "sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb",
+      "index_manifests": [
+        {
+          "digest": "sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb",
+          "mediaType": "application/vnd.oci.image.index.v1+json"
+        }
+      ]
+    },
+    "inspect_error": "permission denied while trying to connect to the docker API at unix:///var/run/docker.sock\n",
+    "labels": null,
+    "labels_note": "Unavailable without Docker access; build record does not capture image labels",
+    "provenance": "build record only"
+  },
+  {
+    "attempt_id": "93042183879943a38c5953f7454c6da1",
+    "evidence_id": "93042183879943a38c5953f7454c6da1:build-record",
+    "image": {
+      "Architecture": "arm64",
+      "Created": "2026-11-12T19:15:58.63385994Z",
+      "Id": "sha256:4f1714ed8b490b2881e9682e838cae2893dbfc9e874b50e4f2ea087410f359c9",
+      "Os": "linux",
+      "RepoDigests": [
+        "factory/llamacpp@sha256:4f1714ed8b490b2881e9682e838cae2893dbfc9e874b50e4f2ea087410f359c9"
+      ],
+      "config_digest": "sha256:67bb813ff01d5f8edd935934c93b71b82ee6a8d5d1914b7cabad72df712f38a1",
+      "docker_id_in_archive_index": true,
+      "docker_reported_id": "sha256:4f1714ed8b490b2881e9682e838cae2893dbfc9e874b50e4f2ea087410f359c9",
+      "id_note": "Id/docker_reported_id is whatever `docker image inspect` returned (containerd store: an index digest). config_digest is the image config digest. They are different objects.",
+      "index_digest": "sha256:4f1714ed8b490b2881e9682e838cae2893dbfc9e874b50e4f2ea087410f359c9",
+      "index_manifests": [
+        {
+          "digest": "sha256:4f1714ed8b490b2881e9682e838cae2893dbfc9e874b50e4f2ea087410f359c9",
+          "mediaType": "application/vnd.oci.image.index.v1+json"
+        }
+      ]
+    },
+    "inspect_error": "permission denied while trying to connect to the docker API at unix:///var/run/docker.sock\n",
+    "labels": null,
+    "labels_note": "Unavailable without Docker access; build record does not capture image labels",
+    "provenance": "build record only"
+  }
+]

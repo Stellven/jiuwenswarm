@@ -1,0 +1,196 @@
+ factory · 53db4945 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 12 turns · 186:43
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 01:19  ✓     integrate  commit 0b514fba · combined-01-02-03-04-05-06-07-08.patch
+ 02:48  rev 1 investigate 4e3abdc56aae46a78446dd03c349568c and 3ba0e7405ede495ea950afde26a78eac show
+                         source mismatch
+ 02:50  ✓     integrate  commit cf34d311 ·
+ 02:53  ·     expert_streaming_applicability Read-only inspection; not performance scoring
+ 03:26  rev 2 build      60a5cf7bdeb24fd0a17aacbc62d17a50 resolves source mismatch and
+                         e7f6937a792245e9a21e7cfb80661bfd supports mechanism applicability.
+ 03:26  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 04:05  rev 3 build      Failed builder receipt 5682ebc6-7cbb-4368-8118-7ceb4a42c0f9 rejected
+                         request syntax
+ 04:24  rev 4 build      Receipt a83b34d6-8337-4efe-add8-a566a87cacdc identifies missing top-level
+                         tag, refining decision 3 without changing source or contract.
+ 04:25  ·     build      6b540bdd queued · durable job
+ 04:54  ·     build      6b540bdd running · durable job
+ 08:11  ✓     build      6b540bdd · 135 s → image 17de3839
+ 08:19  ✓     build      6b540bdd succeeded · durable job · survived turn end
+ 09:14  rev 5 investigate 6b540bdd51564bc190b96d6e2738fe14:build-result and :receipt establish build
+                         success, enabling runtime/reference verification.
+ 09:14  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 09:20  ✓     inspect    inspector.preflight
+ 09:21  ·     lab        d2465c6a queued · durable job
+ 09:21  ✓     admit      875b3c87 · image 17de3839 · target jetson-orin
+ 09:27  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 09:48  ·     lab        d2465c6a running · durable job
+ 11:59  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · complete · stdout 7a154179 == reference
+                         7a154179 · engagement 0/2
+ 11:59  ✓     lab        64 tokens · 886.92 ms/token · ok · reaped
+ 11:59  ✓     upload     durable
+ 12:05  ✓     lab        d2465c6a succeeded · durable job · survived turn end
+ 13:33  rev 6 integrate  mmap_advice · d2465c6a3a5e42fc8b2acee68f095fd8:evaluation establishes
+                         working frozen bare reference
+ 13:33  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 14:35  ·     component_integration Not built or measured.
+ 14:36  rev 7 integrate  mmap_advice · Integration observation d1aabd484bca4c3497d3cee41c5c729b
+                         records missing Git identity and successful patch checks
+ 14:40  ✓     integrate  commit c1e68ffb ·
+ 15:13  ·     component_integration Candidate not built or runtime verified. Legacy inspector
+                         detects combined/09 patches only; patch01 was separately reverse-checked.
+ 15:14  rev 8 build      mmap_advice · cebf128d2022488a8897ace41d56f43f and
+                         a305cf820d79487ba9ff8b812bf2a3bd establish clean verified integration ready
+                         to build.
+ 15:14  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 15:15  ·     build      60c41610 queued · durable job
+ 15:16  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 15:34  ·     build      60c41610 running · durable job
+ 18:52  ✓     build      60c41610 · 129 s → image d7f14c25
+ 19:01  ✓     build      60c41610 succeeded · durable job · survived turn end
+ 19:36  ✓     inspect    inspector.preflight
+ 19:43  ✓     inspect    inspector.verify_effective_config
+ 20:12  rev 9 measure    mmap_advice · 60c41610d9964e999cc2e067bf21d410:build-result and preflight
+                         3d79c958bd8a4eac939743ad3ee6bf34 make a controlled runtime comparison
+                         available.
+ 20:12  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 20:13  ·     lab        f9ef3d25 queued · durable job
+ 20:15  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 20:33  ·     lab        f9ef3d25 running · durable job
+ 50:15  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate regressed · ratio
+                         0.47858898656050447 · output identical
+ 50:15  ·     ab_result  mmap_advice · acceptance performance reject · gate regressed · ratio
+                         0.47858898656050447 · A/A 0.061477823711838 · output identical · ms/token
+                         {'base': 895.6075, 'candidate': 1871.35}
+ 50:15  ✓     upload     durable
+ 50:20  ✓     lab        f9ef3d25 succeeded · durable job · survived turn end
+ 52:27  ·     ab_review  All eight summary/cache/stderr artifacts complete and reviewed. Raw
+                         telemetry/watchdog evidence.read previews are truncated; full streams
+                         retained by Manager. Derived phase windows have unknown exit-alignment
+                         bound; no claim of complete external-load attribution.
+ 52:28  rev 10 keep_dormant dormant mmap_advice · switch off · needed by router_prefetch,
+                         expert_fill
+ 52:28  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 52:55  rev 11 integrate  router_prefetch · f9ef3d25d1ae4be088df3169b22a8852:evaluation disproves
+                         global random advice
+ 53:30  ·     component_integration Not built or runtime tested; callback scheduling overhead
+                         unknown.
+ 53:37  ✓     integrate  commit e67d6eca ·
+ 53:40  rev 12 build      router_prefetch · 355abcd118384754ba5e0b6097b9d3c5 and
+                         fc860fecb44741cd8d5be9e808a56f06 establish clean ordered router
+                         integration.
+ 53:40  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 53:41  ·     build      93042183 queued · durable job
+ 53:42  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 54:03  ·     build      93042183 running · durable job
+ 57:18  ✓     build      93042183 · 126 s → image 4f1714ed
+ 57:31  ✓     build      93042183 succeeded · durable job · survived turn end
+ 58:07  ✓     inspect    inspector.preflight
+ 58:19  ✗     inspect    CONFIG_MISSING No expert_config effective line in stderr
+ 60:54  rev 13 replan/integrate expert_fill · 25ca171cbf99484bbadbbaa5a8698896 and
+                         a451b56f778d4831926ec9f63afa71dd expose absent reporting · because 25ca171c
+ 60:54  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 61:38  ·     component_integration Fill not built/scored. Supplied historical source refs not used
+                         as correctness authority.
+ 61:39  rev 14 replan/integrate expert_pregate · 25ca171cbf99484bbadbbaa5a8698896 requires reporting
+                         repair · because 25ca171c
+ 61:39  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 62:46  ·     component_integration Source-only config repair; all performance mechanisms still
+                         unaccepted and off outside candidate tests.
+ 62:57  ✓     integrate  commit 98d026ef · combined-01-02-03-04-05-06-07-08.patch
+ 63:00  rev 15 replan/build b3bf2e6ab98f46dd951b19e28300b2d9 and 86fbf5a3cf96418eb8ff7a02223ba6e4
+                         establish concrete ordered source repair for
+                         25ca171cbf99484bbadbbaa5a8698896. · because 25ca171c
+ 63:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 63:01  ·     build      915b94fd queued · durable job
+ 63:02  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 63:21  ·     build      915b94fd running · durable job
+ 67:16  ✓     build      915b94fd · 160 s → image 74785dff
+ 67:22  ✓     build      915b94fd succeeded · durable job · survived turn end
+ 67:53  ✓     inspect    inspector.preflight
+ 68:03  ✓     inspect    effective pregate=0 · fill=0 · prefetch=0 · … · matches request
+ 68:08  ✓     inspect    effective pregate=0 · fill=0 · prefetch=1 · … · matches request
+ 68:39  rev 16 replan/measure router_prefetch · ef48fecb9e8844059ba0481b9b029592 and
+                         ba975778dbb74e3e8ae2aea6cba7f7f8 verify the concrete repair for
+                         25ca171cbf99484bbadbbaa5a8698896. · because 25ca171c
+ 68:39  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 68:41  ·     lab        e74e1eb3 queued · durable job
+ 68:42  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 69:02  ·     lab        e74e1eb3 running · durable job
+ 95:28  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate regressed · ratio
+                         0.638674681336562 · output identical
+ 95:28  ·     ab_result  router_prefetch · acceptance performance reject · gate regressed · ratio
+                         0.638674681336562 · A/A 0.041156628086883765 · output identical · ms/token
+                         {'base': 914.5550000000001, 'candidate': 1431.9575}
+ 95:28  ✓     upload     durable
+ 95:29  ✓     lab        e74e1eb3 succeeded · durable job · survived turn end
+ 97:34  ·     ab_review  All summary/cache/stderr and REPORT/verdict reviewed; raw
+                         telemetry/watchdog previews truncated. No per-phase engine fault counters
+                         or complete external-load attribution claimed.
+ 97:36  rev 17 keep_dormant dormant router_prefetch · switch off · needed by expert_fill
+ 97:36  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 97:51  ✓     inspect    effective pregate=0 · fill=0 · chunk_kib=2048 · … · matches request
+ 97:59  ✓     inspect    effective pregate=0 · fill=1 · chunk_kib=2048 · … · matches request
+ 98:19  rev 18 measure    expert_fill · e74e1eb3b0844891a28d4ae56bb69229:evaluation disproves
+                         advisory mechanism
+ 98:20  ·     lab        0864629c queued · durable job
+ 98:22  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 98:45  ·     lab        0864629c running · durable job
+ 119:44  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate null · ratio 1.104715662726665 ·
+                         output identical
+ 119:44  ·     ab_result  expert_fill · acceptance performance reject · gate null · ratio
+                         1.104715662726665 · A/A 0.20414164294175102 · output identical · ms/token
+                         {'base': 962.4200000000001, 'candidate': 871.1925}
+ 119:44  ✓     upload     durable
+ 119:53  ✓     lab        0864629c succeeded · durable job · survived turn end
+ 120:23  ·     expert_streaming_engagement Read-only inspection; not performance scoring
+ 123:49  ·     ab_review  All summaries/cache/stderr read; raw telemetry/watchdog bounded previews
+                         truncate. Sampled IO/fault/phase alignment is descriptive. No claimed
+                         improvement, no rejected run removed.
+ 123:50  rev 19 replan/tune expert_fill · LLAMA_EXPERT_FILL_CHUNK_KIB 2048 → 256
+ 123:50  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 124:22  ✓     inspect    effective pregate=0 · fill=1 · chunk_kib=256 · … · matches request
+ 124:24  ·     lab        989e981f queued · durable job
+ 124:25  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 124:50  ·     lab        989e981f running · durable job
+ 145:21  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate null · ratio 1.0403388712536588 ·
+                         output identical
+ 145:21  ·     ab_result  expert_fill · acceptance performance reject · gate null · ratio
+                         1.0403388712536588 · A/A 0.14146737730577946 · output identical · ms/token
+                         {'base': 883.2425000000001, 'candidate': 848.995}
+ 145:21  ✓     upload     durable
+ 145:32  ✓     lab        989e981f succeeded · durable job · survived turn end
+ 145:57  ·     expert_streaming_engagement Read-only inspection; not performance scoring
+ 148:28  ·     ab_review  Null tuning result establishes no improvement. Raw telemetry/watchdog
+                         previews truncate; all complete summaries/cache/stderr retained/reviewed;
+                         no unseen-background-load pass inferred.
+ 148:29  rev 20 investigate 989e981f7a2949e783addea1901aa700:ab/verdict.json is null and
+                         c6a4033c2f3e4805aa69c4faa1cace96 records repeat first-A/cache disparity
+ 148:29  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 148:30  ✓     inspect    inspector.preflight
+ 148:32  ·     lab        5dacbf5d queued · durable job
+ 148:32  ✓     admit      875b3c87 · image 17de3839 · target jetson-orin
+ 148:33  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 148:55  ·     lab        5dacbf5d running · durable job
+ 151:11  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · complete · stdout 7a154179 ==
+                         reference 7a154179 · engagement 0/2
+ 151:11  ✓     lab        64 tokens · 949.91 ms/token · ok · reaped
+ 151:11  ✓     upload     durable
+ 151:19  ✓     lab        5dacbf5d succeeded · durable job · survived turn end
+ 152:25  rev 21 measure    expert_fill · 5dacbf5d0faf4cd4b77b2fe0aa92dd43:evaluation and cache
+                         artifacts establish the bounded primer
+ 152:25  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 152:27  ·     lab        d5dcd3b7 queued · durable job
+ 152:28  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 152:52  ·     lab        d5dcd3b7 running · durable job
+ 170:08  ·     lab        d5dcd3b7 cancel_requested · durable job
+ 170:13  ✗     contract   qwen36-bare-greedy-v1 · fail · candidate_failed · gate invalid · ratio
+                         1.1405924758623123 · output identical
+ 170:13  ·     ab_result  expert_fill · acceptance performance invalid · gate invalid · ratio
+                         1.1405924758623123 · A/A 0.08470120014847207 · output identical · ms/token
+                         {'base': 969.88, 'candidate': 850.3299999999999}
+ 170:13  ✓     upload     durable
+ 170:13  ✗     lab        d5dcd3b7 cancelled · durable job
+engine stack: cf34d3113 → mmap_advice (off) → router_prefetch (off)
+chain: component ✓ → commit ✓ → build ✓ → image ✓ → admission ✓ → lab ✓ → evaluation ✓
+evidence: 746 records · 633 artifacts · 446463160 bytes

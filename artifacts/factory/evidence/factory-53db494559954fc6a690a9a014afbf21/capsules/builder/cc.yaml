@@ -1,0 +1,91 @@
+cc: '2'
+id: factory.builder
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  submit:
+    kind: tool
+    does: Submit a durable build job. This acknowledges submission, not success; inspect
+      status and result separately.
+    takes:
+      request: json
+      idem_key: text
+      node_id:
+        kind: text
+        optional: true
+    gives:
+      attempt_id: text
+      state: text
+      jobq_id: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  status:
+    kind: tool
+    does: Read and reconcile the owned build attempt.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  cancel:
+    kind: tool
+    does: Request cancellation of the owned build attempt.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  result:
+    kind: tool
+    does: Read build result references; submission alone is not success.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+    needs:
+    - python
+    changes:
+    - process.exec

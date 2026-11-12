@@ -1,0 +1,74 @@
+[
+  {
+    "allowed_effects": [
+      "process.exec",
+      "workspace.read",
+      "workspace.write",
+      "gpu.use"
+    ],
+    "budget": {
+      "max_turns": 40,
+      "wall_clock_s": 28800
+    },
+    "capability_cc": "",
+    "component_cc": "engine.expert_streaming",
+    "constraints": {
+      "contract_immutable": true,
+      "local_commits_in_owned_checkout": true,
+      "owned_checkout_only": true,
+      "push_or_publish": false
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "created": 1794507634.5578604,
+    "current_decision_rev": 21,
+    "evidence_cursor": 2058,
+    "initial_run_config": {
+      "env": {}
+    },
+    "objective": "Starting from the identified, working llama.cpp revision cf34d3113 (owned checkout, branch `stream`), use the engine.expert_streaming capability to improve decode performance for Qwen3.6-35B-A3B on Satay without changing generated output on the frozen test workload. Inspect the existing engine and evidence, choose and integrate appropriate components, build identified candidate images, and use the lab to compare them with the baseline. If an approach fails, is incompatible, does not engage or does not improve the result, use the evidence to revise your next action. Return the source changes, image, comparison and an explanation of your final decisions. Work within the declared resources and evaluation contract.",
+    "operator_labels": {},
+    "resources": {
+      "baseline": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "note": "plain-source build of cf34d3113; contract reference image"
+      },
+      "budget_note": "builds ~2-3 min; one 2-round ABBA ~20-35 min; GPU work is serialized in the host queue",
+      "capsules": [
+        "engine.expert_streaming@2.0.0",
+        "factory.methodology_ab",
+        "factory.integration_skill",
+        "factory.builder",
+        "factory.engine_inspector",
+        "factory.lab_client",
+        "factory.evidence"
+      ],
+      "evidence_workspace": "FACTORY_HOME store, task-scoped",
+      "host": {
+        "board": "Jetson Orin Nano Super 8GB",
+        "l4t": "R36.5.2",
+        "mem_total_kib": 7789756,
+        "name": "Satay"
+      },
+      "model": {
+        "bytes": 22360456160,
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450"
+      },
+      "source": {
+        "base_commit": "cf34d311332e362198f0a410c466d1e940287d02",
+        "checkout": "agent-workspace/llama.cpp",
+        "upstream": "https://github.com/ggml-org/llama.cpp"
+      },
+      "workload_contract": "qwen36-bare-greedy-v1 (frozen; byte-identical greedy stdout, 64 tokens)"
+    },
+    "revision": 1,
+    "source": {
+      "branch": "stream",
+      "pre_integration_commit": "cf34d3113",
+      "subpath": "llama.cpp"
+    },
+    "target": "jetson-orin",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21"
+  }
+]

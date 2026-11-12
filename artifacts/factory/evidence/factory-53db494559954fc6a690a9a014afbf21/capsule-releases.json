@@ -1,0 +1,99 @@
+{
+  "algorithm": "sha256(sorted relative-path + NUL + file-sha256 + LF); excludes __pycache__ and .pyc",
+  "capsules": {
+    "builder": {
+      "files": {
+        "cc.yaml": "97315a48308c6b11a3b68fc2674cf7d113380cc08ffffbfd4924aea25910261f",
+        "run.py": "5b6495eaeb99aba2c17689a6d9133e4015d92775ece03fb34009608270473257"
+      },
+      "sha256": "b173c34232608d468008a51eb2ddca949e985a416196a586e6eb0cddbfed8245"
+    },
+    "engine_component": {
+      "files": {
+        "09-thread-names.patch": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030",
+        "README.md": "50ccbf1341f88c95e461bce1058c6d3ff04b139b6d903f651d7b0ad58fc65944",
+        "cc.yaml": "f1b29e85200ddc4a9071e91738915337e20d199150ec4916141ba5ca3626639c",
+        "combined-01-02-03-04-05-06-07-08.patch": "87761ce57350498d5c49e00bf03d151fd5fc1bbb49b5f5528c8b288723357497",
+        "component.yaml": "9c51767b0903fb99aa0f545b1c05682237c102a4d85b376835071ae8458ffeb5"
+      },
+      "sha256": "505921ee0f9fd75f238d9b608668ef6cff32c58a7cdb52fbfa83e62975e90024"
+    },
+    "engine_inspector": {
+      "files": {
+        "cc.yaml": "9f218db9a061ccf1d4844cfa3337148b593af3eb4f00705801ac13f2fe287ecf",
+        "run.py": "f40b16318b9e2c03b45b6e45e996bcbb4c8d1f3ed982ff7dee66a1df6886b710"
+      },
+      "sha256": "f8466b46ff791d021945a91dc6b12d1c944eb15ed811e3ce8e44d11961b9b00a"
+    },
+    "evidence": {
+      "files": {
+        "cc.yaml": "4b8f0499f13d55d110c71f9ce56f8ad044375014b9eee005a3fe3ca10f11bb90",
+        "run.py": "c5162fbaf57bd32258fd2daacea92d958b8e4f3be7f16062761c99e86a0cea50"
+      },
+      "sha256": "c48f1c1477a385fcc7edc8374aa8fe3bf7d135e954d4fb59166a568649ce1e3a"
+    },
+    "expert_streaming": {
+      "files": {
+        "EVIDENCE.md": "5a5e2a399994d6165a02ddfb23c88479bfa234326be941ce7fe9317b383862d4",
+        "ONTOLOGY.yaml": "6ad8ebdb9a9db5149a5b3a9ab152dca20194ff29b3142d32b2d4571fa01a5be1",
+        "SOURCE-MAP.md": "595709e6024647641f9f4ddf7b3af2dfcab308d476bc49ada19694499034c9a6",
+        "STREAMING.md": "e7aa514fff2238731e49bc76c411f35e7729f7ac8f4d27500e22fa549f89483c",
+        "cc.yaml": "5e2f1f762872b8a622ff8879129f7ec18457aa34b6b6c24d29e090bc6c086d5d",
+        "components/expert_fill/03-expert-fill.patch": "de969b13d381df8e43c18bb195fb215527b899978bf15549e2a2874fb21f5182",
+        "components/expert_fill/04-fill-phase.patch": "0439854fc1d22d0a600c99833817425e1eec223e563180e2bc6574cd9b4a3065",
+        "components/expert_fill/05-fill-diag.patch": "2bd97b511d7159cd131c66472e29e74678fad9e083e46fdd7c749557ec2583fd",
+        "components/expert_fill/cc.yaml": "6b151686e6cd2974105e5fd3fbc6ac5bf17e18705daeceb7e7d0deaf568f1ad9",
+        "components/expert_fill/component.yaml": "877b4f9d4ed03bd6508de91c59a082fafce963ac3021042774f836c82bcaa7de",
+        "components/expert_pregate/06-pregate.patch": "ee40edd569e704018556d6341830d6df24a2ece0bca7acebe6cd7604c99247ba",
+        "components/expert_pregate/07-pregate-sched.patch": "21628cd1e075ad66610bedc315ba9d8d421d59d2f56395c7bf73b576f7c92c42",
+        "components/expert_pregate/08-pregate-observe.patch": "e5fab81608abaec4cfeade2a168e9f5fc44b2042f0edd57344527649f392cc06",
+        "components/expert_pregate/cc.yaml": "df59830d81d41175bf4ebbb4984f618061c648de8eb0123b4cef7daa5f1cc398",
+        "components/expert_pregate/component.yaml": "26d84e3eef78d58d59fe8c9a8c3ec2fe8f0d8d50a29cd89cc5b79b369aa2a2aa",
+        "components/expert_readiness/10-expert-readiness.patch": "020448e8ef98f75c4be9877f85c47c2ffa4559742f0e9aed795f97cf4c210abd",
+        "components/expert_readiness/cc.yaml": "546ce4412cce27ab8c965e93c0056cda32f084c51b393397e6103a1c17f4c967",
+        "components/expert_readiness/component.yaml": "d2fbf1691051785e478713f0f03e6cf58b2a52cd8999c56bfef4e95298836604",
+        "components/inflight_join/11-inflight-join.patch": "66809ccc4dbf247094f92b4a1620afcf383e23889533e3107edd22da725670a3",
+        "components/inflight_join/cc.yaml": "0fa2887292dacf1931db332e2aafc207e74ccba334e02af97206b0670d933902",
+        "components/inflight_join/component.yaml": "e43d4da7b7081389723ef43b861d1fe2b86dff72759bdde26e1d6ee6a50ce4a2",
+        "components/mmap_advice/01-mmap-advice-random.patch": "1554b5b6a5b9efc0d487453408db83a23cd00cffd29d021e5cce90d513211452",
+        "components/mmap_advice/cc.yaml": "1926832798b5d55207e2736c2cd9ff6ce76b76af19900ecf1a53ff4774182b33",
+        "components/mmap_advice/component.yaml": "fe987aea8030ef55177e66e203a18396b7a140434223f31cedb4c5c3fa800a46",
+        "components/phase_stats/16-phase-rusage.patch": "7e296daf348c9f576d2e797bea73d08efc6263f11b3c0bde114150560d2c476e",
+        "components/phase_stats/cc.yaml": "02fab73b8084ff1e9a596e485ae296e6f0184e513dbc60222a23eedd6ff3a096",
+        "components/phase_stats/component.yaml": "06e82c968b05f31b72ff65eb1286d1adbef06b56bc161b16da6f46b436026500",
+        "components/router_prefetch/02-router-prefetch.patch": "9fce108d33c500f57ab48d4eab1c24a191b20f8268b13009d25255e957e42f99",
+        "components/router_prefetch/cc.yaml": "1b9cb543f6e9e9a7cc16789837024fce3a0a34711a483d6195dd6d8337cfbfb2",
+        "components/router_prefetch/component.yaml": "04be295b8c1dbfd47792e8250235190c161fed37ac1d2db543faa83c6482403b",
+        "components/thread_names/09-thread-names.patch": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030",
+        "components/thread_names/cc.yaml": "c27f64b4b20bf77abf1e7ea7d0f8773497210529ff423c3f63b8551fceaf1396",
+        "components/thread_names/component.yaml": "e8615e0f943b7c3728c88d2af15f16baeadf48834dc954d8aa51086d37ab7210",
+        "run.py": "cc7e989b927fa3d11059166d880fd0b18512988132ce4db1750153e9f1776fe2"
+      },
+      "sha256": "d941225b31ebdb7ef126427f14c62d281eeb69e97ff16269ccaff29bd3d45b1b"
+    },
+    "integration_skill": {
+      "files": {
+        "INTEGRATE.md": "5e9b3e9bc81ab75f528b96c098997b3b327a5fa1d6630196291491f561fe16bf",
+        "PREFLIGHT.md": "a2b0f9c4a29c37de117d0d79a00e96bef77dc9cf0375a4f8b54d1b40cd879e8d",
+        "REPAIR.md": "b51d1e5374c133f4fed714520f5efbc84e9ed96ff2a4f0f851cf15469e644464",
+        "cc.yaml": "afeffacc53aa17fe946b1392c2e65510d6733614ad66b727a2b51279146b69ef"
+      },
+      "sha256": "15f3148c25123ec82872bdba585db34d5f4b6993c07a919521a7b31ca5183897"
+    },
+    "lab_client": {
+      "files": {
+        "cc.yaml": "edd9d0c915420c0cbc7c4b9505c7bc6a6791f347d6324bc85e4fab60308a8245",
+        "run.py": "bfe5e4c7252dad3fea1153d9fce5c2c6543f8ed183c2f77750b6a0e221b0a5e1"
+      },
+      "sha256": "4f88473f930c67eb242986fe2bd1b9a95878fb3a86f71d18952de0370d0db00a"
+    },
+    "methodology_ab": {
+      "files": {
+        "AB.md": "742e3cf685779c07d223e22a96154389d6818dae6e3e37951c0aa916af58761e",
+        "cc.yaml": "a1fe7ed8c134bb56d6b54b9d9c51ead56186ec0e471231be61a4706fdc94eacd"
+      },
+      "sha256": "95f84c2b6d65f67b3515391bd0965f5ea6e46b6c147b0e414e7385a6e7c6c07b"
+    }
+  },
+  "identity_scope": "export-time checkout; not an attestation of historical loaded bytes"
+}

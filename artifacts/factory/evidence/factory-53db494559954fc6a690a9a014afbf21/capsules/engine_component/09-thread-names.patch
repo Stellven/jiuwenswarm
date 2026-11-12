@@ -1,0 +1,23 @@
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -22,6 +22,7 @@
+ #include <string>
+ #include <sys/mman.h>
+ #include <sys/stat.h>
++#include <pthread.h>
+ #include <thread>
+ #include <unistd.h>
+ #include <vector>
+@@ -434,6 +435,11 @@
+         for (auto & t : workers_) { t.join(); }
+     }
+     void worker(size_t index) {
++#if defined(__linux__)
++        char name[16];
++        snprintf(name, sizeof(name), "xfill-%zu", index);
++        (void) pthread_setname_np(pthread_self(), name);
++#endif
+         for (;;) {
+             Range job {};
+             Async async;

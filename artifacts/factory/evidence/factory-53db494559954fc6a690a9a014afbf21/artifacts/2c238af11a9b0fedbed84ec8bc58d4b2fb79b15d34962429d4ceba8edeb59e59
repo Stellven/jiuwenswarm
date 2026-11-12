@@ -1,0 +1,11 @@
+{
+  "protocol": "carryover",
+  "phase": "start",
+  "timestamp_ns": 1794514349219630089,
+  "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "file_bytes": 22360456160,
+  "resident_bytes": 2509606912,
+  "resident_pct": 11.223415542341959,
+  "pages": 5459096,
+  "elapsed_ms": 531.2035740353167
+}

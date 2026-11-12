@@ -1,0 +1,37 @@
+# ab
+
+Status: completed
+
+Page-cache protocol: carryover
+
+| # | Arm | Status | Metric | Wall s | Output SHA | Switch matches | Cache start resident % | Cache end resident % |
+|---|---|---|---:|---:|---|---|---:|---:|
+| 1 | base | ok | 964.55 | 154.23 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 4.121360214683563 | 10.229056722427796 |
+| 2 | candidate | ok | 857.34 | 149.71 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 10.229056722427796 | 10.281995892878063 |
+| 3 | candidate | ok | 825.09 | 143.13 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 10.281995892878063 | 12.093339834619904 |
+| 4 | base | ok | 860.83 | 146.05 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 12.093339834619904 | 13.08918241675084 |
+| 5 | base | ok | 867.99 | 150.62 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 13.08918241675084 | 12.839892046281046 |
+| 6 | candidate | ok | 858.52 | 148.52 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 12.839892046281046 | 13.147085779309075 |
+| 7 | candidate | ok | 855.03 | 148.81 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 13.147085779309075 | 12.976434806328209 |
+| 8 | base | ok | 839.6 | 145.7 | 7a1541792364 | {"expert_fill: active": 1, "expert_fill: random advice applied at decode": 1, "expert_fill: stats calls=[1-9][0-9]*": 1} | 12.976434806328209 | 13.681771400856789 |
+
+Metric: eval_ms_per_token (lower is better)
+
+| Arm | Mean | A/B | Gate |
+|---|---:|---:|---|
+| base | 883.2425000000001 | — | base |
+| candidate | 848.995 | 1.0403388712536588 | null |
+
+## Secondary metrics (descriptive; no verdict)
+
+| Arm | ms/token | NVMe GiB/token (decode) | gpu_util med (%) | J/token | NVMe GiB/token (whole) | Prompt t/s | Eval t/s | CPU workers R | Main+workers D | Threads majflt/token |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| base | 883.243 | 0.241014 | 16 | 6.06168 | 0.886033 | 5.3225 | 1.135 | 0.0677567 | 0.202986 | 451.817 |
+| candidate | 848.995 | 0.214778 | 17.5 | 5.85549 | 0.857195 | 5.255 | 1.1775 | 0.0759963 | 0.27462 | 475.925 |
+
+A/A gap: 0.14146737730577946; drift: 0.0666804416680583; threshold: 0.2829347546115589
+
+Output class: identical
+
+Output details: `{"class": "identical", "hashes": {"base": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"], "candidate": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"]}}`
+

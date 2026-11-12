@@ -1,0 +1,1020 @@
+[
+  {
+    "action": {
+      "next": "Switch clean checkout to existing authorized stream branch, inspect bare source and applicability; prepare bare build.",
+      "type": "investigate"
+    },
+    "budget": {
+      "operation": "bounded inspection",
+      "turns": 40,
+      "wall_clock_s": 28800
+    },
+    "created": 1794507802.6792514,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:1",
+    "evidence_ids": [
+      "factory-53db494559954fc6a690a9a014afbf21",
+      "4e3abdc56aae46a78446dd03c349568c",
+      "3ba0e7405ede495ea950afde26a78eac"
+    ],
+    "expected_evidence": "Clean bare stream source, expert bytes and CPU mmap applicability, admitted bare build and frozen reference evidence.",
+    "expected_graph_rev": null,
+    "hypothesis": "Use the existing clean stream branch to build bare source while preserving evolve; CPU mmap expert IO may be the bottleneck.",
+    "observations": "Task preserves original objective and authorizes local integration/revert commits. Initial clean checkout is evolve at 0b514fba8; existing authorized stream branch is cf34d3113. Bare image ID matches task. Read guide/method, source map, manifests, integration/preflight, AB materials and AGENTS.md. This is a private local experiment with no upstream submission. Earlier malformed decision receipts failed; no revision advanced.",
+    "parent_rev": 0,
+    "plan_patch": null,
+    "reason_for_change": "4e3abdc56aae46a78446dd03c349568c and 3ba0e7405ede495ea950afde26a78eac show source mismatch; existing clean stream branch permits correction.",
+    "rev": 1,
+    "stop_condition": "Missing frozen reference or source ownership blocks scoring; never force changes or count failed receipts as success.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Frozen reference admission, exact workload argv and runtime expert layout remain unverified."
+  },
+  {
+    "action": {
+      "next": "Submit clean bare cf34d3113 build with unique task tag, then end turn.",
+      "type": "build"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "turns_remaining": 39,
+      "wall_clock_s": 28000
+    },
+    "created": 1794507840.9673188,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:2",
+    "evidence_ids": [
+      "factory-53db494559954fc6a690a9a014afbf21",
+      "60a5cf7bdeb24fd0a17aacbc62d17a50",
+      "f54ea80fe2664f7287ea1c141b439a52",
+      "e7f6937a792245e9a21e7cfb80661bfd"
+    ],
+    "expected_evidence": "Durable build attempt, source/toolchain/base identity, immutable image ID and build artifacts; later baseline contract admission.",
+    "expected_graph_rev": 1,
+    "hypothesis": "A fresh identified bare build provides an admitted baseline for isolated component ABBA; sparse expert demand reads justify eventual fill experiments after testing prerequisite additions.",
+    "observations": "Owned stream checkout is clean cf34d311332e362198f0a410c466d1e940287d02 with no applied component patches. Source tree 2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6 matches bare image labels. nvcc is on PATH, aarch64 R36.5.2 host. Applicability with CPU-moe mmap placement found expert_bytes=19671285760, mem_available=5857996800, verdict applicable. This is not timing evidence.",
+    "parent_rev": 1,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "60a5cf7bdeb24fd0a17aacbc62d17a50",
+            "f54ea80fe2664f7287ea1c141b439a52"
+          ],
+          "node_id": "inspect",
+          "reason": "Verified clean bare source, image and host.",
+          "state": "done"
+        },
+        {
+          "evidence_ids": [
+            "e7f6937a792245e9a21e7cfb80661bfd"
+          ],
+          "node_id": "applicability",
+          "reason": "CPU mmap expert bytes exceed available RAM by more than 2x.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "60a5cf7bdeb24fd0a17aacbc62d17a50 resolves source mismatch and e7f6937a792245e9a21e7cfb80661bfd supports mechanism applicability.",
+    "rev": 2,
+    "stop_condition": "Failed build is not usable. Missing frozen bare reference stops scoring. No GPU/build overlap.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Build/reference admission and exact contract runtime evidence remain outstanding."
+  },
+  {
+    "action": {
+      "next": "Correct request schema with one minimal bare-source submission; inspect rejection if no attempt is admitted.",
+      "type": "build"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "max_schema_probes": 2
+    },
+    "created": 1794507879.742506,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:3",
+    "evidence_ids": [
+      "factory-53db494559954fc6a690a9a014afbf21:decision:2",
+      "60a5cf7bdeb24fd0a17aacbc62d17a50"
+    ],
+    "expected_evidence": "Exact missing-field validation or a durable identified bare build.",
+    "expected_graph_rev": null,
+    "hypothesis": "The extra deadline_s/env/image_tag request fields may not match the Manager schema. A minimal source/target request will expose required fields without widening authority.",
+    "observations": "Bare build submission failed INVALID_INPUT: Unknown build request fields. No durable attempt or build started; checkout remains clean. Published guide lists concepts but no exact build request schema.",
+    "parent_rev": 2,
+    "plan_patch": null,
+    "reason_for_change": "Failed builder receipt 5682ebc6-7cbb-4368-8118-7ceb4a42c0f9 rejected request syntax; 60a5cf7bdeb24fd0a17aacbc62d17a50 still verifies valid clean source.",
+    "rev": 3,
+    "stop_condition": "Do not infer a build from an invalid request or repeat without a discriminating error.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Exact builder request schema."
+  },
+  {
+    "action": {
+      "next": "Submit bare source with required tag factory/llamacpp:53db-bare-cf34d311 and inspect durable request identity.",
+      "type": "build"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "schema_probes_remaining": 1
+    },
+    "created": 1794507898.959819,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:4",
+    "evidence_ids": [
+      "factory-53db494559954fc6a690a9a014afbf21:decision:3",
+      "60a5cf7bdeb24fd0a17aacbc62d17a50"
+    ],
+    "expected_evidence": "Durable bare build attempt with explicit effective request and source identity.",
+    "expected_graph_rev": null,
+    "hypothesis": "Adding the required top-level tag to the validated minimal request will admit the clean bare source.",
+    "observations": "Minimal builder request passed unknown-field validation and failed specifically: tag must use factory/llamacpp namespace. Thus the schema requires top-level tag, not image_tag. No build has started.",
+    "parent_rev": 3,
+    "plan_patch": null,
+    "reason_for_change": "Receipt a83b34d6-8337-4efe-add8-a566a87cacdc identifies missing top-level tag, refining decision 3 without changing source or contract.",
+    "rev": 4,
+    "stop_condition": "Further uninformative schema rejection means stop and report missing callable schema; failed requests are not builds.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Builder default deadline/environment will be recorded from the admitted request; nvcc PATH was verified by inspector."
+  },
+  {
+    "action": {
+      "next": "Preflight bare image supported placement/generation flags; submit a fixed baseline evaluation with env {} through the Manager, then end turn.",
+      "type": "investigate"
+    },
+    "budget": {
+      "baseline_runs": 1,
+      "turns_remaining": 39,
+      "wall_clock_s_remaining": 28308
+    },
+    "created": 1794508189.0618844,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:5",
+    "evidence_ids": [
+      "factory-53db494559954fc6a690a9a014afbf21",
+      "6b540bdd51564bc190b96d6e2738fe14",
+      "6b540bdd51564bc190b96d6e2738fe14:build-result",
+      "6b540bdd51564bc190b96d6e2738fe14:build-record",
+      "6b540bdd51564bc190b96d6e2738fe14:receipt"
+    ],
+    "expected_evidence": "Admission/reference checks, exact fixed workload, stdout SHA and baseline load/prompt/decode plus page-cache/telemetry artifacts.",
+    "expected_graph_rev": 2,
+    "hypothesis": "The admitted rebuild should produce frozen greedy stdout. One fixed untraced baseline run will verify this and expose exact contract argv and phase evidence for component selection.",
+    "observations": "Bare build succeeded, clean cf34d3113 tree 2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6, no patch SHA. Image factory/llamacpp:53db-bare-cf34d311 ID sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568 differs from reference ID but has same bare source. Build record pins R36.5.2, CUDA 12.6.68 sm_87, runtime digest 49853e9f..., archive SHA ffdbb294.... Effective builder deadline was 5400s and PATH included nvcc. Build and receipt inspected; no timing result yet.",
+    "parent_rev": 4,
+    "plan_patch": {
+      "update": [
+        {
+          "attempt_ids": [
+            "6b540bdd51564bc190b96d6e2738fe14"
+          ],
+          "evidence_ids": [
+            "6b540bdd51564bc190b96d6e2738fe14:build-result",
+            "6b540bdd51564bc190b96d6e2738fe14:receipt"
+          ],
+          "node_id": "baseline-build",
+          "reason": "Successful identified bare build.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "6b540bdd51564bc190b96d6e2738fe14:build-result and :receipt establish build success, enabling runtime/reference verification.",
+    "rev": 5,
+    "stop_condition": "Missing frozen reference stops work; stdout mismatch invalidates rebuilt baseline. Scoring requires replicated untraced ABBA later.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Frozen-reference admission and rebuilt-output identity have not yet been established. Single-run timing will not support a speed claim."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next": "Verify patch01 SHA 1554b5b6..., reverse/forward checks, apply once and review exact diff; create one authorized local integration commit with patch provenance.",
+      "type": "integrate"
+    },
+    "budget": {
+      "component_trials_max": 3,
+      "turns_remaining": 38,
+      "wall_clock_s_remaining": 28081
+    },
+    "created": 1794508447.7862182,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:6",
+    "evidence_ids": [
+      "d2465c6a3a5e42fc8b2acee68f095fd8:evaluation",
+      "d2465c6a3a5e42fc8b2acee68f095fd8:stderr.txt",
+      "d2465c6a3a5e42fc8b2acee68f095fd8:page_cache.start.json",
+      "d2465c6a3a5e42fc8b2acee68f095fd8:config.json",
+      "e7f6937a792245e9a21e7cfb80661bfd"
+    ],
+    "expected_evidence": "Exact manifest/patch/check/diff/commit identities and clean source, followed by identified build.",
+    "expected_graph_rev": 4,
+    "hypothesis": "Suppressing sequential readahead may reduce irrelevant IO for sparse expert selection. Test mmap_advice alone before router/fill; presence of this prerequisite will not imply runtime enablement.",
+    "observations": "Baseline fixed evaluation is complete, execution ok, correctness pass, stdout SHA 7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8 equals frozen reference. Exact contract CPU MoE/mmap/ngl99/context4096/seed1/temp0/p1/64 tokens is now recorded. Baseline load 58240.11ms, prompt 34694.89ms/195 tokens, decode 886.92ms/token/63 eval runs. Carryover start residency 4.211%; single timing is not a comparison. No phase faults measured. Read component mmap_advice manifest and exact 01 patch, plus local review guidelines.",
+    "parent_rev": 5,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "d2465c6a3a5e42fc8b2acee68f095fd8:evaluation",
+            "d2465c6a3a5e42fc8b2acee68f095fd8:config.json"
+          ],
+          "node_id": "baseline-measure",
+          "reason": "Bare output matches frozen reference; single-run baseline recorded.",
+          "state": "done"
+        },
+        {
+          "node_id": "integrate",
+          "reason": "First isolated addition is mmap_advice patch01."
+        }
+      ]
+    },
+    "reason_for_change": "d2465c6a3a5e42fc8b2acee68f095fd8:evaluation establishes working frozen bare reference; stderr and applicability support sparse CPU mmap path.",
+    "rev": 6,
+    "stop_condition": "Failed forward patch check or unexplained source change blocks integration. Keep best bare image/env until valid component acceptance.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Default kernel readahead may already be efficient; global random advice can make loading/prompt slower and may not improve decode. Cache carryover must be balanced in ABBA."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next": "Commit exactly staged patch01 using Factory Agent <factory@localhost> identity for this command, Assisted-by: Codex and exact patch SHA; inspect clean source.",
+      "type": "integrate"
+    },
+    "budget": {
+      "operation": "one local commit",
+      "wall_clock_s_remaining": 27800
+    },
+    "created": 1794508510.9568102,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:7",
+    "evidence_ids": [
+      "d1aabd484bca4c3497d3cee41c5c729b",
+      "factory-53db494559954fc6a690a9a014afbf21",
+      "d2465c6a3a5e42fc8b2acee68f095fd8:evaluation"
+    ],
+    "expected_evidence": "Local source commit/tree and clean checkout, preserving reviewed patch bytes.",
+    "expected_graph_rev": null,
+    "hypothesis": "A per-command explicit automation identity can create the authorized local integration commit without altering user or global Git configuration.",
+    "observations": "Patch01 hash matches manifest; reverse check failed as expected on bare, forward check passed, applied exactly once; diff reviewed and whitespace check passes. Commit failed solely because no author/committer identity configured. Source remains staged, unchanged from reviewed diff.",
+    "parent_rev": 6,
+    "plan_patch": null,
+    "reason_for_change": "Integration observation d1aabd484bca4c3497d3cee41c5c729b records missing Git identity and successful patch checks; task explicitly authorizes local integration commits.",
+    "rev": 7,
+    "stop_condition": "Unexpected staged files, dirty source or new commit failure stops build until resolved from evidence.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Candidate build/runtime behavior remains unmeasured."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next": "Submit clean patch01 commit, unique tag, explicit nvcc PATH and 1800s deadline.",
+      "type": "build"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "turns_remaining": 38,
+      "wall_clock_s_remaining": 27700
+    },
+    "created": 1794508548.9944565,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:8",
+    "evidence_ids": [
+      "cebf128d2022488a8897ace41d56f43f",
+      "a305cf820d79487ba9ff8b812bf2a3bd",
+      "2773c8202f854ee6a536abbd01d8f618",
+      "d1aabd484bca4c3497d3cee41c5c729b"
+    ],
+    "expected_evidence": "Successful build record/image identity for mmap-only source.",
+    "expected_graph_rev": 5,
+    "hypothesis": "An identified build of patch01 supports an env-only isolated random-advice comparison.",
+    "observations": "Patch01 integrated as c1e68ffbddceca6f56e4c5e50229412da5d2ebf8 tree c9ddd710efad4bfaf402bed1f182b6a35a4fad68. Exact SHA verified, post-apply reverse check passes, reviewed diff recorded, clean stream checkout. Legacy inspector applied_patches is empty because it only detects combined/09; this is not a missing patch. Runtime switch remains unaccepted; best is bare env {}.",
+    "parent_rev": 7,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "cebf128d2022488a8897ace41d56f43f",
+            "a305cf820d79487ba9ff8b812bf2a3bd"
+          ],
+          "node_id": "integrate",
+          "reason": "First component mmap_advice integrated and source verified.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "cebf128d2022488a8897ace41d56f43f and a305cf820d79487ba9ff8b812bf2a3bd establish clean verified integration ready to build.",
+    "rev": 8,
+    "stop_condition": "No GPU/build overlap. Any failed build is inspected and not admitted as success.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Build success, candidate engagement and decode benefit remain unknown."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next": "Submit two-round untraced same-image ABBA, base LLAMA_MMAP_ADVICE=default and candidate=random; Manager owns checks.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_trials": 3,
+      "rounds": 2,
+      "trial": 1,
+      "turns_remaining": 37,
+      "wall_clock_s_remaining": 27666
+    },
+    "created": 1794508846.6896522,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:9",
+    "evidence_ids": [
+      "60c41610d9964e999cc2e067bf21d410:build-result",
+      "60c41610d9964e999cc2e067bf21d410:receipt",
+      "3d79c958bd8a4eac939743ad3ee6bf34",
+      "de798a2cefef410886d1685fd106eaf3",
+      "d2465c6a3a5e42fc8b2acee68f095fd8:config.json"
+    ],
+    "expected_evidence": "Complete replicated ABBA, per-run activation/stdout correctness, eval ms/token, gate/acceptance, page-cache starts, telemetry/watchdog/load evidence.",
+    "expected_graph_rev": 7,
+    "hypothesis": "Changing only LLAMA_MMAP_ADVICE from default to random in the same admitted image will improve decode if irrelevant sequential readahead is costly.",
+    "observations": "mmap-only build succeeded from c1e68ffbd tree c9ddd710; immutable image d7f14c25..., archive 7b357749..., same CUDA/toolchain/runtime as bare. Exact contract argv preflight passed. CPU config probe completed exit0 with LLAMA_MMAP_ADVICE=random; no mmap activation line on that small probe, so real-workload engagement remains required. Best is bare image 17de3839..., env {}, kept runtime stack empty.",
+    "parent_rev": 8,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "60c41610d9964e999cc2e067bf21d410:build-result",
+            "60c41610d9964e999cc2e067bf21d410:receipt"
+          ],
+          "node_id": "candidate-build",
+          "reason": "mmap-only image build successful and preflight passed.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "60c41610d9964e999cc2e067bf21d410:build-result and preflight 3d79c958bd8a4eac939743ad3ee6bf34 make a controlled runtime comparison available.",
+    "rev": 9,
+    "stop_condition": "Keep enabled only if acceptance.verdict accept and performance gate improved; otherwise reject enablement and consider dormant prerequisite for router/fill.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Global random advice may hurt loading/prompt and sparse demand IO; require real activation plus balanced carryover starts and the untraced performance gate."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "needed_by": [
+        "router_prefetch",
+        "expert_fill"
+      ],
+      "next": "Measure router_prefetch addition next; keep global random advice off in every later arm.",
+      "off_env": {
+        "LLAMA_MMAP_ADVICE": "default"
+      },
+      "reason": "Runtime treatment regressed in f9ef3d25...; retain only source prerequisite under AB.md step9.",
+      "type": "keep_dormant"
+    },
+    "budget": {
+      "mmap_trials_used": 1,
+      "turns_remaining": 36,
+      "wall_clock_s_remaining": 25786
+    },
+    "created": 1794510782.9607117,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:10",
+    "evidence_ids": [
+      "f9ef3d25d1ae4be088df3169b22a8852:observation",
+      "f9ef3d25d1ae4be088df3169b22a8852:evaluation",
+      "f9ef3d25d1ae4be088df3169b22a8852:ab/REPORT.md",
+      "f9ef3d25d1ae4be088df3169b22a8852:ab/verdict.json",
+      "99097c311fdf4781ae245b423c1866d5"
+    ],
+    "expected_evidence": "Router source integration/build and its own isolated ABBA, preserving negative mmap result.",
+    "expected_graph_rev": 9,
+    "hypothesis": "Global random advice makes small synchronous fault IO costly despite fewer bytes. Its source is still required by router_prefetch and expert_fill, whose own mechanisms can be isolated with global advice off.",
+    "observations": "Complete 2-round ABBA: all eight runs ok and frozen stdout identical, every candidate engagement pass. mmap_advice gate regressed, acceptance reject; base895.6075 vs candidate1871.35 ms/token, ratio0.4785889866, threshold0.1229556474. Carryover starts inspected; no cache_confound flagged. Raw preview limitations retained in review. Current best remains bare17de3839 env{}; no enabled kept components.",
+    "parent_rev": 9,
+    "plan_patch": {
+      "add": [
+        {
+          "capability": null,
+          "depends_on": [
+            "candidate-measure"
+          ],
+          "kind": "integrate",
+          "node_id": "router-integrate",
+          "state": "proposed",
+          "title": "Integrate router_prefetch source"
+        },
+        {
+          "capability": "factory.builder.submit",
+          "depends_on": [
+            "router-integrate"
+          ],
+          "kind": "build",
+          "node_id": "router-build",
+          "state": "proposed",
+          "title": "Build router_prefetch source"
+        },
+        {
+          "capability": "factory.lab_client.ab_submit",
+          "depends_on": [
+            "router-build"
+          ],
+          "kind": "measure",
+          "node_id": "router-measure",
+          "state": "proposed",
+          "title": "Measure router_prefetch"
+        }
+      ],
+      "update": [
+        {
+          "evidence_ids": [
+            "f9ef3d25d1ae4be088df3169b22a8852:evaluation",
+            "f9ef3d25d1ae4be088df3169b22a8852:ab/verdict.json",
+            "99097c311fdf4781ae245b423c1866d5"
+          ],
+          "node_id": "candidate-measure",
+          "reason": "mmap treatment measured and rejected; source retained dormant for dependents.",
+          "state": "done"
+        },
+        {
+          "depends_on": [
+            "router-measure"
+          ],
+          "node_id": "accept",
+          "reason": "Continue capability search after rejected mmap enablement."
+        }
+      ]
+    },
+    "reason_for_change": "f9ef3d25d1ae4be088df3169b22a8852:evaluation rejects mmap_advice performance; source dependency requirements in read manifests justify dormant retention, not a performance keep.",
+    "rev": 10,
+    "stop_condition": "Never enable global random advice in later arms. If all dependents reject, revert dormant prerequisite commits in reverse order.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Selected-range advice and parallel demand reads may behave differently; they remain unmeasured."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "next": "Verify patch02 hash and reverse/forward checks, apply once, review exact diff, commit only router component and inspect clean source.",
+      "type": "integrate"
+    },
+    "budget": {
+      "operation": "one component integration/build",
+      "wall_clock_s_remaining": 25500
+    },
+    "created": 1794510810.0944643,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:11",
+    "evidence_ids": [
+      "99097c311fdf4781ae245b423c1866d5",
+      "f9ef3d25d1ae4be088df3169b22a8852:evaluation",
+      "cebf128d2022488a8897ace41d56f43f"
+    ],
+    "expected_evidence": "Ordered patch/source identities, clean stream commit, isolated router image.",
+    "expected_graph_rev": null,
+    "hypothesis": "Selected expert MADV_WILLNEED at the CPU host-consumer hook may provide enough read grouping without global random advice. This is a separate mechanism and a source prerequisite for demand fill.",
+    "observations": "mmap_advice source remains present with switch off. Read router_prefetch manifest and full patch02 SHA9fce108d...; dependency patch01 is present. Reviewed CPU scheduler input-copy/order, calloc initialization, model mapping validation and mmap advice anchors against supplied diff.",
+    "parent_rev": 10,
+    "plan_patch": null,
+    "reason_for_change": "f9ef3d25d1ae4be088df3169b22a8852:evaluation disproves global random advice; router_prefetch manifest supplies selected-range treatment and dependency constraint.",
+    "rev": 11,
+    "stop_condition": "Do not force patch checks; global mmap advice remains default in every later arm. Best image/env remains bare {} until acceptance.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Callback synchronization overhead and advice arriving too late may outweigh IO benefit. Runtime engagement requires both hook and nonzero advise calls."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "next": "Submit clean router commit tag factory/llamacpp:53db-router, 1800s deadline and inherited verified nvcc PATH.",
+      "type": "build"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "wall_clock_s_remaining": 25300
+    },
+    "created": 1794510854.827921,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:12",
+    "evidence_ids": [
+      "355abcd118384754ba5e0b6097b9d3c5",
+      "fc860fecb44741cd8d5be9e808a56f06",
+      "ba502a55c4684617b31a4cfe96676b63",
+      "f9ef3d25d1ae4be088df3169b22a8852:evaluation"
+    ],
+    "expected_evidence": "Build identity, receipt and immutable image ID for patches01-02.",
+    "expected_graph_rev": 10,
+    "hypothesis": "Build identified router candidate for same-image switch isolation.",
+    "observations": "Ordered source patch01 dormant plus patch02 integrated in clean stream e67d6ecad777bc9bdbdb502b7f643aa9c41a54e0 tree 29717242a81049eb426e4d35fb78487563351e63. SHA and reverse/forward checks verified; exact diff and review recorded. No active component accepted; best bare image/env unchanged. nvcc PATH and host verified.",
+    "parent_rev": 11,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "355abcd118384754ba5e0b6097b9d3c5",
+            "fc860fecb44741cd8d5be9e808a56f06"
+          ],
+          "node_id": "router-integrate",
+          "reason": "Router patch integrated with dependency present/dormant and checks passed.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "355abcd118384754ba5e0b6097b9d3c5 and fc860fecb44741cd8d5be9e808a56f06 establish clean ordered router integration.",
+    "rev": 12,
+    "stop_condition": "Failed receipt is not a candidate; inspect before revising. No GPU/build overlap.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Build, engagement, frozen correctness and performance are pending."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "next": "Apply verified03/04/05 in order as one local component commit; retain patch01 dormant and patch02 present. Then integrate06-08 separately for required strict reporting, all switches off pending tests.",
+      "type": "integrate"
+    },
+    "budget": {
+      "builds": 1,
+      "source_components": 2,
+      "turns_remaining": 35,
+      "wall_clock_s_remaining": 25355
+    },
+    "created": 1794511288.6321497,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:13",
+    "evidence_ids": [
+      "93042183879943a38c5953f7454c6da1:build-result",
+      "93042183879943a38c5953f7454c6da1:receipt",
+      "25ca171cbf99484bbadbbaa5a8698896",
+      "a451b56f778d4831926ec9f63afa71dd",
+      "355abcd118384754ba5e0b6097b9d3c5"
+    ],
+    "expected_evidence": "Verified source identities for fill, then strict-config source, build and passing exact effective-config probes before ABBA.",
+    "expected_graph_rev": 12,
+    "hypothesis": "Integrating the supplied ordered source through08 will make effective values verifiable while inactive mechanisms stay off. Then same-image router-only and fill-only experiments can isolate one runtime component each.",
+    "observations": "Router-only image built, exact argv preflight passes, but effective-config probe failed CONFIG_MISSING with no expert_config line. Exit0 is not a configuration pass. Read actual failure artifact. Source/manifests locate strict validation/reporting in patch08; patches03-05 fill and06-08 pregate are its ordered source prerequisites. Read/reviewed all six exact patch materials. No scored router trial submitted.",
+    "parent_rev": 12,
+    "plan_patch": {
+      "add": [
+        {
+          "depends_on": [
+            "router-build"
+          ],
+          "kind": "integrate",
+          "node_id": "fill-integrate",
+          "state": "proposed",
+          "title": "Integrate fill source03-05"
+        },
+        {
+          "depends_on": [
+            "fill-integrate"
+          ],
+          "kind": "integrate",
+          "node_id": "pregate-integrate",
+          "state": "proposed",
+          "title": "Integrate06-08 source for strict config, runtime off"
+        },
+        {
+          "capability": "factory.builder.submit",
+          "depends_on": [
+            "pregate-integrate"
+          ],
+          "kind": "build",
+          "node_id": "config-stack-build",
+          "state": "proposed",
+          "title": "Build source01-08 with strict config"
+        },
+        {
+          "capability": "factory.lab_client.ab_submit",
+          "depends_on": [
+            "router-measure"
+          ],
+          "kind": "measure",
+          "node_id": "fill-measure",
+          "state": "proposed",
+          "title": "Measure demand fill only"
+        }
+      ],
+      "update": [
+        {
+          "evidence_ids": [
+            "93042183879943a38c5953f7454c6da1:build-result"
+          ],
+          "node_id": "router-build",
+          "reason": "Build succeeded but config probe failed due absent pre08 reporting.",
+          "state": "done"
+        },
+        {
+          "depends_on": [
+            "config-stack-build"
+          ],
+          "node_id": "router-measure",
+          "reason": "Wait for strict-config source and rebuilt image; original image not scored."
+        },
+        {
+          "depends_on": [
+            "fill-measure"
+          ],
+          "node_id": "accept",
+          "reason": "Require fill-only evidence after source/reporting repair."
+        }
+      ]
+    },
+    "reason_for_change": "25ca171cbf99484bbadbbaa5a8698896 and a451b56f778d4831926ec9f63afa71dd expose absent reporting; patch08 source supplies a concrete repair with declared dependencies.",
+    "rev": 13,
+    "stop_condition": "No scoring with missing effective settings. Do not force patches, enable prediction, or change frozen contract; keep global advice default in all arms.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Additional dormant source must not be credited as a win; final bare-vs-final comparison will test whole-stack effects. Predictive runtime remains deferred until fill-only evidence."
+  },
+  {
+    "action": {
+      "component": "expert_pregate",
+      "next": "Verify/apply06,07,08 once in order, review final diff, local commit, inspect, then build source01-08; pregate runtime stays0.",
+      "type": "integrate"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "wall_clock_s_remaining": 25000
+    },
+    "created": 1794511334.5155728,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:14",
+    "evidence_ids": [
+      "adfd738d3d03430fa4e3b5e98b772d9b",
+      "25ca171cbf99484bbadbbaa5a8698896",
+      "a451b56f778d4831926ec9f63afa71dd"
+    ],
+    "expected_evidence": "Clean ordered source, strict configuration support and identified image; later preflight/probe and isolated ABBA.",
+    "expected_graph_rev": 13,
+    "hypothesis": "Ordered06-08 source will repair missing effective configuration reporting while LLAMA_EXPERT_PREGATE=0 prevents predictive reads. Runtime tests still change one component at a time.",
+    "observations": "Fill03-05 source integrated clean at 2a9295e8204fbbc8c4c2390b328d5d6639530fe5 with each exact patch SHA and check output recorded. New file/header diff recorded. Pregate06-08 materials fully read:08 adds strict all-name/range validation and one effective line per context. Predictive source depends on fill; fill source is now present. No runtime mechanism accepted.",
+    "parent_rev": 13,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "adfd738d3d03430fa4e3b5e98b772d9b"
+          ],
+          "node_id": "fill-integrate",
+          "reason": "Verified03-05 source commit; runtime off.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "25ca171cbf99484bbadbbaa5a8698896 requires reporting repair; adfd738d3d03430fa4e3b5e98b772d9b supplies declared source dependency for06-08.",
+    "rev": 14,
+    "stop_condition": "Failed patch checks block integration. Never score missing effective values or enable pregate before fill-only evidence.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Dormant source residual behavior must be assessed by future direct bare comparison; predictive benefit is unknown and testing remains deferred until fill-only evidence."
+  },
+  {
+    "action": {
+      "next": "Submit source08 image factory/llamacpp:53db-source08 with explicit1800s deadline/verified nvcc PATH; end turn.",
+      "type": "build"
+    },
+    "budget": {
+      "build_deadline_s": 1800,
+      "turns_remaining": 35,
+      "wall_clock_s_remaining": 24800
+    },
+    "created": 1794511414.9734595,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:15",
+    "evidence_ids": [
+      "b3bf2e6ab98f46dd951b19e28300b2d9",
+      "86fbf5a3cf96418eb8ff7a02223ba6e4",
+      "c0cfdd05529c472abd2a43c71257cb02",
+      "adfd738d3d03430fa4e3b5e98b772d9b",
+      "25ca171cbf99484bbadbbaa5a8698896"
+    ],
+    "expected_evidence": "Successful build identity followed by exact-argv and both-arm effective-setting probes.",
+    "expected_graph_rev": 14,
+    "hypothesis": "Build source01-08 enables verified effective settings and isolated env-only router then fill tests; dormant source is not a measured win.",
+    "observations": "Clean source through08 at 98d026ef19cfe040cd7da7a4d0692c45253aa1a9 tree 86ed6e3888f176c1c03021509d0843de62f0447f, all ordered patch hashes/checks/diffs and per-component commits preserved. Inspector confirms source and host; runtime stack remains empty with mmap advice default, router/fill/pregate/diag/populate off. Strict configuration source has been integrated to remedy failed CONFIG_MISSING.",
+    "parent_rev": 14,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "b3bf2e6ab98f46dd951b19e28300b2d9",
+            "86fbf5a3cf96418eb8ff7a02223ba6e4"
+          ],
+          "node_id": "pregate-integrate",
+          "reason": "06-08 integrated source-only; strict report available, runtime off.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "b3bf2e6ab98f46dd951b19e28300b2d9 and 86fbf5a3cf96418eb8ff7a02223ba6e4 establish concrete ordered source repair for 25ca171cbf99484bbadbbaa5a8698896.",
+    "rev": 15,
+    "stop_condition": "No score before passing config probes; no build/GPU overlap; reject any failed receipt.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Build and config repair must succeed; runtime engagement and benefit pending. Final claim needs direct bare-vs-final ABBA."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "next": "Submit two-round same-image ABBA changing only LLAMA_EXPERT_PREFETCH0->1; next/fill/pregate0, mmap default in both.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_trials": 3,
+      "rounds": 2,
+      "trial": 1,
+      "turns_remaining": 34,
+      "wall_clock_s_remaining": 24764
+    },
+    "created": 1794511754.3101995,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:16",
+    "evidence_ids": [
+      "915b94fd95f04f73bc04db2a7503258d:build-result",
+      "915b94fd95f04f73bc04db2a7503258d:receipt",
+      "05d1382709c04bf7bedacfefdd1ed099",
+      "ef48fecb9e8844059ba0481b9b029592",
+      "ba975778dbb74e3e8ae2aea6cba7f7f8",
+      "25ca171cbf99484bbadbbaa5a8698896"
+    ],
+    "expected_evidence": "All candidate hook/nonzero-advise checks, frozen stdout identity, clean repeated timings and carryover cache evidence; gate and acceptance.",
+    "expected_graph_rev": 16,
+    "hypothesis": "Router-targeted MADV_WILLNEED can reduce decode fault waits compared with default demand faults, without enabling fill or prediction.",
+    "observations": "Source01-08 build succeeded image74785dff..., commit98d026ef1/tree86ed6e3888, archive18ae637d..., fixed runtime/toolchain recorded. Exact contract argv preflight passes. Both CPU config probes now succeed and actual effective fields match requested fill0/pregate0/prefetch0 vs1/next0 with global mmap advice default; prior CONFIG_MISSING preserved as failed. Config probe is parsing evidence, not Qwen engagement. Current best remains bare17de3839 env{}, enabled kept stack empty.",
+    "parent_rev": 15,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "915b94fd95f04f73bc04db2a7503258d:build-result",
+            "ef48fecb9e8844059ba0481b9b029592",
+            "ba975778dbb74e3e8ae2aea6cba7f7f8"
+          ],
+          "node_id": "config-stack-build",
+          "reason": "Build and strict effective-setting probes pass after source repair.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "ef48fecb9e8844059ba0481b9b029592 and ba975778dbb74e3e8ae2aea6cba7f7f8 verify the concrete repair for 25ca171cbf99484bbadbbaa5a8698896.",
+    "rev": 16,
+    "stop_condition": "Keep router enabled only with acceptance accept; otherwise retain source off only if justified for expert_fill. Prediction remains off until fill-only evidence.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Advice may be too late and CPU callback overhead may dominate; only real-workload checks and untraced replicated ABBA determine benefit. Extra source remains inactive in both arms."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "needed_by": [
+        "expert_fill"
+      ],
+      "next": "Probe exact recommended fill-off/fill-on environments on existing admitted source08 image, with pregate0 and global mmap advice default.",
+      "off_env": {
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0"
+      },
+      "reason": "Engaged runtime treatment regressed; preserve source dependency for expert_fill under AB.md step9.",
+      "type": "keep_dormant"
+    },
+    "budget": {
+      "fill_trials_max": 3,
+      "router_trials_used": 1,
+      "turns_remaining": 33,
+      "wall_clock_s_remaining": 23077
+    },
+    "created": 1794513491.3339753,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:17",
+    "evidence_ids": [
+      "e74e1eb3b0844891a28d4ae56bb69229:observation",
+      "e74e1eb3b0844891a28d4ae56bb69229:evaluation",
+      "e74e1eb3b0844891a28d4ae56bb69229:ab/REPORT.md",
+      "e74e1eb3b0844891a28d4ae56bb69229:ab/verdict.json",
+      "743a72ff81c24742869c97f0e599bff0"
+    ],
+    "expected_evidence": "Passing effective-setting probes for fill arms, then two-round isolated fill ABBA.",
+    "expected_graph_rev": 18,
+    "hypothesis": "Selected-range advisory requests do not remove demand stalls effectively; parallel blocking buffered fill is a different mechanism and requires the router CPU hook source.",
+    "observations": "Router2-round ABBA complete/correctness pass/output identical; all8 candidate checks pass. Gate regressed, acceptance reject: base914.555 vs candidate1431.9575ms/token ratio0.6386746813 threshold0.0823132562. Every B20823 advise calls, failures0. Full run/cache summaries reviewed, cache_confound null. Best remains bare17de3839 env{}; no enabled components kept. mmap source dormant default.",
+    "parent_rev": 16,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "e74e1eb3b0844891a28d4ae56bb69229:evaluation",
+            "e74e1eb3b0844891a28d4ae56bb69229:ab/verdict.json",
+            "743a72ff81c24742869c97f0e599bff0"
+          ],
+          "node_id": "router-measure",
+          "reason": "Router treatment rejected; source kept dormant for fill.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "e74e1eb3b0844891a28d4ae56bb69229:evaluation rejects router runtime; its source hook is the declared prerequisite for fill.",
+    "rev": 17,
+    "stop_condition": "Router switch stays0 in every subsequent arm. Do not enable prediction before fill-only evidence. If dependents fail too, reverse-revert dormant source.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Demand fill may either group IO efficiently or add pool/mincore overhead. Test rather than infer from lower sampled bytes."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "next": "Submit2-round same-image ABBA on admitted source08, changing only LLAMA_EXPERT_FILL0->1 at recommended settings.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_trials": 3,
+      "rounds": 2,
+      "trial": 1,
+      "turns_remaining": 33,
+      "wall_clock_s_remaining": 22900
+    },
+    "created": 1794513533.716313,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:18",
+    "evidence_ids": [
+      "e74e1eb3b0844891a28d4ae56bb69229:evaluation",
+      "743a72ff81c24742869c97f0e599bff0",
+      "36f9161fec8a4c87bde1bb2689973f97",
+      "67ef1a9f08c047c4b652c76d218b488f",
+      "915b94fd95f04f73bc04db2a7503258d:build-result"
+    ],
+    "expected_evidence": "Real Qwen fill active, decode random transition, nonzero fill calls and decode bytes, frozen correctness, gate/acceptance, cache starts and diagnostics-free timing.",
+    "expected_graph_rev": null,
+    "hypothesis": "Parallel pread of selected nonresident expert ranges before CPU matmul will group IO and reduce synchronous compute-thread page-fault stalls during decode enough to outweigh fill synchronization/mincore cost.",
+    "observations": "Both recommended fill environments pass strict effective probes:16 threads,2048KiB chunks,random=decode,min0/max1,diag0,populate0,pregate0,prefetch0/next0,mmap default. Only fill enable0->1 changes. Source dependencies01-08 present, mmap/router enablement rejected and dormant off. Pregate source is present for strict config, runtime unmeasured/off. Best remains bare image/env{}.",
+    "parent_rev": 17,
+    "plan_patch": null,
+    "reason_for_change": "e74e1eb3b0844891a28d4ae56bb69229:evaluation disproves advisory mechanism;36f9161fec8a4c87bde1bb2689973f97 and67ef1a9f08c047c4b652c76d218b488f verify a distinct parallel demand-fill experiment.",
+    "rev": 18,
+    "stop_condition": "Missing fill/decode engagement means inspect config before tuning. Keep enabled only on valid improved gate/acceptance accept; no prediction treatment until fill evidence read.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Fill could move rather than reduce IO; byte/wait counters distinguish engagement but only untraced ABBA scores decode performance. Prompt behavior preserved by max_tokens1/randomdecode."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "from": "2048",
+      "knob": "LLAMA_EXPERT_FILL_CHUNK_KIB",
+      "next": "Verify candidate settings, then submit2-round env-only ABBA with fill1/thread16 in both arms and only chunk2048->256. Use current admitted source08 image; no permanent enablement.",
+      "to": "256",
+      "type": "tune"
+    },
+    "budget": {
+      "max_settings_trials": 3,
+      "rounds": 2,
+      "settings_trial": 2,
+      "turns_remaining": 32,
+      "wall_clock_s_remaining": 21613
+    },
+    "created": 1794515064.9319005,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:19",
+    "evidence_ids": [
+      "0864629c8ee748f2a54fb72fffe6a0c7:evaluation",
+      "0864629c8ee748f2a54fb72fffe6a0c7:ab/verdict.json",
+      "0864629c8ee748f2a54fb72fffe6a0c7:ab/REPORT.md",
+      "ea79f35e159e4c9fbc0451118e41ddb5",
+      "0372faa52e444901a48c3b187c11c2cc"
+    ],
+    "expected_evidence": "Effective256chunk, all fill checks/correctness, relative gate plus fill-window/syscall/byte counters; then direct bare comparison if promising.",
+    "expected_graph_rev": 20,
+    "hypothesis": "At2048KiB current chunks exceed typical per-expert tensor slices (baseline CPU-mapped tensor buffers144-210MiB across256 experts), leaving uneven demand tasks. Reducing only CHUNK_KIB to256 may balance work across16 readers and shorten fill window without adding requested bytes or speculative reads.",
+    "observations": "Initial fill16/chunk2048 experiment has correct identical output, full engagement, gate null/acceptance reject. Ratio1.1047 below0.4083threshold; first A1097.16ms is slow/low-start-residency. All B854.11-894.32ms, fill critical-path window491.69-520.22ms/token with nonzero decode reads and0prompt reads. Do not claim a speedup. Global best bare17de3839 env{}; mmap/router off. Only an experimental fill reference exists.",
+    "parent_rev": 18,
+    "plan_patch": {
+      "add": [
+        {
+          "capability": "factory.lab_client.ab_submit",
+          "depends_on": [
+            "fill-measure"
+          ],
+          "kind": "measure",
+          "node_id": "fill-tune-chunk",
+          "state": "proposed",
+          "title": "Tune fill chunk2048 to256"
+        },
+        {
+          "capability": "factory.lab_client.ab_submit",
+          "depends_on": [
+            "fill-tune-chunk"
+          ],
+          "kind": "measure",
+          "node_id": "final-direct",
+          "state": "proposed",
+          "title": "Direct bare-versus-selected final ABBA"
+        }
+      ],
+      "update": [
+        {
+          "evidence_ids": [
+            "0864629c8ee748f2a54fb72fffe6a0c7:evaluation",
+            "0372faa52e444901a48c3b187c11c2cc"
+          ],
+          "node_id": "fill-measure",
+          "reason": "Fill engaged/correct but gate null; no enabled keep.",
+          "state": "done"
+        },
+        {
+          "depends_on": [
+            "final-direct"
+          ],
+          "node_id": "accept",
+          "reason": "Require direct bare-versus-selected comparison after bounded tuning."
+        }
+      ]
+    },
+    "reason_for_change": "0864629c8ee748f2a54fb72fffe6a0c7:evaluation is null; ea79f35e159e4c9fbc0451118e41ddb5 quantifies a large demand-fill window and sampled util leaves task-balance hypothesis testable without prediction.",
+    "rev": 19,
+    "stop_condition": "No keep based on null result. If chunk change is null/regressed, do not retain it; at most one further settings trial. Final success still requires direct bare improved gate.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "More pread calls may cost more than improved task balance. A relative tuning win against unaccepted fill16 is not evidence of beating bare; require direct bare-vs-selected ABBA before any final keep/claim."
+  },
+  {
+    "action": {
+      "next": "Preflight exact bare argv and submit one non-scoring untraced bare fixed workload (env{}), recording cache end; then use unchanged already-probed candidate env in direct ABBA next turn.",
+      "type": "investigate"
+    },
+    "budget": {
+      "max_settings_trials": 3,
+      "planned_direct_rounds": 2,
+      "primer_runs": 1,
+      "settings_trials_used": 2,
+      "turns_remaining": 31,
+      "wall_clock_s_remaining": 20073
+    },
+    "created": 1794516544.068394,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:20",
+    "evidence_ids": [
+      "989e981f7a2949e783addea1901aa700:evaluation",
+      "989e981f7a2949e783addea1901aa700:ab/REPORT.md",
+      "989e981f7a2949e783addea1901aa700:ab/verdict.json",
+      "006acbdc0d2347679f4bcce5f6447c5e",
+      "c6a4033c2f3e4805aa69c4faa1cace96",
+      "0864629c8ee748f2a54fb72fffe6a0c7:ab/REPORT.md",
+      "6b540bdd51564bc190b96d6e2738fe14:build-result"
+    ],
+    "expected_evidence": "Bare primer correctness/page-cache end, followed by direct whole-source bare-vs-fill performance/engagement/correctness with full cache starts.",
+    "expected_graph_rev": 22,
+    "hypothesis": "One fixed bare workload before a fresh direct bare-vs-fill ABBA may give similar carryover starts and a more discriminating comparison, without changing workload/scoring. It will not prove the earlier disparity's cause or relabel prior nulls.",
+    "observations": "Chunk256 trial null, correctness/engagement pass, ratio1.0403<threshold0.2829, so restore2048. Both recent trials begin after config probes with first A start4-5% versus later10-14%, slow first A and material drift. No acceptance or enabled keep. Current global best remains bare17de3839 env{}. Original fill16/chunk2048 remains only an experimental candidate.",
+    "parent_rev": 19,
+    "plan_patch": {
+      "add": [
+        {
+          "capability": "factory.lab_client.submit",
+          "depends_on": [
+            "fill-tune-chunk"
+          ],
+          "kind": "measure",
+          "node_id": "bare-primer",
+          "state": "proposed",
+          "title": "Non-scoring fixed bare carryover primer"
+        }
+      ],
+      "update": [
+        {
+          "evidence_ids": [
+            "989e981f7a2949e783addea1901aa700:evaluation",
+            "c6a4033c2f3e4805aa69c4faa1cace96"
+          ],
+          "node_id": "fill-tune-chunk",
+          "reason": "Chunk256 null; restore2048; no enabled keep.",
+          "state": "done"
+        },
+        {
+          "depends_on": [
+            "bare-primer"
+          ],
+          "node_id": "final-direct",
+          "reason": "Direct comparison after one fixed bare carryover primer."
+        }
+      ]
+    },
+    "reason_for_change": "989e981f7a2949e783addea1901aa700:ab/verdict.json is null and c6a4033c2f3e4805aa69c4faa1cace96 records repeat first-A/cache disparity; a fixed primer is a bounded preparation for a new direct comparison.",
+    "rev": 20,
+    "stop_condition": "Never drop first runs, change gate, or warm only one scored arm. If strong start disparity recurs, retain invalid/null limits rather than repeat indefinitely. No automatic keep from a primer.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Carryover residency is not controlled fully and may change in queue. Fill gain may remain below threshold even with comparable starts. Current null ratios cannot be multiplied or cited as speedups."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "next": "Submit2-round direct untraced ABBA: rebuilt bare17de3839/env{} vs source08 image74785dff/exact previously probed fill16 env; end turn.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_settings_trials": 3,
+      "rounds": 2,
+      "settings_trials_used": 2,
+      "turns_remaining": 30,
+      "wall_clock_s_remaining": 19726
+    },
+    "created": 1794516780.4825797,
+    "decision_id": "factory-53db494559954fc6a690a9a014afbf21:decision:21",
+    "evidence_ids": [
+      "5dacbf5d0faf4cd4b77b2fe0aa92dd43:evaluation",
+      "5dacbf5d0faf4cd4b77b2fe0aa92dd43:page_cache.start.json",
+      "5dacbf5d0faf4cd4b77b2fe0aa92dd43:page_cache.end.json",
+      "c6a4033c2f3e4805aa69c4faa1cace96",
+      "67ef1a9f08c047c4b652c76d218b488f",
+      "915b94fd95f04f73bc04db2a7503258d:build-result",
+      "6b540bdd51564bc190b96d6e2738fe14:build-result"
+    ],
+    "expected_evidence": "Direct gate/acceptance plus all-arm frozen stdout checks, candidate fill/decode-byte engagement, full per-run cache residency and load/telemetry evidence.",
+    "expected_graph_rev": 24,
+    "hypothesis": "Direct rebuilt-bare cf34d3113 versus whole source08 fill candidate after fixed primer can establish whether demand fill improves this contract with comparable carryover starts. This measures all residual source effects and avoids multiplying relative ratios.",
+    "observations": "Non-scoring fixed bare primer succeeded, correctness pass,949.91ms/token (not speed evidence). Carryover starts13.6818%, ends12.2224%. Config/preflight already verified both images; no new model probe is needed before scored work. Restore chunk2048 after rejected/null256. Global best bare17de3839 env{}, no enabled performance keeps; candidate source08 fill16/chunk2048/decoderandom/max1 with mmap default, router0,pregate0,diag0,populate0.",
+    "parent_rev": 20,
+    "plan_patch": {
+      "update": [
+        {
+          "evidence_ids": [
+            "5dacbf5d0faf4cd4b77b2fe0aa92dd43:evaluation",
+            "5dacbf5d0faf4cd4b77b2fe0aa92dd43:page_cache.end.json"
+          ],
+          "node_id": "bare-primer",
+          "reason": "Non-scoring fixed primer complete; frozen output correct.",
+          "state": "done"
+        }
+      ]
+    },
+    "reason_for_change": "5dacbf5d0faf4cd4b77b2fe0aa92dd43:evaluation and cache artifacts establish the bounded primer; c6a4033c2f3e4805aa69c4faa1cace96 rejects chunk256 and motivates direct whole-stack evidence.",
+    "rev": 21,
+    "stop_condition": "Keep fill only on acceptance accept and improved direct gate with comparable starts. Preserve all prior nulls. Do not repeat this comparison indefinitely if noise or cache disparity persists.",
+    "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+    "uncertainty": "Fill may still be null. Bare timing baseline is the newly identified same-source build17de3839, while immutable original a9a0c71c remains the frozen stdout reference; do not claim identical image identity or cross-protocol historical speedups."
+  }
+]
