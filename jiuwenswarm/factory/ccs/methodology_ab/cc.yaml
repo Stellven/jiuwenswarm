@@ -1,0 +1,6 @@
+cc: '2'
+id: factory.methodology_ab
+version: 1.0.0
+materials:
+  methodology:
+    path: AB.md

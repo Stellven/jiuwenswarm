@@ -1,0 +1,12 @@
+cc: '2'
+id: factory.components.expert_fill
+version: 1.0.0
+materials:
+  component:
+    path: component.yaml
+  patch_03:
+    path: 03-expert-fill.patch
+  patch_04:
+    path: 04-fill-phase.patch
+  patch_05:
+    path: 05-fill-diag.patch

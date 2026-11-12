@@ -15,15 +15,8 @@ import time
 
 from .contract import atomic_json
 
-OM_RUN = '/home/muk/projects/siminfeng/cc/om_run/om_run.sh'
-ENV_KEYS = dict(zip(
-    ['LLAMA_EXPERT_' + k for k in ('FILL', 'FILL_RANDOM', 'FILL_THREADS', 'FILL_CHUNK_KIB',
-     'FILL_MIN_TOKENS', 'FILL_MAX_TOKENS', 'FILL_DIAG', 'FILL_DIAG_CSV', 'FILL_POPULATE',
-     'PREGATE', 'PREGATE_K', 'PREGATE_ORDER', 'PREGATE_MAX_INFLIGHT', 'PREGATE_LOOKAHEAD',
-     'PREFETCH', 'PREFETCH_NEXT')],
-    ('fill', 'random', 'threads', 'chunk_kib', 'min_tokens', 'max_tokens', 'diag',
-     'diag_csv', 'populate', 'pregate', 'k', 'order', 'max_inflight', 'lookahead',
-     'prefetch', 'prefetch_next')))
+from .config import OM_RUN, DOCKER_PREFIX, MIN_AVAIL_MIB, DOCKER_TIMEOUT, UPLOAD_TIMEOUT
+from .effective_config import ENV_KEYS, parse_effective
 REQUIRED = {'stdout.txt', 'stderr.txt', 'result.json', 'watchdog.jsonl',
             'telemetry.jsonl', 'threads.summary.json', 'cmd.txt'}
 
@@ -31,8 +24,8 @@ REQUIRED = {'stdout.txt', 'stderr.txt', 'result.json', 'watchdog.jsonl',
 def docker(args):
     command = shlex.split(os.environ.get('FACTORY_DOCKER', 'docker')) + list(args)
     if not os.environ.get('FACTORY_DOCKER'):
-        command = ['sg', 'docker', '-c', shlex.join(command)]
-    return subprocess.run(command, capture_output=True, text=True, timeout=15)
+        command = shlex.split(DOCKER_PREFIX) + [shlex.join(command)]
+    return subprocess.run(command, capture_output=True, text=True, timeout=DOCKER_TIMEOUT)
 
 
 def inspect_image(ref):
@@ -55,8 +48,7 @@ def collect(root, config):
     result = read_json('result.json')
     worker = read_json('worker.json')
     threads = read_json('threads.summary.json')
-    lines = re.findall(r'^expert_config: effective (.*)$', stderr, re.MULTILINE)
-    effective = dict(re.findall(r'(\w+)=(.*?)(?= \w+=|$)', lines[0])) if lines else {}
+    lines, effective = parse_effective(stderr)
     mismatches = {}
     for key, value in config['env'].items():
         if key == 'LLAMA_MMAP_ADVICE':
@@ -85,7 +77,8 @@ def collect(root, config):
             outcome = 'config_rejected'
         elif (result.get('oom_killed') or result.get('watchdog_trips') or 'watchdog_trip' in watchdog
               or result.get('exit_code') != 0 or result.get('status') != 'ok'
-              or not config_ok or not all(checks.get(k, False) for k in required)):
+              or ('effective_config_matches_request' in required and not config_ok)
+              or not all(checks.get(k, False) for k in required)):
             outcome = 'measurement_failed'
     complete = not missing and bool(result) and bool(threads)
     stdout = root / 'stdout.txt'
@@ -119,7 +112,7 @@ def upload(task, run, root, spool):
         try:
             result = subprocess.run([sys.executable, '-m', 'jiuwenswarm.factory.manager',
                 'ingest', '--task', task, '--run', run, '--bundle', str(root), '--spool', str(spool)],
-                capture_output=True, text=True, timeout=30)
+                capture_output=True, text=True, timeout=UPLOAD_TIMEOUT)
         except (OSError, subprocess.SubprocessError):
             continue
         if result.returncode == 0 and (root / 'ack.json').exists():
@@ -160,8 +153,8 @@ def run(task, lab_run, admission, contract_id, config, spool):
             # om_run interpolates ENV_FLAGS into its sg command. Manager restricts
             # every value to shell-safe tokens before this worker can be submitted.
             flags = ' '.join('-e ' + k + '=' + v for k, v in sorted(config['env'].items()))
-            env = dict(os.environ, OM_THREADS='1', OM_MIN_AVAIL_MIB='600',
-                       OM_MODELDIR=str(model.parent), DOCKER_CMD_PREFIX='sg docker -c')
+            env = dict(os.environ, OM_THREADS='1', OM_MIN_AVAIL_MIB=str(MIN_AVAIL_MIB),
+                       OM_MODELDIR=str(model.parent), DOCKER_CMD_PREFIX=DOCKER_PREFIX)
             with (root / 'launcher.stdout.txt').open('w') as stdout, (root / 'launcher.stderr.txt').open('w') as stderr:
                 process = subprocess.Popen([os.environ.get('FACTORY_OM_RUN', OM_RUN), str(root),
                     image['Id'], flags, config['contract']['workload']['tool'], *config['argv']],

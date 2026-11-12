@@ -358,7 +358,7 @@
           "expert_pregate: stats": true,
           "xfill_threads_present": true
         },
-        "eval_ms_per_token": "<redacted>",
+        "eval_ms_per_token": 745.0,
         "exit_status": 0,
         "invalid_message": null,
         "mismatches": {},

@@ -1,0 +1,183 @@
+{
+  "secondary_metrics": {
+    "base": {
+      "nvme_gib_per_token": 0.89399292355492,
+      "prompt_tps": 5.5649999999999995,
+      "eval_tps": 1.135,
+      "eval_ms_per_token": 882.585,
+      "nvme_gib_per_token_decode": 0.26363845286883475,
+      "gpu_util_median": 16.0,
+      "energy_j_per_token": 5.925785218430178
+    },
+    "pg8": {
+      "nvme_gib_per_token": 0.8573547242179749,
+      "prompt_tps": 5.5649999999999995,
+      "eval_tps": 1.355,
+      "eval_ms_per_token": 737.7049999999999,
+      "nvme_gib_per_token_decode": 0.23742612315066125,
+      "gpu_util_median": 18.0,
+      "energy_j_per_token": 5.350267963930623
+    },
+    "pg10": {
+      "nvme_gib_per_token": 0.8884204682849702,
+      "prompt_tps": 5.59,
+      "eval_tps": 1.33,
+      "eval_ms_per_token": 753.535,
+      "nvme_gib_per_token_decode": 0.2675374876402101,
+      "gpu_util_median": 18.0,
+      "energy_j_per_token": 5.5263190260949635
+    },
+    "pg8la2": {
+      "nvme_gib_per_token": 0.8950713929675874,
+      "prompt_tps": 5.4399999999999995,
+      "eval_tps": 1.28,
+      "eval_ms_per_token": 782.85,
+      "nvme_gib_per_token_decode": 0.2723014614942128,
+      "gpu_util_median": 18.0,
+      "energy_j_per_token": 5.732803186450735
+    },
+    "pg12la2": {
+      "nvme_gib_per_token": 0.9648645794580852,
+      "prompt_tps": 5.68,
+      "eval_tps": 1.185,
+      "eval_ms_per_token": 843.1949999999999,
+      "nvme_gib_per_token_decode": 0.34427329020478026,
+      "gpu_util_median": 18.0,
+      "energy_j_per_token": 6.245690993799606
+    }
+  },
+  "metric": "eval_ms_per_token",
+  "direction": "lower",
+  "base": "base",
+  "inputs": {
+    "base": [
+      896.69,
+      868.48
+    ],
+    "pg8": [
+      747.88,
+      727.53
+    ],
+    "pg10": [
+      753.29,
+      753.78
+    ],
+    "pg8la2": [
+      795.5,
+      770.2
+    ],
+    "pg12la2": [
+      840.62,
+      845.77
+    ]
+  },
+  "means": {
+    "base": 882.585,
+    "pg8": 737.7049999999999,
+    "pg10": 753.535,
+    "pg8la2": 782.85,
+    "pg12la2": 843.1949999999999
+  },
+  "aa_gaps": {
+    "base": 0.03196292708351041,
+    "pg8": 0.0275855524904942,
+    "pg10": 0.0006502684016004687,
+    "pg8la2": 0.032317813118732774,
+    "pg12la2": 0.0061077212269996595
+  },
+  "aa_gap": 0.032317813118732774,
+  "drift_halves": [
+    896.69,
+    868.48
+  ],
+  "drift": 0.03196292708351041,
+  "threshold": 0.06463562623746555,
+  "minimum_effect": 0.03,
+  "noise_multiplier": 2,
+  "comparisons": {
+    "pg8": {
+      "mean": 737.7049999999999,
+      "base_mean": 882.585,
+      "ratio": 1.1963928670674593,
+      "change": 0.1963928670674593,
+      "threshold": 0.06463562623746555,
+      "verdict": "improved"
+    },
+    "pg10": {
+      "mean": 753.535,
+      "base_mean": 882.585,
+      "ratio": 1.1712594637276306,
+      "change": 0.17125946372763057,
+      "threshold": 0.06463562623746555,
+      "verdict": "improved"
+    },
+    "pg8la2": {
+      "mean": 782.85,
+      "base_mean": 882.585,
+      "ratio": 1.1273998850354474,
+      "change": 0.1273998850354474,
+      "threshold": 0.06463562623746555,
+      "verdict": "improved"
+    },
+    "pg12la2": {
+      "mean": 843.1949999999999,
+      "base_mean": 882.585,
+      "ratio": 1.0467151726468968,
+      "change": 0.04671517264689684,
+      "threshold": 0.06463562623746555,
+      "verdict": "null"
+    }
+  },
+  "output": {
+    "class": "identical",
+    "hashes": {
+      "base": [
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "pg8": [
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "pg10": [
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "pg8la2": [
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "pg12la2": [
+        "7a1541792364",
+        "7a1541792364"
+      ]
+    }
+  },
+  "reasons": [],
+  "status": "completed",
+  "invalid_reasons": [],
+  "planned_order": [
+    "base",
+    "pg8",
+    "pg10",
+    "pg8la2",
+    "pg12la2",
+    "pg12la2",
+    "pg8la2",
+    "pg10",
+    "pg8",
+    "base"
+  ],
+  "executed_order": [
+    "base",
+    "pg8",
+    "pg10",
+    "pg8la2",
+    "pg12la2",
+    "pg12la2",
+    "pg8la2",
+    "pg10",
+    "pg8",
+    "base"
+  ]
+}

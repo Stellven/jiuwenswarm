@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import json
 import os
-import re
 from pathlib import Path
 import sqlite3
 import sys
+import time
 
 from .store import FactoryError, NotFound, ScopeDenied, Store
 
@@ -45,7 +45,7 @@ def dispatch(store, task_id, capability, packet):
     if capability.startswith('lab.'):
         from .manager import Manager
         operation = capability.removeprefix('lab.')
-        if operation not in {'submit', 'status', 'cancel', 'result'}:
+        if operation not in {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}:
             raise ValueError('Unknown lab capability')
         if hasattr(store, '_check'):
             store._check(task_id, write=True)
@@ -53,6 +53,10 @@ def dispatch(store, task_id, capability, packet):
         else:
             host = store
         manager = Manager(host, host.home / 'lab-spool')
+        if operation == 'ab_submit':
+            required = {'base_image', 'candidate_image', 'base_env', 'candidate_env', 'rounds', 'idem_key', 'component'}
+            fields(inputs, required | {'contract_id'}, required)
+            return manager.ab_submit(task_id, **inputs)
         if operation == 'submit':
             fields(inputs, {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key'},
                    {'image', 'build_attempt_id', 'contract_id', 'run_config', 'idem_key'})
@@ -64,6 +68,8 @@ def dispatch(store, task_id, capability, packet):
         attempt = manager.jobs._get(inputs['attempt_id'])
         if attempt['task_id'] != task_id or attempt['kind'] != 'lab':
             raise ScopeDenied('Lab attempt belongs to another task or capability')
+        if operation.startswith('ab_') and attempt['request'].get('mode') != 'ab':
+            raise ValueError('A/B operation requires an A/B attempt')
         return getattr(manager, operation)(inputs['attempt_id'])
     if capability.startswith('builder.'):
         from .builder import Builder
@@ -108,6 +114,8 @@ def dispatch(store, task_id, capability, packet):
         raise NotFound('Record not found')
     if capability != 'evidence.publish':
         raise ValueError('Unknown evidence capability')
+    if not hasattr(store, '_check'):
+        store = store.scoped(task_id)
     fields(inputs, {'type', 'record', 'expected_rev'}, {'type', 'record'})
     record = inputs['record']
     if not isinstance(record, dict):
@@ -123,6 +131,9 @@ def dispatch(store, task_id, capability, packet):
         if 'expected_rev' in record and 'expected_rev' in inputs and record['expected_rev'] != inputs['expected_rev']:
             raise ValueError('Conflicting expected_rev values')
         expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
+        if store.get_task(task_id).get('contract_id') == 'qwen36-bare-greedy-v1' or record.get('action', {}).get('type') in {'keep_component', 'revert_component'}:
+            from .controller import validate_action
+            validate_action(record.get('action'))
         return store.advance_decision(task_id, expected_rev, record)
     if inputs['type'] == 'artifact':
         if 'expected_rev' in inputs:
@@ -137,15 +148,18 @@ def dispatch(store, task_id, capability, packet):
 
 def input_reason(exc):
     """Keep actionable validation text while redacting configured credentials."""
-    message = str(exc)
-    for key, value in os.environ.items():
-        if value and re.search(r'(?i)(secret|token|password|credential|api_key|private_key)', key):
-            message = message.replace(value, '[redacted]')
-    message = re.sub(r'(?i)(bearer\s+)[\w.\-]+', r'\1[redacted]', message)
-    return message[:300]
+    from .redact import sanitize
+    return sanitize(str(exc))[:300]
 
 
 def main():
+    from . import telemetry
+    started = time.perf_counter()
+    packet, result, store = {}, None, None
+    capability = sys.argv[1] if len(sys.argv) > 1 else ''
+    task_id = os.environ.get('FACTORY_TASK_ID', '').strip()
+    home = telemetry.home_path()
+    telemetry.set_turn_env(home, task_id)
     try:
         if len(sys.argv) != 2:
             raise ValueError('One capability argument is required')
@@ -158,23 +172,26 @@ def main():
         if not task_id:
             raise ValueError('FACTORY_TASK_ID is required')
         readable = frozenset(t.strip() for t in os.environ.get('FACTORY_READ_TASKS', '').split(',') if t.strip())
-        with Store(Path(os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory'))) as store:
+        store = Store(home)
+        if store:
             # Inspector dispatch: returns a native envelope, including failed
             # probes with their observation/artifact references (F04).
             if sys.argv[1].startswith('inspector.'):
                 from .inspector import dispatch as inspector_dispatch
                 result = inspector_dispatch(store.scoped(task_id), task_id, sys.argv[1], packet)
-                print(json.dumps(result, ensure_ascii=False, allow_nan=False))
-                return
-            # End inspector dispatch.
-            outputs = dispatch(store.scoped(task_id, readable), task_id, sys.argv[1], packet)
-        result = {'outcome': 'ok', 'outputs': outputs}
+            else:
+                outputs = dispatch(store.scoped(task_id, readable), task_id, sys.argv[1], packet)
+                result = {'outcome': 'ok', 'outputs': outputs}
     except FactoryError as exc:
         result = {'outcome': 'error', 'error': {'code': exc.code, 'message': str(exc)}}
     except (ValueError, TypeError, KeyError, OverflowError, sqlite3.ProgrammingError) as exc:
         result = {'outcome': 'error', 'error': {'code': 'INVALID_INPUT', 'message': input_reason(exc)}}
     except (OSError, sqlite3.Error):
         result = {'outcome': 'error', 'error': {'code': 'PERSISTENCE_FAILED', 'message': 'Evidence persistence failed'}}
+    finally:
+        telemetry.call(home, task_id, capability, packet, result or {'outcome': 'error'}, started, store=store)
+        if store is not None:
+            store.close()
     print(json.dumps(result, ensure_ascii=False, allow_nan=False))
 
 

@@ -76,7 +76,7 @@ TRANSITIONS = {
     'queued': {'running', 'failed', 'cancel_requested', 'cancelled', 'unknown'},
     'running': {'succeeded', 'failed', 'cancel_requested', 'unknown'},
     'cancel_requested': {'cancelled', 'succeeded', 'failed', 'unknown'},
-    'unknown': {'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'},
+    'unknown': {'queued', 'running', 'succeeded', 'failed', 'cancel_requested', 'cancelled'},
     'succeeded': set(), 'failed': set(), 'cancelled': set(),
 }
 
@@ -95,6 +95,7 @@ class Store:
         with self._transaction(inject=False):
             for table, (_, columns) in TABLES.items():
                 self._db.execute(f'CREATE TABLE IF NOT EXISTS {table} ({columns})')
+            self._db.execute('CREATE TABLE IF NOT EXISTS builder_reuse_keys (task_id TEXT NOT NULL, idem_key TEXT NOT NULL, fingerprint TEXT NOT NULL, attempt_id TEXT NOT NULL, PRIMARY KEY(task_id, idem_key))')
             columns = {r['name'] for r in self._db.execute('PRAGMA table_info(tasks)')}
             for name, declaration in TASK_INPUTS.items():
                 if name not in columns:
@@ -124,12 +125,20 @@ class Store:
 
     @contextmanager
     def _transaction(self, inject=True):
+        self._telemetry_pending = []
         try:
             self._db.execute('BEGIN IMMEDIATE')
             yield
             if inject:
                 self._fault('before_commit')
             self._db.commit()
+            try:
+                from .telemetry import record
+                for table, value in self._telemetry_pending:
+                    record(self.home, table, value)
+            except Exception:
+                # Observability must never turn a committed mutation into a failure.
+                pass
         except Exception as exc:
             if self._db.in_transaction:
                 self._db.rollback()
@@ -170,6 +179,11 @@ class Store:
         return record
 
     def _event(self, table, record):
+        # Snapshot now: later metadata edits must not alter committed telemetry.
+        previous = self._db.execute('SELECT record FROM evidence WHERE task_id=? AND id=? ORDER BY cursor DESC LIMIT 1',
+                                    (record['task_id'], str(record[TABLES[table][0]]))).fetchone()
+        if table != 'attempts' or previous is None or json.loads(previous[0]).get('state') != record.get('state'):
+            self._telemetry_pending.append((table, json.loads(encoded(record))))
         type_name = next(k for k, v in TYPES.items() if v == table)
         record_id = str(record[TABLES[table][0]])
         summary = str(record.get('hypothesis', record.get('objective', record.get('values', record.get('sha256', record.get('state', ''))))))[:300]
@@ -191,7 +205,15 @@ class Store:
     def scoped(self, task_id, readable=frozenset()):
         return ScopedStore(self, identifier(task_id), frozenset(identifier(t) for t in readable))
 
-    def advance_decision(self, task_id, expected_rev, record):
+    def validate_evidence(self, task_id, refs, readable=()):
+        if not isinstance(refs, list) or not all(isinstance(ref, str) and ref for ref in refs):
+            raise ValueError('evidence_ids must be a list of nonempty ids')
+        for ref in refs:
+            if not any(self._db.execute('SELECT 1 FROM evidence WHERE task_id=? AND id=?',
+                       (target, ref)).fetchone() for target in (task_id, *readable)):
+                raise ValueError('Unknown or inaccessible evidence id: ' + ref)
+
+    def advance_decision(self, task_id, expected_rev, record, *, readable=()):
         if type(expected_rev) is not int or expected_rev < 0:
             raise ValueError('expected_rev must be a nonnegative integer')
         record = dict(record)
@@ -203,6 +225,7 @@ class Store:
         with self._transaction():
             if self.get_task(task_id)['current_decision_rev'] != expected_rev:
                 raise StaleRevision('Current decision revision differs from expected_rev')
+            self.validate_evidence(task_id, record.get('evidence_ids', []), readable)
             result = self._insert('decisions', dict(decision_id=f'{task_id}:decision:{expected_rev + 1}', evidence_ids=[], observations=[], hypothesis='', uncertainty='', action={}, expected_evidence='', budget={}, stop_condition='', reason_for_change='', created=time.time()) | record | protected)
             self._db.execute('UPDATE tasks SET current_decision_rev=? WHERE task_id=?', (expected_rev + 1, task_id))
         return result
@@ -456,13 +479,25 @@ class ScopedStore:
 
     def advance_decision(self, task_id, expected_rev, record):
         self._check(task_id, write=True)
-        return self._store.advance_decision(task_id, expected_rev, record)
+        return self._store.advance_decision(task_id, expected_rev, record, readable=self.readable)
+
+    def _agent_id(self, value):
+        if value is None:
+            return
+        identifier(value)
+        prefixes = ['admission', *(r[0] for r in self._store._db.execute('SELECT attempt_id FROM attempts'))]
+        if ':' in value or any(value.startswith(prefix) for prefix in prefixes):
+            raise ScopeDenied('Evidence id is reserved for the host')
 
     def put_artifact(self, task_id, artifact_id, data, media_type, producer_attempt):
+        self._agent_id(artifact_id)
         self._check(task_id, write=True)
         return self._store.put_artifact(task_id, artifact_id, data, media_type, producer_attempt)
 
     def append_observation(self, task_id, record):
+        self._agent_id(record.get('obs_id'))
+        if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention'}:
+            raise ScopeDenied('Observation fields are reserved for the host')
         self._check(task_id, write=True)
         return self._store.append_observation(task_id, record)
 

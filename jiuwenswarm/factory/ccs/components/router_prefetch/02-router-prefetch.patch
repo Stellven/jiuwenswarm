@@ -1,0 +1,392 @@
+diff --git a/ggml/include/ggml-backend.h b/ggml/include/ggml-backend.h
+index afb8633..4aef659 100644
+--- a/ggml/include/ggml-backend.h
++++ b/ggml/include/ggml-backend.h
+@@ -332,6 +332,11 @@ extern "C" {
+     //
+     typedef bool (*ggml_backend_sched_eval_callback)(struct ggml_tensor * t, bool ask, void * user_data);
+ 
++    // CPU-only before-node callback. ask selects a node; observation runs after its
++    // inputs are ready, before the node executes. No device readback is added.
++    typedef void (*ggml_backend_sched_cpu_callback)(struct ggml_tensor * t, bool ask, bool * observe, void * user_data);
++    GGML_API void ggml_backend_sched_set_cpu_callback(ggml_backend_sched_t sched, ggml_backend_sched_cpu_callback callback, void * user_data);
++
+     // Callback while copying input weights of a split
+     // if the user returns false the scheduler simply copies the entire weight
+     // the callback is called only for input weights in host buffers
+diff --git a/ggml/src/ggml-backend.cpp b/ggml/src/ggml-backend.cpp
+index 92a53bf..901b32f 100644
+--- a/ggml/src/ggml-backend.cpp
++++ b/ggml/src/ggml-backend.cpp
+@@ -1223,6 +1223,9 @@ struct ggml_backend_sched {
+ 
+     struct ggml_context * ctx;
+ 
++    ggml_backend_sched_cpu_callback callback_cpu;
++    void * callback_cpu_user_data;
++
+     ggml_backend_sched_eval_callback callback_eval;
+     void * callback_eval_user_data;
+ 
+@@ -2233,8 +2236,34 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+             }
+         }
+ 
++        auto compute = [&](ggml_cgraph * graph) -> ggml_status {
++            if (!sched->callback_cpu || ggml_backend_dev_type(ggml_backend_get_device(split_backend)) != GGML_BACKEND_DEVICE_TYPE_CPU) {
++                return ggml_backend_graph_compute_async(split_backend, graph);
++            }
++            int first = 0;
++            for (int i = 0; i < graph->n_nodes; ++i) {
++                bool observe = false;
++                sched->callback_cpu(graph->nodes[i], true, &observe, sched->callback_cpu_user_data);
++                if (!observe) {
++                    continue;
++                }
++                if (first < i) {
++                    ggml_cgraph prefix = ggml_graph_view(graph, first, i);
++                    ggml_status ec = ggml_backend_graph_compute_async(split_backend, &prefix);
++                    if (ec != GGML_STATUS_SUCCESS) {
++                        return ec;
++                    }
++                }
++                ggml_backend_synchronize(split_backend);
++                sched->callback_cpu(graph->nodes[i], false, &observe, sched->callback_cpu_user_data);
++                first = i;
++            }
++            ggml_cgraph tail = ggml_graph_view(graph, first, graph->n_nodes);
++            return ggml_backend_graph_compute_async(split_backend, &tail);
++        };
++
+         if (!sched->callback_eval) {
+-            enum ggml_status ec = ggml_backend_graph_compute_async(split_backend, &split->graph);
++            enum ggml_status ec = compute(&split->graph);
+             if (ec != GGML_STATUS_SUCCESS) {
+                 return ec;
+             }
+@@ -2256,7 +2285,7 @@ static enum ggml_status ggml_backend_sched_compute_splits(ggml_backend_sched_t s
+ 
+                 struct ggml_cgraph gv = ggml_graph_view(&split->graph, j0, j1 + 1);
+ 
+-                enum ggml_status ec = ggml_backend_graph_compute_async(split_backend, &gv);
++                enum ggml_status ec = compute(&gv);
+                 if (ec != GGML_STATUS_SUCCESS) {
+                     return ec;
+                 }
+@@ -2481,6 +2510,12 @@ void ggml_backend_sched_synchronize(ggml_backend_sched_t sched) {
+     }
+ }
+ 
++void ggml_backend_sched_set_cpu_callback(ggml_backend_sched_t sched, ggml_backend_sched_cpu_callback callback, void * user_data) {
++    GGML_ASSERT(sched);
++    sched->callback_cpu = callback;
++    sched->callback_cpu_user_data = user_data;
++}
++
+ void ggml_backend_sched_set_eval_callback(ggml_backend_sched_t sched, ggml_backend_sched_eval_callback callback, void * user_data) {
+     GGML_ASSERT(sched);
+     sched->callback_eval = callback;
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index a450d82..65b9e05 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -23,6 +23,11 @@
+ #include <string>
+ #include <unordered_map>
+ 
++#ifdef __linux__
++#include <sys/mman.h>
++#include <unistd.h>
++#endif
++
+ //
+ // llama_context
+ //
+@@ -636,10 +641,146 @@ llama_context::llama_context(
+     }
+ }
+ 
++void llama_context::expert_prefetch_advise(size_t il, int32_t id) {
++#ifdef __linux__
++    auto & state = expert_prefetch_layers[il];
++    for (auto it = state.recent.begin(); it != state.recent.end();) {
++        if (state.tokens - it->second >= 32) {
++            it = state.recent.erase(it);
++        } else {
++            if (it->first == id) {
++                const auto hit = *it;
++                state.recent.erase(it);
++                state.recent.push_back(hit);
++                return;
++            }
++            ++it;
++        }
++    }
++    const auto & layer = model.layers[il];
++    bool advised = false;
++    bool failed = false;
++    for (const ggml_tensor * w : { layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps }) {
++        if (!w) {
++            continue;
++        }
++        if (id < 0 || id >= w->ne[2] || w->ne[3] != 1 || !ggml_is_contiguous(w) ||
++                w->nb[2] == 0 || !model.tensor_is_mapped(w)) {
++            if (!expert_prefetch_warned) {
++                LLAMA_LOG_INFO("expert_prefetch: skipping non-mmap or non-expert-contiguous tensors/invalid ids (once)\n");
++                expert_prefetch_warned = true;
++            }
++            continue;
++        }
++        static const uintptr_t page = (uintptr_t) sysconf(_SC_PAGESIZE);
++        const uintptr_t start = reinterpret_cast<uintptr_t>(w->data) + size_t(id) * w->nb[2];
++        if (page == 0 || page == UINTPTR_MAX || start > UINTPTR_MAX - w->nb[2] ||
++                start + w->nb[2] > UINTPTR_MAX - (page - 1)) {
++            continue;
++        }
++        const uintptr_t first = start - start % page;
++        const uintptr_t end = start + w->nb[2];
++        const uintptr_t last = end + (page - end % page) % page;
++        ++expert_prefetch_calls;
++        expert_prefetch_bytes += last - first;
++        if (madvise(reinterpret_cast<void *>(first), last - first, MADV_WILLNEED) != 0) {
++            ++expert_prefetch_failures;
++            failed = true;
++        } else {
++            advised = true;
++        }
++    }
++    if (advised && !failed) {
++        if (state.recent.size() == 32) {
++            state.recent.erase(state.recent.begin());
++        }
++        state.recent.emplace_back(id, state.tokens);
++    }
++#else
++    (void) il;
++    (void) id;
++#endif
++}
++
++void llama_context::expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe, void * data) {
++    auto & ctx = *static_cast<llama_context *>(data);
++    if (t->op != GGML_OP_MUL_MAT_ID || !t->src[0] || !t->src[2]) {
++        return;
++    }
++    size_t il = 0;
++    for (; il < ctx.model.layers.size(); ++il) {
++        const auto & layer = ctx.model.layers[il];
++        if (t->src[0] == layer.ffn_up_exps || t->src[0] == layer.ffn_gate_exps ||
++                t->src[0] == layer.ffn_down_exps || t->src[0] == layer.ffn_gate_up_exps) {
++            break;
++        }
++    }
++    if (il == ctx.model.layers.size() || ctx.expert_prefetch_layers[il].observed) {
++        return;
++    }
++    *observe = true;
++    if (ask) {
++        return;
++    }
++    auto & state = ctx.expert_prefetch_layers[il];
++    state.observed = true;
++    const ggml_tensor * ids = t->src[2];
++    const ggml_tensor * base = ids->view_src ? ids->view_src : ids;
++    if (ids->type != GGML_TYPE_I32 || ids->ne[2] != 1 || ids->ne[3] != 1 ||
++            !ids->data || !base->buffer || !ggml_backend_buffer_is_host(base->buffer) ||
++            !strstr(ids->name, "ffn_moe_topk-")) {
++        if (!ctx.expert_prefetch_warned) {
++            LLAMA_LOG_INFO("expert_prefetch: skipping unsupported router ids (once)\n");
++            ctx.expert_prefetch_warned = true;
++        }
++        return;
++    }
++    std::vector<int32_t> selected;
++    for (int64_t token = 0; token < ids->ne[1]; ++token) {
++        for (int64_t k = 0; k < ids->ne[0]; ++k) {
++            int32_t id;
++            memcpy(&id, static_cast<const char *>(ids->data) + token * ids->nb[1] + k * ids->nb[0], sizeof(id));
++            if (id >= 0 && id < t->src[0]->ne[2] &&
++                    std::find(selected.begin(), selected.end(), id) == selected.end()) {
++                selected.push_back(id);
++            }
++        }
++    }
++    state.tokens += ids->ne[1];
++    for (int32_t id : state.predicted) {
++        ++ctx.expert_prefetch_total;
++        ctx.expert_prefetch_hits += std::find(selected.begin(), selected.end(), id) != selected.end();
++    }
++    state.predicted.clear();
++    for (int32_t id : selected) {
++        ctx.expert_prefetch_advise(il, id);
++    }
++    if (ctx.expert_prefetch_next && il + 1 < ctx.model.layers.size()) {
++        auto & next = ctx.expert_prefetch_layers[il + 1];
++        const ggml_tensor * w = ctx.model.layers[il + 1].ffn_down_exps;
++        if (w && !next.observed) {
++            for (int32_t id : selected) {
++                if (id < w->ne[2]) {
++                    next.predicted.push_back(id);
++                    ctx.expert_prefetch_advise(il + 1, id);
++                }
++            }
++        }
++    }
++}
++
+ llama_context::~llama_context() {
+     // wait for any pending asynchronous copies into the output buffers before they are freed
+     synchronize();
+ 
++    if (!expert_prefetch_layers.empty()) {
++        LLAMA_LOG_INFO("expert_prefetch: advise calls=%" PRIu64 " bytes advised=%" PRIu64 " failures=%" PRIu64
++                       " next-layer prediction hits/total=%" PRIu64 "/%" PRIu64 " (%.2f%%)\n",
++                expert_prefetch_calls, expert_prefetch_bytes, expert_prefetch_failures,
++                expert_prefetch_hits, expert_prefetch_total,
++                expert_prefetch_total ? 100.0 * expert_prefetch_hits / expert_prefetch_total : 0.0);
++    }
++
+     // when training, ggml_opt allocates extra buffers through the scheduler, so the sizes no longer match the expectation
+     if (!model.no_alloc() && !opt_ctx) {
+         for (size_t i = 0; i < backend_ptrs.size(); ++i) {
+@@ -1685,6 +1826,21 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
+     auto * res = get_gf_res_prev();
+     auto * gf  = res->get_gf();
+ 
++#ifdef __linux__
++    const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
++    if (ep && strcmp(ep, "1") == 0 && expert_prefetch_layers.empty()) {
++        expert_prefetch_layers.resize(model.layers.size());
++        const char * next = getenv("LLAMA_EXPERT_PREFETCH_NEXT");
++        expert_prefetch_next = next && strcmp(next, "1") == 0;
++        LLAMA_LOG_INFO("expert_prefetch: CPU host-consumer hook enabled; device-only experts skipped, next=%d, LRU=32 ids/32 tokens\n", expert_prefetch_next);
++    }
++    for (auto & layer : expert_prefetch_layers) {
++        layer.observed = false;
++        layer.predicted.clear();
++    }
++    ggml_backend_sched_set_cpu_callback(sched.get(), expert_prefetch_layers.empty() ? nullptr : expert_prefetch_cb, this);
++#endif
++
+     // the new graph parameters
+     // in order to correctly reuse a graph, it's full topology has to be uniquely determined by these parameters
+     const auto gparams = graph_params(res, ubatch, mctx, gtype);
+diff --git a/src/llama-context.h b/src/llama-context.h
+index 39c5619..0598b9f 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -50,6 +50,24 @@ struct llama_context {
+ 
+     ~llama_context();
+ 
++    struct expert_prefetch_layer {
++        uint64_t tokens = 0;
++        std::vector<std::pair<int32_t, uint64_t>> recent;
++        std::vector<int32_t> predicted;
++        bool observed = false;
++    };
++    std::vector<expert_prefetch_layer> expert_prefetch_layers;
++    bool expert_prefetch_next = false;
++    bool expert_prefetch_warned = false;
++    uint64_t expert_prefetch_calls = 0;
++    uint64_t expert_prefetch_bytes = 0;
++    uint64_t expert_prefetch_failures = 0;
++    uint64_t expert_prefetch_hits = 0;
++    uint64_t expert_prefetch_total = 0;
++    static void expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe, void * data);
++    void expert_prefetch_advise(size_t layer, int32_t id);
++
++
+     // reserve a new backend scheduler (if needed)
+     // for example, when:
+     //   - changing loras
+diff --git a/src/llama-mmap.cpp b/src/llama-mmap.cpp
+index e139505..f310c9b 100644
+--- a/src/llama-mmap.cpp
++++ b/src/llama-mmap.cpp
+@@ -486,7 +486,17 @@ struct llama_mmap::impl {
+         if (numa) { prefetch = 0; }
+         // campaign J-RA: LLAMA_MMAP_ADVICE=random -> no sequential readahead hint, no WILLNEED prefetch, MADV_RANDOM on the mapping
+         const char * j_adv = getenv("LLAMA_MMAP_ADVICE");
+-        const bool j_random = j_adv && strcmp(j_adv, "random") == 0;
++        const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
++#ifdef __linux__
++        const bool expert_prefetch = ep && strcmp(ep, "1") == 0;
++#else
++        const bool expert_prefetch = false;
++        (void) ep;
++#endif
++        const bool j_random = !expert_prefetch && j_adv && strcmp(j_adv, "random") == 0;
++        if (expert_prefetch) {
++            LLAMA_LOG_INFO("llama_mmap: expert prefetch (RANDOM expert ranges, default non-expert advice)\n");
++        }
+         if (j_random) { prefetch = 0; LLAMA_LOG_INFO("llama_mmap: LLAMA_MMAP_ADVICE=random (no FADV_SEQUENTIAL, no WILLNEED, MADV_RANDOM)\n"); }
+ #ifdef __linux__
+         if (!j_random && posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL)) {
+diff --git a/src/llama-model-loader.cpp b/src/llama-model-loader.cpp
+index 485483b..c72f5ee 100644
+--- a/src/llama-model-loader.cpp
++++ b/src/llama-model-loader.cpp
+@@ -1439,10 +1439,23 @@ void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps
+                 }
+             }
+ 
++            llama_mmap::ranges advice_ranges = lazy.for_file(idx);
++#ifdef __linux__
++            const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
++            if (ep && strcmp(ep, "1") == 0) {
++                for (const auto & entry : weights_map) {
++                    const auto & w = entry.second;
++                    if (w.idx == idx && entry.first.find(".ffn_") != std::string::npos &&
++                            entry.first.find("_exps.weight") != std::string::npos) {
++                        advice_ranges.emplace_back(w.offs, w.offs + ggml_nbytes(w.tensor));
++                    }
++                }
++            }
++#endif
+             const size_t prefetch_size = prefetch && use_mmap ? -1 : 0;
+ 
+             std::unique_ptr<llama_mmap> mapping = std::make_unique<llama_mmap>(file.get(), prefetch_size, is_numa,
+-                    lazy.for_file(idx));
++                    advice_ranges);
+             mmaps_used.emplace_back(mapping->size(), 0);
+             if (mlock_mmaps) {
+                 std::unique_ptr<llama_mlock> mlock_mmap(new llama_mlock());
+diff --git a/src/llama-model.cpp b/src/llama-model.cpp
+index 7e845bc..bf24349 100644
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -2532,6 +2532,21 @@ llama_split_mode llama_model::split_mode() const {
+     return params.split_mode;
+ }
+ 
++bool llama_model::tensor_is_mapped(const ggml_tensor * t) const {
++    if (!t || !t->data) {
++        return false;
++    }
++    const uintptr_t ptr = reinterpret_cast<uintptr_t>(t->data);
++    const size_t bytes = ggml_nbytes(t);
++    for (const auto & mapping : pimpl->mappings) {
++        const uintptr_t base = reinterpret_cast<uintptr_t>(mapping->addr());
++        if (ptr >= base && ptr - base <= mapping->size() && bytes <= mapping->size() - (ptr - base)) {
++            return true;
++        }
++    }
++    return false;
++}
++
+ bool llama_model::no_alloc() const {
+     return params.no_alloc;
+ }
+diff --git a/src/llama-model.h b/src/llama-model.h
+index 9c0a51f..1f56a2a 100644
+--- a/src/llama-model.h
++++ b/src/llama-model.h
+@@ -971,6 +971,7 @@ struct llama_model {
+     uint32_t n_gpu_layers() const;
+     llama_split_mode split_mode() const;
+     bool no_alloc() const;
++    bool tensor_is_mapped(const ggml_tensor * t) const;
+ 
+     std::map<ggml_backend_buffer_type_t, size_t> memory_breakdown() const;
+ 

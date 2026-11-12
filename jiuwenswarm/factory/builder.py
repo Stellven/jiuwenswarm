@@ -14,8 +14,7 @@ import tempfile
 from .jobs import Jobs, KeyConflict, fingerprint
 from .store import encoded
 
-ENGINE = Path('/home/muk/projects/siminfeng/cc/build_engine/build_engine.py')
-RECIPE = Path('/home/muk/projects/siminfeng/builds/llamacpp-jetson/Dockerfile')
+from .config import ENGINE, RECIPE, JOBQ_BIN, BUILD_TIMEOUT
 # Explicit environment inputs affecting compilation. Credentials never enter receipts.
 ENV_KEYS = {'PATH', 'LD_LIBRARY_PATH', 'BUILD_JOBS', 'CC', 'CXX', 'CUDAHOSTCXX',
             'CUDACXX', 'CUDA_HOME', 'CUDA_PATH', 'CFLAGS', 'CXXFLAGS', 'LDFLAGS',
@@ -24,13 +23,9 @@ ENV_KEYS = {'PATH', 'LD_LIBRARY_PATH', 'BUILD_JOBS', 'CC', 'CXX', 'CUDAHOSTCXX',
 
 
 class Builder:
-    def __init__(self, store, jobq_bin=Path('/home/muk/projects/siminfeng/bin/jobq'), jobq_dir=None):
+    def __init__(self, store, jobq_bin=JOBQ_BIN, jobq_dir=None):
         self.store = store
         self.jobs = Jobs(store, jobq_bin, jobq_dir)
-        # Reused attempts retain their original identity. Bind additional keys
-        # durably so a later request cannot silently change a reuse key's input.
-        with store._transaction():
-            store._db.execute('CREATE TABLE IF NOT EXISTS builder_reuse_keys (task_id TEXT NOT NULL, idem_key TEXT NOT NULL, fingerprint TEXT NOT NULL, attempt_id TEXT NOT NULL, PRIMARY KEY(task_id, idem_key))')
 
     def _request(self, request):
         if not isinstance(request, dict) or request.get('target') != 'jetson-orin':
@@ -51,7 +46,7 @@ class Builder:
             raise ValueError('Source must be a git repository') from exc
         if not isinstance(request.get('tag'), str) or not re.fullmatch(r'factory/llamacpp:[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}', request['tag']):
             raise ValueError('tag must use factory/llamacpp namespace')
-        deadline = request.get('deadline_s') or 5400
+        deadline = request.get('deadline_s') or BUILD_TIMEOUT
         if isinstance(deadline, bool) or not isinstance(deadline, (int, float)) or not math.isfinite(deadline) or deadline <= 0:
             raise ValueError('deadline_s must be positive and finite')
         extra = request.get('env', {})
@@ -125,19 +120,3 @@ class Builder:
 
     def result(self, attempt_id):
         return self.jobs.result(attempt_id)
-
-
-def submit(store, task_id, request, idem_key):
-    return Builder(store).submit(task_id, request, idem_key)
-
-
-def status(store, attempt_id):
-    return Builder(store).status(attempt_id)
-
-
-def cancel(store, attempt_id):
-    return Builder(store).cancel(attempt_id)
-
-
-def result(store, attempt_id):
-    return Builder(store).result(attempt_id)

@@ -3,6 +3,9 @@ import json
 import subprocess
 import sys
 
+from jiuwenswarm.factory.telemetry import set_turn_env
+set_turn_env()
+
 PREFIX = 'inspector'
 packet = json.load(sys.stdin)
 cap = packet['capability']

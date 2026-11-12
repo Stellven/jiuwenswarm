@@ -71,3 +71,18 @@ def until(jobs, attempt_id, predicate=None, timeout=12):
             return result
         time.sleep(.03)
     pytest.fail('Attempt did not reach expected state: ' + str(result))
+
+
+@pytest.fixture(autouse=True)
+def builder_disk(request, tmp_path, monkeypatch):
+    if request.path.name != 'test_builder.py':
+        return
+    import shutil
+    usage = shutil._ntuple_diskusage(32 * 1024**3, 0, 32 * 1024**3)
+    monkeypatch.setattr(shutil, 'disk_usage', lambda path: usage)
+    # The durable worker is a fresh Python process; install the same fixture there.
+    site = tmp_path / 'python-fixture'
+    site.mkdir()
+    (site / 'sitecustomize.py').write_text(
+        'import shutil\nshutil.disk_usage = lambda path: shutil._ntuple_diskusage(34359738368, 0, 34359738368)\n')
+    monkeypatch.setenv('PYTHONPATH', str(site) + os.pathsep + str(Path.cwd()))

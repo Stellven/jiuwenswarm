@@ -101,12 +101,12 @@ def test_contract_freeze_once(tmp_path):
     p = tmp_path / 'contract.json';contract.atomic_json(p,c)
     loaded = contract.load(p)
     run = dict(execution_outcome='ok',evidence_completeness='complete',image_id=c['reference']['image_id'],stdout_sha256='a'*64,run_ref='fixture')
-    contract.freeze(loaded, run)
+    contract.freeze(loaded.path, run)
     assert contract.load(p)['reference']['stdout_sha256'] == 'a'*64
     with pytest.raises(contract.ContractFrozen):
-        contract.freeze(loaded, run)
+        contract.freeze(loaded.path, run)
     with pytest.raises(contract.ContractFrozen):
-        contract.freeze(contract.load(p), run)
+        contract.freeze(p, run)
 
 
 def test_eval_identical_pass(lab):
@@ -242,9 +242,9 @@ def test_cancel_lab_job(lab, worker):
 
 
 @pytest.mark.parametrize('status',[133,134])
-def test_inspector_aborted_signal_status(lab, monkeypatch,status):
+def test_inspector_aborted_signal_status(lab, monkeypatch, tmp_path, status):
     from jiuwenswarm.factory.inspector import Inspector
-    probe=Inspector()
+    probe=Inspector(tmp_path)
     monkeypatch.setattr(probe,'image',lambda image:{'id':IMAGE})
     monkeypatch.setattr(probe,'container',lambda *a,**k:subprocess.CompletedProcess([],status,'',(FIXTURES/'invalid-stderr.txt').read_text()))
     output,error=probe.verify({'image':{'id':IMAGE},'env':{'LLAMA_EXPERT_PREGATE_K':'48'}})

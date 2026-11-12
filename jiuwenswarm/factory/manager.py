@@ -15,7 +15,7 @@ from .jobs import Jobs
 from .lab_runner import ENV_KEYS, collect, inspect_image
 from .store import ArtifactConflict, FactoryError, NotFound, Store, encoded
 
-BASELINE_RECORD = Path('/home/muk/projects/siminfeng/cc/build_engine/results/jetson-up1108-om11/build-record.json')
+from .config import BASELINE_RECORD, BASELINE_IMAGE, LAB_TIMEOUT, SIMINFENG_ROOT
 
 
 class AdmissionError(FactoryError):
@@ -102,7 +102,28 @@ class Manager:
         for key in ('FACTORY_DOCKER', 'FACTORY_OM_RUN'):
             if key in os.environ:
                 env_extra[key] = os.environ[key]
-        return self.jobs.submit(task_id, 'lab', config, idem_key, 'gpu', argv, 1800, env_extra)
+        return self.jobs.submit(task_id, 'lab', config, idem_key, 'gpu', argv, LAB_TIMEOUT, env_extra)
+
+    def ab_submit(self, task_id, base_image, candidate_image, base_env, candidate_env,
+                  rounds, idem_key, component, contract_id=None):
+        from .ab import submit
+        return submit(self, task_id, base_image, candidate_image, base_env, candidate_env,
+                      rounds, idem_key, component, contract_id)
+
+    def ab_status(self, attempt_id):
+        return self.status(attempt_id)
+
+    def ab_result(self, attempt_id):
+        attempt = self.jobs._get(attempt_id)
+        root = self.spool_root / attempt_id
+        if (root / 'manifest.json').is_file():
+            self.ingest_upload(attempt['task_id'], attempt_id, root)
+        result = self.result(attempt_id)
+        try:
+            observation = self.store._get('observations', attempt['task_id'], attempt_id + ':observation')
+        except NotFound:
+            observation = None
+        return dict(result, ab_result=observation['values'] if observation else None)
 
     def status(self, attempt_id):
         return self.jobs.status(attempt_id)
@@ -112,9 +133,9 @@ class Manager:
         root = self.spool_root / attempt_id
         # jobq can SIGKILL an unresponsive worker. Reap only that run's recorded
         # container too, even if the worker's finally block could not execute.
-        if (root / 'container.id').is_file():
+        for container_path in root.rglob('container.id'):
             from .lab_runner import docker
-            cid = (root / 'container.id').read_text().strip()
+            cid = container_path.read_text().strip()
             if re.fullmatch(r'[a-f0-9]{12,64}', cid):
                 docker(['rm', '-f', cid])
         return attempt
@@ -137,6 +158,10 @@ class Manager:
         root = Path(bundle_dir).resolve()
         if root != self.spool_root / lab_run_id or not root.is_dir():
             raise ValueError('Bundle must be the lab run directory in the configured spool')
+        attempt = self.store._get('attempts', task_id, lab_run_id)
+        if attempt['request'].get('mode') == 'ab':
+            from .ab import ingest
+            return ingest(self, task_id, lab_run_id, root)
         raw_manifest = (root / 'manifest.json').read_bytes()
         digest = hashlib.sha256(raw_manifest).hexdigest()
         manifest = json.loads(raw_manifest)
@@ -215,40 +240,52 @@ class Manager:
     def retry_spool(self):
         results = []
         for path in sorted(self.spool_root.glob('*/manifest.json')):
-            manifest = json.loads(path.read_text())
             try:
+                manifest = json.loads(path.read_text())
                 results.append(self.ingest_upload(manifest['task_id'], manifest['lab_run_id'], path.parent))
-            except (FactoryError, OSError, ValueError) as exc:
-                results.append(dict(lab_run_id=manifest['lab_run_id'], execution_outcome='upload_pending',
-                                    error=type(exc).__name__))
+            except (FactoryError, OSError, ValueError, KeyError, TypeError) as exc:
+                results.append(dict(lab_run_id=path.parent.name, execution_outcome='upload_pending',
+                                    error=str(exc)[:200]))
         return results
 
 
 def freeze_reference(manager, contract_id, image):
     contract = contracts.load(contract_id)
-    if contract['reference']['stdout_sha256'] is not None:
+    reference = contracts.reference_info(contract)
+    if reference.get('stdout_sha256') is not None:
         raise contracts.ContractFrozen('Contract is frozen; create a version+1 contract file')
-    if image != contract['reference']['image_tag']:
+    image = image or reference['image_tag']
+    if image != reference['image_tag']:
         raise ValueError('Reference image must match the contract image tag')
     # Import the existing baseline build receipt, without invoking a build.
     # It passes the identical admission checks as a newly built candidate.
     record_path = BASELINE_RECORD
+    if contract.get('reference') is None:
+        record_path = Path(os.environ.get('FACTORY_REFERENCE_RECORD',
+            SIMINFENG_ROOT / 'cc/build_engine/results/jetson-up1108/build-record.json'))
     record = json.loads(record_path.read_text())
-    if record['image']['Id'] != contract['reference']['image_id']:
+    if record.get('status', 'success') not in {'success', 'succeeded'} or not record.get('image'):
+        raise ValueError('Reference freeze needs a successful bare build record (FACTORY_REFERENCE_RECORD)')
+    if reference.get('image_id') is not None and record['image']['Id'] != reference['image_id']:
         raise ValueError('Baseline build receipt differs from contract')
+    if contract.get('reference') is None:
+        contract['reference_image']['image_id'] = record['image']['Id']
+        contracts.atomic_json(contract.path, contract)
     task = 'reference-' + contract['contract_id']
     try:
         manager.store.get_task(task)
     except NotFound:
         manager.store.create_task(dict(task_id=task, objective='Operator reference freeze', target={'profile': 'jetson-orin'}))
     key = 'reference-build-receipt'
+    manager.store.put_artifact(task, key + ':receipt', encoded(dict(image_id=record['image']['Id'])).encode(), 'application/json', key)
     try:
         build = manager.store._get('attempts', task, key)
     except NotFound:
         build = manager.store.create_attempt(task, dict(attempt_id=key, kind='build', idem_key=key,
             fingerprint=hashlib.sha256(record_path.read_bytes()).hexdigest(), request=dict(imported_build_record=str(record_path))))
-        manager.store.put_artifact(task, key + ':receipt', encoded(dict(image_id=record['image']['Id'])).encode(), 'application/json', key)
-        manager.store.transition_attempt(task, key, 'running')
+    if build['state'] == 'queued':
+        build = manager.store.transition_attempt(task, key, 'running')
+    if build['state'] == 'running':
         manager.store.transition_attempt(task, key, 'succeeded')
     # Imported historical builds have no jobq id to reconcile. Validate the raw
     # image and use admit's receipt check with the already observed terminal state.
@@ -265,7 +302,7 @@ def freeze_reference(manager, contract_id, image):
         result = manager.result(handle['attempt_id'])
         if result['evaluation']:
             run = result['evaluation']['inputs']['run']
-            frozen = contracts.freeze(contract, run)
+            frozen = contracts.freeze(contract.path, run)
             print(frozen['reference']['stdout_sha256'])
             return
         if result['state'] in {'failed', 'cancelled', 'unknown'}:
@@ -281,7 +318,7 @@ def main():
     parser.add_argument('--run')
     parser.add_argument('--bundle', type=Path)
     parser.add_argument('--contract', default='qwen36-greedy-v1')
-    parser.add_argument('--image', default='campaign/llamacpp:jetson-up1108-om11')
+    parser.add_argument('--image')
     args = parser.parse_args()
     with Store(Path(os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory'))) as store:
         manager = Manager(store, args.spool or store.home / 'lab-spool')

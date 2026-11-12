@@ -9,16 +9,70 @@ import sys
 from .migration import check_legacy_config_or_exit
 
 
-def format_status(value):
-    decision = value['latest_decision'] or {}
-    lines = [f"Task: {value['task_id']}", f"Objective: {value['objective']}",
-             f"Outcome: {value['outcome'] or 'in progress'}",
-             f"Decision rev: {decision.get('rev', 0)}; action: {decision.get('action', {})}",
-             f"Reason for change: {decision.get('reason_for_change', '')}"]
-    for key in ('active_jobs', 'artifacts', 'evaluations', 'readiness', 'budget_used',
-                'pending_attempts', 'pending_questions'):
-        lines.append(f"{key}: {json.dumps(value[key], ensure_ascii=False)}")
-    return '\n'.join(lines)
+def format_status(value, plain=False, evidence=None):
+    from .story import duration, evaluation_summary, paint, wrap
+    import time
+    decision = value.get('latest_decision') or {}
+    used = value.get('budget_used', {})
+    task = (evidence or {}).get('tasks', [{}])[0]
+    limit = task.get('budget', value.get('budget', {}))
+    lines = wrap(f"Task: {value['task_id']} · {value.get('outcome') or 'in progress'} · rev {decision.get('rev', 0)}")
+    lines += wrap(f"Budget: {used.get('turns', 0)}/{limit.get('max_turns', '?')} turns · "
+                  f"{duration(used.get('wall_clock_s', 0))}/{duration(limit['wall_clock_s']) if 'wall_clock_s' in limit else '?'}")
+    action = decision.get('action', {})
+    def compact(text):
+        parts = wrap(text, '  ')
+        if len(parts) > 3:
+            return parts[:2] + [parts[2][:98] + ' …']
+        return parts
+    lines += ['Now']
+    lines += compact(f"{action.get('type', 'awaiting decision')}: " +
+                  str(action.get('next_bounded_operation', '')))
+    lines += compact(decision.get('reason_for_change', ''))
+    lines += ['Jobs']
+    jobs = value.get('active_jobs', [])
+    for job in jobs[:5]:
+        history = job.get('history', [])
+        since = job.get('started') or (history[0].get('created') if history else time.time())
+        lines += wrap(f"{job.get('kind', '?')} · {job.get('state', '?')} · age {duration(time.time() - since)}", '  ')
+    if len(jobs) > 5:
+        lines += [f'  +{len(jobs) - 5} more jobs']
+    if not jobs:
+        lines += ['  idle']
+    artifacts = value.get('artifacts', [])
+    lines += ['Evidence']
+    if evidence:
+        counts = ', '.join(f'{k} {len(v)}' for k, v in evidence.items()
+                           if isinstance(v, list) and k != 'events')
+    else:
+        counts = f"artifacts {len(artifacts)}, evaluations {len(value.get('evaluations', []))}"
+    lines += wrap(counts + f" · {sum(a.get('size', 0) for a in artifacts)} bytes", '  ')
+    lines += ['Last evaluation']
+    evaluations = value.get('evaluations', [])
+    lines += wrap(evaluation_summary(max(evaluations, key=lambda e: e.get('created', 0)))
+                  if evaluations else 'none', '  ')
+    lines += wrap('Readiness: ' + ' · '.join(f"{'✓' if ready else '✗'} {key}"
+                  for key, ready in value.get('readiness', {}).items()))
+    return '\n'.join(paint(line, plain) for line in lines)
+
+
+def readonly_status(data):
+    """Match Controller.status without initializing or mutating the live store."""
+    from .story import ACTIVE
+    import time
+    task = data['tasks'][0]
+    state = data['_meta'].get('controller_state', {})
+    latest = max(data.get('decisions', []), key=lambda d: d['rev'], default=None)
+    active = [a for a in data.get('attempts', []) if a['state'] in ACTIVE]
+    return dict(task_id=task['task_id'], objective=task['objective'],
+                outcome=state.get('outcome'), latest_decision=latest, active_jobs=active,
+                artifacts=[{k: a[k] for k in ('artifact_id', 'media_type', 'size')}
+                           for a in data.get('artifacts', [])], evaluations=data.get('evaluations', []),
+                readiness=dict(decision_published=latest is not None, jobs_idle=not active,
+                               evaluations_present=bool(data.get('evaluations'))),
+                budget_used=dict(turns=state.get('turns', 0), wall_clock_s=max(0,
+                    (state.get('finished') or time.time()) - state['started']) if state.get('started') is not None else 0),
+                pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
 
 
 async def auth(command, home):
@@ -59,17 +113,66 @@ def main(argv=None):
             command.add_argument('--grant', action='append', default=[], help='operator grant (repeatable; default none)')
         if name in {'status', 'show'}:
             command.add_argument('--json', action='store_true')
+        command.add_argument('--plain', action='store_true')
         if name == 'show':
             command.add_argument('id', nargs='?', help='evidence record ID; omit to show all records')
+    story = sub.add_parser('story', help='tell a task evidence story')
+    story.add_argument('source')
+    story.add_argument('--follow', action='store_true')
+    story.add_argument('--plain', action='store_true')
+    story.add_argument('--json', action='store_true')
+    capsules = sub.add_parser('capsules', help='list factory Capability Capsules')
+    capsules.add_argument('--plain', action='store_true')
     export = sub.add_parser('export', help='export a read-only sanitized evidence bundle')
     export.add_argument('task_id')
     export.add_argument('--out', required=True)
+    export.add_argument('--extra-file', action='append', default=[])
     sub.add_parser('login', help='sign in under the factory data directory')
     sub.add_parser('auth-status', help='show factory account status without tokens')
+    telemetry = sub.add_parser('telemetry', help='summarize capsule and controller telemetry')
+    telemetry.add_argument('task_id', nargs='?')
+    telemetry.add_argument('--json', action='store_true')
+    telemetry.add_argument('--since')
+    monitor = sub.add_parser('monitor', help='serve the read-only live factory monitor')
+    monitor.add_argument('--port', type=int, default=8787)
+    monitor.add_argument('--bind', default='127.0.0.1')
+    for command in (telemetry, monitor):
+        command.add_argument('--home', default=argparse.SUPPRESS)
     args = parser.parse_args(argv)
+    if args.command == 'telemetry':
+        from .telemetry import show
+        show(args.home, args.task_id, args.since, args.json)
+        return
+    if args.command == 'monitor':
+        from .monitor import serve
+        serve(args.home, args.bind, args.port)
+        return
     if args.command == 'export':
         from .export import main as export_main
-        export_main([args.task_id, '--out', args.out] + (['--home', args.home] if args.home else []))
+        export_main([args.task_id, '--out', args.out] + (['--home', args.home] if args.home else [])
+                    + [arg for path in args.extra_file for arg in ('--extra-file', path)])
+        return
+    if args.command in {'story', 'capsules', 'status'}:
+        from .store import FactoryError
+        import sqlite3
+        try:
+            if args.command == 'story':
+                from .story import show_story
+                show_story(args.source, args.home, args.plain, args.json, args.follow)
+            elif args.command == 'capsules':
+                from .capsules import capsule_rows, format_capsules
+                print(format_capsules(capsule_rows(), args.plain))
+            else:
+                from .story import load_source
+                from .controller import scrub
+                data = scrub(load_source(args.task_id, args.home))
+                result = readonly_status(data)
+                print(json.dumps(result, indent=2) if args.json else format_status(result, args.plain, data))
+        except KeyboardInterrupt:
+            raise SystemExit(130) from None
+        except (FactoryError, ValueError, OSError, sqlite3.Error) as exc:
+            print(str(exc), file=sys.stderr)
+            raise SystemExit(2) from None
         return
     from .controller import Controller, factory_home, scrub
     from .store import FactoryError
@@ -84,10 +187,7 @@ def main(argv=None):
             print(controller.init_task(args.task_file))
         elif args.command in {'run', 'resume'}:
             result = asyncio.run(getattr(controller, args.command)(args.task_id))
-            print(format_status(scrub(result)))
-        elif args.command == 'status':
-            result = scrub(controller.status(args.task_id))
-            print(json.dumps(result, indent=2) if args.json else format_status(result))
+            print(format_status(scrub(result), args.plain, controller._snapshot(args.task_id)))
         elif args.command == 'show':
             result = (controller.store.read(args.task_id, args.id) if args.id
                       else controller.store.dump(args.task_id))

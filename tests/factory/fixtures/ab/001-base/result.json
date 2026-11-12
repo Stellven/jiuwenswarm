@@ -1,0 +1,33 @@
+{
+ "exit_code": 0,
+ "wall_s": 145.46,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "campaign/llamacpp:jetson-up1108-om11",
+ "env": "",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/model.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}

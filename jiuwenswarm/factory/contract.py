@@ -25,7 +25,7 @@ class Contract(dict):
 
 def load(contract_id):
     path = Path(contract_id)
-    if not path.is_file():
+    if '/' not in str(contract_id) and not str(contract_id).endswith('.json'):
         if not re.fullmatch(r'[A-Za-z0-9_-]+', str(contract_id)):
             raise ValueError('Invalid contract identifier')
         path = CONTRACTS / (str(contract_id) + '.json')
@@ -56,22 +56,30 @@ def atomic_json(path, value):
         Path(temporary).unlink(missing_ok=True)
 
 
-def freeze(contract, reference_run):
+def reference_info(contract):
+    return contract.get('reference') or dict(contract.get('reference_image', {}),
+                                            stdout_sha256=None, frozen_at=None, run_ref=None)
+
+
+def freeze(path, reference_run):
     """Write the reference once, under a process lock; return the frozen contract."""
-    if not isinstance(contract, Contract):
-        contract = load(contract)
-    with contract.path.with_suffix('.lock').open('a') as lock:
+    path = Path(path)
+    if '/' not in str(path) and path.suffix != '.json':
+        raise ValueError('freeze requires an explicit contract path')
+    contract = load(path)
+    with path.with_suffix('.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         current = load(contract.path)
-        if current['reference']['stdout_sha256'] is not None:
+        if reference_info(current).get('stdout_sha256') is not None:
             raise ContractFrozen('Contract is frozen; create a version+1 contract file')
         if (reference_run.get('execution_outcome') != 'ok' or
                 reference_run.get('evidence_completeness') != 'complete' or
-                reference_run.get('image_id') != current['reference']['image_id']):
+                reference_run.get('image_id') != reference_info(current).get('image_id')):
             raise ValueError('Reference requires a successful complete run of the pinned reference image')
         sha = reference_run.get('stdout_sha256', '')
         if not re.fullmatch(r'[a-f0-9]{64}', sha):
             raise ValueError('Reference stdout SHA256 is required')
+        current['reference'] = reference_info(current)
         current['reference'].update(stdout_sha256=sha,
             frozen_at=datetime.now(timezone.utc).isoformat(), run_ref=reference_run['run_ref'])
         atomic_json(current.path, current)
@@ -87,7 +95,7 @@ def evaluate(contract, run):
     complete = run.get('evidence_completeness') == 'complete'
     details = dict(run.get('details', {}))
     correctness = 'not_evaluated'
-    reference = contract['reference']['stdout_sha256']
+    reference = reference_info(contract).get('stdout_sha256')
     if outcome == 'ok' and complete and reference and run.get('stdout_sha256'):
         correctness = 'pass' if reference == run['stdout_sha256'] else 'fail'
         if correctness == 'fail':

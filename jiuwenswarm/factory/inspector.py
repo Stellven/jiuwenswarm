@@ -15,20 +15,10 @@ import uuid
 
 from .store import FactoryError
 
-PROBE = Path('/home/muk/models/campaign/gguf/granite-3.1-1b-a400m-instruct-Q8_0.gguf')
+from .config import PROBE, DOCKER_PREFIX, INSPECT_TIMEOUT
 PATCHES = Path(__file__).parent / 'ccs' / 'engine_component'
 FLAG = re.compile(r'(?<![\w-])(--?[A-Za-z][A-Za-z0-9_-]*)(?![\w-])')
-ENV_KEYS = {
-    'LLAMA_EXPERT_FILL': 'fill', 'LLAMA_EXPERT_FILL_RANDOM': 'random',
-    'LLAMA_EXPERT_FILL_THREADS': 'threads', 'LLAMA_EXPERT_FILL_CHUNK_KIB': 'chunk_kib',
-    'LLAMA_EXPERT_FILL_MIN_TOKENS': 'min_tokens', 'LLAMA_EXPERT_FILL_MAX_TOKENS': 'max_tokens',
-    'LLAMA_EXPERT_FILL_DIAG': 'diag', 'LLAMA_EXPERT_FILL_DIAG_CSV': 'diag_csv',
-    'LLAMA_EXPERT_FILL_POPULATE': 'populate', 'LLAMA_EXPERT_PREGATE': 'pregate',
-    'LLAMA_EXPERT_PREGATE_K': 'k', 'LLAMA_EXPERT_PREGATE_ORDER': 'order',
-    'LLAMA_EXPERT_PREGATE_MAX_INFLIGHT': 'max_inflight',
-    'LLAMA_EXPERT_PREGATE_LOOKAHEAD': 'lookahead',
-    'LLAMA_EXPERT_PREFETCH': 'prefetch', 'LLAMA_EXPERT_PREFETCH_NEXT': 'prefetch_next',
-}
+from .effective_config import ENV_KEYS, parse_effective
 
 
 class InspectionError(FactoryError):
@@ -38,8 +28,9 @@ class InspectionError(FactoryError):
 
 
 class Inspector:
-    def __init__(self):
-        self.deadline = time.monotonic() + 48
+    def __init__(self, home):
+        self.home = Path(home)
+        self.deadline = time.monotonic() + INSPECT_TIMEOUT
         self.stderr = ''
 
     def run(self, argv, *, timeout=3, cwd=None):
@@ -61,7 +52,7 @@ class Inspector:
     def docker(self, args, timeout=3):
         command = shlex.split(os.environ.get('FACTORY_DOCKER', 'docker')) + args
         # The fake seam replaces Docker entirely, including the group wrapper.
-        prefix = shlex.split(os.environ.get('DOCKER_CMD_PREFIX', ''))
+        prefix = shlex.split(os.environ.get('DOCKER_CMD_PREFIX', DOCKER_PREFIX))
         if prefix and not os.environ.get('FACTORY_DOCKER'):
             command = prefix + [shlex.join(command)]
         return self.run(command, timeout=timeout)
@@ -155,7 +146,7 @@ class Inspector:
         if not isinstance(argv, list) or not all(isinstance(a, str) for a in argv):
             raise ValueError('argv must be strings')
         image = self.image(inputs['image'])
-        cache = Path(os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory')).expanduser() / 'preflight'
+        cache = self.home / 'preflight'
         key = hashlib.sha256((image['id'] + '\0' + tool).encode()).hexdigest()
         path = cache / (key + '.txt')
         if path.is_file():
@@ -201,14 +192,13 @@ class Inspector:
         if invalid:
             output['invalid_line'] = invalid.group(0)
             return output, ('CONFIG_REJECTED', invalid.group(0))
-        lines = re.findall(r'^expert_config: effective (.*)$', result.stderr, re.MULTILINE)
+        lines, effective = parse_effective(result.stderr)
         # Patch 08 prints once per llama_context; llama-completion creates more than one
         # (observed live on om11: two identical lines). All must agree.
         if not lines:
             return output, ('CONFIG_MISSING', 'No expert_config effective line in stderr')
         if len(set(lines)) != 1:
             return output, ('CONFIG_MISMATCH', 'Effective config lines disagree across contexts')
-        effective = dict(re.findall(r'(\w+)=(.*?)(?= \w+=|$)', lines[0]))
         output['effective'] = effective
         if set(effective) != set(ENV_KEYS.values()):
             return output, ('CONFIG_MISSING', 'Effective config line is incomplete or unrecognized')
@@ -227,7 +217,7 @@ class Inspector:
 
 def dispatch(store, task_id, capability, packet):
     """Return a native result envelope, retaining evidence on errors too."""
-    inspector = Inspector()
+    inspector = Inspector(store._store.home if hasattr(store, '_store') else store.home)
     output, error = {}, None
     try:
         inputs = packet.get('inputs', {})

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["base", "patches", "depends_on", "enable_env", "engagement_checks", "hypothesis", "measure", "correctness_obligation", "rollback"],
+  "properties": {
+    "base": {
+      "type": "object", "additionalProperties": false, "required": ["repo", "commit"],
+      "properties": {"repo": {"type": "string"}, "commit": {"const": "cf34d311332e362198f0a410c466d1e940287d02"}}
+    },
+    "patches": {
+      "type": "array", "minItems": 1,
+      "items": {"type": "object", "additionalProperties": false, "required": ["file", "sha256"],
+        "properties": {"file": {"type": "string", "pattern": "^0[1-9]-[a-z-]+[.]patch$"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}
+    },
+    "depends_on": {"type": "array", "uniqueItems": true, "items": {"enum": ["mmap_advice", "router_prefetch", "expert_fill", "expert_pregate", "thread_names"]}},
+    "enable_env": {"type": "object", "additionalProperties": {"type": "string"}},
+    "engagement_checks": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["source", "regex"], "properties": {"source": {"enum": ["stderr", "threads"]}, "regex": {"type": "string", "minLength": 1}}}},
+    "hypothesis": {"type": "string", "minLength": 1},
+    "measure": {"enum": ["perf", "none"]},
+    "correctness_obligation": {"const": "identical greedy stdout"},
+    "rollback": {"type": "string", "minLength": 1},
+    "env_ranges": {"type": "object", "additionalProperties": {"type": "string"}},
+    "dependency_note": {"type": "string"}
+  }
+}

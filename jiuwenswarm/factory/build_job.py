@@ -8,12 +8,14 @@ import os
 from pathlib import Path
 import re
 import shlex
+import signal
+import uuid
 import shutil
 import subprocess
 import sys
 import time
 
-from .builder import ENGINE, RECIPE
+from .config import ENGINE, RECIPE, BUILD_MIN_AVAIL_MIB, TOOL_TIMEOUT
 from .jobs import metadata
 from .store import Store
 
@@ -30,7 +32,7 @@ def command(argv, *, required=True):
         actual = shlex.split(os.environ['DOCKER_CMD_PREFIX']) + [shlex.join(argv)]
     try:
         process = subprocess.run(actual, stdin=subprocess.DEVNULL, capture_output=True,
-                                 text=True, timeout=1800)
+                                 text=True, timeout=TOOL_TIMEOUT)
     except (OSError, subprocess.TimeoutExpired) as exc:
         if required:
             raise PreparationError(dict(code='TOOLCHAIN_MISSING', tool=argv[0] if argv[0] != 'docker' else 'docker buildx',
@@ -56,8 +58,8 @@ def prepare(root, prep):
     prep['nv_tegra_release'] = release.read_text() if release.exists() else None
     prep['nvidia-jetpack'] = command(['dpkg-query', '-W', '-f=${Version}', 'nvidia-jetpack'], required=False)
     prep['disk_free_bytes'] = shutil.disk_usage(root).free
-    if prep['disk_free_bytes'] < 8 * 1024 ** 3:
-        raise PreparationError(dict(code='DISK_SPACE_LOW', free_bytes=prep['disk_free_bytes'], required_bytes=8 * 1024 ** 3))
+    if prep['disk_free_bytes'] < BUILD_MIN_AVAIL_MIB * 1024 ** 2:
+        raise PreparationError(dict(code='DISK_SPACE_LOW', free_bytes=prep['disk_free_bytes'], required_bytes=BUILD_MIN_AVAIL_MIB * 1024 ** 2))
     prep['ccache'] = command(['ccache', '-s', '-v'], required=False)
     match = re.search(r'^ARG BASE_RUNTIME=(\S+)', RECIPE.read_text(), re.M)
     reference = os.environ.get('BASE_RUNTIME') or (match.group(1) if match else '')
@@ -79,23 +81,48 @@ def tail(path):
         return stream.read().decode('utf-8', errors='replace')
 
 
+def prune_intermediates(out):
+    """After a successful build the image lives in Docker; drop the staged tree and the
+    image archive (~1.9 GiB together) so a multi-build task cannot exhaust the disk.
+    The archive sha256 is kept in the build observation. FACTORY_KEEP_BUILD_INTERMEDIATES=1 opts out."""
+    if os.environ.get('FACTORY_KEEP_BUILD_INTERMEDIATES') == '1':
+        return {}
+    pruned = {}
+    archive = out / 'engine-image.docker.tar'
+    if archive.is_file():
+        digest = hashlib.sha256()
+        with archive.open('rb') as stream:
+            for block in iter(lambda: stream.read(1 << 20), b''):
+                digest.update(block)
+        pruned['engine-image.docker.tar'] = dict(sha256=digest.hexdigest(), bytes=archive.stat().st_size)
+        archive.unlink()
+    if (out / 'build').is_dir():
+        shutil.rmtree(out / 'build', ignore_errors=True)
+        pruned['build/'] = 'staged source tree'
+    return pruned
+
+
 def run(store, task_id, attempt_id, request):
     attempt = store.read(task_id, attempt_id)
     if attempt['request'] != request:
         raise ValueError('Worker request differs from persisted identity')
-    # mkdir(exist_ok=False) prevents worker replay from overwriting any output.
     root = store.home / 'builds' / attempt_id
-    root.mkdir(parents=True, exist_ok=False)
+    if root.exists() and any(root.iterdir()):
+        root = root.with_name(root.name + '-' + uuid.uuid4().hex)
     out = root / 'engine'  # Must not exist when build_engine is started.
     stdout, stderr = root / 'stdout.log', root / 'stderr.log'
-    stdout.touch()
-    stderr.touch()
     prep = dict(status='failed', request_fingerprint=attempt['fingerprint'], cache_hit=None)
     record = {}
     error = {}
     rc = 1
     started = time.monotonic()
+    def stop(signum, frame):
+        raise SystemExit(128 + signum)
+    previous = signal.signal(signal.SIGTERM, stop)
     try:
+        root.mkdir(parents=True, exist_ok=True)
+        stdout.touch()
+        stderr.touch()
         engine = Path(os.environ.get('FACTORY_BUILD_ENGINE', ENGINE)).resolve()
         for path, expected in ((engine, request['engine_sha256']), (RECIPE, request['recipe_sha256'])):
             if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
@@ -123,25 +150,29 @@ def run(store, task_id, attempt_id, request):
     except (OSError, ValueError, KeyError) as exc:
         error = dict(code='BUILD_WORKER_ERROR', detail=str(exc))
     finally:
-        (root / 'prep.json').write_text(json.dumps(prep, indent=2) + '\n')
+        signal.signal(signal.SIGTERM, previous)
         refs = []
         def artifact(name, data, media='application/json'):
             item = store.put_artifact(task_id, attempt_id + ':' + name, data, media, attempt_id)
             refs.append(item['artifact_id'])
             return {'artifact_id': item['artifact_id'], 'sha256': item['sha256']}
+        prep_data = (json.dumps(prep, indent=2) + '\n').encode()
+        if root.is_dir():
+            (root / 'prep.json').write_bytes(prep_data)
         request_ref = artifact('request', json.dumps(dict(fingerprint=attempt['fingerprint'], request=request), sort_keys=True).encode())
-        prep_ref = artifact('prep', root / 'prep.json')
+        prep_ref = artifact('prep', prep_data)
         record_ref = None
         if (out / 'build-record.json').exists():
             record_ref = artifact('build-record', out / 'build-record.json')
         for name, path in (('stdout', stdout), ('stderr', stderr)):
-            artifact(name, path, 'text/plain')
-            artifact(name + '-tail', tail(path).encode(), 'text/plain')
+            artifact(name, path if path.is_file() else b'', 'text/plain')
+            artifact(name + '-tail', tail(path).encode() if path.is_file() else b'', 'text/plain')
         image_id = (record.get('image') or {}).get('Id')
         receipt = dict(request_fingerprint=attempt['fingerprint'], request=request_ref,
                        prep=prep_ref, build_record=record_ref, image_id=image_id)
         artifact('receipt', json.dumps(receipt, sort_keys=True).encode())
-        values = dict(status='success' if rc == 0 else 'failed',
+        pruned = prune_intermediates(out) if rc == 0 and image_id else {}
+        values = dict(pruned_intermediates=pruned,status='success' if rc == 0 else 'failed',
             failure_stage=record.get('failure_stage') or (None if rc == 0 else 'prep' if prep['status'] != 'success' else 'build'),
             image_id=image_id, tag=request['tag'], source_commit=request['source']['commit'],
             source_tree=record.get('source', {}).get('tree', request['source']['tree']),

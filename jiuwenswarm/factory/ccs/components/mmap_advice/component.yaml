@@ -1,0 +1,20 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 01-mmap-advice-random.patch
+  sha256: 1554b5b6a5b9efc0d487453408db83a23cd00cffd29d021e5cce90d513211452
+depends_on: []
+enable_env:
+  LLAMA_MMAP_ADVICE: random
+engagement_checks:
+- source: stderr
+  regex: 'llama_mmap: LLAMA_MMAP_ADVICE=random'
+hypothesis: Suppress speculative sequential readahead so sparse expert access fetches
+  fewer irrelevant pages.
+measure: perf
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and
+  environment; retain all evidence.
+env_ranges:
+  LLAMA_MMAP_ADVICE: random enables; any other value keeps default advice

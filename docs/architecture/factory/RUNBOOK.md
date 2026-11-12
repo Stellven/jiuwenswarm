@@ -120,3 +120,89 @@ For read-only handoff review, use the exported `records/*.json`, `session.jsonl`
 | Old M1 keys or `research` command | Remove legacy configuration per MIGRATION.md. Guard exits 2 with explanation. Do not restore removed modules. |
 
 No factory web UI is required. If a local frontend is used, `FRONTEND_PORT=5175` is mandatory.
+
+## Demo views
+
+These commands only read evidence and declarations. Story accepts a live task ID
+or an exported bundle; bundles need no factory home. Human output wraps at 100
+columns. `--plain` disables color; redirected output and `NO_COLOR` also disable it.
+
+```sh
+.venv/bin/jiuwenswarm factory story artifacts/factory/evidence/factory-d4b71bcce337406b96f627d469bec092 --plain
+.venv/bin/jiuwenswarm factory status factory-d4b71bcce337406b96f627d469bec092 --plain
+.venv/bin/jiuwenswarm factory capsules --plain
+```
+
+For an ongoing task, use `factory story TASK --follow` beside the live run. It
+prints new events every two seconds until an outcome, without clearing the screen.
+Ctrl-C stops following. `story --json` returns ordered events; `status --json`
+keeps the machine-readable status. Unknown record kinds remain visible.
+
+Real exported evidence (`factory story` command above):
+
+```text
+ factory · d4b71bcc · Qwen3.6-35B-A3B on jetson-orin · ACCEPT · 3 turns · 11:46
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+ 01:24  ✓     integrate  commit 690e4713 · 09-thread-names.patch
+ 01:26  ✗     inspect    INVALID_INPUT ValueError: env must contain string LLAMA_EXPERT_* settings
+ 01:54  rev 1 preflight  11a4a68c41e94d93b79bc82815a9a5a0 identifies envelope restriction
+ 01:59  ✗     inspect    CONFIG_REJECTED expert_config: invalid LLAMA_EXPERT_PREGATE_K=48 (range
+                         1..32)
+ 02:32  rev 2 replan/build LLAMA_EXPERT_PREGATE_K 48 → 8 because obs abcedeb4
+ 02:33  ·     build      3216f109 queued · durable job
+ 02:53  ·     build      3216f109 running · durable job
+ 06:04  ✓     build      3216f109 · 124 s → image f02f8a93
+ 06:16  ✓     build      3216f109 succeeded · durable job · survived turn end
+ 06:59  rev 3 preflight  3216f10925b74aca8bfc8be140e65b7b:receipt and :build-record establish
+                         completed successful build
+ 07:13  ✓     inspect    effective chunk_kib=2048, diag=0, diag_csv=(unset), fill=1, k=8,
+                         lookahead=1, max_inflight=4, max_tokens=1, min_tokens=0, order=after,
+                         populate=0, prefetch=0, prefetch_next=0, pregate=1, random=decode,
+                         threads=16
+ 07:19  ✓     inspect    inspector.preflight
+ 07:45  rev 4 evaluate   04d617543cbb45c28a74e3ddbcd32b0a and stderr1a8b182a7497456298878c8647cb6058
+                         prove repaired parsing on built image
+ 07:53  ✗     lab_admission_input_rejection INVALID_INPUT image requires tag and id
+ 08:10  rev 5 evaluate   a9a1461528e24597b1dd17d2f178d4cb states exact missing image envelope fields
+ 08:11  ·     lab        cabd3a09 queued · durable job
+ 08:11  ✓     admit      78856fb9 · image f02f8a93 · target jetson-orin
+ 08:31  ·     lab        cabd3a09 running · durable job
+ 10:41  ✓     contract   qwen36-greedy-v1 · pass · ok · complete · stdout 7a154179 == reference
+                         7a154179 · engagement 6/6
+ 10:41  ✓     lab        64 tokens · <redacted> ms/token · ok · reaped
+ 10:41  ✓     upload     durable
+ 10:49  ✓     lab        cabd3a09 succeeded · durable job · survived turn end
+ 11:49  rev 6 accept     cabd3a09443f493899c756ab0ce1a671:evaluation passes the immutable contract;
+                         :stdo
+chain: component ✓ → commit ✓ → build ✓ → image ✓ → admission ✓ → lab ✓ → evaluation ✓
+evidence: 48 records · 29 artifacts · 11399327 bytes
+```
+
+Capsule inventory from this checkout (`factory capsules --plain`):
+
+```text
+ID                          VERSION BINDING        FILES YAML VALID
+───────────────────────────────────────────────────────────────────────────────────────────────────
+factory.builder             1.0.0   native             2   84 ✓ valid
+  capabilities: submit, status, cancel, result
+  changes: process.exec
+factory.engine_component    1.0.0   material-only      5   12 ✓ valid
+  capabilities: ·
+  changes: ·
+factory.engine_inspector    1.0.0   native             2   81 ✓ valid
+  capabilities: inspect, preflight, verify_effective_config
+  changes: gpu.use, process.exec, workspace.read
+factory.evidence            1.0.0   native             2   62 ✓ valid
+  capabilities: query, read, publish
+  changes: process.exec
+factory.integration_skill   1.0.0   material-only      4   10 ✓ valid
+  capabilities: ·
+  changes: ·
+factory.lab_client          1.0.0   native             2   90 ✓ valid
+  capabilities: submit, status, cancel, result
+  changes: process.exec
+6 capsules · 14 capabilities · 339 lines of cc.yaml · 0 adapters
+```
+
+The exported lab timing field is redacted; the view preserves that fact. Acceptance
+is scoped to the frozen greedy-continuation contract, as recorded in the evidence.

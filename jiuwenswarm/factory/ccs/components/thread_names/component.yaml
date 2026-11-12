@@ -1,0 +1,21 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 09-thread-names.patch
+  sha256: 0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030
+depends_on:
+- expert_fill
+- expert_pregate
+enable_env: {}
+engagement_checks:
+- source: threads
+  regex: ^xfill-[0-9]+$
+hypothesis: Name fill workers so the sampler can attribute scheduling and page faults
+  to them.
+measure: none
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and
+  environment; retain all evidence.
+dependency_note: Patch 09 applies to the worker context introduced by patch 06; expert_pregate
+  is a source prerequisite even when disabled at runtime.

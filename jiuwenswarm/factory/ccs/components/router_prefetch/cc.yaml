@@ -1,0 +1,8 @@
+cc: '2'
+id: factory.components.router_prefetch
+version: 1.0.0
+materials:
+  component:
+    path: component.yaml
+  patch_02:
+    path: 02-router-prefetch.patch

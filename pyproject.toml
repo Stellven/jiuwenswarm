@@ -173,6 +173,7 @@ jiuwenswarm = [
     "factory/schemas/*.json",
     "factory/tasks/*.json",
     "factory/contracts/*.json",
+    "factory/monitor.html",
     "channels/web/frontend/dist/**/*",
     "channels/web/frontend/dist/*",
     # Frozen Node22 TUI output and the complete pruned, locked npm tree.

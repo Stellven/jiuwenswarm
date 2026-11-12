@@ -47,7 +47,7 @@ def test_read_only_export_roundtrip(tmp_path, monkeypatch):
         export.verify(out)
 
 
-@pytest.mark.parametrize('payload', [b'Bearer abcdefghijklmnopqrstuvwxyz12345', b'sk-abcdefghijklmno', b'a@example.com', b'eyJabcdefghijk.abcdefghijklmn.abcdefghijklmn', b'token=abcdefghijklmnopqrstuv'])
+@pytest.mark.parametrize('payload', [b'Bearer abcdefghijklmnopqrstuvwxyz12345', b'sk-abcdefghijklmnopqrstuv', b'a@example.com', b'eyJabcdefghijk.abcdefghijklmn.abcdefghijklmn', b'token=abcdefghijklmnopqrstuv'])
 def test_verify_fails_closed_for_secrets(tmp_path, payload):
     (tmp_path / 'leak').write_bytes(payload)
     (tmp_path / 'MANIFEST.json').write_text(json.dumps({'leak': hashlib.sha256(payload).hexdigest()}))

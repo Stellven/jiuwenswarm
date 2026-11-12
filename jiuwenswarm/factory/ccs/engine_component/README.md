@@ -1,3 +1,7 @@
+# Legacy recorded-demo component
+
+Kept for the recorded om11 demo. New bare-engine evolution uses `components/`.
+
 # Expert fill thread names
 
 This passive capsule packages the observability-only 09-thread-names.patch.

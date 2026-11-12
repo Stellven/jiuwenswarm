@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import subprocess
 import time
 import uuid
 
@@ -22,7 +23,28 @@ from .store import Store
 
 ROOT = Path(__file__).resolve().parents[2]
 ACTIVE = {'queued', 'running', 'cancel_requested'}
-TERMINAL = {'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
+TERMINAL = {'reject', 'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
+
+
+EVOLVE_ACTIONS = {'integrate', 'build', 'measure', 'keep_component', 'revert_component'}
+
+
+def validate_action(action):
+    if not isinstance(action, dict) or not isinstance(action.get('type'), str):
+        raise ValueError('Decision action requires type')
+    kind = action['type']
+    if kind not in EVOLVE_ACTIONS | TERMINAL:
+        raise ValueError('Unsupported evolve action type')
+    if kind in {'keep_component', 'revert_component'}:
+        from .components import load
+        load(action.get('component'))
+        if kind == 'keep_component':
+            ratio = action.get('ratio')
+            if (not isinstance(action.get('image'), (str, dict)) or not action['image']
+                    or type(ratio) not in (int, float) or not math.isfinite(ratio) or ratio <= 1):
+                raise ValueError('keep_component requires image and finite ratio > 1')
+        elif not isinstance(action.get('reason'), str) or not action['reason'].strip():
+            raise ValueError('revert_component requires reason')
 
 
 def read_tasks(task):
@@ -31,25 +53,8 @@ def read_tasks(task):
     if not isinstance(reads, list) or not all(isinstance(t, str) and t for t in reads):
         raise ValueError('constraints.read_tasks must be a list of task ids')
     return reads
-SCRUB = [
-    (re.compile(r'eyJ[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}'), '<jwt>'),
-    (re.compile(r'(?i)(bearer\s+)[A-Za-z0-9._\-]{16,}'), r'\1<token>'),
-    (re.compile(r'sk-[A-Za-z0-9_\-]{16,}'), '<key>'),
-    (re.compile(r'[\w.+-]+@[\w-]+\.[\w.-]+'), '<email>'),
-    (re.compile(r'(?i)(state|code|code_challenge)=[A-Za-z0-9_\-%.~]{12,}'), r'\1=<redacted>'),
-]
-
-
-def scrub(value):
-    if isinstance(value, str):
-        for pattern, replacement in SCRUB:
-            value = pattern.sub(replacement, value)
-    elif isinstance(value, dict):
-        value = {k: ('<redacted>' if (re.search(r'(?i)(token|secret|password|authorization|api_key)', k) and not k.startswith('LLAMA_'))
-                     else scrub(v)) for k, v in value.items()}
-    elif isinstance(value, (list, tuple)):
-        value = [scrub(v) for v in value]
-    return value
+from .redact import sanitize as scrub
+from .config import DOCKER_PREFIX
 
 
 def factory_home():
@@ -64,11 +69,12 @@ def configure_agent(task, grants=(), home=None):
         directory.mkdir(parents=True, exist_ok=True)
     effective = sorted(set(task.get('allowed_effects', [])) & set(grants))
     args = ['-m', 'jiuwenswarm.ccv2.agent_mcp', '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs'),
+            '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs/components'),
             '--store', str(home / 'ccstore'), '--workspace', str(workspace)]
     for grant in effective:
         args += ['--grant', grant]
     env = {'FACTORY_HOME': str(home), 'FACTORY_TASK_ID': task['task_id'],
-           'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': 'sg docker -c',
+           'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': DOCKER_PREFIX,
            'PYTHONPATH': str(ROOT), 'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
     # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
     reads = read_tasks(task)
@@ -78,7 +84,7 @@ def configure_agent(task, grants=(), home=None):
     mcp = home / 'agent-mcp.toml'
     mcp.write_text('[mcp_servers.cc]\n' + f'command = {quote(sys.executable)}\n'
                    + 'args = ' + json.dumps(args) + '\n'
-                   + 'env_vars = ["HOME", "DOCKER_HOST", "DOCKER_CONTEXT", "TMP", "TEMP"]\n'
+                   + 'env_vars = ["FACTORY_TURN", "HOME", "DOCKER_HOST", "DOCKER_CONTEXT", "TMP", "TEMP"]\n'
                    + 'startup_timeout_sec = 60\ntool_timeout_sec = 300\n'
                    + 'default_tools_approval_mode = "approve"\n[mcp_servers.cc.env]\n'
                    + ''.join(f'{k} = {quote(v)}\n' for k, v in env.items()), encoding='utf-8')
@@ -102,9 +108,6 @@ class Controller:
         (self.home / 'sessions').mkdir(parents=True, exist_ok=True)
 
     def init_task(self, task_file):
-        return self._init_task(task_file)
-
-    def _init_task(self, task_file):
         task = json.loads(Path(task_file).read_text(encoding='utf-8'))
         required = {'objective', 'constraints', 'allowed_effects', 'target', 'budget',
                     'contract_id', 'initial_run_config', 'component_cc', 'source'}
@@ -139,7 +142,25 @@ class Controller:
         task.setdefault('task_id', 'factory-' + uuid.uuid4().hex)
         # Paths use task IDs; prohibit traversal even for operator-supplied IDs.
         self._state_path(task['task_id'])
+        if task['contract_id'] == 'qwen36-bare-greedy-v1':
+            self._init_evolve(source)
         return self.store.create_task(task)['task_id']
+
+    def _init_evolve(self, source):
+        workspace = (self.home / 'agent-workspace').resolve()
+        checkout = (workspace / source['subpath']).resolve()
+        if not checkout.is_relative_to(workspace):
+            raise ValueError('Owned checkout escapes workspace')
+        if source.get('branch') != 'evolve' or source['pre_integration_commit'] != 'cf34d3113':
+            raise ValueError('Bare evolution requires evolve at cf34d3113')
+        def git(*args, check=True):
+            return subprocess.run(['git', '-C', str(checkout), *args], check=check,
+                                  capture_output=True, text=True)
+        if not checkout.is_dir() or git('rev-parse', '--show-toplevel').stdout.strip() != str(checkout):
+            raise ValueError('Evolution requires an existing owned git checkout')
+        if git('show-ref', '--verify', '--quiet', 'refs/heads/evolve', check=False).returncode:
+            # Create only the named ref: never switch/reset the current branch or worktree.
+            git('branch', 'evolve', 'cf34d3113')
 
     def _state_path(self, task_id):
         if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', task_id):
@@ -218,15 +239,83 @@ class Controller:
             session_id=task_id, req_method=ReqMethod.CHAT_SEND,
             params={'query': query, 'mode': 'agent.work.normal'})
         log = self.home / 'sessions' / f'{task_id}.jsonl'
-        with log.open('a', encoding='utf-8') as out:
-            def emit(payload):
-                out.write(json.dumps(scrub({'t': self.clock(), **payload}), ensure_ascii=False, default=str) + '\n')
-                out.flush()
-            emit({'event': 'turn.start', 'turn': turn, 'session_id': task_id, 'query': query})
-            async for chunk in stream(request):
-                payload = getattr(chunk, 'payload', chunk)
-                emit(payload if isinstance(payload, dict) else {'raw': str(payload)})
-            emit({'event': 'turn.end', 'turn': turn})
+        from .telemetry import emit as telemetry_emit
+        started = self.clock()
+        calls, tokens, pending_tools = {}, None, {}
+        outcome = 'error'
+        os.environ['FACTORY_TURN'] = str(turn)
+        # MCP may outlive a turn; native entrypoints also read the durable reservation.
+        try:
+            with log.open('a', encoding='utf-8') as out:
+                def emit(payload):
+                    out.write(json.dumps(scrub({'t': self.clock(), **payload}), ensure_ascii=False, default=str) + '\n')
+                    out.flush()
+                emit({'event': 'turn.start', 'turn': turn, 'session_id': task_id, 'query': query})
+                async for chunk in stream(request):
+                    payload = getattr(chunk, 'payload', chunk)
+                    payload = payload if isinstance(payload, dict) else {'raw': str(payload)}
+                    emit(payload)
+                    kind = payload.get('event_type', payload.get('event'))
+                    if kind == 'chat.tool_call':
+                        tool = payload.get('tool_call', {})
+                        name = tool.get('name', 'unknown')
+                        calls[name] = calls.get(name, 0) + 1
+                        pending_tools[tool.get('tool_call_id')] = tool.get('arguments', {})
+                    if kind == 'chat.tool_result' and payload.get('tool_name', '').split('.')[-1] in {'cc_material', 'cc_list'}:
+                        result = payload.get('result')
+                        def unpack(value):
+                            if isinstance(value, str):
+                                try:
+                                    return unpack(json.loads(value))
+                                except ValueError:
+                                    return None
+                            if isinstance(value, dict):
+                                if any(k in value for k in ('cc', 'ccs', 'material')):
+                                    return value
+                                for child in value.values():
+                                    found = unpack(child)
+                                    if found is not None:
+                                        return found
+                            if isinstance(value, list):
+                                for child in value:
+                                    found = unpack(child)
+                                    if found is not None:
+                                        return found
+                            return None
+                        material = unpack(result) or {}
+                        args = pending_tools.get(payload.get('tool_call_id'), {})
+                        if isinstance(args, str):
+                            try:
+                                args = json.loads(args)
+                            except ValueError:
+                                args = {}
+                        args = args if isinstance(args, dict) else {}
+                        telemetry_emit(self.home, 'cc.material', task_id, turn=turn,
+                            tool_name=payload['tool_name'], capsule=material.get('cc', args.get('cc')),
+                            material=material.get('material', args.get('material')),
+                            path=material.get('path'), bytes=len(material['text'].encode()) if isinstance(material.get('text'), str) else None,
+                            truncated=material.get('truncated'),
+                            observed=bool(material), bytes_scope='returned UTF-8 text; null for listings')
+                    def usage(value):
+                        if isinstance(value, dict):
+                            if isinstance(value.get('usage'), dict):
+                                return value['usage']
+                            for child in value.values():
+                                found = usage(child)
+                                if found is not None:
+                                    return found
+                        return None
+                    observed = usage(payload)
+                    if observed is not None:
+                        tokens = {key: observed.get(key) for key in ('input_tokens', 'output_tokens')}
+                    if kind in {'chat.error', 'error'}:
+                        outcome = 'stream_error'
+                emit({'event': 'turn.end', 'turn': turn})
+                outcome = 'ok' if outcome != 'stream_error' else 'error'
+        finally:
+            telemetry_emit(self.home, 'agent.turn', task_id, turn=turn, start=started,
+                           duration_ms=(self.clock() - started) * 1000, tool_calls=calls,
+                           tokens=tokens, outcome=outcome)
 
     def _finish(self, task_id, state, outcome):
         data = self._snapshot(task_id)
@@ -262,6 +351,7 @@ class Controller:
                     latest = max(decisions, key=lambda d: d['rev'], default={})
                     action = latest.get('action', {}).get('type')
                     if action in TERMINAL and latest.get('evidence_ids'):
+                        self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(task))
                         return self._finish(task_id, state, action)
                     if remaining['turns'] <= 0:
                         return self._finish(task_id, state, 'partial')
@@ -296,8 +386,13 @@ class Controller:
         return await self.run(task_id)
 
     def cancel(self, task_id):
-        return [self.jobs.cancel(a['attempt_id']) for a in self._snapshot(task_id)['attempts']
-                if a['state'] in ACTIVE | {'unknown'}]
+        from .manager import Manager
+        results = []
+        for attempt in self._snapshot(task_id)['attempts']:
+            if attempt['state'] in ACTIVE | {'unknown'}:
+                owner = Manager(self.store, self.home / 'lab-spool') if attempt['kind'] == 'lab' else self.jobs
+                results.append(owner.cancel(attempt['attempt_id']))
+        return results
 
     def status(self, task_id):
         data = self._snapshot(task_id)
@@ -312,26 +407,6 @@ class Controller:
                         'evaluations_present': bool(data['evaluations'])},
                     budget_used={'turns': state['turns'], 'wall_clock_s': max(0, (state.get('finished') or self.clock()) - state['started']) if state['started'] is not None else 0},
                     pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
-
-
-def init_task(task_file):
-    controller = Controller()
-    try:
-        return controller.init_task(task_file)
-    finally:
-        controller.store.close()
-
-
-async def run(task_id):
-    controller = Controller()
-    try:
-        return await controller.run(task_id)
-    finally:
-        controller.store.close()
-
-
-async def resume(task_id):
-    return await run(task_id)
 
 
 def status(task_id):

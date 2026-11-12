@@ -168,15 +168,15 @@ def test_preflight_flags_and_id_cache(setup, tmp_path, monkeypatch):
     assert len(list((setup[0] / 'preflight').glob('*.txt'))) == 2
 
 
-def test_catalog_six_capsules(tmp_path):
-    catalog = Catalog(CCS, tmp_path / 'catalog')
+def test_catalog_factory_capsules(tmp_path):
+    catalog = Catalog([CCS, CCS / 'components'], tmp_path / 'catalog')
     rows = catalog.scan()
-    assert len(rows) == 6 and not catalog.errors
+    assert len(rows) == 12 and not catalog.errors
     by_id = {row['cc']: row for row in rows}
-    assert set(by_id) == {'factory.' + name for name in NAMES}
+    assert set(by_id) == {'factory.' + name for name in NAMES + ['methodology_ab'] + ['components.' + n for n in ['mmap_advice', 'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names']]}
     assert set(by_id['factory.engine_inspector']['capabilities']) == {'inspect', 'preflight', 'verify_effective_config'}
     assert set(by_id['factory.builder']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
-    assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
+    assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}
     assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish'}
     assert by_id['factory.engine_component']['capabilities'] == {}
     assert by_id['factory.integration_skill']['capabilities'] == {}
@@ -208,10 +208,10 @@ def test_inspect_checkout_and_source_containment(setup, tmp_path):
     assert result['outputs']['evidence']['observation_id']
 
 
-def test_probe_timeout_removes_only_owned_container(setup, monkeypatch):
+def test_probe_timeout_removes_only_owned_container(setup, monkeypatch, tmp_path):
     from jiuwenswarm.factory.inspector import Inspector, InspectionError
     monkeypatch.setenv('FAKE_MODE', 'timeout')
-    inspector = Inspector()
+    inspector = Inspector(tmp_path)
     with pytest.raises(InspectionError) as error:
         inspector.container('sha256:' + 'a' * 64, 'llama-completion', ['-n', '1'], timeout=.2)
     assert error.value.code == 'TIMEOUT'

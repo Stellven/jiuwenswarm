@@ -101,10 +101,10 @@ def test_retry_terminal_only_and_result_gate(jobs, worker):
     assert any(h.get('retry_of') == first['attempt_id'] for h in retry['history'])
 
 
-def test_missing_job_is_unknown(jobs):
+def test_missing_job_is_no_change(jobs):
     first = submit(jobs)
     (jobs.jobq_dir / (first['jobq_id'] + '.json')).unlink()
-    assert jobs.status(first['attempt_id'])['state'] == 'unknown'
+    assert jobs.status(first['attempt_id']) == first
 
 
 def test_timeout_is_failure_with_detail(jobs, worker):

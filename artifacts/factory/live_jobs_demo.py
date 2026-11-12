@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from jiuwenswarm.factory.store import Store, NotFound
-from jiuwenswarm.factory import builder
+from jiuwenswarm.factory.builder import Builder
 from jiuwenswarm.factory.jobs import Jobs
 
 HOME = Path(os.environ.get('FACTORY_HOME', Path.home() / '.jiuwenswarm-factory'))
@@ -49,32 +49,32 @@ cmd = sys.argv[1]
 s = store()
 if cmd == 'submit':
     t0 = time.time()
-    a = builder.submit(s, TASK, REQ, 'livejobs-build-1')
+    a = Builder(s).submit(TASK, REQ, 'livejobs-build-1')
     log('submitted', submit_s=round(time.time() - t0, 3), attempt=brief(a))
     log('client_exit', note='client process exits now; job continues under the host jobq supervisor')
 elif cmd == 'check':
-    a = builder.submit(s, TASK, REQ, 'livejobs-build-1')
+    a = Builder(s).submit(TASK, REQ, 'livejobs-build-1')
     log('duplicate_submit_same_key_same_request', attempt=brief(a),
         jobq_jobs_named=sum(1 for p in Jobs(s).jobq_dir.glob('job-*.json')
                             if json.loads(p.read_text())['name'] == 'factory:' + a['attempt_id']))
     try:
-        builder.submit(s, TASK, dict(REQ, tag='factory/llamacpp:livejobs-1-changed'), 'livejobs-build-1')
+        Builder(s).submit(TASK, dict(REQ, tag='factory/llamacpp:livejobs-1-changed'), 'livejobs-build-1')
         log('changed_request_same_key', result='UNEXPECTED_ACCEPT')
     except Exception as exc:  # KeyConflict expected
         log('changed_request_same_key', result=type(exc).__name__, message=str(exc)[:200])
     while True:
-        a = builder.status(s, a['attempt_id'])
+        a = Builder(s).status(a['attempt_id'])
         if a['state'] in {'succeeded', 'failed', 'cancelled', 'unknown'}:
             break
         time.sleep(15)
-    log('observed_terminal_by_new_client', attempt=brief(a), result=builder.result(s, a['attempt_id']))
+    log('observed_terminal_by_new_client', attempt=brief(a), result=Builder(s).result(a['attempt_id']))
 elif cmd == 'cancel':
-    a = builder.submit(s, TASK, CANCEL_REQ, 'livejobs-cancel-2')
+    a = Builder(s).submit(TASK, CANCEL_REQ, 'livejobs-cancel-2')
     log('submitted_for_cancel', attempt=brief(a))
-    while builder.status(s, a['attempt_id'])['state'] != 'running':
+    while Builder(s).status(a['attempt_id'])['state'] != 'running':
         time.sleep(2)
     time.sleep(25)  # let the build start compiling
-    log('running_before_cancel', attempt=brief(builder.status(s, a['attempt_id'])))
-    a = builder.cancel(s, a['attempt_id'])
+    log('running_before_cancel', attempt=brief(Builder(s).status(a['attempt_id'])))
+    a = Builder(s).cancel(a['attempt_id'])
     log('cancel_observed', attempt=brief(a), history=[h.get('state') for h in a.get('history', [])],
         cleanup_state=a.get('cleanup_state'))

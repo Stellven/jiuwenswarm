@@ -18,35 +18,12 @@ from .store import TABLES, NotFound
 
 LIMIT = 50 * 1024 * 1024
 ROOT = Path(__file__).resolve().parent
-SECRET_PATTERNS = [
-    re.compile(rb'eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}'),
-    re.compile(rb'(?i)bearer\s+[A-Za-z0-9._-]{16,}'),
-    re.compile(rb'sk-[A-Za-z0-9_-]{8,}'),
-    re.compile(rb'[\w.+-]+@[\w-]+\.[\w.-]+'),
-    re.compile(rb'''(?ix)(?:access_token|refresh_token|id_token|api_key|password|secret|token)["']?\s*[:=]\s*["']?[A-Za-z0-9_./+-]{16,}'''),
-]
-SENSITIVE_KEY = re.compile(r'(?i)^(?:.*_)?(?:token|secret|password|authorization|api_key|auth_json)$')
+from .redact import SECRET_PATTERNS, scrub_bytes, sanitize
+from .config import EXPORT_TIMEOUT
 
 
 def sha(data):
     return hashlib.sha256(data).hexdigest()
-
-
-def scrub_bytes(data):
-    for pattern in SECRET_PATTERNS:
-        data = pattern.sub(b'<redacted>', data)
-    return data
-
-
-def sanitize(value):
-    if isinstance(value, dict):
-        return {scrub_bytes(str(k).encode()).decode(): '<redacted>' if SENSITIVE_KEY.search(k)
-                else sanitize(v) for k, v in value.items()}
-    if isinstance(value, list):
-        return [sanitize(v) for v in value]
-    if isinstance(value, str):
-        return scrub_bytes(value.encode()).decode()
-    return value
 
 
 def json_bytes(value):
@@ -78,7 +55,7 @@ def snapshot(home, task_id):
 
 def command(argv):
     try:
-        proc = subprocess.run(argv, capture_output=True, stdin=subprocess.DEVNULL, timeout=20,
+        proc = subprocess.run(argv, capture_output=True, stdin=subprocess.DEVNULL, timeout=EXPORT_TIMEOUT,
                               env=dict(os.environ, GIT_OPTIONAL_LOCKS='0', GIT_TERMINAL_PROMPT='0'))
         if proc.returncode:
             return {'available': False, 'error': scrub_bytes(proc.stderr).decode(errors='replace')[:1000]}
@@ -107,7 +84,7 @@ def verify(directory):
     return len(actual)
 
 
-def export_task(task_id, out, home=None):
+def export_task(task_id, out, home=None, extra_files=()):
     home = Path(home or os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory')).expanduser().resolve()
     out = Path(out).resolve()
     if out == home or out.is_relative_to(home):
@@ -159,6 +136,9 @@ def export_task(task_id, out, home=None):
             artifacts.append(dict(item, exported_path=name,
                                   exported_sha256=sha((stage / name).read_bytes()) if name else None))
         record('artifacts.json', artifacts)
+        from .telemetry import read_events
+        write('telemetry.jsonl', ''.join(json.dumps(sanitize(e), ensure_ascii=False) + '\n'
+              for e in read_events(home, task_id)).encode())
         transcript = (home / 'sessions' / (task_id + '.jsonl')).resolve()
         if not transcript.is_relative_to(home / 'sessions'):
             raise ValueError('Session path escapes sessions root')
@@ -236,9 +216,9 @@ def export_task(task_id, out, home=None):
                 images.append(identity)
             builds.append(dict(attempt_id=aid, state=attempt['state'], build_record=build_item))
         record('image-identity.json', images)
-        receipt = ROOT.parents[1] / 'artifacts/factory/live-jobs-receipt.jsonl'
-        if task_id.startswith('operator-') and receipt.is_file():
-            copy_blob(receipt, 'operator-live-jobs-receipt.jsonl')
+        for extra in extra_files:
+            path = Path(extra)
+            copy_blob(path, path.name)
         record('omissions.json', omissions)
         record('export.json', dict(task_id=task_id, exported_at=datetime.now(timezone.utc).isoformat(),
                snapshot_cursor=task['evidence_cursor'], factory_git_head=command(['git', '-C', str(ROOT), 'rev-parse', 'HEAD']),
@@ -290,13 +270,14 @@ def main(argv=None):
     parser.add_argument('task_id', nargs='?')
     parser.add_argument('--out', type=Path)
     parser.add_argument('--home', type=Path)
+    parser.add_argument('--extra-file', type=Path, action='append', default=[])
     parser.add_argument('--verify', type=Path)
     args = parser.parse_args(argv)
     try:
         if args.verify:
             print(f'Verified {verify(args.verify)} files; secrets scan clean')
         elif args.task_id and args.out:
-            print(export_task(args.task_id, args.out, args.home))
+            print(export_task(args.task_id, args.out, args.home, args.extra_file))
         else:
             parser.error('provide TASK --out DIR, or --verify DIR')
     except (ValueError, OSError, sqlite3.Error, NotFound) as exc:

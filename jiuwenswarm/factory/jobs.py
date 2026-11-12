@@ -13,6 +13,7 @@ import sys
 import time
 
 from .store import FactoryError, NotFound, encoded
+from .config import JOBQ_BIN, DOCKER_PREFIX, CANCEL_TIMEOUT
 
 TERMINAL = {'succeeded', 'failed', 'cancelled'}
 
@@ -29,6 +30,8 @@ def fingerprint(kind, request, argv, job_class, timeout_s):
 
 def metadata(store, attempt, **changes):
     """Host-only metadata update; F02's transition API requires a state change."""
+    if 'state' in changes:
+        raise ValueError('State changes require transition_attempt')
     with store._transaction():
         current = store._get('attempts', attempt['task_id'], attempt['attempt_id'])
         history_entry = changes.pop('history_entry', None)
@@ -47,7 +50,7 @@ def metadata(store, attempt, **changes):
 
 
 class Jobs:
-    def __init__(self, store, jobq_bin=Path('/home/muk/projects/siminfeng/bin/jobq'), jobq_dir=None):
+    def __init__(self, store, jobq_bin=JOBQ_BIN, jobq_dir=None):
         self.store = store
         self.jobq_bin = Path(jobq_bin).resolve()
         # Default = the host's shared supervisor queue (jobq's own default, <repo>/lab/jobq), so
@@ -71,7 +74,7 @@ class Jobs:
         env = dict(os.environ, **(env_extra or {}))
         env.update(JOBQ_DIR=str(qdir or self.jobq_dir),
                    PATH='/usr/local/cuda/bin:' + env.get('PATH', os.defpath),
-                   DOCKER_CMD_PREFIX='sg docker -c')
+                   DOCKER_CMD_PREFIX=DOCKER_PREFIX)
         return subprocess.run([sys.executable, str(self.jobq_bin), *map(str, args)],
             env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, check=True)
 
@@ -118,7 +121,11 @@ class Jobs:
                 jid = self._call('submit', '--class', job_class, '--name',
                     'factory:' + attempt['attempt_id'], '--timeout', timeout_s, '--', *actual,
                     env_extra=env_extra).stdout.strip()
-            except (OSError, subprocess.SubprocessError):
+            except subprocess.CalledProcessError as exc:
+                reason = (exc.stderr or '')[-2000:]
+                return self.store.transition_attempt(task_id, attempt['attempt_id'], 'failed',
+                    resources=dict(attempt['resources'], submit_error=reason, error=reason))
+            except (OSError, subprocess.TimeoutExpired):
                 # Submission may have reached jobq even if its acknowledgement
                 # was lost. Preserve identity and reconcile, never blindly retry.
                 attempt = self._recover(attempt)
@@ -139,7 +146,9 @@ class Jobs:
                     if (self._qdir(attempt) / (attempt['jobq_id'] + '.json')).exists():
                         raise
                     job = None
-            state = job['state'] if job else 'unknown'
+            if job is None:
+                return attempt
+            state = job['state']
             detail = state
             if state in {'timeout', 'skipped_dep_failed'}:
                 state = 'failed'
@@ -162,9 +171,6 @@ class Jobs:
                 attempt = self.store.transition_attempt(attempt['task_id'], attempt_id, 'running')
             if attempt['state'] == 'running' and state == 'cancelled':
                 attempt = self.store.transition_attempt(attempt['task_id'], attempt_id, 'cancel_requested')
-            if (attempt['state'] in TERMINAL and state == 'unknown') or (attempt['state'] == 'unknown' and state == 'queued'):
-                attempt = metadata(self.store, attempt, state=state,
-                    history_entry=dict(state=state, previous=attempt['state']), **changes)
             if attempt['state'] != state and attempt['state'] not in TERMINAL:
                 attempt = self.store.transition_attempt(attempt['task_id'], attempt_id, state, **changes)
             elif changes and any(attempt[k] != v for k, v in changes.items()):
@@ -187,7 +193,7 @@ class Jobs:
         # cleanup. Never run its global container reaper against unrelated jobs.
         return 'process_groups_reaped;containers_unverified'
 
-    def cancel(self, attempt_id):
+    def cancel(self, attempt_id, timeout_s=CANCEL_TIMEOUT):
         attempt = self.status(attempt_id)
         if attempt['state'] in TERMINAL:
             return attempt
@@ -196,9 +202,10 @@ class Jobs:
         if not attempt['jobq_id']:
             return self.status(attempt_id)
         self._call('cancel', attempt['jobq_id'], qdir=self._qdir(attempt))
+        deadline = time.monotonic() + timeout_s
         while True:
             attempt = self.status(attempt_id)
-            if attempt['state'] in TERMINAL | {'unknown'}:
+            if attempt['state'] in TERMINAL | {'unknown'} or time.monotonic() >= deadline:
                 return attempt
             time.sleep(.05)
 

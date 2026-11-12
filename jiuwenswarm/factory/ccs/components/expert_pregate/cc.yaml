@@ -1,0 +1,12 @@
+cc: '2'
+id: factory.components.expert_pregate
+version: 1.0.0
+materials:
+  component:
+    path: component.yaml
+  patch_06:
+    path: 06-pregate.patch
+  patch_07:
+    path: 07-pregate-sched.patch
+  patch_08:
+    path: 08-pregate-observe.patch

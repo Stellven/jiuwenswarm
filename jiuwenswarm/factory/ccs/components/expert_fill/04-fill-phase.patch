@@ -1,0 +1,157 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 1f28988..2fb17b0 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -666,17 +666,57 @@ void llama_context::expert_fill_init() {
+         expert_prefetch_layers.resize(model.layers.size());
+         expert_fill_enabled = true;
+         const char * random = getenv("LLAMA_EXPERT_FILL_RANDOM");
++        expert_fill_random_decode = random && strcmp(random, "decode") == 0;
++        auto token_limit = [](const char * name) -> uint64_t {
++            const char * value = getenv(name);
++            if (!value || !*value || *value == '-') { return 0; }
++            char * end = nullptr; errno = 0;
++            const auto n = strtoull(value, &end, 10);
++            return errno || *end ? 0 : n;
++        };
++        expert_fill_min_tokens = token_limit("LLAMA_EXPERT_FILL_MIN_TOKENS");
++        expert_fill_max_tokens = token_limit("LLAMA_EXPERT_FILL_MAX_TOKENS");
+         const auto & filler = *expert_fillers.begin()->second;
+-        LLAMA_LOG_INFO("expert_fill: active threads=%zu chunk_kib=%zu random=%d files=%zu\n",
+-            filler.threads(), filler.chunk_bytes() / 1024, random && strcmp(random, "1") == 0, expert_fillers.size());
++        LLAMA_LOG_INFO("expert_fill: active threads=%zu chunk_kib=%zu random=%s files=%zu\n",
++            filler.threads(), filler.chunk_bytes() / 1024, expert_fill_random_decode ? "decode" : (random && strcmp(random, "1") == 0 ? "1" : "0"), expert_fillers.size());
+     } catch (const std::exception & e) {
+         expert_fillers.clear();
+         LLAMA_LOG_INFO("expert_fill: inactive (%s)\n", e.what());
+     }
+ }
+ 
++void llama_context::expert_fill_phase(uint32_t n_tokens) {
++    expert_fill_decode = n_tokens == 1;
++    expert_fill_this_ubatch = n_tokens >= expert_fill_min_tokens &&
++        (!expert_fill_max_tokens || n_tokens <= expert_fill_max_tokens);
++    if (!expert_fill_enabled || expert_fill_failed || !expert_fill_random_decode ||
++            expert_fill_random_applied || !expert_fill_decode) { return; }
++    // Transition before the first single-token graph, including when fill is filtered out.
++    expert_fill_random_applied = true;
++    const long page = sysconf(_SC_PAGESIZE);
++    bool ok = page > 0;
++    for (const auto & layer : model.layers) {
++        for (const ggml_tensor * w : {layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps}) {
++            if (!w) { continue; }
++            llama_model::expert_file_range info;
++            if (!ok || !model.expert_file_info(w, info)) { ok = false; continue; }
++            const size_t first = info.offset - info.offset % size_t(page);
++            const size_t end = info.offset + ggml_nbytes(w);
++            const size_t pad = (size_t(page) - end % size_t(page)) % size_t(page);
++            const size_t last = end + std::min(pad, info.mapping_size - end);
++            if (madvise(static_cast<char *>(info.mapping) + first, last - first, MADV_RANDOM)) { ok = false; }
++        }
++    }
++    if (ok) {
++        LLAMA_LOG_INFO("expert_fill: random advice applied at decode\n");
++    } else {
++        expert_fill_failed = true;
++        LLAMA_LOG_INFO("expert_fill: inactive (decode random advice failed)\n");
++    }
++}
++
+ void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> & selected) {
+-    if (expert_fill_failed) { return; }
++    if (expert_fill_failed || !expert_fill_this_ubatch) { return; }
+     try {
+         std::map<size_t, std::vector<ExpertFiller::Range>> ranges;
+         const auto & layer = model.layers[il];
+@@ -691,7 +731,7 @@ void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> &
+                 ranges[info.file_index].push_back({info.offset + size_t(id) * w->nb[2], w->nb[2]});
+             }
+         }
+-        for (const auto & entry : ranges) { expert_fillers.at(entry.first)->fill(entry.second); }
++        for (const auto & entry : ranges) { expert_fillers.at(entry.first)->fill(entry.second, expert_fill_decode); }
+     } catch (const std::exception & e) {
+         expert_fill_failed = true;
+         LLAMA_LOG_INFO("expert_fill: inactive (%s)\n", e.what());
+@@ -855,13 +895,21 @@ llama_context::~llama_context() {
+             sum.bytes_requested += s.bytes_requested; sum.bytes_skipped_resident += s.bytes_skipped_resident;
+             sum.bytes_read += s.bytes_read; sum.read_syscalls += s.read_syscalls;
+             sum.total_fill_wall_ns += s.total_fill_wall_ns;
++            sum.prompt_calls += s.prompt_calls; sum.prompt_bytes_read += s.prompt_bytes_read;
++            sum.prompt_fill_wall_ns += s.prompt_fill_wall_ns;
++            sum.decode_calls += s.decode_calls; sum.decode_bytes_read += s.decode_bytes_read;
++            sum.decode_fill_wall_ns += s.decode_fill_wall_ns;
+             sum.max_single_fill_ns = std::max(sum.max_single_fill_ns, s.max_single_fill_ns);
+         }
+         LLAMA_LOG_INFO("expert_fill: stats calls=%" PRIu64 " ranges=%" PRIu64 " bytes_requested=%" PRIu64
+             " bytes_skipped_resident=%" PRIu64 " bytes_read=%" PRIu64 " read_syscalls=%" PRIu64
+-            " total_fill_wall_ns=%" PRIu64 " max_single_fill_ns=%" PRIu64 "\n",
++            " total_fill_wall_ns=%" PRIu64 " max_single_fill_ns=%" PRIu64
++            " prompt_calls=%" PRIu64 " prompt_bytes_read=%" PRIu64 " prompt_fill_wall_ns=%" PRIu64
++            " decode_calls=%" PRIu64 " decode_bytes_read=%" PRIu64 " decode_fill_wall_ns=%" PRIu64 "\n",
+             sum.calls, sum.ranges, sum.bytes_requested, sum.bytes_skipped_resident, sum.bytes_read,
+-            sum.read_syscalls, sum.total_fill_wall_ns, sum.max_single_fill_ns);
++            sum.read_syscalls, sum.total_fill_wall_ns, sum.max_single_fill_ns,
++            sum.prompt_calls, sum.prompt_bytes_read, sum.prompt_fill_wall_ns,
++            sum.decode_calls, sum.decode_bytes_read, sum.decode_fill_wall_ns);
+     }
+ #endif
+     if (!expert_prefetch_layers.empty() && expert_prefetch_calls) {
+@@ -1919,6 +1967,7 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
+ 
+ #ifdef __linux__
+     expert_fill_init();
++    expert_fill_phase(ubatch.n_tokens);
+     const char * fill = getenv("LLAMA_EXPERT_FILL");
+     const bool fill_requested = fill && strcmp(fill, "1") == 0;
+     const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+diff --git a/src/llama-context.h b/src/llama-context.h
+index ee779ed..81b3c21 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -58,6 +58,12 @@ struct llama_context {
+     bool expert_fill_checked = false;
+     bool expert_fill_enabled = false;
+     bool expert_fill_failed = false;
++    bool expert_fill_random_decode = false;
++    bool expert_fill_random_applied = false;
++    bool expert_fill_decode = false;
++    bool expert_fill_this_ubatch = true;
++    uint64_t expert_fill_min_tokens = 0, expert_fill_max_tokens = 0;
++    void expert_fill_phase(uint32_t n_tokens);
+     void expert_fill_init();
+     void expert_fill_selected(size_t il, const std::vector<int32_t> & selected);
+ #endif
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index 690b808..21f5463 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -25,6 +25,8 @@ public:
+         uint64_t calls = 0, ranges = 0, bytes_requested = 0;
+         uint64_t bytes_skipped_resident = 0, bytes_read = 0, read_syscalls = 0;
+         uint64_t total_fill_wall_ns = 0, max_single_fill_ns = 0;
++        uint64_t prompt_calls = 0, prompt_bytes_read = 0, prompt_fill_wall_ns = 0;
++        uint64_t decode_calls = 0, decode_bytes_read = 0, decode_fill_wall_ns = 0;
+     };
+     // mapping must be a live, offset-zero file mmap for the lifetime of this object.
+     ExpertFiller(const std::string & path, void * mapping, size_t mapping_size)
+@@ -59,15 +61,19 @@ public:
+     size_t chunk_bytes() const { return chunk_; }
+     Counters counters() const { std::lock_guard<std::mutex> lock(fill_mutex_); return counters_; }
+ 
+-    void fill(const std::vector<Range> & ranges) {
++    void fill(const std::vector<Range> & ranges, bool decode = false) {
+         std::lock_guard<std::mutex> serial(fill_mutex_);
+         const auto start = std::chrono::steady_clock::now();
+         ++counters_.calls;
++        ++(decode ? counters_.decode_calls : counters_.prompt_calls);
++        const uint64_t bytes_before = counters_.bytes_read;
+         counters_.ranges += ranges.size();
+         auto finish = [&] {
+             const uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                 std::chrono::steady_clock::now() - start).count();
+             counters_.total_fill_wall_ns += ns;
++            (decode ? counters_.decode_fill_wall_ns : counters_.prompt_fill_wall_ns) += ns;
++            (decode ? counters_.decode_bytes_read : counters_.prompt_bytes_read) += counters_.bytes_read - bytes_before;
+             counters_.max_single_fill_ns = std::max(counters_.max_single_fill_ns, ns);
+         };
+         try {

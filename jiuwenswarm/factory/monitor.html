@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CC Factory · live</title>
+<style>
+:root{--bg:#0b0e14;--panel:#121722;--raise:#1a2130;--line:#252e40;--text:#e7ecf4;--dim:#8a95a8;
+  --accent:#7cc4ff;--good:#5fd99a;--bad:#ff7a85;--warn:#f2c46d;--mono:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:17px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:16px 24px;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:.02em}.brand span{color:var(--accent)}
+.title{flex:1 1 360px;min-width:0}
+.title h1{margin:0;font-size:21px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title .sub{color:var(--dim);font-size:14px;font-family:var(--mono)}
+.meta{display:flex;gap:18px;align-items:center;font-family:var(--mono);font-size:15px;color:var(--dim)}
+.meta b{color:var(--text);font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:999px;background:var(--raise);
+  font:600 14px var(--mono);text-transform:uppercase;letter-spacing:.06em}
+.pill.live::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--accent);animation:pulse 1.6s infinite}
+.pill.good{color:var(--good)}.pill.bad{color:var(--bad)}
+@keyframes pulse{50%{opacity:.25}}
+select{background:var(--raise);color:var(--text);border:1px solid var(--line);border-radius:6px;font:14px var(--mono);padding:4px 8px;max-width:100%}
+.chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 24px;border-bottom:1px solid var(--line);font:14px var(--mono)}
+.link{padding:5px 11px;border-radius:6px;background:var(--raise);color:var(--dim)}
+.link.ok{color:var(--good);background:#13261d}.link.no{color:var(--bad);background:#2a1519}
+.arrow{color:var(--line)}
+main{display:grid;grid-template-columns:minmax(250px,1fr) minmax(0,1.7fr) minmax(280px,1.15fr);gap:16px;padding:16px 24px}
+section{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+h2{margin:0 0 12px;font-size:13px;font-weight:600;color:var(--dim);text-transform:uppercase;letter-spacing:.12em}
+.layer{padding:10px 12px;border-radius:8px;background:var(--raise);margin-bottom:8px;border-left:3px solid var(--line)}
+.layer.kept{border-color:var(--good)}.layer.reverted{border-color:var(--bad);opacity:.7}.layer.base{border-color:var(--accent)}
+.layer .row{display:flex;justify-content:space-between;gap:8px}
+.layer .name{font-weight:600;overflow-wrap:anywhere}.layer .state{font:13px var(--mono);color:var(--dim)}
+.layer.kept .state{color:var(--good)}.layer.reverted .state{color:var(--bad)}
+.speed{display:flex;align-items:center;gap:8px;margin-top:6px;font:13px var(--mono);color:var(--dim)}
+.track{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:3px;transition:width .6s}
+.layer.kept .fill{background:var(--good)}
+#timeline{max-height:58vh;overflow:auto;font-size:15px}
+.ev{display:grid;grid-template-columns:52px 22px 92px 1fr;gap:8px;padding:6px 4px;border-bottom:1px solid var(--line);align-items:baseline}
+.ev .t{font:13px var(--mono);color:var(--dim)}.ev .k{font:13px var(--mono);color:var(--accent);overflow:hidden;text-overflow:ellipsis}
+.ev .s{overflow-wrap:anywhere}.ev.bad .m,.ev.bad .s{color:var(--bad)}.ev.ok .m{color:var(--good)}
+.ev.decision{background:#141b29}.ev.decision .k{color:var(--warn)}
+.ev.new{animation:flash 1.2s}@keyframes flash{from{background:#22324a}}
+.now .action{font:600 20px var(--mono);color:var(--warn)}
+.now .reason{color:var(--dim);margin-top:6px;font-size:15px;max-height:9.5em;overflow:auto}
+.job{margin-top:14px;padding:12px;border-radius:8px;background:var(--raise)}
+.job .head{display:flex;justify-content:space-between;font:14px var(--mono)}
+pre{margin:8px 0 0;padding:10px;background:#07090d;border-radius:6px;font:12px/1.4 var(--mono);color:#b9c4d6;
+  white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}
+#calls{grid-column:1/-1}
+.caps{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.cap{padding:6px 10px;border-radius:6px;background:var(--raise);font:13px var(--mono)}.cap b{color:var(--text)}.cap{color:var(--dim)}
+.call{display:grid;grid-template-columns:minmax(150px,240px) 1fr 120px;gap:10px;align-items:center;font:13px var(--mono);padding:2px 0}
+.call .bar{height:8px;background:var(--accent);border-radius:4px;min-width:2px}
+.call.err{color:var(--bad)}.call.err .bar{background:var(--bad)}
+.empty{color:var(--dim);font-style:italic}
+#error{color:var(--bad);font:13px var(--mono)}
+@media(max-width:900px){main{grid-template-columns:1fr}#timeline{max-height:none}.ev{grid-template-columns:46px 18px 1fr}.ev .k{display:none}}
+</style>
+<header>
+  <div class="brand">CC <span>Factory</span></div>
+  <div class="title"><h1 id="objective">Waiting for a task…</h1><div class="sub" id="taskid"></div></div>
+  <div class="meta"><span id="status" class="pill live">live</span><span>turn <b id="turns">0</b></span><span><b id="elapsed">0:00</b></span></div>
+  <select id="selector" aria-label="Task"></select>
+  <div id="error"></div>
+</header>
+<div class="chain" id="chain"></div>
+<main>
+  <section><h2>Engine</h2><div id="stack"></div></section>
+  <section><h2>Timeline</h2><div id="timeline"></div></section>
+  <section class="now"><h2>Now</h2><div id="now"></div><div id="job"></div></section>
+  <section id="calls"><h2>Capsule calls</h2><div class="caps" id="caps"></div><div id="callrows"></div></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+let task = params.get('task') || '', busy = false, seen = new Set(), clock = null;
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+async function get(path) { const r = await fetch(path); if (!r.ok) throw Error((await r.json().catch(() => ({}))).error || 'unavailable'); return r.json(); }
+const mmss = s => { s = Math.max(0, Math.round(s || 0)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = String(s % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${x}` : `${m}:${x}`; };
+const short = id => id.replace(/^factory-/, '').slice(0, 8);
+$('selector').onchange = () => { task = $('selector').value; seen.clear(); history.replaceState(null, '', '?task=' + encodeURIComponent(task)); poll(); };
+
+function header(s) {
+  const out = s.meta.outcome;
+  $('objective').textContent = s.task.objective;
+  $('taskid').textContent = s.task.task_id + (s.task.contract_id ? ' · ' + s.task.contract_id : '');
+  $('status').textContent = out || 'live';
+  $('status').className = 'pill ' + (!out ? 'live' : out === 'accept' ? 'good' : 'bad');
+  $('turns').textContent = s.meta.budget_used.turns + (s.task.budget ? '/' + s.task.budget.max_turns : '');
+  const start = s.task.created, wall = s.meta.budget_used.wall_clock_s;
+  clearInterval(clock);
+  const tick = () => $('elapsed').textContent = mmss(out ? wall : Date.now() / 1000 - start);
+  tick(); if (!out) clock = setInterval(tick, 1000);
+}
+
+function chain(links) {
+  const parts = [];
+  links.forEach(([name, mark], i) => {
+    if (i) parts.push(el('span', 'arrow', '→'));
+    parts.push(el('span', 'link ' + (mark === '✓' ? 'ok' : mark === '✗' ? 'no' : ''), mark + ' ' + name));
+  });
+  $('chain').replaceChildren(...parts);
+}
+
+function stack(rows) {
+  const base = rows[0].ms_per_token, fastest = Math.min(...rows.map(r => r.ms_per_token || Infinity));
+  $('stack').replaceChildren(...rows.map(r => {
+    const d = el('div', 'layer ' + (r.state || ''));
+    const row = el('div', 'row'); row.append(el('span', 'name', r.name), el('span', 'state', r.state || ''));
+    d.append(row);
+    if (r.ms_per_token) {
+      const sp = el('div', 'speed'), track = el('div', 'track'), fill = el('div', 'fill');
+      fill.style.width = (100 * fastest / r.ms_per_token).toFixed(1) + '%'; track.append(fill);
+      sp.append(el('span', '', Math.round(r.ms_per_token) + ' ms/tok'), track,
+                el('span', '', r.ratio ? r.ratio.toFixed(2) + '×' : base ? '' : ''));
+      d.append(sp);
+    }
+    if (r.reason) d.append(el('div', 'state', r.reason));
+    return d;
+  }));
+}
+
+function timeline(events, start) {
+  const box = $('timeline'), near = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+  box.replaceChildren(...events.map(e => {
+    const decision = e.rev != null;
+    const row = el('div', 'ev' + (e.mark === '✗' ? ' bad' : e.mark === '✓' ? ' ok' : '') + (decision ? ' decision' : '') + (seen.size && !seen.has(e.id) ? ' new' : ''));
+    row.append(el('span', 't', mmss(e.created - start)), el('span', 'm', decision ? '◆' : e.mark),
+               el('span', 'k', decision ? 'rev ' + e.rev : e.kind), el('span', 's', decision ? e.kind + ' · ' + e.summary : e.summary));
+    return row;
+  }));
+  events.forEach(e => seen.add(e.id));
+  if (near) box.scrollTop = box.scrollHeight;
+}
+
+async function now(s) {
+  const d = s.latest_decision, box = $('now');
+  box.replaceChildren(el('div', 'action', d ? `rev ${d.rev} · ${d.action.type}` : 'starting…'),
+                      el('div', 'reason', d ? (d.action.next_bounded_operation || d.reason_for_change || '') : 'The agent is reading capsules and evidence.'));
+  const jobs = await Promise.all(s.active_jobs.map(a => get('/api/job?attempt=' + encodeURIComponent(a.attempt_id)).then(j => [a, j])));
+  $('job').replaceChildren(...jobs.map(([a, j]) => {
+    const c = el('div', 'job'), head = el('div', 'head');
+    const since = a.started || (a.history && a.history[0] && a.history[0].created) || Date.now() / 1000;
+    head.append(el('span', '', `${a.kind} · ${a.state}`), el('span', '', mmss(Date.now() / 1000 - since)));
+    c.append(head, el('pre', '', j.log.length ? j.log.join('\n') : '(waiting for output)'));
+    return c;
+  }));
+}
+
+function calls(events) {
+  const cc = events.filter(e => e.event === 'cc.call');
+  const by = {};
+  for (const e of cc) { const k = e.capability; (by[k] = by[k] || []).push(e.duration_ms); }
+  const p50 = a => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+  $('caps').replaceChildren(...Object.entries(by).sort((a, b) => b[1].length - a[1].length).map(([k, v]) => {
+    const c = el('span', 'cap'); c.append(el('b', '', k), document.createTextNode(` ×${v.length} · p50 ${p50(v).toFixed(0)} ms`)); return c;
+  }));
+  const last = cc.slice(-24), max = Math.max(1, ...last.map(e => e.duration_ms));
+  $('callrows').replaceChildren(...(last.length ? last.map(e => {
+    const r = el('div', 'call' + (e.outcome === 'ok' ? '' : ' err')), bar = el('div', 'bar');
+    bar.style.width = (100 * e.duration_ms / max).toFixed(1) + '%';
+    const wrap = el('div'); wrap.append(bar);
+    r.append(el('span', '', e.capability), wrap, el('span', '', e.duration_ms.toFixed(0) + ' ms ' + (e.outcome === 'ok' ? '' : e.error_code || e.outcome)));
+    return r;
+  }) : [el('div', 'empty', 'No capsule calls recorded for this task yet.')]));
+}
+
+async function poll() {
+  if (busy) return; busy = true;
+  try {
+    const list = await get('/api/tasks');
+    if (!task && list.length) task = list[0].task_id;
+    $('selector').replaceChildren(...list.map(t => { const o = el('option', '', short(t.task_id) + ' · ' + t.objective.slice(0, 70)); o.value = t.task_id; o.selected = t.task_id === task; return o; }));
+    if (!task) return;
+    const q = encodeURIComponent(task);
+    const [s, tele] = await Promise.all([get('/api/story?task=' + q), get('/api/telemetry?task=' + q)]);
+    header(s); chain(s.chain); stack(s.engine_stack); timeline(s.events, s.task.created); calls(tele);
+    await now(s);
+    $('error').textContent = '';
+  } catch (e) { $('error').textContent = e.message; } finally { busy = false; }
+}
+poll(); setInterval(poll, 2000);
+</script>
+</html>
