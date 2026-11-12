@@ -188,6 +188,12 @@ def main():
         result = {'outcome': 'error', 'error': {'code': 'INVALID_INPUT', 'message': input_reason(exc)}}
     except (OSError, sqlite3.Error):
         result = {'outcome': 'error', 'error': {'code': 'PERSISTENCE_FAILED', 'message': 'Evidence persistence failed'}}
+    except Exception as exc:  # never leave the capsule without a typed, explainable envelope
+        import traceback
+        from .redact import sanitize
+        traceback.print_exc()
+        result = {'outcome': 'error', 'error': {'code': 'INTERNAL_ERROR',
+                  'message': sanitize(f'{type(exc).__name__}: {exc}')[:400]}}
     finally:
         telemetry.call(home, task_id, capability, packet, result or {'outcome': 'error'}, started, store=store)
         if store is not None:

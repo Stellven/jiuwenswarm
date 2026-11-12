@@ -1,0 +1,121 @@
+Script started on 2026-11-12 05:12:18+00:00 [<not executed on terminal>]
+2026-11-12 05:12:19 | common | default_trace_id | INFO | Registered connector pool type: default
+Registered connector pool type: default
+2026-11-12 05:12:20 | common | default_trace_id | INFO | Registered connector pool type: httpx
+Registered connector pool type: httpx
+2026-11-12 05:12:21 | common | default_trace_id | INFO | Registered query expression support for milvus
+Registered query expression support for milvus
+2026-11-12 05:12:21 | common | default_trace_id | INFO | Registered query expression support for chroma
+Registered query expression support for chroma
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ExcelParser for .xlsx
+Registered parser ExcelParser for .xlsx
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ExcelParser for .csv
+Registered parser ExcelParser for .csv
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ExcelParser for .tsv
+Registered parser ExcelParser for .tsv
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser TxtMdParser for .txt
+Registered parser TxtMdParser for .txt
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser TxtMdParser for .md
+Registered parser TxtMdParser for .md
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser TxtMdParser for .markdown
+Registered parser TxtMdParser for .markdown
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser HTMLFileParser for .htm
+Registered parser HTMLFileParser for .htm
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser HTMLFileParser for .html
+Registered parser HTMLFileParser for .html
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser JSONParser for .json
+Registered parser JSONParser for .json
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser PDFParser for .pdf
+Registered parser PDFParser for .pdf
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser WordParser for .docx
+Registered parser WordParser for .docx
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ImageParser for .png
+Registered parser ImageParser for .png
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ImageParser for .jpg
+Registered parser ImageParser for .jpg
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ImageParser for .jpeg
+Registered parser ImageParser for .jpeg
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ImageParser for .webp
+Registered parser ImageParser for .webp
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ImageParser for .gif
+Registered parser ImageParser for .gif
+2026-11-12 05:12:22 | common | default_trace_id | INFO | Registered parser ImageParser for .jfif
+Registered parser ImageParser for .jfif
+setup plugin alembic.autogenerate.schemas
+setup plugin alembic.autogenerate.tables
+setup plugin alembic.autogenerate.types
+setup plugin alembic.autogenerate.constraints
+setup plugin alembic.autogenerate.defaults
+setup plugin alembic.autogenerate.comments
+setup plugin alembic.ext.checkconstraint_byname
+loading built-in prompt resource /home/muk/projects/jiuwenswarm/.venv/lib/python3.12/site-packages/openjiuwen/symphony/retrieval/common/prompts/retrieval_disclosure.yaml
+2026-11-12 05:12:26.799 INFO jiuwenswarm.server.runtime.agent_adapter.agent_adapters: [SDK] Resolved SDK: codex_subscription
+2026-11-12 05:12:26.803 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] Initialized adapter: sdk=codex_subscription, mode=agent
+2026-11-12 05:12:26.811 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] 处理流式请求: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf channel_id=web session_id=factory-fe255fcec0fe4b06b4da776d563cb572 sdk=codex_subscription
+2026-11-12 05:12:26.946 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop starting: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf is_team=False
+2026-11-12 05:12:26.946 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task started: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf session_id=factory-fe255fcec0fe4b06b4da776d563cb572
+2026-11-12 05:12:31.480 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf event_type=chat.delta
+2026-11-12 05:12:31.481 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf event_type=chat.delta
+2026-11-12 05:12:31.482 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf event_type=chat.delta item_type=chunk
+2026-11-12 05:12:31.486 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf event_type=chat.delta item_type=chunk
+2026-11-12 05:12:31.489 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf event_type=chat.delta
+2026-11-12 05:12:31.490 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf event_type=chat.delta item_type=chunk
+2026-11-12 05:14:38.629 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task finished: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-1-3a1a46de8d494f9a9e6798bc7977e8bf total_chunks=205
+2026-11-12 05:18:27.138 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] 处理流式请求: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f channel_id=web session_id=factory-fe255fcec0fe4b06b4da776d563cb572 sdk=codex_subscription
+2026-11-12 05:18:27.157 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop starting: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f is_team=False
+2026-11-12 05:18:27.158 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task started: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f session_id=factory-fe255fcec0fe4b06b4da776d563cb572
+2026-11-12 05:18:28.946 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f event_type=chat.delta
+2026-11-12 05:18:28.947 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f event_type=chat.delta
+2026-11-12 05:18:28.948 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f event_type=chat.delta item_type=chunk
+2026-11-12 05:18:28.951 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f event_type=chat.delta item_type=chunk
+2026-11-12 05:18:29.078 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f event_type=chat.delta
+2026-11-12 05:18:29.079 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f event_type=chat.delta item_type=chunk
+2026-11-12 05:19:15.390 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task finished: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-2-b7918a6ad3a5412ab1c2d651ee07722f total_chunks=111
+2026-11-12 05:22:03.345 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] 处理流式请求: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 channel_id=web session_id=factory-fe255fcec0fe4b06b4da776d563cb572 sdk=codex_subscription
+2026-11-12 05:22:03.369 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop starting: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 is_team=False
+2026-11-12 05:22:03.371 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task started: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 session_id=factory-fe255fcec0fe4b06b4da776d563cb572
+2026-11-12 05:22:06.171 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 event_type=chat.delta
+2026-11-12 05:22:06.172 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 event_type=chat.delta item_type=chunk
+2026-11-12 05:22:06.305 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 event_type=chat.delta
+2026-11-12 05:22:06.306 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 event_type=chat.delta item_type=chunk
+2026-11-12 05:22:06.310 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 event_type=chat.delta
+2026-11-12 05:22:06.311 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 event_type=chat.delta item_type=chunk
+2026-11-12 05:23:50.896 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task finished: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-3-bdadf1949632449cb69644c280a42dd0 total_chunks=194
+2026-11-12 05:27:18.397 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] 处理流式请求: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c channel_id=web session_id=factory-fe255fcec0fe4b06b4da776d563cb572 sdk=codex_subscription
+2026-11-12 05:27:18.421 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop starting: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c is_team=False
+2026-11-12 05:27:18.422 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task started: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c session_id=factory-fe255fcec0fe4b06b4da776d563cb572
+2026-11-12 05:27:20.700 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c event_type=chat.delta
+2026-11-12 05:27:20.701 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c event_type=chat.delta
+2026-11-12 05:27:20.702 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c event_type=chat.delta
+2026-11-12 05:27:20.703 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c event_type=chat.delta item_type=chunk
+2026-11-12 05:27:20.706 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c event_type=chat.delta item_type=chunk
+2026-11-12 05:27:20.709 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c event_type=chat.delta item_type=chunk
+2026-11-12 05:30:05.833 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task finished: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-4-29156f4487cf4027a3f9dca8d098e18c total_chunks=297
+2026-11-12 05:34:36.733 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] 处理流式请求: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c channel_id=web session_id=factory-fe255fcec0fe4b06b4da776d563cb572 sdk=codex_subscription
+2026-11-12 05:34:36.748 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop starting: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c is_team=False
+2026-11-12 05:34:36.750 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task started: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c session_id=factory-fe255fcec0fe4b06b4da776d563cb572
+2026-11-12 05:34:43.497 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c event_type=chat.delta
+2026-11-12 05:34:43.498 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c event_type=chat.delta
+2026-11-12 05:34:43.498 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c event_type=chat.delta
+2026-11-12 05:34:43.499 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #1: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c event_type=chat.delta item_type=chunk
+2026-11-12 05:34:43.503 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #2: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c event_type=chat.delta item_type=chunk
+2026-11-12 05:34:43.506 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #3: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c event_type=chat.delta item_type=chunk
+2026-11-12 05:35:19.396 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task finished: request_id=factory-fe255fcec0fe4b06b4da776d563cb572-5-cb5fc5c856f1464ab27e17c91cd9173c total_chunks=206
+[2mTask: factory-fe255fcec0fe4b06b4da776d563cb572 · stop_missing_prerequisite · rev 8[0m
+[2mBudget: 5/40 turns · 23:00/480:00[0m
+[2mNow[0m
+[2m  stop_missing_prerequisite:[0m
+[2m  Repeated A/B infrastructure failure 6dd5b68a21f34fc29b5bd0eb6bc1ae3e prevents mandatory[0m
+[2m  gate/correctness experiments. Restoration is complete per[0m
+[2m  9883e82565e649318abe09914c312ef4:build-result; baseline correctness remains supported by …[0m
+[2mJobs[0m
+[2m  idle[0m
+[2mEvidence[0m
+[2m  tasks 1, decisions 8, artifacts 45, observations 13, attempts 4, evaluations 1, uploads 1 ·[0m
+[2m  7866961 bytes[0m
+[2mLast evaluation[0m
+[2m  qwen36-bare-greedy-v1 · pass · ok · complete · stdout 7a154179 == reference 7a154179 · engagement[0m
+[2m  0/2[0m
+[32mReadiness: ✓ decision_published · ✓ jobs_idle · ✓ evaluations_present[0m
+
+Script done on 2026-11-12 05:35:22+00:00 [COMMAND_EXIT_CODE="0"]

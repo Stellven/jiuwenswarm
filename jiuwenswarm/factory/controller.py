@@ -75,7 +75,9 @@ def configure_agent(task, grants=(), home=None):
         args += ['--grant', grant]
     env = {'FACTORY_HOME': str(home), 'FACTORY_TASK_ID': task['task_id'],
            'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': DOCKER_PREFIX,
-           'PYTHONPATH': str(ROOT), 'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
+           'PYTHONPATH': str(ROOT),
+           # ccv2 seals the resolved base interpreter (outside the venv); the API runs in the venv.
+           'FACTORY_PYTHON': sys.executable, 'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
     # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
     reads = read_tasks(task)
     if reads:
@@ -94,6 +96,8 @@ def configure_agent(task, grants=(), home=None):
         'JIUWENSWARM_SKIP_DOTENV': '1'})
     return mcp
 
+
+STALL_TURNS = 3
 
 class Controller:
     def __init__(self, home=None, *, store=None, jobs=None, grants=(), facade=None,
@@ -335,6 +339,12 @@ class Controller:
                 state['missing_decision'] = task['current_decision_rev'] == state['pending_turn_rev']
             if state['outcome'] in TERMINAL:
                 return self.status(task_id)
+            missing = sorted(set(task.get('allowed_effects', [])) - set(self.grants))
+            if missing and not self.grants:
+                # No grants at all: every native capsule call would be denied. Fail before a model turn.
+                # (A deliberate subset of grants is the operator's choice and stays allowed.)
+                raise ValueError('Task allows effects with no operator grant: ' + ', '.join(missing)
+                                 + '. Re-run with ' + ' '.join('--grant ' + m for m in missing))
             configure_agent(task, self.grants, self.home)
             state['started'] = state['started'] if state['started'] is not None else self.clock()
             state['outcome'] = None
@@ -376,6 +386,12 @@ class Controller:
                         return self._finish(task_id, state, 'partial')
                     state['missing_decision'] = self.store.get_task(task_id)['current_decision_rev'] == before
                     state.pop('pending_turn_rev', None)
+                    # A turn that neither advanced the decision nor started a job made no progress.
+                    started = any(a['state'] in ACTIVE for a in self._snapshot(task_id)['attempts'])
+                    state['idle_turns'] = state.get('idle_turns', 0) + 1 if state['missing_decision'] and not started else 0
+                    if state['idle_turns'] >= STALL_TURNS:
+                        state['stop_reason'] = f'stalled: {STALL_TURNS} consecutive turns without a decision or job'
+                        return self._finish(task_id, state, 'partial')
                     self._save(task_id, state)
             finally:
                 if self.facade is None:

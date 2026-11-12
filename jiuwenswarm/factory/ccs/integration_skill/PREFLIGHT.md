@@ -7,7 +7,7 @@ cache help by that immutable Id and tool under FACTORY_HOME/preflight/.
 Retagging must never reuse help from the old image. Query /app/<tool> --help
 using --runtime nvidia; reject every unsupported flag before a workload.
 
-Call inspector.verify_effective_config with the exact image and LLAMA_EXPERT_*
+Call inspector.verify_effective_config with the exact image and LLAMA_* (LLAMA_EXPERT_* are compared with the effective-config line; other switches are reported as engine_lines)
 string environment. It runs one CPU-only Granite token (-ngl 0, context 256),
 with a 45-second subprocess deadline. This checks model-independent parsing,
 not Qwen worker activation or performance. Unknown names and invalid values

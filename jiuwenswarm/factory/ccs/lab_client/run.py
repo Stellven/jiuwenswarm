@@ -1,5 +1,6 @@
 """Translate capsule capability names to the task-scoped factory native API."""
 import json
+import os
 import subprocess
 import sys
 
@@ -11,13 +12,16 @@ packet = json.load(sys.stdin)
 cap = packet['capability']
 packet['capability'] = PREFIX + '.' + cap
 try:
-    process = subprocess.run([sys.executable, '-m', 'jiuwenswarm.factory.api', packet['capability']],
+    process = subprocess.run([os.environ.get('FACTORY_PYTHON', sys.executable), '-m', 'jiuwenswarm.factory.api', packet['capability']],
                              input=json.dumps(packet), capture_output=True, text=True, timeout=49)
     result = json.loads(process.stdout)
 except subprocess.TimeoutExpired:
     result = {'outcome': 'error', 'error': {'code': 'TIMEOUT', 'message': 'Factory API exceeded the bounded call deadline'}}
 except (ValueError, TypeError):
-    result = {'outcome': 'error', 'error': {'code': 'API_FAILED', 'message': 'Factory API did not return a JSON result'}}
+    # Surface the cause to the agent: the last stderr lines (the API redacts its own messages).
+    detail = ' | '.join(process.stderr.strip().splitlines()[-3:])[-600:] if process.stderr else 'no stderr'
+    result = {'outcome': 'error', 'error': {'code': 'API_FAILED',
+              'message': 'Factory API did not return a JSON result: ' + detail}}
 if result.get('outcome') == 'ok':
     outputs = result['outputs']
     if PREFIX == 'evidence' and cap in {'read', 'publish'}:

@@ -175,9 +175,12 @@ class Inspector:
         if set(inputs) != {'image', 'env'}:
             raise ValueError('verify requires image and env')
         env = inputs['env']
-        if not isinstance(env, dict) or not all(isinstance(k, str) and k.startswith('LLAMA_EXPERT_')
+        if not isinstance(env, dict) or not all(isinstance(k, str) and k.startswith('LLAMA_')
                                                and isinstance(v, str) and '\0' not in v for k, v in env.items()):
-            raise ValueError('env must contain string LLAMA_EXPERT_* settings')
+            raise ValueError('env must contain string LLAMA_* settings')
+        # Only patch-08 LLAMA_EXPERT_* keys have an effective-config line to compare against;
+        # other component switches are reported through the engine's own log lines.
+        expert = {k: v for k, v in env.items() if k.startswith('LLAMA_EXPERT_')}
         image = self.image(inputs['image'])
         extra = ['--mount', f'type=bind,src={PROBE.parent},dst=/probe,readonly']
         for key, value in sorted(env.items()):
@@ -192,6 +195,9 @@ class Inspector:
         if invalid:
             output['invalid_line'] = invalid.group(0)
             return output, ('CONFIG_REJECTED', invalid.group(0))
+        output['engine_lines'] = re.findall(r'^(?:llama_mmap|expert_\w+):.*$', result.stderr, re.MULTILINE)[:20]
+        if env and not expert:
+            return output, ('PROBE_FAILED', 'Config probe exited unsuccessfully') if result.returncode else None
         lines, effective = parse_effective(result.stderr)
         # Patch 08 prints once per llama_context; llama-completion creates more than one
         # (observed live on om11: two identical lines). All must agree.
@@ -202,7 +208,7 @@ class Inspector:
         output['effective'] = effective
         if set(effective) != set(ENV_KEYS.values()):
             return output, ('CONFIG_MISSING', 'Effective config line is incomplete or unrecognized')
-        for key, value in env.items():
+        for key, value in expert.items():
             actual = effective.get(ENV_KEYS.get(key))
             # Engine integers accept leading zeros and print decimal values.
             expected = str(int(value)) if key in ENV_KEYS and ENV_KEYS[key] not in {'random', 'order', 'diag_csv'} and value.isascii() and value.isdigit() else value

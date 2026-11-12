@@ -73,6 +73,9 @@ capabilities:
       invalid_line:
         kind: text
         optional: true
+      engine_lines:
+        kind: json
+        optional: true
       evidence: json
     needs:
     - python

@@ -138,8 +138,8 @@ def evaluation_summary(record):
     relation = '==' if candidate == reference and candidate != '?' else 'vs'
     return (f"{record.get('contract_id', '?')} · {record.get('correctness', '?')} · "
             f"{record.get('execution_outcome', '?')} · {record.get('evidence_completeness', '?')} · "
-            f"stdout {short(candidate)} {relation} reference {short(reference)} · "
-            f"engagement {sum(v is True for v in checks.values())}/{len(checks)}")
+            f"stdout {short(candidate)} {relation} reference {short(reference)}"
+            + (f" · engagement {sum(v is True for v in checks.values())}/{len(checks)}" if checks else ''))
 
 
 def build_events(data):
@@ -166,19 +166,19 @@ def build_events(data):
         for at, config in configs:
             if d['created'] <= at < end:
                 current.update(config)
+        # Only run-config switches (ENV_STYLE names) count as a replan diff, not prose fields.
         changes = [f'{k} {previous[k]} → {v}' for k, v in current.items()
-                   if k in previous and previous[k] != v]
-        structured = flatten(action)
-        if i:
-            changes += [f'{k} · → {v}' for k, v in structured.items() if k not in previous]
-            changes += [f'{k} {v} → ·' for k, v in previous_action.items() if k not in structured]
-        previous_action = structured
-        reason = d.get('reason_for_change', '').split(';')[0]
-        summary = '; '.join(changes) if changes else reason
+                   if k in previous and previous[k] != v and re.fullmatch(r'[A-Z][A-Z0-9_]*', k)]
         kind = action.get('type', 'decide')
-        if changes:
-            summary += ' because obs ' + short(next((e for e in d.get('evidence_ids', [])
-                if any(o.get('obs_id') == e and o.get('error') for o in data.get('observations', []))), '?'))
+        failure = next((e for e in d.get('evidence_ids', []) if any(
+            o.get('obs_id') == e and o.get('error') for o in data.get('observations', []))), None)
+        step = str(action.get('next_operation') or action.get('next_bounded_operation') or '')
+        step = re.split(r'(?<=[.;])\s', step, maxsplit=1)[0].rstrip('.;')
+        summary = '; '.join(changes) or step or d.get('reason_for_change', '').split(';')[0]
+        if action.get('component') and kind not in {'keep_component', 'revert_component'}:
+            summary = f"{action['component']} · {summary}"
+        if failure:
+            summary += ' · because ' + short(failure)
         if kind in {'keep_component', 'revert_component'}:
             changes = []
             summary = (f"keep {action.get('component')} · image {action.get('image')} · ratio {action.get('ratio')}"
@@ -187,7 +187,7 @@ def build_events(data):
         if kind in TERMINAL:
             changes = []
             summary = d.get('reason_for_change', '')
-        add(d['created'], d['decision_id'], ('replan/' + kind) if changes else kind,
+        add(d['created'], d['decision_id'], ('replan/' + kind) if changes or failure else kind,
             summary, rev=d['rev'])
         previous.update(current)
     for r in data.get('observations', []):

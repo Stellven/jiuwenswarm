@@ -282,3 +282,40 @@ def test_codex_logout_revokes_agent_resume_after_restart(tmp_path, monkeypatch):
         with pytest.raises(CodexError, match='NEW_SESSION_REQUIRED'):
             _ = [e async for e in restarted.stream('t', 'r2', 'continue')]
     asyncio.run(exercise())
+
+
+def test_run_without_any_grant_fails_before_a_turn(tmp_path):
+    import asyncio, json, pytest
+    from jiuwenswarm.factory.controller import Controller
+    calls = []
+    async def facade(*a, **k):
+        calls.append(1)
+        if False:
+            yield None
+    home = tmp_path / 'factory'
+    controller = Controller(home, facade=facade)
+    task_file = tmp_path / 'task.json'
+    task_file.write_text(json.dumps(dict(objective='o', constraints={}, allowed_effects=['process.exec'],
+        target='jetson-orin', budget=dict(max_turns=3, wall_clock_s=60), contract_id='qwen36-greedy-v1',
+        initial_run_config={'env': {}}, component_cc='factory.engine_component',
+        source=dict(subpath='llama.cpp', pre_integration_commit='e14b87603'))))
+    try:
+        task_id = controller.init_task(str(task_file))
+    except (ValueError, OSError) as exc:
+        pytest.skip(f'task init needs fixture workspace: {exc}')
+    with pytest.raises(ValueError, match='--grant process.exec'):
+        asyncio.run(controller.run(task_id))
+    assert calls == []
+
+
+def test_capsules_run_the_api_in_the_controller_venv(tmp_path):
+    # ccv2 seals the resolved base interpreter for native capsules, which lacks the venv's
+    # site-packages; the wrappers must launch the factory API with FACTORY_PYTHON instead.
+    import sys
+    from pathlib import Path
+    from jiuwenswarm.factory.controller import configure_agent
+    mcp = configure_agent({'task_id': 't', 'allowed_effects': []}, home=tmp_path)
+    assert f'FACTORY_PYTHON = "{sys.executable}"' in mcp.read_text()
+    root = Path(__file__).resolve().parents[2] / 'jiuwenswarm/factory/ccs'
+    for wrapper in root.glob('*/run.py'):
+        assert "os.environ.get('FACTORY_PYTHON', sys.executable)" in wrapper.read_text(), wrapper
