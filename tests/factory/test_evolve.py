@@ -286,7 +286,7 @@ def test_keep_dormant_only_for_real_prerequisites():
     import pytest
     from jiuwenswarm.factory.controller import validate_action
     from jiuwenswarm.factory.components import dependents
-    assert dependents('mmap_advice') == {'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join'}
+    assert dependents('mmap_advice') == {'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join', 'phase_stats'}
     assert dependents('thread_names') == set()
     validate_action({'type': 'keep_dormant', 'component': 'mmap_advice', 'reason': 'source prerequisite',
                      'needed_by': ['expert_fill']})

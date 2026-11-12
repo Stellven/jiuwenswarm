@@ -27,7 +27,7 @@ def test_capsule_materials_and_components():
     for path in components.ROOT.glob('*/component.yaml'):
         material = components.load(path.parent.name)
         jsonschema.validate(material,json.loads((ROOT/'schemas/component.schema.json').read_text()))
-        assert material['acceptance']['type'] == ('observability' if path.parent.name in ('thread_names','expert_readiness') else 'performance')
+        assert material['acceptance']['type'] == ('observability' if path.parent.name in ('thread_names','expert_readiness','phase_stats') else 'performance')
 
 
 def tiny_gguf(path):

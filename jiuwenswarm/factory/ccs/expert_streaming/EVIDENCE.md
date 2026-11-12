@@ -40,3 +40,13 @@ negative results. A change of scoring rules requires a new contract id and fresh
 reference, never relabeling old results. Do not multiply successive ratios:
 final speed claims require direct bare-vs-final ABBA if budget allows; otherwise
 state that the final comparison is not measured.
+
+## Page-cache state is a confound
+
+The model file (20.8 GiB) is far larger than RAM, so how much of it is cached
+when a run starts changes decode speed a lot (a run starting at 0% resident
+measured 1290 ms/token where warm ABBA chains measured about 711; J-XS2-smoke vs
+J-OM13). Read `page_cache.start.json` for every run, compare start residency
+across arms, and state the protocol (carryover, cold, warm) with any claim. A
+comparison across different protocols, or with very different start residency,
+is not a valid speed comparison.

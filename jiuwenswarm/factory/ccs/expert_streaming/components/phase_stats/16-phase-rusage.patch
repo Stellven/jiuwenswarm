@@ -1,0 +1,221 @@
+From b5fe9ce4ea5176d7f4d52330ba7c08b8a347463d Mon Sep 17 00:00:00 2001
+From: Factory Agent <factory@localhost>
+Date: Thu, 12 Nov 2026 18:01:51 +0000
+Subject: [PATCH] expert: add decode phase resource statistics
+
+Assisted-by: Codex
+---
+ src/llama-context.cpp   | 79 +++++++++++++++++++++++++++++++++++++++++
+ src/llama-context.h     | 10 ++++++
+ src/llama-expert-fill.h | 10 +++---
+ 3 files changed, 95 insertions(+), 4 deletions(-)
+
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 57bfebbca..3fe516ae1 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -25,6 +25,7 @@
+ 
+ #ifdef __linux__
+ #include <sys/mman.h>
++#include <time.h>
+ #include <unistd.h>
+ #endif
+ 
+@@ -197,6 +198,10 @@ llama_context::llama_context(
+     LLAMA_LOG_INFO("%s: constructing llama_context\n", __func__);
+ #ifdef __linux__
+     expert_config.print(); // Exactly once per context, including disabled/default settings.
++    if (expert_config.phase_stats) {
++        // Bound diagnostic storage; percentiles use the first 1M completions.
++        expert_phase.token_ns.resize(1024 * 1024);
++    }
+ #endif
+ 
+     t_start_us = model.t_start_us;
+@@ -1249,11 +1254,61 @@ void llama_context::expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe
+     }
+ }
+ 
++#ifdef __linux__
++static uint64_t expert_phase_now_ns() {
++    timespec ts;
++    clock_gettime(CLOCK_MONOTONIC, &ts);
++    return uint64_t(ts.tv_sec) * 1000000000 + ts.tv_nsec;
++}
++
++void llama_context::expert_phase_start() {
++    if (expert_phase.start_ns) { return; }
++    getrusage(RUSAGE_SELF, &expert_phase.start_usage);
++    expert_phase.start_ns = expert_phase.previous_ns = expert_phase_now_ns();
++}
++
++void llama_context::expert_phase_complete() {
++    if (!expert_phase.start_ns) { return; }
++    auto & p = expert_phase;
++    const uint64_t now = expert_phase_now_ns();
++    const uint64_t elapsed = now - p.previous_ns;
++    p.previous_ns = now;
++    if (p.tokens < p.token_ns.size()) { p.token_ns[p.tokens] = elapsed; }
++    if (p.tokens < 8) { p.first8_ns += elapsed; } else { p.rest_ns += elapsed; }
++    p.max_ns = std::max(p.max_ns, elapsed);
++    ++p.tokens;
++}
++
++void llama_context::expert_phase_print() {
++    auto & p = expert_phase;
++    if (!p.start_ns) { return; }
++    const uint64_t wall_ns = expert_phase_now_ns() - p.start_ns;
++    rusage end;
++    getrusage(RUSAGE_SELF, &end);
++    const auto time_us = [](const timeval & t) { return int64_t(t.tv_sec) * 1000000 + t.tv_usec; };
++    const size_t count = std::min<uint64_t>(p.tokens, p.token_ns.size());
++    std::sort(p.token_ns.begin(), p.token_ns.begin() + count);
++    const auto percentile = [&](size_t percent) -> uint64_t {
++        return count ? p.token_ns[(count * percent + 99) / 100 - 1] : 0;
++    };
++    fprintf(stderr, "expert_phase: stats decode_tokens=%llu decode_wall_ns=%llu minflt=%ld majflt=%ld nvcsw=%ld nivcsw=%ld utime_us=%lld stime_us=%lld tok_ns_p50=%llu tok_ns_p95=%llu tok_ns_max=%llu first8_ns_mean=%llu rest_ns_mean=%llu\n",
++        (unsigned long long) p.tokens, (unsigned long long) wall_ns,
++        end.ru_minflt - p.start_usage.ru_minflt, end.ru_majflt - p.start_usage.ru_majflt,
++        end.ru_nvcsw - p.start_usage.ru_nvcsw, end.ru_nivcsw - p.start_usage.ru_nivcsw,
++        (long long) (time_us(end.ru_utime) - time_us(p.start_usage.ru_utime)),
++        (long long) (time_us(end.ru_stime) - time_us(p.start_usage.ru_stime)),
++        (unsigned long long) percentile(50), (unsigned long long) percentile(95), (unsigned long long) p.max_ns,
++        (unsigned long long) (p.tokens ? p.first8_ns / std::min<uint64_t>(8, p.tokens) : 0),
++        (unsigned long long) (p.tokens > 8 ? p.rest_ns / (p.tokens - 8) : 0));
++}
++#endif
++
+ llama_context::~llama_context() {
+     // wait for any pending asynchronous copies into the output buffers before they are freed
+     synchronize();
+ 
+ #ifdef __linux__
++    if (expert_config.phase_stats) { expert_phase_print(); }
+     if (expert_config.pregate) { expert_pregate_stats(); }
+     if (expert_config.readiness) {
+         uint64_t wasted = 0;
+@@ -2718,6 +2773,14 @@ static bool needs_raw_logits(const llama_ubatch & ubatch, const std::map<llama_s
+ }
+ 
+ int llama_context::decode(const llama_batch_ext & batch_inp) {
++#ifdef __linux__
++    if (expert_config.phase_stats) { return decode_impl<true>(batch_inp); }
++#endif
++    return decode_impl<false>(batch_inp);
++}
++
++template<bool phase_stats>
++int llama_context::decode_impl(const llama_batch_ext & batch_inp) {
+     if (!memory) {
+         LLAMA_LOG_DEBUG("%s: cannot decode batches with this context (calling encode() instead)\n", __func__);
+         return encode(batch_inp);
+@@ -2903,6 +2966,11 @@ int llama_context::decode(const llama_batch_ext & batch_inp) {
+ 
+     do {
+         const auto & ubatch = mctx->get_ubatch();
++#ifdef __linux__
++        if constexpr (phase_stats) {
++            if (ubatch.n_tokens == 1) { expert_phase_start(); }
++        }
++#endif
+ 
+         // count the outputs in this ubatch
+         {
+@@ -3149,6 +3217,12 @@ int llama_context::decode(const llama_batch_ext & batch_inp) {
+         }
+     }
+ 
++#ifdef __linux__
++    if constexpr (phase_stats) {
++        if (batch_inp.tokens.size() == 1) { expert_phase_complete(); }
++    }
++#endif
++
+     // wait for the computation to finish (automatically done when obtaining the model output)
+     //synchronize();
+ 
+@@ -4680,6 +4754,11 @@ llama_perf_context_data llama_context::perf_get_data() const {
+ }
+ 
+ void llama_context::perf_reset() {
++#ifdef __linux__
++    // The common warmup resets performance counters before the real prompt.
++    expert_phase.start_ns = expert_phase.previous_ns = expert_phase.tokens = 0;
++    expert_phase.first8_ns = expert_phase.rest_ns = expert_phase.max_ns = 0;
++#endif
+     t_start_us  = ggml_time_us();
+     t_eval_us   = n_eval = 0;
+     t_p_eval_us = n_p_eval = 0;
+diff --git a/src/llama-context.h b/src/llama-context.h
+index ce2aa8f11..a09dffad8 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -55,6 +55,15 @@ struct llama_context {
+ 
+ #ifdef __linux__
+     ExpertConfig expert_config = ExpertConfig::read();
++    struct phase_stats {
++        rusage start_usage = {};
++        uint64_t start_ns = 0, previous_ns = 0, tokens = 0;
++        uint64_t first8_ns = 0, rest_ns = 0, max_ns = 0;
++        std::vector<uint64_t> token_ns;
++    } expert_phase;
++    void expert_phase_start();
++    void expert_phase_complete();
++    void expert_phase_print();
+     uint64_t expert_demand_tokens = 0;
+     ExpertFiller::Readiness expert_readiness_decode, expert_readiness_prompt;
+     uint64_t readiness_decode_tokens = 0, readiness_selected = 0, readiness_predicted = 0, readiness_prompt_selected = 0;
+@@ -227,6 +236,7 @@ struct llama_context {
+ 
+     int encode(const llama_batch_ext & batch_inp);
+     int decode(const llama_batch_ext & batch_inp);
++    template<bool phase_stats> int decode_impl(const llama_batch_ext & batch_inp);
+ 
+     // compat version
+     int encode(const llama_batch & batch_inp);
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index d684e4a43..56fba9d51 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -32,7 +32,7 @@ extern char ** environ;
+ struct ExpertConfig {
+     size_t fill = 0, threads = 8, chunk_kib = 1024, min_tokens = 0, max_tokens = 0;
+     size_t diag = 0, populate = 0, pregate = 0, k = 8, max_inflight = 4, lookahead = 1;
+-    size_t prefetch = 0, prefetch_next = 0, readiness = 0, join = 0;
++    size_t prefetch = 0, prefetch_next = 0, readiness = 0, join = 0, phase_stats = 0;
+     std::string random = "0", order = "after", diag_csv;
+     [[noreturn]] static void invalid(const char * name, const char * value, const std::string & range) {
+         fprintf(stderr, "expert_config: invalid %s=%s (range %s)\n", name, value, range.c_str());
+@@ -72,7 +72,8 @@ struct ExpertConfig {
+             "LLAMA_EXPERT_FILL_DIAG", "LLAMA_EXPERT_FILL_DIAG_CSV", "LLAMA_EXPERT_FILL_POPULATE",
+             "LLAMA_EXPERT_PREGATE", "LLAMA_EXPERT_PREGATE_K", "LLAMA_EXPERT_PREGATE_ORDER",
+             "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT", "LLAMA_EXPERT_PREGATE_LOOKAHEAD",
+-            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT", "LLAMA_EXPERT_READINESS", "LLAMA_EXPERT_PREGATE_JOIN"};
++            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT", "LLAMA_EXPERT_READINESS", "LLAMA_EXPERT_PREGATE_JOIN",
++            "LLAMA_EXPERT_PHASE_STATS"};
+         for (char ** e = environ; e && *e; ++e) {
+             const std::string entry(*e);
+             const size_t eq = entry.find('=');
+@@ -104,14 +105,15 @@ struct ExpertConfig {
+         c.lookahead = integer("LLAMA_EXPERT_PREGATE_LOOKAHEAD", 1, 1, 2);
+         c.prefetch = integer("LLAMA_EXPERT_PREFETCH", 0, 0, 1);
+         c.prefetch_next = integer("LLAMA_EXPERT_PREFETCH_NEXT", 0, 0, 1);
++        c.phase_stats = integer("LLAMA_EXPERT_PHASE_STATS", 0, 0, 1);
+         return c;
+     }
+     void print() const {
+         fprintf(stderr, "expert_config: effective fill=%zu random=%s max_tokens=%zu threads=%zu chunk_kib=%zu "
+             "pregate=%zu k=%zu order=%s max_inflight=%zu lookahead=%zu min_tokens=%zu diag=%zu populate=%zu "
+-            "diag_csv=%s prefetch=%zu prefetch_next=%zu readiness=%zu join=%zu\n",
++            "diag_csv=%s prefetch=%zu prefetch_next=%zu readiness=%zu join=%zu phase_stats=%zu\n",
+             fill, random.c_str(), max_tokens, threads, chunk_kib, pregate, k, order.c_str(), max_inflight,
+-            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next, readiness, join);
++            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next, readiness, join, phase_stats);
+     }
+ };
+ 
+-- 
+2.34.1
+

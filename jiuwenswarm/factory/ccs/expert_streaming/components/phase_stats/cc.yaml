@@ -1,0 +1,10 @@
+cc: '2'
+id: factory.components.phase_stats
+version: 1.0.0
+materials:
+  component:
+    kind: component
+    path: component.yaml
+  patch_16:
+    kind: component
+    path: 16-phase-rusage.patch

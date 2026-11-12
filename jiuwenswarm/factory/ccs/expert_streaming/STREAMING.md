@@ -29,6 +29,9 @@ are placement controls. No component here moves experts to the GPU.
   read. `inflight_join` (patch 11, performance) removes those duplicate reads by
   waiting on the in-flight async read; its source needs patch 10, but readiness
   can stay switched off at run time.
+  `phase_stats` (patch 16, observability) prints decode-only fault, context
+  switch and CPU-time deltas plus per-token latency p50/p95/max, with fill on
+  or off, so cost can be attributed without a perturbing trace.
 
 Source dependency does not mean runtime enablement. A present patch's switch
 stays off unless its own evidence supports it. Keep failed prerequisites dormant

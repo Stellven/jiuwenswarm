@@ -32,6 +32,9 @@ materials:
   inflight_join:
     kind: component
     path: components/inflight_join/component.yaml
+  phase_stats:
+    kind: component
+    path: components/phase_stats/component.yaml
 bindings:
   default:
     kind: native
