@@ -1,0 +1,33 @@
+{
+ "exit_code": 0,
+ "wall_s": 281.05,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d",
+ "env": "-e LLAMA_MMAP_ADVICE=random",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}

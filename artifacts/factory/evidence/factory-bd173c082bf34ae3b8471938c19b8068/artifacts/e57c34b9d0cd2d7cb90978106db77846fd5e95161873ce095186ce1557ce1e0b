@@ -1,0 +1,736 @@
+{
+  "pid": 1071184,
+  "groups": {
+    "main": {
+      "samples": 4926,
+      "states": {
+        "S": 3122,
+        "R": 1742,
+        "D": 62
+      },
+      "cpu_seconds": 13.039999999999768,
+      "minflt": 70410.0,
+      "majflt": 16822.0,
+      "fractions": {
+        "R": 0.35363377994315875,
+        "D": 0.012586276898091758,
+        "S": 0.6337799431587495
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "cpu_workers": {
+      "samples": 106478,
+      "states": {
+        "S": 76846,
+        "D": 19409,
+        "R": 10223
+      },
+      "cpu_seconds": 56.74892553719733,
+      "minflt": 238739.0,
+      "majflt": 6862.0,
+      "fractions": {
+        "R": 0.0960104434718909,
+        "D": 0.18228178590882624,
+        "S": 0.7217077706192828
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "cuda_driver": {
+      "samples": 4926,
+      "states": {
+        "S": 4926
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    }
+  },
+  "threads": {
+    "1071184": {
+      "samples": 4926,
+      "states": {
+        "S": 3122,
+        "R": 1742,
+        "D": 62
+      },
+      "cpu_seconds": 13.039999999999768,
+      "minflt": 70410.0,
+      "majflt": 16822.0,
+      "comm": "llama-completio",
+      "group": "main",
+      "fractions": {
+        "R": 0.35363377994315875,
+        "D": 0.012586276898091758,
+        "S": 0.6337799431587495
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1071245": {
+      "samples": 4926,
+      "states": {
+        "S": 4925,
+        "R": 1
+      },
+      "cpu_seconds": 0.01,
+      "minflt": 0.0,
+      "majflt": 1.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.00020300446609825416,
+        "D": 0.0,
+        "S": 0.9997969955339018
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1071247": {
+      "samples": 4926,
+      "states": {
+        "S": 4926
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "cuda-EvtHandlr",
+      "group": "cuda_driver",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071295": {
+      "samples": 4805,
+      "states": {
+        "S": 3309,
+        "D": 1205,
+        "R": 291
+      },
+      "cpu_seconds": 1.400000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.060561914672216444,
+        "D": 0.25078043704474506,
+        "S": 0.6886576482830385
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071296": {
+      "samples": 4805,
+      "states": {
+        "D": 1211,
+        "S": 3289,
+        "R": 305
+      },
+      "cpu_seconds": 1.380000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06347554630593132,
+        "D": 0.25202913631633717,
+        "S": 0.6844953173777315
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071297": {
+      "samples": 4805,
+      "states": {
+        "D": 1208,
+        "S": 3317,
+        "R": 280
+      },
+      "cpu_seconds": 1.370000000000001,
+      "minflt": 0.0,
+      "majflt": 64.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.05827263267429761,
+        "D": 0.2514047866805411,
+        "S": 0.6903225806451613
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1071298": {
+      "samples": 4805,
+      "states": {
+        "S": 3295,
+        "D": 1215,
+        "R": 295
+      },
+      "cpu_seconds": 1.420000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.061394380853277836,
+        "D": 0.25286160249739853,
+        "S": 0.6857440166493236
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071299": {
+      "samples": 4805,
+      "states": {
+        "S": 3316,
+        "D": 1179,
+        "R": 310
+      },
+      "cpu_seconds": 1.350000000000001,
+      "minflt": 0.0,
+      "majflt": 64.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06451612903225806,
+        "D": 0.245369406867846,
+        "S": 0.690114464099896
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1071300": {
+      "samples": 4805,
+      "states": {
+        "D": 1227,
+        "S": 3295,
+        "R": 283
+      },
+      "cpu_seconds": 1.410000000000001,
+      "minflt": 0.0,
+      "majflt": 47.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.05889698231009365,
+        "D": 0.25535900104058273,
+        "S": 0.6857440166493236
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1071301": {
+      "samples": 4805,
+      "states": {
+        "D": 1191,
+        "S": 3320,
+        "R": 294
+      },
+      "cpu_seconds": 1.390000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06118626430801249,
+        "D": 0.24786680541103018,
+        "S": 0.6909469302809573
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071302": {
+      "samples": 4805,
+      "states": {
+        "S": 3322,
+        "R": 312,
+        "D": 1171
+      },
+      "cpu_seconds": 1.360000000000001,
+      "minflt": 0.0,
+      "majflt": 66.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06493236212278876,
+        "D": 0.24370447450572322,
+        "S": 0.6913631633714881
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1071303": {
+      "samples": 4805,
+      "states": {
+        "S": 3272,
+        "D": 1244,
+        "R": 289
+      },
+      "cpu_seconds": 1.380000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06014568158168574,
+        "D": 0.25889698231009367,
+        "S": 0.6809573361082206
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071304": {
+      "samples": 4805,
+      "states": {
+        "D": 1212,
+        "R": 298,
+        "S": 3295
+      },
+      "cpu_seconds": 1.390000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06201873048907388,
+        "D": 0.2522372528616025,
+        "S": 0.6857440166493236
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071305": {
+      "samples": 4805,
+      "states": {
+        "D": 1198,
+        "S": 3321,
+        "R": 286
+      },
+      "cpu_seconds": 1.430000000000001,
+      "minflt": 0.0,
+      "majflt": 131.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0595213319458897,
+        "D": 0.24932362122788762,
+        "S": 0.6911550468262226
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1071306": {
+      "samples": 4805,
+      "states": {
+        "D": 1250,
+        "S": 3244,
+        "R": 311
+      },
+      "cpu_seconds": 1.430000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06472424557752342,
+        "D": 0.2601456815816857,
+        "S": 0.6751300728407909
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071307": {
+      "samples": 4805,
+      "states": {
+        "D": 1197,
+        "S": 3298,
+        "R": 310
+      },
+      "cpu_seconds": 1.370000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06451612903225806,
+        "D": 0.24911550468262228,
+        "S": 0.6863683662851197
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071308": {
+      "samples": 4805,
+      "states": {
+        "S": 3317,
+        "R": 312,
+        "D": 1176
+      },
+      "cpu_seconds": 1.380000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.06493236212278876,
+        "D": 0.24474505723204995,
+        "S": 0.6903225806451613
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071309": {
+      "samples": 4805,
+      "states": {
+        "D": 1203,
+        "S": 3283,
+        "R": 319
+      },
+      "cpu_seconds": 1.410000000000001,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0663891779396462,
+        "D": 0.2503642039542144,
+        "S": 0.6832466181061394
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071310": {
+      "samples": 4805,
+      "states": {
+        "S": 3265,
+        "D": 1201,
+        "R": 339
+      },
+      "cpu_seconds": 1.3889255371999847,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.07055150884495318,
+        "D": 0.24994797086368367,
+        "S": 0.6795005202913632
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1071311": {
+      "samples": 4947,
+      "states": {
+        "S": 3836,
+        "R": 1083,
+        "D": 28
+      },
+      "cpu_seconds": 6.789999999999901,
+      "minflt": 46351.0,
+      "majflt": 1316.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.2189205579138872,
+        "D": 0.005659995957145745,
+        "S": 0.7754194461289671
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1071312": {
+      "samples": 4926,
+      "states": {
+        "S": 3813,
+        "R": 1092,
+        "D": 21
+      },
+      "cpu_seconds": 6.889999999999899,
+      "minflt": 46670.0,
+      "majflt": 1273.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.22168087697929353,
+        "D": 0.004263093788063338,
+        "S": 0.7740560292326432
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1071313": {
+      "samples": 4926,
+      "states": {
+        "S": 3849,
+        "R": 1054,
+        "D": 23
+      },
+      "cpu_seconds": 6.8699999999999,
+      "minflt": 46626.0,
+      "majflt": 1264.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.2139667072675599,
+        "D": 0.004669102720259845,
+        "S": 0.7813641900121803
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1071314": {
+      "samples": 4926,
+      "states": {
+        "S": 3818,
+        "R": 1085,
+        "D": 23
+      },
+      "cpu_seconds": 6.799999999999901,
+      "minflt": 46433.0,
+      "majflt": 1276.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.22025984571660576,
+        "D": 0.004669102720259845,
+        "S": 0.7750710515631344
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1071315": {
+      "samples": 4947,
+      "states": {
+        "S": 3847,
+        "R": 1074,
+        "D": 26
+      },
+      "cpu_seconds": 7.129999999999893,
+      "minflt": 52659.0,
+      "majflt": 1360.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.21710127349909036,
+        "D": 0.005255710531635335,
+        "S": 0.7776430159692743
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    }
+  },
+  "overhead": {
+    "type": "end",
+    "elapsed_s": 154.1131819159491,
+    "self_cpu_s": 4.622515328,
+    "self_cpu_percent": 2.9994289070749622,
+    "samples": 15409,
+    "missed_deadlines": 1
+  },
+  "phase_window": {
+    "clock": "mono_s",
+    "decode_start": 916571.543191,
+    "decode_end": 916621.012111,
+    "method": "last_thread_sample_before_exit_minus_eval_ms_total",
+    "sampling_error_bound_s": 0.031229000072926283,
+    "coverage_start": 916466.911031,
+    "tokens": 63,
+    "coverage_complete": true,
+    "absolute_error_bound_s": null,
+    "error_note": "Engine teardown/exit lag is unknown. Counter deltas crossing the window edge are prorated; first observation is a baseline."
+  },
+  "rd_histogram": {
+    "0,0": 421,
+    "0,1": 135,
+    "0,10": 30,
+    "0,11": 21,
+    "0,12": 30,
+    "0,13": 16,
+    "0,14": 20,
+    "0,15": 19,
+    "0,16": 148,
+    "0,2": 117,
+    "0,3": 138,
+    "0,4": 199,
+    "0,5": 72,
+    "0,6": 62,
+    "0,7": 52,
+    "0,8": 50,
+    "0,9": 40,
+    "1,0": 372,
+    "1,1": 65,
+    "1,10": 25,
+    "1,11": 29,
+    "1,12": 25,
+    "1,13": 21,
+    "1,14": 21,
+    "1,15": 118,
+    "1,2": 99,
+    "1,3": 162,
+    "1,4": 101,
+    "1,5": 57,
+    "1,6": 41,
+    "1,7": 39,
+    "1,8": 32,
+    "1,9": 33,
+    "10,0": 5,
+    "10,1": 6,
+    "10,2": 5,
+    "10,3": 8,
+    "10,4": 4,
+    "10,6": 3,
+    "10,7": 1,
+    "11,0": 2,
+    "11,1": 1,
+    "11,2": 5,
+    "11,3": 8,
+    "11,4": 5,
+    "11,5": 1,
+    "12,0": 3,
+    "12,2": 5,
+    "12,3": 1,
+    "12,4": 3,
+    "13,1": 2,
+    "13,2": 2,
+    "13,3": 4,
+    "13,4": 2,
+    "14,1": 2,
+    "14,2": 3,
+    "14,3": 4,
+    "15,0": 3,
+    "15,1": 1,
+    "15,2": 2,
+    "15,3": 2,
+    "16,1": 2,
+    "16,2": 1,
+    "17,1": 1,
+    "17,2": 1,
+    "17,3": 2,
+    "18,0": 1,
+    "19,0": 1,
+    "19,1": 1,
+    "19,2": 1,
+    "19,3": 2,
+    "2,0": 76,
+    "2,1": 29,
+    "2,10": 7,
+    "2,11": 6,
+    "2,12": 5,
+    "2,13": 7,
+    "2,14": 30,
+    "2,2": 45,
+    "2,3": 89,
+    "2,4": 75,
+    "2,5": 13,
+    "2,6": 4,
+    "2,7": 9,
+    "2,8": 9,
+    "2,9": 6,
+    "21,1": 1,
+    "22,0": 1,
+    "3,0": 57,
+    "3,1": 14,
+    "3,11": 1,
+    "3,13": 13,
+    "3,14": 1,
+    "3,2": 35,
+    "3,3": 80,
+    "3,4": 73,
+    "3,5": 6,
+    "3,6": 4,
+    "3,7": 5,
+    "3,8": 1,
+    "3,9": 1,
+    "4,0": 39,
+    "4,1": 9,
+    "4,10": 1,
+    "4,12": 5,
+    "4,2": 37,
+    "4,3": 124,
+    "4,4": 71,
+    "4,5": 2,
+    "4,7": 1,
+    "5,0": 52,
+    "5,1": 14,
+    "5,11": 4,
+    "5,2": 43,
+    "5,3": 103,
+    "5,4": 66,
+    "5,5": 1,
+    "5,9": 1,
+    "6,0": 88,
+    "6,1": 25,
+    "6,10": 3,
+    "6,11": 2,
+    "6,2": 46,
+    "6,3": 93,
+    "6,4": 109,
+    "6,6": 2,
+    "6,7": 2,
+    "6,9": 1,
+    "7,0": 13,
+    "7,1": 12,
+    "7,10": 1,
+    "7,2": 51,
+    "7,3": 153,
+    "7,4": 10,
+    "7,6": 1,
+    "7,7": 1,
+    "7,9": 4,
+    "8,0": 7,
+    "8,1": 12,
+    "8,2": 37,
+    "8,3": 22,
+    "8,4": 10,
+    "9,0": 7,
+    "9,1": 7,
+    "9,2": 11,
+    "9,3": 15,
+    "9,4": 9,
+    "9,5": 1
+  },
+  "cpu_workers_r_fraction": 0.0960104434718909,
+  "main_workers_d_fraction": 0.17477828444221033,
+  "majflt_per_<redacted>
+}

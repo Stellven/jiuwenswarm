@@ -1,0 +1,1716 @@
+[
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794466793.1833248,
+    "eval_id": "4897fdab8f804ff4918d0586f69bcdbb:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "details": {
+        "aborted": false,
+        "effective": {},
+        "effective_line_count": 0,
+        "engagement_checks": {
+          "effective_config_matches_request": false,
+          "xfill_threads_present": false
+        },
+        "eval_ms_per_token": 903.95,
+        "exit_status": 0,
+        "invalid_message": null,
+        "mismatches": {},
+        "missing_files": [],
+        "requested": {},
+        "unreported_requested": [],
+        "worker": {
+          "cleanup": "reaped",
+          "execution_outcome": "ok",
+          "reason": null
+        }
+      },
+      "observation_id": "4897fdab8f804ff4918d0586f69bcdbb:observation",
+      "run": {
+        "details": {
+          "aborted": false,
+          "effective": {},
+          "effective_line_count": 0,
+          "engagement_checks": {
+            "effective_config_matches_request": false,
+            "xfill_threads_present": false
+          },
+          "eval_ms_per_token": 903.95,
+          "exit_status": 0,
+          "invalid_message": null,
+          "mismatches": {},
+          "missing_files": [],
+          "requested": {},
+          "unreported_requested": [],
+          "worker": {
+            "cleanup": "reaped",
+            "execution_outcome": "ok",
+            "reason": null
+          }
+        },
+        "evidence_completeness": "complete",
+        "execution_outcome": "ok",
+        "image_id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+        "run_ref": "4897fdab8f804ff4918d0586f69bcdbb",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "source_artifacts": [
+        "4897fdab8f804ff4918d0586f69bcdbb:manifest.json",
+        "4897fdab8f804ff4918d0586f69bcdbb:cmd.txt",
+        "4897fdab8f804ff4918d0586f69bcdbb:config.json",
+        "4897fdab8f804ff4918d0586f69bcdbb:container.id",
+        "4897fdab8f804ff4918d0586f69bcdbb:launcher.stderr.txt",
+        "4897fdab8f804ff4918d0586f69bcdbb:launcher.stdout.txt",
+        "4897fdab8f804ff4918d0586f69bcdbb:result.json",
+        "4897fdab8f804ff4918d0586f69bcdbb:stderr.txt",
+        "4897fdab8f804ff4918d0586f69bcdbb:stdout.txt",
+        "4897fdab8f804ff4918d0586f69bcdbb:telemetry.jsonl",
+        "4897fdab8f804ff4918d0586f69bcdbb:threads.jsonl",
+        "4897fdab8f804ff4918d0586f69bcdbb:threads.log",
+        "4897fdab8f804ff4918d0586f69bcdbb:threads.summary.json",
+        "4897fdab8f804ff4918d0586f69bcdbb:watchdog.jsonl",
+        "4897fdab8f804ff4918d0586f69bcdbb:worker.json"
+      ]
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794468981.9711297,
+    "eval_id": "d96acb1a5af849ea940ec98eaff03073:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.05872150921439843,
+        "component": "mmap_advice",
+        "drift": 0.007228295532107771,
+        "gate": "regressed",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 893.71,
+          "candidate": 1824.81
+        },
+        "problems": [],
+        "ratio": 0.48975509779100296,
+        "threshold": 0.11744301842879686
+      },
+      "observation_id": "d96acb1a5af849ea940ec98eaff03073:observation",
+      "source_artifacts": [
+        "d96acb1a5af849ea940ec98eaff03073:manifest.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/001-base/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/004-base/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/005-base/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/cmd.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/container.id",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/result.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/telemetry.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/threads.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/threads.log",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/threads.summary.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/008-base/watchdog.jsonl",
+        "d96acb1a5af849ea940ec98eaff03073:ab/REPORT.md",
+        "d96acb1a5af849ea940ec98eaff03073:ab/spec.json",
+        "d96acb1a5af849ea940ec98eaff03073:ab/verdict.json",
+        "d96acb1a5af849ea940ec98eaff03073:config.json",
+        "d96acb1a5af849ea940ec98eaff03073:launcher.stderr.txt",
+        "d96acb1a5af849ea940ec98eaff03073:launcher.stdout.txt",
+        "d96acb1a5af849ea940ec98eaff03073:spec.json",
+        "d96acb1a5af849ea940ec98eaff03073:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.05872150921439843,
+        "aa_gaps": {
+          "base": 0.05872150921439843,
+          "candidate": 0.03855743885664804
+        },
+        "base": "base",
+        "comparisons": {
+          "candidate": {
+            "base_mean": 893.71,
+            "change": -0.510244902208997,
+            "mean": 1824.81,
+            "ratio": 0.48975509779100296,
+            "threshold": 0.11744301842879686,
+            "verdict": "regressed"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.007228295532107771,
+        "drift_halves": [
+          896.94,
+          890.48
+        ],
+        "inputs": {
+          "base": [
+            904.59,
+            889.29,
+            864.24,
+            916.72
+          ],
+          "candidate": [
+            1860.62,
+            1823.02,
+            1825.34,
+            1790.26
+          ]
+        },
+        "means": {
+          "base": 893.71,
+          "candidate": 1824.81
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 893.71,
+            "eval_tps": 1.12,
+            "gpu_util_median": 18.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.28256048686932,
+            "prompt_tps": 5.6375,
+            "threads.cpu_workers_r_fraction": 0.201507100335819,
+            "threads.main_workers_d_fraction": 0.4378258362275349,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 1824.81,
+            "eval_tps": 0.55,
+            "gpu_util_median": 0.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.15111824349033337,
+            "prompt_tps": 1.495,
+            "threads.cpu_workers_r_fraction": 0.1578055489850464,
+            "threads.main_workers_d_fraction": 0.5755080895971308,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.11744301842879686
+      }
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794471028.369098,
+    "eval_id": "deb16a611ae34a9ea2dc16798645dca4:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.09058007994525316,
+        "component": "router_prefetch",
+        "drift": 0.019063111881990825,
+        "gate": "regressed",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 928.2325000000001,
+          "candidate": 1494.1475
+        },
+        "problems": [],
+        "ratio": 0.6212455597589931,
+        "threshold": 0.18116015989050632
+      },
+      "observation_id": "deb16a611ae34a9ea2dc16798645dca4:observation",
+      "source_artifacts": [
+        "deb16a611ae34a9ea2dc16798645dca4:manifest.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/cmd.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/container.id",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/result.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/telemetry.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/threads.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/threads.log",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/threads.summary.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/watchdog.jsonl",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/REPORT.md",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/spec.json",
+        "deb16a611ae34a9ea2dc16798645dca4:ab/verdict.json",
+        "deb16a611ae34a9ea2dc16798645dca4:config.json",
+        "deb16a611ae34a9ea2dc16798645dca4:launcher.stderr.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:launcher.stdout.txt",
+        "deb16a611ae34a9ea2dc16798645dca4:spec.json",
+        "deb16a611ae34a9ea2dc16798645dca4:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.09058007994525316,
+        "aa_gaps": {
+          "base": 0.042920281287285277,
+          "candidate": 0.09058007994525316
+        },
+        "base": "base",
+        "comparisons": {
+          "candidate": {
+            "base_mean": 928.2325000000001,
+            "change": -0.3787544402410069,
+            "mean": 1494.1475,
+            "ratio": 0.6212455597589931,
+            "threshold": 0.18116015989050632,
+            "verdict": "regressed"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.019063111881990825,
+        "drift_halves": [
+          937.08,
+          919.385
+        ],
+        "inputs": {
+          "base": [
+            933.47,
+            940.69,
+            900.85,
+            937.92
+          ],
+          "candidate": [
+            1535.4,
+            1411.12,
+            1546.46,
+            1483.61
+          ]
+        },
+        "means": {
+          "base": 928.2325000000001,
+          "candidate": 1494.1475
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_<redacted>,
+            "eval_tps": 1.0775000000000001,
+            "gpu_util_median": 16.25,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.30153356213472693,
+            "prompt_tps": 5.59,
+            "threads.cpu_workers_r_fraction": 0.1951934641892354,
+            "threads.main_workers_d_fraction": 0.4561286558382349,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 1494.1475,
+            "eval_tps": 0.67,
+            "gpu_util_median": 1.125,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.16579382374354124,
+            "prompt_tps": 1.4825,
+            "threads.cpu_workers_r_fraction": 0.148798517857559,
+            "threads.main_workers_d_fraction": 0.4101094443266035,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.18116015989050632
+      }
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794472671.7327948,
+    "eval_id": "f19094c82dee4a678443c71ea1a7694b:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.02882735712924395,
+        "component": "expert_fill",
+        "drift": 0.0069046257725502115,
+        "gate": "improved",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 918.225,
+          "candidate": 827.29
+        },
+        "problems": [],
+        "ratio": 1.1099191335565521,
+        "threshold": 0.0576547142584879
+      },
+      "observation_id": "f19094c82dee4a678443c71ea1a7694b:observation",
+      "source_artifacts": [
+        "f19094c82dee4a678443c71ea1a7694b:manifest.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/001-base/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/004-base/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/005-base/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/cmd.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/container.id",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/result.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/telemetry.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/threads.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/threads.log",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/threads.summary.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/008-base/watchdog.jsonl",
+        "f19094c82dee4a678443c71ea1a7694b:ab/REPORT.md",
+        "f19094c82dee4a678443c71ea1a7694b:ab/spec.json",
+        "f19094c82dee4a678443c71ea1a7694b:ab/verdict.json",
+        "f19094c82dee4a678443c71ea1a7694b:config.json",
+        "f19094c82dee4a678443c71ea1a7694b:launcher.stderr.txt",
+        "f19094c82dee4a678443c71ea1a7694b:launcher.stdout.txt",
+        "f19094c82dee4a678443c71ea1a7694b:spec.json",
+        "f19094c82dee4a678443c71ea1a7694b:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.02882735712924395,
+        "aa_gaps": {
+          "base": 0.02882735712924395,
+          "candidate": 0.013707406109103256
+        },
+        "base": "base",
+        "comparisons": {
+          "candidate": {
+            "base_mean": 918.225,
+            "change": 0.10991913355655214,
+            "mean": 827.29,
+            "ratio": 1.1099191335565521,
+            "threshold": 0.0576547142584879,
+            "verdict": "improved"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.0069046257725502115,
+        "drift_halves": [
+          915.0550000000001,
+          921.395
+        ],
+        "inputs": {
+          "base": [
+            910.15,
+            919.96,
+            908.16,
+            934.63
+          ],
+          "candidate": [
+            831.46,
+            827.75,
+            820.12,
+            829.83
+          ]
+        },
+        "means": {
+          "base": 918.225,
+          "candidate": 827.29
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 918.225,
+            "eval_tps": 1.09,
+            "gpu_util_median": 15.25,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.3003000509466325,
+            "prompt_tps": 5.47,
+            "threads.cpu_workers_r_fraction": 0.19309408120014807,
+            "threads.main_workers_d_fraction": 0.4488110705109793,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 827.29,
+            "eval_tps": 1.21,
+            "gpu_util_median": 17.75,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.22586267035297616,
+            "prompt_tps": 5.38,
+            "threads.cpu_workers_r_fraction": 0.06064417773074014,
+            "threads.main_workers_d_fraction": 0.20207417734263008,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.0576547142584879
+      }
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794474347.0671134,
+    "eval_id": "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.016002382757500187,
+        "component": "expert_pregate",
+        "drift": 0.00645403828513858,
+        "gate": "improved",
+        "measure": "perf",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 831.2625,
+          "candidate": 738.64
+        },
+        "problems": [],
+        "ratio": 1.1253959980504713,
+        "threshold": 0.03200476551500037
+      },
+      "observation_id": "6a4290775a9c43e6b03c2e9dd6d1bdea:observation",
+      "source_artifacts": [
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:manifest.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/cmd.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/container.id",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/result.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/telemetry.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/threads.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/threads.log",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/threads.summary.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/watchdog.jsonl",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/REPORT.md",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/spec.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/verdict.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:config.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:launcher.stderr.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:launcher.stdout.txt",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:spec.json",
+        "6a4290775a9c43e6b03c2e9dd6d1bdea:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.016002382757500187,
+        "aa_gaps": {
+          "base": 0.015686982150644308,
+          "candidate": 0.016002382757500187
+        },
+        "base": "base",
+        "comparisons": {
+          "candidate": {
+            "base_mean": 831.2625,
+            "change": 0.1253959980504713,
+            "mean": 738.64,
+            "ratio": 1.1253959980504713,
+            "threshold": 0.03200476551500037,
+            "verdict": "improved"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.00645403828513858,
+        "drift_halves": [
+          833.9449999999999,
+          828.5799999999999
+        ],
+        "inputs": {
+          "base": [
+            829.25,
+            838.64,
+            825.6,
+            831.56
+          ],
+          "candidate": [
+            734.96,
+            746.78,
+            737.68,
+            735.14
+          ]
+        },
+        "means": {
+          "base": 831.2625,
+          "candidate": 738.64
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 831.2625,
+            "eval_tps": 1.2025,
+            "gpu_util_median": 18.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.22612862932273567,
+            "prompt_tps": 5.4399999999999995,
+            "threads.cpu_workers_r_fraction": 0.06519921096199628,
+            "threads.main_workers_d_fraction": 0.197295228543468,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 738.64,
+            "eval_tps": 1.355,
+            "gpu_util_median": 18.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.2604796026622237,
+            "prompt_tps": 5.3875,
+            "threads.cpu_workers_r_fraction": 0.10248542812077224,
+            "threads.main_workers_d_fraction": 0.1588663439538845,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.03200476551500037
+      }
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794476003.3588643,
+    "eval_id": "c585f168b5cf4d27adcd7688206e9b68:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "ab_result": {
+        "aa_gap": 0.07622904598349313,
+        "component": "thread_names",
+        "drift": 0.026605833803250104,
+        "gate": "not_measured",
+        "measure": "none",
+        "output_class": "identical",
+        "per_arm_ms": {
+          "base": 780.28,
+          "candidate": 773.235
+        },
+        "problems": [],
+        "ratio": 1.0091110723130743,
+        "threshold": 0.15245809196698626
+      },
+      "observation_id": "c585f168b5cf4d27adcd7688206e9b68:observation",
+      "source_artifacts": [
+        "c585f168b5cf4d27adcd7688206e9b68:manifest.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/cmd.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/container.id",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/result.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/telemetry.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/threads.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/threads.log",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/threads.summary.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/watchdog.jsonl",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/REPORT.md",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/spec.json",
+        "c585f168b5cf4d27adcd7688206e9b68:ab/verdict.json",
+        "c585f168b5cf4d27adcd7688206e9b68:config.json",
+        "c585f168b5cf4d27adcd7688206e9b68:launcher.stderr.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:launcher.stdout.txt",
+        "c585f168b5cf4d27adcd7688206e9b68:spec.json",
+        "c585f168b5cf4d27adcd7688206e9b68:worker.json"
+      ],
+      "verdict": {
+        "aa_gap": 0.07622904598349313,
+        "aa_gaps": {
+          "base": 0.07622904598349313,
+          "candidate": 0.009751239920593305
+        },
+        "base": "base",
+        "comparisons": {
+          "candidate": {
+            "base_mean": 780.28,
+            "change": 0.009111072313074287,
+            "mean": 773.235,
+            "ratio": 1.0091110723130743,
+            "threshold": 0.15245809196698626,
+            "verdict": "null"
+          }
+        },
+        "direction": "lower",
+        "drift": 0.026605833803250104,
+        "drift_halves": [
+          769.9,
+          790.66
+        ],
+        "inputs": {
+          "base": [
+            769.99,
+            769.81,
+            760.92,
+            820.4
+          ],
+          "candidate": [
+            778.01,
+            770.47,
+            773.91,
+            770.55
+          ]
+        },
+        "means": {
+          "base": 780.28,
+          "candidate": 773.235
+        },
+        "metric": "eval_ms_per_token",
+        "minimum_effect": 0.03,
+        "noise_multiplier": 2,
+        "output": {
+          "class": "identical",
+          "hashes": {
+            "base": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ],
+            "candidate": [
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8",
+              "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+            ]
+          }
+        },
+        "reasons": [],
+        "secondary_metrics": {
+          "base": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 780.28,
+            "eval_tps": 1.2825,
+            "gpu_util_median": 17.25,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.2878273135132957,
+            "prompt_tps": 5.4025,
+            "threads.cpu_workers_r_fraction": 0.09609315138303975,
+            "threads.main_workers_d_fraction": 0.1699977548039385,
+            "threads.majflt_per_<redacted>
+          },
+          "candidate": {
+            "energy_j_per_<redacted>,
+            "eval_ms_per_token": 773.235,
+            "eval_tps": 1.295,
+            "gpu_util_median": 18.0,
+            "nvme_gib_per_<redacted>,
+            "nvme_gib_per_token_decode": 0.2837949843394329,
+            "prompt_tps": 5.355,
+            "threads.cpu_workers_r_fraction": 0.18110765654290534,
+            "threads.main_workers_d_fraction": 0.005166132249101486,
+            "threads.majflt_per_<redacted>
+          }
+        },
+        "threshold": 0.15245809196698626
+      }
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "contract": {
+      "contract_id": "qwen36-bare-greedy-v1",
+      "engagement_checks": [],
+      "model": {
+        "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "sha256": null,
+        "size": 22360456160
+      },
+      "pre_freeze_revisions": [
+        {
+          "at": "2026-11-12",
+          "by": "operator",
+          "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+          "evidence": "operator-bare-build task"
+        }
+      ],
+      "reference": {
+        "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311",
+        "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "reference_image": {
+        "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+        "image_tag": "factory/llamacpp:bare-cf34d311"
+      },
+      "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+      "tolerance": "byte-identical stdout",
+      "version": 1,
+      "workload": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "env": {},
+        "tool": "llama-completion"
+      }
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "contract_version": "1",
+    "correctness": "pass",
+    "created": 1794476551.5329258,
+    "eval_id": "59153d88dcc742cf93ec2c6be1a2245c:evaluation",
+    "evidence_completeness": "complete",
+    "execution_outcome": "ok",
+    "inputs": {
+      "details": {
+        "aborted": false,
+        "effective": {
+          "chunk_kib": "2048",
+          "diag": "0",
+          "diag_csv": "(unset)",
+          "fill": "1",
+          "k": "8",
+          "lookahead": "1",
+          "max_inflight": "4",
+          "max_tokens": "1",
+          "min_tokens": "0",
+          "order": "after",
+          "populate": "0",
+          "prefetch": "0",
+          "prefetch_next": "0",
+          "pregate": "1",
+          "random": "decode",
+          "threads": "16"
+        },
+        "effective_line_count": 2,
+        "engagement_checks": {
+          "effective_config_matches_request": true,
+          "xfill_threads_present": false
+        },
+        "eval_ms_per_token": 785.22,
+        "exit_status": 0,
+        "invalid_message": null,
+        "mismatches": {},
+        "missing_files": [],
+        "requested": {
+          "LLAMA_EXPERT_FILL": "1",
+          "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+          "LLAMA_EXPERT_FILL_DIAG": "0",
+          "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+          "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+          "LLAMA_EXPERT_FILL_POPULATE": "0",
+          "LLAMA_EXPERT_FILL_RANDOM": "decode",
+          "LLAMA_EXPERT_FILL_THREADS": "16",
+          "LLAMA_EXPERT_PREFETCH": "0",
+          "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+          "LLAMA_EXPERT_PREGATE": "1",
+          "LLAMA_EXPERT_PREGATE_K": "8",
+          "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+          "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+          "LLAMA_EXPERT_PREGATE_ORDER": "after",
+          "LLAMA_MMAP_ADVICE": "default"
+        },
+        "unreported_requested": [
+          "LLAMA_MMAP_ADVICE"
+        ],
+        "worker": {
+          "cleanup": "reaped",
+          "execution_outcome": "ok",
+          "reason": null
+        }
+      },
+      "observation_id": "59153d88dcc742cf93ec2c6be1a2245c:observation",
+      "run": {
+        "details": {
+          "aborted": false,
+          "effective": {
+            "chunk_kib": "2048",
+            "diag": "0",
+            "diag_csv": "(unset)",
+            "fill": "1",
+            "k": "8",
+            "lookahead": "1",
+            "max_inflight": "4",
+            "max_tokens": "1",
+            "min_tokens": "0",
+            "order": "after",
+            "populate": "0",
+            "prefetch": "0",
+            "prefetch_next": "0",
+            "pregate": "1",
+            "random": "decode",
+            "threads": "16"
+          },
+          "effective_line_count": 2,
+          "engagement_checks": {
+            "effective_config_matches_request": true,
+            "xfill_threads_present": false
+          },
+          "eval_ms_per_token": 785.22,
+          "exit_status": 0,
+          "invalid_message": null,
+          "mismatches": {},
+          "missing_files": [],
+          "requested": {
+            "LLAMA_EXPERT_FILL": "1",
+            "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+            "LLAMA_EXPERT_FILL_DIAG": "0",
+            "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+            "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+            "LLAMA_EXPERT_FILL_POPULATE": "0",
+            "LLAMA_EXPERT_FILL_RANDOM": "decode",
+            "LLAMA_EXPERT_FILL_THREADS": "16",
+            "LLAMA_EXPERT_PREFETCH": "0",
+            "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+            "LLAMA_EXPERT_PREGATE": "1",
+            "LLAMA_EXPERT_PREGATE_K": "8",
+            "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+            "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+            "LLAMA_EXPERT_PREGATE_ORDER": "after",
+            "LLAMA_MMAP_ADVICE": "default"
+          },
+          "unreported_requested": [
+            "LLAMA_MMAP_ADVICE"
+          ],
+          "worker": {
+            "cleanup": "reaped",
+            "execution_outcome": "ok",
+            "reason": null
+          }
+        },
+        "evidence_completeness": "complete",
+        "execution_outcome": "ok",
+        "image_id": "sha256:1274abb8e54de0e9ae745c915ba93fa4276abe2cb021774ada737a5a7208f73d",
+        "run_ref": "59153d88dcc742cf93ec2c6be1a2245c",
+        "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+      },
+      "source_artifacts": [
+        "59153d88dcc742cf93ec2c6be1a2245c:manifest.json",
+        "59153d88dcc742cf93ec2c6be1a2245c:cmd.txt",
+        "59153d88dcc742cf93ec2c6be1a2245c:config.json",
+        "59153d88dcc742cf93ec2c6be1a2245c:container.id",
+        "59153d88dcc742cf93ec2c6be1a2245c:launcher.stderr.txt",
+        "59153d88dcc742cf93ec2c6be1a2245c:launcher.stdout.txt",
+        "59153d88dcc742cf93ec2c6be1a2245c:result.json",
+        "59153d88dcc742cf93ec2c6be1a2245c:stderr.txt",
+        "59153d88dcc742cf93ec2c6be1a2245c:stdout.txt",
+        "59153d88dcc742cf93ec2c6be1a2245c:telemetry.jsonl",
+        "59153d88dcc742cf93ec2c6be1a2245c:threads.jsonl",
+        "59153d88dcc742cf93ec2c6be1a2245c:threads.log",
+        "59153d88dcc742cf93ec2c6be1a2245c:threads.summary.json",
+        "59153d88dcc742cf93ec2c6be1a2245c:watchdog.jsonl",
+        "59153d88dcc742cf93ec2c6be1a2245c:worker.json"
+      ]
+    },
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  }
+]

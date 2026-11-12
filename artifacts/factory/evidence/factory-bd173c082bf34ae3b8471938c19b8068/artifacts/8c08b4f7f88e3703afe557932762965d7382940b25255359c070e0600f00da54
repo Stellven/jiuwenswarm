@@ -1,0 +1,71 @@
+{
+  "dir": "/home/muk/.jiuwenswarm-factory/lab-spool/d96acb1a5af849ea940ec98eaff03073/ab/006-candidate",
+  "reasons": {
+    "pp_avg_ts": "no matching llama-bench JSON row",
+    "pp_samples_ts": "no matching llama-bench JSON row",
+    "pp_steady": "no matching llama-bench JSON row",
+    "tg_avg_ts": "no matching llama-bench JSON row",
+    "tg_samples_ts": "no matching llama-bench JSON row",
+    "tg_steady": "no matching llama-bench JSON row",
+    "emc_freq_median": "no decode-window samples: emc_freq"
+  },
+  "warnings": [],
+  "status": "ok",
+  "wall_s": 284.5,
+  "output_sha": "7a1541792364",
+  "switch_matches": {
+    "llama_mmap: LLAMA_MMAP_ADVICE=random": 1
+  },
+  "switch_lines": [
+    "0.01.848.688 I llama_mmap: LLAMA_MMAP_ADVICE=random (no FADV_SEQUENTIAL, no WILLNEED, MADV_RANDOM)"
+  ],
+  "prompt_tps": 1.48,
+  "eval_tps": 0.55,
+  "load_s": 34.6015,
+  "eval_tokens": 63.0,
+  "eval_ms_per_token": 1825.34,
+  "prompt_ms_per_token": 673.62,
+  "eval_ms_total": 114996.15,
+  "eval_runs": 63,
+  "load_ms": 34601.5,
+  "bench": {
+    "pp": [],
+    "tg": []
+  },
+  "pp_avg_ts": null,
+  "pp_samples_ts": null,
+  "pp_steady": null,
+  "tg_avg_ts": null,
+  "tg_samples_ts": null,
+  "tg_steady": null,
+  "nvme_gib": 24.318359375,
+  "avg_kib_per_io": 4.10267776625258,
+  "nvme_gib_per_<redacted>,
+  "mem_available_min_mib": 2909.953,
+  "swap_max_mib": 1665.0,
+  "gpu_freq_median": 306.0,
+  "phase_windows": {
+    "clock": "mono_s",
+    "method": "last_telemetry_before_exit_minus_eval_ms_total",
+    "decode_start": 908495.817294798,
+    "decode_end": 908610.813444798,
+    "load_start": 908326.514564726,
+    "load_end": 908361.116064726,
+    "sampling_error_bound_s": 1.0016955980099738,
+    "absolute_error_bound_s": null,
+    "error_note": "Endpoint sampling error is at most the largest observed backend interval assuming sampling continued until exit. Engine teardown/exit lag is unknown; no finite absolute phase alignment bound is available. Load begins at first telemetry sample; startup offset is also unknown."
+  },
+  "nvme_gib_decode": 9.542205879513858,
+  "nvme_gib_load": 3.0682220138078264,
+  "nvme_gib_per_token_decode": 0.15146358538910887,
+  "gpu_util_median": 0.0,
+  "gpu_util_p90": 18,
+  "device_util_median": 96.71483099027205,
+  "power_in_w_median": 6.259,
+  "temp_tj_max": 52.531,
+  "emc_freq_median": null,
+  "energy_j_per_<redacted>,
+  "threads.cpu_workers_r_fraction": 0.1629519995356666,
+  "threads.main_workers_d_fraction": 0.568741837178929,
+  "threads.majflt_per_<redacted>
+}

@@ -1,0 +1,276 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -709,6 +709,8 @@
+         if (model.arch != LLM_ARCH_QWEN35MOE || model.hparams.n_expert_groups > 1 || !loras->empty() || !model.hdmd.rot.empty()) {
+             throw std::runtime_error("pregate requires qwen35moe without groups, LoRA, or folded rotations");
+         }
++        const char * order = getenv("LLAMA_EXPERT_PREGATE_ORDER");
++        expert_pregate_before = order && strcmp(order, "before") == 0;
+         const char * k = getenv("LLAMA_EXPERT_PREGATE_K");
+         if (k && strcmp(k, "12") == 0) { expert_pregate_k = 12; }
+         else if (k && strcmp(k, "16") == 0) { expert_pregate_k = 16; }
+@@ -744,14 +746,15 @@
+             munmap(ptr, len);
+         }
+         expert_pregate_enabled = true;
+-        LLAMA_LOG_INFO("expert_pregate: active k=%zu arch=qwen35moe gating=softmax router=file-cpu-copy\n", expert_pregate_k);
++        LLAMA_LOG_INFO("expert_pregate: active k=%zu arch=qwen35moe gating=softmax router=file-cpu-copy order=%s\n",
++            expert_pregate_k, expert_pregate_before ? "before" : "after");
+     } catch (const std::exception & e) {
+         expert_pregate_layers.clear();
+         LLAMA_LOG_INFO("expert_pregate: inactive (%s)\n", e.what());
+     }
+ }
+ 
+-void llama_context::expert_pregate_hook(size_t il, const ggml_tensor * t, const std::vector<int32_t> & selected) {
++void llama_context::expert_pregate_arrive(size_t il, const std::vector<int32_t> & selected) {
+     if (!expert_fill_decode || !expert_fill_this_ubatch || il >= expert_pregate_layers.size()) { return; }
+     auto & current = expert_pregate_layers[il];
+     if (!current.predicted.empty()) {
+@@ -767,7 +770,14 @@
+         pregate_pending_reads += pending;
+         pregate_inflight_reads += running; pregate_inflight_arrivals += pending != 0;
+     }
+-    if (expert_pregate_failed || il + 1 >= expert_pregate_layers.size()) { return; }
++    // Always before demand, independent of ORDER. Cancel this batch and any
++    // older layer's queued work; already-dispatched chunks finish normally.
++    for (auto & entry : expert_fillers) { entry.second->cancel_async_through(il); }
++}
++
++void llama_context::expert_pregate_hook(size_t il, const ggml_tensor * t) {
++    if (!expert_fill_decode || !expert_fill_this_ubatch || expert_pregate_failed ||
++            il + 1 >= expert_pregate_layers.size()) { return; }
+     try {
+         if (!loras->empty()) { throw std::runtime_error("LoRA activated after pregate initialization"); }
+         // Before-node CPU callback runs AFTER the scheduler's host copies and prefix
+@@ -812,9 +822,9 @@
+             }
+         }
+         // Never fill()/wait_async() here: enqueue takes only a short queue mutex.
+-        // The existing synchronous fill below is unchanged and may duplicate in-flight preads.
++        // In-flight preads may still overlap demand; queued stale work is cancelled on arrival.
+         for (const auto & entry : ranges) {
+-            next.batches.push_back(expert_fillers.at(entry.first)->enqueue_async(entry.second));
++            next.batches.push_back(expert_fillers.at(entry.first)->enqueue_async(entry.second, il + 1));
+         }
+         ++pregate_predictions;
+     } catch (const std::exception & e) {
+@@ -824,22 +834,24 @@
+ }
+ 
+ void llama_context::expert_pregate_stats() {
+-    uint64_t bytes=0, reads=0, errors=0, dropped=0;
++    uint64_t bytes=0, reads=0, errors=0, dropped=0, cancelled_jobs=0, cancelled_bytes=0;
+     for (auto & entry : expert_fillers) {
+         entry.second->wait_async(); // teardown only, after graph synchronize
+         const auto c = entry.second->async_counters();
+         bytes += c.bytes_read; reads += c.read_syscalls; errors += c.errors; dropped += c.dropped;
++        cancelled_jobs += c.cancelled_jobs; cancelled_bytes += c.cancelled_bytes;
+     }
+     LLAMA_LOG_INFO("expert_pregate: stats predictions=%" PRIu64 " arrivals=%" PRIu64
+         " hits=%" PRIu64 " actual=%" PRIu64 " predicted=%" PRIu64 " recall_at_k=%.6f precision=%.6f"
+         " async_bytes_read=%" PRIu64 " async_reads=%" PRIu64 " async_errors=%" PRIu64 " dropped=%" PRIu64
++        " cancelled_jobs=%" PRIu64 " cancelled_bytes=%" PRIu64
+         " inflight_at_arrival=%" PRIu64 " inflight_reads=%" PRIu64 " pending_reads=%" PRIu64
+         " sync_bytes_with_prediction=%" PRIu64 " sync_bytes_without_prediction=%" PRIu64
+         " sync_calls_with_prediction=%" PRIu64 " sync_calls_without_prediction=%" PRIu64 " skips=%" PRIu64 "\n",
+         pregate_predictions, pregate_arrivals, pregate_hits, pregate_actual, pregate_predicted,
+         pregate_actual ? double(pregate_hits)/pregate_actual : 0.0,
+         pregate_predicted ? double(pregate_hits)/pregate_predicted : 0.0,
+-        bytes, reads, errors, dropped, pregate_inflight_arrivals, pregate_inflight_reads, pregate_pending_reads,
++        bytes, reads, errors, dropped, cancelled_jobs, cancelled_bytes, pregate_inflight_arrivals, pregate_inflight_reads, pregate_pending_reads,
+         pregate_sync_with, pregate_sync_without, pregate_calls_with, pregate_calls_without, pregate_skips);
+ }
+ 
+@@ -1137,8 +1149,14 @@
+     }
+ #ifdef __linux__
+     if (ctx.expert_fill_enabled) {
+-        if (ctx.expert_pregate_enabled) { ctx.expert_pregate_hook(il, t, selected); }
+-        ctx.expert_fill_selected(il, selected);
++        if (ctx.expert_pregate_enabled) {
++            ctx.expert_pregate_arrive(il, selected); // cancel before demand
++            if (ctx.expert_pregate_before) { ctx.expert_pregate_hook(il, t); }
++        }
++        ctx.expert_fill_selected(il, selected); // demand for L first by default
++        if (ctx.expert_pregate_enabled && !ctx.expert_pregate_before) {
++            ctx.expert_pregate_hook(il, t); // ORDER=after (default): enqueue L+1
++        }
+         if (ctx.expert_diag_enabled) { ctx.expert_diag_pre_use(il); }
+         return;
+     }
+@@ -2282,6 +2300,8 @@
+     expert_fill_init();
+     expert_fill_phase(ubatch.n_tokens);
+     if (expert_pregate_enabled) {
++        // Layer numbers restart for every ubatch; retire previous-token backlog.
++        for (auto & entry : expert_fillers) { entry.second->cancel_async_through(SIZE_MAX); }
+         for (auto & layer : expert_pregate_layers) { layer.predicted.clear(); layer.batches.clear(); }
+     }
+     const char * fill = getenv("LLAMA_EXPERT_FILL");
+diff --git a/src/llama-context.h b/src/llama-context.h
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -63,7 +63,7 @@
+     bool expert_fill_decode = false;
+     bool expert_fill_this_ubatch = true;
+     uint64_t expert_fill_min_tokens = 0, expert_fill_max_tokens = 0;
+-    bool expert_pregate_enabled = false, expert_pregate_failed = false;
++    bool expert_pregate_enabled = false, expert_pregate_failed = false, expert_pregate_before = false;
+     size_t expert_pregate_k = 8;
+     struct pregate_layer {
+         std::vector<float> router;
+@@ -75,7 +75,8 @@
+     uint64_t pregate_arrivals=0, pregate_inflight_arrivals=0, pregate_inflight_reads=0, pregate_pending_reads=0, pregate_skips=0;
+     uint64_t pregate_sync_with=0, pregate_sync_without=0, pregate_calls_with=0, pregate_calls_without=0;
+     void expert_pregate_init();
+-    void expert_pregate_hook(size_t il, const ggml_tensor * t, const std::vector<int32_t> & selected);
++    void expert_pregate_arrive(size_t il, const std::vector<int32_t> & selected);
++    void expert_pregate_hook(size_t il, const ggml_tensor * t);
+     void expert_pregate_stats();
+     // All diagnostic syscalls and residency probes are behind expert_diag_enabled.
+     bool expert_diag_enabled = false, expert_diag_token_active = false, expert_diag_gap = false;
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -40,14 +40,19 @@
+     };
+     struct AsyncBatch {
+         std::atomic<uint64_t> pending {0}, running {0}, bytes_read {0}, read_syscalls {0}, errors {0};
++        std::atomic<uint64_t> cancelled_jobs {0}, cancelled_bytes {0};
+     };
+     using Async = std::shared_ptr<AsyncBatch>;
+-    struct AsyncCounters { uint64_t bytes_read, read_syscalls, errors, dropped; };
++    struct AsyncCounters {
++        uint64_t bytes_read, read_syscalls, errors, dropped, cancelled_jobs, cancelled_bytes;
++        uint64_t max_inflight;
++    };
+     // mapping must be a live, offset-zero file mmap for the lifetime of this object.
+     ExpertFiller(const std::string & path, void * mapping, size_t mapping_size)
+         : mapping_(static_cast<char *>(mapping)), size_(mapping_size),
+           threads_(env_size("LLAMA_EXPERT_FILL_THREADS", 8, 256)),
+           chunk_(env_size("LLAMA_EXPERT_FILL_CHUNK_KIB", 1024, 65536) * 1024) {
++        async_limit_ = std::min(threads_, env_size("LLAMA_EXPERT_PREGATE_MAX_INFLIGHT", 4, 256));
+         diag_ = enabled("LLAMA_EXPERT_FILL_DIAG");
+         populate_ = enabled("LLAMA_EXPERT_FILL_POPULATE");
+         const long page = sysconf(_SC_PAGESIZE);
+@@ -81,7 +86,7 @@
+ 
+     // Enqueue only: no residency query, file IO, or wait for worker completion.
+     // Jobs use the existing pool, after all available synchronous jobs.
+-    Async enqueue_async(const std::vector<Range> & ranges) {
++    Async enqueue_async(const std::vector<Range> & ranges, size_t layer = 0) {
+         std::vector<Range> jobs;
+         for (const auto & r : ranges) {
+             if (r.offset > size_ || r.len > size_ - r.offset) { throw std::out_of_range("async range outside mmap"); }
+@@ -98,7 +103,7 @@
+         auto batch = std::make_shared<AsyncBatch>();
+         // Construct off-lock; splice publishes the whole submission without allocation.
+         std::list<AsyncJob> submission;
+-        for (auto r : jobs) { submission.push_back({r, batch}); }
++        for (auto r : jobs) { submission.push_back({r, batch, layer}); }
+         {
+             std::lock_guard<std::mutex> lock(mutex_);
+             // Bound speculative backlog; drop a whole submission, never block on IO.
+@@ -109,13 +114,28 @@
+         ready_.notify_all();
+         return batch;
+     }
++    // Arrival deadline: retire queued chunks for this layer and older layers.
++    // The queue mutex makes cancellation atomic with worker dispatch. Running
++    // chunks retain their batch and finish normally; pending includes both kinds.
++    void cancel_async_through(size_t layer) {
++        std::lock_guard<std::mutex> lock(mutex_);
++        for (auto it = async_queue_.begin(); it != async_queue_.end();) {
++            if (it->layer > layer) { ++it; continue; }
++            ++it->batch->cancelled_jobs; it->batch->cancelled_bytes += it->range.len;
++            ++async_cancelled_jobs_; async_cancelled_bytes_ += it->range.len;
++            --it->batch->pending; --async_pending_;
++            it = async_queue_.erase(it);
++        }
++        if (!async_pending_) { async_done_.notify_all(); }
++    }
+     // Teardown/tests only. The CPU observer never calls this.
+     void wait_async() {
+         std::unique_lock<std::mutex> lock(mutex_);
+         async_done_.wait(lock, [this] { return async_pending_ == 0; });
+     }
+     AsyncCounters async_counters() const {
+-        return {async_bytes_.load(), async_syscalls_.load(), async_errors_.load(), async_dropped_.load()};
++        return {async_bytes_.load(), async_syscalls_.load(), async_errors_.load(), async_dropped_.load(),
++                async_cancelled_jobs_.load(), async_cancelled_bytes_.load(), async_max_inflight_.load()};
+     }
+ 
+     bool diagnostic() const { return diag_; }
+@@ -140,6 +160,9 @@
+     }
+     uint64_t fill(const std::vector<Range> & ranges, bool decode = false) {
+         std::lock_guard<std::mutex> serial(fill_mutex_);
++        // Reserve scheduling priority before residency queries/job construction,
++        // not just after demand jobs are published. In-flight async IO may finish.
++        DemandScope demand(*this);
+         const auto start = std::chrono::steady_clock::now();
+         batch_diag_ = diag_ && decode;
+         ++counters_.calls;
+@@ -224,6 +247,17 @@
+         return counters_.bytes_read - bytes_before;
+     }
+ private:
++    friend struct ExpertFillerTestAccess;
++    struct DemandScope {
++        ExpertFiller & owner;
++        explicit DemandScope(ExpertFiller & f) : owner(f) {
++            std::lock_guard<std::mutex> lock(owner.mutex_); owner.demand_active_ = true;
++        }
++        ~DemandScope() {
++            { std::lock_guard<std::mutex> lock(owner.mutex_); owner.demand_active_ = false; }
++            owner.ready_.notify_all();
++        }
++    };
+     static std::atomic<bool> & populate_unsupported() {
+         static std::atomic<bool> value {false}; return value;
+     }
+@@ -249,13 +283,16 @@
+             bool diagnostic = false, populating = false;
+             {
+                 std::unique_lock<std::mutex> lock(mutex_);
+-                ready_.wait(lock, [this] { return stopping_ || next_ < jobs_.size() || !async_queue_.empty(); });
++                ready_.wait(lock, [this] { return stopping_ || next_ < jobs_.size() ||
++                    (!demand_active_ && !async_queue_.empty() && async_running_ < async_limit_); });
+                 if (stopping_) { return; }
+                 if (next_ < jobs_.size()) {
+                     job = jobs_[next_++]; diagnostic = batch_diag_; populating = populating_;
+                 } else {
+                     job = async_queue_.front().range; async = async_queue_.front().batch;
+                     async_queue_.pop_front(); ++async->running;
++                    ++async_running_;
++                    async_max_inflight_.store(std::max<uint64_t>(async_max_inflight_.load(), async_running_));
+                 }
+             }
+             size_t bytes = 0; uint64_t syscalls = 0; int error = 0;
+@@ -309,7 +346,8 @@
+                     async->bytes_read += bytes; async->read_syscalls += syscalls;
+                     async->errors += error != 0;
+                     async_bytes_ += bytes; async_syscalls_ += syscalls; async_errors_ += error != 0;
+-                    --async->running; --async->pending;
++                    --async->running; --async->pending; --async_running_;
++                    ready_.notify_all(); // a capped async slot is now available
+                     if (--async_pending_ == 0) { async_done_.notify_all(); }
+                     continue;
+                 }
+@@ -331,10 +369,12 @@
+     mutable std::mutex fill_mutex_;
+     std::mutex mutex_;
+     std::condition_variable ready_, done_, async_done_;
+-    struct AsyncJob { Range range; Async batch; };
++    struct AsyncJob { Range range; Async batch; size_t layer; };
+     std::list<AsyncJob> async_queue_;
+-    size_t async_pending_ = 0;
++    size_t async_pending_ = 0, async_running_ = 0, async_limit_ = 4;
++    bool demand_active_ = false;
+     std::atomic<uint64_t> async_bytes_ {0}, async_syscalls_ {0}, async_errors_ {0}, async_dropped_ {0};
++    std::atomic<uint64_t> async_cancelled_jobs_ {0}, async_cancelled_bytes_ {0}, async_max_inflight_ {0};
+     std::vector<std::thread> workers_;
+     std::vector<std::vector<char>> scratch_;
+     std::vector<std::vector<unsigned char>> residency_;

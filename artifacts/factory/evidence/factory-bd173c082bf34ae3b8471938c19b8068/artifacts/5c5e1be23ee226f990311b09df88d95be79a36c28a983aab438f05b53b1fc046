@@ -1,0 +1,216 @@
+{
+  "admissions": {
+    "base": {
+      "admission_id": "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+      "architecture": "arm64",
+      "build_attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+      "delivery": "same_host_local_image",
+      "image": {
+        "id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+        "tag": "factory/llamacpp:bd173c08-bare-cf34d3113"
+      },
+      "target_profile": "jetson-orin",
+      "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+    },
+    "candidate": {
+      "admission_id": "admission:35efd25ef177ce01e9c2407342abdd116d000219549ccf8eda488b5bdbba1a84",
+      "architecture": "arm64",
+      "build_attempt_id": "358bf4e9da5d484385c7ba422522975b",
+      "delivery": "same_host_local_image",
+      "image": {
+        "id": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+        "tag": "factory/llamacpp:bd173c08-fill-c0427fe6"
+      },
+      "target_profile": "jetson-orin",
+      "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+    }
+  },
+  "component": "expert_fill",
+  "component_material": {
+    "base": {
+      "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+      "repo": "https://github.com/ggml-org/llama.cpp"
+    },
+    "correctness_obligation": "identical greedy stdout",
+    "depends_on": [
+      "mmap_advice",
+      "router_prefetch"
+    ],
+    "enable_env": {
+      "LLAMA_EXPERT_FILL": "1",
+      "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+      "LLAMA_EXPERT_FILL_DIAG": "0",
+      "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+      "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+      "LLAMA_EXPERT_FILL_POPULATE": "0",
+      "LLAMA_EXPERT_FILL_RANDOM": "decode",
+      "LLAMA_EXPERT_FILL_THREADS": "16",
+      "LLAMA_EXPERT_PREFETCH": "0",
+      "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+      "LLAMA_MMAP_ADVICE": "default"
+    },
+    "engagement_checks": [
+      {
+        "regex": "expert_fill: active",
+        "source": "stderr"
+      },
+      {
+        "regex": "expert_fill: random advice applied at decode",
+        "source": "stderr"
+      },
+      {
+        "regex": "expert_fill: stats calls=[1-9][0-9]*",
+        "source": "stderr"
+      }
+    ],
+    "env_ranges": {
+      "LLAMA_EXPERT_FILL": "0|1",
+      "LLAMA_EXPERT_FILL_CHUNK_KIB": "03: 1..65536, otherwise fallback 1024; 08: strict 64..65536",
+      "LLAMA_EXPERT_FILL_DIAG": "0|1",
+      "LLAMA_EXPERT_FILL_DIAG_CSV": "nonempty path; optional; only used with diagnostics",
+      "LLAMA_EXPERT_FILL_MAX_TOKENS": "04: unsigned integer, 0 unlimited; 08: 0..2147483647",
+      "LLAMA_EXPERT_FILL_MIN_TOKENS": "04: unsigned integer, 0 unlimited; 08: 0..2147483647",
+      "LLAMA_EXPERT_FILL_POPULATE": "0|1",
+      "LLAMA_EXPERT_FILL_RANDOM": "0|1|decode (decode added by 04)",
+      "LLAMA_EXPERT_FILL_THREADS": "03: 1..256, otherwise fallback 8; 08: strict 1..64"
+    },
+    "hypothesis": "Fill nonresident selected expert ranges through buffered parallel reads before demand computation.",
+    "measure": "perf",
+    "patches": [
+      {
+        "file": "03-expert-fill.patch",
+        "sha256": "de969b13d381df8e43c18bb195fb215527b899978bf15549e2a2874fb21f5182"
+      },
+      {
+        "file": "04-fill-phase.patch",
+        "sha256": "0439854fc1d22d0a600c99833817425e1eec223e563180e2bc6574cd9b4a3065"
+      },
+      {
+        "file": "05-fill-diag.patch",
+        "sha256": "2bd97b511d7159cd131c66472e29e74678fad9e083e46fdd7c749557ec2583fd"
+      }
+    ],
+    "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+  },
+  "contract": {
+    "contract_id": "qwen36-bare-greedy-v1",
+    "engagement_checks": [],
+    "model": {
+      "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": null,
+      "size": 22360456160
+    },
+    "pre_freeze_revisions": [
+      {
+        "at": "2026-11-12",
+        "by": "operator",
+        "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+        "evidence": "operator-bare-build task"
+      }
+    ],
+    "reference": {
+      "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "image_tag": "factory/llamacpp:bare-cf34d311",
+      "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+      "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+    },
+    "reference_image": {
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "image_tag": "factory/llamacpp:bare-cf34d311"
+    },
+    "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+    "tolerance": "byte-identical stdout",
+    "version": 1,
+    "workload": {
+      "argv": [
+        "-m",
+        "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "-f",
+        "/om/prompts/p1.txt",
+        "-n",
+        "64",
+        "-c",
+        "4096",
+        "--temp",
+        "0",
+        "-s",
+        "1",
+        "-no-cnv",
+        "-ngl",
+        "99",
+        "-lm",
+        "mmap",
+        "-cmoe",
+        "-lv",
+        "4"
+      ],
+      "env": {},
+      "tool": "llama-completion"
+    }
+  },
+  "lab_run_id": "f19094c82dee4a678443c71ea1a7694b",
+  "mode": "ab",
+  "spec": {
+    "argv": [
+      "-m",
+      "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "-f",
+      "/om/prompts/p1.txt",
+      "-n",
+      "64",
+      "-c",
+      "4096",
+      "--temp",
+      "0",
+      "-s",
+      "1",
+      "-no-cnv",
+      "-ngl",
+      "99",
+      "-lm",
+      "mmap",
+      "-cmoe",
+      "-lv",
+      "4"
+    ],
+    "arms": {
+      "base": {
+        "env": {},
+        "expect_switch": false,
+        "image": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998"
+      },
+      "candidate": {
+        "env": {
+          "LLAMA_EXPERT_FILL": "1",
+          "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+          "LLAMA_EXPERT_FILL_DIAG": "0",
+          "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+          "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+          "LLAMA_EXPERT_FILL_POPULATE": "0",
+          "LLAMA_EXPERT_FILL_RANDOM": "decode",
+          "LLAMA_EXPERT_FILL_THREADS": "16",
+          "LLAMA_EXPERT_PREFETCH": "0",
+          "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+          "LLAMA_MMAP_ADVICE": "default"
+        },
+        "expect_switch": true,
+        "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+        "switch_regex": [
+          "expert_fill: active",
+          "expert_fill: random advice applied at decode",
+          "expert_fill: stats calls=[1-9][0-9]*"
+        ]
+      }
+    },
+    "direction": "lower",
+    "id": "ab",
+    "metric": "eval_ms_per_token",
+    "order": "ABBA",
+    "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+    "rounds": 2,
+    "runner": "om_run",
+    "threads": true,
+    "tool": "llama-completion"
+  }
+}

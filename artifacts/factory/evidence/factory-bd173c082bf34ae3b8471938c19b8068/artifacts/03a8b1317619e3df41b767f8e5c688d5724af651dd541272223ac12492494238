@@ -1,0 +1,73 @@
+{
+  "dir": "/home/muk/.jiuwenswarm-factory/lab-spool/deb16a611ae34a9ea2dc16798645dca4/ab/006-candidate",
+  "reasons": {
+    "pp_avg_ts": "no matching llama-bench JSON row",
+    "pp_samples_ts": "no matching llama-bench JSON row",
+    "pp_steady": "no matching llama-bench JSON row",
+    "tg_avg_ts": "no matching llama-bench JSON row",
+    "tg_samples_ts": "no matching llama-bench JSON row",
+    "tg_steady": "no matching llama-bench JSON row",
+    "emc_freq_median": "no decode-window samples: emc_freq"
+  },
+  "warnings": [],
+  "status": "ok",
+  "wall_s": 250.27,
+  "output_sha": "7a1541792364",
+  "switch_matches": {
+    "expert_prefetch: CPU host-consumer hook enabled": 1,
+    "expert_prefetch: advise calls=[1-9][0-9]*": 1
+  },
+  "switch_lines": [
+    "0.07.355.186 I expert_prefetch: CPU host-consumer hook enabled; device-only experts skipped, next=0, LRU=32 ids/32 tokens",
+    "4.08.586.603 I expert_prefetch: advise calls=20823 bytes advised=13515722752 failures=0 next-layer prediction hits/total=0/0 (0.00%)"
+  ],
+  "prompt_tps": 1.44,
+  "eval_tps": 0.65,
+  "load_s": 14.69912,
+  "eval_tokens": 63.0,
+  "eval_ms_per_token": 1546.46,
+  "prompt_ms_per_token": 692.58,
+  "eval_ms_total": 97426.81,
+  "eval_runs": 63,
+  "load_ms": 14699.12,
+  "bench": {
+    "pp": [],
+    "tg": []
+  },
+  "pp_avg_ts": null,
+  "pp_samples_ts": null,
+  "pp_steady": null,
+  "tg_avg_ts": null,
+  "tg_samples_ts": null,
+  "tg_steady": null,
+  "nvme_gib": 26.130741119384766,
+  "avg_kib_per_io": 5.570479297893653,
+  "nvme_gib_per_<redacted>,
+  "mem_available_min_mib": 2766.184,
+  "swap_max_mib": 1255.0,
+  "gpu_freq_median": 306.0,
+  "phase_windows": {
+    "clock": "mono_s",
+    "method": "last_telemetry_before_exit_minus_eval_ms_total",
+    "decode_start": 910596.212931329,
+    "decode_end": 910693.639741329,
+    "load_start": 910443.870253934,
+    "load_end": 910458.569373934,
+    "sampling_error_bound_s": 1.0013306060573086,
+    "absolute_error_bound_s": null,
+    "error_note": "Endpoint sampling error is at most the largest observed backend interval assuming sampling continued until exit. Engine teardown/exit lag is unknown; no finite absolute phase alignment bound is available. Load begins at first telemetry sample; startup offset is also unknown."
+  },
+  "nvme_gib_decode": 10.997073693619313,
+  "nvme_gib_load": 3.159034808148135,
+  "nvme_gib_per_token_decode": 0.17455672529554467,
+  "gpu_util_median": 0.0,
+  "gpu_util_p90": 18,
+  "device_util_median": 96.68335945159993,
+  "power_in_w_median": 6.338,
+  "temp_tj_max": 52.906,
+  "emc_freq_median": null,
+  "energy_j_per_<redacted>,
+  "threads.cpu_workers_r_fraction": 0.15129618848669565,
+  "threads.main_workers_d_fraction": 0.4136589804934611,
+  "threads.majflt_per_<redacted>
+}

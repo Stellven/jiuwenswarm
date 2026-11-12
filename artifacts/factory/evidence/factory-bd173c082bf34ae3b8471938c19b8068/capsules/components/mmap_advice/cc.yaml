@@ -1,0 +1,8 @@
+cc: '2'
+id: factory.components.mmap_advice
+version: 1.0.0
+materials:
+  component:
+    path: component.yaml
+  patch_01:
+    path: 01-mmap-advice-random.patch

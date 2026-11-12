@@ -1,0 +1,376 @@
+{
+ "exit_code": 0,
+ "wall_s": 145.73,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 176.7,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 141.38,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 143.12,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 144.37,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 142.86,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 142.78,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 148.92,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+  "secondary_metrics": {
+    "base": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.4025,
+      "eval_tps": 1.2825,
+      "eval_ms_per_token": 780.28,
+      "nvme_gib_per_token_decode": 0.2878273135132957,
+      "gpu_util_median": 17.25,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.09609315138303975,
+      "threads.main_workers_d_fraction": 0.1699977548039385,
+      "threads.majflt_per_<redacted>
+    },
+    "candidate": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.355,
+      "eval_tps": 1.295,
+      "eval_ms_per_token": 773.235,
+      "nvme_gib_per_token_decode": 0.2837949843394329,
+      "gpu_util_median": 18.0,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.18110765654290534,
+      "threads.main_workers_d_fraction": 0.005166132249101486,
+      "threads.majflt_per_<redacted>
+    }
+  },
+  "metric": "eval_ms_per_token",
+  "direction": "lower",
+  "base": "base",
+  "inputs": {
+    "base": [
+      769.99,
+      769.81,
+      760.92,
+      820.4
+    ],
+    "candidate": [
+      778.01,
+      770.47,
+      773.91,
+      770.55
+    ]
+  },
+  "means": {
+    "base": 780.28,
+    "candidate": 773.235
+  },
+  "aa_gaps": {
+    "base": 0.07622904598349313,
+    "candidate": 0.009751239920593305
+  },
+  "aa_gap": 0.07622904598349313,
+  "drift_halves": [
+    769.9,
+    790.66
+  ],
+  "drift": 0.026605833803250104,
+  "threshold": 0.15245809196698626,
+  "minimum_effect": 0.03,
+  "noise_multiplier": 2,
+  "comparisons": {
+    "candidate": {
+      "mean": 773.235,
+      "base_mean": 780.28,
+      "ratio": 1.0091110723130743,
+      "change": 0.009111072313074287,
+      "threshold": 0.15245809196698626,
+      "verdict": "null"
+    }
+  },
+  "output": {
+    "class": "identical",
+    "hashes": {
+      "base": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "candidate": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ]
+    }
+  },
+  "reasons": [],
+  "status": "completed",
+  "invalid_reasons": [],
+  "planned_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ],
+  "executed_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ]
+}

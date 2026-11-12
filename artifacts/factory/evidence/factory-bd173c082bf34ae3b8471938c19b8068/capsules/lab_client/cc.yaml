@@ -1,0 +1,161 @@
+cc: '2'
+id: factory.lab_client
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  submit:
+    does: Admit a local image and submit a fixed lab evaluation through the GPU queue.
+    takes:
+      image: json
+      build_attempt_id: text
+      contract_id: text
+      run_config: json
+      idem_key: text
+    gives:
+      admission: json
+      attempt_id: text
+      state: text
+      jobq_id: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  status:
+    does: Read the owned lab attempt from the durable queue.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  cancel:
+    does: Cancel the owned lab attempt and reap its container.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  result:
+    does: Read evaluation and evidence references for the owned lab attempt.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+      execution_outcome: text
+      evaluation: json
+      evidence_refs: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  ab_submit:
+    does: Admit both images and queue one contract-bound ABBA experiment; checks come
+      from component materials.
+    takes:
+      base_image: json
+      candidate_image: json
+      base_env: json
+      candidate_env: json
+      rounds: json
+      component: text
+      idem_key: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  ab_status:
+    does: Read the owned durable A/B job status.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  ab_result:
+    does: Ingest and read verified A/B verdict, correctness and evidence.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+      execution_outcome: text
+      evaluation: json
+      evidence_refs: json
+      ab_result: json
+    needs:
+    - python
+    changes:
+    - process.exec

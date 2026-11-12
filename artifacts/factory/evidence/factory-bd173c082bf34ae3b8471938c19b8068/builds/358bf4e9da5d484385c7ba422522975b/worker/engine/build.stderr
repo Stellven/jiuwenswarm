@@ -1,0 +1,58 @@
+CMAKE_BUILD_TYPE=Release
+fatal: not a git repository (or any of the parent directories): .git
+fatal: not a git repository (or any of the parent directories): .git
+CMake Warning at vendor/cpp-httplib/CMakeLists.txt:154 (message):
+  OpenSSL not found, HTTPS support disabled
+
+
+CMake Warning at common/CMakeLists.txt:33 (message):
+  Git repository not found; to enable automatic generation of build info,
+  make sure Git is installed and the project is a Git repository.
+
+
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 707B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1
+#2 DONE 1.2s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/3] FROM nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1
+#4 resolve nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 248.64MB 1.6s done
+#5 DONE 1.6s
+
+#4 [1/3] FROM nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1
+#4 CACHED
+
+#6 [2/3] COPY app/ /app/
+#6 DONE 13.9s
+
+#7 [3/3] WORKDIR /app
+#7 DONE 0.2s
+
+#8 exporting to image
+#8 exporting layers
+#8 exporting layers 28.8s done
+#8 exporting manifest sha256:52b0d70898efd38ec501a94c66e3c09a4199259e7ba01bd4c4488eba3faec1a1 done
+#8 exporting config sha256:e8d425c7f232df8e4d2c7d8a2174670530aafae1785cdfdfbd9ab473ff1afd35 0.0s done
+#8 exporting attestation manifest sha256:493ad79da558e7a060e1a2729d161b0eb56cc338498dd7280652e741a6e2f931
+#8 exporting attestation manifest sha256:493ad79da558e7a060e1a2729d161b0eb56cc338498dd7280652e741a6e2f931 0.1s done
+#8 exporting manifest list sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c 0.0s done
+#8 naming to docker.io/factory/llamacpp:bd173c08-fill-c0427fe6
+#8 naming to docker.io/factory/llamacpp:bd173c08-fill-c0427fe6 done
+#8 unpacking to docker.io/factory/llamacpp:bd173c08-fill-c0427fe6
+#8 unpacking to docker.io/factory/llamacpp:bd173c08-fill-c0427fe6 1.7s done
+#8 DONE 30.9s
+
+#9 resolving provenance for metadata file
+#9 DONE 0.0s

@@ -1,0 +1,2674 @@
+[
+  {
+    "attempt_id": "06c525d46b8d407a9d3bcabfdc103334",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794469345.5870013,
+    "fingerprint": "6ef61c5747ee4bbd506c43ddc9485a060b3c2094fe21798f9c5765fe3d2d990b",
+    "history": [
+      {
+        "created": 1794469133.445845,
+        "state": "queued"
+      },
+      {
+        "created": 1794469153.49649,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794469345.5870013,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "router-prefetch-build-1",
+    "jobq_id": "job-7ab8c07741074414836b6af2cbee0a32",
+    "kind": "build",
+    "owner": {
+      "pgid": 1046962,
+      "pid": 1046962,
+      "runner_pid": 1046960,
+      "wrapper_pgid": 1046961
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "5cded3e76a44812f7f5a16b357c9f384d25f1c46",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "29717242a81049eb426e4d35fb78487563351e63"
+      },
+      "tag": "factory/llamacpp:bd173c08-router-5cded3e7",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/baba827bd6c39646ce60b9b1d2c0b27b6c325a3821784cc257869551194974e0.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "06c525d46b8d407a9d3bcabfdc103334:request",
+      "06c525d46b8d407a9d3bcabfdc103334:prep",
+      "06c525d46b8d407a9d3bcabfdc103334:build-record",
+      "06c525d46b8d407a9d3bcabfdc103334:stdout",
+      "06c525d46b8d407a9d3bcabfdc103334:stdout-tail",
+      "06c525d46b8d407a9d3bcabfdc103334:stderr",
+      "06c525d46b8d407a9d3bcabfdc103334:stderr-tail",
+      "06c525d46b8d407a9d3bcabfdc103334:receipt",
+      "06c525d46b8d407a9d3bcabfdc103334:build-result"
+    ],
+    "started": 1794469153.49649,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794466590.1786509,
+    "fingerprint": "c62b4694dab8476785ff7c88c0c5d764fe077a03a520aeb699ff9713a04a7d45",
+    "history": [
+      {
+        "created": 1794466344.2802734,
+        "state": "queued"
+      },
+      {
+        "created": 1794466366.5593834,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794466590.1786509,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "bare-cf34d3113-build-1",
+    "jobq_id": "job-2e7a53cfd8ff46f8b78842836325ecb2",
+    "kind": "build",
+    "owner": {
+      "pgid": 1038184,
+      "pid": 1038184,
+      "runner_pid": 1038182,
+      "wrapper_pgid": 1038183
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+      },
+      "tag": "factory/llamacpp:bd173c08-bare-cf34d3113",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/0c22d5245c16da50761065e47fe083672791bf131476b2f89722a44c3306ef0e.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "0bb569af6abd4b6893e70bb2e1420860:request",
+      "0bb569af6abd4b6893e70bb2e1420860:prep",
+      "0bb569af6abd4b6893e70bb2e1420860:build-record",
+      "0bb569af6abd4b6893e70bb2e1420860:stdout",
+      "0bb569af6abd4b6893e70bb2e1420860:stdout-tail",
+      "0bb569af6abd4b6893e70bb2e1420860:stderr",
+      "0bb569af6abd4b6893e70bb2e1420860:stderr-tail",
+      "0bb569af6abd4b6893e70bb2e1420860:receipt",
+      "0bb569af6abd4b6893e70bb2e1420860:build-result"
+    ],
+    "started": 1794466366.5593834,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "358bf4e9da5d484385c7ba422522975b",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794471382.7934337,
+    "fingerprint": "f16e598e1ef1c01700534ba1b400a1332536c7e1e17645d071cb92d5b899fa19",
+    "history": [
+      {
+        "created": 1794471164.3166134,
+        "state": "queued"
+      },
+      {
+        "created": 1794471184.169314,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794471382.7934337,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "expert-fill-build-1",
+    "jobq_id": "job-9ee15c3c4832432b8570c90376e7edcd",
+    "kind": "build",
+    "owner": {
+      "pgid": 1052728,
+      "pid": 1052728,
+      "runner_pid": 1052726,
+      "wrapper_pgid": 1052727
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "c0427fe6cf7fb61ae9c0d38b2b098762865d7c56",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+      },
+      "tag": "factory/llamacpp:bd173c08-fill-c0427fe6",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/6d14857a428e8c6c496b8bb42d6d82d8572f0e542b109f42371c920741ca40d2.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "358bf4e9da5d484385c7ba422522975b:request",
+      "358bf4e9da5d484385c7ba422522975b:prep",
+      "358bf4e9da5d484385c7ba422522975b:build-record",
+      "358bf4e9da5d484385c7ba422522975b:stdout",
+      "358bf4e9da5d484385c7ba422522975b:stdout-tail",
+      "358bf4e9da5d484385c7ba422522975b:stderr",
+      "358bf4e9da5d484385c7ba422522975b:stderr-tail",
+      "358bf4e9da5d484385c7ba422522975b:receipt",
+      "358bf4e9da5d484385c7ba422522975b:build-result"
+    ],
+    "started": 1794471184.169314,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "4897fdab8f804ff4918d0586f69bcdbb",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794466799.5720406,
+    "fingerprint": "c5a7902c969572348fbfe61770ab29d6d808b6f0eba39c98c70ba846f7879708",
+    "history": [
+      {
+        "created": 1794466642.8108842,
+        "state": "queued"
+      },
+      {
+        "created": 1794466662.3066652,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794466799.5720406,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "bare-fixed-eval-1",
+    "jobq_id": "job-2e41d5948e144134ba14b06cb33bc2ba",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1039944,
+      "pid": 1039944,
+      "runner_pid": 1039942,
+      "wrapper_pgid": 1039943
+    },
+    "request": {
+      "admission": {
+        "admission_id": "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+        "architecture": "arm64",
+        "build_attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+        "delivery": "same_host_local_image",
+        "image": {
+          "id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+          "tag": "factory/llamacpp:bd173c08-bare-cf34d3113"
+        },
+        "target_profile": "jetson-orin",
+        "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+      },
+      "argv": [
+        "-m",
+        "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "-f",
+        "/om/prompts/p1.txt",
+        "-n",
+        "64",
+        "-c",
+        "4096",
+        "--temp",
+        "0",
+        "-s",
+        "1",
+        "-no-cnv",
+        "-ngl",
+        "99",
+        "-lm",
+        "mmap",
+        "-cmoe",
+        "-lv",
+        "4"
+      ],
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "env": {},
+      "role": "candidate"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.lab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--admission",
+        "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+        "--contract",
+        "qwen36-bare-greedy-v1",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/1de205f73c86164cda37a7b97206b2441d8407140d496c1413fcd246e9a64553.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 1800
+    },
+    "result_refs": [
+      "4897fdab8f804ff4918d0586f69bcdbb:manifest.json",
+      "4897fdab8f804ff4918d0586f69bcdbb:cmd.txt",
+      "4897fdab8f804ff4918d0586f69bcdbb:config.json",
+      "4897fdab8f804ff4918d0586f69bcdbb:container.id",
+      "4897fdab8f804ff4918d0586f69bcdbb:launcher.stderr.txt",
+      "4897fdab8f804ff4918d0586f69bcdbb:launcher.stdout.txt",
+      "4897fdab8f804ff4918d0586f69bcdbb:result.json",
+      "4897fdab8f804ff4918d0586f69bcdbb:stderr.txt",
+      "4897fdab8f804ff4918d0586f69bcdbb:stdout.txt",
+      "4897fdab8f804ff4918d0586f69bcdbb:telemetry.jsonl",
+      "4897fdab8f804ff4918d0586f69bcdbb:threads.jsonl",
+      "4897fdab8f804ff4918d0586f69bcdbb:threads.log",
+      "4897fdab8f804ff4918d0586f69bcdbb:threads.summary.json",
+      "4897fdab8f804ff4918d0586f69bcdbb:watchdog.jsonl",
+      "4897fdab8f804ff4918d0586f69bcdbb:worker.json",
+      "4897fdab8f804ff4918d0586f69bcdbb:observation",
+      "4897fdab8f804ff4918d0586f69bcdbb:evaluation"
+    ],
+    "started": 1794466662.3066652,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "59153d88dcc742cf93ec2c6be1a2245c",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794476555.5763574,
+    "fingerprint": "4278b498a366b75baba9af1ebfc3407c461f852d1234045e1203ab366ed30aaf",
+    "history": [
+      {
+        "created": 1794476391.607445,
+        "state": "queued"
+      },
+      {
+        "created": 1794476419.1873283,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794476555.5763574,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "restored-final-eval-1",
+    "jobq_id": "job-eec5154a89f5402f9063973cf07527f5",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1071115,
+      "pid": 1071115,
+      "runner_pid": 1071112,
+      "wrapper_pgid": 1071114
+    },
+    "request": {
+      "admission": {
+        "admission_id": "admission:097a7ab1654dfb8005d0bf214cff05ff77897693cf3a269d42b791500fe30ca5",
+        "architecture": "arm64",
+        "build_attempt_id": "9327eba6d0474bfea5d0da19d95fcf17",
+        "delivery": "same_host_local_image",
+        "image": {
+          "id": "sha256:1274abb8e54de0e9ae745c915ba93fa4276abe2cb021774ada737a5a7208f73d",
+          "tag": "factory/llamacpp:bd173c08-restored-0b514fba"
+        },
+        "target_profile": "jetson-orin",
+        "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+      },
+      "argv": [
+        "-m",
+        "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "-f",
+        "/om/prompts/p1.txt",
+        "-n",
+        "64",
+        "-c",
+        "4096",
+        "--temp",
+        "0",
+        "-s",
+        "1",
+        "-no-cnv",
+        "-ngl",
+        "99",
+        "-lm",
+        "mmap",
+        "-cmoe",
+        "-lv",
+        "4"
+      ],
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "env": {
+        "LLAMA_EXPERT_FILL": "1",
+        "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+        "LLAMA_EXPERT_FILL_DIAG": "0",
+        "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+        "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+        "LLAMA_EXPERT_FILL_POPULATE": "0",
+        "LLAMA_EXPERT_FILL_RANDOM": "decode",
+        "LLAMA_EXPERT_FILL_THREADS": "16",
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+        "LLAMA_EXPERT_PREGATE": "1",
+        "LLAMA_EXPERT_PREGATE_K": "8",
+        "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+        "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+        "LLAMA_EXPERT_PREGATE_ORDER": "after",
+        "LLAMA_MMAP_ADVICE": "default"
+      },
+      "role": "candidate"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.lab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--admission",
+        "admission:097a7ab1654dfb8005d0bf214cff05ff77897693cf3a269d42b791500fe30ca5",
+        "--contract",
+        "qwen36-bare-greedy-v1",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/63b016280fd2e1c46df44702d74f5f09a5da6ff9ac123dae60aaef29625ed957.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 1800
+    },
+    "result_refs": [
+      "59153d88dcc742cf93ec2c6be1a2245c:manifest.json",
+      "59153d88dcc742cf93ec2c6be1a2245c:cmd.txt",
+      "59153d88dcc742cf93ec2c6be1a2245c:config.json",
+      "59153d88dcc742cf93ec2c6be1a2245c:container.id",
+      "59153d88dcc742cf93ec2c6be1a2245c:launcher.stderr.txt",
+      "59153d88dcc742cf93ec2c6be1a2245c:launcher.stdout.txt",
+      "59153d88dcc742cf93ec2c6be1a2245c:result.json",
+      "59153d88dcc742cf93ec2c6be1a2245c:stderr.txt",
+      "59153d88dcc742cf93ec2c6be1a2245c:stdout.txt",
+      "59153d88dcc742cf93ec2c6be1a2245c:telemetry.jsonl",
+      "59153d88dcc742cf93ec2c6be1a2245c:threads.jsonl",
+      "59153d88dcc742cf93ec2c6be1a2245c:threads.log",
+      "59153d88dcc742cf93ec2c6be1a2245c:threads.summary.json",
+      "59153d88dcc742cf93ec2c6be1a2245c:watchdog.jsonl",
+      "59153d88dcc742cf93ec2c6be1a2245c:worker.json",
+      "59153d88dcc742cf93ec2c6be1a2245c:observation",
+      "59153d88dcc742cf93ec2c6be1a2245c:evaluation"
+    ],
+    "started": 1794476419.1873283,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "6a4290775a9c43e6b03c2e9dd6d1bdea",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794474350.2601714,
+    "fingerprint": "482cf98ab1a2dbe39806822fe12b0964573d143ee448a08120de2950dd31524e",
+    "history": [
+      {
+        "created": 1794473102.7223747,
+        "state": "queued"
+      },
+      {
+        "created": 1794473124.3783815,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794474350.2601714,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "expert-pregate-ab-1",
+    "jobq_id": "job-cc6232dfa41e4f58a6ba551877ca4aba",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1060228,
+      "pid": 1060228,
+      "runner_pid": 1060225,
+      "wrapper_pgid": 1060226
+    },
+    "request": {
+      "admissions": {
+        "base": {
+          "admission_id": "admission:35efd25ef177ce01e9c2407342abdd116d000219549ccf8eda488b5bdbba1a84",
+          "architecture": "arm64",
+          "build_attempt_id": "358bf4e9da5d484385c7ba422522975b",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+            "tag": "factory/llamacpp:bd173c08-fill-c0427fe6"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        },
+        "candidate": {
+          "admission_id": "admission:c2644e5dded0a4d8ac83cb2ecc5aa609c87a0440df3b6a598f920464d7b65ee3",
+          "architecture": "arm64",
+          "build_attempt_id": "f4530d71c9e4478e9d4ca881b8d65f2c",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+            "tag": "factory/llamacpp:bd173c08-pregate-6e9d96cf"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        }
+      },
+      "component": "expert_pregate",
+      "component_material": {
+        "base": {
+          "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+          "repo": "https://github.com/ggml-org/llama.cpp"
+        },
+        "correctness_obligation": "identical greedy stdout",
+        "depends_on": [
+          "expert_fill"
+        ],
+        "enable_env": {
+          "LLAMA_EXPERT_PREGATE": "1",
+          "LLAMA_EXPERT_PREGATE_K": "8",
+          "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+          "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+          "LLAMA_EXPERT_PREGATE_ORDER": "after"
+        },
+        "engagement_checks": [
+          {
+            "regex": "expert_pregate: active",
+            "source": "stderr"
+          },
+          {
+            "regex": "expert_config: effective .*pregate=1 ",
+            "source": "stderr"
+          },
+          {
+            "regex": "expert_pregate: stats predictions=[1-9][0-9]*",
+            "source": "stderr"
+          }
+        ],
+        "env_ranges": {
+          "LLAMA_EXPERT_PREGATE": "0|1",
+          "LLAMA_EXPERT_PREGATE_K": "1..32",
+          "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1..2",
+          "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "1..64 (also capped by fill threads)",
+          "LLAMA_EXPERT_PREGATE_ORDER": "after|before",
+          "validation": "08 validates all LLAMA_EXPERT_* names and values even when disabled"
+        },
+        "hypothesis": "Predict upcoming expert routes and schedule bounded asynchronous reads ahead of demand.",
+        "measure": "perf",
+        "patches": [
+          {
+            "file": "06-pregate.patch",
+            "sha256": "ee40edd569e704018556d6341830d6df24a2ece0bca7acebe6cd7604c99247ba"
+          },
+          {
+            "file": "07-pregate-sched.patch",
+            "sha256": "21628cd1e075ad66610bedc315ba9d8d421d59d2f56395c7bf73b576f7c92c42"
+          },
+          {
+            "file": "08-pregate-observe.patch",
+            "sha256": "e5fab81608abaec4cfeade2a168e9f5fc44b2042f0edd57344527649f392cc06"
+          }
+        ],
+        "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+      },
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "mode": "ab",
+      "spec": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "arms": {
+          "base": {
+            "env": {
+              "LLAMA_EXPERT_FILL": "1",
+              "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+              "LLAMA_EXPERT_FILL_DIAG": "0",
+              "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+              "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+              "LLAMA_EXPERT_FILL_POPULATE": "0",
+              "LLAMA_EXPERT_FILL_RANDOM": "decode",
+              "LLAMA_EXPERT_FILL_THREADS": "16",
+              "LLAMA_EXPERT_PREFETCH": "0",
+              "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+              "LLAMA_MMAP_ADVICE": "default"
+            },
+            "expect_switch": false,
+            "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c"
+          },
+          "candidate": {
+            "env": {
+              "LLAMA_EXPERT_FILL": "1",
+              "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+              "LLAMA_EXPERT_FILL_DIAG": "0",
+              "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+              "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+              "LLAMA_EXPERT_FILL_POPULATE": "0",
+              "LLAMA_EXPERT_FILL_RANDOM": "decode",
+              "LLAMA_EXPERT_FILL_THREADS": "16",
+              "LLAMA_EXPERT_PREFETCH": "0",
+              "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+              "LLAMA_EXPERT_PREGATE": "1",
+              "LLAMA_EXPERT_PREGATE_K": "8",
+              "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+              "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+              "LLAMA_EXPERT_PREGATE_ORDER": "after",
+              "LLAMA_MMAP_ADVICE": "default"
+            },
+            "expect_switch": true,
+            "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+            "switch_regex": [
+              "expert_pregate: active",
+              "expert_config: effective .*pregate=1 ",
+              "expert_pregate: stats predictions=[1-9][0-9]*"
+            ]
+          }
+        },
+        "direction": "lower",
+        "id": "ab",
+        "metric": "eval_ms_per_token",
+        "order": "ABBA",
+        "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+        "rounds": 2,
+        "runner": "om_run",
+        "threads": true,
+        "tool": "llama-completion"
+      }
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.ab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/de1d7387d3e213ad15227cb275be86c8b3566df52b0a29e868c484c23b690d52.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 14400
+    },
+    "result_refs": [
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:manifest.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/001-base/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/003-candidate/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/004-base/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/005-base/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/006-candidate/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/007-candidate/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/cmd.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/container.id",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/result.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/telemetry.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/threads.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/threads.log",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/threads.summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/008-base/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/REPORT.md",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/spec.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/verdict.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:config.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:launcher.stderr.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:launcher.stdout.txt",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:spec.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:worker.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:observation",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation"
+    ],
+    "started": 1794473124.3783815,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "6d79f9e223914ca6b5532026d0063f1a",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794467144.302457,
+    "fingerprint": "cef43de08e7309b02f2b2a1a41c884a2929b89a4f2a5af22792d401cbeaeac80",
+    "history": [
+      {
+        "created": 1794466917.6265144,
+        "state": "queued"
+      },
+      {
+        "created": 1794466937.1572804,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794467144.302457,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "mmap-advice-build-1",
+    "jobq_id": "job-cd05df130529464a89b9d72d394911f6",
+    "kind": "build",
+    "owner": {
+      "pgid": 1040690,
+      "pid": 1040690,
+      "runner_pid": 1040688,
+      "wrapper_pgid": 1040689
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "93a61111ed31b9017e16f0cf8ac47f7dd0af2077",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "c9ddd710efad4bfaf402bed1f182b6a35a4fad68"
+      },
+      "tag": "factory/llamacpp:bd173c08-mmap-93a61111",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/023048d09da347a4492791bf9bdf40a7b8228b5b77fe6c70d02c5748525effa4.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "6d79f9e223914ca6b5532026d0063f1a:request",
+      "6d79f9e223914ca6b5532026d0063f1a:prep",
+      "6d79f9e223914ca6b5532026d0063f1a:build-record",
+      "6d79f9e223914ca6b5532026d0063f1a:stdout",
+      "6d79f9e223914ca6b5532026d0063f1a:stdout-tail",
+      "6d79f9e223914ca6b5532026d0063f1a:stderr",
+      "6d79f9e223914ca6b5532026d0063f1a:stderr-tail",
+      "6d79f9e223914ca6b5532026d0063f1a:receipt",
+      "6d79f9e223914ca6b5532026d0063f1a:build-result"
+    ],
+    "started": 1794466937.1572804,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "9327eba6d0474bfea5d0da19d95fcf17",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794476327.030175,
+    "fingerprint": "67ea084710dc0c46790f5b94c3dcf239cd1be051e14cafc127663f1bc4c843a8",
+    "history": [
+      {
+        "created": 1794476109.963295,
+        "state": "queued"
+      },
+      {
+        "created": 1794476132.1294997,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794476327.030175,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "restored-best-build-1",
+    "jobq_id": "job-0fe1cd33a89243f2856391e81dec8832",
+    "kind": "build",
+    "owner": {
+      "pgid": 1069056,
+      "pid": 1069056,
+      "runner_pid": 1069054,
+      "wrapper_pgid": 1069055
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "0b514fba8cf6402bf059665669912d4ceba050c3",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "86ed6e3888f176c1c03021509d0843de62f0447f"
+      },
+      "tag": "factory/llamacpp:bd173c08-restored-0b514fba",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/4967285a7c528ab2c6f4495a574da9c9829c8b55444c98953c7f50170ac9b819.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "9327eba6d0474bfea5d0da19d95fcf17:request",
+      "9327eba6d0474bfea5d0da19d95fcf17:prep",
+      "9327eba6d0474bfea5d0da19d95fcf17:build-record",
+      "9327eba6d0474bfea5d0da19d95fcf17:stdout",
+      "9327eba6d0474bfea5d0da19d95fcf17:stdout-tail",
+      "9327eba6d0474bfea5d0da19d95fcf17:stderr",
+      "9327eba6d0474bfea5d0da19d95fcf17:stderr-tail",
+      "9327eba6d0474bfea5d0da19d95fcf17:receipt",
+      "9327eba6d0474bfea5d0da19d95fcf17:build-result"
+    ],
+    "started": 1794476132.1294997,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "c585f168b5cf4d27adcd7688206e9b68",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794476017.256032,
+    "fingerprint": "8c4b50f067fed55cbbfce682b9a8fc9863a7f0a08b99472067592522d30d908c",
+    "history": [
+      {
+        "created": 1794474759.778161,
+        "state": "queued"
+      },
+      {
+        "created": 1794474783.9930234,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794476017.256032,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "thread-names-ab-1",
+    "jobq_id": "job-2b5920724c3c414d8903a68dcb11178e",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1065705,
+      "pid": 1065705,
+      "runner_pid": 1065702,
+      "wrapper_pgid": 1065704
+    },
+    "request": {
+      "admissions": {
+        "base": {
+          "admission_id": "admission:c2644e5dded0a4d8ac83cb2ecc5aa609c87a0440df3b6a598f920464d7b65ee3",
+          "architecture": "arm64",
+          "build_attempt_id": "f4530d71c9e4478e9d4ca881b8d65f2c",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+            "tag": "factory/llamacpp:bd173c08-pregate-6e9d96cf"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        },
+        "candidate": {
+          "admission_id": "admission:465f1be7bb871ac550c4faaf4166334f89b8bf829ddc5575f4871b4afeb09b3d",
+          "architecture": "arm64",
+          "build_attempt_id": "cc3a14f907df45bba9d8fbac6f3125be",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+            "tag": "factory/llamacpp:bd173c08-names-133b42ae"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        }
+      },
+      "component": "thread_names",
+      "component_material": {
+        "base": {
+          "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+          "repo": "https://github.com/ggml-org/llama.cpp"
+        },
+        "correctness_obligation": "identical greedy stdout",
+        "dependency_note": "Patch 09 applies to the worker context introduced by patch 06; expert_pregate is a source prerequisite even when disabled at runtime.",
+        "depends_on": [
+          "expert_fill",
+          "expert_pregate"
+        ],
+        "enable_env": {},
+        "engagement_checks": [
+          {
+            "regex": "^xfill-[0-9]+$",
+            "source": "threads"
+          }
+        ],
+        "hypothesis": "Name fill workers so the sampler can attribute scheduling and page faults to them.",
+        "measure": "none",
+        "patches": [
+          {
+            "file": "09-thread-names.patch",
+            "sha256": "0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030"
+          }
+        ],
+        "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+      },
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "mode": "ab",
+      "spec": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "arms": {
+          "base": {
+            "env": {
+              "LLAMA_EXPERT_FILL": "1",
+              "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+              "LLAMA_EXPERT_FILL_DIAG": "0",
+              "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+              "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+              "LLAMA_EXPERT_FILL_POPULATE": "0",
+              "LLAMA_EXPERT_FILL_RANDOM": "decode",
+              "LLAMA_EXPERT_FILL_THREADS": "16",
+              "LLAMA_EXPERT_PREFETCH": "0",
+              "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+              "LLAMA_EXPERT_PREGATE": "1",
+              "LLAMA_EXPERT_PREGATE_K": "8",
+              "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+              "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+              "LLAMA_EXPERT_PREGATE_ORDER": "after",
+              "LLAMA_MMAP_ADVICE": "default"
+            },
+            "expect_switch": false,
+            "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5"
+          },
+          "candidate": {
+            "env": {
+              "LLAMA_EXPERT_FILL": "1",
+              "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+              "LLAMA_EXPERT_FILL_DIAG": "0",
+              "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+              "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+              "LLAMA_EXPERT_FILL_POPULATE": "0",
+              "LLAMA_EXPERT_FILL_RANDOM": "decode",
+              "LLAMA_EXPERT_FILL_THREADS": "16",
+              "LLAMA_EXPERT_PREFETCH": "0",
+              "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+              "LLAMA_EXPERT_PREGATE": "1",
+              "LLAMA_EXPERT_PREGATE_K": "8",
+              "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+              "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+              "LLAMA_EXPERT_PREGATE_ORDER": "after",
+              "LLAMA_MMAP_ADVICE": "default"
+            },
+            "expect_switch": false,
+            "image": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+            "switch_regex": []
+          }
+        },
+        "direction": "lower",
+        "id": "ab",
+        "metric": "eval_ms_per_token",
+        "order": "ABBA",
+        "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+        "rounds": 2,
+        "runner": "om_run",
+        "threads": true,
+        "tool": "llama-completion"
+      }
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.ab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/28fd962391b33284980298a6eba6f528ecede03c224fbfe3d840fd55140079f9.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 14400
+    },
+    "result_refs": [
+      "c585f168b5cf4d27adcd7688206e9b68:manifest.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/001-base/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/004-base/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/005-base/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/cmd.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/container.id",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/result.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/telemetry.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/threads.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/threads.log",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/008-base/watchdog.jsonl",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/REPORT.md",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/spec.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/verdict.json",
+      "c585f168b5cf4d27adcd7688206e9b68:config.json",
+      "c585f168b5cf4d27adcd7688206e9b68:launcher.stderr.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:launcher.stdout.txt",
+      "c585f168b5cf4d27adcd7688206e9b68:spec.json",
+      "c585f168b5cf4d27adcd7688206e9b68:worker.json",
+      "c585f168b5cf4d27adcd7688206e9b68:observation",
+      "c585f168b5cf4d27adcd7688206e9b68:evaluation"
+    ],
+    "started": 1794474783.9930234,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "cc3a14f907df45bba9d8fbac6f3125be",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794474699.0966887,
+    "fingerprint": "91d47a3b0882a5cfac0e3afa94ade94493205b012045e1a4a4672cef5ed24372",
+    "history": [
+      {
+        "created": 1794474471.8854303,
+        "state": "queued"
+      },
+      {
+        "created": 1794474495.0664756,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794474699.0966887,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "thread-names-build-1",
+    "jobq_id": "job-fc82df5497de42dfb705c99fab5910de",
+    "kind": "build",
+    "owner": {
+      "pgid": 1063616,
+      "pid": 1063616,
+      "runner_pid": 1063614,
+      "wrapper_pgid": 1063615
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "133b42aed56dea09c2c6643f6cda60b18cf21bdf",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+      },
+      "tag": "factory/llamacpp:bd173c08-names-133b42ae",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/4fae8e5129b14158174638b4c5fd8cd6ad5a9779de1241952cdea0e474c81405.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "cc3a14f907df45bba9d8fbac6f3125be:request",
+      "cc3a14f907df45bba9d8fbac6f3125be:prep",
+      "cc3a14f907df45bba9d8fbac6f3125be:build-record",
+      "cc3a14f907df45bba9d8fbac6f3125be:stdout",
+      "cc3a14f907df45bba9d8fbac6f3125be:stdout-tail",
+      "cc3a14f907df45bba9d8fbac6f3125be:stderr",
+      "cc3a14f907df45bba9d8fbac6f3125be:stderr-tail",
+      "cc3a14f907df45bba9d8fbac6f3125be:receipt",
+      "cc3a14f907df45bba9d8fbac6f3125be:build-result"
+    ],
+    "started": 1794474495.0664756,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "d96acb1a5af849ea940ec98eaff03073",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794468993.0850103,
+    "fingerprint": "83cb8fa56d204785329d9b197d011088b9967ddecf0c72a63a7709f4da256c3a",
+    "history": [
+      {
+        "created": 1794467216.1652179,
+        "state": "queued"
+      },
+      {
+        "created": 1794467236.7292075,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794468993.0850103,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "mmap-advice-ab-1",
+    "jobq_id": "job-c53ac8961afa42469a6a4f135664bb9a",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1042916,
+      "pid": 1042916,
+      "runner_pid": 1042912,
+      "wrapper_pgid": 1042915
+    },
+    "request": {
+      "admissions": {
+        "base": {
+          "admission_id": "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+          "architecture": "arm64",
+          "build_attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+            "tag": "factory/llamacpp:bd173c08-bare-cf34d3113"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        },
+        "candidate": {
+          "admission_id": "admission:6cca637a67a92abd2f2f0ffc150994383d2babf028e617687cddc76387dcf050",
+          "architecture": "arm64",
+          "build_attempt_id": "6d79f9e223914ca6b5532026d0063f1a",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d",
+            "tag": "factory/llamacpp:bd173c08-mmap-93a61111"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        }
+      },
+      "component": "mmap_advice",
+      "component_material": {
+        "base": {
+          "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+          "repo": "https://github.com/ggml-org/llama.cpp"
+        },
+        "correctness_obligation": "identical greedy stdout",
+        "depends_on": [],
+        "enable_env": {
+          "LLAMA_MMAP_ADVICE": "random"
+        },
+        "engagement_checks": [
+          {
+            "regex": "llama_mmap: LLAMA_MMAP_ADVICE=random",
+            "source": "stderr"
+          }
+        ],
+        "env_ranges": {
+          "LLAMA_MMAP_ADVICE": "random enables; any other value keeps default advice"
+        },
+        "hypothesis": "Suppress speculative sequential readahead so sparse expert access fetches fewer irrelevant pages.",
+        "measure": "perf",
+        "patches": [
+          {
+            "file": "01-mmap-advice-random.patch",
+            "sha256": "1554b5b6a5b9efc0d487453408db83a23cd00cffd29d021e5cce90d513211452"
+          }
+        ],
+        "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+      },
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "mode": "ab",
+      "spec": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "arms": {
+          "base": {
+            "env": {},
+            "expect_switch": false,
+            "image": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998"
+          },
+          "candidate": {
+            "env": {
+              "LLAMA_MMAP_ADVICE": "random"
+            },
+            "expect_switch": true,
+            "image": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d",
+            "switch_regex": [
+              "llama_mmap: LLAMA_MMAP_ADVICE=random"
+            ]
+          }
+        },
+        "direction": "lower",
+        "id": "ab",
+        "metric": "eval_ms_per_token",
+        "order": "ABBA",
+        "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+        "rounds": 2,
+        "runner": "om_run",
+        "threads": true,
+        "tool": "llama-completion"
+      }
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.ab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/c683101684fe5c912d88c3f85f9a12545a8acfdef3dc7c067cd788c5428c4ed6.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 14400
+    },
+    "result_refs": [
+      "d96acb1a5af849ea940ec98eaff03073:manifest.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/001-base/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/002-candidate/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/003-candidate/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/004-base/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/005-base/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/006-candidate/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/007-candidate/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/cmd.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/container.id",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/result.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/telemetry.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/threads.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/threads.log",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/threads.summary.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/008-base/watchdog.jsonl",
+      "d96acb1a5af849ea940ec98eaff03073:ab/REPORT.md",
+      "d96acb1a5af849ea940ec98eaff03073:ab/spec.json",
+      "d96acb1a5af849ea940ec98eaff03073:ab/verdict.json",
+      "d96acb1a5af849ea940ec98eaff03073:config.json",
+      "d96acb1a5af849ea940ec98eaff03073:launcher.stderr.txt",
+      "d96acb1a5af849ea940ec98eaff03073:launcher.stdout.txt",
+      "d96acb1a5af849ea940ec98eaff03073:spec.json",
+      "d96acb1a5af849ea940ec98eaff03073:worker.json",
+      "d96acb1a5af849ea940ec98eaff03073:observation",
+      "d96acb1a5af849ea940ec98eaff03073:evaluation"
+    ],
+    "started": 1794467236.7292075,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "deb16a611ae34a9ea2dc16798645dca4",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794471031.96679,
+    "fingerprint": "d3e6fb9e840c331d183d1a88f9d2091d5f4442239b9b049fb60eae65c932e77d",
+    "history": [
+      {
+        "created": 1794469412.342223,
+        "state": "queued"
+      },
+      {
+        "created": 1794469431.8530176,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794471031.96679,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "router-prefetch-ab-1",
+    "jobq_id": "job-0ce47b4b99564faba133f670eb0f0c9b",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1049041,
+      "pid": 1049041,
+      "runner_pid": 1049038,
+      "wrapper_pgid": 1049040
+    },
+    "request": {
+      "admissions": {
+        "base": {
+          "admission_id": "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+          "architecture": "arm64",
+          "build_attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+            "tag": "factory/llamacpp:bd173c08-bare-cf34d3113"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        },
+        "candidate": {
+          "admission_id": "admission:bd221c8b41eb3b7b1629dc895a732b8d73499a9293321b26047880ef2f5b9ae0",
+          "architecture": "arm64",
+          "build_attempt_id": "06c525d46b8d407a9d3bcabfdc103334",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:69f6a4169f38ad87fcf690aeca1725c8e91da678b0316cbe727d793cbda56dc0",
+            "tag": "factory/llamacpp:bd173c08-router-5cded3e7"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        }
+      },
+      "component": "router_prefetch",
+      "component_material": {
+        "base": {
+          "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+          "repo": "https://github.com/ggml-org/llama.cpp"
+        },
+        "correctness_obligation": "identical greedy stdout",
+        "depends_on": [
+          "mmap_advice"
+        ],
+        "enable_env": {
+          "LLAMA_EXPERT_PREFETCH": "1",
+          "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+          "LLAMA_MMAP_ADVICE": "default"
+        },
+        "engagement_checks": [
+          {
+            "regex": "expert_prefetch: CPU host-consumer hook enabled",
+            "source": "stderr"
+          },
+          {
+            "regex": "expert_prefetch: advise calls=[1-9][0-9]*",
+            "source": "stderr"
+          }
+        ],
+        "env_ranges": {
+          "LLAMA_EXPERT_PREFETCH": "1 enables; otherwise off (08: strict 0|1)",
+          "LLAMA_EXPERT_PREFETCH_NEXT": "1 enables next-layer same-ID prediction; otherwise off (08: strict 0|1)"
+        },
+        "hypothesis": "Advise the selected host expert ranges before their CPU consumer touches them.",
+        "measure": "perf",
+        "patches": [
+          {
+            "file": "02-router-prefetch.patch",
+            "sha256": "9fce108d33c500f57ab48d4eab1c24a191b20f8268b13009d25255e957e42f99"
+          }
+        ],
+        "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+      },
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "mode": "ab",
+      "spec": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "arms": {
+          "base": {
+            "env": {},
+            "expect_switch": false,
+            "image": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998"
+          },
+          "candidate": {
+            "env": {
+              "LLAMA_EXPERT_PREFETCH": "1",
+              "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+              "LLAMA_MMAP_ADVICE": "default"
+            },
+            "expect_switch": true,
+            "image": "sha256:69f6a4169f38ad87fcf690aeca1725c8e91da678b0316cbe727d793cbda56dc0",
+            "switch_regex": [
+              "expert_prefetch: CPU host-consumer hook enabled",
+              "expert_prefetch: advise calls=[1-9][0-9]*"
+            ]
+          }
+        },
+        "direction": "lower",
+        "id": "ab",
+        "metric": "eval_ms_per_token",
+        "order": "ABBA",
+        "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+        "rounds": 2,
+        "runner": "om_run",
+        "threads": true,
+        "tool": "llama-completion"
+      }
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.ab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/16ca6a5f587418a561644405fad6d3a1bcb801951c6009199e133745cb7f14fb.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 14400
+    },
+    "result_refs": [
+      "deb16a611ae34a9ea2dc16798645dca4:manifest.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/001-base/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/003-candidate/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/004-base/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/005-base/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/006-candidate/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/007-candidate/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/cmd.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/container.id",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/result.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/telemetry.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/threads.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/threads.log",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/threads.summary.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/008-base/watchdog.jsonl",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/REPORT.md",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/spec.json",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/verdict.json",
+      "deb16a611ae34a9ea2dc16798645dca4:config.json",
+      "deb16a611ae34a9ea2dc16798645dca4:launcher.stderr.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:launcher.stdout.txt",
+      "deb16a611ae34a9ea2dc16798645dca4:spec.json",
+      "deb16a611ae34a9ea2dc16798645dca4:worker.json",
+      "deb16a611ae34a9ea2dc16798645dca4:observation",
+      "deb16a611ae34a9ea2dc16798645dca4:evaluation"
+    ],
+    "started": 1794469431.8530176,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "f19094c82dee4a678443c71ea1a7694b",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794472673.4742558,
+    "fingerprint": "dae4d6071ead3f87d4e1b5f8559ef6c85c373ff0ab940124ff08aae8435abfde",
+    "history": [
+      {
+        "created": 1794471440.4748476,
+        "state": "queued"
+      },
+      {
+        "created": 1794471461.3159454,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794472673.4742558,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "expert-fill-ab-1",
+    "jobq_id": "job-184813a3322b44e3a2f8393e5f45eef8",
+    "kind": "lab",
+    "owner": {
+      "pgid": 1054758,
+      "pid": 1054758,
+      "runner_pid": 1054756,
+      "wrapper_pgid": 1054757
+    },
+    "request": {
+      "admissions": {
+        "base": {
+          "admission_id": "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+          "architecture": "arm64",
+          "build_attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+            "tag": "factory/llamacpp:bd173c08-bare-cf34d3113"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        },
+        "candidate": {
+          "admission_id": "admission:35efd25ef177ce01e9c2407342abdd116d000219549ccf8eda488b5bdbba1a84",
+          "architecture": "arm64",
+          "build_attempt_id": "358bf4e9da5d484385c7ba422522975b",
+          "delivery": "same_host_local_image",
+          "image": {
+            "id": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+            "tag": "factory/llamacpp:bd173c08-fill-c0427fe6"
+          },
+          "target_profile": "jetson-orin",
+          "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+        }
+      },
+      "component": "expert_fill",
+      "component_material": {
+        "base": {
+          "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+          "repo": "https://github.com/ggml-org/llama.cpp"
+        },
+        "correctness_obligation": "identical greedy stdout",
+        "depends_on": [
+          "mmap_advice",
+          "router_prefetch"
+        ],
+        "enable_env": {
+          "LLAMA_EXPERT_FILL": "1",
+          "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+          "LLAMA_EXPERT_FILL_DIAG": "0",
+          "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+          "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+          "LLAMA_EXPERT_FILL_POPULATE": "0",
+          "LLAMA_EXPERT_FILL_RANDOM": "decode",
+          "LLAMA_EXPERT_FILL_THREADS": "16",
+          "LLAMA_EXPERT_PREFETCH": "0",
+          "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+          "LLAMA_MMAP_ADVICE": "default"
+        },
+        "engagement_checks": [
+          {
+            "regex": "expert_fill: active",
+            "source": "stderr"
+          },
+          {
+            "regex": "expert_fill: random advice applied at decode",
+            "source": "stderr"
+          },
+          {
+            "regex": "expert_fill: stats calls=[1-9][0-9]*",
+            "source": "stderr"
+          }
+        ],
+        "env_ranges": {
+          "LLAMA_EXPERT_FILL": "0|1",
+          "LLAMA_EXPERT_FILL_CHUNK_KIB": "03: 1..65536, otherwise fallback 1024; 08: strict 64..65536",
+          "LLAMA_EXPERT_FILL_DIAG": "0|1",
+          "LLAMA_EXPERT_FILL_DIAG_CSV": "nonempty path; optional; only used with diagnostics",
+          "LLAMA_EXPERT_FILL_MAX_TOKENS": "04: unsigned integer, 0 unlimited; 08: 0..2147483647",
+          "LLAMA_EXPERT_FILL_MIN_TOKENS": "04: unsigned integer, 0 unlimited; 08: 0..2147483647",
+          "LLAMA_EXPERT_FILL_POPULATE": "0|1",
+          "LLAMA_EXPERT_FILL_RANDOM": "0|1|decode (decode added by 04)",
+          "LLAMA_EXPERT_FILL_THREADS": "03: 1..256, otherwise fallback 8; 08: strict 1..64"
+        },
+        "hypothesis": "Fill nonresident selected expert ranges through buffered parallel reads before demand computation.",
+        "measure": "perf",
+        "patches": [
+          {
+            "file": "03-expert-fill.patch",
+            "sha256": "de969b13d381df8e43c18bb195fb215527b899978bf15549e2a2874fb21f5182"
+          },
+          {
+            "file": "04-fill-phase.patch",
+            "sha256": "0439854fc1d22d0a600c99833817425e1eec223e563180e2bc6574cd9b4a3065"
+          },
+          {
+            "file": "05-fill-diag.patch",
+            "sha256": "2bd97b511d7159cd131c66472e29e74678fad9e083e46fdd7c749557ec2583fd"
+          }
+        ],
+        "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+      },
+      "contract": {
+        "contract_id": "qwen36-bare-greedy-v1",
+        "engagement_checks": [],
+        "model": {
+          "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "sha256": null,
+          "size": 22360456160
+        },
+        "pre_freeze_revisions": [
+          {
+            "at": "2026-11-12",
+            "by": "operator",
+            "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+            "evidence": "operator-bare-build task"
+          }
+        ],
+        "reference": {
+          "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311",
+          "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+          "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+        },
+        "reference_image": {
+          "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+          "image_tag": "factory/llamacpp:bare-cf34d311"
+        },
+        "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+        "tolerance": "byte-identical stdout",
+        "version": 1,
+        "workload": {
+          "argv": [
+            "-m",
+            "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+            "-f",
+            "/om/prompts/p1.txt",
+            "-n",
+            "64",
+            "-c",
+            "4096",
+            "--temp",
+            "0",
+            "-s",
+            "1",
+            "-no-cnv",
+            "-ngl",
+            "99",
+            "-lm",
+            "mmap",
+            "-cmoe",
+            "-lv",
+            "4"
+          ],
+          "env": {},
+          "tool": "llama-completion"
+        }
+      },
+      "mode": "ab",
+      "spec": {
+        "argv": [
+          "-m",
+          "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+          "-f",
+          "/om/prompts/p1.txt",
+          "-n",
+          "64",
+          "-c",
+          "4096",
+          "--temp",
+          "0",
+          "-s",
+          "1",
+          "-no-cnv",
+          "-ngl",
+          "99",
+          "-lm",
+          "mmap",
+          "-cmoe",
+          "-lv",
+          "4"
+        ],
+        "arms": {
+          "base": {
+            "env": {},
+            "expect_switch": false,
+            "image": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998"
+          },
+          "candidate": {
+            "env": {
+              "LLAMA_EXPERT_FILL": "1",
+              "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+              "LLAMA_EXPERT_FILL_DIAG": "0",
+              "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+              "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+              "LLAMA_EXPERT_FILL_POPULATE": "0",
+              "LLAMA_EXPERT_FILL_RANDOM": "decode",
+              "LLAMA_EXPERT_FILL_THREADS": "16",
+              "LLAMA_EXPERT_PREFETCH": "0",
+              "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+              "LLAMA_MMAP_ADVICE": "default"
+            },
+            "expect_switch": true,
+            "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+            "switch_regex": [
+              "expert_fill: active",
+              "expert_fill: random advice applied at decode",
+              "expert_fill: stats calls=[1-9][0-9]*"
+            ]
+          }
+        },
+        "direction": "lower",
+        "id": "ab",
+        "metric": "eval_ms_per_token",
+        "order": "ABBA",
+        "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+        "rounds": 2,
+        "runner": "om_run",
+        "threads": true,
+        "tool": "llama-completion"
+      }
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.ab_runner",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--run",
+        "{attempt_id}",
+        "--config",
+        "/home/muk/.jiuwenswarm-factory/lab-spool/configs/f480c06be8f091ea427a871d95c49da591b8a5f4d01a2c5ec98b35533a174378.json",
+        "--spool",
+        "/home/muk/.jiuwenswarm-factory/lab-spool"
+      ],
+      "error": null,
+      "job_class": "gpu",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 14400
+    },
+    "result_refs": [
+      "f19094c82dee4a678443c71ea1a7694b:manifest.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/001-base/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/003-candidate/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/004-base/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/005-base/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/006-candidate/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/007-candidate/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/cmd.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/container.id",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/result.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/telemetry.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/threads.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/threads.log",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/threads.summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/008-base/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/REPORT.md",
+      "f19094c82dee4a678443c71ea1a7694b:ab/spec.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/verdict.json",
+      "f19094c82dee4a678443c71ea1a7694b:config.json",
+      "f19094c82dee4a678443c71ea1a7694b:launcher.stderr.txt",
+      "f19094c82dee4a678443c71ea1a7694b:launcher.stdout.txt",
+      "f19094c82dee4a678443c71ea1a7694b:spec.json",
+      "f19094c82dee4a678443c71ea1a7694b:worker.json",
+      "f19094c82dee4a678443c71ea1a7694b:observation",
+      "f19094c82dee4a678443c71ea1a7694b:evaluation"
+    ],
+    "started": 1794471461.3159454,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  },
+  {
+    "attempt_id": "f4530d71c9e4478e9d4ca881b8d65f2c",
+    "cleanup_state": "process_groups_reaped;containers_unverified",
+    "ended": 1794473043.9429827,
+    "fingerprint": "644d0e129822f02b3d6b9e51b9bf21ffbc17ba5f9326d0a87740b731e1a6ee4c",
+    "history": [
+      {
+        "created": 1794472824.2378864,
+        "state": "queued"
+      },
+      {
+        "created": 1794472844.7841501,
+        "previous": "queued",
+        "state": "running"
+      },
+      {
+        "created": 1794473043.9429827,
+        "previous": "running",
+        "state": "succeeded"
+      }
+    ],
+    "idem_key": "expert-pregate-build-1",
+    "jobq_id": "job-9c0882b765c0466d8c6287973fd31629",
+    "kind": "build",
+    "owner": {
+      "pgid": 1058178,
+      "pid": 1058178,
+      "runner_pid": 1058176,
+      "wrapper_pgid": 1058177
+    },
+    "request": {
+      "deadline_s": 3600,
+      "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+      "env": {
+        "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+      },
+      "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+      "source": {
+        "commit": "6e9d96cf4e007c74aab91bb59767247737a80f0f",
+        "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+        "tree": "86ed6e3888f176c1c03021509d0843de62f0447f"
+      },
+      "tag": "factory/llamacpp:bd173c08-pregate-6e9d96cf",
+      "target": "jetson-orin"
+    },
+    "resources": {
+      "argv": [
+        "/home/muk/projects/jiuwenswarm/.venv/bin/python",
+        "-m",
+        "jiuwenswarm.factory.build_job",
+        "--task",
+        "factory-bd173c082bf34ae3b8471938c19b8068",
+        "--attempt",
+        "{attempt_id}",
+        "--request",
+        "/home/muk/.jiuwenswarm-factory/requests/86067430fb1bdc421232f96a31af9302cc7545e1e81dda3a454befc26884f770.json"
+      ],
+      "error": null,
+      "job_class": "build",
+      "jobq_dir": "/home/muk/projects/siminfeng/lab/jobq",
+      "jobq_state": "succeeded",
+      "rc": 0,
+      "timeout_s": 3600
+    },
+    "result_refs": [
+      "f4530d71c9e4478e9d4ca881b8d65f2c:request",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:prep",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:build-record",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:stdout",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:stdout-tail",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:stderr",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:stderr-tail",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:receipt",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:build-result"
+    ],
+    "started": 1794472844.7841501,
+    "state": "succeeded",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  }
+]

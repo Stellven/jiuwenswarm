@@ -1,0 +1,62 @@
+cc: '2'
+id: factory.evidence
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  query:
+    does: Query bounded task-scoped evidence summaries and cursor.
+    takes:
+      kinds:
+        kind: json
+        optional: true
+      text:
+        kind: text
+        optional: true
+      since:
+        kind: json
+        optional: true
+      limit:
+        kind: json
+        optional: true
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      items: json
+      cursor: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  read:
+    does: Read a task-scoped evidence record, with bounded artifact preview.
+    takes:
+      id: text
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  publish:
+    does: Publish an immutable observation/artifact or compare-and-swap decision revision.
+    takes:
+      type: text
+      record: json
+      expected_rev:
+        kind: json
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec

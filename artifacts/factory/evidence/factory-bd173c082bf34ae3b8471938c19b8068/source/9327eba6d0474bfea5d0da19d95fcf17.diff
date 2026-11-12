@@ -1,0 +1,36 @@
+commit 0b514fba8cf6402bf059665669912d4ceba050c3
+Author:     Factory Agent <factory@localhost>
+AuthorDate: Thu Nov 12 09:34:39 2026 +0000
+Commit:     Factory Agent <factory@localhost>
+CommitDate: Thu Nov 12 09:34:39 2026 +0000
+
+    Revert worker names: observability only
+    
+    Reverts 133b42aed56dea09c2c6643f6cda60b18cf21bdf; measure none has no improved gate. Evidence c585f168b5cf4d27adcd7688206e9b68:evaluation.
+    
+    Assisted-by: Codex
+
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index 2397bef76..0f8be12dd 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -22,7 +22,6 @@
+ #include <string>
+ #include <sys/mman.h>
+ #include <sys/stat.h>
+-#include <pthread.h>
+ #include <thread>
+ #include <unistd.h>
+ #include <vector>
+@@ -435,11 +434,6 @@ private:
+         for (auto & t : workers_) { t.join(); }
+     }
+     void worker(size_t index) {
+-#if defined(__linux__)
+-        char name[16];
+-        snprintf(name, sizeof(name), "xfill-%zu", index);
+-        (void) pthread_setname_np(pthread_self(), name);
+-#endif
+         for (;;) {
+             Range job {};
+             Async async;

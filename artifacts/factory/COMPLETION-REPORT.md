@@ -6,6 +6,17 @@ cc_demo_ready: true — scoped: real agent → component CC → skill-guided int
 
 ai4r_lineage_and_migration_verified: true — `origin/AI4Research-Main` (141c1c40, unchanged on the remote at 2026-11-12T01:59Z) is an ancestor of the feature branch; donor removals/startup changes reviewed in LINEAGE.md; legacy M1 config fails with a migration error through the installed native entrypoint (live receipt); the full factory ran through the branch's native JiuwenSwarm path. This is **not** a merge: AI4Research-Main is unchanged; only `ai4r/iterative-cc-factory` is published.
 
+## Update 2026-11-12: bare-engine evolve (run 4, `factory-bd173c08…`): ACCEPT
+
+The agent started from bare llama.cpp `cf34d311`. It integrated five component CCs in dependency order and A/B-tested each on Qwen3.6-35B-A3B, using the `methodology_ab` CC with two ABBA rounds and an A/A noise floor. Its decisions:
+- **kept** expert_fill (1.11×) and expert_pregate (1.13×);
+- **held dormant** mmap_advice (0.49×) and router_prefetch (0.62×): switches off, code retained for dependents, checked against `depends_on`;
+- **reverted** thread_names (1.01×, not measured as a performance win).
+
+The final image is 785.22 ms/token against bare 903.95, with stdout byte-identical to the frozen reference `7a154179…` for all 9 lab jobs. The run took 175 minutes: 15 turns, 25 decision revisions, 7 builds of about 130 s each, no operator intervention. The agent refused to multiply incremental ratios into a cumulative claim. The bundle is `evidence/factory-bd173c082bf34ae3b8471938c19b8068/` (slim; the full export verified 604 files with a clean secrets scan). The demo script is DEMO-10MIN.md.
+
+Runs 1–3 failed honestly. Each failure was a tool problem, and each fix was a tool change: the grants refusal, `FACTORY_PYTHON`, and `keep_dormant`. Their recordings are kept.
+
 ## Implementation and pins
 
 The native path is `jiuwenswarm factory` → controller → CC-v2 tools → scoped evidence API / durable jobq → Builder or Manager → external lab runner → Manager ingestion → versioned agent decision. No AI4R adapter, registry service, M1 intent compiler or old capsule runtime was restored. The feature exception is [AMENDMENT.md](../../docs/architecture/factory/AMENDMENT.md).

@@ -1,0 +1,970 @@
+commit 6e9d96cf4e007c74aab91bb59767247737a80f0f
+Author:     Factory Agent <factory@localhost>
+AuthorDate: Thu Nov 12 08:40:00 2026 +0000
+Commit:     Factory Agent <factory@localhost>
+CommitDate: Thu Nov 12 08:40:00 2026 +0000
+
+    expert: integrate pregate component
+    
+    Patch-SHA256: ee40edd569e704018556d6341830d6df24a2ece0bca7acebe6cd7604c99247ba
+    Patch-SHA256: 21628cd1e075ad66610bedc315ba9d8d421d59d2f56395c7bf73b576f7c92c42
+    Patch-SHA256: e5fab81608abaec4cfeade2a168e9f5fc44b2042f0edd57344527649f392cc06
+    
+    Assisted-by: Codex
+
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index cfdc0a257..6a7ee5c51 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -195,6 +195,9 @@ llama_context::llama_context(
+     // TODO warning when creating llama_context with awkward ctx size that is not a power of 2,
+     //     may need to be backend-dependent
+     LLAMA_LOG_INFO("%s: constructing llama_context\n", __func__);
++#ifdef __linux__
++    expert_config.print(); // Exactly once per context, including disabled/default settings.
++#endif
+ 
+     t_start_us = model.t_start_us;
+     t_load_us  = model.t_load_us;
+@@ -645,8 +648,7 @@ llama_context::llama_context(
+ void llama_context::expert_fill_init() {
+     if (expert_fill_checked) { return; }
+     expert_fill_checked = true;
+-    const char * fill = getenv("LLAMA_EXPERT_FILL");
+-    if (!fill || strcmp(fill, "1") != 0) { return; }
++    if (!expert_config.fill) { return; }
+     try {
+         for (const auto & layer : model.layers) {
+             for (const ggml_tensor * w : {layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps}) {
+@@ -658,36 +660,28 @@ void llama_context::expert_fill_init() {
+                 }
+                 if (!expert_fillers.count(info.file_index)) {
+                     expert_fillers.emplace(info.file_index, std::make_unique<ExpertFiller>(
+-                        "/proc/self/fd/" + std::to_string(info.source_fd), info.mapping, info.mapping_size));
++                        "/proc/self/fd/" + std::to_string(info.source_fd), info.mapping, info.mapping_size, expert_config));
+                 }
+             }
+         }
+         if (expert_fillers.empty()) { throw std::runtime_error("no mmap-backed expert tensors"); }
+         expert_prefetch_layers.resize(model.layers.size());
+         expert_fill_enabled = true;
++        expert_pregate_init();
+         expert_diag_enabled = expert_fillers.begin()->second->diagnostic();
+         if (expert_diag_enabled) {
+-            const char * csv = getenv("LLAMA_EXPERT_FILL_DIAG_CSV");
+-            if (csv && *csv) {
+-                expert_diag_csv = fopen(csv, "w");
++            if (!expert_config.diag_csv.empty()) {
++                expert_diag_csv = fopen(expert_config.diag_csv.c_str(), "w");
+                 if (!expert_diag_csv) { throw std::runtime_error("cannot open diagnostic CSV"); }
+                 fprintf(expert_diag_csv, "token_idx,fill_ns,between_ns,majflt_fill,majflt_between,post_fill_nonresident_pages,pre_use_nonresident_pages,bytes_read\n");
+             }
+         }
+-        const char * random = getenv("LLAMA_EXPERT_FILL_RANDOM");
+-        expert_fill_random_decode = random && strcmp(random, "decode") == 0;
+-        auto token_limit = [](const char * name) -> uint64_t {
+-            const char * value = getenv(name);
+-            if (!value || !*value || *value == '-') { return 0; }
+-            char * end = nullptr; errno = 0;
+-            const auto n = strtoull(value, &end, 10);
+-            return errno || *end ? 0 : n;
+-        };
+-        expert_fill_min_tokens = token_limit("LLAMA_EXPERT_FILL_MIN_TOKENS");
+-        expert_fill_max_tokens = token_limit("LLAMA_EXPERT_FILL_MAX_TOKENS");
++        expert_fill_random_decode = expert_config.random == "decode";
++        expert_fill_min_tokens = expert_config.min_tokens;
++        expert_fill_max_tokens = expert_config.max_tokens;
+         const auto & filler = *expert_fillers.begin()->second;
+         LLAMA_LOG_INFO("expert_fill: active threads=%zu chunk_kib=%zu random=%s files=%zu\n",
+-            filler.threads(), filler.chunk_bytes() / 1024, expert_fill_random_decode ? "decode" : (random && strcmp(random, "1") == 0 ? "1" : "0"), expert_fillers.size());
++            filler.threads(), filler.chunk_bytes() / 1024, expert_config.random.c_str(), expert_fillers.size());
+     } catch (const std::exception & e) {
+         expert_fill_enabled = false; expert_diag_enabled = false;
+         if (expert_diag_csv) { fclose(expert_diag_csv); expert_diag_csv = nullptr; }
+@@ -696,6 +690,209 @@ void llama_context::expert_fill_init() {
+     }
+ }
+ 
++// Qwen35MoE (the Qwen3.6 GGUF uses this arch):
++// x_L = RMSNorm(attention_L + residual_L, attn_post_norm_L, eps).
++// logits = W*x, p = softmax(logits), ids = topk(p); no gate_inp_b,
++// no exp_probs_b, no groups. Selected weights are normalized AFTER top-k.
++// softmax is monotone, so ranking logits gives the same IDs (ties by ID).
++void llama_context::expert_pregate_init() {
++    if (!expert_config.pregate) { return; }
++    try {
++        if (model.arch != LLM_ARCH_QWEN35MOE || model.hparams.n_expert_groups > 1 || !loras->empty() || !model.hdmd.rot.empty()) {
++            throw std::runtime_error("pregate requires qwen35moe without groups, LoRA, or folded rotations");
++        }
++        expert_pregate_before = expert_config.order == "before";
++        expert_pregate_k = expert_config.k;
++        expert_pregate_layers.resize(model.hparams.n_layer()); // excludes unexecuted MTP blocks
++        const long page = sysconf(_SC_PAGESIZE);
++        if (page <= 0) { throw std::runtime_error("invalid page size"); }
++        // Decode/copy from file once, never GPU tensor data. Original mmap may have holes.
++        for (size_t il = 1; il < expert_pregate_layers.size(); ++il) {
++            const auto * w = model.layers[il].ffn_gate_inp;
++            llama_model::expert_file_range info;
++            if (!w || !ggml_is_contiguous(w) || w->ne[0] != model.hparams.n_embd ||
++                    w->ne[1] != model.hparams.n_expert || w->ne[2] != 1 || w->ne[3] != 1 ||
++                    !model.expert_file_info(w, info, false)) {
++                throw std::runtime_error("router file offsets/layout unavailable");
++            }
++            const auto * traits = ggml_get_type_traits(w->type);
++            if (w->type != GGML_TYPE_F32 && !traits->to_float) {
++                throw std::runtime_error("router type has no CPU decoder");
++            }
++            auto & dst = expert_pregate_layers[il].router;
++            dst.resize(ggml_nelements(w));
++            const size_t first = info.offset / size_t(page) * size_t(page);
++            const size_t delta = info.offset - first, len = delta + ggml_nbytes(w);
++            void * ptr = mmap(nullptr, len, PROT_READ, MAP_PRIVATE, info.source_fd, off_t(first));
++            if (ptr == MAP_FAILED) { throw std::runtime_error("router file mmap failed"); }
++            const char * data = static_cast<const char *>(ptr) + delta;
++            if (w->type == GGML_TYPE_F32) { memcpy(dst.data(), data, ggml_nbytes(w)); }
++            else {
++                for (int64_t row = 0; row < w->ne[1]; ++row) {
++                    traits->to_float(data + row * w->nb[1], dst.data() + row * w->ne[0], w->ne[0]);
++                }
++            }
++            munmap(ptr, len);
++        }
++        expert_pregate_enabled = true;
++        LLAMA_LOG_INFO("expert_pregate: active k=%zu arch=qwen35moe gating=softmax router=file-cpu-copy order=%s\n",
++            expert_pregate_k, expert_pregate_before ? "before" : "after");
++    } catch (const std::exception & e) {
++        expert_pregate_layers.clear();
++        LLAMA_LOG_INFO("expert_pregate: inactive (%s)\n", e.what());
++    }
++}
++
++void llama_context::expert_pregate_arrive(size_t il, const std::vector<int32_t> & selected) {
++    if (!expert_fill_decode || !expert_fill_this_ubatch || il >= expert_pregate_layers.size()) { return; }
++    auto & current = expert_pregate_layers[il];
++    // Gather both distances before sampling. Each file's entire arrival snapshot
++    // and cancellation share its dispatch lock, so queued means cancelled.
++    std::map<ExpertFiller *, std::vector<ExpertFiller::Async>> observed;
++    for (const auto & predictions : current.predictions) {
++        for (const auto & prediction : predictions) {
++            for (const auto & b : prediction.batches) { observed[b.first].push_back(b.second); }
++        }
++    }
++    std::map<const ExpertFiller::AsyncBatch *, ExpertFiller::AsyncState> snapshots;
++    for (auto & entry : expert_fillers) {
++        auto & batches = observed[entry.second.get()];
++        const auto states = entry.second->arrive_async_through(il, batches);
++        for (size_t i = 0; i < batches.size(); ++i) { snapshots[batches[i].get()] = states[i]; }
++    }
++
++    for (size_t d = 0; d < expert_config.lookahead; ++d) {
++        const auto & predictions = current.predictions[d];
++        if (predictions.empty()) { continue; }
++        ++pregate_arrivals;
++        pregate_actual += selected.size(); pregate_predicted += predictions.size();
++        pregate_actual_d[d] += selected.size();
++        uint64_t pending = 0, running = 0;
++        for (const auto & prediction : predictions) {
++            const bool hit = std::find(selected.begin(), selected.end(), prediction.id) != selected.end();
++            pregate_hits += hit; pregate_hits_d[d] += hit;
++            ExpertFiller::AsyncState state;
++            for (const auto & b : prediction.batches) { state += snapshots.at(b.second.get()); }
++            pregate_timeliness.record(ExpertFiller::classify(prediction.resident_at_predict, state), hit);
++            pending += state.pending; running += state.running;
++        }
++        pregate_pending_reads += pending;
++        pregate_inflight_reads += running; pregate_inflight_arrivals += pending != 0;
++    }
++    // Arrival snapshot/cancellation above always precedes demand, independent of ORDER.
++}
++
++void llama_context::expert_pregate_hook(size_t il, const ggml_tensor * t) {
++    if (!expert_fill_decode || !expert_fill_this_ubatch || expert_pregate_failed ||
++            il + 1 >= expert_pregate_layers.size()) { return; }
++    try {
++        if (!loras->empty()) { throw std::runtime_error("LoRA activated after pregate initialization"); }
++        // Before-node CPU callback runs AFTER the scheduler's host copies and prefix
++        // synchronize. src[1] of the FIRST gate/up MUL_MAT_ID is [embd,1,1,1],
++        // a reshape/host copy of attn_post_norm, not the down-projection activation.
++        const ggml_tensor * x = t->src[1];
++        const ggml_tensor * base = x && x->view_src ? x->view_src : x;
++        const auto * w = model.layers[il + 1].ffn_gate_inp;
++        if (!x || !base || !base->buffer || !ggml_backend_buffer_is_host(base->buffer) ||
++                !x->data || x->type != GGML_TYPE_F32 || x->ne[0] != w->ne[0] ||
++                x->ne[1] != 1 || x->ne[2] != 1 || x->ne[3] != 1 || !ggml_is_contiguous(x) ||
++                (t->src[0] != model.layers[il].ffn_up_exps && t->src[0] != model.layers[il].ffn_gate_exps &&
++                 t->src[0] != model.layers[il].ffn_gate_up_exps)) {
++            throw std::runtime_error("first expert input is not a host F32 decode MoE vector");
++        }
++        const auto * input = static_cast<const float *>(x->data);
++        // Submit all L+1 experts before L+2; the pool also sorts queued work by
++        // target-layer deadline, so a later L+1 submission outranks old L+2 work.
++        for (size_t distance = 1; distance <= expert_config.lookahead && il + distance < expert_pregate_layers.size(); ++distance) {
++            const size_t target = il + distance;
++            const auto * router_weight = model.layers[target].ffn_gate_inp;
++            const auto & router = expert_pregate_layers[target].router;
++            std::vector<std::pair<float, int32_t>> logits;
++            logits.reserve(router_weight->ne[1]);
++            for (int64_t e = 0; e < router_weight->ne[1]; ++e) {
++                float dot = 0;
++                for (int64_t j = 0; j < router_weight->ne[0]; ++j) { dot += router[e * router_weight->ne[0] + j] * input[j]; }
++                if (!std::isfinite(dot)) { throw std::runtime_error("nonfinite pregate logits"); }
++                logits.emplace_back(dot, int32_t(e));
++            }
++            const size_t k = std::min(expert_pregate_k, logits.size());
++            std::partial_sort(logits.begin(), logits.begin() + k, logits.end(), [](const auto & a, const auto & b) {
++                return a.first != b.first ? a.first > b.first : a.second < b.second;
++            });
++            auto & next = expert_pregate_layers[target];
++            auto & predictions = next.predictions[distance - 1];
++            predictions.clear();
++            const auto & layer = model.layers[target];
++            for (size_t i = 0; i < k; ++i) {
++                ExpertFiller::Prediction prediction;
++                prediction.id = logits[i].second;
++                std::map<size_t, std::vector<ExpertFiller::Range>> ranges;
++                for (const ggml_tensor * expert : {layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps}) {
++                    if (!expert) { continue; }
++                    llama_model::expert_file_range info;
++                    if (!model.expert_file_info(expert, info)) { throw std::runtime_error("pregate expert offsets unavailable"); }
++                    const auto id = prediction.id;
++                    if (id < 0 || id >= expert->ne[2]) { throw std::runtime_error("pregate expert ID outside tensor"); }
++                    ranges[info.file_index].push_back({info.offset + size_t(id) * expert->nb[2], expert->nb[2]});
++                }
++                // Residency at prediction time is distinct from completed IO.
++                // Probe all files before publishing jobs for this expert.
++                std::vector<size_t> cold;
++                for (const auto & entry : ranges) {
++                    if (expert_fillers.at(entry.first)->nonresident(entry.second)) { cold.push_back(entry.first); }
++                }
++                for (const auto & entry : ranges) {
++                    auto & filler = *expert_fillers.at(entry.first);
++                    prediction.enqueue(filler, entry.second, target, [&](const auto &) {
++                        return std::find(cold.begin(), cold.end(), entry.first) == cold.end();
++                    }, distance);
++                }
++                next.predicted.push_back(prediction.id);
++                predictions.push_back(std::move(prediction));
++            }
++            ++pregate_predictions;
++        }
++    } catch (const std::exception & e) {
++        ++pregate_skips; expert_pregate_failed = true;
++        LLAMA_LOG_INFO("expert_pregate: prediction disabled (%s)\n", e.what());
++    }
++}
++
++void llama_context::expert_pregate_stats() {
++    uint64_t bytes=0, reads=0, errors=0, dropped=0, cancelled_jobs=0, cancelled_bytes=0, demand_ns=0;
++    for (auto & entry : expert_fillers) {
++        entry.second->wait_async(); // teardown only, after graph synchronize
++        demand_ns += entry.second->counters().total_fill_wall_ns;
++        const auto c = entry.second->async_counters();
++        bytes += c.bytes_read; reads += c.read_syscalls; errors += c.errors; dropped += c.dropped;
++        cancelled_jobs += c.cancelled_jobs; cancelled_bytes += c.cancelled_bytes;
++    }
++    const auto & t = pregate_timeliness;
++    LLAMA_LOG_INFO("expert_pregate: stats predictions=%" PRIu64 " arrivals=%" PRIu64
++        " hits=%" PRIu64 " actual=%" PRIu64 " predicted=%" PRIu64 " recall_at_k=%.6f precision=%.6f"
++        " async_bytes_read=%" PRIu64 " async_reads=%" PRIu64 " async_errors=%" PRIu64 " dropped=%" PRIu64
++        " cancelled_jobs=%" PRIu64 " cancelled_bytes=%" PRIu64
++        " inflight_at_arrival=%" PRIu64 " inflight_reads=%" PRIu64 " pending_reads=%" PRIu64
++        " sync_bytes_with_prediction=%" PRIu64 " sync_bytes_without_prediction=%" PRIu64
++        " sync_calls_with_prediction=%" PRIu64 " sync_calls_without_prediction=%" PRIu64 " skips=%" PRIu64
++        " pred_done=%" PRIu64 " pred_inflight=%" PRIu64 " pred_queued=%" PRIu64 " pred_resident_at_predict=%" PRIu64
++        " hit_done=%" PRIu64 " hit_inflight=%" PRIu64 " hit_queued=%" PRIu64 " hit_resident=%" PRIu64
++        " recall_at_k_d1=%.6f recall_at_k_d2=%.6f actual_d1=%" PRIu64 " actual_d2=%" PRIu64
++        " hits_d1=%" PRIu64 " hits_d2=%" PRIu64
++        " demand_wait_ns_total=%" PRIu64 " demand_wait_ns_per_token=%.3f\n",
++        pregate_predictions, pregate_arrivals, pregate_hits, pregate_actual, pregate_predicted,
++        pregate_actual ? double(pregate_hits)/pregate_actual : 0.0,
++        pregate_predicted ? double(pregate_hits)/pregate_predicted : 0.0,
++        bytes, reads, errors, dropped, cancelled_jobs, cancelled_bytes, pregate_inflight_arrivals, pregate_inflight_reads, pregate_pending_reads,
++        pregate_sync_with, pregate_sync_without, pregate_calls_with, pregate_calls_without, pregate_skips,
++        t.pred_done, t.pred_inflight, t.pred_queued, t.pred_resident_at_predict,
++        t.hit_done, t.hit_inflight, t.hit_queued, t.hit_resident,
++        pregate_actual_d[0] ? double(pregate_hits_d[0])/pregate_actual_d[0] : 0.0,
++        pregate_actual_d[1] ? double(pregate_hits_d[1])/pregate_actual_d[1] : 0.0,
++        pregate_actual_d[0], pregate_actual_d[1], pregate_hits_d[0], pregate_hits_d[1],
++        demand_ns, expert_demand_tokens ? double(demand_ns)/expert_demand_tokens : 0.0);
++}
++
+ static uint64_t expert_diag_now() {
+     return std::chrono::duration_cast<std::chrono::nanoseconds>(
+         std::chrono::steady_clock::now().time_since_epoch()).count();
+@@ -829,7 +1026,12 @@ void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> &
+             auto & filler = *expert_fillers.at(entry.first);
+             ExpertFiller::Counters a {};
+             if (diag) { a = filler.counters(); }
+-            filler.fill(entry.second, expert_fill_decode);
++            const uint64_t sync_bytes = filler.fill(entry.second, expert_fill_decode);
++            if (expert_pregate_enabled && expert_fill_decode && il < expert_pregate_layers.size()) {
++                const bool predicted = !expert_pregate_layers[il].predicted.empty();
++                (predicted ? pregate_sync_with : pregate_sync_without) += sync_bytes;
++                ++(predicted ? pregate_calls_with : pregate_calls_without);
++            }
+             if (diag) {
+                 const auto b = filler.counters();
+                 expert_diag_token.bytes_read += b.bytes_read - a.bytes_read;
+@@ -985,7 +1187,14 @@ void llama_context::expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe
+     }
+ #ifdef __linux__
+     if (ctx.expert_fill_enabled) {
+-        ctx.expert_fill_selected(il, selected);
++        if (ctx.expert_pregate_enabled) {
++            ctx.expert_pregate_arrive(il, selected); // cancel before demand
++            if (ctx.expert_pregate_before) { ctx.expert_pregate_hook(il, t); }
++        }
++        ctx.expert_fill_selected(il, selected); // demand for L first by default
++        if (ctx.expert_pregate_enabled && !ctx.expert_pregate_before) {
++            ctx.expert_pregate_hook(il, t); // ORDER=after (default): enqueue L+1
++        }
+         if (ctx.expert_diag_enabled) { ctx.expert_diag_pre_use(il); }
+         return;
+     }
+@@ -1018,6 +1227,7 @@ llama_context::~llama_context() {
+     synchronize();
+ 
+ #ifdef __linux__
++    if (expert_pregate_enabled) { expert_pregate_stats(); }
+     if (expert_diag_enabled) {
+         expert_diag_finish_token();
+         const auto & d = expert_diag_total;
+@@ -1063,12 +1273,14 @@ llama_context::~llama_context() {
+             " total_fill_wall_ns=%" PRIu64 " max_single_fill_ns=%" PRIu64
+             " prompt_calls=%" PRIu64 " prompt_bytes_read=%" PRIu64 " prompt_fill_wall_ns=%" PRIu64
+             " decode_calls=%" PRIu64 " decode_bytes_read=%" PRIu64 " decode_fill_wall_ns=%" PRIu64
+-            " populate_calls=%" PRIu64 " populate_ns=%" PRIu64 " populate_errors=%" PRIu64 "\n",
++            " populate_calls=%" PRIu64 " populate_ns=%" PRIu64 " populate_errors=%" PRIu64
++            " demand_wait_ns_total=%" PRIu64 " demand_wait_ns_per_token=%.3f\n",
+             sum.calls, sum.ranges, sum.bytes_requested, sum.bytes_skipped_resident, sum.bytes_read,
+             sum.read_syscalls, sum.total_fill_wall_ns, sum.max_single_fill_ns,
+             sum.prompt_calls, sum.prompt_bytes_read, sum.prompt_fill_wall_ns,
+             sum.decode_calls, sum.decode_bytes_read, sum.decode_fill_wall_ns,
+-            sum.populate_calls, sum.populate_ns, sum.populate_errors);
++            sum.populate_calls, sum.populate_ns, sum.populate_errors,
++            sum.total_fill_wall_ns, expert_demand_tokens ? double(sum.total_fill_wall_ns)/expert_demand_tokens : 0.0);
+     }
+ #endif
+     if (!expert_prefetch_layers.empty() && expert_prefetch_calls) {
+@@ -2127,13 +2339,18 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
+ #ifdef __linux__
+     expert_fill_init();
+     expert_fill_phase(ubatch.n_tokens);
+-    const char * fill = getenv("LLAMA_EXPERT_FILL");
+-    const bool fill_requested = fill && strcmp(fill, "1") == 0;
+-    const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+-    if (!fill_requested && ep && strcmp(ep, "1") == 0 && expert_prefetch_layers.empty()) {
++    if (expert_fill_enabled && !expert_fill_failed && expert_fill_this_ubatch) { expert_demand_tokens += ubatch.n_tokens; }
++    if (expert_pregate_enabled) {
++        // Layer numbers restart for every ubatch; retire previous-token backlog.
++        for (auto & entry : expert_fillers) { entry.second->cancel_async_through(SIZE_MAX); }
++        for (auto & layer : expert_pregate_layers) {
++            layer.predicted.clear();
++            for (auto & predictions : layer.predictions) { predictions.clear(); }
++        }
++    }
++    if (!expert_config.fill && expert_config.prefetch && expert_prefetch_layers.empty()) {
+         expert_prefetch_layers.resize(model.layers.size());
+-        const char * next = getenv("LLAMA_EXPERT_PREFETCH_NEXT");
+-        expert_prefetch_next = next && strcmp(next, "1") == 0;
++        expert_prefetch_next = expert_config.prefetch_next;
+         LLAMA_LOG_INFO("expert_prefetch: CPU host-consumer hook enabled; device-only experts skipped, next=%d, LRU=32 ids/32 tokens\n", expert_prefetch_next);
+     }
+     for (auto & layer : expert_prefetch_layers) {
+diff --git a/src/llama-context.h b/src/llama-context.h
+index d7aad8adb..c06b203f1 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -54,6 +54,8 @@ struct llama_context {
+     ~llama_context();
+ 
+ #ifdef __linux__
++    ExpertConfig expert_config = ExpertConfig::read();
++    uint64_t expert_demand_tokens = 0;
+     std::map<size_t, std::unique_ptr<ExpertFiller>> expert_fillers;
+     bool expert_fill_checked = false;
+     bool expert_fill_enabled = false;
+@@ -63,6 +65,23 @@ struct llama_context {
+     bool expert_fill_decode = false;
+     bool expert_fill_this_ubatch = true;
+     uint64_t expert_fill_min_tokens = 0, expert_fill_max_tokens = 0;
++    bool expert_pregate_enabled = false, expert_pregate_failed = false, expert_pregate_before = false;
++    size_t expert_pregate_k = 8;
++    struct pregate_layer {
++        std::vector<float> router;
++        std::vector<int32_t> predicted;
++        std::vector<ExpertFiller::Prediction> predictions[2];
++    };
++    std::vector<pregate_layer> expert_pregate_layers;
++    ExpertFiller::Timeliness pregate_timeliness;
++    uint64_t pregate_hits_d[2] = {}, pregate_actual_d[2] = {};
++    uint64_t pregate_predictions=0, pregate_predicted=0, pregate_actual=0, pregate_hits=0;
++    uint64_t pregate_arrivals=0, pregate_inflight_arrivals=0, pregate_inflight_reads=0, pregate_pending_reads=0, pregate_skips=0;
++    uint64_t pregate_sync_with=0, pregate_sync_without=0, pregate_calls_with=0, pregate_calls_without=0;
++    void expert_pregate_init();
++    void expert_pregate_arrive(size_t il, const std::vector<int32_t> & selected);
++    void expert_pregate_hook(size_t il, const ggml_tensor * t);
++    void expert_pregate_stats();
+     // All diagnostic syscalls and residency probes are behind expert_diag_enabled.
+     bool expert_diag_enabled = false, expert_diag_token_active = false, expert_diag_gap = false;
+     struct fill_diag {
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index f3a264819..0f8be12dd 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -13,6 +13,8 @@
+ #include <cstdint>
+ #include <cstdlib>
+ #include <exception>
++#include <list>
++#include <memory>
+ #include <fcntl.h>
+ #include <limits>
+ #include <mutex>
+@@ -24,6 +26,93 @@
+ #include <unistd.h>
+ #include <vector>
+ 
++// All LLAMA_EXPERT_* settings are validated even when fill/pregate is off.
++// Decimal digits only (no signs/whitespace); 0 token limits mean unlimited.
++extern char ** environ;
++struct ExpertConfig {
++    size_t fill = 0, threads = 8, chunk_kib = 1024, min_tokens = 0, max_tokens = 0;
++    size_t diag = 0, populate = 0, pregate = 0, k = 8, max_inflight = 4, lookahead = 1;
++    size_t prefetch = 0, prefetch_next = 0;
++    std::string random = "0", order = "after", diag_csv;
++    [[noreturn]] static void invalid(const char * name, const char * value, const std::string & range) {
++        fprintf(stderr, "expert_config: invalid %s=%s (range %s)\n", name, value, range.c_str());
++        fflush(stderr);
++        std::abort(); // Deliberately outside the recoverable fill/predict exception paths.
++    }
++    static size_t integer(const char * name, size_t fallback, size_t lo, size_t hi) {
++        const char * value = getenv(name);
++        if (!value) { return fallback; }
++        size_t n = 0;
++        bool valid = *value != 0;
++        for (const char * p = value; *p; ++p) {
++            if (*p < '0' || *p > '9' || n > hi / 10 ||
++                    (n == hi / 10 && size_t(*p - '0') > hi % 10)) { valid = false; break; }
++            n = n * 10 + size_t(*p - '0');
++        }
++        if (!valid || n < lo || n > hi) {
++            invalid(name, value, std::to_string(lo) + ".." + std::to_string(hi));
++        }
++        return n;
++    }
++    static std::string choice(const char * name, const char * fallback, std::initializer_list<const char *> choices) {
++        const char * value = getenv(name);
++        if (!value) { return fallback; }
++        std::string range;
++        for (const char * c : choices) {
++            if (std::string(value) == c) { return value; }
++            if (!range.empty()) { range += "|"; }
++            range += c;
++        }
++        invalid(name, value, range);
++    }
++    static ExpertConfig read() {
++        const std::vector<std::string> known = {
++            "LLAMA_EXPERT_FILL", "LLAMA_EXPERT_FILL_RANDOM", "LLAMA_EXPERT_FILL_THREADS",
++            "LLAMA_EXPERT_FILL_CHUNK_KIB", "LLAMA_EXPERT_FILL_MIN_TOKENS", "LLAMA_EXPERT_FILL_MAX_TOKENS",
++            "LLAMA_EXPERT_FILL_DIAG", "LLAMA_EXPERT_FILL_DIAG_CSV", "LLAMA_EXPERT_FILL_POPULATE",
++            "LLAMA_EXPERT_PREGATE", "LLAMA_EXPERT_PREGATE_K", "LLAMA_EXPERT_PREGATE_ORDER",
++            "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT", "LLAMA_EXPERT_PREGATE_LOOKAHEAD",
++            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT"};
++        for (char ** e = environ; e && *e; ++e) {
++            const std::string entry(*e);
++            const size_t eq = entry.find('=');
++            const std::string name = entry.substr(0, eq);
++            if (name.compare(0, 13, "LLAMA_EXPERT_") == 0 &&
++                    std::find(known.begin(), known.end(), name) == known.end()) {
++                invalid(name.c_str(), eq == std::string::npos ? "" : entry.c_str() + eq + 1, "known LLAMA_EXPERT_* name");
++            }
++        }
++        ExpertConfig c;
++        c.fill = integer("LLAMA_EXPERT_FILL", 0, 0, 1);
++        c.random = choice("LLAMA_EXPERT_FILL_RANDOM", "0", {"0", "1", "decode"});
++        c.threads = integer("LLAMA_EXPERT_FILL_THREADS", 8, 1, 64);
++        c.chunk_kib = integer("LLAMA_EXPERT_FILL_CHUNK_KIB", 1024, 64, 65536);
++        c.min_tokens = integer("LLAMA_EXPERT_FILL_MIN_TOKENS", 0, 0, 2147483647);
++        c.max_tokens = integer("LLAMA_EXPERT_FILL_MAX_TOKENS", 0, 0, 2147483647);
++        c.diag = integer("LLAMA_EXPERT_FILL_DIAG", 0, 0, 1);
++        c.populate = integer("LLAMA_EXPERT_FILL_POPULATE", 0, 0, 1);
++        if (const char * csv = getenv("LLAMA_EXPERT_FILL_DIAG_CSV")) {
++            if (!*csv) { invalid("LLAMA_EXPERT_FILL_DIAG_CSV", csv, "nonempty path"); }
++            c.diag_csv = csv;
++        }
++        c.pregate = integer("LLAMA_EXPERT_PREGATE", 0, 0, 1);
++        c.k = integer("LLAMA_EXPERT_PREGATE_K", 8, 1, 32);
++        c.order = choice("LLAMA_EXPERT_PREGATE_ORDER", "after", {"after", "before"});
++        c.max_inflight = integer("LLAMA_EXPERT_PREGATE_MAX_INFLIGHT", 4, 1, 64);
++        c.lookahead = integer("LLAMA_EXPERT_PREGATE_LOOKAHEAD", 1, 1, 2);
++        c.prefetch = integer("LLAMA_EXPERT_PREFETCH", 0, 0, 1);
++        c.prefetch_next = integer("LLAMA_EXPERT_PREFETCH_NEXT", 0, 0, 1);
++        return c;
++    }
++    void print() const {
++        fprintf(stderr, "expert_config: effective fill=%zu random=%s max_tokens=%zu threads=%zu chunk_kib=%zu "
++            "pregate=%zu k=%zu order=%s max_inflight=%zu lookahead=%zu min_tokens=%zu diag=%zu populate=%zu "
++            "diag_csv=%s prefetch=%zu prefetch_next=%zu\n",
++            fill, random.c_str(), max_tokens, threads, chunk_kib, pregate, k, order.c_str(), max_inflight,
++            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next);
++    }
++};
++
+ class ExpertFiller {
+ public:
+     struct Range { uint64_t offset; size_t len; };
+@@ -36,13 +125,74 @@ public:
+         uint64_t prompt_calls = 0, prompt_bytes_read = 0, prompt_fill_wall_ns = 0;
+         uint64_t decode_calls = 0, decode_bytes_read = 0, decode_fill_wall_ns = 0;
+     };
++    struct AsyncBatch {
++        std::atomic<uint64_t> pending {0}, running {0}, bytes_read {0}, read_syscalls {0}, errors {0};
++        std::atomic<uint64_t> cancelled_jobs {0}, cancelled_bytes {0};
++    };
++    using Async = std::shared_ptr<AsyncBatch>;
++    struct AsyncCounters {
++        uint64_t bytes_read, read_syscalls, errors, dropped, cancelled_jobs, cancelled_bytes;
++        uint64_t max_inflight;
++    };
++    struct AsyncState {
++        uint64_t pending = 0, running = 0, cancelled = 0, errors = 0;
++        AsyncState & operator+=(const AsyncState & b) {
++            pending += b.pending; running += b.running; cancelled += b.cancelled; errors += b.errors;
++            return *this;
++        }
++    };
++    AsyncState async_state(const Async & batch) {
++        std::lock_guard<std::mutex> lock(mutex_);
++        if (!batch) { return {0, 0, 1, 0}; } // rejected/unstarted, never resident
++        return {batch->pending.load(), batch->running.load(), batch->cancelled_jobs.load(), batch->errors.load()};
++    }
++    enum class Arrival { done, inflight, queued, resident };
++    // A prediction covers every tensor/file/chunk for one expert. Conservatively
++    // classify queued if ANY chunk missed dispatch; errors never count as done.
++    static Arrival classify(bool resident_at_predict, const AsyncState & state) {
++        if (resident_at_predict) { return Arrival::resident; }
++        if (state.cancelled || state.pending > state.running || state.errors) { return Arrival::queued; }
++        if (state.running) { return Arrival::inflight; }
++        return Arrival::done;
++    }
++    struct Timeliness {
++        uint64_t pred_done=0, pred_inflight=0, pred_queued=0, pred_resident_at_predict=0;
++        uint64_t hit_done=0, hit_inflight=0, hit_queued=0, hit_resident=0;
++        void record(Arrival state, bool hit) {
++            switch (state) {
++                case Arrival::done: ++pred_done; hit_done += hit; break;
++                case Arrival::inflight: ++pred_inflight; hit_inflight += hit; break;
++                case Arrival::queued: ++pred_queued; hit_queued += hit; break;
++                case Arrival::resident: ++pred_resident_at_predict; hit_resident += hit; break;
++            }
++        }
++    };
++    struct Prediction {
++        int32_t id = -1;
++        bool resident_at_predict = true;
++        std::vector<std::pair<ExpertFiller *, Async>> batches;
++        // The oracle is mincore in production, a deterministic fake in tests.
++        template<class ResidencyOracle>
++        void enqueue(ExpertFiller & filler, const std::vector<Range> & ranges, size_t layer, ResidencyOracle resident, size_t distance = 1) {
++            if (resident(ranges)) { return; }
++            resident_at_predict = false;
++            batches.emplace_back(&filler, filler.enqueue_async(ranges, layer, distance));
++        }
++        AsyncState state() const {
++            AsyncState sum;
++            for (const auto & b : batches) { sum += b.first->async_state(b.second); }
++            return sum;
++        }
++        Arrival arrive() const { return classify(resident_at_predict, state()); }
++    };
+     // mapping must be a live, offset-zero file mmap for the lifetime of this object.
+-    ExpertFiller(const std::string & path, void * mapping, size_t mapping_size)
++    ExpertFiller(const std::string & path, void * mapping, size_t mapping_size,
++                 const ExpertConfig & config = ExpertConfig::read())
+         : mapping_(static_cast<char *>(mapping)), size_(mapping_size),
+-          threads_(env_size("LLAMA_EXPERT_FILL_THREADS", 8, 256)),
+-          chunk_(env_size("LLAMA_EXPERT_FILL_CHUNK_KIB", 1024, 65536) * 1024) {
+-        diag_ = enabled("LLAMA_EXPERT_FILL_DIAG");
+-        populate_ = enabled("LLAMA_EXPERT_FILL_POPULATE");
++          threads_(config.threads), chunk_(config.chunk_kib * 1024) {
++        async_limit_ = std::min(threads_, config.max_inflight);
++        diag_ = config.diag;
++        populate_ = config.populate;
+         const long page = sysconf(_SC_PAGESIZE);
+         if (page <= 0 || !mapping_ || reinterpret_cast<uintptr_t>(mapping_) % page || !size_) {
+             throw std::runtime_error("invalid expert mmap");
+@@ -57,23 +207,96 @@ public:
+         }
+         try {
+             // Allocate before starting workers, so allocation failures cannot kill a worker.
+-            scratch_.resize(threads_);
+-            for (auto & b : scratch_) { b.resize(chunk_); }
++            scratch_.resize(threads_); residency_.resize(threads_);
++            for (auto & b : scratch_) { b.resize(std::max(page_, chunk_)); }
++            for (auto & b : residency_) { b.resize((std::max(page_, chunk_) + page_ - 1) / page_); }
+             for (size_t i = 0; i < threads_; ++i) { workers_.emplace_back([this, i] { worker(i); }); }
+         } catch (...) {
+             stop(); close(fd_); throw;
+         }
+     }
+-    ~ExpertFiller() { stop(); if (fd_ >= 0) { close(fd_); } }
++    ~ExpertFiller() { wait_async(); stop(); if (fd_ >= 0) { close(fd_); } }
+     ExpertFiller(const ExpertFiller &) = delete;
+     ExpertFiller & operator=(const ExpertFiller &) = delete;
+     size_t threads() const { return threads_; }
+     size_t chunk_bytes() const { return chunk_; }
+     Counters counters() const { std::lock_guard<std::mutex> lock(fill_mutex_); return counters_; }
+ 
++    // Enqueue only: no residency query, file IO, or wait for worker completion.
++    // Jobs use the existing pool, after all available synchronous jobs.
++    Async enqueue_async(const std::vector<Range> & ranges, size_t layer = 0, size_t distance = 1) {
++        std::vector<Range> jobs;
++        for (const auto & r : ranges) {
++            if (r.offset > size_ || r.len > size_ - r.offset) { throw std::out_of_range("async range outside mmap"); }
++            if (!r.len) { continue; }
++            const uint64_t first = r.offset / page_ * page_;
++            const uint64_t end = r.offset + r.len;
++            const uint64_t last = end + std::min<uint64_t>((page_ - end % page_) % page_, size_ - end);
++            const size_t step = std::max(page_, chunk_ / page_ * page_);
++            for (uint64_t at = first; at < last;) {
++                const size_t len = std::min<uint64_t>(step, last - at);
++                jobs.push_back({at, len}); at += len;
++            }
++        }
++        auto batch = std::make_shared<AsyncBatch>();
++        // Construct off-lock; splice publishes the whole submission without allocation.
++        std::list<AsyncJob> submission;
++        for (auto r : jobs) { submission.push_back({r, batch, layer, distance}); }
++        {
++            std::lock_guard<std::mutex> lock(mutex_);
++            // Bound speculative backlog; drop a whole submission, never block on IO.
++            if (async_queue_.size() + jobs.size() > 4096) {
++                ++async_dropped_;
++                batch->cancelled_jobs = jobs.size();
++                for (const auto & r : jobs) { batch->cancelled_bytes += r.len; }
++                async_cancelled_jobs_ += jobs.size(); async_cancelled_bytes_ += batch->cancelled_bytes.load();
++                return batch;
++            }
++            // Earliest layer deadline first; at equal deadlines prefer distance 1,
++            // then FIFO. New L+1 work precedes old distance-2 work too.
++            auto at = std::find_if(async_queue_.begin(), async_queue_.end(),
++                [layer, distance](const AsyncJob & job) {
++                    return job.layer > layer || (job.layer == layer && job.distance > distance);
++                });
++            async_queue_.splice(at, submission);
++            batch->pending = jobs.size(); async_pending_ += jobs.size();
++        }
++        ready_.notify_all();
++        return batch;
++    }
++    // Arrival deadline: retire queued chunks for this layer and older layers.
++    // The queue mutex makes cancellation atomic with worker dispatch. Running
++    // chunks retain their batch and finish normally; pending includes both kinds.
++    void cancel_async_through(size_t layer) {
++        std::lock_guard<std::mutex> lock(mutex_);
++        cancel_async_locked(layer);
++    }
++    // Sample all observed experts and cancel their queued work under the SAME
++    // dispatch lock: a chunk classified queued cannot start before cancellation.
++    std::vector<AsyncState> arrive_async_through(size_t layer, const std::vector<Async> & observed) {
++        std::lock_guard<std::mutex> lock(mutex_);
++        std::vector<AsyncState> states;
++        states.reserve(observed.size());
++        for (const auto & b : observed) {
++            states.push_back(b ? AsyncState {b->pending.load(), b->running.load(), b->cancelled_jobs.load(), b->errors.load()}
++                               : AsyncState {0, 0, 1, 0});
++        }
++        cancel_async_locked(layer);
++        return states;
++    }
++    // Teardown/tests only. The CPU observer never calls this.
++    void wait_async() {
++        std::unique_lock<std::mutex> lock(mutex_);
++        async_done_.wait(lock, [this] { return async_pending_ == 0; });
++    }
++    AsyncCounters async_counters() const {
++        return {async_bytes_.load(), async_syscalls_.load(), async_errors_.load(), async_dropped_.load(),
++                async_cancelled_jobs_.load(), async_cancelled_bytes_.load(), async_max_inflight_.load()};
++    }
++
+     bool diagnostic() const { return diag_; }
+-    // Called only under the opt-in diagnostic guard. Counts page cache residency,
+-    // not installed PTEs; errors are explicit rather than counted as residency.
++    // Used by prediction-time residency and opt-in diagnostics. Counts page cache
++    // residency, not installed PTEs; errors are explicit rather than resident.
+     uint64_t nonresident(const std::vector<Range> & ranges) const {
+         uint64_t count = 0;
+         std::vector<Range> sorted = ranges;
+@@ -86,13 +309,16 @@ public:
+             const size_t len = r.offset + r.len - first;
+             checked_end = first + ((len + page_ - 1) / page_) * page_;
+             std::vector<unsigned char> v((len + page_ - 1) / page_);
+-            if (mincore(mapping_ + first, len, v.data())) { throw std::runtime_error("diag mincore failed"); }
++            if (mincore(mapping_ + first, len, v.data())) { throw std::runtime_error("expert residency mincore failed"); }
+             for (auto b : v) { count += !(b & 1); }
+         }
+         return count;
+     }
+-    void fill(const std::vector<Range> & ranges, bool decode = false) {
++    uint64_t fill(const std::vector<Range> & ranges, bool decode = false) {
+         std::lock_guard<std::mutex> serial(fill_mutex_);
++        // Reserve scheduling priority before residency queries/job construction,
++        // not just after demand jobs are published. In-flight async IO may finish.
++        DemandScope demand(*this);
+         const auto start = std::chrono::steady_clock::now();
+         batch_diag_ = diag_ && decode;
+         ++counters_.calls;
+@@ -174,20 +400,33 @@ public:
+             }
+         } catch (...) { finish(); throw; }
+         finish();
++        return counters_.bytes_read - bytes_before;
+     }
+ private:
++    friend struct ExpertFillerTestAccess;
++    struct DemandScope {
++        ExpertFiller & owner;
++        explicit DemandScope(ExpertFiller & f) : owner(f) {
++            std::lock_guard<std::mutex> lock(owner.mutex_); owner.demand_active_ = true;
++        }
++        ~DemandScope() {
++            { std::lock_guard<std::mutex> lock(owner.mutex_); owner.demand_active_ = false; }
++            owner.ready_.notify_all();
++        }
++    };
+     static std::atomic<bool> & populate_unsupported() {
+         static std::atomic<bool> value {false}; return value;
+     }
+-    static bool enabled(const char * name) {
+-        const char * s = getenv(name); return s && std::string(s) == "1";
+-    }
+-    static size_t env_size(const char * name, size_t fallback, size_t maximum) {
+-        const char * s = getenv(name);
+-        if (!s || !*s || *s == '-') { return fallback; }
+-        char * end = nullptr; errno = 0;
+-        const auto n = strtoull(s, &end, 10);
+-        return errno || *end || n == 0 || n > maximum ? fallback : size_t(n);
++    // mutex_ must be held, including while taking arrival snapshots.
++    void cancel_async_locked(size_t layer) {
++        for (auto it = async_queue_.begin(); it != async_queue_.end();) {
++            if (it->layer > layer) { ++it; continue; }
++            ++it->batch->cancelled_jobs; it->batch->cancelled_bytes += it->range.len;
++            ++async_cancelled_jobs_; async_cancelled_bytes_ += it->range.len;
++            --it->batch->pending; --async_pending_;
++            it = async_queue_.erase(it);
++        }
++        if (!async_pending_) { async_done_.notify_all(); }
+     }
+     void stop() {
+         { std::lock_guard<std::mutex> lock(mutex_); stopping_ = true; }
+@@ -197,17 +436,27 @@ private:
+     void worker(size_t index) {
+         for (;;) {
+             Range job {};
++            Async async;
++            bool diagnostic = false, populating = false;
+             {
+                 std::unique_lock<std::mutex> lock(mutex_);
+-                ready_.wait(lock, [this] { return stopping_ || next_ < jobs_.size(); });
++                ready_.wait(lock, [this] { return stopping_ || next_ < jobs_.size() ||
++                    (!demand_active_ && !async_queue_.empty() && async_running_ < async_limit_); });
+                 if (stopping_) { return; }
+-                job = jobs_[next_++];
++                if (next_ < jobs_.size()) {
++                    job = jobs_[next_++]; diagnostic = batch_diag_; populating = populating_;
++                } else {
++                    job = async_queue_.front().range; async = async_queue_.front().batch;
++                    async_queue_.pop_front(); ++async->running;
++                    ++async_running_;
++                    async_max_inflight_.store(std::max<uint64_t>(async_max_inflight_.load(), async_running_));
++                }
+             }
+             size_t bytes = 0; uint64_t syscalls = 0; int error = 0;
+             struct rusage before {}, after {};
+-            if (batch_diag_) { getrusage(RUSAGE_THREAD, &before); }
++            if (diagnostic) { getrusage(RUSAGE_THREAD, &before); }
+             uint64_t populate_ns = 0, populate_calls = 0, populate_errors = 0;
+-            if (populating_) {
++            if (populating) {
+                 if (populate_.load() && !populate_unsupported().load()) {
+                     const auto start = std::chrono::steady_clock::now();
+                     ++populate_calls;
+@@ -221,6 +470,25 @@ private:
+                     populate_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                         std::chrono::steady_clock::now() - start).count();
+                 }
++            } else if (async) {
++                // Query at consumption time, including when sync filled these pages meanwhile.
++                auto & resident = residency_[index];
++                if (mincore(mapping_ + job.offset, job.len, resident.data())) { error = errno; }
++                size_t pos = 0;
++                while (!error && pos < job.len) {
++                    if (resident[pos / page_] & 1) { pos = std::min(job.len, pos + page_); continue; }
++                    const size_t first = pos;
++                    do { pos = std::min(job.len, pos + page_); }
++                    while (pos < job.len && !(resident[pos / page_] & 1));
++                    size_t at = first;
++                    while (at < pos) {
++                        ++syscalls;
++                        const ssize_t n = pread(fd_, scratch_[index].data() + at, pos - at, off_t(job.offset + at));
++                        if (n < 0 && errno == EINTR) { continue; }
++                        if (n <= 0) { error = n < 0 ? errno : EIO; break; }
++                        at += size_t(n); bytes += size_t(n);
++                    }
++                }
+             } else while (bytes < job.len) {
+                 ++syscalls;
+                 const ssize_t n = pread(fd_, scratch_[index].data() + bytes, job.len - bytes, off_t(job.offset + bytes));
+@@ -228,12 +496,21 @@ private:
+                 if (n <= 0) { error = n < 0 ? errno : EIO; break; }
+                 bytes += size_t(n);
+             }
+-            if (batch_diag_) { getrusage(RUSAGE_THREAD, &after); }
++            if (diagnostic) { getrusage(RUSAGE_THREAD, &after); }
+             {
+                 std::lock_guard<std::mutex> lock(mutex_);
++                if (async) {
++                    async->bytes_read += bytes; async->read_syscalls += syscalls;
++                    async->errors += error != 0;
++                    async_bytes_ += bytes; async_syscalls_ += syscalls; async_errors_ += error != 0;
++                    --async->running; --async->pending; --async_running_;
++                    ready_.notify_all(); // a capped async slot is now available
++                    if (--async_pending_ == 0) { async_done_.notify_all(); }
++                    continue;
++                }
+                 counters_.populate_calls += populate_calls; counters_.populate_ns += populate_ns;
+                 counters_.populate_errors += populate_errors;
+-                if (batch_diag_) {
++                if (diagnostic) {
+                     counters_.thread_majflt += after.ru_majflt - before.ru_majflt;
+                     counters_.thread_minflt += after.ru_minflt - before.ru_minflt;
+                 }
+@@ -248,9 +525,16 @@ private:
+     size_t size_, threads_, chunk_, page_ = 0;
+     mutable std::mutex fill_mutex_;
+     std::mutex mutex_;
+-    std::condition_variable ready_, done_;
++    std::condition_variable ready_, done_, async_done_;
++    struct AsyncJob { Range range; Async batch; size_t layer, distance; };
++    std::list<AsyncJob> async_queue_;
++    size_t async_pending_ = 0, async_running_ = 0, async_limit_ = 4;
++    bool demand_active_ = false;
++    std::atomic<uint64_t> async_bytes_ {0}, async_syscalls_ {0}, async_errors_ {0}, async_dropped_ {0};
++    std::atomic<uint64_t> async_cancelled_jobs_ {0}, async_cancelled_bytes_ {0}, async_max_inflight_ {0};
+     std::vector<std::thread> workers_;
+     std::vector<std::vector<char>> scratch_;
++    std::vector<std::vector<unsigned char>> residency_;
+     std::vector<Range> jobs_;
+     size_t next_ = 0, pending_ = 0;
+     bool stopping_ = false, diag_ = false, batch_diag_ = false, populating_ = false;
+diff --git a/src/llama-mmap.cpp b/src/llama-mmap.cpp
+index 0ebae74c6..5c23046d5 100644
+--- a/src/llama-mmap.cpp
++++ b/src/llama-mmap.cpp
+@@ -1,3 +1,6 @@
++#ifdef __linux__
++#include "llama-expert-fill.h"
++#endif
+ #include "llama-mmap.h"
+ 
+ #include "llama-impl.h"
+@@ -486,13 +489,11 @@ struct llama_mmap::impl {
+         if (numa) { prefetch = 0; }
+         // campaign J-RA: LLAMA_MMAP_ADVICE=random -> no sequential readahead hint, no WILLNEED prefetch, MADV_RANDOM on the mapping
+         const char * j_adv = getenv("LLAMA_MMAP_ADVICE");
+-        const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+ #ifdef __linux__
+-        const char * fill = getenv("LLAMA_EXPERT_FILL");
+-        const bool expert_prefetch = !(fill && strcmp(fill, "1") == 0) && ep && strcmp(ep, "1") == 0;
++        const auto expert_config = ExpertConfig::read();
++        const bool expert_prefetch = !expert_config.fill && expert_config.prefetch;
+ #else
+         const bool expert_prefetch = false;
+-        (void) ep;
+ #endif
+         const bool j_random = !expert_prefetch && j_adv && strcmp(j_adv, "random") == 0;
+         if (expert_prefetch) {
+diff --git a/src/llama-model-loader.cpp b/src/llama-model-loader.cpp
+index 79fb6e887..3817e8d3e 100644
+--- a/src/llama-model-loader.cpp
++++ b/src/llama-model-loader.cpp
+@@ -1,3 +1,6 @@
++#ifdef __linux__
++#include "llama-expert-fill.h"
++#endif
+ #include "llama-model-loader.h"
+ 
+ #include "ggml-alloc.h"
+@@ -1441,11 +1444,8 @@ void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps
+ 
+             llama_mmap::ranges advice_ranges = lazy.for_file(idx);
+ #ifdef __linux__
+-            const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+-            const char * fill = getenv("LLAMA_EXPERT_FILL");
+-            const char * random = getenv("LLAMA_EXPERT_FILL_RANDOM");
+-            const bool fill_requested = fill && strcmp(fill, "1") == 0;
+-            if (fill_requested ? (random && strcmp(random, "1") == 0) : (ep && strcmp(ep, "1") == 0)) {
++            const auto expert_config = ExpertConfig::read();
++            if (expert_config.fill ? expert_config.random == "1" : expert_config.prefetch != 0) {
+                 for (const auto & entry : weights_map) {
+                     const auto & w = entry.second;
+                     if (w.idx == idx && entry.first.find(".ffn_") != std::string::npos &&
+diff --git a/src/llama-model.cpp b/src/llama-model.cpp
+index e575555e7..c516ad079 100644
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -1,3 +1,6 @@
++#ifdef __linux__
++#include "llama-expert-fill.h"
++#endif
+ #include "llama-model.h"
+ 
+ #include "llama-arch.h"
+@@ -2147,8 +2150,8 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
+     }
+ 
+ #ifdef __linux__
+-    const char * fill = getenv("LLAMA_EXPERT_FILL");
+-    if (fill && strcmp(fill, "1") == 0 && use_mmap_buffer) {
++    const auto expert_config = ExpertConfig::read();
++    if (expert_config.fill && use_mmap_buffer) {
+         try {
+             for (const auto & file : ml.files) {
+                 const std::string path = "/proc/self/fd/" + std::to_string(file->file_id());
+@@ -2551,8 +2554,8 @@ llama_split_mode llama_model::split_mode() const {
+     return params.split_mode;
+ }
+ 
+-bool llama_model::expert_file_info(const ggml_tensor * t, expert_file_range & out) const {
+-    if (!t || !tensor_is_mapped(t)) { return false; }
++bool llama_model::expert_file_info(const ggml_tensor * t, expert_file_range & out, bool require_host) const {
++    if (!t || (require_host && !tensor_is_mapped(t))) { return false; }
+     const auto it = pimpl->expert_offsets.find(t->name);
+     if (it == pimpl->expert_offsets.end()) { return false; }
+     const auto idx = it->second.first;
+@@ -2560,7 +2563,7 @@ bool llama_model::expert_file_info(const ggml_tensor * t, expert_file_range & ou
+     if (idx >= pimpl->mappings.size() || idx >= pimpl->expert_files.size()) { return false; }
+     const auto & mapping = pimpl->mappings[idx];
+     if (offset > mapping->size() || ggml_nbytes(t) > mapping->size() - offset ||
+-            static_cast<char *>(mapping->addr()) + offset != t->data) { return false; }
++            (require_host && static_cast<char *>(mapping->addr()) + offset != t->data)) { return false; }
+     out = {idx, offset, mapping->size(), mapping->addr(), pimpl->expert_files[idx]->file_id()};
+     return true;
+ }
+diff --git a/src/llama-model.h b/src/llama-model.h
+index 255411e1b..b844d61f3 100644
+--- a/src/llama-model.h
++++ b/src/llama-model.h
+@@ -977,7 +977,9 @@ struct llama_model {
+         void * mapping;
+         int source_fd;
+     };
+-    bool expert_file_info(const ggml_tensor * t, expert_file_range & out) const;
++    // require_host=false returns file metadata only; mapping+offset may be unmapped
++    // for GPU weights. Caller must map source_fd independently before dereferencing.
++    bool expert_file_info(const ggml_tensor * t, expert_file_range & out, bool require_host = true) const;
+ 
+     std::map<ggml_backend_buffer_type_t, size_t> memory_breakdown() const;
+ 

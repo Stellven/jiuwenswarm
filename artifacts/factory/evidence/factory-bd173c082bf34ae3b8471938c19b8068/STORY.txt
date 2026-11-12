@@ -1,0 +1,187 @@
+ factory · bd173c08 · Qwen3.6-35B-A3B on jetson-orin · ACCEPT · 15 turns · 175:03
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+ 00:54  ✓     integrate  commit cf34d311 ·
+ 01:47  rev 1 build      Submit one bare build of owned llama.cpp commit
+                         cf34d311332e362198f0a410c466d1e940287d02 for jetson-orin
+ 02:22  ·     build      0bb569af queued · durable job
+ 02:44  ·     build      0bb569af running · durable job
+ 06:13  ✓     build      0bb569af · 132 s → image 7fd50837
+ 06:27  ✓     build      0bb569af succeeded · durable job · survived turn end
+ 07:13  rev 2 measure    Submit one fixed qwen36-bare-greedy-v1 bare-image lab evaluation using
+                         initial run_config env={}
+ 07:20  ·     lab        4897fdab queued · durable job
+ 07:20  ✓     admit      2b4b12f7 · image 7fd50837 · target jetson-orin
+ 07:40  ·     lab        4897fdab running · durable job
+ 09:51  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · complete · stdout 7a154179 == reference
+                         7a154179 · engagement 0/2
+ 09:51  ✓     lab        64 tokens · 903.95 ms/token · ok · reaped
+ 09:51  ✓     upload     durable
+ 09:57  ✓     lab        4897fdab succeeded · durable job · survived turn end
+ 10:45  rev 3 integrate  mmap_advice · Verify ordered patch hash and reverse/forward applicability,
+                         apply once, review exact diff and commit only mmap_advice in owned evolve
+ 11:08  ·     integration.mmap_advice integration.mmap_advice
+ 11:13  ✓     integrate  commit cf34d311 ·
+ 11:26  ✓     integrate  commit 93a61111 ·
+ 11:48  rev 4 build      mmap_advice · Submit one jetson-orin build from
+                         93a61111ed31b9017e16f0cf8ac47f7dd0af2077 with unique tag
+ 11:55  ·     build      6d79f9e2 queued · durable job
+ 12:14  ·     build      6d79f9e2 running · durable job
+ 15:35  ✓     build      6d79f9e2 · 128 s → image b857d53d
+ 15:42  ✓     build      6d79f9e2 succeeded · durable job · survived turn end
+ 16:13  ✓     inspect    inspector.preflight
+ 16:15  ✓     inspect    inspector.preflight
+ 16:24  ✓     inspect    inspector.verify_effective_config
+ 16:52  rev 5 measure    mmap_advice · Submit two complete ABBA rounds, bare best env={} versus mmap
+                         candidate env={LLAMA_MMAP_ADVICE:random}
+ 16:53  ·     lab        d96acb1a queued · durable job
+ 17:14  ·     lab        d96acb1a running · durable job
+ 46:19  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate regressed · ratio
+                         0.48975509779100296 · output identical
+ 46:19  ·     ab_result  mmap_advice · gate regressed · ratio 0.48975509779100296 · A/A
+                         0.05872150921439843 · output identical · ms/token {'base': 893.71,
+                         'candidate': 1824.81}
+ 46:19  ✓     upload     durable
+ 46:30  ✓     lab        d96acb1a succeeded · durable job · survived turn end
+ 47:34  rev 6 keep_dormant dormant mmap_advice · switch off · needed by router_prefetch,
+                         expert_fill, expert_pregate, thread_names
+ 47:56  rev 7 integrate  router_prefetch · Verify and apply patch 02 once on dormant mmap source
+ 48:26  ·     integration.router_prefetch integration.router_prefetch
+ 48:31  ✓     integrate  commit 5cded3e7 ·
+ 48:50  rev 8 replan/build router_prefetch · LLAMA_MMAP_ADVICE random → default
+ 48:51  ·     build      06c525d4 queued · durable job
+ 49:11  ·     build      06c525d4 running · durable job
+ 52:13  ✓     build      06c525d4 · 129 s → image 69f6a416
+ 52:23  ✓     build      06c525d4 succeeded · durable job · survived turn end
+ 52:47  ✓     inspect    inspector.preflight
+ 52:54  ✗     inspect    CONFIG_MISSING No expert_config effective line in stderr
+ 53:28  rev 9 replan/measure router_prefetch · Submit two complete ABBA rounds against current bare
+                         best · because 866b3c75
+ 53:30  ·     lab        deb16a61 queued · durable job
+ 53:49  ·     lab        deb16a61 running · durable job
+ 80:26  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate regressed · ratio
+                         0.6212455597589931 · output identical
+ 80:26  ·     ab_result  router_prefetch · gate regressed · ratio 0.6212455597589931 · A/A
+                         0.09058007994525316 · output identical · ms/token {'base':
+                         928.2325000000001, 'candidate': 1494.1475}
+ 80:26  ✓     upload     durable
+ 80:29  ✓     lab        deb16a61 succeeded · durable job · survived turn end
+ 81:15  rev 10 keep_dormant dormant router_prefetch · switch off · needed by expert_fill,
+                         expert_pregate, thread_names
+ 81:48  rev 11 integrate  expert_fill · Verify hashes and apply patches 03,04,05 once in order,
+                         review combined component diff, commit one expert_fill integration
+ 82:16  ·     integration.expert_fill integration.expert_fill
+ 82:21  ✓     integrate  commit c0427fe6 ·
+ 82:41  rev 12 replan/build expert_fill · LLAMA_EXPERT_PREFETCH 1 → 0
+ 82:42  ·     build      358bf4e9 queued · durable job
+ 83:01  ·     build      358bf4e9 running · durable job
+ 86:09  ✓     build      358bf4e9 · 129 s → image 05633f1d
+ 86:20  ✓     build      358bf4e9 succeeded · durable job · survived turn end
+ 86:44  ✓     inspect    inspector.preflight
+ 86:51  ✗     inspect    CONFIG_MISSING No expert_config effective line in stderr
+ 87:16  rev 13 replan/measure expert_fill · Submit two ABBA rounds bare best env={} versus
+                         expert_fill manifest enable_env: fill=1, random=decode, threads=16,
+                         chunk_kib=2048, min_tokens=0, max_tokens=1, diag=0, populate=0, prefetch=0,
+                         next=0, mmap=default · because 14d76a7e
+ 87:18  ·     lab        f19094c8 queued · durable job
+ 87:39  ·     lab        f19094c8 running · durable job
+ 107:49  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate improved · ratio
+                         1.1099191335565521 · output identical
+ 107:49  ✓     ab_result  expert_fill · gate improved · ratio 1.1099191335565521 · A/A
+                         0.02882735712924395 · output identical · ms/token {'base': 918.225,
+                         'candidate': 827.29}
+ 107:49  ✓     upload     durable
+ 107:51  ✓     lab        f19094c8 succeeded · durable job · survived turn end
+ 109:02  rev 14 keep_component keep expert_fill · 1.11× · image {'build_
+ 109:37  rev 15 integrate  expert_pregate · Hash/check/apply patches 06-08 in order
+ 109:57  ·     integration.expert_pregate integration.expert_pregate
+ 110:02  ✓     integrate  commit 6e9d96cf · combined-01-02-03-04-05-06-07-08.patch
+ 110:20  rev 16 build      expert_pregate · Submit one jetson-orin build of
+                         6e9d96cf4e007c74aab91bb59767247737a80f0f
+ 110:22  ·     build      f4530d71 queued · durable job
+ 110:42  ·     build      f4530d71 running · durable job
+ 113:49  ✓     build      f4530d71 · 126 s → image 061e58e7
+ 114:01  ✓     build      f4530d71 succeeded · durable job · survived turn end
+ 114:24  ✓     inspect    inspector.preflight
+ 114:31  ✓     inspect    effective k=8 · pregate=1 · fill=1 · chunk_kib=2048 · … · matches request
+ 114:58  rev 17 measure    expert_pregate · Submit two complete ABBA rounds current-best fill versus
+                         pregate image
+ 115:00  ·     lab        6a429077 queued · durable job
+ 115:22  ·     lab        6a429077 running · durable job
+ 135:44  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate improved · ratio
+                         1.1253959980504713 · output identical
+ 135:44  ✓     ab_result  expert_pregate · gate improved · ratio 1.1253959980504713 · A/A
+                         0.016002382757500187 · output identical · ms/token {'base': 831.2625,
+                         'candidate': 738.64}
+ 135:44  ✓     upload     durable
+ 135:48  ✓     lab        6a429077 succeeded · durable job · survived turn end
+ 136:55  rev 18 keep_component keep expert_pregate · 1.13× · image {'build_
+ 137:24  rev 19 integrate  thread_names · Hash/check/apply patch 09 once, review exact diff and
+                         commit separate observability component
+ 137:26  ·     integration.thread_names integration.thread_names
+ 137:29  ✓     integrate  commit 133b42ae · 09-thread-names.patch
+ 137:48  rev 20 build      thread_names · Submit one jetson-orin build from
+                         133b42aed56dea09c2c6643f6cda60b18cf21bdf
+ 137:49  ·     build      cc3a14f9 queued · durable job
+ 138:12  ·     build      cc3a14f9 running · durable job
+ 141:23  ✓     build      cc3a14f9 · 126 s → image 0b3eb1ce
+ 141:36  ✓     build      cc3a14f9 succeeded · durable job · survived turn end
+ 141:57  ✓     inspect    inspector.preflight
+ 142:10  ✓     inspect    effective k=8 · pregate=1 · fill=1 · chunk_kib=2048 · … · matches request
+ 142:35  rev 21 measure    thread_names · Submit two ABBA rounds with identical best_env in both
+                         images
+ 142:37  ·     lab        c585f168 queued · durable job
+ 143:01  ·     lab        c585f168 running · durable job
+ 163:21  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · gate not_measured · ratio
+                         1.0091110723130743 · output identical
+ 163:21  ·     ab_result  thread_names · gate not_measured · ratio 1.0091110723130743 · A/A
+                         0.07622904598349313 · output identical · ms/token {'base': 780.28,
+                         'candidate': 773.235}
+ 163:21  ✓     upload     durable
+ 163:35  ✓     lab        c585f168 succeeded · durable job · survived turn end
+ 164:36  rev 22 revert_component revert thread_names · measure none and gate not_measured cannot
+                         satisfy operator keep-only-improved requirement; no downstream component
+                         needs it. Naming engagement passed but is not a performance win.
+ 164:41  ✓     integrate  commit 0b514fba · combined-01-02-03-04-05-06-07-08.patch
+ 165:05  ·     revert.thread_names revert.thread_names
+ 165:06  rev 23 build      Submit one restoration build from
+                         0b514fba8cf6402bf059665669912d4ceba050c3, keeping scored best tag untouched
+ 165:07  ·     build      9327eba6 queued · durable job
+ 165:29  ·     build      9327eba6 running · durable job
+ 168:34  ✓     build      9327eba6 · 127 s → image 1274abb8
+ 168:44  ✓     build      9327eba6 succeeded · durable job · survived turn end
+ 169:16  ✓     inspect    inspector.preflight
+ 169:28  ✓     inspect    effective k=8 · pregate=1 · fill=1 · chunk_kib=2048 · … · matches request
+ 169:48  rev 24 measure    Submit one final fixed qwen36-bare-greedy-v1 evaluation of recovery image
+                         at exact kept best_env
+ 169:49  ·     lab        59153d88 queued · durable job
+ 169:49  ✓     admit      097a7ab1 · image 1274abb8 · target jetson-orin
+ 170:17  ·     lab        59153d88 running · durable job
+ 172:29  ✓     contract   qwen36-bare-greedy-v1 · pass · ok · complete · stdout 7a154179 ==
+                         reference 7a154179 · engagement 1/2
+ 172:29  ✓     lab        64 tokens · 785.22 ms/token · ok · reaped
+ 172:29  ✓     upload     durable
+ 172:33  ✓     lab        59153d88 succeeded · durable job · survived turn end
+ 174:16  ·     campaign.final_handoff No directly measured cumulative bare-to-final ratio;
+                         incremental ratios are not multiplied into a cumulative claim. Raw
+                         telemetry/watchdog previews were bounded; complete run results and
+                         evaluations inspected. No independent exhaustive external-load audit; owned
+                         builds and GPU jobs were serialized. Generic config probes before patch08
+                         failed CONFIG_MISSING and remain failures; actual component-specific Qwen
+                         engagement passed. Later strict config probes passed. Builder patch_sha256
+                         metadata is null; ordered verified patch hashes and exact integration diffs
+                         are recorded separately.
+ 175:03  ·     campaign.final_handoff No directly measured cumulative bare-to-final ratio;
+                         incremental ratios are not multiplied into a cumulative claim. Raw
+                         telemetry/watchdog previews were bounded; complete run results and
+                         evaluations inspected. No independent exhaustive external-load audit; owned
+                         builds and GPU jobs were serialized. Generic config probes before patch08
+                         failed CONFIG_MISSING and remain failures; actual component-specific Qwen
+                         engagement passed. Later strict config probes passed. Builder patch_sha256
+                         metadata is null; ordered verified patch hashes and exact integration diffs
+                         are recorded separately.
+ 175:04  rev 25 accept     Kept-component evaluations f19094c82dee4a678443c71ea1a7694b:evaluation
+                         and 6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation satisfy
+                         gate/correctness/engagement;…
+engine stack: cf34d3113 → mmap_advice (off) → router_prefetch (off) → expert_fill → expert_pregate
+chain: component ✓ → commit ✓ → build ✓ → image ✓ → admission ✓ → lab ✓ → evaluation ✓
+evidence: 696 records · 599 artifacts · 477801510 bytes

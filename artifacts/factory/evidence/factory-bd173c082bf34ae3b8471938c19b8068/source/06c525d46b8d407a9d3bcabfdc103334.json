@@ -1,0 +1,14 @@
+{
+  "attempt_id": "06c525d46b8d407a9d3bcabfdc103334",
+  "error": null,
+  "integration_diff_available": true,
+  "log": {
+    "available": true,
+    "stdout": "0b514fba8cf6402bf059665669912d4ceba050c3 86ed6e3888f176c1c03021509d0843de62f0447f 133b42aed56dea09c2c6643f6cda60b18cf21bdf Revert worker names: observability only\n133b42aed56dea09c2c6643f6cda60b18cf21bdf 43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3 6e9d96cf4e007c74aab91bb59767247737a80f0f expert: integrate worker thread names\n6e9d96cf4e007c74aab91bb59767247737a80f0f 86ed6e3888f176c1c03021509d0843de62f0447f c0427fe6cf7fb61ae9c0d38b2b098762865d7c56 expert: integrate pregate component\n"
+  },
+  "source": {
+    "commit": "5cded3e76a44812f7f5a16b357c9f384d25f1c46",
+    "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+    "tree": "29717242a81049eb426e4d35fb78487563351e63"
+  }
+}

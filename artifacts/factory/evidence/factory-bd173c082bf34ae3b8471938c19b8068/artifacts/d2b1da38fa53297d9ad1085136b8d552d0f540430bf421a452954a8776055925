@@ -1,0 +1,279 @@
+{
+  "pid": 1051527,
+  "groups": {
+    "main": {
+      "samples": 9347,
+      "states": {
+        "D": 2668,
+        "S": 4955,
+        "R": 1724
+      },
+      "cpu_seconds": 14.179999999999744,
+      "minflt": 39939.903638532705,
+      "majflt": 146893.39184312616,
+      "fractions": {
+        "R": 0.18444420669733605,
+        "D": 0.28543917834599336,
+        "S": 0.5301166149566706
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "cpu_workers": {
+      "samples": 55977,
+      "states": {
+        "S": 23269,
+        "D": 24065,
+        "R": 8643
+      },
+      "cpu_seconds": 59.61725909632876,
+      "minflt": 58251.98500596495,
+      "majflt": 1453935.8628541634,
+      "fractions": {
+        "R": 0.1544027011093842,
+        "D": 0.4299087125069225,
+        "S": 0.4156885863836933
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "cuda_driver": {
+      "samples": 9326,
+      "states": {
+        "S": 9326
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    }
+  },
+  "threads": {
+    "1051527": {
+      "samples": 9347,
+      "states": {
+        "D": 2668,
+        "S": 4955,
+        "R": 1724
+      },
+      "cpu_seconds": 14.179999999999744,
+      "minflt": 39939.903638532705,
+      "majflt": 146893.39184312616,
+      "comm": "llama-completio",
+      "group": "main",
+      "fractions": {
+        "R": 0.18444420669733605,
+        "D": 0.28543917834599336,
+        "S": 0.5301166149566706
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1051587": {
+      "samples": 9326,
+      "states": {
+        "S": 9326
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 2.0,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_<redacted>
+    },
+    "1051594": {
+      "samples": 9326,
+      "states": {
+        "S": 9326
+      },
+      "cpu_seconds": 0.0,
+      "minflt": 0.0,
+      "majflt": 0.0,
+      "comm": "cuda-EvtHandlr",
+      "group": "cuda_driver",
+      "fractions": {
+        "R": 0.0,
+        "D": 0.0,
+        "S": 1.0
+      },
+      "cpu_seconds_per_token": 0.0,
+      "minflt_per_token": 0.0,
+      "majflt_per_token": 0.0
+    },
+    "1051596": {
+      "samples": 9326,
+      "states": {
+        "D": 2602,
+        "S": 5420,
+        "R": 1304
+      },
+      "cpu_seconds": 9.769999999999838,
+      "minflt": 24732.17772889953,
+      "majflt": 127429.56957202568,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.13982414754449926,
+        "D": 0.2790049324469226,
+        "S": 0.5811709200085782
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1051597": {
+      "samples": 9347,
+      "states": {
+        "R": 1628,
+        "S": 3501,
+        "D": 4218
+      },
+      "cpu_seconds": 11.349999999999802,
+      "minflt": 16095.807277065416,
+      "majflt": 226152.92502982472,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.17417353161442173,
+        "D": 0.4512677864555472,
+        "S": 0.374558681930031
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1051598": {
+      "samples": 9326,
+      "states": {
+        "R": 1903,
+        "S": 1671,
+        "D": 5752
+      },
+      "cpu_seconds": 12.92999999999977,
+      "minflt": 5987.0,
+      "majflt": 365122.9400238598,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.20405318464507827,
+        "D": 0.6167703195367789,
+        "S": 0.17917649581814282
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1051599": {
+      "samples": 9326,
+      "states": {
+        "D": 5747,
+        "S": 1661,
+        "R": 1918
+      },
+      "cpu_seconds": 12.907259096331542,
+      "minflt": 5798.0,
+      "majflt": 369299.39184312616,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.20566159125026806,
+        "D": 0.6162341840017156,
+        "S": 0.1781042247480163
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_<redacted>
+    },
+    "1051600": {
+      "samples": 9326,
+      "states": {
+        "D": 5746,
+        "S": 1690,
+        "R": 1890
+      },
+      "cpu_seconds": 12.659999999999778,
+      "minflt": 5639.0,
+      "majflt": 365929.0363853271,
+      "comm": "llama-completio",
+      "group": "cpu_workers",
+      "fractions": {
+        "R": 0.2026592322539138,
+        "D": 0.616126956894703,
+        "S": 0.18121381085138322
+      },
+      "cpu_seconds_per_<redacted>,
+      "minflt_per_<redacted>,
+      "majflt_per_token": 5808.3974029417
+    }
+  },
+  "overhead": {
+    "type": "end",
+    "elapsed_s": 242.60169782408047,
+    "self_cpu_s": 4.73334992,
+    "self_cpu_percent": 1.9510786455552047,
+    "samples": 24260,
+    "missed_deadlines": 0
+  },
+  "phase_window": {
+    "clock": "mono_s",
+    "decode_start": 910849.029388,
+    "decode_end": 910942.496648,
+    "method": "last_thread_sample_before_exit_minus_eval_ms_total",
+    "sampling_error_bound_s": 0.017391999950632453,
+    "coverage_start": 910699.906935,
+    "tokens": 63,
+    "coverage_complete": true,
+    "absolute_error_bound_s": null,
+    "error_note": "Engine teardown/exit lag is unknown. Counter deltas crossing the window edge are prorated; first observation is a baseline."
+  },
+  "rd_histogram": {
+    "0,0": 875,
+    "0,1": 108,
+    "0,2": 128,
+    "0,3": 787,
+    "0,4": 841,
+    "0,5": 35,
+    "0,6": 1236,
+    "1,0": 510,
+    "1,1": 134,
+    "1,2": 616,
+    "1,3": 680,
+    "1,4": 72,
+    "1,5": 1001,
+    "2,0": 105,
+    "2,1": 175,
+    "2,2": 269,
+    "2,3": 51,
+    "2,4": 570,
+    "3,0": 85,
+    "3,1": 79,
+    "3,2": 15,
+    "3,3": 269,
+    "4,0": 59,
+    "4,1": 10,
+    "4,2": 115,
+    "5,0": 146,
+    "5,1": 52,
+    "6,0": 324
+  },
+  "cpu_workers_r_fraction": 0.1544027011093842,
+  "main_workers_d_fraction": 0.4092370338619803,
+  "majflt_per_<redacted>
+}

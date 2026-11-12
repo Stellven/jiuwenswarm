@@ -1,0 +1,167 @@
+{
+  "admissions": {
+    "base": {
+      "admission_id": "admission:2b4b12f7be986996c38fb80c3c2676fc3bd2459842950f3e223a1cfd8e14b974",
+      "architecture": "arm64",
+      "build_attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+      "delivery": "same_host_local_image",
+      "image": {
+        "id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+        "tag": "factory/llamacpp:bd173c08-bare-cf34d3113"
+      },
+      "target_profile": "jetson-orin",
+      "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+    },
+    "candidate": {
+      "admission_id": "admission:6cca637a67a92abd2f2f0ffc150994383d2babf028e617687cddc76387dcf050",
+      "architecture": "arm64",
+      "build_attempt_id": "6d79f9e223914ca6b5532026d0063f1a",
+      "delivery": "same_host_local_image",
+      "image": {
+        "id": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d",
+        "tag": "factory/llamacpp:bd173c08-mmap-93a61111"
+      },
+      "target_profile": "jetson-orin",
+      "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+    }
+  },
+  "component": "mmap_advice",
+  "component_material": {
+    "base": {
+      "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+      "repo": "https://github.com/ggml-org/llama.cpp"
+    },
+    "correctness_obligation": "identical greedy stdout",
+    "depends_on": [],
+    "enable_env": {
+      "LLAMA_MMAP_ADVICE": "random"
+    },
+    "engagement_checks": [
+      {
+        "regex": "llama_mmap: LLAMA_MMAP_ADVICE=random",
+        "source": "stderr"
+      }
+    ],
+    "env_ranges": {
+      "LLAMA_MMAP_ADVICE": "random enables; any other value keeps default advice"
+    },
+    "hypothesis": "Suppress speculative sequential readahead so sparse expert access fetches fewer irrelevant pages.",
+    "measure": "perf",
+    "patches": [
+      {
+        "file": "01-mmap-advice-random.patch",
+        "sha256": "1554b5b6a5b9efc0d487453408db83a23cd00cffd29d021e5cce90d513211452"
+      }
+    ],
+    "rollback": "Revert this component commit, rebuild, and restore the last kept image and environment; retain all evidence."
+  },
+  "contract": {
+    "contract_id": "qwen36-bare-greedy-v1",
+    "engagement_checks": [],
+    "model": {
+      "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": null,
+      "size": 22360456160
+    },
+    "pre_freeze_revisions": [
+      {
+        "at": "2026-11-12",
+        "by": "operator",
+        "change": "reference image campaign/llamacpp:jetson-up1108 -> factory/llamacpp:bare-cf34d311 (same upstream commit cf34d311, rebuilt by the factory Builder so the reference has a schema-2 build record)",
+        "evidence": "operator-bare-build task"
+      }
+    ],
+    "reference": {
+      "frozen_at": "2026-11-12T04:56:16.813872+00:00",
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "image_tag": "factory/llamacpp:bare-cf34d311",
+      "run_ref": "5cce3b0270fb403b885729d65b49ee57",
+      "stdout_sha256": "7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8"
+    },
+    "reference_image": {
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "image_tag": "factory/llamacpp:bare-cf34d311"
+    },
+    "scope": "identical greedy continuation of a fixed prompt; not an accuracy benchmark",
+    "tolerance": "byte-identical stdout",
+    "version": 1,
+    "workload": {
+      "argv": [
+        "-m",
+        "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+        "-f",
+        "/om/prompts/p1.txt",
+        "-n",
+        "64",
+        "-c",
+        "4096",
+        "--temp",
+        "0",
+        "-s",
+        "1",
+        "-no-cnv",
+        "-ngl",
+        "99",
+        "-lm",
+        "mmap",
+        "-cmoe",
+        "-lv",
+        "4"
+      ],
+      "env": {},
+      "tool": "llama-completion"
+    }
+  },
+  "lab_run_id": "d96acb1a5af849ea940ec98eaff03073",
+  "mode": "ab",
+  "spec": {
+    "argv": [
+      "-m",
+      "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "-f",
+      "/om/prompts/p1.txt",
+      "-n",
+      "64",
+      "-c",
+      "4096",
+      "--temp",
+      "0",
+      "-s",
+      "1",
+      "-no-cnv",
+      "-ngl",
+      "99",
+      "-lm",
+      "mmap",
+      "-cmoe",
+      "-lv",
+      "4"
+    ],
+    "arms": {
+      "base": {
+        "env": {},
+        "expect_switch": false,
+        "image": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998"
+      },
+      "candidate": {
+        "env": {
+          "LLAMA_MMAP_ADVICE": "random"
+        },
+        "expect_switch": true,
+        "image": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d",
+        "switch_regex": [
+          "llama_mmap: LLAMA_MMAP_ADVICE=random"
+        ]
+      }
+    },
+    "direction": "lower",
+    "id": "ab",
+    "metric": "eval_ms_per_token",
+    "order": "ABBA",
+    "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/{attempt_id}",
+    "rounds": 2,
+    "runner": "om_run",
+    "threads": true,
+    "tool": "llama-completion"
+  }
+}

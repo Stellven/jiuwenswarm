@@ -1,0 +1,38 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 06-pregate.patch
+  sha256: ee40edd569e704018556d6341830d6df24a2ece0bca7acebe6cd7604c99247ba
+- file: 07-pregate-sched.patch
+  sha256: 21628cd1e075ad66610bedc315ba9d8d421d59d2f56395c7bf73b576f7c92c42
+- file: 08-pregate-observe.patch
+  sha256: e5fab81608abaec4cfeade2a168e9f5fc44b2042f0edd57344527649f392cc06
+depends_on:
+- expert_fill
+enable_env:
+  LLAMA_EXPERT_PREGATE: '1'
+  LLAMA_EXPERT_PREGATE_K: '8'
+  LLAMA_EXPERT_PREGATE_ORDER: after
+  LLAMA_EXPERT_PREGATE_MAX_INFLIGHT: '4'
+  LLAMA_EXPERT_PREGATE_LOOKAHEAD: '1'
+engagement_checks:
+- source: stderr
+  regex: 'expert_pregate: active'
+- source: stderr
+  regex: 'expert_config: effective .*pregate=1 '
+- source: stderr
+  regex: 'expert_pregate: stats predictions=[1-9][0-9]*'
+hypothesis: Predict upcoming expert routes and schedule bounded asynchronous reads
+  ahead of demand.
+measure: perf
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and
+  environment; retain all evidence.
+env_ranges:
+  LLAMA_EXPERT_PREGATE: 0|1
+  LLAMA_EXPERT_PREGATE_K: 1..32
+  LLAMA_EXPERT_PREGATE_ORDER: after|before
+  LLAMA_EXPERT_PREGATE_MAX_INFLIGHT: 1..64 (also capped by fill threads)
+  LLAMA_EXPERT_PREGATE_LOOKAHEAD: 1..2
+  validation: 08 validates all LLAMA_EXPERT_* names and values even when disabled

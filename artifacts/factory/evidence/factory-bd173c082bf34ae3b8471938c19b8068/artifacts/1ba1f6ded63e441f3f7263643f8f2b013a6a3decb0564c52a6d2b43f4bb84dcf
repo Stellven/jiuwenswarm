@@ -1,0 +1,376 @@
+{
+ "exit_code": 0,
+ "wall_s": 150.25,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 166.35,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 139.79,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 147.29,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 145.37,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 150.57,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 140.55,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_EXPERT_PREGATE=1 -e LLAMA_EXPERT_PREGATE_K=8 -e LLAMA_EXPERT_PREGATE_LOOKAHEAD=1 -e LLAMA_EXPERT_PREGATE_MAX_INFLIGHT=4 -e LLAMA_EXPERT_PREGATE_ORDER=after -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+ "exit_code": 0,
+ "wall_s": 148.04,
+ "oom_killed": false,
+ "watchdog_trips": 0,
+ "status": "ok",
+ "host_id": "jetson-arm",
+ "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+ "env": "-e LLAMA_EXPERT_FILL=1 -e LLAMA_EXPERT_FILL_CHUNK_KIB=2048 -e LLAMA_EXPERT_FILL_DIAG=0 -e LLAMA_EXPERT_FILL_MAX_TOKENS=1 -e LLAMA_EXPERT_FILL_MIN_TOKENS=0 -e LLAMA_EXPERT_FILL_POPULATE=0 -e LLAMA_EXPERT_FILL_RANDOM=decode -e LLAMA_EXPERT_FILL_THREADS=16 -e LLAMA_EXPERT_PREFETCH=0 -e LLAMA_EXPERT_PREFETCH_NEXT=0 -e LLAMA_MMAP_ADVICE=default",
+ "argv": [
+  "llama-completion",
+  "-m",
+  "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+  "-f",
+  "/om/prompts/p1.txt",
+  "-n",
+  "64",
+  "-c",
+  "4096",
+  "--temp",
+  "0",
+  "-s",
+  "1",
+  "-no-cnv",
+  "-ngl",
+  "99",
+  "-lm",
+  "mmap",
+  "-cmoe",
+  "-lv",
+  "4"
+ ]
+}
+{
+  "secondary_metrics": {
+    "base": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.4399999999999995,
+      "eval_tps": 1.2025,
+      "eval_ms_per_token": 831.2625,
+      "nvme_gib_per_token_decode": 0.22612862932273567,
+      "gpu_util_median": 18.0,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.06519921096199628,
+      "threads.main_workers_d_fraction": 0.197295228543468,
+      "threads.majflt_per_<redacted>
+    },
+    "candidate": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.3875,
+      "eval_tps": 1.355,
+      "eval_ms_per_token": 738.64,
+      "nvme_gib_per_token_decode": 0.2604796026622237,
+      "gpu_util_median": 18.0,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.10248542812077224,
+      "threads.main_workers_d_fraction": 0.1588663439538845,
+      "threads.majflt_per_<redacted>
+    }
+  },
+  "metric": "eval_ms_per_token",
+  "direction": "lower",
+  "base": "base",
+  "inputs": {
+    "base": [
+      829.25,
+      838.64,
+      825.6,
+      831.56
+    ],
+    "candidate": [
+      734.96,
+      746.78,
+      737.68,
+      735.14
+    ]
+  },
+  "means": {
+    "base": 831.2625,
+    "candidate": 738.64
+  },
+  "aa_gaps": {
+    "base": 0.015686982150644308,
+    "candidate": 0.016002382757500187
+  },
+  "aa_gap": 0.016002382757500187,
+  "drift_halves": [
+    833.9449999999999,
+    828.5799999999999
+  ],
+  "drift": 0.00645403828513858,
+  "threshold": 0.03200476551500037,
+  "minimum_effect": 0.03,
+  "noise_multiplier": 2,
+  "comparisons": {
+    "candidate": {
+      "mean": 738.64,
+      "base_mean": 831.2625,
+      "ratio": 1.1253959980504713,
+      "change": 0.1253959980504713,
+      "threshold": 0.03200476551500037,
+      "verdict": "improved"
+    }
+  },
+  "output": {
+    "class": "identical",
+    "hashes": {
+      "base": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "candidate": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ]
+    }
+  },
+  "reasons": [],
+  "status": "completed",
+  "invalid_reasons": [],
+  "planned_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ],
+  "executed_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ]
+}

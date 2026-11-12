@@ -1,0 +1,71 @@
+{
+  "dir": "/home/muk/.jiuwenswarm-factory/lab-spool/d96acb1a5af849ea940ec98eaff03073/ab/003-candidate",
+  "reasons": {
+    "pp_avg_ts": "no matching llama-bench JSON row",
+    "pp_samples_ts": "no matching llama-bench JSON row",
+    "pp_steady": "no matching llama-bench JSON row",
+    "tg_avg_ts": "no matching llama-bench JSON row",
+    "tg_samples_ts": "no matching llama-bench JSON row",
+    "tg_steady": "no matching llama-bench JSON row",
+    "emc_freq_median": "no decode-window samples: emc_freq"
+  },
+  "warnings": [],
+  "status": "ok",
+  "wall_s": 281.05,
+  "output_sha": "7a1541792364",
+  "switch_matches": {
+    "llama_mmap: LLAMA_MMAP_ADVICE=random": 1
+  },
+  "switch_lines": [
+    "0.01.792.896 I llama_mmap: LLAMA_MMAP_ADVICE=random (no FADV_SEQUENTIAL, no WILLNEED, MADV_RANDOM)"
+  ],
+  "prompt_tps": 1.53,
+  "eval_tps": 0.55,
+  "load_s": 35.03089,
+  "eval_tokens": 63.0,
+  "eval_ms_per_token": 1823.02,
+  "prompt_ms_per_token": 655.18,
+  "eval_ms_total": 114850.14,
+  "eval_runs": 63,
+  "load_ms": 35030.89,
+  "bench": {
+    "pp": [],
+    "tg": []
+  },
+  "pp_avg_ts": null,
+  "pp_samples_ts": null,
+  "pp_steady": null,
+  "tg_avg_ts": null,
+  "tg_samples_ts": null,
+  "tg_steady": null,
+  "nvme_gib": 24.161895751953125,
+  "avg_kib_per_io": 4.105553477753874,
+  "nvme_gib_per_<redacted>,
+  "mem_available_min_mib": 2990.66,
+  "swap_max_mib": 1680.0,
+  "gpu_freq_median": 306.0,
+  "phase_windows": {
+    "clock": "mono_s",
+    "method": "last_telemetry_before_exit_minus_eval_ms_total",
+    "decode_start": 907910.321046284,
+    "decode_end": 908025.171186284,
+    "load_start": 907744.38352695,
+    "load_end": 907779.4144169501,
+    "sampling_error_bound_s": 1.0013355249539018,
+    "absolute_error_bound_s": null,
+    "error_note": "Endpoint sampling error is at most the largest observed backend interval assuming sampling continued until exit. Engine teardown/exit lag is unknown; no finite absolute phase alignment bound is available. Load begins at first telemetry sample; startup offset is also unknown."
+  },
+  "nvme_gib_decode": 9.493627785368517,
+  "nvme_gib_load": 3.0235415910974552,
+  "nvme_gib_per_token_decode": 0.150692504529659,
+  "gpu_util_median": 0,
+  "gpu_util_p90": 18,
+  "device_util_median": 97.3581578163144,
+  "power_in_w_median": 6.259,
+  "temp_tj_max": 52.562,
+  "emc_freq_median": null,
+  "energy_j_per_<redacted>,
+  "threads.cpu_workers_r_fraction": 0.152395344444283,
+  "threads.main_workers_d_fraction": 0.5757896572339577,
+  "threads.majflt_per_<redacted>
+}

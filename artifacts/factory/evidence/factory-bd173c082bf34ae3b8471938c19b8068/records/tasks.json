@@ -1,0 +1,38 @@
+[
+  {
+    "allowed_effects": [
+      "process.exec",
+      "workspace.read",
+      "workspace.write",
+      "gpu.use"
+    ],
+    "budget": {
+      "max_turns": 40,
+      "wall_clock_s": 28800
+    },
+    "component_cc": "factory.components.mmap_advice",
+    "constraints": {
+      "contract_immutable": true,
+      "local_commits_in_owned_checkout": true,
+      "owned_checkout_only": true,
+      "push_or_publish": false
+    },
+    "contract_id": "qwen36-bare-greedy-v1",
+    "created": 1794466202.1813674,
+    "current_decision_rev": 25,
+    "evidence_cursor": 1269,
+    "initial_run_config": {
+      "env": {}
+    },
+    "objective": "Starting from bare llama.cpp cf34d3113 in the owned checkout branch `evolve`, build the bare engine, then grow it one component at a time (choose order from component dependencies and hypotheses). For each: integrate (commit), build, A/B vs the current best image with methodology_ab, keep if gate improved and output identical, otherwise revert the commit and record why. End with the best image, its component stack and evidence.",
+    "operator_labels": {},
+    "revision": 1,
+    "source": {
+      "branch": "evolve",
+      "pre_integration_commit": "cf34d3113",
+      "subpath": "llama.cpp"
+    },
+    "target": "jetson-orin",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068"
+  }
+]

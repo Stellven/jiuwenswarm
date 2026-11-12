@@ -1,0 +1,27 @@
+{"aborted": false, "effective": {}, "engine_lines": [], "exit_status": 0, "image": {"arch": "arm64", "id": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d", "labels": {"campaign.patch.sha256": "", "campaign.source.tree": "c9ddd710efad4bfaf402bed1f182b6a35a4fad68", "campaign.target.profile": "jetson-orin", "campaign.toolchain": "{\"cmake\": \"cmake version 4.4.4\\n\\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\", \"gcc\": \"gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\\nCopyright (C) 2021 Free Software Foundation, Inc.\\nThis is free software; see the source for copying conditions.  There is NO\\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\", \"ninja\": \"1.13.2.git.kitware.jobserver-pipe-1\", \"nv_tegra_release\": \"# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\", \"nvcc\": \"nvcc: NVIDIA (R) Cuda compiler driver\\nCopyright (c) 2005-2024 NVIDIA Corporation\\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\\nCuda compilation tools, release 12.6, V12.6.68\\nBuild cuda_12.6.r12.6/compiler.34714021_0\", \"nvidia-jetpack\": \"6.2.3+b81\"}", "io.buildah.version": "1.23.1", "maintainer": "NVIDIA CORPORATION <<redacted>>", "org.opencontainers.image.ref.name": "ubuntu", "org.opencontainers.image.revision": "93a61111ed31b9017e16f0cf8ac47f7dd0af2077", "org.opencontainers.image.version": "22.04"}}, "mismatches": {}, "requested": {"LLAMA_MMAP_ADVICE": "random"}}
+--- stderr tail ---
+0.00.043.164 I llama_completion: llama backend init
+0.00.043.190 I llama_completion: load the model and apply lora adapter, if any
+0.06.136.566 I cmn          init: llama threadpool init, n_threads = 6
+0.06.196.805 I 
+0.06.197.021 I system_info: n_threads = 6 (n_threads_batch = 6) / 6 | CUDA : ARCHS = 870 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | DOTPROD = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.06.197.022 I 
+0.06.197.174 I sampler seed: 4294967295
+0.06.197.200 I sampler params: 
+	repeat_last_n = 64, repeat_penalty = 1.000, frequency_penalty = 0.000, presence_penalty = 0.000
+	dry_multiplier = 0.000, dry_base = 1.750, dry_allowed_length = 2, dry_penalty_last_n = 64
+	top_k = 40, top_p = 0.950, min_p = 0.050, xtc_probability = 0.000, xtc_threshold = 0.100, typical_p = 1.000, top_n_sigma = -1.000, temp = 0.000
+	mirostat = 0, mirostat_lr = 0.100, mirostat_ent = 5.000, adaptive_target = -1.000, adaptive_decay = 0.900
+0.06.197.214 I sampler chain: logits -> ?penalties -> ?dry -> ?top-n-sigma -> top-k -> ?typical -> top-p -> min-p -> ?xtc -> temp-ext -> greedy 
+0.06.197.215 I generate: n_ctx = 256, n_batch = 2048, n_predict = 1, n_keep = 0
+0.06.197.216 I 
+0.06.265.302 I common_perf_print:    sampling time =       0.64 ms
+0.06.265.306 I common_perf_print:    samplers time =       0.07 ms /     2 tokens
+0.06.265.314 I common_perf_print:        load time =    5485.95 ms
+0.06.265.316 I common_perf_print: prompt eval time =       0.00 ms /     1 tokens (    0.00 ms per token,      inf tokens per second)
+0.06.265.318 I common_perf_print:        eval time =      67.31 ms /     1 runs   (   67.31 ms per token,    14.86 tokens per second)
+0.06.265.319 I common_perf_print:       total time =      68.52 ms /     2 tokens
+0.06.265.320 I common_perf_print: unaccounted time =       0.57 ms /   0.8 %      (total - sampling - prompt eval - eval) / (total)
+0.06.265.321 I common_perf_print:    graphs reused =          0
+0.06.265.321 I common_perf_print:   graph reallocs =          0    /     0        (same size) / (changed size)
+Error response from daemon: No such container: factory-inspector-304611bc330a46c3a26a9677bf878a04

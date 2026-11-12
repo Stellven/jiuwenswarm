@@ -1,0 +1,775 @@
+[
+  {
+    "action": {
+      "next_bounded_operation": "Submit one bare build of owned llama.cpp commit cf34d311332e362198f0a410c466d1e940287d02 for jetson-orin.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794466309.673848,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:1",
+    "evidence_ids": [
+      "factory-bd173c082bf34ae3b8471938c19b8068",
+      "c02caadc6a7a4602b7aead816e301d01",
+      "6300895cba5c4837a47bae021a3998eb"
+    ],
+    "expected_evidence": "Durable build attempt followed by receipt, artifacts and immutable image ID.",
+    "hypothesis": "Establish an admitted bare image first; mmap_advice has no dependencies and will be the first candidate.",
+    "observations": "Owned evolve is clean at cf34d311332e362198f0a410c466d1e940287d02 with no components. Inspector reports aarch64, L4T R36.5.2, nvcc on PATH and Docker. Legacy reverse-check errors in artifact are expected on bare source. Initial env={}, current best image unset, kept stack=[]. Contract-ID evidence lookup NOT_FOUND does not establish whether frozen reference exists.",
+    "parent_rev": 0,
+    "reason_for_change": "Task factory-bd173c082bf34ae3b8471938c19b8068 requires bare build first; c02caadc6a7a4602b7aead816e301d01 verifies clean base and host prerequisites.",
+    "rev": 1,
+    "stop_condition": "End turn after durable submission. Missing frozen reference blocks scoring.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Build outcome and image unknown. Frozen bare reference must be verified before scoring."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Submit one fixed qwen36-bare-greedy-v1 bare-image lab evaluation using initial run_config env={}.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_lab_attempts": 1
+    },
+    "created": 1794466635.7541614,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:2",
+    "evidence_ids": [
+      "factory-bd173c082bf34ae3b8471938c19b8068",
+      "0bb569af6abd4b6893e70bb2e1420860:build-result",
+      "0bb569af6abd4b6893e70bb2e1420860:build-record",
+      "0bb569af6abd4b6893e70bb2e1420860:receipt"
+    ],
+    "expected_evidence": "Admission outcome and durable attempt, or explicit missing-prerequisite rejection. Then complete evaluation and correctness evidence.",
+    "hypothesis": "A fixed bare-image lab evaluation will verify contract admission and correctness prerequisites before adding components.",
+    "observations": "Bare build succeeded from clean cf34d311332e362198f0a410c466d1e940287d02 tree 2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6. Best image is factory/llamacpp:bd173c08-bare-cf34d3113, ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998, build attempt 0bb569af6abd4b6893e70bb2e1420860. Best env={}, stack=[]. Build record pins runtime sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1 and CUDA 12.6 sm_87. No performance/correctness evidence yet.",
+    "parent_rev": 1,
+    "reason_for_change": "0bb569af6abd4b6893e70bb2e1420860:build-result and :receipt establish bare build identity, but methodology requires frozen reference and correctness before scored improvement.",
+    "rev": 2,
+    "stop_condition": "End turn on durable submission. If frozen bare reference is missing, stop_missing_prerequisite; never create or alter contract.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Frozen bare reference presence and fixed-contract execution/correctness are unverified; direct contract-ID lookup is not a contract API."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next_bounded_operation": "Verify ordered patch hash and reverse/forward applicability, apply once, review exact diff and commit only mmap_advice in owned evolve.",
+      "type": "integrate"
+    },
+    "budget": {
+      "max_component_commits": 1
+    },
+    "created": 1794466847.199423,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:3",
+    "evidence_ids": [
+      "4897fdab8f804ff4918d0586f69bcdbb:evaluation",
+      "4897fdab8f804ff4918d0586f69bcdbb:observation",
+      "0bb569af6abd4b6893e70bb2e1420860:build-result"
+    ],
+    "expected_evidence": "Patch-check output, exact diff, integration commit/tree, clean inspector evidence, then separate build decision.",
+    "hypothesis": "LLAMA_MMAP_ADVICE=random suppresses sequential readahead and WILLNEED, reducing irrelevant page fetches for sparse experts.",
+    "observations": "Bare fixed evaluation execution ok, correctness pass, complete evidence. Stdout SHA 7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8 matches operator-frozen reference. Best image factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860, env={}, kept stack=[]. Component manifests establish source dependency order mmap_advice -> router_prefetch -> expert_fill -> expert_pregate -> thread_names. mmap_advice patch SHA 1554b5b6a5b9efc0d487453408db83a23cd00cffd29d021e5cce90d513211452.",
+    "parent_rev": 2,
+    "reason_for_change": "4897fdab8f804ff4918d0586f69bcdbb:evaluation confirms frozen-reference correctness prerequisite; dependency-free mmap_advice is the next isolated mechanism.",
+    "rev": 3,
+    "stop_condition": "Stop on unexpected source state, hash mismatch or failed forward apply. No performance claim before complete passing A/B.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Random advice may worsen latency or produce a null gate; only complete ABBA evidence can establish benefit."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next_bounded_operation": "Submit one jetson-orin build from 93a61111ed31b9017e16f0cf8ac47f7dd0af2077 with unique tag.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794466910.331857,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:4",
+    "evidence_ids": [
+      "bf98e919441f4048af025b5407d22379",
+      "f46835dae0c34472ac8a6e95d67987bc",
+      "4897fdab8f804ff4918d0586f69bcdbb:evaluation"
+    ],
+    "expected_evidence": "Build receipt, immutable image ID, patch/source/toolchain provenance.",
+    "hypothesis": "Build exact mmap_advice source so isolated random-advice ABBA can test sparse page-access latency.",
+    "observations": "Integrated mmap_advice as commit 93a61111ed31b9017e16f0cf8ac47f7dd0af2077 tree c9ddd710efad4bfaf402bed1f182b6a35a4fad68. SHA verified, reverse check failed before apply, forward check and whitespace check passed; postcommit reverse check passed. Inspector confirms clean evolve at this commit; its legacy patch detection is not used for component 01. Initial commit failed due to absent author identity; retried using command-scoped Factory Agent <factory@localhost>, no global config change. Best remains bare image sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 tag factory/llamacpp:bd173c08-bare-cf34d3113 build 0bb569af6abd4b6893e70bb2e1420860 env={} kept stack=[]. Pending candidate stack=[mmap_advice].",
+    "parent_rev": 3,
+    "reason_for_change": "bf98e919441f4048af025b5407d22379 records exact patch integration and f46835dae0c34472ac8a6e95d67987bc confirms clean committed candidate; baseline evaluation passed.",
+    "rev": 4,
+    "stop_condition": "End turn on durable build submission; inspect result before A/B.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Build and runtime activation/performance are unverified."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "next_bounded_operation": "Submit two complete ABBA rounds, bare best env={} versus mmap candidate env={LLAMA_MMAP_ADVICE:random}; Manager selects component checks.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_ab_attempts": 1,
+      "rounds": 2
+    },
+    "created": 1794467214.5946565,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:5",
+    "evidence_ids": [
+      "6d79f9e223914ca6b5532026d0063f1a:build-result",
+      "6d79f9e223914ca6b5532026d0063f1a:receipt",
+      "834a28321dda46f3a71608cae16808f2",
+      "cd6dac3e677f4d75969908dbb2dc3e52",
+      "0d422410b38e4d61a755d03eea4dbd37",
+      "4897fdab8f804ff4918d0586f69bcdbb:evaluation",
+      "bf98e919441f4048af025b5407d22379"
+    ],
+    "expected_evidence": "Complete A/B evaluation including ratio, gate, aa_gap, drift, stdout hashes, runtime engagement, telemetry, watchdog and report.",
+    "hypothesis": "Enabling random mmap advice in the isolated candidate reduces eval_ms_per_token relative to current bare best while preserving frozen-reference stdout.",
+    "observations": "Candidate mmap_advice build succeeded: tag factory/llamacpp:bd173c08-mmap-93a61111 ID sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d build 6d79f9e223914ca6b5532026d0063f1a, source 93a61111ed31b9017e16f0cf8ac47f7dd0af2077 tree c9ddd710efad4bfaf402bed1f182b6a35a4fad68. Build patch metadata is null; verified patch SHA is separately recorded in bf98e919441f4048af025b5407d22379 and commit. Both exact images pass fixed-argv preflight. Config probe exits 0 but has no engine_lines; no mmap activation claim from that probe. Current best remains bare tag factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={}, kept stack=[].",
+    "parent_rev": 4,
+    "reason_for_change": "6d79f9e223914ca6b5532026d0063f1a:build-result establishes exact candidate and preflight observations validate argv; baseline evaluation establishes frozen-reference correctness prerequisite.",
+    "rev": 5,
+    "stop_condition": "End turn on durable submission. Keep only improved gate plus identical output and complete passing engaged evaluation; otherwise reject or retain dormant only per dependency rule.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Qwen runtime activation, timing stability, gate and correctness remain unknown. Candidate check must observe actual random-advice log; probe success alone is insufficient."
+  },
+  {
+    "action": {
+      "component": "mmap_advice",
+      "needed_by": [
+        "router_prefetch",
+        "expert_fill",
+        "expert_pregate",
+        "thread_names"
+      ],
+      "next_bounded_operation": "Retain commit 93a61111e dormant; next integrate router_prefetch separately, comparing against unchanged bare best.",
+      "reason": "Performance regression rejects random-advice treatment, but patch 02 requires patch 01 source context. Switch is off by default; retain source only and keep random disabled in all later arms.",
+      "type": "keep_dormant"
+    },
+    "budget": {
+      "additional_mmap_experiments": 0
+    },
+    "created": 1794469056.7382464,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:6",
+    "evidence_ids": [
+      "d96acb1a5af849ea940ec98eaff03073:observation",
+      "d96acb1a5af849ea940ec98eaff03073:evaluation",
+      "d96acb1a5af849ea940ec98eaff03073:ab/REPORT.md",
+      "d96acb1a5af849ea940ec98eaff03073:worker.json",
+      "bf98e919441f4048af025b5407d22379"
+    ],
+    "expected_evidence": "Separate router integration/build/ABBA evidence, with mmap random disabled.",
+    "hypothesis": "Source of mmap_advice can remain dormant with LLAMA_MMAP_ADVICE=default while dependent router_prefetch tests its distinct page-advice mechanism.",
+    "observations": "mmap_advice regressed: base 893.71 vs candidate 1824.81 ms/token, A/B ratio 0.48975509779100296, aa_gap 0.05872150921439843, drift 0.007228295532107771, threshold 0.11744301842879686. Eight runs ok; all stdout hashes match frozen reference, candidate random-advice log present once each and absent in base. Evaluation execution ok, correctness pass, complete evidence, problems=[]. Reports show fewer NVMe bytes but more major faults and slower decode. Telemetry/watchdog previews are bounded; no claim of exhaustive external-load exclusion. Best remains bare tag factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={}, performance-kept stack=[].",
+    "parent_rev": 5,
+    "reason_for_change": "d96acb1a5af849ea940ec98eaff03073:evaluation and :ab/REPORT.md establish regression with identical output; methodology step 9 permits dormant off-by-default prerequisites.",
+    "rev": 6,
+    "stop_condition": "If dependent chain is rejected, revert dependent and dormant prerequisite commits in reverse order.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "No evidence of benefit from random mmap advice; dependents remain unmeasured."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "next_bounded_operation": "Verify and apply patch 02 once on dormant mmap source; review exact diff; commit router only.",
+      "type": "integrate"
+    },
+    "budget": {
+      "max_component_commits": 1
+    },
+    "created": 1794469078.589805,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:7",
+    "evidence_ids": [
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:6",
+      "d96acb1a5af849ea940ec98eaff03073:evaluation",
+      "bf98e919441f4048af025b5407d22379"
+    ],
+    "expected_evidence": "Patch hash/checks/diff and one clean integration commit.",
+    "hypothesis": "Router-selected host expert MADV_WILLNEED before CPU consumers can improve latency without global random advice.",
+    "observations": "mmap_advice source 93a61111e retained dormant after regression, switch off. router_prefetch requires that source and patch 02 SHA 9fce108d33c500f57ab48d4eab1c24a191b20f8268b13009d25255e957e42f99. Best remains bare image sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 env={} kept stack=[].",
+    "parent_rev": 6,
+    "reason_for_change": "Decision 6 explicitly retains source dependency; mmap regression does not answer the distinct router-prefetch mechanism.",
+    "rev": 7,
+    "stop_condition": "Stop on hash/apply mismatch or unrelated work; do not count dormant mmap as a performance win.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Prefetch calls may be late or add scheduler overhead. Exact output and performance must be measured separately."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "next_bounded_operation": "Submit one jetson-orin build from 5cded3e76a44812f7f5a16b357c9f384d25f1c46.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794469132.4530241,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:8",
+    "evidence_ids": [
+      "c5416f9dca6b4e8a82f0ea82ef4215e6",
+      "a3bb868c00b641bd8c8cd6ee7975e121",
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:6"
+    ],
+    "expected_evidence": "Build receipt and immutable candidate image with clean source provenance.",
+    "hypothesis": "Build router candidate to test selected expert advice with default nonexpert advice.",
+    "observations": "Router commit 5cded3e76a44812f7f5a16b357c9f384d25f1c46 tree 29717242a81049eb426e4d35fb78487563351e63 is clean on evolve, postcommit reverse check passes. Source stack mmap_advice(dormant), router_prefetch(candidate). mmap random remains off. Best bare image unchanged: factory/llamacpp:bd173c08-bare-cf34d3113 sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={} performance-kept stack=[].",
+    "parent_rev": 7,
+    "reason_for_change": "c5416f9dca6b4e8a82f0ea82ef4215e6 records verified exact integration; a3bb868c00b641bd8c8cd6ee7975e121 confirms clean candidate.",
+    "rev": 8,
+    "stop_condition": "End turn after submission; no overlap with GPU experiments.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Build success, activation and speed unknown."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "next_bounded_operation": "Submit two complete ABBA rounds against current bare best; candidate sets LLAMA_EXPERT_PREFETCH=1, NEXT=0, MMAP_ADVICE=default. Manager selects component checks.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_ab_attempts": 1,
+      "rounds": 2
+    },
+    "created": 1794469410.655232,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:9",
+    "evidence_ids": [
+      "06c525d46b8d407a9d3bcabfdc103334:build-result",
+      "06c525d46b8d407a9d3bcabfdc103334:receipt",
+      "110a6d7230a2430dae1c1a90f0368d42",
+      "866b3c753bee4b3a83f3b08f17e2e415",
+      "16a55cf164fd4dfa892e897ae4859da9",
+      "c5416f9dca6b4e8a82f0ea82ef4215e6",
+      "d96acb1a5af849ea940ec98eaff03073:evaluation"
+    ],
+    "expected_evidence": "Gate, ratio, output hashes, nonzero router advise counters, activation, per-run summaries, telemetry, watchdog and complete evaluation.",
+    "hypothesis": "Router prefetch alone, with default mmap advice, improves latency by issuing advice for selected host experts.",
+    "observations": "Router build succeeded, source 5cded3e76a44812f7f5a16b357c9f384d25f1c46 tree 29717242a81049eb426e4d35fb78487563351e63, tag factory/llamacpp:bd173c08-router-5cded3e7 ID sha256:69f6a4169f38ad87fcf690aeca1725c8e91da678b0316cbe727d793cbda56dc0 build 06c525d46b8d407a9d3bcabfdc103334. Exact-argv help preflight passes. Config probe FAILED CONFIG_MISSING despite subprocess exit 0: effective logger is only introduced by later patch 08; no config pass claimed. Artifact retained. Router material requires actual hook-enabled and nonzero advise counters in scored Qwen stderr, not expert_config. Best bare tag factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={}, kept stack=[]; mmap source dormant and random disabled.",
+    "parent_rev": 8,
+    "reason_for_change": "Build receipt and 110a6d7230a2430dae1c1a90f0368d42 support bounded fixed workload; failed generic logger probe 866b3c753bee4b3a83f3b08f17e2e415 is documented as unavailable at patch 02, so runtime component checks must supply engagement evidence.",
+    "rev": 9,
+    "stop_condition": "End turn after submission. Reject if activation/correctness/completeness fail or gate not improved; preserve dependency requirements explicitly.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Generic config probe cannot validate this early component; actual Qwen activation/counters, byte identity, stable timings and complete evaluation are mandatory."
+  },
+  {
+    "action": {
+      "component": "router_prefetch",
+      "needed_by": [
+        "expert_fill",
+        "expert_pregate",
+        "thread_names"
+      ],
+      "next_bounded_operation": "Keep router source 5cded3e76 dormant and separately integrate expert_fill patches 03-05.",
+      "reason": "Measured regression rejects prefetch treatment. Source patch 02 is required by expert_fill; switch defaults off. Retain source with LLAMA_EXPERT_PREFETCH=0 and NEXT=0 in all later arms, mmap random also disabled.",
+      "type": "keep_dormant"
+    },
+    "budget": {
+      "additional_router_experiments": 0
+    },
+    "created": 1794471077.2609105,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:10",
+    "evidence_ids": [
+      "deb16a611ae34a9ea2dc16798645dca4:observation",
+      "deb16a611ae34a9ea2dc16798645dca4:evaluation",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/REPORT.md",
+      "deb16a611ae34a9ea2dc16798645dca4:ab/002-candidate/summary.json",
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:6"
+    ],
+    "expected_evidence": "Isolated expert_fill build and ABBA against unchanged bare best.",
+    "hypothesis": "Parallel buffered expert fill is distinct from kernel advice and may overcome observed small-I/O fault latency; it requires router source but not active router treatment.",
+    "observations": "Router prefetch regressed: bare 928.2325 vs candidate 1494.1475 ms/token, ratio 0.6212455597589931, aa_gap 0.09058007994525316, drift 0.019063111881990825, threshold 0.18116015989050632. All 8 runs ok, no summary warnings, stdout identical to frozen SHA. All four candidates log enabled hook and 20823 advice calls, zero failures. Evaluation complete, correctness pass, execution ok, problems=[]. Performance-kept stack=[]; best remains bare image factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={}.",
+    "parent_rev": 9,
+    "reason_for_change": "deb16a611ae34a9ea2dc16798645dca4:evaluation and REPORT establish engaged regression with identical output; methodology dormant prerequisite exception preserves dependency chain explicitly.",
+    "rev": 10,
+    "stop_condition": "If dependent chain rejected, revert dormant source commits in reverse order.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Expert fill and downstream pregate are unmeasured. Router treatment itself is rejected."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "next_bounded_operation": "Verify hashes and apply patches 03,04,05 once in order, review combined component diff, commit one expert_fill integration.",
+      "type": "integrate"
+    },
+    "budget": {
+      "max_component_commits": 1
+    },
+    "created": 1794471111.1235127,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:11",
+    "evidence_ids": [
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:10",
+      "deb16a611ae34a9ea2dc16798645dca4:evaluation",
+      "c5416f9dca6b4e8a82f0ea82ef4215e6"
+    ],
+    "expected_evidence": "Ordered hash/check output, combined diff, integration commit/tree, clean inspection.",
+    "hypothesis": "Buffered parallel preads of nonresident selected expert ranges reduce serial demand-fault stalls; decode-only RANDOM avoids prompt-time penalty.",
+    "observations": "Source dependencies mmap_advice and router_prefetch present but rejected treatments remain off. Expert_fill ordered patches 03 SHA de969b13d381df8e43c18bb195fb215527b899978bf15549e2a2874fb21f5182, 04 SHA 0439854fc1d22d0a600c99833817425e1eec223e563180e2bc6574cd9b4a3065, 05 SHA 2bd97b511d7159cd131c66472e29e74678fad9e083e46fdd7c749557ec2583fd. Best remains bare image sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 env={} kept stack=[].",
+    "parent_rev": 10,
+    "reason_for_change": "Decision 10 retains required source while deb16a611ae34a9ea2dc16798645dca4:evaluation rejects advice-only treatment; buffered fill tests a distinct I/O mechanism.",
+    "rev": 11,
+    "stop_condition": "Stop on hash/applicability failure. Do not activate dormant router or global mmap random treatment.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Parallelism, residency probing and synchronization may add overhead; correctness and benefit unmeasured."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "next_bounded_operation": "Submit one jetson-orin build from c0427fe6cf7fb61ae9c0d38b2b098762865d7c56.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794471163.2871368,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:12",
+    "evidence_ids": [
+      "b1d6f2f0fde54885920fa3e76d5eef7b",
+      "b0839e63f5fc468a85e700e0f9089c50",
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:10"
+    ],
+    "expected_evidence": "Build receipt, image ID, source/toolchain provenance; then isolated ABBA.",
+    "hypothesis": "Build the isolated expert_fill candidate for decode-only parallel buffered expert reads.",
+    "observations": "Expert_fill patches 03-05 verified and applied once in order, staged diff check passed, committed c0427fe6cf7fb61ae9c0d38b2b098762865d7c56 tree d63f6127e8a71b5ab060d2263dd02213d807dd85. Inspector confirms clean evolve. Candidate source stack=[mmap_advice dormant, router_prefetch dormant, expert_fill pending]. Best stays bare image factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={} performance-kept stack=[].",
+    "parent_rev": 11,
+    "reason_for_change": "b1d6f2f0fde54885920fa3e76d5eef7b records exact component review and b0839e63f5fc468a85e700e0f9089c50 confirms clean committed build source.",
+    "rev": 12,
+    "stop_condition": "End turn on durable submission; no overlap with scored GPU work.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Build, engagement, byte identity and gate unverified."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "next_bounded_operation": "Submit two ABBA rounds bare best env={} versus expert_fill manifest enable_env: fill=1, random=decode, threads=16, chunk_kib=2048, min_tokens=0, max_tokens=1, diag=0, populate=0, prefetch=0, next=0, mmap=default.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_ab_attempts": 1,
+      "rounds": 2
+    },
+    "created": 1794471438.7373545,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:13",
+    "evidence_ids": [
+      "358bf4e9da5d484385c7ba422522975b:build-result",
+      "358bf4e9da5d484385c7ba422522975b:receipt",
+      "7f6ff090906643a4b6d6040b8ff64319",
+      "14d76a7e43734aa8b73953bb55b14375",
+      "326a3c1dd08e4231807ab3ad2ccf20db",
+      "b1d6f2f0fde54885920fa3e76d5eef7b"
+    ],
+    "expected_evidence": "Complete evaluation, identical frozen stdout, active/random-decode logs, nonzero fill/read counters, timing gate and resource report.",
+    "hypothesis": "Parallel buffered reads of nonresident selected experts during decode improve latency while preserving frozen greedy output.",
+    "observations": "Expert_fill build succeeded from c0427fe6cf7fb61ae9c0d38b2b098762865d7c56 tree d63f6127e8a71b5ab060d2263dd02213d807dd85: factory/llamacpp:bd173c08-fill-c0427fe6 ID sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c build 358bf4e9da5d484385c7ba422522975b. Exact workload argv preflight passes. Generic config probe failed CONFIG_MISSING; logger not implemented until patch 08. Failed receipt retained and not treated as engagement. Expert_fill manifest requires active, random advice applied at decode, and nonzero stats calls. Best bare remains factory/llamacpp:bd173c08-bare-cf34d3113 ID sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998 build 0bb569af6abd4b6893e70bb2e1420860 env={} kept stack=[]. Source prerequisites mmap_advice/router_prefetch dormant.",
+    "parent_rev": 12,
+    "reason_for_change": "358bf4e9da5d484385c7ba422522975b:build-result and 7f6ff090906643a4b6d6040b8ff64319 establish runnable isolated candidate; runtime component checks must resolve engagement missing from generic probe.",
+    "rev": 13,
+    "stop_condition": "End turn on durable submission; keep only engaged complete correct gate improvement.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Actual Qwen fill activation/counters and gate unverified; config parsing probe is unavailable at this source stage."
+  },
+  {
+    "action": {
+      "component": "expert_fill",
+      "image": {
+        "build_attempt_id": "358bf4e9da5d484385c7ba422522975b",
+        "id": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+        "tag": "factory/llamacpp:bd173c08-fill-c0427fe6"
+      },
+      "next_bounded_operation": "Keep c0427fe6c and exact fill_env as best; next separately integrate pregate.",
+      "ratio": 1.1099191335565521,
+      "type": "keep_component"
+    },
+    "budget": {
+      "additional_fill_experiments": 0
+    },
+    "created": 1794472744.4565635,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:14",
+    "evidence_ids": [
+      "f19094c82dee4a678443c71ea1a7694b:observation",
+      "f19094c82dee4a678443c71ea1a7694b:evaluation",
+      "f19094c82dee4a678443c71ea1a7694b:ab/REPORT.md",
+      "f19094c82dee4a678443c71ea1a7694b:worker.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/summary.json",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/watchdog.jsonl",
+      "f19094c82dee4a678443c71ea1a7694b:ab/002-candidate/telemetry.jsonl"
+    ],
+    "expected_evidence": "Pregate measured incrementally against this kept expert_fill image and environment.",
+    "hypothesis": "Buffered fill reduces demand-fault stalls; measured improvement supports keeping this isolated component under the fixed contract.",
+    "observations": "Expert_fill gate improved: 918.225 bare vs 827.29 candidate ms/token, ratio=1.1099191335565521. Ratio-1=0.109919 exceeds threshold=0.0576547142584879; aa_gap=0.02882735712924395 drift=0.0069046257725502115. All 8 stdout hashes equal frozen 7a154179236463bc4c0628b2b24765bdebb6b51810885773b22359d7f2b608a8. Complete evaluation, execution ok, correctness pass, problems=[]; all summaries status ok warnings=[]. All candidates active threads=16 chunk=2048 random=decode, random-decode log, 2520 decode fill calls and >11.5GB buffered reads, zero prompt/populate calls. Resource summaries ~2.8GB minimum available; bounded watchdog/telemetry previews show no crossings/parse errors. Owned build completed before experiment, no owned overlap. New best image factory/llamacpp:bd173c08-fill-c0427fe6 ID sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c build 358bf4e9da5d484385c7ba422522975b. Kept active stack=[expert_fill], source stack=[mmap_advice dormant,router_prefetch dormant,expert_fill kept]. Best env is exact expert_fill enable_env recorded in decision 13 and experiment.",
+    "parent_rev": 13,
+    "reason_for_change": "f19094c82dee4a678443c71ea1a7694b:evaluation and REPORT provide improved gate, identical frozen output, engaged candidate and complete passing evaluation.",
+    "rev": 14,
+    "stop_condition": "Restore this best image/env if pregate fails. Retain negative mmap/router evidence.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Scope is fixed 64-token greedy continuation on Jetson; not accuracy/general workload claim. Raw resource evidence previews bounded; no independent exhaustive external-load audit."
+  },
+  {
+    "action": {
+      "component": "expert_pregate",
+      "next_bounded_operation": "Hash/check/apply patches 06-08 in order; review exact component diff and commit only pregate.",
+      "type": "integrate"
+    },
+    "budget": {
+      "max_component_commits": 1
+    },
+    "created": 1794472779.3731663,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:15",
+    "evidence_ids": [
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:14",
+      "f19094c82dee4a678443c71ea1a7694b:evaluation",
+      "b1d6f2f0fde54885920fa3e76d5eef7b"
+    ],
+    "expected_evidence": "Ordered patch provenance, exact diff, clean commit/tree; subsequent build and A/B versus kept fill with same fill settings plus pregate switches only.",
+    "hypothesis": "Predicting next-layer experts and enqueueing bounded reads after demand fill overlaps storage with current computation, reducing demand wait beyond kept fill.",
+    "observations": "Current best expert_fill image factory/llamacpp:bd173c08-fill-c0427fe6 sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c build 358bf4e9da5d484385c7ba422522975b, exact fill env from decision 13. Kept active stack=[expert_fill]; mmap/router source dormant off. Pregate source depends on kept fill; ordered patches 06 ee40edd569e704018556d6341830d6df24a2ece0bca7acebe6cd7604c99247ba, 07 21628cd1e075ad66610bedc315ba9d8d421d59d2f56395c7bf73b576f7c92c42, 08 e5fab81608abaec4cfeade2a168e9f5fc44b2042f0edd57344527649f392cc06 read.",
+    "parent_rev": 14,
+    "reason_for_change": "f19094c82dee4a678443c71ea1a7694b:evaluation supports kept fill, enabling isolated next dependency mechanism rather than combining unmeasured components.",
+    "rev": 15,
+    "stop_condition": "Stop on patch hash/applicability failure or unexpected source work.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Prediction recall, timely completion and queue overhead may erase benefit. Patch 08 adds strict config validation and logger; base env values remain valid."
+  },
+  {
+    "action": {
+      "component": "expert_pregate",
+      "next_bounded_operation": "Submit one jetson-orin build of 6e9d96cf4e007c74aab91bb59767247737a80f0f.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794472823.1408005,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:16",
+    "evidence_ids": [
+      "bc65fec639544234bbfc8f30506eee36",
+      "efbaffb8752746398fbb46e3f5472bc2",
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:14"
+    ],
+    "expected_evidence": "Successful build receipt and immutable image, then preflight/config and isolated ABBA.",
+    "hypothesis": "Build next-layer pregate candidate to compare incrementally against kept expert_fill.",
+    "observations": "Pregate ordered patches 06-08 verified/applied once and committed 6e9d96cf4e007c74aab91bb59767247737a80f0f tree 86ed6e3888f176c1c03021509d0843de62f0447f. Clean evolve; inspector reverse detects combined 01-08, consistent with separate component history. Source stack mmap/router dormant, fill kept, pregate pending. Best fill image factory/llamacpp:bd173c08-fill-c0427fe6 sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c build 358bf4e9da5d484385c7ba422522975b env=exact fill_env decision13, kept active stack=[expert_fill].",
+    "parent_rev": 15,
+    "reason_for_change": "bc65fec639544234bbfc8f30506eee36 records exact reviewed component and efbaffb8752746398fbb46e3f5472bc2 confirms clean source.",
+    "rev": 16,
+    "stop_condition": "End turn after durable submission; no GPU/build overlap.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Build, strict config probe and runtime prediction benefit unknown."
+  },
+  {
+    "action": {
+      "component": "expert_pregate",
+      "next_bounded_operation": "Submit two complete ABBA rounds current-best fill versus pregate image; preserve all fill settings and add only manifest pregate switches.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_ab_attempts": 1,
+      "rounds": 2
+    },
+    "created": 1794473100.9609463,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:17",
+    "evidence_ids": [
+      "f4530d71c9e4478e9d4ca881b8d65f2c:build-result",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:receipt",
+      "d75588f9e9644882b5005045ed39dbaa",
+      "0fbf4e4ebe434b3ebb76cda0a714b52c",
+      "5783c14809524e409e87ad9f53b70cd0",
+      "f19094c82dee4a678443c71ea1a7694b:evaluation"
+    ],
+    "expected_evidence": "Complete engaged evaluation with gate, ratio, aa_gap/drift, frozen stdout hashes, effective config, nonzero prediction stats and async/resource counters.",
+    "hypothesis": "Pregate k=8, after demand, inflight=4, lookahead=1 overlaps selected future expert reads and improves eval latency beyond kept fill.",
+    "observations": "Pregate build succeeded from 6e9d96cf4e007c74aab91bb59767247737a80f0f tree 86ed6e3888f176c1c03021509d0843de62f0447f, tag factory/llamacpp:bd173c08-pregate-6e9d96cf ID sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c. Preflight and config probe succeeded; every LLAMA_EXPERT setting matches, exit 0, no abort. CPU Granite probe validates parsing only, not Qwen prediction. Current best remains expert_fill image factory/llamacpp:bd173c08-fill-c0427fe6 sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c build 358bf4e9da5d484385c7ba422522975b, best env exact fill_env, active stack=[expert_fill], dormant source mmap/router off.",
+    "parent_rev": 16,
+    "reason_for_change": "f4530d71c9e4478e9d4ca881b8d65f2c:build-result and config observation 0fbf4e4ebe434b3ebb76cda0a714b52c establish runnable candidate; f19094c82dee4a678443c71ea1a7694b:evaluation establishes current best.",
+    "rev": 17,
+    "stop_condition": "End turn after durable submission. Keep only improved gate plus complete correct engaged evidence; otherwise revert or explicitly retain dormant for thread_names prerequisite.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Actual prediction recall/timeliness, async errors, byte identity, timing stability and gate unknown."
+  },
+  {
+    "action": {
+      "component": "expert_pregate",
+      "image": {
+        "build_attempt_id": "f4530d71c9e4478e9d4ca881b8d65f2c",
+        "id": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+        "tag": "factory/llamacpp:bd173c08-pregate-6e9d96cf"
+      },
+      "next_bounded_operation": "Keep 6e9d96cf4 with exact pregate_env; next assess observability-only thread_names.",
+      "ratio": 1.1253959980504713,
+      "type": "keep_component"
+    },
+    "budget": {
+      "additional_pregate_experiments": 0
+    },
+    "created": 1794474417.2294157,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:18",
+    "evidence_ids": [
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:observation",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/REPORT.md",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:worker.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/summary.json",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/watchdog.jsonl",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:ab/002-candidate/telemetry.jsonl"
+    ],
+    "expected_evidence": "Separate thread-name integration/build and correctness/engagement test with measure none; no speed claim.",
+    "hypothesis": "Next-layer predictions complete useful reads ahead of demand, explaining measured incremental improvement.",
+    "observations": "Pregate gate improved: fill base 831.2625 vs candidate 738.64 ms/token, ratio 1.1253959980504713; ratio-1=0.125395998 > threshold 0.03200476551500037. aa_gap 0.016002382757500187 drift 0.00645403828513858. All eight stdout hashes equal frozen reference. Complete evaluation, execution ok, correctness pass, problems=[], all summaries ok warnings=[]. Four candidates show matching effective config, active k8 after and 2457 predictions, recall@8=0.809320, >8.4GB async reads, async_errors=0 dropped=0 skips=0. Resource minima ~2.8GB; bounded telemetry/watchdog previews have no crossings/parse errors. Owned builds and GPU jobs serialized; no known contamination. New best pregate image factory/llamacpp:bd173c08-pregate-6e9d96cf ID sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c. Best env=fill_env plus pregate=1,k=8,order=after,max_inflight=4,lookahead=1. Active kept stack=[expert_fill,expert_pregate]; source mmap/router dormant off.",
+    "parent_rev": 17,
+    "reason_for_change": "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation and REPORT establish engaged improvement, identical frozen output and complete passing correctness.",
+    "rev": 18,
+    "stop_condition": "Do not retain a later performance component without improved gate; thread_names cannot establish speed benefit.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Fixed greedy workload only; raw resource previews bounded, no independent exhaustive external-load audit. End-to-end cumulative ratio has not been directly measured against bare."
+  },
+  {
+    "action": {
+      "component": "thread_names",
+      "next_bounded_operation": "Hash/check/apply patch 09 once, review exact diff and commit separate observability component.",
+      "type": "integrate"
+    },
+    "budget": {
+      "max_component_commits": 1
+    },
+    "created": 1794474446.96747,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:19",
+    "evidence_ids": [
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:18",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation",
+      "efbaffb8752746398fbb46e3f5472bc2"
+    ],
+    "expected_evidence": "Verified patch, clean integration commit and subsequent build/observability ABBA.",
+    "hypothesis": "Naming fill workers permits attribution by thread sampler without changing greedy continuation.",
+    "observations": "All thread_names source dependencies present: expert_fill and expert_pregate kept; mmap/router dormant off. Patch 09 SHA 0b4768b97ea4a563b1d9042b22e9df2bc4948127329ac3df75fae4736b98d030 adds Linux worker pthread names only, measure=none. Best is factory/llamacpp:bd173c08-pregate-6e9d96cf sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c env=pregate_env; active stack=[expert_fill,expert_pregate].",
+    "parent_rev": 18,
+    "reason_for_change": "Decision 18 establishes kept prerequisites; user requests testing each component, and thread_names must be evaluated as observability only.",
+    "rev": 19,
+    "stop_condition": "Do not claim speed improvement; revert after measurement if no improved gate, consistent with operator objective.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Thread sampling engagement and output identity unverified. measure=none cannot establish improved speed gate, so this task's keep-only-improved rule precludes a speed-based keep."
+  },
+  {
+    "action": {
+      "component": "thread_names",
+      "next_bounded_operation": "Submit one jetson-orin build from 133b42aed56dea09c2c6643f6cda60b18cf21bdf.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794474470.8296583,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:20",
+    "evidence_ids": [
+      "bc0be49abf93479cad3622bb96b20cc3",
+      "1d9c7d05fc044ea79d9c069d106508bf",
+      "factory-bd173c082bf34ae3b8471938c19b8068:decision:18"
+    ],
+    "expected_evidence": "Build receipt and immutable image, followed by observability A/B with identical env.",
+    "hypothesis": "Build observability candidate to verify xfill worker names and byte identity; performance measure none.",
+    "observations": "Thread names exact patch SHA verified/applied once, whitespace check passed, commit 133b42aed56dea09c2c6643f6cda60b18cf21bdf clean on evolve and patch09 reverse-detected. Source stack mmap/router dormant, fill/pregate kept, names pending. Best stays pregate image factory/llamacpp:bd173c08-pregate-6e9d96cf sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c env exact pregate_env.",
+    "parent_rev": 19,
+    "reason_for_change": "bc0be49abf93479cad3622bb96b20cc3 and 1d9c7d05fc044ea79d9c069d106508bf establish isolated clean observability source.",
+    "rev": 20,
+    "stop_condition": "End turn after durable submission; never infer speed benefit from worker names.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Image and runtime sampling unverified."
+  },
+  {
+    "action": {
+      "component": "thread_names",
+      "next_bounded_operation": "Submit two ABBA rounds with identical best_env in both images; Manager selects thread sampler checks, component measure none.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_ab_attempts": 1,
+      "rounds": 2
+    },
+    "created": 1794474757.9338913,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:21",
+    "evidence_ids": [
+      "cc3a14f907df45bba9d8fbac6f3125be:build-result",
+      "cc3a14f907df45bba9d8fbac6f3125be:receipt",
+      "3d378599ba2741edac013ad758680b64",
+      "1238721a0a1d4728bb2053beb1670471",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation"
+    ],
+    "expected_evidence": "Complete correctness evaluation and sampled xfill workers, observability verdict without speed claim.",
+    "hypothesis": "Candidate workers are sampled as xfill-0..15 while frozen greedy output stays identical.",
+    "observations": "Thread_names build succeeded from 133b42aed56dea09c2c6643f6cda60b18cf21bdf tree 43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3, factory/llamacpp:bd173c08-names-133b42ae ID sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e build cc3a14f907df45bba9d8fbac6f3125be. Exact argv preflight and effective-config probe pass; config matches kept pregate settings. Best stays factory/llamacpp:bd173c08-pregate-6e9d96cf sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c env=pregate_env active kept stack=[expert_fill,expert_pregate], mmap/router dormant.",
+    "parent_rev": 20,
+    "reason_for_change": "Build/preflight/config evidence confirms runnable isolated observability candidate, but only Qwen samples establish worker naming.",
+    "rev": 21,
+    "stop_condition": "End turn after durable submission. Apply operator keep-only-improved rule; never call measure-none a speed gain.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Qwen thread engagement and correctness remain unverified; measure none cannot produce speed evidence."
+  },
+  {
+    "action": {
+      "component": "thread_names",
+      "next_bounded_operation": "Revert integration commit 133b42aed56dea09c2c6643f6cda60b18cf21bdf with local revert commit, verify exact tree equality to kept pregate, then rebuild restored best.",
+      "reason": "measure none and gate not_measured cannot satisfy operator keep-only-improved requirement; no downstream component needs it. Naming engagement passed but is not a performance win.",
+      "type": "revert_component"
+    },
+    "budget": {
+      "max_restoration_builds": 1,
+      "max_revert_commits": 1
+    },
+    "created": 1794476078.7204998,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:22",
+    "evidence_ids": [
+      "c585f168b5cf4d27adcd7688206e9b68:observation",
+      "c585f168b5cf4d27adcd7688206e9b68:evaluation",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/REPORT.md",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/002-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/003-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/006-candidate/threads.summary.json",
+      "c585f168b5cf4d27adcd7688206e9b68:ab/007-candidate/threads.summary.json"
+    ],
+    "expected_evidence": "Revert commit/tree, clean inspector, restored build receipt; retain all negative/null/observability evidence.",
+    "hypothesis": "Reverting only observability commit restores exact performance-selected source tree while preserving successful naming/correctness evidence.",
+    "observations": "thread_names observation gate=not_measured, measure=none, output identical, execution ok, correctness pass, complete evidence, problems=[]. Sampler observes xfill-0..15 in every candidate, absent from base; decode coverage complete. All stdout hashes match frozen reference. Timing is descriptive only and underlying comparison is null; no speed benefit established. Best remains pregate image factory/llamacpp:bd173c08-pregate-6e9d96cf sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c env=pregate_env active stack=[expert_fill,expert_pregate], mmap/router dormant.",
+    "parent_rev": 21,
+    "reason_for_change": "c585f168b5cf4d27adcd7688206e9b68:evaluation confirms correct engaged observability but not_measured gate; methodology and operator keep rule require no speed-based retention.",
+    "rev": 22,
+    "stop_condition": "Stop on unexpected dirty state or revert conflict; preserve kept fill/pregate and dormant dependencies.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "No unresolved correctness issue; observability success is not a scored speed gain."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Submit one restoration build from 0b514fba8cf6402bf059665669912d4ceba050c3, keeping scored best tag untouched.",
+      "type": "build"
+    },
+    "budget": {
+      "deadline_s": 3600,
+      "max_build_attempts": 1
+    },
+    "created": 1794476108.9346268,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:23",
+    "evidence_ids": [
+      "fcc9f1705dea4d5d8e9f6bd6b65ae390",
+      "b3380f158eec4511bd4d6cfbb162dbe5",
+      "c585f168b5cf4d27adcd7688206e9b68:evaluation",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation"
+    ],
+    "expected_evidence": "Restoration build receipt with source tree/toolchain/base identity, followed by final fixed-contract correctness validation and report.",
+    "hypothesis": "Rebuilding restored source confirms recoverable final stack after reversible observability experiment.",
+    "observations": "Reverted names in 0b514fba8cf6402bf059665669912d4ceba050c3; tree 86ed6e3888f176c1c03021509d0843de62f0447f exactly equals kept pregate tree and checkout clean on evolve. Selected best image remains factory/llamacpp:bd173c08-pregate-6e9d96cf sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c, env exact pregate_env, active kept=[expert_fill,expert_pregate], source prerequisites mmap/router dormant off. All five components independently integrated/built/evaluated, names rolled back; no component left unmeasured.",
+    "parent_rev": 22,
+    "reason_for_change": "Revert evidence and b3380f158eec4511bd4d6cfbb162dbe5 verify exact restored tree; integration methodology requires rebuilding current best after rejected component rollback.",
+    "rev": 23,
+    "stop_condition": "End turn after durable submission; inspect receipt before terminal decision.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Restoration build identity/outcome unverified. Original best remains scored image; do not substitute unmeasured rebuilt image without validation."
+  },
+  {
+    "action": {
+      "next_bounded_operation": "Submit one final fixed qwen36-bare-greedy-v1 evaluation of recovery image at exact kept best_env; no new performance treatment.",
+      "type": "measure"
+    },
+    "budget": {
+      "max_lab_attempts": 1
+    },
+    "created": 1794476390.2157567,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:24",
+    "evidence_ids": [
+      "9327eba6d0474bfea5d0da19d95fcf17:build-result",
+      "9327eba6d0474bfea5d0da19d95fcf17:receipt",
+      "9e6e6fe511ad4645a99bcb3ce7d12379",
+      "21a4d9ca653646e9b4f3cef8932dc262",
+      "fcc9f1705dea4d5d8e9f6bd6b65ae390",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation"
+    ],
+    "expected_evidence": "Complete final correctness/effective configuration/runtime counters and frozen stdout match.",
+    "hypothesis": "A final fixed-contract check of recovery image confirms restoration preserves frozen stdout; performance best remains separately identified by scored A/B.",
+    "observations": "Restoration build succeeded from 0b514fba8cf6402bf059665669912d4ceba050c3, exact kept tree 86ed6e3888f176c1c03021509d0843de62f0447f. Recovery image factory/llamacpp:bd173c08-restored-0b514fba ID sha256:1274abb8e54de0e9ae745c915ba93fa4276abe2cb021774ada737a5a7208f73d build 9327eba6d0474bfea5d0da19d95fcf17; same recorded CUDA/toolchain/runtime base as best. Exact argv preflight and requested effective config pass. Clean evolve confirmed. Scored best stays factory/llamacpp:bd173c08-pregate-6e9d96cf sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 build f4530d71c9e4478e9d4ca881b8d65f2c env=pregate_env, active stack=[expert_fill,expert_pregate], dormant source=[mmap_advice,router_prefetch] switches off.",
+    "parent_rev": 23,
+    "reason_for_change": "9327eba6d0474bfea5d0da19d95fcf17:build-result confirms successful restoration build; final correctness validates the actual restored artifact without assuming build equivalence.",
+    "rev": 24,
+    "stop_condition": "End turn after submission; terminal accept only after inspected passing complete result and final stack/evidence record.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Recovery image has no workload correctness evidence yet; matching source tree does not substitute for execution evidence."
+  },
+  {
+    "action": {
+      "checkout": {
+        "base": "cf34d311332e362198f0a410c466d1e940287d02",
+        "branch": "evolve",
+        "clean": true,
+        "head": "0b514fba8cf6402bf059665669912d4ceba050c3",
+        "tree": "86ed6e3888f176c1c03021509d0843de62f0447f"
+      },
+      "dormant_source": [
+        "mmap_advice",
+        "router_prefetch"
+      ],
+      "env": {
+        "LLAMA_EXPERT_FILL": "1",
+        "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+        "LLAMA_EXPERT_FILL_DIAG": "0",
+        "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+        "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+        "LLAMA_EXPERT_FILL_POPULATE": "0",
+        "LLAMA_EXPERT_FILL_RANDOM": "decode",
+        "LLAMA_EXPERT_FILL_THREADS": "16",
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+        "LLAMA_EXPERT_PREGATE": "1",
+        "LLAMA_EXPERT_PREGATE_K": "8",
+        "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+        "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+        "LLAMA_EXPERT_PREGATE_ORDER": "after",
+        "LLAMA_MMAP_ADVICE": "default"
+      },
+      "handoff_observation": "85c37b4278db457990f1fd6ce187d1ec",
+      "image": {
+        "build_attempt_id": "f4530d71c9e4478e9d4ca881b8d65f2c",
+        "id": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+        "tag": "factory/llamacpp:bd173c08-pregate-6e9d96cf"
+      },
+      "kept_stack": [
+        "expert_fill",
+        "expert_pregate"
+      ],
+      "reverted": [
+        "thread_names"
+      ],
+      "type": "accept"
+    },
+    "budget": {
+      "additional_jobs": 0,
+      "remaining_turns": 26,
+      "remaining_wall_clock_s": 18453
+    },
+    "created": 1794476706.7543538,
+    "decision_id": "factory-bd173c082bf34ae3b8471938c19b8068:decision:25",
+    "evidence_ids": [
+      "85c37b4278db457990f1fd6ce187d1ec",
+      "59153d88dcc742cf93ec2c6be1a2245c:evaluation",
+      "59153d88dcc742cf93ec2c6be1a2245c:stderr.txt",
+      "59153d88dcc742cf93ec2c6be1a2245c:result.json",
+      "f19094c82dee4a678443c71ea1a7694b:evaluation",
+      "6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation",
+      "d96acb1a5af849ea940ec98eaff03073:evaluation",
+      "deb16a611ae34a9ea2dc16798645dca4:evaluation",
+      "c585f168b5cf4d27adcd7688206e9b68:evaluation",
+      "fcc9f1705dea4d5d8e9f6bd6b65ae390",
+      "9327eba6d0474bfea5d0da19d95fcf17:build-result",
+      "f4530d71c9e4478e9d4ca881b8d65f2c:receipt"
+    ],
+    "expected_evidence": "No further work required; retain selected immutable image and handoff/evidence records.",
+    "hypothesis": "Under fixed qwen36-bare-greedy-v1 on Jetson Orin, buffered expert fill plus next-layer pregate is the best measured stack among tested components.",
+    "observations": "All five components integrated separately, built and evaluated using two ABBA rounds each. mmap_advice regressed ratio0.489755 and router_prefetch regressed ratio0.621246; their off-by-default source remains dormant because kept fill/pregate requires it. expert_fill improved ratio1.109919 (918.225 to827.29 ms/token, threshold0.057655) and expert_pregate improved ratio1.125396 (831.2625 to738.64, threshold0.032005). Both complete passing engaged evaluations, all frozen stdout hashes identical; all 16 kept-experiment run results exit0, no OOM/watchdog trips. thread_names observability passed but gate not_measured, reverted. Clean evolve HEAD0b514fba8 tree86ed6e3888f176c1c03021509d0843de62f0447f exactly matches selected best tree; restoration build succeeded. Final restoration correctness evaluation complete/pass/ok, effective settings match, fill2520 calls, pregate2457 predictions, async_errors0, skips0, stdout frozen match; cleanup reaped. Final best image factory/llamacpp:bd173c08-pregate-6e9d96cf IDsha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5 buildf4530d71c9e4478e9d4ca881b8d65f2c. Exact environment and full evidence mapping in final handoff observation and local .git/factory-evidence/RESULT.md, campaign-result.json, best-env.json.",
+    "parent_rev": 24,
+    "reason_for_change": "Kept-component evaluations f19094c82dee4a678443c71ea1a7694b:evaluation and 6a4290775a9c43e6b03c2e9dd6d1bdea:evaluation satisfy gate/correctness/engagement; final59153d88dcc742cf93ec2c6be1a2245c:evaluation and restoration build/revert proof complete recovery obligations. Negative and observability evidence explicitly retained.",
+    "rev": 25,
+    "stop_condition": "Terminal: all components resolved, best scored image identified, clean restored checkout built and validated. No pending attempts or services.",
+    "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+    "uncertainty": "Scope is fixed greedy continuation, not general accuracy. No directly measured cumulative bare-to-final ratio claimed. Resource previews bounded; complete run results/evaluations checked, no independent exhaustive external-load audit. Recovery image validated for correctness, not substituted for scored best."
+  }
+]

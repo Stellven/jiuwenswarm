@@ -1,0 +1,112 @@
+{
+  "secondary_metrics": {
+    "base": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.47,
+      "eval_tps": 1.09,
+      "eval_ms_per_token": 918.225,
+      "nvme_gib_per_token_decode": 0.3003000509466325,
+      "gpu_util_median": 15.25,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.19309408120014807,
+      "threads.main_workers_d_fraction": 0.4488110705109793,
+      "threads.majflt_per_<redacted>
+    },
+    "candidate": {
+      "nvme_gib_per_<redacted>,
+      "prompt_tps": 5.38,
+      "eval_tps": 1.21,
+      "eval_ms_per_token": 827.29,
+      "nvme_gib_per_token_decode": 0.22586267035297616,
+      "gpu_util_median": 17.75,
+      "energy_j_per_<redacted>,
+      "threads.cpu_workers_r_fraction": 0.06064417773074014,
+      "threads.main_workers_d_fraction": 0.20207417734263008,
+      "threads.majflt_per_<redacted>
+    }
+  },
+  "metric": "eval_ms_per_token",
+  "direction": "lower",
+  "base": "base",
+  "inputs": {
+    "base": [
+      910.15,
+      919.96,
+      908.16,
+      934.63
+    ],
+    "candidate": [
+      831.46,
+      827.75,
+      820.12,
+      829.83
+    ]
+  },
+  "means": {
+    "base": 918.225,
+    "candidate": 827.29
+  },
+  "aa_gaps": {
+    "base": 0.02882735712924395,
+    "candidate": 0.013707406109103256
+  },
+  "aa_gap": 0.02882735712924395,
+  "drift_halves": [
+    915.0550000000001,
+    921.395
+  ],
+  "drift": 0.0069046257725502115,
+  "threshold": 0.0576547142584879,
+  "minimum_effect": 0.03,
+  "noise_multiplier": 2,
+  "comparisons": {
+    "candidate": {
+      "mean": 827.29,
+      "base_mean": 918.225,
+      "ratio": 1.1099191335565521,
+      "change": 0.10991913355655214,
+      "threshold": 0.0576547142584879,
+      "verdict": "improved"
+    }
+  },
+  "output": {
+    "class": "identical",
+    "hashes": {
+      "base": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ],
+      "candidate": [
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364",
+        "7a1541792364"
+      ]
+    }
+  },
+  "reasons": [],
+  "status": "completed",
+  "invalid_reasons": [],
+  "planned_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ],
+  "executed_order": [
+    "base",
+    "candidate",
+    "candidate",
+    "base",
+    "base",
+    "candidate",
+    "candidate",
+    "base"
+  ]
+}

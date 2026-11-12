@@ -1,0 +1,29 @@
+{"aborted": false, "effective": {"chunk_kib": "2048", "diag": "0", "diag_csv": "(unset)", "fill": "1", "k": "8", "lookahead": "1", "max_inflight": "4", "max_tokens": "1", "min_tokens": "0", "order": "after", "populate": "0", "prefetch": "0", "prefetch_next": "0", "pregate": "1", "random": "decode", "threads": "16"}, "engine_lines": ["expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0", "expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0"], "exit_status": 0, "image": {"arch": "arm64", "id": "sha256:1274abb8e54de0e9ae745c915ba93fa4276abe2cb021774ada737a5a7208f73d", "labels": {"campaign.patch.sha256": "", "campaign.source.tree": "86ed6e3888f176c1c03021509d0843de62f0447f", "campaign.target.profile": "jetson-orin", "campaign.toolchain": "{\"cmake\": \"cmake version 4.4.4\\n\\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\", \"gcc\": \"gcc (Ubuntu 11.4.0-1ubuntu1~22.04.3) 11.4.0\\nCopyright (C) 2021 Free Software Foundation, Inc.\\nThis is free software; see the source for copying conditions.  There is NO\\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\", \"ninja\": \"1.13.2.git.kitware.jobserver-pipe-1\", \"nv_tegra_release\": \"# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\", \"nvcc\": \"nvcc: NVIDIA (R) Cuda compiler driver\\nCopyright (c) 2005-2024 NVIDIA Corporation\\nBuilt on Wed_Aug_14_10:14:07_PDT_2024\\nCuda compilation tools, release 12.6, V12.6.68\\nBuild cuda_12.6.r12.6/compiler.34714021_0\", \"nvidia-jetpack\": \"6.2.3+b81\"}", "io.buildah.version": "1.23.1", "maintainer": "NVIDIA CORPORATION <<redacted>>", "org.opencontainers.image.ref.name": "ubuntu", "org.opencontainers.image.revision": "0b514fba8cf6402bf059665669912d4ceba050c3", "org.opencontainers.image.version": "22.04"}}, "mismatches": {}, "requested": {"LLAMA_EXPERT_FILL": "1", "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048", "LLAMA_EXPERT_FILL_DIAG": "0", "LLAMA_EXPERT_FILL_MAX_TOKENS": "1", "LLAMA_EXPERT_FILL_MIN_TOKENS": "0", "LLAMA_EXPERT_FILL_POPULATE": "0", "LLAMA_EXPERT_FILL_RANDOM": "decode", "LLAMA_EXPERT_FILL_THREADS": "16", "LLAMA_EXPERT_PREFETCH": "0", "LLAMA_EXPERT_PREFETCH_NEXT": "0", "LLAMA_EXPERT_PREGATE": "1", "LLAMA_EXPERT_PREGATE_K": "8", "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1", "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4", "LLAMA_EXPERT_PREGATE_ORDER": "after", "LLAMA_MMAP_ADVICE": "default"}}
+--- stderr tail ---
+0.00.034.477 I llama_completion: llama backend init
+0.00.034.504 I llama_completion: load the model and apply lora adapter, if any
+expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0
+expert_config: effective fill=1 random=decode max_tokens=1 threads=16 chunk_kib=2048 pregate=1 k=8 order=after max_inflight=4 lookahead=1 min_tokens=0 diag=0 populate=0 diag_csv=(unset) prefetch=0 prefetch_next=0
+0.08.999.959 I cmn          init: llama threadpool init, n_threads = 6
+0.09.162.630 I 
+0.09.162.885 I system_info: n_threads = 6 (n_threads_batch = 6) / 6 | CUDA : ARCHS = 870 | USE_GRAPHS = 1 | FA_QUANTS = q4_0-q4_0,q8_0-q8_0,f16-f16,bf16-bf16 | CPU : NEON = 1 | ARM_FMA = 1 | FP16_VA = 1 | DOTPROD = 1 | LLAMAFILE = 1 | OPENMP = 1 | REPACK = 1 | 
+0.09.162.895 I 
+0.09.163.928 I sampler seed: 4294967295
+0.09.163.975 I sampler params: 
+	repeat_last_n = 64, repeat_penalty = 1.000, frequency_penalty = 0.000, presence_penalty = 0.000
+	dry_multiplier = 0.000, dry_base = 1.750, dry_allowed_length = 2, dry_penalty_last_n = 64
+	top_k = 40, top_p = 0.950, min_p = 0.050, xtc_probability = 0.000, xtc_threshold = 0.100, typical_p = 1.000, top_n_sigma = -1.000, temp = 0.000
+	mirostat = 0, mirostat_lr = 0.100, mirostat_ent = 5.000, adaptive_target = -1.000, adaptive_decay = 0.900
+0.09.163.996 I sampler chain: logits -> ?penalties -> ?dry -> ?top-n-sigma -> top-k -> ?typical -> top-p -> min-p -> ?xtc -> temp-ext -> greedy 
+0.09.163.999 I generate: n_ctx = 256, n_batch = 2048, n_predict = 1, n_keep = 0
+0.09.164.000 I 
+0.09.326.072 I common_perf_print:    sampling time =       0.61 ms
+0.09.326.075 I common_perf_print:    samplers time =       0.08 ms /     2 tokens
+0.09.326.084 I common_perf_print:        load time =    8446.28 ms
+0.09.326.086 I common_perf_print: prompt eval time =       0.00 ms /     1 tokens (    0.00 ms per token,      inf tokens per second)
+0.09.326.088 I common_perf_print:        eval time =     160.65 ms /     1 runs   (  160.65 ms per token,     6.22 tokens per second)
+0.09.326.088 I common_perf_print:       total time =     163.47 ms /     2 tokens
+0.09.326.089 I common_perf_print: unaccounted time =       2.21 ms /   1.4 %      (total - sampling - prompt eval - eval) / (total)
+0.09.326.090 I common_perf_print:    graphs reused =          0
+0.09.326.091 I common_perf_print:   graph reallocs =          0    /     0        (same size) / (changed size)
+Error response from daemon: No such container: factory-inspector-f9083e6978ef40eba1547473b00c295f

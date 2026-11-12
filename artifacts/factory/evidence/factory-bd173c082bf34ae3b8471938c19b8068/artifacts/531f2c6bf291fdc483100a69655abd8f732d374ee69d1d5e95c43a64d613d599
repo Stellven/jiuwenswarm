@@ -1,0 +1,35 @@
+# ab
+
+Status: completed
+
+| # | Arm | Status | Metric | Wall s | Output SHA | Switch matches |
+|---|---|---|---:|---:|---|---|
+| 1 | base | ok | 829.25 | 150.25 | 7a1541792364 | {"expert_pregate: active": 0, "expert_config: effective .*pregate=1 ": 0, "expert_pregate: stats predictions=[1-9][0-9]*": 0} |
+| 2 | candidate | ok | 734.96 | 166.35 | 7a1541792364 | {"expert_pregate: active": 1, "expert_config: effective .*pregate=1 ": 2, "expert_pregate: stats predictions=[1-9][0-9]*": 1} |
+| 3 | candidate | ok | 746.78 | 139.79 | 7a1541792364 | {"expert_pregate: active": 1, "expert_config: effective .*pregate=1 ": 2, "expert_pregate: stats predictions=[1-9][0-9]*": 1} |
+| 4 | base | ok | 838.64 | 147.29 | 7a1541792364 | {"expert_pregate: active": 0, "expert_config: effective .*pregate=1 ": 0, "expert_pregate: stats predictions=[1-9][0-9]*": 0} |
+| 5 | base | ok | 825.6 | 145.37 | 7a1541792364 | {"expert_pregate: active": 0, "expert_config: effective .*pregate=1 ": 0, "expert_pregate: stats predictions=[1-9][0-9]*": 0} |
+| 6 | candidate | ok | 737.68 | 150.57 | 7a1541792364 | {"expert_pregate: active": 1, "expert_config: effective .*pregate=1 ": 2, "expert_pregate: stats predictions=[1-9][0-9]*": 1} |
+| 7 | candidate | ok | 735.14 | 140.55 | 7a1541792364 | {"expert_pregate: active": 1, "expert_config: effective .*pregate=1 ": 2, "expert_pregate: stats predictions=[1-9][0-9]*": 1} |
+| 8 | base | ok | 831.56 | 148.04 | 7a1541792364 | {"expert_pregate: active": 0, "expert_config: effective .*pregate=1 ": 0, "expert_pregate: stats predictions=[1-9][0-9]*": 0} |
+
+Metric: eval_ms_per_token (lower is better)
+
+| Arm | Mean | A/B | Gate |
+|---|---:|---:|---|
+| base | 831.2625 | — | base |
+| candidate | 738.64 | 1.1253959980504713 | improved |
+
+## Secondary metrics (descriptive; no verdict)
+
+| Arm | ms/token | NVMe GiB/token (decode) | gpu_util med (%) | J/token | NVMe GiB/token (whole) | Prompt t/s | Eval t/s | CPU workers R | Main+workers D | Threads majflt/token |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| base | 831.263 | 0.226129 | 18 | 5.68579 | 0.865454 | 5.44 | 1.2025 | 0.0651992 | 0.197295 | 437.929 |
+| candidate | 738.64 | 0.26048 | 18 | 5.43061 | 0.89826 | 5.3875 | 1.355 | 0.102485 | 0.158866 | 507.433 |
+
+A/A gap: 0.016002382757500187; drift: 0.00645403828513858; threshold: 0.03200476551500037
+
+Output class: identical
+
+Output details: `{"class": "identical", "hashes": {"base": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"], "candidate": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"]}}`
+

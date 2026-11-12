@@ -1,0 +1,521 @@
+{
+ "reason": "Repository copy is slim: files >=1 MiB omitted (lab telemetry/thread samples). Full export reproducible with `jiuwenswarm factory export TASK`.",
+ "omitted": [
+  {
+   "path": "artifacts/009047d99b36410bf3ec01e8ebe07fbf8717476fe90995294b39ded2130754b5",
+   "bytes": 2493615,
+   "sha256": "009047d99b36410bf3ec01e8ebe07fbf8717476fe90995294b39ded2130754b5",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/02f2a4cfa29f36282737a44fab5bd7c4142867879f49c9d0f90529297da8b4a6",
+   "bytes": 4752470,
+   "sha256": "02f2a4cfa29f36282737a44fab5bd7c4142867879f49c9d0f90529297da8b4a6",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/081564e29b2eeec8be2ea973be74475fd473864aaf94e4e0f88923b2d20d4ed9",
+   "bytes": 4446853,
+   "sha256": "081564e29b2eeec8be2ea973be74475fd473864aaf94e4e0f88923b2d20d4ed9",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/09c0860590e65a3666200c8cb9113c47d4a55e20da882bdc47bb9f61fafb9d02",
+   "bytes": 2478580,
+   "sha256": "09c0860590e65a3666200c8cb9113c47d4a55e20da882bdc47bb9f61fafb9d02",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/10b230b5bbbf9652b21cfa020b7fd31572e2c0b9e094eb60823198092eca7233",
+   "bytes": 4478320,
+   "sha256": "10b230b5bbbf9652b21cfa020b7fd31572e2c0b9e094eb60823198092eca7233",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/15093c1c2af6c5cd4925cae08f8620a42688c280288d5a80697dd2dc61b618fa",
+   "bytes": 2570720,
+   "sha256": "15093c1c2af6c5cd4925cae08f8620a42688c280288d5a80697dd2dc61b618fa",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/16616d37a5e0273057dd681e86bb7fb534da231215fe6bb7b85796374aa770f0",
+   "bytes": 2456168,
+   "sha256": "16616d37a5e0273057dd681e86bb7fb534da231215fe6bb7b85796374aa770f0",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/1812e4256ad2d3ebab3bd5608f4240612c6dd9b27712e1dbee1a4eda311ae6ab",
+   "bytes": 9075740,
+   "sha256": "1812e4256ad2d3ebab3bd5608f4240612c6dd9b27712e1dbee1a4eda311ae6ab",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/191059ae00cf6dff6da8e5fa1825caf13c40a0608caf95fe591e1347c68d6325",
+   "bytes": 4479812,
+   "sha256": "191059ae00cf6dff6da8e5fa1825caf13c40a0608caf95fe591e1347c68d6325",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/1c5995de77d761b3ffb73a81d1f73f8ac35427eece7babec73008dd93656fedf",
+   "bytes": 8749985,
+   "sha256": "1c5995de77d761b3ffb73a81d1f73f8ac35427eece7babec73008dd93656fedf",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/20dd0ea3a0d7a0546ac77f9a4ca76236cc04d00ff62bc6a1b8d602467ac0bd6d",
+   "bytes": 4695963,
+   "sha256": "20dd0ea3a0d7a0546ac77f9a4ca76236cc04d00ff62bc6a1b8d602467ac0bd6d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/2ab29feb1262fad9100fd49fe83dbbd088280bb80e13c07df57cb0aaa83e1a63",
+   "bytes": 4661795,
+   "sha256": "2ab29feb1262fad9100fd49fe83dbbd088280bb80e13c07df57cb0aaa83e1a63",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/2d3416ed8f2878b0820edda30dbeae6af341e4d070659e3c4c6bc36e4d22e498",
+   "bytes": 2403129,
+   "sha256": "2d3416ed8f2878b0820edda30dbeae6af341e4d070659e3c4c6bc36e4d22e498",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/30e6481b9b0b60080247adeb7fe1eb6de39fbca1a4304757ddab69952cde56f0",
+   "bytes": 2461103,
+   "sha256": "30e6481b9b0b60080247adeb7fe1eb6de39fbca1a4304757ddab69952cde56f0",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/32da333da38d65417f4a762986e517f518f9360f90d4896961653c55313d2e02",
+   "bytes": 2426346,
+   "sha256": "32da333da38d65417f4a762986e517f518f9360f90d4896961653c55313d2e02",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/33d47a0c0d4a399dd18714a14ea90aa0efff90184d270f99b86389a23720b6aa",
+   "bytes": 10517065,
+   "sha256": "33d47a0c0d4a399dd18714a14ea90aa0efff90184d270f99b86389a23720b6aa",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/33e042e296f6ebf485fb77b5a19ab9e95793ca0e27a67b1d9bc88cd4fa048d6f",
+   "bytes": 9976907,
+   "sha256": "33e042e296f6ebf485fb77b5a19ab9e95793ca0e27a67b1d9bc88cd4fa048d6f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/343ed221bd899bf99c170c94a654aab9598f2e5b6a04754f82f5b3ed8e7064a8",
+   "bytes": 4041891,
+   "sha256": "343ed221bd899bf99c170c94a654aab9598f2e5b6a04754f82f5b3ed8e7064a8",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/3aa743d78f57e44fb2e6fb7a360e44094fdff41d93d775896b40b3fb229b0e7c",
+   "bytes": 9189041,
+   "sha256": "3aa743d78f57e44fb2e6fb7a360e44094fdff41d93d775896b40b3fb229b0e7c",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/3c1178683c1ca70197b32dc52d4a7256c3beef89bfa916be237f8827fae7392a",
+   "bytes": 4231375,
+   "sha256": "3c1178683c1ca70197b32dc52d4a7256c3beef89bfa916be237f8827fae7392a",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/3d8b862dab48c833eae436a96eb43b76ea2fe8d859a5c7be45f14f8a5e7a50f9",
+   "bytes": 2377437,
+   "sha256": "3d8b862dab48c833eae436a96eb43b76ea2fe8d859a5c7be45f14f8a5e7a50f9",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/3e12a267960238cda5c9097a194e1319f6a61dac3d34bf6b282461ca6e3545da",
+   "bytes": 2422062,
+   "sha256": "3e12a267960238cda5c9097a194e1319f6a61dac3d34bf6b282461ca6e3545da",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/3ed68ad4252ee31af871c9b932b1bd92e3c41811d0b1ca54b2db23cd20d2cb1f",
+   "bytes": 10481347,
+   "sha256": "3ed68ad4252ee31af871c9b932b1bd92e3c41811d0b1ca54b2db23cd20d2cb1f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/4747ae69d935d9797c6e9ec16bbf64a2587625c8fe0b955ae95a8a92ab6188f4",
+   "bytes": 2444219,
+   "sha256": "4747ae69d935d9797c6e9ec16bbf64a2587625c8fe0b955ae95a8a92ab6188f4",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/4b6cb6266c6a9f38cc4691fdac1b3ccfdacb0d9fe9b9fd0fc5860a714611a8f9",
+   "bytes": 10431410,
+   "sha256": "4b6cb6266c6a9f38cc4691fdac1b3ccfdacb0d9fe9b9fd0fc5860a714611a8f9",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/4e7481ccec86e83f7466b2826e75a07e0bcd8e176534b48266fdaaa87c13b0b0",
+   "bytes": 9937455,
+   "sha256": "4e7481ccec86e83f7466b2826e75a07e0bcd8e176534b48266fdaaa87c13b0b0",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/506f1927d3da7456e2c2712e3b6c62de486f1a6cdb412d4c98eedc82605c3f07",
+   "bytes": 10166894,
+   "sha256": "506f1927d3da7456e2c2712e3b6c62de486f1a6cdb412d4c98eedc82605c3f07",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/52013e247b0211e353603d691f09bbf149e84ecf864207745cdc5384411c0cd9",
+   "bytes": 10766665,
+   "sha256": "52013e247b0211e353603d691f09bbf149e84ecf864207745cdc5384411c0cd9",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/5556ef53514198726b7fbe1e960600d33a42d5ddfb844181340bcae14e7ac671",
+   "bytes": 10470067,
+   "sha256": "5556ef53514198726b7fbe1e960600d33a42d5ddfb844181340bcae14e7ac671",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/574ff9036726b03968e325aff320028c9e9d38f138ea632243f4a262ba8dc0ed",
+   "bytes": 2378814,
+   "sha256": "574ff9036726b03968e325aff320028c9e9d38f138ea632243f4a262ba8dc0ed",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/59948b62efe2a84c02593baa3c5e66d392012379116d0b8c7613150a163ffb9f",
+   "bytes": 2378397,
+   "sha256": "59948b62efe2a84c02593baa3c5e66d392012379116d0b8c7613150a163ffb9f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/5bf8986576bb4f319803d40903f53d4401ad6cbffeaa2aee6b0e32a0191e344d",
+   "bytes": 9029126,
+   "sha256": "5bf8986576bb4f319803d40903f53d4401ad6cbffeaa2aee6b0e32a0191e344d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/5d427d24e50e70d661577ab7c47bf72c0571d7e50214aa3cd1e30ea0d06371bf",
+   "bytes": 9645823,
+   "sha256": "5d427d24e50e70d661577ab7c47bf72c0571d7e50214aa3cd1e30ea0d06371bf",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/60f2e8ee25daec4d322bd06837344ff141b5117fc0a5f737eb66debb92bd36ac",
+   "bytes": 4469068,
+   "sha256": "60f2e8ee25daec4d322bd06837344ff141b5117fc0a5f737eb66debb92bd36ac",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/60f745b2ac3489ff458ee89187d8c253c851e5d1127c4862d73bd2e787c58b4d",
+   "bytes": 4156780,
+   "sha256": "60f745b2ac3489ff458ee89187d8c253c851e5d1127c4862d73bd2e787c58b4d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/65252a6e8ced4892306a79af6801f426ac3471723feb758996ba31517a32b9ff",
+   "bytes": 10182880,
+   "sha256": "65252a6e8ced4892306a79af6801f426ac3471723feb758996ba31517a32b9ff",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/67338328f49a6697ca50f5231d45970cdf8eedc991e33041458beebe1d388869",
+   "bytes": 2460386,
+   "sha256": "67338328f49a6697ca50f5231d45970cdf8eedc991e33041458beebe1d388869",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/674c60f0f2cc0a1b5f3848274a7b017085b89f84df6d136cb236bf93899181ad",
+   "bytes": 4404328,
+   "sha256": "674c60f0f2cc0a1b5f3848274a7b017085b89f84df6d136cb236bf93899181ad",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/6ad121e4e71960a3af544bdfe03cd11512fb29481bfd2082f54e1e04c2345a1d",
+   "bytes": 4859472,
+   "sha256": "6ad121e4e71960a3af544bdfe03cd11512fb29481bfd2082f54e1e04c2345a1d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/6b14af03b0d6c066a1c9d0882f9a353618d2310eb9da0686dc70c8d3b69f3c5f",
+   "bytes": 10161324,
+   "sha256": "6b14af03b0d6c066a1c9d0882f9a353618d2310eb9da0686dc70c8d3b69f3c5f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/6baff73eb3fe49e67edf6d97051e8c03d9dac0ae26fd9e5a4afa2f4f0bbda0aa",
+   "bytes": 8941740,
+   "sha256": "6baff73eb3fe49e67edf6d97051e8c03d9dac0ae26fd9e5a4afa2f4f0bbda0aa",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/6fe0a6f88cee9d9dcadddb6d47ea31697fa587b0259d0d51bcb586cbc500d7b4",
+   "bytes": 4376615,
+   "sha256": "6fe0a6f88cee9d9dcadddb6d47ea31697fa587b0259d0d51bcb586cbc500d7b4",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/74caa937d34b09666d79541878f98271765558aa1a4970e03b72a27e772e7a1a",
+   "bytes": 10689494,
+   "sha256": "74caa937d34b09666d79541878f98271765558aa1a4970e03b72a27e772e7a1a",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/754a40da9e198dbab3859fdeaf283d52ea46821f539f2e082f8ac1379af26693",
+   "bytes": 2394910,
+   "sha256": "754a40da9e198dbab3859fdeaf283d52ea46821f539f2e082f8ac1379af26693",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/76348c8c5c8dbe46fec84f6d44e474b4499739d5a53acc06e53a02a275a7a0ac",
+   "bytes": 8466834,
+   "sha256": "76348c8c5c8dbe46fec84f6d44e474b4499739d5a53acc06e53a02a275a7a0ac",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/8024dadd270778269fe3d290a228782c4b53db3aac81e1fa61d4ac009826597e",
+   "bytes": 2553533,
+   "sha256": "8024dadd270778269fe3d290a228782c4b53db3aac81e1fa61d4ac009826597e",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/81b3a08cf0c44d0d7d3cc354b287a71b06570a7a03ad15e382b5519b760b94a2",
+   "bytes": 10595664,
+   "sha256": "81b3a08cf0c44d0d7d3cc354b287a71b06570a7a03ad15e382b5519b760b94a2",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/8557b184268e62a722082cc5749c9d3477ad0504227eeea60e39c31454f4e305",
+   "bytes": 9742320,
+   "sha256": "8557b184268e62a722082cc5749c9d3477ad0504227eeea60e39c31454f4e305",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/864e1175430f5b77b4e34a19e00f3a408dd43be69d88b178be2448b51ecbb0fd",
+   "bytes": 10112493,
+   "sha256": "864e1175430f5b77b4e34a19e00f3a408dd43be69d88b178be2448b51ecbb0fd",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/8650b9b2319281bee3593e027872fd4302c8228b81e39221c8e4f6605035471e",
+   "bytes": 2369438,
+   "sha256": "8650b9b2319281bee3593e027872fd4302c8228b81e39221c8e4f6605035471e",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/8df783b1247a77a4503a3a1032ba0c90f84c32eb8d90967a4c90d339783602ff",
+   "bytes": 2418956,
+   "sha256": "8df783b1247a77a4503a3a1032ba0c90f84c32eb8d90967a4c90d339783602ff",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/90974dfa47016b543b7062163a2bb6d7343caef663a4868a371646abcdf2577a",
+   "bytes": 2462054,
+   "sha256": "90974dfa47016b543b7062163a2bb6d7343caef663a4868a371646abcdf2577a",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/983d9a845877ac5afc6f093573fc3f102dc2fe2baf13d88a5779f9489d859d4f",
+   "bytes": 2330399,
+   "sha256": "983d9a845877ac5afc6f093573fc3f102dc2fe2baf13d88a5779f9489d859d4f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/98c99939083d934477b62009a58686ead8858314b4c497c5b81d29eebb664b6f",
+   "bytes": 4275679,
+   "sha256": "98c99939083d934477b62009a58686ead8858314b4c497c5b81d29eebb664b6f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a3f25242501231b1c5f6dd545eab77cf213491c869cb6615e09f190a44dccd4e",
+   "bytes": 10390104,
+   "sha256": "a3f25242501231b1c5f6dd545eab77cf213491c869cb6615e09f190a44dccd4e",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a685e3dfae9ce917e691695d98076a3be4c9e017144224b615ebf00fdf2240d6",
+   "bytes": 4400383,
+   "sha256": "a685e3dfae9ce917e691695d98076a3be4c9e017144224b615ebf00fdf2240d6",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a6cd428199fbc8c5453828dc459eef239be51671760ca07e2b0932c990ca6cc6",
+   "bytes": 2338468,
+   "sha256": "a6cd428199fbc8c5453828dc459eef239be51671760ca07e2b0932c990ca6cc6",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a8a0192d391876d3b76bde4a3458676a665b268e3f80a269138182020ce0b634",
+   "bytes": 10032572,
+   "sha256": "a8a0192d391876d3b76bde4a3458676a665b268e3f80a269138182020ce0b634",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a90b6a87ad9bba2f257b74d4ee8631b1ad9d4d50a78f62c1edcf23a8508e671e",
+   "bytes": 4413648,
+   "sha256": "a90b6a87ad9bba2f257b74d4ee8631b1ad9d4d50a78f62c1edcf23a8508e671e",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a915efaaf6073a61faac5917dcc20c57cac6af6524fd6c6714b653eb5c45fe9d",
+   "bytes": 2469653,
+   "sha256": "a915efaaf6073a61faac5917dcc20c57cac6af6524fd6c6714b653eb5c45fe9d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/a9dc6235abefa0d9563ae0dcf7cf7a5a171a196be5bd560d03e5360e25791b0d",
+   "bytes": 2352946,
+   "sha256": "a9dc6235abefa0d9563ae0dcf7cf7a5a171a196be5bd560d03e5360e25791b0d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/b2c6e0ec29fcf874da27a5ab696787eb176539aabb8882e28dea1643e3e7f06f",
+   "bytes": 10399797,
+   "sha256": "b2c6e0ec29fcf874da27a5ab696787eb176539aabb8882e28dea1643e3e7f06f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/b2d1dc59364a848e644212e7dde856af7672d9a60a859468760bee1922912bf4",
+   "bytes": 2504813,
+   "sha256": "b2d1dc59364a848e644212e7dde856af7672d9a60a859468760bee1922912bf4",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/b39953c8f9d5fe539128a5b162886b291125dbf75c35a9979f072918368fac54",
+   "bytes": 2768915,
+   "sha256": "b39953c8f9d5fe539128a5b162886b291125dbf75c35a9979f072918368fac54",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/b6764d78e622ec6906a3a42c0c29a7060ac2fd676fe588fa4eb149c8a900c267",
+   "bytes": 4347896,
+   "sha256": "b6764d78e622ec6906a3a42c0c29a7060ac2fd676fe588fa4eb149c8a900c267",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/be460be564edbdb76624ab8e50b5665e4a0e0f5fafe7678b2c49a45403220aea",
+   "bytes": 2536531,
+   "sha256": "be460be564edbdb76624ab8e50b5665e4a0e0f5fafe7678b2c49a45403220aea",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/c1420b9c0ddc9f34afbff1995ae28bb926281eb695bc90302e1a32e8a0beac3f",
+   "bytes": 9799266,
+   "sha256": "c1420b9c0ddc9f34afbff1995ae28bb926281eb695bc90302e1a32e8a0beac3f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/c392a73b211a834bc0d4f546451c149a802d66fbb9f1f19804985d9e349737bc",
+   "bytes": 10639617,
+   "sha256": "c392a73b211a834bc0d4f546451c149a802d66fbb9f1f19804985d9e349737bc",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/c63520370ef36b6b1cf96c55e42ed648f495de23a8852c17d3dd0d363729c25d",
+   "bytes": 4330149,
+   "sha256": "c63520370ef36b6b1cf96c55e42ed648f495de23a8852c17d3dd0d363729c25d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/c6c6edf6b07ef015f04bcd7c94fc423a2d878105f15a13ca2cc94efdad57964d",
+   "bytes": 10539591,
+   "sha256": "c6c6edf6b07ef015f04bcd7c94fc423a2d878105f15a13ca2cc94efdad57964d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/cb695d33765b95cc095fed4cf7c762027207298aedf0400613349555a0b59a59",
+   "bytes": 9932791,
+   "sha256": "cb695d33765b95cc095fed4cf7c762027207298aedf0400613349555a0b59a59",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/d1e8a8e003915d575eee565a23862362cfb6e63b7ed7a6023b9f27d602b0da55",
+   "bytes": 2492931,
+   "sha256": "d1e8a8e003915d575eee565a23862362cfb6e63b7ed7a6023b9f27d602b0da55",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/d5a4ad6ef4c563d833e58a025652866687cb2cf8e1841eed08f31f875cec12a3",
+   "bytes": 2380715,
+   "sha256": "d5a4ad6ef4c563d833e58a025652866687cb2cf8e1841eed08f31f875cec12a3",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/d8c9944efc71f49486daf78715bef5e416b16a9f2850290e6fb7f82568c86933",
+   "bytes": 4123347,
+   "sha256": "d8c9944efc71f49486daf78715bef5e416b16a9f2850290e6fb7f82568c86933",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/da3e83fd9cb7820bda443319d725126c35e1c704a728ba2e7bf2fcf614f7f658",
+   "bytes": 2494078,
+   "sha256": "da3e83fd9cb7820bda443319d725126c35e1c704a728ba2e7bf2fcf614f7f658",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/dac32c54fb5c12e9c81d834a89ae0f32afa7af61ae3c956df85e0ab9f292149f",
+   "bytes": 3926861,
+   "sha256": "dac32c54fb5c12e9c81d834a89ae0f32afa7af61ae3c956df85e0ab9f292149f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/e3177c33b143df78f5a94764be62eaff6a412fd3383bbb1ef5b571a1f8958ca3",
+   "bytes": 2420348,
+   "sha256": "e3177c33b143df78f5a94764be62eaff6a412fd3383bbb1ef5b571a1f8958ca3",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/e9d7338174397e9d32bba75298041e0d2f1f8c01fdc97909acd5f1c5a817393d",
+   "bytes": 4352436,
+   "sha256": "e9d7338174397e9d32bba75298041e0d2f1f8c01fdc97909acd5f1c5a817393d",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/eb2de8b0a08f346af1fcb127efae465915470529f0386e3e2b8ae1eb87a4097f",
+   "bytes": 2442784,
+   "sha256": "eb2de8b0a08f346af1fcb127efae465915470529f0386e3e2b8ae1eb87a4097f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/eb3e096b653b1f65e687f1680899282cc79a9f861e40d569aff305a5952d88e4",
+   "bytes": 2368989,
+   "sha256": "eb3e096b653b1f65e687f1680899282cc79a9f861e40d569aff305a5952d88e4",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/ee5f9820d7a28737786836067db556f21cc684802882c7db994d03e5e4470783",
+   "bytes": 2478366,
+   "sha256": "ee5f9820d7a28737786836067db556f21cc684802882c7db994d03e5e4470783",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/ef5f8d600e22019d7f692f5ba0cc7f9e823d35b3693e3e084790c5ba4f8035e1",
+   "bytes": 2931237,
+   "sha256": "ef5f8d600e22019d7f692f5ba0cc7f9e823d35b3693e3e084790c5ba4f8035e1",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/fdfc8a6098d5aab7b996ffb9d3483681804d3a40a4a717a761ef145e70e8d16c",
+   "bytes": 2520396,
+   "sha256": "fdfc8a6098d5aab7b996ffb9d3483681804d3a40a4a717a761ef145e70e8d16c",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "artifacts/ffd3c1dba13760f2dd43830d5b761a412b8fadc4f029ce980fbc9cee4a3d688f",
+   "bytes": 9019301,
+   "sha256": "ffd3c1dba13760f2dd43830d5b761a412b8fadc4f029ce980fbc9cee4a3d688f",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "records/events.json",
+   "bytes": 1386126,
+   "sha256": "eea464cbab9778a08d044e19a4a1e3361ef3a9361cfa8d39d6e9cd8892145c07",
+   "note": "kept in operator store ~/.jiuwenswarm-factory"
+  },
+  {
+   "path": "session.jsonl",
+   "bytes": 24806079,
+   "sha256": "387924240758ecf7407d70fd1613ffc6d8f87dc40cba86913372f12619eef3a7",
+   "note": "gzipped as session.jsonl.gz"
+  }
+ ]
+}

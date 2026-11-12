@@ -1,0 +1,12 @@
+cc: '2'
+id: factory.engine_component
+version: 1.0.0
+materials:
+  component:
+    path: component.yaml
+  patch:
+    path: 09-thread-names.patch
+  pre_integration_patch:
+    path: combined-01-02-03-04-05-06-07-08.patch
+  readme:
+    path: README.md

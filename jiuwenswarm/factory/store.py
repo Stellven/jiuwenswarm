@@ -423,9 +423,9 @@ class Store:
             clauses.append('instr(lower(record),lower(?))>0')
             params.append(text)
         rows = self._db.execute('SELECT cursor,id,type,kind,summary,created FROM evidence WHERE ' + ' AND '.join(clauses) + ' ORDER BY cursor LIMIT ?', (*params, limit)).fetchall()
-        for row in rows:
-            if row['type'] == 'artifact':
-                self.read_artifact(task_id, row['id'])
+        # Refuse to answer from a task whose evidence has been tampered with.
+        for (artifact_id,) in self._db.execute('SELECT artifact_id FROM artifacts WHERE task_id=?', (task_id,)).fetchall():
+            self.read_artifact(task_id, artifact_id)
         return {'items': [{k: row[k] for k in ('id', 'type', 'kind', 'summary', 'created')} for row in rows], 'cursor': rows[-1]['cursor'] if rows else since}
 
     def dump(self, task_id):

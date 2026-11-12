@@ -1,0 +1,35 @@
+# ab
+
+Status: completed
+
+| # | Arm | Status | Metric | Wall s | Output SHA | Switch matches |
+|---|---|---|---:|---:|---|---|
+| 1 | base | ok | 769.99 | 145.73 | 7a1541792364 | {} |
+| 2 | candidate | ok | 778.01 | 176.7 | 7a1541792364 | {} |
+| 3 | candidate | ok | 770.47 | 141.38 | 7a1541792364 | {} |
+| 4 | base | ok | 769.81 | 143.12 | 7a1541792364 | {} |
+| 5 | base | ok | 760.92 | 144.37 | 7a1541792364 | {} |
+| 6 | candidate | ok | 773.91 | 142.86 | 7a1541792364 | {} |
+| 7 | candidate | ok | 770.55 | 142.78 | 7a1541792364 | {} |
+| 8 | base | ok | 820.4 | 148.92 | 7a1541792364 | {} |
+
+Metric: eval_ms_per_token (lower is better)
+
+| Arm | Mean | A/B | Gate |
+|---|---:|---:|---|
+| base | 780.28 | — | base |
+| candidate | 773.235 | 1.0091110723130743 | null |
+
+## Secondary metrics (descriptive; no verdict)
+
+| Arm | ms/token | NVMe GiB/token (decode) | gpu_util med (%) | J/token | NVMe GiB/token (whole) | Prompt t/s | Eval t/s | CPU workers R | Main+workers D | Threads majflt/token |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| base | 780.28 | 0.287827 | 17.25 | 5.69409 | 0.933319 | 5.4025 | 1.2825 | 0.0960932 | 0.169998 | 404.007 |
+| candidate | 773.235 | 0.283795 | 18 | 5.65426 | 0.930319 | 5.355 | 1.295 | 0.181108 | 0.00516613 | 440.25 |
+
+A/A gap: 0.07622904598349313; drift: 0.026605833803250104; threshold: 0.15245809196698626
+
+Output class: identical
+
+Output details: `{"class": "identical", "hashes": {"base": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"], "candidate": ["7a1541792364", "7a1541792364", "7a1541792364", "7a1541792364"]}}`
+

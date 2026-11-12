@@ -1,0 +1,39 @@
+commit 93a61111ed31b9017e16f0cf8ac47f7dd0af2077
+Author:     Factory Agent <factory@localhost>
+AuthorDate: Thu Nov 12 07:01:26 2026 +0000
+Commit:     Factory Agent <factory@localhost>
+CommitDate: Thu Nov 12 07:01:26 2026 +0000
+
+    mmap: integrate advice component
+    
+    Patch-SHA256: 1554b5b6a5b9efc0d487453408db83a23cd00cffd29d021e5cce90d513211452
+    
+    Assisted-by: Codex
+
+diff --git a/src/llama-mmap.cpp b/src/llama-mmap.cpp
+index 4d1cd31e9..e139505c8 100644
+--- a/src/llama-mmap.cpp
++++ b/src/llama-mmap.cpp
+@@ -484,8 +484,12 @@ struct llama_mmap::impl {
+         int fd = file->file_id();
+         int flags = MAP_SHARED;
+         if (numa) { prefetch = 0; }
++        // campaign J-RA: LLAMA_MMAP_ADVICE=random -> no sequential readahead hint, no WILLNEED prefetch, MADV_RANDOM on the mapping
++        const char * j_adv = getenv("LLAMA_MMAP_ADVICE");
++        const bool j_random = j_adv && strcmp(j_adv, "random") == 0;
++        if (j_random) { prefetch = 0; LLAMA_LOG_INFO("llama_mmap: LLAMA_MMAP_ADVICE=random (no FADV_SEQUENTIAL, no WILLNEED, MADV_RANDOM)\n"); }
+ #ifdef __linux__
+-        if (posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL)) {
++        if (!j_random && posix_fadvise(fd, 0, 0, POSIX_FADV_SEQUENTIAL)) {
+             LLAMA_LOG_WARN("warning: posix_fadvise(.., POSIX_FADV_SEQUENTIAL) failed: %s\n",
+                     strerror(errno));
+         }
+@@ -518,7 +522,7 @@ struct llama_mmap::impl {
+         for (const auto & range : lazy_ranges) {
+             advise(range.first, range.second, POSIX_MADV_RANDOM, "POSIX_MADV_RANDOM");
+         }
+-        if (numa) {
++        if (numa || j_random) {
+             if (posix_madvise(addr, file->size(), POSIX_MADV_RANDOM)) {
+                 LLAMA_LOG_WARN("warning: posix_madvise(.., POSIX_MADV_RANDOM) failed: %s\n",
+                         strerror(errno));

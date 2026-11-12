@@ -1,0 +1,79 @@
+{
+  "argv": [
+    "-m",
+    "/om/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "-f",
+    "/om/prompts/p1.txt",
+    "-n",
+    "64",
+    "-c",
+    "4096",
+    "--temp",
+    "0",
+    "-s",
+    "1",
+    "-no-cnv",
+    "-ngl",
+    "99",
+    "-lm",
+    "mmap",
+    "-cmoe",
+    "-lv",
+    "4"
+  ],
+  "arms": {
+    "base": {
+      "env": {
+        "LLAMA_EXPERT_FILL": "1",
+        "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+        "LLAMA_EXPERT_FILL_DIAG": "0",
+        "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+        "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+        "LLAMA_EXPERT_FILL_POPULATE": "0",
+        "LLAMA_EXPERT_FILL_RANDOM": "decode",
+        "LLAMA_EXPERT_FILL_THREADS": "16",
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+        "LLAMA_MMAP_ADVICE": "default"
+      },
+      "expect_switch": false,
+      "image": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c"
+    },
+    "candidate": {
+      "env": {
+        "LLAMA_EXPERT_FILL": "1",
+        "LLAMA_EXPERT_FILL_CHUNK_KIB": "2048",
+        "LLAMA_EXPERT_FILL_DIAG": "0",
+        "LLAMA_EXPERT_FILL_MAX_TOKENS": "1",
+        "LLAMA_EXPERT_FILL_MIN_TOKENS": "0",
+        "LLAMA_EXPERT_FILL_POPULATE": "0",
+        "LLAMA_EXPERT_FILL_RANDOM": "decode",
+        "LLAMA_EXPERT_FILL_THREADS": "16",
+        "LLAMA_EXPERT_PREFETCH": "0",
+        "LLAMA_EXPERT_PREFETCH_NEXT": "0",
+        "LLAMA_EXPERT_PREGATE": "1",
+        "LLAMA_EXPERT_PREGATE_K": "8",
+        "LLAMA_EXPERT_PREGATE_LOOKAHEAD": "1",
+        "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT": "4",
+        "LLAMA_EXPERT_PREGATE_ORDER": "after",
+        "LLAMA_MMAP_ADVICE": "default"
+      },
+      "expect_switch": true,
+      "image": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+      "switch_regex": [
+        "expert_pregate: active",
+        "expert_config: effective .*pregate=1 ",
+        "expert_pregate: stats predictions=[1-9][0-9]*"
+      ]
+    }
+  },
+  "direction": "lower",
+  "id": "ab",
+  "metric": "eval_ms_per_token",
+  "order": "ABBA",
+  "outdir_base": "/home/muk/.jiuwenswarm-factory/lab-spool/6a4290775a9c43e6b03c2e9dd6d1bdea",
+  "rounds": 2,
+  "runner": "om_run",
+  "threads": true,
+  "tool": "llama-completion"
+}

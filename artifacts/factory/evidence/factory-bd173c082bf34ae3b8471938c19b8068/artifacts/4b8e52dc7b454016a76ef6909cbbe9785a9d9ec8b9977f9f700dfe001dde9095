@@ -1,0 +1,16 @@
+{"host": {"arch": "aarch64", "docker": true, "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia", "nvcc_on_path": true}, "source": {"applied_patches": [], "branch": "evolve", "commit": "5cded3e76a44812f7f5a16b357c9f384d25f1c46", "dirty": false}}
+--- stderr tail ---
+error: src/llama-expert-fill.h: No such file or directory
+error: patch failed: src/llama-model.h:971
+error: src/llama-model.h: patch does not apply
+error: patch failed: src/llama-model.cpp:1
+error: src/llama-model.cpp: patch does not apply
+error: patch failed: src/llama-model-loader.cpp:1
+error: src/llama-model-loader.cpp: patch does not apply
+error: patch failed: src/llama-mmap.cpp:1
+error: src/llama-mmap.cpp: patch does not apply
+error: src/llama-expert-fill.h: No such file or directory
+error: patch failed: src/llama-context.h:12
+error: src/llama-context.h: patch does not apply
+error: patch failed: src/llama-context.cpp:195
+error: src/llama-context.cpp: patch does not apply
