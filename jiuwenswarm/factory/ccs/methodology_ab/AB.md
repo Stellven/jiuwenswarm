@@ -58,3 +58,9 @@ cc/abrun/gate.py is the performance gate, not historical experiment numbers.
 10. Retain negative/null/invalid evidence and explain why. Finish with the best
     image, kept component stack, exact scope and evidence IDs. Budgets or missing
     prerequisites end inconclusively; they never imply a win.
+11. To explain a result, not to score it, submit one lab_client.submit with
+    run_config {"env": ..., "profile": "nsys"}. Nsight Systems traces the run;
+    the evaluation carries details.nsys: top GPU kernels, CUDA API calls and
+    OS-runtime calls (pread, futex, waits) with total times. Tracing slows the
+    engine, so traced ms/token is never compared or cited as speed evidence.
+    Use it to form the next hypothesis, then test that with an untraced A/B.

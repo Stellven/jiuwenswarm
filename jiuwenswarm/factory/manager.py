@@ -76,8 +76,11 @@ class Manager:
             raise ValueError('role must be candidate or reference')
         admission = self._admission(task_id, admission_id)
         contract = contracts.load(contract_id)
-        if not isinstance(run_config, dict) or set(run_config) - {'env', 'argv_overrides'}:
-            raise ValueError('run_config allows env and argv_overrides')
+        if not isinstance(run_config, dict) or set(run_config) - {'env', 'argv_overrides', 'profile'}:
+            raise ValueError('run_config allows env, argv_overrides and profile')
+        profile = run_config.get('profile')
+        if profile not in (None, 'nsys'):
+            raise ValueError('run_config.profile must be nsys when given')
         env = dict(contract['workload']['env'])
         requested = run_config.get('env', {})
         if not isinstance(requested, dict):
@@ -90,6 +93,9 @@ class Manager:
         if run_config.get('argv_overrides') not in (None, {}, [], argv):
             raise ValueError('Scored workload argv is fixed; use a version+1 contract for changes')
         config = dict(admission=admission, contract=dict(contract), env=env, argv=argv, role=role)
+        if profile:
+            # A traced run is an explanation, not a measurement; it never feeds a gate.
+            config['profile'] = profile
         digest = hashlib.sha256(encoded(config).encode()).hexdigest()
         path = self.spool_root / 'configs' / (digest + '.json')
         if not path.exists():
@@ -212,7 +218,8 @@ class Manager:
                 for name, data in {'manifest.json': raw_manifest, **content}.items():
                     try:
                         artifact = self.store.put_artifact(task_id, lab_run_id + ':' + name, data,
-                            'application/json' if name.endswith('.json') else 'text/plain', lab_run_id)
+                            'application/json' if name.endswith('.json') else
+                            'application/octet-stream' if name.endswith('.nsys-rep') else 'text/plain', lab_run_id)
                     except ArtifactConflict as exc:
                         raise UploadConflict('Lab run already names different upload bytes') from exc
                     refs.append(artifact['artifact_id'])

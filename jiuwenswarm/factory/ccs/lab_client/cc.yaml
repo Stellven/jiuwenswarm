@@ -11,6 +11,9 @@ capabilities:
   submit:
     kind: tool
     does: Admit a local image and submit a fixed lab evaluation through the GPU queue.
+      run_config may include profile nsys to trace the run with Nsight Systems; the
+      result then carries a kernel, CUDA API and OS-runtime breakdown. Traced timing
+      is perturbed and is never speed evidence.
     takes:
       image: json
       build_attempt_id: text

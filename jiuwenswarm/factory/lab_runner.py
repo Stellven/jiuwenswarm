@@ -17,6 +17,7 @@ from .contract import atomic_json
 
 from .config import OM_RUN, DOCKER_PREFIX, MIN_AVAIL_MIB, DOCKER_TIMEOUT, UPLOAD_TIMEOUT
 from .effective_config import ENV_KEYS, parse_effective
+from .nsys_summary import summarize as nsys_summary
 REQUIRED = {'stdout.txt', 'stderr.txt', 'result.json', 'watchdog.jsonl',
             'telemetry.jsonl', 'threads.summary.json', 'cmd.txt'}
 
@@ -80,6 +81,9 @@ def collect(root, config):
               or ('effective_config_matches_request' in required and not config_ok)
               or not all(checks.get(k, False) for k in required)):
             outcome = 'measurement_failed'
+    if config.get('profile') == 'nsys':
+        missing += sorted(n for n in ('nsys.nsys-rep', 'nsys_cuda_gpu_kern_sum.csv', 'nsys_osrt_sum.csv')
+                          if not (root / n).is_file())
     complete = not missing and bool(result) and bool(threads)
     stdout = root / 'stdout.txt'
     metric = re.search(r'(?<!prompt )\beval time.*?\(\s*([\d.]+) ms per token', stderr)
@@ -92,7 +96,8 @@ def collect(root, config):
             invalid_message=invalid.group(0) if invalid else None,
             exit_status=result.get('exit_code'), aborted=(result.get('exit_code') or 0) > 128 or
                 (result.get('exit_code') or 0) < 0 or bool(result.get('signal')),
-            eval_ms_per_token=float(metric[1]) if metric else None, worker=worker))
+            eval_ms_per_token=float(metric[1]) if metric else None, worker=worker,
+            traced=bool(config.get('profile')), nsys=nsys_summary(root) if config.get('profile') == 'nsys' else None))
 
 
 def write_bundle(root, task, run, admission, contract):
@@ -155,6 +160,8 @@ def run(task, lab_run, admission, contract_id, config, spool):
             flags = ' '.join('-e ' + k + '=' + v for k, v in sorted(config['env'].items()))
             env = dict(os.environ, OM_THREADS='1', OM_MIN_AVAIL_MIB=str(MIN_AVAIL_MIB),
                        OM_MODELDIR=str(model.parent), DOCKER_CMD_PREFIX=DOCKER_PREFIX)
+            if config.get('profile') == 'nsys':
+                env['OM_NSYS'] = '1'
             with (root / 'launcher.stdout.txt').open('w') as stdout, (root / 'launcher.stderr.txt').open('w') as stderr:
                 process = subprocess.Popen([os.environ.get('FACTORY_OM_RUN', OM_RUN), str(root),
                     image['Id'], flags, config['contract']['workload']['tool'], *config['argv']],

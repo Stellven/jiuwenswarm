@@ -226,6 +226,12 @@ def build_events(data):
             speed = details.get('eval_ms_per_token', '?')
             summary = (f"{tokens} tokens · {speed} ms/token · "
                        f"{v.get('execution_outcome', '?')} · {details.get('worker', {}).get('cleanup', '?')}")
+            nsys = details.get('nsys') or {}
+            if details.get('traced'):
+                kernels = (nsys.get('kernels') or {}).get('total_ms')
+                top = ((nsys.get('os_runtime') or {}).get('top') or [{}])[0].get('name')
+                summary = (f"{tokens} tokens · TRACED (timing perturbed) · GPU kernels {kernels} ms"
+                           f" · top OS call {top} · {v.get('execution_outcome', '?')}")
         elif kind.startswith('inspector.'):
             kind, mark = 'inspect', '✓'
             effective = v.get('effective', {})
