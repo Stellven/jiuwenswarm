@@ -22,3 +22,8 @@ Start here instead:
 
 ## Factory feature (amended)
 The iterative inference factory has a feature-scoped exception for its evidence-driven controller; follow [AMENDMENT.md](docs/architecture/factory/AMENDMENT.md). The host enforces authority and lifecycle; the agent chooses actions. Do not restore M1. See [MIGRATION.md](docs/architecture/factory/MIGRATION.md) for old-to-new behavior, planned components, legacy-config errors and rollback. All existing rules remain in force outside that amendment.
+
+The operator-authorized engine-factory design decision is recorded in
+[DESIGN-CHANGE-2026-11-12.md](docs/architecture/factory/DESIGN-CHANGE-2026-11-12.md).
+[RESPONSIBILITIES.md](docs/architecture/factory/RESPONSIBILITIES.md) maps M1 responsibilities to current code and Run 5 evidence placeholders.
+In-run revision retains host contract, authority and lifecycle checks; M1 remains removed.

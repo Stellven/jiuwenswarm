@@ -70,7 +70,7 @@ class Manager:
             raise ValueError('Admission identity differs')
         return record
 
-    def submit_run(self, task_id, admission_id, contract_id, run_config, idem_key, role='candidate'):
+    def submit_run(self, task_id, admission_id, contract_id, run_config, idem_key, role='candidate', node_id=None):
         # role is set only by the Manager (freeze_reference -> 'reference'); agents cannot pass it.
         if role not in {'candidate', 'reference'}:
             raise ValueError('role must be candidate or reference')
@@ -87,6 +87,8 @@ class Manager:
         if run_config.get('argv_overrides') not in (None, {}, [], argv):
             raise ValueError('Scored workload argv is fixed; use a version+1 contract for changes')
         config = dict(admission=admission, contract=dict(contract), env=env, argv=argv, role=role)
+        if node_id is not None:
+            config['node_id'] = node_id
         if profile:
             # A traced run is an explanation, not a measurement; it never feeds a gate.
             config['profile'] = profile
@@ -105,10 +107,10 @@ class Manager:
         return self.jobs.submit(task_id, 'lab', config, idem_key, 'gpu', argv, LAB_TIMEOUT, env_extra)
 
     def ab_submit(self, task_id, base_image, candidate_image, base_env, candidate_env,
-                  rounds, idem_key, component, contract_id=None):
+                  rounds, idem_key, component, contract_id=None, node_id=None):
         from .ab import submit
         return submit(self, task_id, base_image, candidate_image, base_env, candidate_env,
-                      rounds, idem_key, component, contract_id)
+                      rounds, idem_key, component, contract_id, node_id=node_id)
 
     def ab_status(self, attempt_id):
         return self.status(attempt_id)

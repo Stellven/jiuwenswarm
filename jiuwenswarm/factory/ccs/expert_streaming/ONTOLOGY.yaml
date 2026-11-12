@@ -1,0 +1,150 @@
+id: satay.engine-ontology
+version: '0.1'
+status: provisional
+entities:
+  engine_revision: Source commit plus any retained patch identity.
+  source_tree: Files implementing an engine revision.
+  component: A bounded source module implementing a capability.
+  build_artifact: Output of a build attempt.
+  image: Immutable runtime image id.
+  model: Model architecture and weight tensors.
+  quantization: Weight representation and block encoding.
+  workload: Fixed prompt, decode and configuration inputs; engine request scheduler is distinct from factory job scheduler.
+  contract: Versioned correctness and measurement obligations.
+  regions:
+    L1: startup
+    L2: api
+    L3: generation_loop
+    L4: model_ops
+    L4.router: router
+    L4.selected_expert: selected_expert
+    L4.expert_execution: expert_execution (CPU under -cmoe)
+    L5: kernels_runtime
+    L5.cpu: cpu
+    L5.gpu: gpu
+    M: memory_state
+    M.expert_weight_range: expert_weight_range
+    M.read_request: read_request
+    M.readiness: readiness before demand fill
+    M.page_cache: page_cache
+    M.memory_budget: memory_budget
+  observation_point: A named stderr line and field at an engine boundary.
+  quantity: A value with unit, phase and region; absence is not zero.
+  observation: Measured value with raw evidence provenance.
+  assessment: Interpretation under a contract and its limitations.
+  claim: A bounded statement supported by observations and assessment.
+  capabilities: [expert_streaming.demand_fill, expert_streaming.predictive_read, expert_streaming.readiness_observation, expert_streaming.phase_observation, expert_streaming.worker_naming, expert_streaming.duplicate_read_elimination, expert_streaming.mmap_advice, expert_streaming.router_prefetch]
+relations:
+  implements: component -> capability
+  modifies_region: component -> engine region
+  reads_range: read_request -> expert_weight_range
+  executes_on: expert_execution -> cpu or gpu (CPU under -cmoe)
+  measures: observation_point -> quantity
+  built_from: build_artifact or image -> source_tree at engine_revision
+  evaluates_under: observation or assessment -> contract and workload
+quantities:
+  config.fill: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "fill"}, "region": "L1", "distinct_from": []}
+  config.random: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "random"}, "region": "L1", "distinct_from": []}
+  config.max_tokens: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "max_tokens"}, "region": "L1", "distinct_from": []}
+  threads.xfill_workers: {"unit": "workers", "phase": "run", "source": {"line": "expert_config: effective", "field": "threads"}, "region": "L1", "distinct_from": []}
+  config.chunk_kib: {"unit": "KiB", "phase": "run", "source": {"line": "expert_config: effective", "field": "chunk_kib"}, "region": "L1", "distinct_from": []}
+  config.pregate: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "pregate"}, "region": "L1", "distinct_from": []}
+  config.k: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "k"}, "region": "L1", "distinct_from": []}
+  config.order: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "order"}, "region": "L1", "distinct_from": []}
+  config.max_inflight: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "max_inflight"}, "region": "L1", "distinct_from": []}
+  config.lookahead: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "lookahead"}, "region": "L1", "distinct_from": []}
+  config.min_tokens: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "min_tokens"}, "region": "L1", "distinct_from": []}
+  config.diag: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "diag"}, "region": "L1", "distinct_from": []}
+  config.populate: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "populate"}, "region": "L1", "distinct_from": []}
+  config.diag_csv: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "diag_csv"}, "region": "L1", "distinct_from": []}
+  config.prefetch: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "prefetch"}, "region": "L1", "distinct_from": []}
+  config.prefetch_next: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "prefetch_next"}, "region": "L1", "distinct_from": []}
+  config.readiness: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "readiness"}, "region": "L1", "distinct_from": []}
+  config.join: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "join"}, "region": "L1", "distinct_from": []}
+  config.phase_stats: {"unit": "setting", "phase": "run", "source": {"line": "expert_config: effective", "field": "phase_stats"}, "region": "L1", "distinct_from": []}
+  fill.calls: {"unit": "count", "phase": "run", "source": {"line": "expert_fill: stats", "field": "calls"}, "region": "M.read_request", "distinct_from": []}
+  fill.ranges: {"unit": "count", "phase": "run", "source": {"line": "expert_fill: stats", "field": "ranges"}, "region": "M.read_request", "distinct_from": []}
+  fill.bytes_requested: {"unit": "bytes", "phase": "run", "source": {"line": "expert_fill: stats", "field": "bytes_requested"}, "region": "M.read_request", "distinct_from": []}
+  fill.bytes_skipped_resident: {"unit": "bytes", "phase": "run", "source": {"line": "expert_fill: stats", "field": "bytes_skipped_resident"}, "region": "M.read_request", "distinct_from": []}
+  fill.bytes_read: {"unit": "bytes", "phase": "run", "source": {"line": "expert_fill: stats", "field": "bytes_read"}, "region": "M.read_request", "distinct_from": []}
+  fill.read_syscalls: {"unit": "count", "phase": "run", "source": {"line": "expert_fill: stats", "field": "read_syscalls"}, "region": "M.read_request", "distinct_from": []}
+  fill.total_fill_wall_ns: {"unit": "ns", "phase": "run", "source": {"line": "expert_fill: stats", "field": "total_fill_wall_ns"}, "region": "M.read_request", "distinct_from": []}
+  fill.max_single_fill_ns: {"unit": "ns", "phase": "run", "source": {"line": "expert_fill: stats", "field": "max_single_fill_ns"}, "region": "M.read_request", "distinct_from": []}
+  fill.prompt_calls: {"unit": "count", "phase": "prompt", "source": {"line": "expert_fill: stats", "field": "prompt_calls"}, "region": "M.read_request", "distinct_from": []}
+  fill.prompt_bytes_read: {"unit": "bytes", "phase": "prompt", "source": {"line": "expert_fill: stats", "field": "prompt_bytes_read"}, "region": "M.read_request", "distinct_from": []}
+  fill.prompt_fill_wall_ns: {"unit": "ns", "phase": "prompt", "source": {"line": "expert_fill: stats", "field": "prompt_fill_wall_ns"}, "region": "M.read_request", "distinct_from": []}
+  fill.decode_calls: {"unit": "count", "phase": "decode", "source": {"line": "expert_fill: stats", "field": "decode_calls"}, "region": "M.read_request", "distinct_from": []}
+  fill.decode_bytes_read: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_fill: stats", "field": "decode_bytes_read"}, "region": "M.read_request", "distinct_from": []}
+  fill.decode_fill_wall_ns: {"unit": "ns", "phase": "decode", "source": {"line": "expert_fill: stats", "field": "decode_fill_wall_ns"}, "region": "M.read_request", "distinct_from": []}
+  fill.populate_calls: {"unit": "count", "phase": "run", "source": {"line": "expert_fill: stats", "field": "populate_calls"}, "region": "M.read_request", "distinct_from": []}
+  fill.populate_ns: {"unit": "ns", "phase": "run", "source": {"line": "expert_fill: stats", "field": "populate_ns"}, "region": "M.read_request", "distinct_from": []}
+  fill.populate_errors: {"unit": "count", "phase": "run", "source": {"line": "expert_fill: stats", "field": "populate_errors"}, "region": "M.read_request", "distinct_from": []}
+  fill.demand_wait_ns_total: {"unit": "ns", "phase": "run", "source": {"line": "expert_fill: stats", "field": "demand_wait_ns_total"}, "region": "M.read_request", "distinct_from": []}
+  fill.demand_wait_ns_per_token: {"unit": "ns/token", "phase": "run", "source": {"line": "expert_fill: stats", "field": "demand_wait_ns_per_token"}, "region": "M.read_request", "distinct_from": []}
+  prediction.predictions: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "predictions"}, "region": "L4.router", "distinct_from": []}
+  prediction.arrivals: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "arrivals"}, "region": "L4.router", "distinct_from": []}
+  prediction.hits: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hits"}, "region": "L4.router", "distinct_from": []}
+  prediction.actual: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "actual"}, "region": "L4.router", "distinct_from": []}
+  prediction.predicted: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "predicted"}, "region": "L4.router", "distinct_from": []}
+  prediction.recall_at_k: {"unit": "ratio", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "recall_at_k"}, "region": "L4.router", "distinct_from": ["readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]}
+  prediction.precision: {"unit": "ratio", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "precision"}, "region": "L4.router", "distinct_from": []}
+  prediction.async_bytes_read: {"unit": "bytes", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "async_bytes_read"}, "region": "L4.router", "distinct_from": []}
+  prediction.async_reads: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "async_reads"}, "region": "L4.router", "distinct_from": []}
+  prediction.async_errors: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "async_errors"}, "region": "L4.router", "distinct_from": []}
+  prediction.dropped: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "dropped"}, "region": "L4.router", "distinct_from": []}
+  prediction.cancelled_jobs: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "cancelled_jobs"}, "region": "L4.router", "distinct_from": []}
+  prediction.cancelled_bytes: {"unit": "bytes", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "cancelled_bytes"}, "region": "L4.router", "distinct_from": []}
+  prediction.inflight_at_arrival: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "inflight_at_arrival"}, "region": "L4.router", "distinct_from": []}
+  prediction.inflight_reads: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "inflight_reads"}, "region": "L4.router", "distinct_from": []}
+  prediction.pending_reads: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "pending_reads"}, "region": "L4.router", "distinct_from": []}
+  prediction.sync_bytes_with_prediction: {"unit": "bytes", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "sync_bytes_with_prediction"}, "region": "L4.router", "distinct_from": []}
+  prediction.sync_bytes_without_prediction: {"unit": "bytes", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "sync_bytes_without_prediction"}, "region": "L4.router", "distinct_from": []}
+  prediction.sync_calls_with_prediction: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "sync_calls_with_prediction"}, "region": "L4.router", "distinct_from": []}
+  prediction.sync_calls_without_prediction: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "sync_calls_without_prediction"}, "region": "L4.router", "distinct_from": []}
+  prediction.skips: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "skips"}, "region": "L4.router", "distinct_from": []}
+  prediction.pred_done: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "pred_done"}, "region": "L4.router", "distinct_from": []}
+  prediction.pred_inflight: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "pred_inflight"}, "region": "L4.router", "distinct_from": []}
+  prediction.pred_queued: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "pred_queued"}, "region": "L4.router", "distinct_from": []}
+  prediction.pred_resident_at_predict: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "pred_resident_at_predict"}, "region": "L4.router", "distinct_from": []}
+  prediction.hit_done: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hit_done"}, "region": "L4.router", "distinct_from": []}
+  prediction.hit_inflight: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hit_inflight"}, "region": "L4.router", "distinct_from": []}
+  prediction.hit_queued: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hit_queued"}, "region": "L4.router", "distinct_from": []}
+  prediction.hit_resident: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hit_resident"}, "region": "L4.router", "distinct_from": []}
+  prediction.recall_at_k_d1: {"unit": "ratio", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "recall_at_k_d1"}, "region": "L4.router", "distinct_from": []}
+  prediction.recall_at_k_d2: {"unit": "ratio", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "recall_at_k_d2"}, "region": "L4.router", "distinct_from": []}
+  prediction.actual_d1: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "actual_d1"}, "region": "L4.router", "distinct_from": []}
+  prediction.actual_d2: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "actual_d2"}, "region": "L4.router", "distinct_from": []}
+  prediction.hits_d1: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hits_d1"}, "region": "L4.router", "distinct_from": []}
+  prediction.hits_d2: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "hits_d2"}, "region": "L4.router", "distinct_from": []}
+  prediction.demand_wait_ns_total: {"unit": "ns", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "demand_wait_ns_total"}, "region": "L4.router", "distinct_from": []}
+  prediction.demand_wait_ns_per_token: {"unit": "ns/token", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "demand_wait_ns_per_token"}, "region": "L4.router", "distinct_from": []}
+  join.join_waits: {"unit": "count", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "join_waits"}, "region": "M.read_request", "distinct_from": []}
+  join.join_wait_ns: {"unit": "ns", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "join_wait_ns"}, "region": "M.read_request", "distinct_from": []}
+  join.join_bytes: {"unit": "bytes", "phase": "run", "source": {"line": "expert_pregate: stats", "field": "join_bytes"}, "region": "M.read_request", "distinct_from": []}
+  readiness.tokens: {"unit": "count", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_tokens"}, "region": "M.readiness", "distinct_from": []}
+  readiness.selected: {"unit": "count", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_selected"}, "region": "M.readiness", "distinct_from": []}
+  readiness.selected_predicted: {"unit": "count", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_selected_predicted"}, "region": "M.readiness", "distinct_from": []}
+  readiness.ready_bytes_predicted: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_ready_bytes_predicted"}, "region": "M.readiness", "distinct_from": ["prediction.recall_at_k", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]}
+  readiness.missing_bytes_predicted: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_missing_bytes_predicted"}, "region": "M.readiness", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]}
+  readiness.ready_bytes_unpredicted: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_ready_bytes_unpredicted"}, "region": "M.readiness", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.missing_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]}
+  readiness.missing_bytes_unpredicted: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_missing_bytes_unpredicted"}, "region": "M.readiness", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "faults.minflt", "decode.ms_per_token"]}
+  readiness.wasted_async_bytes: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_wasted_async_bytes"}, "region": "M.readiness", "distinct_from": []}
+  readiness.duplicate_demand_bytes: {"unit": "bytes", "phase": "decode", "source": {"line": "expert_readiness: stats", "field": "decode_duplicate_demand_bytes"}, "region": "M.readiness", "distinct_from": []}
+  readiness.prompt_selected: {"unit": "count", "phase": "prompt", "source": {"line": "expert_readiness: stats", "field": "prompt_selected"}, "region": "M.readiness", "distinct_from": []}
+  readiness.prompt_missing_bytes: {"unit": "bytes", "phase": "prompt", "source": {"line": "expert_readiness: stats", "field": "prompt_missing_bytes"}, "region": "M.readiness", "distinct_from": []}
+  readiness.probe_ns_total: {"unit": "ns", "phase": "run", "source": {"line": "expert_readiness: stats", "field": "probe_ns_total"}, "region": "M.readiness", "distinct_from": []}
+  phase.decode_tokens: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "decode_tokens"}, "region": "L3", "distinct_from": []}
+  phase.decode_wall_ns: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "decode_wall_ns"}, "region": "L3", "distinct_from": []}
+  faults.minflt: {"unit": "count", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "minflt"}, "region": "L3", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "decode.ms_per_token"]}
+  faults.majflt: {"unit": "count", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "majflt"}, "region": "L3", "distinct_from": []}
+  phase.nvcsw: {"unit": "count", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "nvcsw"}, "region": "L3", "distinct_from": []}
+  phase.nivcsw: {"unit": "count", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "nivcsw"}, "region": "L3", "distinct_from": []}
+  phase.utime_us: {"unit": "us", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "utime_us"}, "region": "L3", "distinct_from": []}
+  phase.stime_us: {"unit": "us", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "stime_us"}, "region": "L3", "distinct_from": []}
+  latency.tok_ns_p50: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "tok_ns_p50"}, "region": "L3", "distinct_from": []}
+  latency.tok_ns_p95: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "tok_ns_p95"}, "region": "L3", "distinct_from": []}
+  latency.tok_ns_max: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "tok_ns_max"}, "region": "L3", "distinct_from": []}
+  latency.first8_ns_mean: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "first8_ns_mean"}, "region": "L3", "distinct_from": []}
+  latency.rest_ns_mean: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "rest_ns_mean"}, "region": "L3", "distinct_from": []}
+  decode.ms_per_token: {"unit": "ms/token", "phase": "decode", "source": {"line": "eval time", "field": "ms_per_token"}, "region": "L3", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt"]}
+  prompt.ms_per_token: {"unit": "ms/token", "phase": "prompt", "source": {"line": "prompt eval time", "field": "ms_per_token"}, "region": "L3", "distinct_from": []}

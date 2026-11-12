@@ -2,6 +2,11 @@
 
 This is a substantial AI4Research runtime redesign using CC-v2. The old M1 control model does not remain. The donor is `2889a1d6342e9baa7721648eca196bbce79a31d4`, descended from AI4Research-Main `141c1c401138f916af0a41aca791adf226d814c7`. See [LINEAGE.md](LINEAGE.md) for the removal inventory and the completed local hunk review, and [AMENDMENT.md](AMENDMENT.md) for the controller exception.
 
+The operator-authorized change from frozen execution to in-run revision is recorded in
+[DESIGN-CHANGE-2026-11-12.md](DESIGN-CHANGE-2026-11-12.md).
+[RESPONSIBILITIES.md](RESPONSIBILITIES.md) gives the M1 → factory responsibility and source map.
+Run 5 evidence IDs are placeholders for the operator to fill from actual recovery records.
+
 ## Operational mapping
 
 Old paths below are historical source paths at `141c1c40`, not imports or compatibility entry points. New paths describe the implemented native factory. Attempt 2 provides a recorded real-agent build/admission/lab chain; see the [completion report](../../../artifacts/factory/COMPLETION-REPORT.md) for scoped evidence and remaining acceptance gaps.

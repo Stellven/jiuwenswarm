@@ -39,3 +39,7 @@ env_ranges:
 
 acceptance:
   type: performance
+
+implements: [expert_streaming.predictive_read]
+modifies_region: ["L4.router", "M.read_request"]
+quantities: ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.wasted_async_bytes", "decode.ms_per_token"]

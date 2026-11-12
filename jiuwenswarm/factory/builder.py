@@ -66,11 +66,13 @@ class Builder:
             normalized.update(patch=str(patch), patch_sha256=hashlib.sha256(patch.read_bytes()).hexdigest())
         return normalized
 
-    def submit(self, task_id, request, idem_key):
+    def submit(self, task_id, request, idem_key, node_id=None):
         self.store.get_task(task_id)
         if not isinstance(idem_key, str) or not idem_key.strip():
             raise ValueError('idem_key must be nonempty')
         request = self._request(request)
+        if node_id is not None:
+            request['node_id'] = node_id
         # Stable request path and argv keep attempt identity out of its fingerprint.
         digest = hashlib.sha256(encoded(request).encode()).hexdigest()
         root = self.store.home / 'requests'

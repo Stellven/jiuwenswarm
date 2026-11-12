@@ -24,3 +24,7 @@ acceptance:
   type: observability
   signal: engagement
   overhead_bound: 0.03
+
+implements: [expert_streaming.worker_naming]
+modifies_region: ["L5.cpu"]
+quantities: ["threads.xfill_workers"]
