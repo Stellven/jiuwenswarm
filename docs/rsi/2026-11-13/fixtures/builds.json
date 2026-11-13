@@ -1,0 +1,997 @@
+{
+ "schema": "rsi.fixture.builds/1",
+ "source": "~/.jiuwenswarm-factory/factory.sqlite attempts(kind=build) + :prep/:receipt artifacts, exported 2026-11-13",
+ "note": "Chronological. env holds only builder ENV_KEYS (PATH, CUDA_HOME). image_id differs for identical trees: builds are not bit-reproducible.",
+ "builds": [
+  {
+   "attempt_id": "351b2550a941444f94f545444d848d03",
+   "task_id": "factory-aeaa9acc88d34a3ab1375154da98c385",
+   "state": "succeeded",
+   "started": 1794445998.844599,
+   "ended": 1794446232.2479467,
+   "duration_s": 233.4,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDA_HOME": "/usr/local/cuda",
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    },
+    "tag": "factory/llamacpp:aeaa9acc-thread-names-1",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:89ad6ac43df111090aab1ce8ace54009ae707550db39ed1b3f2614a84f0cd093",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "3216f10925b74aca8bfc8be140e65b7b",
+   "task_id": "factory-d4b71bcce337406b96f627d469bec092",
+   "state": "succeeded",
+   "started": 1794446822.4738703,
+   "ended": 1794447026.2696226,
+   "duration_s": 203.8,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDA_HOME": "/usr/local/cuda",
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    },
+    "tag": "factory/llamacpp:d4b71bcc-thread-names-1",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:f02f8a93453e8b97ee852054ed2a4dfd8fa876cb89db1adbb04b8dd564836ba0",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "aae86e0c5e304397816140dfbad11749",
+   "task_id": "operator-live-jobs-1",
+   "state": "succeeded",
+   "started": 1794447493.994546,
+   "ended": 1794447690.7926776,
+   "duration_s": 196.8,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDA_HOME": "/usr/local/cuda",
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    },
+    "tag": "factory/llamacpp:livejobs-1",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:17308606c8fef5d376da020a3090337aef7c4d5c0359464a72b04ac34fec3234",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "c440203a1ca74814ac717f18374f590a",
+   "task_id": "operator-live-jobs-1",
+   "state": "cancelled",
+   "started": 1794447757.5931213,
+   "ended": 1794447794.4590433,
+   "duration_s": 36.9,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDA_HOME": "/usr/local/cuda",
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    },
+    "tag": "factory/llamacpp:livejobs-cancel-2",
+    "target": "jetson-orin"
+   },
+   "image_id": null,
+   "toolchain": null,
+   "jetpack": null,
+   "l4t": null,
+   "base_runtime": null
+  },
+  {
+   "attempt_id": "346fe01bde564f4bb3afdcdbf41c16ce",
+   "task_id": "operator-bare-build",
+   "state": "succeeded",
+   "started": 1794458832.120843,
+   "ended": 1794459089.2091508,
+   "duration_s": 257.1,
+   "request": {
+    "deadline_s": 5400,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDA_HOME": "/usr/local/cuda",
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:bare-cf34d311",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "f63babdcfaae4f37923fc5d98965b40a",
+   "task_id": "factory-fe255fcec0fe4b06b4da776d563cb572",
+   "state": "succeeded",
+   "started": 1794460493.8171587,
+   "ended": 1794460707.0784502,
+   "duration_s": 213.3,
+   "request": {
+    "deadline_s": 7200,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:bare-cf34d3113-fe255fce",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:37de536a240358d97478fb4365c08ae9f5cce98c219c7f343a5c41259f201631",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "3779a524de1e478498b5ad04b6770c58",
+   "task_id": "factory-fe255fcec0fe4b06b4da776d563cb572",
+   "state": "succeeded",
+   "started": 1794461046.1127825,
+   "ended": 1794461238.248551,
+   "duration_s": 192.1,
+   "request": {
+    "deadline_s": 7200,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "b894b9519735bc26db2323289b3f32645fff79cd",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "c9ddd710efad4bfaf402bed1f182b6a35a4fad68"
+    },
+    "tag": "factory/llamacpp:mmap-advice-b894b9519-fe255fce",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:cd4dbf6c4a4a122a4de53cbff2c163c991ffef6df6ad3df3ecb462df715cbfc2",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "9883e82565e649318abe09914c312ef4",
+   "task_id": "factory-fe255fcec0fe4b06b4da776d563cb572",
+   "state": "succeeded",
+   "started": 1794461421.0917423,
+   "ended": 1794461676.5669088,
+   "duration_s": 255.5,
+   "request": {
+    "deadline_s": 7200,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "f1691700d663c76eccfdd823d1f95ca99924d3f2",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:restored-bare-f1691700d-fe255fce",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:7682b1003d5d5a86b372699a0356491d83f4f939fdf4abbe05f80e6b26044cde",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "34516943228b4415bb3afae963a4fe1c",
+   "task_id": "factory-f0a3c6c096cd41d7bec05ee25f6f125e",
+   "state": "succeeded",
+   "started": 1794462880.7040877,
+   "ended": 1794463100.6490574,
+   "duration_s": 219.9,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:f0a3c6-bare",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:3a45f08b49dfb7effd18301bcd1a6a67c95fb9742da0ae064dc6506a4573beeb",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "6a31e8ec97694317b7a6cfbaebcf0c8c",
+   "task_id": "factory-f0a3c6c096cd41d7bec05ee25f6f125e",
+   "state": "succeeded",
+   "started": 1794463462.3815436,
+   "ended": 1794463681.9028597,
+   "duration_s": 219.5,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "e80bcb744d8f6d20b0c2294563b05a274c06e91a",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "c9ddd710efad4bfaf402bed1f182b6a35a4fad68"
+    },
+    "tag": "factory/llamacpp:f0a3c6-mmap",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:b1a71b44d7c85a632dca5ecce0ebecc83aed814f61f7c5b311d3b112d8dbe38b",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "b8ef3f7aa07d46f29951de0bf75c0d7f",
+   "task_id": "factory-f0a3c6c096cd41d7bec05ee25f6f125e",
+   "state": "succeeded",
+   "started": 1794465732.820675,
+   "ended": 1794465941.4839885,
+   "duration_s": 208.7,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "c51e826ad6a4bfec1a2dfba6083fea842be86999",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:f0a3c6-bare-restored",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:bd0b28ccb07553472fc1113343216fbfe8e51b2f150e9dbd2ec3dd15dd980526",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "0bb569af6abd4b6893e70bb2e1420860",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794466366.5593834,
+   "ended": 1794466590.1786509,
+   "duration_s": 223.6,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:bd173c08-bare-cf34d3113",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:7fd50837114f661acd5ddeb7c68a5979739ca1fca6d4e484b02f4fb9d3d93998",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "6d79f9e223914ca6b5532026d0063f1a",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794466937.1572804,
+   "ended": 1794467144.302457,
+   "duration_s": 207.1,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "93a61111ed31b9017e16f0cf8ac47f7dd0af2077",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "c9ddd710efad4bfaf402bed1f182b6a35a4fad68"
+    },
+    "tag": "factory/llamacpp:bd173c08-mmap-93a61111",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:b857d53d0e6e095f69de97e7a32abfc54288b9e6584b848cb113ff1c0779106d",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "06c525d46b8d407a9d3bcabfdc103334",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794469153.49649,
+   "ended": 1794469345.5870013,
+   "duration_s": 192.1,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "5cded3e76a44812f7f5a16b357c9f384d25f1c46",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "29717242a81049eb426e4d35fb78487563351e63"
+    },
+    "tag": "factory/llamacpp:bd173c08-router-5cded3e7",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:69f6a4169f38ad87fcf690aeca1725c8e91da678b0316cbe727d793cbda56dc0",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "358bf4e9da5d484385c7ba422522975b",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794471184.169314,
+   "ended": 1794471382.7934337,
+   "duration_s": 198.6,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "c0427fe6cf7fb61ae9c0d38b2b098762865d7c56",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:bd173c08-fill-c0427fe6",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:05633f1d3a153a0d2fbbc2c6f5f936862256a67e2663da37a01f72e6ea2d317c",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "f4530d71c9e4478e9d4ca881b8d65f2c",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794472844.7841501,
+   "ended": 1794473043.9429827,
+   "duration_s": 199.2,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "6e9d96cf4e007c74aab91bb59767247737a80f0f",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "86ed6e3888f176c1c03021509d0843de62f0447f"
+    },
+    "tag": "factory/llamacpp:bd173c08-pregate-6e9d96cf",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:061e58e78fce70f9ed14e3a822c90ef6f37359877e5f960515cea20cb6d7cca5",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "cc3a14f907df45bba9d8fbac6f3125be",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794474495.0664756,
+   "ended": 1794474699.0966887,
+   "duration_s": 204.0,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "133b42aed56dea09c2c6643f6cda60b18cf21bdf",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    },
+    "tag": "factory/llamacpp:bd173c08-names-133b42ae",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:0b3eb1cee0acf77d8c44812b6c6cce5bd88e2fbf0404fbd4b449bab7455d941e",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "9327eba6d0474bfea5d0da19d95fcf17",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "state": "succeeded",
+   "started": 1794476132.1294997,
+   "ended": 1794476327.030175,
+   "duration_s": 194.9,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "0b514fba8cf6402bf059665669912d4ceba050c3",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "86ed6e3888f176c1c03021509d0843de62f0447f"
+    },
+    "tag": "factory/llamacpp:bd173c08-restored-0b514fba",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:1274abb8e54de0e9ae745c915ba93fa4276abe2cb021774ada737a5a7208f73d",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "6b540bdd51564bc190b96d6e2738fe14",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "state": "succeeded",
+   "started": 1794507928.8613274,
+   "ended": 1794508133.803338,
+   "duration_s": 204.9,
+   "request": {
+    "deadline_s": 5400,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "cf34d311332e362198f0a410c466d1e940287d02",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6"
+    },
+    "tag": "factory/llamacpp:53db-bare-cf34d311",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:17de3839d8a26bf2c29a7392d11d811fcd8fd67e762dbc4eaef9b497ebc61568",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "60c41610d9964e999cc2e067bf21d410",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "state": "succeeded",
+   "started": 1794508568.837455,
+   "ended": 1794508775.6252046,
+   "duration_s": 206.8,
+   "request": {
+    "deadline_s": 1800,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "c1e68ffbddceca6f56e4c5e50229412da5d2ebf8",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "c9ddd710efad4bfaf402bed1f182b6a35a4fad68"
+    },
+    "tag": "factory/llamacpp:53db-mmap-c1e68ff",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:d7f14c25c7fc98d9650518fa606884c04ee9bc9d3d65edd962259fb4bdb50075",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "93042183879943a38c5953f7454c6da1",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "state": "succeeded",
+   "started": 1794510878.0277572,
+   "ended": 1794511085.7225296,
+   "duration_s": 207.7,
+   "request": {
+    "deadline_s": 1800,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "e67d6ecad777bc9bdbdb502b7f643aa9c41a54e0",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "29717242a81049eb426e4d35fb78487563351e63"
+    },
+    "tag": "factory/llamacpp:53db-router",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:4f1714ed8b490b2881e9682e838cae2893dbfc9e874b50e4f2ea087410f359c9",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "915b94fd95f04f73bc04db2a7503258d",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "state": "succeeded",
+   "started": 1794511436.340131,
+   "ended": 1794511677.479341,
+   "duration_s": 241.1,
+   "request": {
+    "deadline_s": 1800,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/cuda/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "98d026ef19cfe040cd7da7a4d0692c45253aa1a9",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "86ed6e3888f176c1c03021509d0843de62f0447f"
+    },
+    "tag": "factory/llamacpp:53db-source08",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:74785dff355483f8185c0e7be0e340c530579dbfb29d3dc595a925e79503f9bb",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "cc3c7199fc574c2e8dff62479888a519",
+   "task_id": "factory-3d24382b3cb24a99aa883db005ba7870",
+   "state": "succeeded",
+   "started": 1794527429.2987075,
+   "ended": 1794527677.3621817,
+   "duration_s": 248.1,
+   "request": {
+    "deadline_s": 1200,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/usr/local/bin:/usr/bin:/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "node_id": "candidate-build",
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "09c74539aa0a0a44cd7cced36b158731624105c2",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:demo2-fill-09c74539a",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:f7742a193de9cb8fb99dafa14bfcd65db7efcd5ea21b119f64e8836f6b4c4212",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "110a3bc46ca446349bc7dcf5308f46cd",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "state": "succeeded",
+   "started": 1794538360.017619,
+   "ended": 1794538644.2156017,
+   "duration_s": 284.2,
+   "request": {
+    "deadline_s": 5400,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "00c6038f15e517cf28eaa51fe370c9555a2ae606",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:incremental4-fill",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:405eb5e74eb9e438d9c6d3978d6e77133b4edfd022e19976239e826cdd9e0d43",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "3445e5560a4d4e5391ab05f49c71b763",
+   "task_id": "factory-cc5e8585445c484ba4d5b5b0dd96c31c",
+   "state": "succeeded",
+   "started": 1794576989.4289308,
+   "ended": 1794577255.2282834,
+   "duration_s": 265.8,
+   "request": {
+    "deadline_s": 5400,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "node_id": "candidate-build",
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "885eec8245e20d2c864227d3a05a4bdaee7fc55d",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:proof-ask-1-expert-fill",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:a15f04f0b34747f40c9e373ea5a3a55ccb1919570a62c8420b922705e38c985f",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  },
+  {
+   "attempt_id": "c36b4f1bc09b47bcb0e7d2bdd7046b2a",
+   "task_id": "operator-live-jobs-1",
+   "state": "failed",
+   "started": null,
+   "ended": 1794447726.781788,
+   "duration_s": null,
+   "request": {
+    "deadline_s": 3600,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDA_HOME": "/usr/local/cuda",
+     "PATH": "/usr/local/cuda/bin:/home/muk/.local/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "690e4713a55bae8dd6b40de3ccbdc8d7ea7e05f8",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "43f95b1706aa65f50a3d3b74856cd1be3ddcaaa3"
+    },
+    "tag": "factory/llamacpp:livejobs-cancel-1",
+    "target": "jetson-orin"
+   },
+   "image_id": null,
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": null
+  },
+  {
+   "attempt_id": "3e924663fb8547529697eb01408832db",
+   "task_id": "factory-ddbe9d7dbb964493a7b28b17a035499b",
+   "state": "failed",
+   "started": null,
+   "ended": 1794526650.9226992,
+   "duration_s": null,
+   "request": {
+    "deadline_s": 900,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDACXX": "/usr/local/cuda/bin/nvcc",
+     "PATH": "/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    },
+    "node_id": "candidate-build",
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "e02f45ec1be824128d4ceba9c7925b1598cbda63",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:demo-fill-e02f45ec1",
+    "target": "jetson-orin"
+   },
+   "image_id": null,
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+   },
+   "jetpack": null,
+   "l4t": null,
+   "base_runtime": null
+  },
+  {
+   "attempt_id": "0e83553164b54d90b2f1b15026be98e3",
+   "task_id": "factory-ddbe9d7dbb964493a7b28b17a035499b",
+   "state": "failed",
+   "started": null,
+   "ended": 1794526731.0793452,
+   "duration_s": null,
+   "request": {
+    "deadline_s": 900,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "CUDACXX": "/usr/local/cuda/bin/nvcc",
+     "PATH": "/home/muk/.local/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+    },
+    "node_id": "fill-build-repair",
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "e02f45ec1be824128d4ceba9c7925b1598cbda63",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:demo-fill-e02f45ec1-r2",
+    "target": "jetson-orin"
+   },
+   "image_id": null,
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": null
+  },
+  {
+   "attempt_id": "6b175137de4b4a338dcf6060fa66bb79",
+   "task_id": "factory-de94e1e2ea464ee7b73905280dc17ce3",
+   "state": "queued",
+   "started": null,
+   "ended": null,
+   "duration_s": null,
+   "request": {
+    "deadline_s": 5400,
+    "engine_sha256": "e9489fdcb607af505a6d04f6485fe219e06c1d90475ddeb6ad3ebea73bb6e9a6",
+    "env": {
+     "PATH": "/usr/local/cuda/bin:/home/muk/projects/jiuwenswarm/.venv/bin:/home/muk/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
+    },
+    "node_id": "candidate-build",
+    "recipe_sha256": "e77a8372f66991d4e0e377143c4557282ff2dba0ce529cfc855c37c483612da2",
+    "source": {
+     "commit": "3d87ed695d31ac626f56c705be348600995eb41a",
+     "path": "/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp",
+     "tree": "d63f6127e8a71b5ab060d2263dd02213d807dd85"
+    },
+    "tag": "factory/llamacpp:demo3-fill",
+    "target": "jetson-orin"
+   },
+   "image_id": "sha256:72da5171a3b5b2c2563179d47fb62c0fc887db9763f577a8b244e481d5a4eca0",
+   "toolchain": {
+    "nvcc": "Build cuda_12.6.r12.6/compiler.34714021_0",
+    "gcc": "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.",
+    "cmake": "CMake suite maintained and supported by Kitware (kitware.com/cmake).",
+    "ninja": "1.13.2.git.kitware.jobserver-pipe-1",
+    "docker": "github.com/docker/buildx v0.29.1 a32761aeb3debd39be1eca514af3693af0db334b"
+   },
+   "jetpack": "6.2.3+b81",
+   "l4t": "# R36 (release), REVISION: 5.2, GCID: 46426093, BOARD: generic, EABI: aarch64, DATE: Thu Jul 16 18:56:22 UTC 2026",
+   "base_runtime": "nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:49853e9fe2a0305efa51fcbb3426eea1bca658085f2d26bb40347711434849b1"
+  }
+ ]
+}

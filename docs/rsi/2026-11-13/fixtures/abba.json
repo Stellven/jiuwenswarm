@@ -1,0 +1,894 @@
+{
+ "schema": "rsi.fixture.abba/1",
+ "note": "Per-arm eval_ms_per_token lists in run order as recorded by the frozen gate (siminfeng cc/abrun/gate.py @e410103).",
+ "sets": [
+  {
+   "id": "J-OM8",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM8/verdict.json",
+   "mtime": 1794371432.011814,
+   "contract": null,
+   "rounds": 1,
+   "inputs": {
+    "base": [
+     1.13,
+     1.24
+    ],
+    "fill": [
+     1.33,
+     1.33
+    ],
+    "fill_random": [
+     1.37,
+     1.41
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.09282700421940936,
+    "threshold": 0.1856540084388187,
+    "comparisons": {
+     "fill": {
+      "ratio": 1.1223628691983123,
+      "verdict": "null"
+     },
+     "fill_random": {
+      "ratio": 1.1729957805907174,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "ABCCBA"
+  },
+  {
+   "id": "J-OM8b",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM8b/verdict.json",
+   "mtime": 1794374508.2221844,
+   "contract": null,
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     1.18,
+     1.18,
+     1.19,
+     1.2
+    ],
+    "fr": [
+     1.28,
+     1.26,
+     1.25,
+     1.31
+    ],
+    "frd": [
+     1.27,
+     1.28,
+     1.31,
+     1.3
+    ],
+    "frd16": [
+     1.31,
+     1.3,
+     1.3,
+     1.3
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.04705882352941181,
+    "threshold": 0.09411764705882363,
+    "comparisons": {
+     "fr": {
+      "ratio": 1.0736842105263158,
+      "verdict": "null"
+     },
+     "frd": {
+      "ratio": 1.0863157894736843,
+      "verdict": "null"
+     },
+     "frd16": {
+      "ratio": 1.0968421052631578,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "J-OM9",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM9/verdict.json",
+   "mtime": 1794376426.681129,
+   "contract": null,
+   "rounds": 1,
+   "inputs": {
+    "base": [
+     1.2,
+     1.19
+    ],
+    "frd16": [
+     1.28,
+     1.31
+    ],
+    "frd16d": [
+     1.17,
+     1.19
+    ],
+    "frd16p": [
+     1.2,
+     1.2
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.02316602316602319,
+    "threshold": 0.04633204633204638,
+    "comparisons": {
+     "frd16": {
+      "ratio": 1.0836820083682008,
+      "verdict": "improved"
+     },
+     "frd16d": {
+      "ratio": 0.98744769874477,
+      "verdict": "null"
+     },
+     "frd16p": {
+      "ratio": 1.0041841004184102,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "J-OM10",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM10/verdict.json",
+   "mtime": 1794379344.9145179,
+   "contract": null,
+   "rounds": 1,
+   "inputs": {
+    "base": [
+     1.19,
+     1.18
+    ],
+    "frd16": [
+     1.29,
+     1.29
+    ],
+    "pg8": [
+     1.24,
+     1.22
+    ],
+    "pg16": [
+     0.75,
+     0.75
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.016260162601626032,
+    "threshold": 0.032520325203252064,
+    "comparisons": {
+     "frd16": {
+      "ratio": 1.0886075949367089,
+      "verdict": "improved"
+     },
+     "pg8": {
+      "ratio": 1.0379746835443038,
+      "verdict": "improved"
+     },
+     "pg16": {
+      "ratio": 0.6329113924050632,
+      "verdict": "regressed"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "J-OM10b",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM10b/verdict.json",
+   "mtime": 1794381178.9074879,
+   "contract": null,
+   "rounds": 1,
+   "inputs": {
+    "base": [
+     1.15,
+     1.18
+    ],
+    "frd16": [
+     1.29,
+     1.28
+    ],
+    "pg8b": [
+     1.42,
+     1.42
+    ],
+    "pg12b": [
+     1.3,
+     1.27
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.02575107296137341,
+    "threshold": 0.05150214592274682,
+    "comparisons": {
+     "frd16": {
+      "ratio": 1.1030042918454936,
+      "verdict": "improved"
+     },
+     "pg8b": {
+      "ratio": 1.2188841201716738,
+      "verdict": "improved"
+     },
+     "pg12b": {
+      "ratio": 1.1030042918454936,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "J-OM10c",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM10c/verdict.json",
+   "mtime": 1794408314.9661,
+   "contract": null,
+   "rounds": null,
+   "inputs": {
+    "base": [
+     1.2,
+     1.18
+    ],
+    "pg8b": [
+     1.4,
+     1.37
+    ],
+    "pg8i8": [
+     1.4,
+     1.38
+    ],
+    "pg8i12": [
+     1.37,
+     1.39
+    ],
+    "pg10i8": [
+     1.4,
+     1.4
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.021660649819494445,
+    "threshold": 0.04332129963898889,
+    "comparisons": {
+     "pg8b": {
+      "ratio": 1.1638655462184875,
+      "verdict": "improved"
+     },
+     "pg8i8": {
+      "ratio": 1.1680672268907564,
+      "verdict": "improved"
+     },
+     "pg8i12": {
+      "ratio": 1.1596638655462184,
+      "verdict": "improved"
+     },
+     "pg10i8": {
+      "ratio": 1.1764705882352942,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "J-OM11",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM11/verdict.json",
+   "mtime": 1794424444.3320613,
+   "contract": null,
+   "rounds": null,
+   "inputs": {
+    "base": [
+     896.69,
+     868.48
+    ],
+    "pg8": [
+     747.88,
+     727.53
+    ],
+    "pg10": [
+     753.29,
+     753.78
+    ],
+    "pg8la2": [
+     795.5,
+     770.2
+    ],
+    "pg12la2": [
+     840.62,
+     845.77
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.032317813118732774,
+    "threshold": 0.06463562623746555,
+    "comparisons": {
+     "pg8": {
+      "ratio": 1.1963928670674593,
+      "verdict": "improved"
+     },
+     "pg10": {
+      "ratio": 1.1712594637276306,
+      "verdict": "improved"
+     },
+     "pg8la2": {
+      "ratio": 1.1273998850354474,
+      "verdict": "improved"
+     },
+     "pg12la2": {
+      "ratio": 1.0467151726468968,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "J-OM12",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM12/verdict.json",
+   "mtime": 1794450190.7749984,
+   "contract": null,
+   "rounds": null,
+   "inputs": {
+    "base": [
+     861.67,
+     863.39
+    ],
+    "pg8": [
+     716.6,
+     718.2
+    ],
+    "pg8t4": [
+     701.58,
+     667.72
+    ],
+    "pg8t6": [
+     709.74,
+     699.95
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.04945592638574455,
+    "threshold": 0.0989118527714891,
+    "comparisons": {
+     "pg8": {
+      "ratio": 1.20229997212155,
+      "verdict": "improved"
+     },
+     "pg8t4": {
+      "ratio": 1.2598115825604321,
+      "verdict": "improved"
+     },
+     "pg8t6": {
+      "ratio": 1.2237158524214542,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "spool-a8e26544",
+   "path": "~/.jiuwenswarm-factory/lab-spool/a8e2654498214f8eba052b175c24a71c/ab/verdict.json",
+   "mtime": 1794465573.2267873,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     892.86,
+     899.0,
+     912.16,
+     888.25
+    ],
+    "candidate": [
+     1967.63,
+     1819.06,
+     1940.88,
+     1848.83
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.0784383084314451,
+    "threshold": 0.1568766168628902,
+    "comparisons": {
+     "candidate": {
+      "ratio": 0.47413943297608363,
+      "verdict": "regressed"
+     }
+    }
+   },
+   "component": "mmap_advice",
+   "task_id": "factory-f0a3c6c096cd41d7bec05ee25f6f125e",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-d96acb1a",
+   "path": "~/.jiuwenswarm-factory/lab-spool/d96acb1a5af849ea940ec98eaff03073/ab/verdict.json",
+   "mtime": 1794468978.557943,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     904.59,
+     889.29,
+     864.24,
+     916.72
+    ],
+    "candidate": [
+     1860.62,
+     1823.02,
+     1825.34,
+     1790.26
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.05872150921439843,
+    "threshold": 0.11744301842879686,
+    "comparisons": {
+     "candidate": {
+      "ratio": 0.48975509779100296,
+      "verdict": "regressed"
+     }
+    }
+   },
+   "component": "mmap_advice",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-deb16a61",
+   "path": "~/.jiuwenswarm-factory/lab-spool/deb16a611ae34a9ea2dc16798645dca4/ab/verdict.json",
+   "mtime": 1794471025.0482378,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     933.47,
+     940.69,
+     900.85,
+     937.92
+    ],
+    "candidate": [
+     1535.4,
+     1411.12,
+     1546.46,
+     1483.61
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.09058007994525316,
+    "threshold": 0.18116015989050632,
+    "comparisons": {
+     "candidate": {
+      "ratio": 0.6212455597589931,
+      "verdict": "regressed"
+     }
+    }
+   },
+   "component": "router_prefetch",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-f19094c8",
+   "path": "~/.jiuwenswarm-factory/lab-spool/f19094c82dee4a678443c71ea1a7694b/ab/verdict.json",
+   "mtime": 1794472668.8778224,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     910.15,
+     919.96,
+     908.16,
+     934.63
+    ],
+    "candidate": [
+     831.46,
+     827.75,
+     820.12,
+     829.83
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.02882735712924395,
+    "threshold": 0.0576547142584879,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.1099191335565521,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": "expert_fill",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-6a429077",
+   "path": "~/.jiuwenswarm-factory/lab-spool/6a4290775a9c43e6b03c2e9dd6d1bdea/ab/verdict.json",
+   "mtime": 1794474343.4661655,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     829.25,
+     838.64,
+     825.6,
+     831.56
+    ],
+    "candidate": [
+     734.96,
+     746.78,
+     737.68,
+     735.14
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.016002382757500187,
+    "threshold": 0.03200476551500037,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.1253959980504713,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": "expert_pregate",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-c585f168",
+   "path": "~/.jiuwenswarm-factory/lab-spool/c585f168b5cf4d27adcd7688206e9b68/ab/verdict.json",
+   "mtime": 1794476000.229664,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     769.99,
+     769.81,
+     760.92,
+     820.4
+    ],
+    "candidate": [
+     778.01,
+     770.47,
+     773.91,
+     770.55
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.07622904598349313,
+    "threshold": 0.15245809196698626,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.0091110723130743,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": "thread_names",
+   "task_id": "factory-bd173c082bf34ae3b8471938c19b8068",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "J-OM13",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-OM13/verdict.json",
+   "mtime": 1794495427.0444117,
+   "contract": null,
+   "rounds": null,
+   "inputs": {
+    "base": [
+     850.81,
+     820.94,
+     854.65,
+     839.59
+    ],
+    "factory": [
+     698.57,
+     715.45,
+     720.55,
+     711.13
+    ],
+    "factory_t4": [
+     660.86,
+     655.93,
+     662.16,
+     658.08
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.04005953671876616,
+    "threshold": 0.08011907343753231,
+    "comparisons": {
+     "factory": {
+      "ratio": 1.1828337491654075,
+      "verdict": "improved"
+     },
+     "factory_t4": {
+      "ratio": 1.2764321983443496,
+      "verdict": "improved"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 64,
+   "order": "explicit"
+  },
+  {
+   "id": "spool-f9ef3d25",
+   "path": "~/.jiuwenswarm-factory/lab-spool/f9ef3d25d1ae4be088df3169b22a8852/ab/verdict.json",
+   "mtime": 1794510645.990312,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     871.96,
+     927.02,
+     886.68,
+     896.77
+    ],
+    "candidate": [
+     1849.13,
+     1826.24,
+     1939.47,
+     1870.56
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.061477823711838,
+    "threshold": 0.122955647423676,
+    "comparisons": {
+     "candidate": {
+      "ratio": 0.47858898656050447,
+      "verdict": "regressed"
+     }
+    }
+   },
+   "component": "mmap_advice",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-e74e1eb3",
+   "path": "~/.jiuwenswarm-factory/lab-spool/e74e1eb3b0844891a28d4ae56bb69229/ab/verdict.json",
+   "mtime": 1794513360.0063493,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     925.72,
+     906.36,
+     894.25,
+     931.89
+    ],
+    "candidate": [
+     1420.04,
+     1420.95,
+     1430.17,
+     1456.67
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.041156628086883765,
+    "threshold": 0.08231325617376753,
+    "comparisons": {
+     "candidate": {
+      "ratio": 0.638674681336562,
+      "verdict": "regressed"
+     }
+    }
+   },
+   "component": "router_prefetch",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-0864629c",
+   "path": "~/.jiuwenswarm-factory/lab-spool/0864629c8ee748f2a54fb72fffe6a0c7/ab/verdict.json",
+   "mtime": 1794514815.2116332,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     1097.16,
+     924.18,
+     927.65,
+     900.69
+    ],
+    "candidate": [
+     878.98,
+     894.32,
+     854.11,
+     857.36
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.20414164294175102,
+    "threshold": 0.40828328588350205,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.104715662726665,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": "expert_fill",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-989e981f",
+   "path": "~/.jiuwenswarm-factory/lab-spool/989e981f7a2949e783addea1901aa700/ab/verdict.json",
+   "mtime": 1794516351.506567,
+   "contract": "qwen36-bare-greedy-v1",
+   "rounds": 2,
+   "inputs": {
+    "base": [
+     964.55,
+     860.83,
+     867.99,
+     839.6
+    ],
+    "candidate": [
+     857.34,
+     825.09,
+     858.52,
+     855.03
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.14146737730577946,
+    "threshold": 0.2829347546115589,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.0403388712536588,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": "expert_fill",
+   "task_id": "factory-53db494559954fc6a690a9a014afbf21",
+   "n_predict": 64,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-c5c456f0",
+   "path": "~/.jiuwenswarm-factory/lab-spool/c5c456f087344f539ec524ee29813912/ab/verdict.json",
+   "mtime": 1794539638.7954407,
+   "contract": "qwen36-quick-v1",
+   "rounds": 1,
+   "inputs": {
+    "base": [
+     918.76,
+     889.19
+    ],
+    "candidate": [
+     823.26,
+     856.12
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.0391334897402613,
+    "threshold": 0.0782669794805226,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.0765580154580856,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": "expert_fill",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "n_predict": 32,
+   "order": "ABBA"
+  },
+  {
+   "id": "spool-232a3495",
+   "path": "~/.jiuwenswarm-factory/lab-spool/232a349573c8400c92efb7b39b8e1793/ab/verdict.json",
+   "mtime": 1794541087.5898387,
+   "contract": "qwen36-quick-v1",
+   "rounds": 3,
+   "inputs": {
+    "base": [
+     908.62,
+     961.03,
+     952.04,
+     954.35,
+     968.2,
+     997.28
+    ],
+    "candidate": [
+     874.54,
+     824.42,
+     911.11,
+     897.37,
+     801.52,
+     817.68
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.1282594447825477,
+    "threshold": 0.2565188895650954,
+    "comparisons": {
+     "candidate": {
+      "ratio": 1.119938205140209,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": "expert_fill",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "n_predict": 32,
+   "order": "ABBA"
+  },
+  {
+   "id": "J-ASK1",
+   "path": "~/projects/siminfeng/experiments/jetson/OM/J-ASK1/verdict.json",
+   "mtime": 1794578922.7199879,
+   "contract": null,
+   "rounds": 1,
+   "inputs": {
+    "base": [
+     972.59,
+     865.27
+    ],
+    "fill": [
+     886.44,
+     812.6
+    ]
+   },
+   "frozen_gate": {
+    "aa_gap": 0.11678800343878211,
+    "threshold": 0.23357600687756422,
+    "comparisons": {
+     "fill": {
+      "ratio": 1.081704962802524,
+      "verdict": "null"
+     }
+    }
+   },
+   "component": null,
+   "task_id": null,
+   "n_predict": 32,
+   "order": "ABBA"
+  }
+ ]
+}
