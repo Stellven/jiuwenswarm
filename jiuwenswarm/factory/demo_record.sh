@@ -16,6 +16,14 @@ mkdir -p "$OUT"
 cd "$ROOT"
 
 # RESUME_TASK=<task id> continues an interrupted task (e.g. after a host reboot) in a new recording segment.
+# The shared jobq needs a running worker (nothing starts one; a reboot kills it). Without one, builds sit queued
+# until the task's budget is gone. Start it if absent and refuse to run without it.
+JOBQ_ROOT=${JOBQ_ROOT:-$HOME/projects/siminfeng}
+if ! pgrep -f "bin/jobq worker" > /dev/null; then
+  nohup python3 "$JOBQ_ROOT/bin/jobq" worker > "$FH/jobq-worker.log" 2>&1 < /dev/null &
+  sleep 3
+fi
+pgrep -f "bin/jobq worker" > /dev/null || { echo "no jobq worker running (see $FH/jobq-worker.log)"; exit 1; }
 T=${RESUME_TASK:-$($JW factory init "$TASK_JSON")}
 echo "$T" > "$OUT/task-id"; echo "$T" > "$FH/demo-task-id-3"
 cp "$TASK_JSON" "$OUT/task.json"
