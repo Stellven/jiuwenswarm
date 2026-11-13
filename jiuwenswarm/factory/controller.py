@@ -222,7 +222,17 @@ class Controller:
             return json.loads(path.read_text())
         return dict(turns=0, started=None, outcome=None, seen_attempts={}, missing_decision=False)
 
+    def _active(self, state):
+        """Seconds this task has actually been running; host downtime between runs is not counted."""
+        if 'active_s' not in state:  # state written before active-time accounting
+            return max(0, self.clock() - state['started']) if state.get('started') is not None else 0
+        return state['active_s'] + (self.clock() - state['tick'] if state.get('tick') is not None else 0)
+
     def _save(self, task_id, state):
+        if state.get('tick') is not None:  # fold elapsed running time in, so a crash loses at most a few seconds
+            now = self.clock()
+            state['active_s'] = state.get('active_s', 0) + now - state['tick']
+            state['tick'] = now
         path = self._state_path(task_id)
         temp = path.with_suffix('.tmp')
         with temp.open('w') as out:
@@ -252,7 +262,7 @@ class Controller:
 
     def _remaining(self, task, state):
         return {'turns': max(0, task['budget']['max_turns'] - state['turns']),
-                'wall_clock_s': max(0, task['budget']['wall_clock_s'] - (self.clock() - state['started']))}
+                'wall_clock_s': max(0, task['budget']['wall_clock_s'] - self._active(state))}
 
     def _message(self, task, state):
         current = self.store.get_task(task['task_id'])
@@ -265,7 +275,11 @@ class Controller:
                        remaining_budget=self._remaining(task, state))
         if state['missing_decision']:
             message['host_observation'] = 'Previous turn ended without publishing a new decision revision.'
-        if state['turns'] == 0:
+        if state['turns'] == 0 or state.pop('needs_context', False):
+            if state['turns']:
+                message['host_observation'] = ('Controller restarted (host reboot or crash): this is a NEW agent session with no memory. '
+                    'Durable evidence and decisions in the store are authoritative; read them before acting. '
+                    + message.get('host_observation', ''))
             # Only operator inputs and standing instructions; never producer prose.
             message['objective'] = task['objective']
             message['operator_labels'] = task.get('operator_labels', {})
@@ -275,7 +289,7 @@ class Controller:
             message['instructions'] = Path(__file__).with_name('AGENT.md').read_text()
         return json.dumps(message, ensure_ascii=False)
 
-    async def _turn(self, task_id, query, turn):
+    async def _turn(self, task_id, query, turn, session_id=None):
         from jiuwenswarm.common.schema.agent import AgentRequest
         from jiuwenswarm.common.schema.message import ReqMethod
         stream = self.facade
@@ -286,7 +300,7 @@ class Controller:
                 self._live_facade._sdk_name = 'codex_subscription'
             stream = self._live_facade.process_message_stream
         request = AgentRequest(request_id=f'{task_id}-{turn}-{uuid.uuid4().hex}', channel_id='web',
-            session_id=task_id, req_method=ReqMethod.CHAT_SEND,
+            session_id=session_id or task_id, req_method=ReqMethod.CHAT_SEND,
             params={'query': query, 'mode': 'agent.work.normal'})
         log = self.home / 'sessions' / f'{task_id}.jsonl'
         from .telemetry import emit as telemetry_emit
@@ -300,7 +314,7 @@ class Controller:
                 def emit(payload):
                     out.write(json.dumps(scrub({'t': self.clock(), **payload}), ensure_ascii=False, default=str) + '\n')
                     out.flush()
-                emit({'event': 'turn.start', 'turn': turn, 'session_id': task_id, 'query': query})
+                emit({'event': 'turn.start', 'turn': turn, 'session_id': session_id or task_id, 'query': query})
                 async for chunk in stream(request):
                     payload = getattr(chunk, 'payload', chunk)
                     payload = payload if isinstance(payload, dict) else {'raw': str(payload)}
@@ -373,6 +387,8 @@ class Controller:
         state['pending_attempts'] = [a['attempt_id'] for a in data['attempts'] if a['state'] in ACTIVE | {'unknown'}]
         latest = max(data['decisions'], key=lambda d: d['rev'], default={})
         state['pending_questions'] = [latest.get('uncertainty') or 'No terminal decision with supporting evidence.'] if outcome == 'partial' else []
+        self._save(task_id, state)
+        state['tick'] = None
         state['finished'] = self.clock()
         self._save(task_id, state)
         return self.status(task_id)
@@ -393,6 +409,13 @@ class Controller:
                                  + '. Re-run with ' + ' '.join('--grant ' + m for m in missing))
             configure_agent(task, self.grants, self.home)
             state['started'] = state['started'] if state['started'] is not None else self.clock()
+            if 'active_s' not in state:
+                state['active_s'] = max(0, self.clock() - state['started'])
+            state['tick'] = self.clock()
+            if state['turns']:
+                # Resumed after an exit/crash: the old agent session cannot be continued (NEW_SESSION_REQUIRED).
+                state['session_gen'] = state.get('session_gen', 0) + 1
+                state['needs_context'] = True
             state['outcome'] = None
             state.pop('finished', None)
             self._save(task_id, state)
@@ -426,7 +449,8 @@ class Controller:
                     state['pending_turn_rev'] = before
                     self._save(task_id, state)
                     try:
-                        await asyncio.wait_for(self._turn(task_id, query, state['turns']),
+                        await asyncio.wait_for(self._turn(task_id, query, state['turns'],
+                                                   f"{task_id}-s{state['session_gen']}" if state.get('session_gen') else None),
                                                timeout=remaining['wall_clock_s'])
                     except asyncio.TimeoutError:
                         return self._finish(task_id, state, 'partial')
@@ -467,7 +491,7 @@ class Controller:
                     evaluations=data['evaluations'], readiness={'decision_published': latest is not None,
                         'jobs_idle': not any(a['state'] in ACTIVE | {'unknown'} for a in data['attempts']),
                         'evaluations_present': bool(data['evaluations'])},
-                    budget_used={'turns': state['turns'], 'wall_clock_s': max(0, (state.get('finished') or self.clock()) - state['started']) if state['started'] is not None else 0},
+                    budget_used={'turns': state['turns'], 'wall_clock_s': self._active(state)},
                     pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
 
 

@@ -70,7 +70,7 @@ def readonly_status(data):
                            for a in data.get('artifacts', [])], evaluations=data.get('evaluations', []),
                 readiness=dict(decision_published=latest is not None, jobs_idle=not active,
                                evaluations_present=bool(data.get('evaluations'))),
-                budget_used=dict(turns=state.get('turns', 0), wall_clock_s=max(0,
+                budget_used=dict(turns=state.get('turns', 0), wall_clock_s=state['active_s'] if 'active_s' in state else max(0,
                     (state.get('finished') or time.time()) - state['started']) if state.get('started') is not None else 0),
                 pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
 

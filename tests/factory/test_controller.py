@@ -155,7 +155,7 @@ def test_turn_messages_id_only(tmp_path, rig):
     assert 'objective' not in json.loads(messages[1]) and 'instructions' not in json.loads(messages[1])
 
 
-def test_resume_same_session(tmp_path, rig):
+def test_resume_new_session_with_context(tmp_path, rig):
     make_task(tmp_path, rig)
     calls = []
     async def interrupted(request):
@@ -181,9 +181,12 @@ def test_resume_same_session(tmp_path, rig):
     restarted.facade, restarted.sleep = facade, sleep
     result = asyncio.run(restarted.resume('t'))
     assert result['outcome'] == 'accept'
-    assert [call.session_id for call in calls] == ['t', 't']
+    # A restarted controller cannot continue the old agent session (NEW_SESSION_REQUIRED after a reboot):
+    # it opens a new one and re-sends the objective/instructions; evidence stays in the store.
+    assert [call.session_id for call in calls] == ['t', 't-s1']
     assert result['budget_used']['turns'] == 2
-    assert 'objective' not in json.loads(calls[1].params['query'])
+    resumed = json.loads(calls[1].params['query'])
+    assert resumed['objective'] and 'NEW agent session' in resumed['host_observation']
     assert (rig.home / 'sessions/t.jsonl').read_text().count('turn.start') == 2
     restarted.store.close()
 
@@ -322,3 +325,34 @@ def test_capsules_run_the_api_in_the_controller_venv(tmp_path):
     root = Path(__file__).resolve().parents[2] / 'jiuwenswarm/factory/ccs'
     for wrapper in root.glob('*/run.py'):
         assert "os.environ.get('FACTORY_PYTHON', sys.executable)" in wrapper.read_text(), wrapper
+
+
+def test_resume_after_crash_new_session_and_downtime_not_counted(tmp_path, rig):
+    """A controller that died (host reboot) resumes in a fresh agent session with full context,
+    and the downtime does not consume the task's wall-clock budget."""
+    make_task(tmp_path, rig, max_turns=4, wall_clock_s=100)
+    now = [1000.0]
+    rig.clock = lambda: now[0]
+    seen = []
+    async def crashing(request):
+        seen.append((request.session_id, json.loads(request.params['query'])))
+        now[0] += 30
+        if len(seen) == 2:
+            raise RuntimeError('host went down')
+        yield {'event_type': 'chat.final'}
+    rig.facade = crashing
+    with pytest.raises(RuntimeError):
+        asyncio.run(rig.run('t'))
+    now[0] += 10_000                       # the machine was off
+    async def resumed(request):
+        seen.append((request.session_id, json.loads(request.params['query'])))
+        publish(rig, 'accept')
+        yield {'event_type': 'chat.final'}
+    rig.facade = resumed
+    result = asyncio.run(rig.run('t'))
+    assert result['outcome'] == 'accept'
+    session, message = seen[-1]
+    assert session == 't-s1' and seen[0][0] == 't'
+    assert message['objective'] == 'Operator objective' and 'NEW agent session' in message['host_observation']
+    # Real running time was 60 s; the in-flight crashed turn (30 s) is lost, never the 10 000 s of downtime.
+    assert 30 <= result['budget_used']['wall_clock_s'] <= 100
