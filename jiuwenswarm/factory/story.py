@@ -145,8 +145,8 @@ def evaluation_summary(record):
 def build_events(data):
     events = []
 
-    def add(created, key, kind, summary, mark='·', rev=None):
-        events.append(dict(created=created or 0, id=key, kind=kind, summary=summary, mark=mark, rev=rev))
+    def add(created, key, kind, summary, mark='·', rev=None, **extra):
+        events.append(dict(created=created or 0, id=key, kind=kind, summary=summary, mark=mark, rev=rev) | extra)
 
     previous = flatten(data['tasks'][0].get('initial_run_config', {}))
     previous_action = {}
@@ -195,7 +195,8 @@ def build_events(data):
             changes = []
             summary = d.get('reason_for_change', '')
         add(d['created'], d['decision_id'], ('replan/' + kind) if changes or failure else kind,
-            summary, rev=d['rev'])
+            summary, rev=d['rev'], why=str(d.get('hypothesis') or ''),
+            deferred=str(d.get('uncertainty') or ''), component=action.get('component'))
         previous.update(current)
     for r in data.get('observations', []):
         v = r.get('values', {})
@@ -253,7 +254,9 @@ def build_events(data):
             summary = 'effective ' + ' · '.join(shown) + ' · matches request' if effective else r['kind']
         else:
             summary = v.get('message', r.get('limitations', '') or kind)
-        add(r.get('created'), r['obs_id'], kind, summary, mark)
+        add(r.get('created'), r['obs_id'], kind, summary, mark,
+            confirmed=kind == 'ab_result' and v.get('acceptance', {}).get('verdict') == 'accept',
+            preliminary=kind == 'lab')
     for a in data.get('attempts', []):
         history = a.get('history', []) or [dict(state=a.get('state'), created=a.get('started'))]
         for index, h in enumerate(history):
@@ -264,7 +267,8 @@ def build_events(data):
                 for end in data.get('_meta', {}).get('turn_ends', []))
             suffix = ' · survived turn end' if survived else ''
             add(h.get('created'), a['attempt_id'] + ':' + str(index), a.get('kind', 'job'),
-                f"{short(a['attempt_id'])} {state} · durable job{suffix}", mark)
+                f"{short(a['attempt_id'])} {state} · durable job{suffix}", mark,
+                noise=state not in {'failed', 'cancelled'})
         admission = a.get('request', {}).get('admission')
         if admission:
             add(history[0].get('created'), a['attempt_id'] + ':admission', 'admit',
@@ -272,7 +276,7 @@ def build_events(data):
                 f" · target {admission.get('target_profile', '?')}", '✓')
     for r in data.get('uploads', []):
         add(r.get('created'), r['upload_id'], 'upload', r.get('ack_state', '?'),
-            '✓' if r.get('ack_state') == 'durable' else '·')
+            '✓' if r.get('ack_state') == 'durable' else '·', noise=True)
     for r in data.get('evaluations', []):
         add(r.get('created'), r['eval_id'], 'contract', evaluation_summary(r),
             '✓' if r.get('correctness') == 'pass' else '✗')
@@ -299,6 +303,46 @@ def event_lines(event, created):
         lines[-1] = textwrap.shorten(lines[-1].strip(), width=74, placeholder='…') + '…'
         lines[-1] = ' ' * 25 + lines[-1]
     return lines
+
+
+# Presentation vocabulary: plain engine grey, CC-guided change amber, confirmed green,
+# single-run screens labelled PRELIMINARY, failures red.
+GREY, AMBER, GREEN, RED, BOLD = '90', '33', '32', '31', '1'
+
+
+def demo_lines(event, created, data):
+    """Presentation rendering of one event: (colour, line) pairs; noise events render nothing."""
+    if event.get('noise'):
+        return []
+    kind, summary = event['kind'], event['summary']
+    if event.get('preliminary'):
+        summary = 'PRELIMINARY screen (1 run) · ' + summary
+    if event.get('confirmed'):
+        summary = 'CONFIRMED · ' + summary
+    base = dict(event, summary=summary)
+    lines = event_lines(base, created)
+    if event['rev'] is not None:
+        color = GREEN + ';' + BOLD if kind in TERMINAL else GREEN if kind == 'keep_component' else (
+            RED if 'revert' in kind else AMBER if event.get('component') else GREY)
+        out = [(color, line) for line in lines]
+        for label, text in (('why', event.get('why')), ('open', event.get('deferred'))):
+            if text and kind not in TERMINAL:
+                text = textwrap.shorten(' '.join(text.split()), width=230, placeholder='…')
+                out += [('2;' + AMBER, line) for line in textwrap.wrap(
+                    text, width=100, initial_indent=' ' * 19 + f'{label:5} ',
+                    subsequent_indent=' ' * 25)]
+        return out
+    if '✗' in lines[0] or event['mark'] == '✗':
+        color = RED
+    elif event.get('confirmed') or kind == 'contract' and event['mark'] == '✓':
+        color = GREEN
+    elif event.get('preliminary'):
+        color = BOLD
+    elif kind in {'build', 'integrate'}:
+        color = AMBER
+    else:
+        color = GREY
+    return [(color, line) for line in lines]
 
 
 def header(data):
@@ -392,7 +436,7 @@ def render_story(data, plain=False):
     return '\n'.join(paint(line, plain) for line in lines + footer(data))
 
 
-def show_story(source, home=None, plain=False, as_json=False, follow=False):
+def show_story(source, home=None, plain=False, as_json=False, follow=False, demo=False):
     if follow and Path(source).expanduser().is_dir():
         raise ValueError('--follow requires a live task id')
     if follow and as_json:
@@ -408,12 +452,17 @@ def show_story(source, home=None, plain=False, as_json=False, follow=False):
         lines = header(data) if first else []
         for event in events:
             if event['id'] not in seen:
-                lines.extend(event_lines(event, data['tasks'][0]['created']))
+                if demo:
+                    colored = not plain and 'NO_COLOR' not in os.environ
+                    lines.extend(f'\033[{c}m{l}\033[0m' if colored else l
+                                 for c, l in demo_lines(event, data['tasks'][0]['created'], data))
+                else:
+                    lines.extend(event_lines(event, data['tasks'][0]['created']))
                 seen.add(event['id'])
         if not follow or data['_meta']['outcome']:
             lines.extend(footer(data))
         for line in lines:
-            print(paint(line, plain), flush=True)
+            print(line if line.startswith('\033[') else paint(line, plain), flush=True)
         if not follow or data['_meta']['outcome']:
             return
         first = False

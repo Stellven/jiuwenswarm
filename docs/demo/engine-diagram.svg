@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 640" role="img" aria-label="llama.cpp on Jetson with -cmoe: expert weights stay in mapped CPU memory and run on the CPU; demand fill and predictive reads change only when those weights are read from the SSD." font-family="Inter, 'DejaVu Sans', Arial, sans-serif" font-size="14" fill="currentColor">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+    <marker id="am" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D98A1B"/></marker>
+  </defs>
+  <!-- lanes -->
+  <rect x="290" y="30" width="860" height="140" rx="10" fill="none" stroke="currentColor" stroke-opacity=".35"/>
+  <text x="306" y="54" font-weight="700">GPU · CUDA backend · every layer L</text>
+  <rect x="290" y="200" width="860" height="420" rx="10" fill="none" stroke="currentColor" stroke-opacity=".35"/>
+  <text x="306" y="224" font-weight="700">CPU · 6 cores · -cmoe keeps every ffn_*_exps tensor here</text>
+
+  <!-- SSD -->
+  <rect x="20" y="330" width="220" height="120" rx="8" fill="none" stroke="currentColor"/>
+  <text x="130" y="362" text-anchor="middle" font-weight="700">GGUF on NVMe SSD</text>
+  <text x="130" y="386" text-anchor="middle">Qwen3.6-35B-A3B · 22.4 GB</text>
+  <text x="130" y="408" text-anchor="middle">experts 18.3 GiB</text>
+  <text x="130" y="430" text-anchor="middle" fill-opacity=".7">RAM 7.4 GiB total</text>
+
+  <!-- GPU boxes -->
+  <rect x="320" y="74" width="250" height="76" rx="8" fill="none" stroke="currentColor"/>
+  <text x="445" y="104" text-anchor="middle">attention · shared expert</text>
+  <text x="445" y="126" text-anchor="middle" fill-opacity=".7">dense weights on GPU</text>
+  <rect x="640" y="74" width="300" height="76" rx="8" fill="none" stroke="currentColor"/>
+  <text x="790" y="100" text-anchor="middle" font-weight="700">router</text>
+  <text x="790" y="122" text-anchor="middle">ffn_gate_inp → ffn_moe_topk</text>
+  <text x="790" y="142" text-anchor="middle" fill-opacity=".7">picks 8 of 256 experts</text>
+  <line x1="570" y1="112" x2="636" y2="112" stroke="currentColor" marker-end="url(#a)"/>
+  <!-- next layer -->
+  <rect x="1000" y="74" width="130" height="76" rx="8" fill="none" stroke="currentColor"/>
+  <text x="1065" y="106" text-anchor="middle">layer L+1</text>
+  <text x="1065" y="128" text-anchor="middle" fill-opacity=".7">… → token</text>
+
+  <!-- page cache -->
+  <rect x="320" y="330" width="250" height="120" rx="8" fill="none" stroke="currentColor"/>
+  <text x="445" y="362" text-anchor="middle" font-weight="700">mapped expert weights</text>
+  <text x="445" y="386" text-anchor="middle">mmap of the GGUF · page cache</text>
+  <text x="445" y="408" text-anchor="middle" fill-opacity=".7">~586 MiB needed per token</text>
+  <text x="445" y="430" text-anchor="middle" fill-opacity=".7">most of it not resident</text>
+
+  <!-- MUL_MAT_ID -->
+  <rect x="790" y="250" width="300" height="80" rx="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <text x="940" y="280" text-anchor="middle" font-weight="700">MUL_MAT_ID · layer L</text>
+  <text x="940" y="304" text-anchor="middle">8 selected experts, computed on CPU</text>
+  <line x1="845" y1="150" x2="845" y2="246" stroke="currentColor" marker-end="url(#a)"/>
+  <text x="853" y="196">expert ids (host copy)</text>
+  <path d="M1090,290 C1140,290 1140,200 1080,154" fill="none" stroke="currentColor" marker-end="url(#a)"/>
+  <text x="1106" y="236" text-anchor="middle">result</text>
+  <!-- weights into matmul -->
+  <path d="M570,370 C690,370 700,310 786,300" fill="none" stroke="currentColor" marker-end="url(#a)"/>
+  <text x="600" y="320">weights read here</text>
+
+  <!-- plain fault path -->
+  <line x1="240" y1="390" x2="316" y2="390" stroke="currentColor" stroke-dasharray="6 5" marker-end="url(#a)"/>
+  <text x="278" y="476" text-anchor="middle" fill-opacity=".8">plain: page fault</text>
+  <text x="278" y="496" text-anchor="middle" fill-opacity=".8">at first touch,</text>
+  <text x="278" y="516" text-anchor="middle" fill-opacity=".8">matmul stalls</text>
+
+  <!-- amber: patch 02 callback -->
+  <rect x="770" y="350" width="350" height="56" rx="8" fill="#D98A1B" fill-opacity=".12" stroke="#D98A1B"/>
+  <text x="945" y="373" text-anchor="middle" fill="#D98A1B" font-weight="700">patch 02 · scheduler CPU callback</text>
+  <text x="945" y="394" text-anchor="middle" fill="#D98A1B">expert_prefetch_cb runs just before the matmul</text>
+  <line x1="940" y1="350" x2="940" y2="334" stroke="#D98A1B" marker-end="url(#am)"/>
+
+  <!-- amber: demand fill -->
+  <rect x="600" y="440" width="340" height="70" rx="8" fill="#D98A1B" fill-opacity=".12" stroke="#D98A1B"/>
+  <text x="770" y="464" text-anchor="middle" fill="#D98A1B" font-weight="700">demand fill · patches 03–05</text>
+  <text x="770" y="486" text-anchor="middle" fill="#D98A1B">ExpertFiller: pread the chosen experts'</text>
+  <text x="770" y="504" text-anchor="middle" fill="#D98A1B">missing pages with 16 workers, now</text>
+  <line x1="900" y1="440" x2="915" y2="410" stroke="#D98A1B" marker-end="url(#am)"/>
+  <text x="950" y="432" fill="#D98A1B">ids of layer L</text>
+
+  <!-- amber: predictive reads -->
+  <rect x="600" y="530" width="340" height="76" rx="8" fill="#D98A1B" fill-opacity=".12" stroke="#D98A1B"/>
+  <text x="770" y="554" text-anchor="middle" fill="#D98A1B" font-weight="700">predictive reads · patches 06–08</text>
+  <text x="770" y="576" text-anchor="middle" fill="#D98A1B">pregate hook: router L+1 on layer-L input</text>
+  <text x="770" y="596" text-anchor="middle" fill="#D98A1B">guesses L+1's experts, reads one layer early</text>
+
+  <!-- amber reads into page cache -->
+  <path d="M600,475 C550,475 520,470 520,454" fill="none" stroke="#D98A1B" stroke-width="2" marker-end="url(#am)"/>
+  <path d="M600,568 C430,568 400,520 400,454" fill="none" stroke="#D98A1B" stroke-width="2" marker-end="url(#am)"/>
+  <text x="320" y="600" fill="#D98A1B">pread via expert_file_info offsets:</text><text x="320" y="620" fill="#D98A1B">SSD → page cache before use</text>
+</svg>

@@ -53,9 +53,12 @@ class Builder:
         if not isinstance(extra, dict) or set(extra) - ENV_KEYS or not all(isinstance(v, str) for v in extra.values()):
             raise ValueError('Invalid build environment')
         env = {key: os.environ[key] for key in ENV_KEYS if key in os.environ}
+        operator_path = env.get('PATH', os.defpath)
         env.update(extra)
-        # Normalize the actual environment jobq will capture.
-        env['PATH'] = env.get('PATH', os.defpath)
+        # Normalize the actual environment jobq will capture. A requested PATH goes first but
+        # cannot drop the operator's toolchain directories (cmake/ninja may live outside /usr/bin).
+        parts = env.get('PATH', operator_path).split(os.pathsep) + operator_path.split(os.pathsep)
+        env['PATH'] = os.pathsep.join(dict.fromkeys(p for p in parts if p))
         engine = Path(env.get('FACTORY_BUILD_ENGINE', ENGINE)).resolve()
         normalized = dict(target='jetson-orin', source=dict(path=str(path), commit=commit, tree=tree),
             tag=request['tag'], deadline_s=deadline, env=env,

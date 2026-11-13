@@ -535,7 +535,7 @@ def preflight(pack=DEFAULT_PACK, home=None, port=PORT, images=False):
 def add_parser(sub):
     parser = sub.add_parser('demo', help=__doc__)
     actions = parser.add_subparsers(dest='demo_command', required=True)
-    for action in ('preflight', 'build', 'serve', 'next', 'prev', 'pause', 'resume', 'goto', 'status', 'live'):
+    for action in ('preflight', 'build', 'serve', 'next', 'prev', 'pause', 'resume', 'goto', 'status', 'live', 'video'):
         p = actions.add_parser(action)
         p.add_argument('--pack', '--out', dest='pack', type=Path, default=DEFAULT_PACK)
         p.add_argument('--home', default=argparse.SUPPRESS)
@@ -548,10 +548,20 @@ def add_parser(sub):
             p.add_argument('--siminfeng', type=Path)
         if action == 'serve':
             p.add_argument('--no-open', action='store_true')
+        if action == 'video':
+            p.add_argument('--video-out', type=Path, default=Path.home() / '.jiuwenswarm-factory/demo-video')
+            p.add_argument('--chrome', default=shutil.which('google-chrome') or shutil.which('chromium') or 'google-chrome')
+            p.add_argument('--ffmpeg')
+            p.add_argument('--siminfeng-root', type=Path, default=Path.home() / 'projects/siminfeng')
 
 
 def main(args):
     action = args.demo_command
+    if action == 'video':
+        from .demo_video import render, find_ffmpeg
+        video, seconds = render(args.video_out, args.pack, args.siminfeng_root, args.chrome, find_ffmpeg(args.ffmpeg))
+        print(f'Video: {video} ({seconds} s); scenes and frames in {args.video_out}; review list in {args.video_out}/REVIEW.md')
+        return
     if action == 'build':
         data = build(args.pack, args.home, siminfeng=args.siminfeng)
         print(f'Pack: {args.pack} ({len(data["sections"])} sections, {sum(s["duration"] for s in data["sections"])} seconds)')

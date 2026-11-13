@@ -1,0 +1,18 @@
+{
+  "schema": "factory.demo.playbook/1",
+  "note": "Automated, no interaction. Each scene is rendered from recorded evidence; seconds = time on screen.",
+  "scenes": [
+    {"id": "title", "builder": "title", "label": "INTRO", "seconds": 12, "title": "A software factory that uses CCs", "subtitle": "Improving a working inference engine on an 8 GB Jetson"},
+    {"id": "slide-engine", "builder": "slide", "label": "SLIDE", "seconds": 30, "title": "The engine problem", "slide": "engine.html"},
+    {"id": "slide-factory", "builder": "slide", "label": "SLIDE", "seconds": 30, "title": "How the factory makes the change", "slide": "factory.html"},
+    {"id": "baseline", "builder": "baseline", "label": "RECORDED", "seconds": 25, "title": "Starting point: plain llama.cpp works", "subtitle": "The identified engine, the frozen contract and its real output"},
+    {"id": "task", "builder": "task", "label": "RECORDED", "seconds": 22, "title": "The task given to JiuwenSwarm", "subtitle": "An objective and limits, not a script"},
+    {"id": "capsules", "builder": "capsules", "label": "RECORDED", "seconds": 28, "title": "The agent works through CCs", "subtitle": "Guidance it reads, tools it calls"},
+    {"id": "source", "builder": "source", "label": "RECORDED", "seconds": 28, "title": "Source change → identified image", "subtitle": "The hook the expert_fill component adds, and the builds it produced"},
+    {"id": "decisions", "builder": "decisions", "label": "RECORDED", "seconds": 30, "title": "Every component is tested, then kept or not", "subtitle": "Run 4: five components on the real 35B model"},
+    {"id": "activity", "builder": "activity", "label": "SEPARATE CAPTURE", "seconds": 30, "title": "Inside the engine: selected vs predicted experts", "subtitle": "One separate, unscored capture run with tracing on"},
+    {"id": "revision", "builder": "revision", "label": "RUN 5 EXCERPT", "seconds": 30, "title": "The agent changes its plan from evidence", "subtitle": "Run 5, decision 13"},
+    {"id": "result", "builder": "result", "label": "RECORDED", "seconds": 28, "title": "Result: faster engine, same output", "subtitle": "Plain llama.cpp vs the engine the factory built"},
+    {"id": "handoff", "builder": "handoff", "label": "RECORDED", "seconds": 17, "title": "What is reusable, and what we hand over", "subtitle": "The capsule is the product; the RSI segment improves it next"}
+  ]
+}

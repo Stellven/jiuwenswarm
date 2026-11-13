@@ -128,6 +128,7 @@ def main(argv=None):
     story.add_argument('--follow', action='store_true')
     story.add_argument('--plain', action='store_true')
     story.add_argument('--json', action='store_true')
+    story.add_argument('--demo', action='store_true', help='presentation view: reasons shown, job/upload noise hidden, colour-coded claims')
     capsules = sub.add_parser('capsules', help='list factory Capability Capsules')
     capsules.add_argument('--plain', action='store_true')
     export = sub.add_parser('export', help='export a read-only sanitized evidence bundle')
@@ -178,7 +179,7 @@ def main(argv=None):
                       to_dot(graph) if args.dot else render_text(graph))
             elif args.command == 'story':
                 from .story import show_story
-                show_story(args.source, args.home, args.plain, args.json, args.follow)
+                show_story(args.source, args.home, args.plain, args.json, args.follow, demo=args.demo)
             elif args.command == 'capsules':
                 from .capsules import capsule_rows, format_capsules
                 print(format_capsules(capsule_rows(), args.plain))
