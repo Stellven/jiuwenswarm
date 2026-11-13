@@ -301,9 +301,13 @@ class Controller:
                 self._live_facade = JiuWenSwarm()
                 self._live_facade._sdk_name = 'codex_subscription'
             stream = self._live_facade.process_message_stream
+        params = {'query': query, 'mode': 'agent.work.normal'}
+        # Optional explicit agent model (e.g. gpt-6.1-sol). Unset keeps the transport's default
+        # resolution; the governed service rejects provider fallback, so a typo fails loudly.
+        if os.environ.get('JIUWENSWARM_CODEX_MODEL'):
+            params['codex_model'] = os.environ['JIUWENSWARM_CODEX_MODEL']
         request = AgentRequest(request_id=f'{task_id}-{turn}-{uuid.uuid4().hex}', channel_id='web',
-            session_id=session_id or task_id, req_method=ReqMethod.CHAT_SEND,
-            params={'query': query, 'mode': 'agent.work.normal'})
+            session_id=session_id or task_id, req_method=ReqMethod.CHAT_SEND, params=params)
         log = self.home / 'sessions' / f'{task_id}.jsonl'
         from .telemetry import emit as telemetry_emit
         started = self.clock()

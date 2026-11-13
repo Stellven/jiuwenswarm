@@ -1,0 +1,784 @@
+{
+ "schema": "satay.demo.decision-extract/1",
+ "source": "private checkpoint-20261113T084854 of ~/.jiuwenswarm-factory/factory.sqlite (read-only copy); unmodified rows",
+ "task": {
+  "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+  "objective": "Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout, branch `demo-incremental-4`) and the frozen fast contract qwen36-quick-v1. Use engine.expert_streaming as your engineering method: read its guide and the current evidence, then make one meaningful behavioural change at a time. For every decision write the mechanism hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what is still unknown plus one alternative you are deferring and why. Candidates, not predetermined winners: demand fill first (expert_fill, with its source prerequisites installed but their switches off), then predictive reads (expert_pregate) only if the fill evidence supports continuing. For each intervention: integrate, build once through the builder (never rebuild unchanged source), run one cheap screen (a single lab run: output identity and engagement; its timing is preliminary), then if the screen passes run one 1-round ABBA against the current best under the same contract and keep or revert by the component's acceptance rule. Do not group unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round ABBA of the plain baseline image versus the final image as the headline comparison, then finish with accept, reject or report_inconclusive and a short report of ms/token per arm, output identity and engagement.",
+  "constraints": {
+   "contract_immutable": true,
+   "local_commits_in_owned_checkout": true,
+   "owned_checkout_only": true,
+   "push_or_publish": false
+  },
+  "allowed_effects": [
+   "process.exec",
+   "workspace.read",
+   "workspace.write",
+   "gpu.use"
+  ],
+  "target": "jetson-orin",
+  "budget": {
+   "max_turns": 16,
+   "wall_clock_s": 6000
+  },
+  "revision": 1,
+  "current_decision_rev": 11,
+  "evidence_cursor": 2520,
+  "created": 1794538032.531564,
+  "contract_id": "qwen36-quick-v1",
+  "initial_run_config": {
+   "env": {}
+  },
+  "component_cc": "engine.expert_streaming",
+  "source": {
+   "branch": "demo-incremental-4",
+   "pre_integration_commit": "cf34d3113",
+   "subpath": "llama.cpp"
+  },
+  "operator_labels": {},
+  "resources": {
+   "baseline": {
+    "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+    "image_tag": "factory/llamacpp:bare-cf34d311",
+    "note": "plain-source build of cf34d3113; contract reference image"
+   },
+   "budget_note": "builds ~2-3 min; one 2-round ABBA ~20-35 min; GPU work is serialized in the host queue",
+   "capsules": [
+    "engine.expert_streaming@2.0.0",
+    "factory.methodology_ab",
+    "factory.integration_skill",
+    "factory.builder",
+    "factory.engine_inspector",
+    "factory.lab_client",
+    "factory.evidence"
+   ],
+   "evidence_workspace": "FACTORY_HOME store, task-scoped",
+   "host": {
+    "board": "Jetson Orin Nano Super 8GB",
+    "l4t": "R36.5.2",
+    "mem_total_kib": 7789756,
+    "name": "Satay"
+   },
+   "model": {
+    "bytes": 22360456160,
+    "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+    "sha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450"
+   },
+   "source": {
+    "base_commit": "cf34d311332e362198f0a410c466d1e940287d02",
+    "checkout": "agent-workspace/llama.cpp",
+    "upstream": "https://github.com/ggml-org/llama.cpp"
+   },
+   "workload_contract": "qwen36-bare-greedy-v1 (frozen; byte-identical greedy stdout, 64 tokens)"
+  },
+  "capability_cc": ""
+ },
+ "decisions": [
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:1",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 1,
+   "parent_rev": 0,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+    "feb04a7ebe254abc850b4fd47b0306c9",
+    "61097237a96b4ee4988bc6f378202b2f"
+   ],
+   "observations": "Baseline image matches plain cf34d3113. Clean requested demo-incremental-4 branch now selected at plain base; earlier branch preserved. Five local patch hashes match capsule manifests. Applicability confirms expert bytes exceed RAM and CPU placement; mmap remains to be checked at screen.",
+   "hypothesis": "expert_fill can reduce serial decode demand IO by reading selected expert pages in parallel; mmap_advice and router_prefetch source are required but their runtime switches remain off.",
+   "uncertainty": "Actual mmap activation, engagement and speed remain unknown. Defer predictive reads until fill-only evidence supports proceeding.",
+   "action": {
+    "next": "Apply ordered dormant prerequisites and demand fill, commit each component locally, inspect and build once.",
+    "type": "integrate"
+   },
+   "expected_evidence": "Patch checks, exact component commits, clean inspector evidence, durable candidate build attempt.",
+   "budget": {
+    "turns": 15,
+    "wall_clock_s": 5100
+   },
+   "stop_condition": "Patch conflicts, missing reference or failed engagement/correctness stop progression.",
+   "reason_for_change": "Task authorizes fill first; feb04a7ebe254abc850b4fd47b0306c9 found clean branch mismatch now repaired.",
+   "created": 1794538232.2185526,
+   "plan_patch": null,
+   "expected_graph_rev": null
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:2",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 2,
+   "parent_rev": 1,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:1",
+    "acb61d95b2154feb9a8394a13cd48a95"
+   ],
+   "observations": "First prerequisite patch applied and staged with clean forward check and expected failed reverse check. Local commit failed solely because Git author identity is unset; no commit or build succeeded.",
+   "hypothesis": "Explicit per-command Factory Agent identity allows the already authorized local integration commits while preserving source patch contents; demand-fill mechanism remains unchanged.",
+   "uncertainty": "Candidate build, mmap activation and benefit remain unknown. Defer pregate until fill-only screen and ABBA; no runtime tuning.",
+   "action": {
+    "next": "Commit staged prerequisite with explicit local agent identity, then apply remaining patches once and inspect.",
+    "type": "integrate"
+   },
+   "expected_evidence": "Patch checks, exact component commits, clean inspector evidence, durable candidate build attempt.",
+   "budget": {
+    "turns": 15,
+    "wall_clock_s": 5100
+   },
+   "stop_condition": "Patch conflicts, missing reference or failed engagement/correctness stop progression.",
+   "reason_for_change": "Commit failed with Author identity unknown; acb61d95b2154feb9a8394a13cd48a95 confirms only staged prerequisite source.",
+   "created": 1794538301.7062073,
+   "plan_patch": null,
+   "expected_graph_rev": null
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:3",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 3,
+   "parent_rev": 2,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:2",
+    "cd60d9442bf2443e9109fa845863be78"
+   ],
+   "observations": "Ordered patches 01..05 integrated with checks and per-component local commits 733364f0d, c0da1c0b1, 00c6038f1. Clean requested branch HEAD 00c6038f15e517cf28eaa51fe370c9555a2ae606 tree d63f6127e8a71b5ab060d2263dd02213d807dd85. Integration check log at demo-materials/incremental-4-integration.json. Legacy inspector patch detector is not component-aware; explicit patch hashes/commits record stack. Baseline is prebuilt plain source; do not rebuild unchanged baseline.",
+   "hypothesis": "Compile demand-fill source so a single contract run can test whether selected expert ranges are read before CPU consumption; prerequisites remain disabled at runtime.",
+   "uncertainty": "Build success, runtime activation, correctness and performance unknown. Defer pregate until fill screen and ABBA discriminate demand IO benefit.",
+   "action": {
+    "next": "Submit one build of exact candidate commit for jetson-orin, then end turn.",
+    "type": "build"
+   },
+   "expected_evidence": "Patch checks, exact component commits, clean inspector evidence, durable candidate build attempt.",
+   "budget": {
+    "turns": 15,
+    "wall_clock_s": 5100
+   },
+   "stop_condition": "Patch conflicts, missing reference or failed engagement/correctness stop progression.",
+   "reason_for_change": "Clean inspector evidence cd60d9442bf2443e9109fa845863be78 supports build.",
+   "created": 1794538319.356153,
+   "plan_patch": null,
+   "expected_graph_rev": null
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:4",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 4,
+   "parent_rev": 3,
+   "evidence_ids": [
+    "110a3bc46ca446349bc7dcf5308f46cd:build-result",
+    "110a3bc46ca446349bc7dcf5308f46cd:build-record"
+   ],
+   "observations": "Builder succeeded for exact clean candidate commit 00c6038f1, tree d63f6127e8a71b5ab060d2263dd02213d807dd85, immutable image sha256:405eb5e74eb9e438d9c6d3978d6e77133b4edfd022e19976239e826cdd9e0d43. Only demand fill will be active; source prerequisites off. No unchanged-source rebuild.",
+   "hypothesis": "The expert_fill screen should show active mmap-backed demand reads and decode-only random advice while preserving frozen greedy stdout. This directly tests whether parallel selected-range reads engage.",
+   "uncertainty": "Output identity, runtime engagement and decode benefit unknown; patch08 effective-config parser is absent from fill-only source, so actual activation/counters must establish screen behavior. Defer pregate until fill ABBA supports further IO work.",
+   "action": {
+    "next": "Run exactly one untraced lab screen with manifest-default demand-fill env under qwen36-quick-v1; timing preliminary.",
+    "type": "measure"
+   },
+   "expected_evidence": "Single lab receipt, stdout identity against frozen reference, fill startup and exit counters, decode bytes, page-cache start and telemetry.",
+   "budget": {
+    "turns": 15,
+    "wall_clock_s": 5300
+   },
+   "stop_condition": "Do not score if screen fails correctness or required engagement.",
+   "reason_for_change": "Build result 110a3bc46ca446349bc7dcf5308f46cd:build-result confirms candidate is executable.",
+   "created": 1794538684.1457224,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "capability": "factory.lab_client.submit",
+      "depends_on": [
+       "candidate-build"
+      ],
+      "evidence_ids": [],
+      "inputs": [],
+      "kind": "measure",
+      "node_id": "fill-screen",
+      "reason": "Required cheap screen before scoring.",
+      "state": "proposed",
+      "title": "Single demand-fill correctness and engagement screen"
+     }
+    ],
+    "cancel": [
+     {
+      "node_id": "baseline-build",
+      "reason": "Operator supplied identified prebuilt plain baseline; never rebuild unchanged source."
+     },
+     {
+      "node_id": "baseline-measure",
+      "reason": "Frozen reference supplied; baseline scored inside ABBA."
+     }
+    ],
+    "update": [
+     {
+      "evidence_ids": [
+       "feb04a7ebe254abc850b4fd47b0306c9",
+       "cd60d9442bf2443e9109fa845863be78"
+      ],
+      "node_id": "inspect",
+      "state": "done"
+     },
+     {
+      "evidence_ids": [
+       "61097237a96b4ee4988bc6f378202b2f"
+      ],
+      "node_id": "applicability",
+      "reason": "Large expert set and CPU placement support bounded screen; mmap activation remains screen obligation.",
+      "state": "done"
+     },
+     {
+      "depends_on": [
+       "applicability"
+      ],
+      "evidence_ids": [
+       "cd60d9442bf2443e9109fa845863be78"
+      ],
+      "node_id": "integrate",
+      "state": "done"
+     },
+     {
+      "attempt_ids": [
+       "110a3bc46ca446349bc7dcf5308f46cd"
+      ],
+      "evidence_ids": [
+       "110a3bc46ca446349bc7dcf5308f46cd:build-result"
+      ],
+      "node_id": "candidate-build",
+      "state": "done"
+     },
+     {
+      "depends_on": [
+       "fill-screen"
+      ],
+      "node_id": "candidate-measure"
+     }
+    ]
+   },
+   "expected_graph_rev": 1
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:5",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 5,
+   "parent_rev": 4,
+   "evidence_ids": [
+    "29901f7e34c2487cb9c64f512635696e:evaluation",
+    "29901f7e34c2487cb9c64f512635696e:stderr.txt",
+    "29901f7e34c2487cb9c64f512635696e:page_cache.start.json",
+    "29901f7e34c2487cb9c64f512635696e:contention.json",
+    "bc380dd9ddc3483c8ebee8ea4d7fef38"
+   ],
+   "observations": "Screen succeeded, correctness pass, stdout equals frozen cad62aa93e814cf151547379322059831eb4540889d8dcc78ea315658ed681fe. Raw stderr shows mmap, fill active threads=16 chunk_kib=2048 random=decode, random advice applied at decode, calls=1240; prompt_calls=0, decode_bytes_read=6266355712, demand wait ~635.94 ms/token. Preliminary decode 972.59 ms/token is not scored. Carryover start residency 0.023%; no foreign-heavy contention. Generic effective-config and named-worker checks are unmeasured because patches08/09 are absent; chosen fill material requires its own activation/advice/stats checks, not those unrelated components.",
+   "hypothesis": "Parallel demand reads may improve decode versus plain mmap faults. expert_fill directly targets observed 6.27GB decode demand IO; ABBA tests net benefit including blocking fill overhead.",
+   "uncertainty": "Comparative latency and cache balance unknown; fault reductions are not measured. Defer pregate until fill acceptance and residual wait establish a reason to continue; no parameter tuning.",
+   "action": {
+    "next": "Submit one 1-round untraced ABBA of identified plain baseline versus demand-fill image under qwen36-quick-v1.",
+    "type": "measure"
+   },
+   "expected_evidence": "Manager component engagement/correctness, per-arm ms/token, gate/acceptance and cache/contamination artifacts.",
+   "budget": {
+    "turns": 14,
+    "wall_clock_s": 5100
+   },
+   "stop_condition": "Keep only acceptance.verdict accept with valid correctness and engagement; reject/null/invalid preserves evidence and stops predictive progression.",
+   "reason_for_change": "Screen evaluation and engagement observation bc380dd9ddc3483c8ebee8ea4d7fef38 support scoring fill.",
+   "created": 1794538855.507968,
+   "plan_patch": {
+    "update": [
+     {
+      "attempt_ids": [
+       "29901f7e34c2487cb9c64f512635696e"
+      ],
+      "evidence_ids": [
+       "29901f7e34c2487cb9c64f512635696e:evaluation",
+       "bc380dd9ddc3483c8ebee8ea4d7fef38"
+      ],
+      "node_id": "fill-screen",
+      "state": "done"
+     }
+    ]
+   },
+   "expected_graph_rev": 2
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:6",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 6,
+   "parent_rev": 5,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+    "29901f7e34c2487cb9c64f512635696e:evaluation",
+    "bc380dd9ddc3483c8ebee8ea4d7fef38",
+    "110a3bc46ca446349bc7dcf5308f46cd:build-result"
+   ],
+   "observations": "Demand-fill build and single screen succeeded. Frozen greedy stdout identical; fill active/advice/stats present, 6.27GB decode bytes and ~635.94ms/token demand wait. Candidate screen 972.59ms/token is preliminary. ABBA submission was rejected before queuing: null base build_attempt_id -> Expected a nonempty identifier; omitted base build_attempt_id -> Each A/B image requires tag, id and build_attempt_id. Supplied plain image identity matches frozen reference, but task resources lack baseline build_attempt_id and task-scoped evidence queries for baseline tag/reference run reveal no baseline build receipt. Reference run ca3ae3865dd74313a90685953e876bda is not readable as a task-scoped evidence record. No ABBA attempt exists and no performance gate/acceptance has been measured.",
+   "hypothesis": "expert_fill remains a plausible way to reduce serial demand IO, supported by actual buffered-read engagement. Its net latency benefit cannot be established without an admitted plain baseline and counterbalanced measurements.",
+   "uncertainty": "Baseline build provenance/admission is missing, and comparative latency/cache balance remain unknown. Defer expert_pregate because fill has no acceptance evidence; defer rebuilding baseline because operator explicitly prohibits unchanged-source rebuilds. No component is kept as a measured win.",
+   "action": {
+    "next": "Stop with missing baseline build admission prerequisite. Resume only when the existing baseline build receipt/attempt is exposed or a supported admission path is provided; then run fill ABBA before any predictive integration.",
+    "type": "report_inconclusive"
+   },
+   "expected_evidence": "No additional jobs. Preserved candidate source, immutable build, passing screen and negative admission receipts for review.",
+   "budget": {
+    "turns": 14,
+    "wall_clock_s": 4900
+   },
+   "stop_condition": "ABBA cannot be admitted with supplied baseline provenance; do not infer success or rejection from absent timing.",
+   "reason_for_change": "Lab admission rejected both baseline representations; task forbids unchanged-source rebuilds. Passing screen evaluation is insufficient for performance keep.",
+   "created": 1794538904.103264,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "depends_on": [
+       "fill-screen"
+      ],
+      "evidence_ids": [
+       "29901f7e34c2487cb9c64f512635696e:evaluation",
+       "bc380dd9ddc3483c8ebee8ea4d7fef38"
+      ],
+      "inputs": [],
+      "kind": "report",
+      "node_id": "inconclusive-report",
+      "reason": "No scored performance claim; source and evidence preserved.",
+      "state": "done",
+      "title": "Report passing screen and missing baseline admission"
+     }
+    ],
+    "cancel": [
+     {
+      "node_id": "candidate-measure",
+      "reason": "Blocked before ABBA admission: existing baseline build_attempt_id unavailable; no scored result."
+     },
+     {
+      "node_id": "accept",
+      "reason": "No component ABBA acceptance evidence."
+     },
+     {
+      "node_id": "report",
+      "reason": "Replaced by concrete inconclusive report."
+     }
+    ]
+   },
+   "expected_graph_rev": 3
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:7",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 7,
+   "parent_rev": 6,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:6",
+    "baseline-346fe01b",
+    "baseline-346fe01b:receipt",
+    "110a3bc46ca446349bc7dcf5308f46cd:build-result",
+    "29901f7e34c2487cb9c64f512635696e:evaluation",
+    "bc380dd9ddc3483c8ebee8ea4d7fef38"
+   ],
+   "observations": "Operator imported the existing plain baseline as succeeded baseline-346fe01b, with receipt matching frozen image a9a0c71c. This repairs decision6's sole admission blocker without rebuilding unchanged source. Existing fill screen passes frozen stdout and component active/random-at-decode/stats obligations; 6.27GB decode bytes read and 635.94ms/token fill wait. Screen timing 972.59ms/token is preliminary. Authoritative task contract is qwen36-quick-v1 (32 tokens), not the stale resource description of the 64-token contract. Current best remains plain baseline with env {} and no enabled components.",
+   "hypothesis": "Parallel buffered reads of selected nonresident expert ranges can reduce serial mmap fault delay. expert_fill fits the screen's observed decode demand IO and is the only active intervention; mmap_advice and router_prefetch source prerequisites remain dormant with default/off switches.",
+   "uncertainty": "Net decode improvement, within-arm stability and starting cache balance remain unknown. Predictive reads are deferred until fill ABBA acceptance and residual wait support continuing; parameter tuning is deferred because the objective prohibits it.",
+   "action": {
+    "next": "Submit one untraced 1-round expert_fill ABBA against the imported plain baseline under qwen36-quick-v1.",
+    "type": "measure"
+   },
+   "expected_evidence": "Durable ABBA attempt, verified per-arm decode ms/token, output hashes, candidate engagement, acceptance gate, cache/telemetry/contention artifacts.",
+   "budget": {
+    "turns": 13,
+    "wall_clock_s": 4800
+   },
+   "stop_condition": "Keep only complete valid acceptance.verdict accept with identical stdout and engagement; otherwise revert and stop predictive progression. Never score contaminated or cache-incomparable results.",
+   "reason_for_change": "baseline-346fe01b and its receipt repair the missing admission documented in decision6; passing screen evaluation and bc380dd9ddc3483c8ebee8ea4d7fef38 justify the bounded comparison.",
+   "created": 1794539223.8454154,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "capability": "factory.lab_client.ab_submit",
+      "depends_on": [
+       "fill-screen"
+      ],
+      "evidence_ids": [
+       "baseline-346fe01b:receipt"
+      ],
+      "inputs": [],
+      "kind": "measure",
+      "node_id": "fill-abba-resumed",
+      "reason": "Replacement for cancelled admission-blocked comparison; baseline is now imported.",
+      "state": "proposed",
+      "title": "One-round fill ABBA using imported baseline"
+     }
+    ]
+   },
+   "expected_graph_rev": 4
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:8",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 8,
+   "parent_rev": 7,
+   "evidence_ids": [
+    "c5c456f087344f539ec524ee29813912:evaluation",
+    "c5c456f087344f539ec524ee29813912:ab/verdict.json",
+    "c5c456f087344f539ec524ee29813912:ab/REPORT.md",
+    "0b6e1ca55ec64dfbbf3e5382d8ca903e",
+    "c5c456f087344f539ec524ee29813912:ab/001-base/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/001-base/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/001-base/contention.json",
+    "c5c456f087344f539ec524ee29813912:ab/002-candidate/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/002-candidate/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/002-candidate/contention.json",
+    "c5c456f087344f539ec524ee29813912:ab/003-candidate/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/003-candidate/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/003-candidate/contention.json",
+    "c5c456f087344f539ec524ee29813912:ab/004-base/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/004-base/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/004-base/contention.json"
+   ],
+   "observations": "ABBA completed successfully with correctness pass and complete evidence. Base [918.76,889.19] mean 903.975ms/token; fill [823.26,856.12] mean 839.69. Ratio 1.076558; change .076558 does not strictly exceed threshold .078267 (aa_gap .0391335, drift .0327111). Manager gate null and performance acceptance reject; all six candidate engagement checks pass and every stdout matches frozen reference. Carryover cache starts 13.468,14.166,14.726,14.860%; no foreign-heavy contention in any run and no gate cache confound. Candidate decode fill reads 5.584/5.601GB with 490.30/522.59ms/token fill wait, not proof of comparative improvement.",
+   "hypothesis": "Parallel demand reads engage and target real decode IO, but this bounded comparison fails to establish sufficient net benefit over plain mmap faults. Restoring plain is appropriate because expert_fill is a performance component requiring gate improved.",
+   "uncertainty": "True effect beyond observed variability, cache content and exact fault/critical-path attribution remain unknown. Defer expert_pregate because fill has no accepted benefit; defer another ABBA or tuning because objective specifies one comparison per intervention and no tuning.",
+   "action": {
+    "component": "expert_fill",
+    "next": "Revert fill commit and then router_prefetch/mmap_advice source prerequisites in reverse order; no dependent remains to justify dormant retention. Restore admitted plain baseline image and env {}. Verify source tree equals baseline; do not rebuild unchanged original source.",
+    "reason": "Acceptance reject: gate null.",
+    "type": "revert_component"
+   },
+   "expected_evidence": "Clean owned branch with revert history, original cf34d311 tree identity, inspector confirmation and final report preserving null evidence.",
+   "budget": {
+    "turns": 12,
+    "wall_clock_s": 4500
+   },
+   "stop_condition": "No accepted components; stop predictive progression. No headline after-last-keep experiment applies because no keep occurred.",
+   "reason_for_change": "c5c456f087344f539ec524ee29813912:evaluation records performance acceptance reject despite passing correctness/engagement. c5c456f087344f539ec524ee29813912:ab/REPORT.md confirms null gate.",
+   "created": 1794539726.9266293,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "depends_on": [
+       "fill-abba-resumed"
+      ],
+      "evidence_ids": [
+       "c5c456f087344f539ec524ee29813912:evaluation"
+      ],
+      "inputs": [],
+      "kind": "integrate",
+      "node_id": "restore-plain",
+      "reason": "No accepted fill or dependent; revert all three integration commits.",
+      "state": "proposed",
+      "title": "Restore plain after null fill comparison"
+     }
+    ],
+    "update": [
+     {
+      "attempt_ids": [
+       "c5c456f087344f539ec524ee29813912"
+      ],
+      "evidence_ids": [
+       "c5c456f087344f539ec524ee29813912:evaluation",
+       "c5c456f087344f539ec524ee29813912:ab/REPORT.md"
+      ],
+      "node_id": "fill-abba-resumed",
+      "state": "done"
+     }
+    ]
+   },
+   "expected_graph_rev": 5
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:9",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 9,
+   "parent_rev": 8,
+   "evidence_ids": [
+    "c5c456f087344f539ec524ee29813912:evaluation",
+    "c5c456f087344f539ec524ee29813912:ab/verdict.json",
+    "c5c456f087344f539ec524ee29813912:ab/REPORT.md",
+    "0b6e1ca55ec64dfbbf3e5382d8ca903e",
+    "c5c456f087344f539ec524ee29813912:ab/001-base/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/001-base/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/001-base/contention.json",
+    "c5c456f087344f539ec524ee29813912:ab/002-candidate/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/002-candidate/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/002-candidate/contention.json",
+    "c5c456f087344f539ec524ee29813912:ab/003-candidate/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/003-candidate/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/003-candidate/contention.json",
+    "c5c456f087344f539ec524ee29813912:ab/004-base/summary.json",
+    "c5c456f087344f539ec524ee29813912:ab/004-base/page_cache.start.json",
+    "c5c456f087344f539ec524ee29813912:ab/004-base/contention.json",
+    "c6f56df945cf4166aeab2a0a9b7cb728",
+    "f3ecc300c0624208b655c70d51089802",
+    "baseline-346fe01b:receipt"
+   ],
+   "observations": "Final bounded result under frozen qwen36-quick-v1, 32-token short greedy continuation: plain 903.975ms/token (918.76,889.19); expert_fill 839.69ms/token (823.26,856.12). A/B ratio 1.076558, required change threshold 7.826698%, observed ratio-1 7.655802%; gate null, performance acceptance reject. All four stdout SHA256 values equal frozen cad62aa93e814cf151547379322059831eb4540889d8dcc78ea315658ed681fe; all six candidate engagement checks pass. Carryover cache start residency 13.468%,14.166%,14.726%,14.860%; no detected foreign-heavy contention. This is a valid completed null trial, not an accepted speed improvement. Reverted expert_fill 384182aa3d02467cbcf51df345257e61a116a173, router_prefetch 2a3757a3909c982b4b662c88e8b9ab50d977511e and mmap_advice b7910f72c4466a1af89d2ff912bf44e53ae381a6. Clean owned demo-incremental-4 HEAD b7910f72c4466a1af89d2ff912bf44e53ae381a6 has tree 2265e2c6dcf4294ba1cdc8b64ead0519925ef4f6 exactly equal to cf34d3113, verified git diff --exit-code and inspector image tree label. Original admitted plain image restored without redundant unchanged-source build. Kept stack empty; expert_pregate not integrated or measured. No after-last-keep headline ABBA because no component was kept; the recorded direct plain-vs-fill trial remains the intervention result.",
+   "hypothesis": "Demand fill demonstrably reads selected expert pages in decode, but net latency benefit is unresolved at the fixed acceptance threshold. Plain source/image remains best supported because expert_fill did not meet its performance rule.",
+   "uncertainty": "True latency effect across further trials, page-cache content, readiness and causal critical-path fault reductions remain unknown. Defer predictive reads because no fill acceptance supports progression; defer repetition/tuning to preserve the operator's one-ABBA/no-tuning scope.",
+   "action": {
+    "component": "expert_fill",
+    "current_best": {
+     "env": {},
+     "image": {
+      "build_attempt_id": "baseline-346fe01b",
+      "id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "tag": "factory/llamacpp:bare-cf34d311"
+     },
+     "kept_stack": []
+    },
+    "next": "Finish: reject expert_fill for retention under this bounded null trial; retain plain baseline and preserve all positive, null and admission-blocker evidence.",
+    "type": "report_inconclusive"
+   },
+   "expected_evidence": "No further work. Durable completed ABBA, passing correctness/engagement, rejected performance acceptance and verified rollback are the final evidence.",
+   "budget": {
+    "turns": 12,
+    "wall_clock_s": 4400
+   },
+   "stop_condition": "Terminal: fixed fill ABBA gate null. No accepted intervention, no predictive progression, no speedup claim.",
+   "reason_for_change": "c5c456f087344f539ec524ee29813912:evaluation rejects performance retention; c6f56df945cf4166aeab2a0a9b7cb728 confirms clean plain source and image identity.",
+   "created": 1794539767.90555,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "depends_on": [
+       "restore-plain"
+      ],
+      "evidence_ids": [
+       "c5c456f087344f539ec524ee29813912:evaluation",
+       "c6f56df945cf4166aeab2a0a9b7cb728"
+      ],
+      "inputs": [],
+      "kind": "report",
+      "node_id": "final-null-report",
+      "reason": "Completed trial rejected performance acceptance; no component kept.",
+      "state": "done",
+      "title": "Final null fill result with plain restored"
+     }
+    ],
+    "update": [
+     {
+      "evidence_ids": [
+       "c6f56df945cf4166aeab2a0a9b7cb728",
+       "f3ecc300c0624208b655c70d51089802"
+      ],
+      "node_id": "restore-plain",
+      "state": "done"
+     }
+    ]
+   },
+   "expected_graph_rev": 6
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:10",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 10,
+   "parent_rev": 9,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+    "baseline-346fe01b:receipt",
+    "110a3bc46ca446349bc7dcf5308f46cd:build-result",
+    "29901f7e34c2487cb9c64f512635696e:evaluation",
+    "c5c456f087344f539ec524ee29813912:evaluation",
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:7"
+   ],
+   "observations": "Operator decision_rev9 authorizes exactly ONE confirmation ABBA of expert_fill versus plain baseline, 3 rounds, qwen36-quick-v1, untraced, using already-built fill image 405eb5e7 (build 110a3bc46ca446349bc7dcf5308f46cd) and imported baseline baseline-346fe01b; no rebuild, tuning or expert_pregate. If accepted, keep fill as final engine and use this ABBA alone as headline, otherwise report_inconclusive. Earlier trial was null (ratio 1.076558, threshold 0.078267), correctness pass and all fill checks pass. Source was restored plain after prior null; this comparison uses existing immutable images. Current best is plain, env {}, kept stack empty. Contract is qwen36-quick-v1, 32-token fixed greedy stdout.",
+   "hypothesis": "Demand-driven parallel buffered reads of selected nonresident expert ranges can reduce serial mmap fault stalls. expert_fill directly targets that mechanism, and prior engagement plus near-threshold improvement justify the operator-authorized confirmation without changing treatment. mmap_advice and router_prefetch source prerequisites are present in the admitted fill image, with runtime switches default/off.",
+   "uncertainty": "It remains unknown whether the decode gain clears the replication/noise gate over three rounds with comparable cache residency and uncontaminated execution. Predictive reads (expert_pregate) are the deferred next intervention and are excluded by the recording budget; parameter tuning is prohibited. Earlier one-round data will not be pooled.",
+   "action": {
+    "component": "expert_fill",
+    "next": "Submit exactly one untraced 3-round expert_fill ABBA against the imported plain baseline using unchanged image IDs and the prior component environment.",
+    "type": "measure"
+   },
+   "expected_evidence": "Durable ABBA attempt; complete per-run summaries, cache start state, contention, stdout hashes and engagement checks; ab_result acceptance and per-arm means under qwen36-quick-v1.",
+   "budget": {
+    "builds": 0,
+    "max_new_abba": 1,
+    "rounds": 3,
+    "turns": 11,
+    "wall_clock_s": 4513
+   },
+   "stop_condition": "End turn immediately after submission. On completion keep_component only for valid acceptance.verdict accept plus correctness and engagement; then terminal accept using this direct comparison alone. Otherwise terminal report_inconclusive. Do not run expert_pregate, tune or rebuild.",
+   "reason_for_change": "Operator explicitly authorizes one bounded confirmation of the near-threshold null c5c456f087344f539ec524ee29813912:evaluation; prior screen and admitted immutable build support reuse without integration or rebuild.",
+   "created": 1794539884.9111388,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "capability": "factory.lab_client.ab_submit",
+      "depends_on": [
+       "fill-abba-resumed"
+      ],
+      "evidence_ids": [
+       "c5c456f087344f539ec524ee29813912:evaluation",
+       "baseline-346fe01b:receipt"
+      ],
+      "kind": "measure",
+      "node_id": "fill-confirmation-3r",
+      "reason": "Exactly one operator-authorized confirmation; unchanged existing images, no tuning or rebuild.",
+      "state": "proposed",
+      "title": "Authorized three-round fill confirmation against plain"
+     }
+    ]
+   },
+   "expected_graph_rev": 7
+  },
+  {
+   "decision_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a:decision:11",
+   "task_id": "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+   "rev": 11,
+   "parent_rev": 10,
+   "evidence_ids": [
+    "factory-e5b8d4b74df6417e8d6573e43cc6e23a",
+    "232a349573c8400c92efb7b39b8e1793:evaluation",
+    "232a349573c8400c92efb7b39b8e1793:ab/REPORT.md",
+    "232a349573c8400c92efb7b39b8e1793:ab/verdict.json",
+    "232a349573c8400c92efb7b39b8e1793:worker.json",
+    "c6f56df945cf4166aeab2a0a9b7cb728",
+    "baseline-346fe01b:receipt",
+    "110a3bc46ca446349bc7dcf5308f46cd:build-result",
+    "232a349573c8400c92efb7b39b8e1793:ab/001-base/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/001-base/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/001-base/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/002-candidate/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/002-candidate/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/002-candidate/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/003-candidate/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/003-candidate/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/003-candidate/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/004-base/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/004-base/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/004-base/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/005-base/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/005-base/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/005-base/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/006-candidate/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/006-candidate/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/006-candidate/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/007-candidate/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/007-candidate/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/007-candidate/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/008-base/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/008-base/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/008-base/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/009-base/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/009-base/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/009-base/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/010-candidate/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/010-candidate/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/010-candidate/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/011-candidate/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/011-candidate/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/011-candidate/summary.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/012-base/contention.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/012-base/page_cache.start.json",
+    "232a349573c8400c92efb7b39b8e1793:ab/012-base/summary.json"
+   ],
+   "observations": "Exactly one authorized 3-round untraced confirmation completed under qwen36-quick-v1 (32 generated tokens). Attempt 232a349573c8400c92efb7b39b8e1793 succeeded, execution ok, complete evidence, correctness pass. Plain mean 956.92 ms/token; fill mean 854.44 ms/token; ratio A/B 1.119938205140209; ratio-1 0.119938205140209 <= threshold 0.2565188895650954, gate null, acceptance.verdict reject (Performance requires gate improved). aa_gap 0.1282594447825477, drift 0.03418606919422038. All 12 stdout SHA256 equal frozen cad62aa93e814cf151547379322059831eb4540889d8dcc78ea315658ed681fe; all 18 candidate engagement checks pass (active, random advice at decode, positive stats in each of six runs). All 12 summaries status ok and host_contention false, foreign heavy count 0. Cache protocol carryover: start residency base 13.1720\u201314.6153%, candidate 13.1379\u201314.6858%; no gate cache confound. This ABBA alone supplies reported numbers; earlier one-round result is preserved and not pooled. No rebuild, tune, predictive run or source change performed in confirmation. Existing restoration observation c6f56df945cf4166aeab2a0a9b7cb728 documents clean plain source branch demo-incremental-4, commit b7910f72c4466a1af89d2ff912bf44e53ae381a6. Status cleanup reports process_groups_reaped;containers_unverified, so container cleanup is not claimed verified.",
+   "hypothesis": "Demand-driven parallel buffered reads of selected nonresident experts target serial mmap demand stalls. expert_fill engaged in every candidate run and its lower observed mean is compatible with that mechanism, but variation prevents a supported performance acceptance. Source prerequisites mmap_advice/router_prefetch were present in the candidate with switches default/off; their presence is not an enabled optimization win.",
+   "uncertainty": "The true reproducible decode benefit and causes of candidate spread (801.52\u2013911.11 ms/token) remain unresolved; this null gate does not establish absence of benefit. Predictive reads (expert_pregate) are the deferred next intervention, excluded by the operator's budget and stop condition. No further tuning, rebuild or experiments are authorized for this recording. Scope remains the short fixed greedy contract, not general model accuracy or workload performance.",
+   "action": {
+    "component": "expert_fill",
+    "current_best": {
+     "env": {},
+     "image": {
+      "build_attempt_id": "baseline-346fe01b",
+      "id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "tag": "factory/llamacpp:bare-cf34d311"
+     },
+     "kept_stack": []
+    },
+    "deferred_next_intervention": "expert_pregate",
+    "next": "Finish recording with plain baseline retained; no further work.",
+    "reason": "Confirmation acceptance rejected; operator requires report_inconclusive on non-pass.",
+    "type": "report_inconclusive"
+   },
+   "expected_evidence": "Terminal report with this confirmation's separate arm means, null verdict, output identity, engagement and retained plain engine; no additional jobs.",
+   "budget": {
+    "confirmation_abba_used": 1,
+    "further_jobs": 0,
+    "remaining_turns": 10,
+    "remaining_wall_clock_s": 3230
+   },
+   "stop_condition": "Terminal report_inconclusive now. Do not keep expert_fill, run expert_pregate, rebuild or tune.",
+   "reason_for_change": "232a349573c8400c92efb7b39b8e1793:evaluation and 232a349573c8400c92efb7b39b8e1793:ab/REPORT.md establish complete correctness/engagement but null performance gate; operator's explicit confirmation outcome rule requires report_inconclusive. c6f56df945cf4166aeab2a0a9b7cb728 documents plain already restored.",
+   "created": 1794541197.0961869,
+   "plan_patch": {
+    "add": [
+     {
+      "attempt_ids": [],
+      "depends_on": [
+       "fill-confirmation-3r"
+      ],
+      "evidence_ids": [
+       "232a349573c8400c92efb7b39b8e1793:evaluation",
+       "232a349573c8400c92efb7b39b8e1793:ab/REPORT.md",
+       "c6f56df945cf4166aeab2a0a9b7cb728"
+      ],
+      "kind": "report",
+      "node_id": "confirmation-inconclusive-report",
+      "reason": "Operator requires report_inconclusive when the sole confirmation fails acceptance; expert_pregate deferred.",
+      "state": "done",
+      "title": "Final inconclusive confirmation report, plain retained"
+     }
+    ],
+    "update": [
+     {
+      "attempt_ids": [
+       "232a349573c8400c92efb7b39b8e1793"
+      ],
+      "evidence_ids": [
+       "232a349573c8400c92efb7b39b8e1793:evaluation",
+       "232a349573c8400c92efb7b39b8e1793:ab/REPORT.md"
+      ],
+      "node_id": "fill-confirmation-3r",
+      "reason": "All three rounds complete; gate null and acceptance reject; preserves null evidence.",
+      "state": "done"
+     }
+    ]
+   },
+   "expected_graph_rev": 8
+  }
+ ],
+ "attempts": [
+  {
+   "attempt_id": "110a3bc46ca446349bc7dcf5308f46cd",
+   "kind": "build",
+   "state": "succeeded",
+   "jobq_id": "job-61d90bf5c2e947eab5fffcfb3c098ffe",
+   "started": 1794538360.017619,
+   "ended": 1794538644.2156017
+  },
+  {
+   "attempt_id": "29901f7e34c2487cb9c64f512635696e",
+   "kind": "lab",
+   "state": "succeeded",
+   "jobq_id": "job-b46eb4ef7e1d4e638c67e477cd95d4ce",
+   "started": 1794538719.6076872,
+   "ended": 1794538812.015715
+  },
+  {
+   "attempt_id": "baseline-346fe01b",
+   "kind": "build",
+   "state": "succeeded",
+   "jobq_id": null,
+   "started": 1794538980.8814535,
+   "ended": 1794538980.9108193
+  },
+  {
+   "attempt_id": "c5c456f087344f539ec524ee29813912",
+   "kind": "lab",
+   "state": "succeeded",
+   "jobq_id": "job-6c6ecbca0ea54ad48d979f283f2c6854",
+   "started": 1794539254.6021168,
+   "ended": 1794539653.232262
+  },
+  {
+   "attempt_id": "232a349573c8400c92efb7b39b8e1793",
+   "kind": "lab",
+   "state": "succeeded",
+   "jobq_id": "job-79cd590ea6254ddea5664acd4e18fb8a",
+   "started": 1794539916.3230274,
+   "ended": 1794541099.4039273
+  }
+ ]
+}

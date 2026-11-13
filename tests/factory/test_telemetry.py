@@ -123,6 +123,23 @@ async def test_turn_stream_metrics(store):
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize('model', [None, 'gpt-6.1-sol'])
+async def test_turn_agent_model_is_explicit_only_when_configured(store, monkeypatch, model):
+    from jiuwenswarm.factory.controller import Controller
+    seen = []
+    async def stream(request):
+        seen.append(request.params)
+        yield dict(event_type='chat.metadata', usage=dict(input_tokens=1, output_tokens=1))
+    if model:
+        monkeypatch.setenv('JIUWENSWARM_CODEX_MODEL', model)
+    else:
+        monkeypatch.delenv('JIUWENSWARM_CODEX_MODEL', raising=False)
+    await Controller(store=store, facade=stream)._turn('t', '{}', 1)
+    assert seen[0]['query'] == '{}' and seen[0]['mode'] == 'agent.work.normal'
+    assert seen[0].get('codex_model') == model
+
+
+@pytest.mark.asyncio
 async def test_turn_missing_usage_and_failure(store):
     from jiuwenswarm.factory.controller import Controller
     async def stream(request):

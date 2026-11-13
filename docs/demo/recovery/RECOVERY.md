@@ -14,6 +14,18 @@ Repository commits preserve source. Selected evidence archives preserve receipts
 
 Recover a database snapshot only with the controller and its writers stopped, after saving the current database and its sidecars separately. Open the restored snapshot in isolation and verify integrity/task identity before replacing anything. The package deliberately excludes the live database and authentication directories.
 
-## Danta later
+## Danta (USB backup drive)
 
-No operation in this package mounts or writes Danta. When explicitly asked later, identify it by filesystem UUID/label and available capacity; do not assume /dev/sda1. Copy a completed, checksum-verified archive to it, sync it, verify the copied archive hash and safely unmount. Keep active SQLite and Git workspaces on internal ext4. A flash drive on the same powered machine supplements, rather than replaces, remote pushes and separate backups.
+The operator authorized Danta backup writes on 13 Nov.
+
+**The drive:** exFAT, label `Danta`, 57.7 GB. On 13 Nov it was `/dev/sda1`. The operator mounted it at `/mnt/danta` with `uid=1000,gid=1000`. Identify it by label or UUID, not by device name.
+
+**What it holds:** only completed, checksum-verified archives:
+- version 1, `20261113 Satay CC Demo and Recovery prepresentation.zip`, which is unchanged
+- version 2, `… v2 prepresentation.zip`
+
+Each archive has an adjacent `.sha256`. The procedure is: copy, `sync`, re-hash the copy, then unmount with `sudo umount /mnt/danta`, which needs the operator. HANDOFF.md records the hashes.
+
+**What stays on internal ext4:** active SQLite and Git workspaces, and the private factory checkpoints under `~/backup/factory-checkpoints/`. A private database snapshot is never written to a removable drive.
+
+**What Danta does not replace:** a flash drive on the same powered machine supplements remote pushes and separate backups.

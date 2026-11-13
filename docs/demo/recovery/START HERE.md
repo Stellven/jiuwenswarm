@@ -1,24 +1,44 @@
-# 20261113 Satay CC Demo and Recovery prepresentation
+# 20261113 Satay CC Demo and Recovery v2 prepresentation
 
-Open `20261113 Satay CC Demo Console prepresentation.html` for the offline demonstration. It needs only a browser and the adjacent evidence directory. The page offers the architecture, methodology, original video and result sources. No inference or network access is needed to present it.
+**Presenting:** open `20261113 Satay CC Demo Console prepresentation.html` in Chrome. It needs only a browser and this folder: no inference, network or factory. Press `N` for speaker notes and `1`–`6` to change views. The script is in `PRESENTATION.md`, and answers to likely questions are in `ATTACK QUESTIONS.md`.
 
-For Codex on Satay, run `bash scripts/start-codex.sh` from this extracted package. This starts a new interactive Codex session with AUTONOMOUS.md as context. It does not clone the previous chat, grant blanket permissions, or automatically start model work. Existing Codex authentication is reused, never bundled.
+**Continuing work on Satay:** run `bash scripts/start-codex.sh` from this extracted package. It starts a new interactive Codex session with `AUTONOMOUS.md` as context. It does not clone the previous chat, grant blanket permissions or start model work. Existing Codex authentication is reused and never bundled.
 
-## What is ready
+## What the demo shows
 
-The recorded process applies a demand-fill component, builds it and evaluates it through JiuwenSwarm. That fresh 32-token comparison is preliminary. The headline improvement comes from a separate recorded 64-token experiment, J-OM13, using fill plus predictive reads. Both sources are included; they are never treated as one run.
+| Source | What it is | Status | Used for |
+|---|---|---|---|
+| J-OM13 | Historical 64-token matched experiment, fill plus predictive reads | Confirmed | The headline: 841.5 → 711.4 ms/token (−15.5% time, +18.3% throughput), four runs per headline arm |
+| Fresh recording | Task `factory-e5b8d4b7`, 32-token fill-only | Inconclusive | Shows the CC-guided process and decision |
 
-The package includes shallow source-recovery bundles preserving exact pinned commits for the three working repositories and a separate engine bundle preserving plain, fill-only and headline source. See SOURCE-PINS.json for actual revisions and ref names. Source restoration is independently checked, without using GitHub. History beyond the pinned source snapshots is intentionally omitted; the Git bundles and adjacent .shallow files must stay together. A model, Docker base images, CUDA/JetPack and authenticated agent runtime remain installed dependencies; this is not a complete bare-metal disaster image.
+The two are never treated as one run.
 
 ## Reading order
 
-1. PRESENTATION.md: timed story and evidence boundaries.
-2. AUTONOMOUS.md: bounded continuation instructions.
-3. RECOVERY.md and context/recovery/: restart and checkpoint procedures.
-4. ONTOLOGY.md: contract, engine slice and work-node distinction.
-5. ATTACK QUESTIONS.md: concise answers and limitations.
-6. VALIDATION.md: checks actually completed, including any remaining blocker.
+1. `PRESENTATION.md`: the timed script and evidence boundaries.
+2. `context/engineering/ENGINEERING-DETAILS.md`: the two engineering details and their sources.
+3. `ONTOLOGY.md`: the system ontology, engine slice, contract, work graph and CCs, and what the new slice link does.
+4. `ATTACK QUESTIONS.md`: concise answers and limitations.
+5. `HANDOFF.md`: exact state, commits, capsule versions, backups, model configuration and remaining actions.
+6. `RECOVERY.md` and `context/recovery/`: restore, restart and checkpoint procedures.
+7. `VALIDATION.md` and `REVIEW.md`: checks actually completed, and the independent review record.
+8. `MODEL-CONFIG.md` and `BUDGET.md`: the effective agent model and the time/lab ledger.
 
-Everything in `context/historical/` and original evidence is an immutable historical record. It may name shelved Run 5, older disk capacity, outdated startup instructions or earlier claims. It is not the current runbook and does not enter the presentation. Current instructions are here and in the included recovery documentation.
+## Package boundaries
 
-No Danta storage has been used. Keep active work and SQLite on internal storage. Do not restore archived state over a live workspace.
+**Historical records.** Everything in `context/historical/` and the original evidence is an immutable record. It may mention superseded instructions, older disk capacity or earlier claims, and it is not the current runbook.
+
+**Sources.** The source bundles preserve exact pinned commits with `.shallow` boundary sidecars (see `SOURCE-PINS.json`). Keep each bundle with its sidecar.
+
+**Not included:**
+- model weights
+- Docker base and engine images
+- CUDA/JetPack
+- Python environments
+- authenticated agent runtimes
+
+This is not a bare-metal disaster image.
+
+**Versions.** Version 1 of this package, `20261113 Satay CC Demo and Recovery prepresentation.zip`, is preserved unchanged beside this v2 on internal backup storage and on the Danta drive.
+
+**Storage.** Keep live Git workspaces and SQLite on internal storage. Danta holds only completed, checksum-verified archives.
