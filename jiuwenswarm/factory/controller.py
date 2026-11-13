@@ -484,6 +484,12 @@ class Controller:
         self._save(task_id, state)
         return info
 
+    def add_note(self, task_id, text):
+        """Operator instruction delivered with the agent's next turn (reopens inconclusive/partial tasks on resume)."""
+        state = self._load(task_id)
+        state.setdefault('operator_notes', []).append(text)
+        self._save(task_id, state)
+
     async def resume(self, task_id):
         return await self.run(task_id)
 
