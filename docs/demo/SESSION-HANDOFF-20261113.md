@@ -27,3 +27,5 @@ Crash-safe resume (active-time budget, new session `<task>-sN` with context), `f
 Removed 12 superseded docker image tags (kept bare-cf34d311, incremental4-fill, bd173c08-restored/pregate, om11, d4b71bcc-thread-names-1),
 pruned build cache >72h, removed 5 side worktrees (branches pushed first: ai4r/ccv2-revise, ai4r/contract-loop, ai4r/demo, ai4r/f15-taskgraph, c2/heavy-guard).
 Root 90% -> 85% (18 GB free). Biggest remaining: ~/models (38 GB), docker images ~10 GB. Local backup: `~/backup/demo-session-20261113.tgz`.
+
+Models removed (approved): qwen35-9b, gemma4-e4b, granite HF dir + bf16/mixE4K ggufs. Kept: qwen36-35b-a3b, granite Q8_0 (CPU config probe), kl, data. Root now 71% (33 GB free). Re-download via `models/campaign/MANIFEST.jsonl` repos if needed.
