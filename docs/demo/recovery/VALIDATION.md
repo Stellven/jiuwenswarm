@@ -77,3 +77,22 @@ Keyboard navigation (1–6, ←/→, N, T, Space) and hash URLs (`#trace` etc.) 
 | `cc-rsi-v1` | tag object `f8ff8d1f05535ee2f1175ec67a0d0c89139fd63f` → commit `1fe2e572`, unchanged |
 
 The build path already uses native CMake/Ninja with a persistent ccache. No build-speed change or claim was made.
+
+## v3 package (13 Nov, about 15:16 UTC)
+
+- **Built with:** `tooling/build_package.py --base <v2 dir> --out <v3 dir> --rebundle --zip`.
+- **Checks passed:** restore check PASS, credential scan with no hits, `verify.py` on 1237 files.
+- **Pins:**
+
+  | Repo | Commit |
+  |---|---|
+  | jiuwenswarm | `6fd0ac45` |
+  | siminfeng | `7cab011` |
+  | llama-engine | `885eec82` (branch `proof-ask-1`; the earlier refs are kept) |
+  | tools | `e897ff4` (unchanged) |
+
+- **Zip:** `20261113 Satay CC Demo and Recovery v3 prepresentation.zip`, 585,265,504 bytes, sha256 `606346f98e0ced0cac5c27ee7198e830122f1dea631be5c5689bd046372c100e`.
+- **Copies:**
+  - `~/backup`, with the extracted folder beside it.
+  - Danta (`/media/muk/Danta`), re-hashed after `sync` with direct I/O. It matches.
+- **v1 and v2:** both zips are unchanged in both places.
