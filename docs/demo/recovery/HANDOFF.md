@@ -43,7 +43,7 @@ for n in 1 2 3; do scriptreplay -t seg$n.timing seg$n.typescript -d 20; done
 
 | Repo | Branch | Commit | Notes |
 |---|---|---|---|
-| jiuwenswarm | `cc-siminfeng` (pushed to `git@github.com:Stellven/jiuwenswarm.git`) | `8f83fc08` (packaged pin; `680b40a8` + diagram fix), pushed | Adds docs/demo/recovery v2, `tooling/build_package.py`, the decision extract, and the `JIUWENSWARM_CODEX_MODEL` controller option plus its test. A later docs-only commit records the backup hashes. |
+| jiuwenswarm | `cc-siminfeng` (pushed to `git@github.com:Stellven/jiuwenswarm.git`) | `df8069b1` (packaged pin), pushed | Adds docs/demo/recovery v2, `tooling/build_package.py`, the decision extract, and the `JIUWENSWARM_CODEX_MODEL` controller option plus its test. A later docs-only commit records the backup hashes. |
 | siminfeng | `jetson/c1` | `9209e25` | Unchanged |
 | tools | `main` | `e897ff4` | Unchanged |
 | llama engine | `demo-incremental-4` | `b7910f72` | Refs `recovery/{plain,fill,headline}-20261113` |
@@ -77,7 +77,7 @@ Details are in `MODEL-CONFIG.md`.
 | What | Where |
 |---|---|
 | v1 package, unchanged | `~/backup/20261113 Satay CC Demo and Recovery prepresentation.zip`, sha256 `e89ac589…f076`, and on Danta `/mnt/danta/` (identical) |
-| v2 package | `~/backup/20261113 Satay CC Demo and Recovery v2 prepresentation.zip` (580,390,958 bytes, 1069 files) + `.sha256`: sha256 `a93184249ac78ab653e6cab232a1f070ea0b906b0e6a224b37d70be2148a90bc`. Identical copy on Danta `/mnt/danta/`, re-hashed after `sync` with direct I/O (bypassing the page cache). The v1 copy on Danta also re-verified. The extracted v2 folder is kept beside the zip in `~/backup`. Source pins: jiuwenswarm `8f83fc08`; restore check passed (`RESTORE-CHECK.json`). |
+| v2 package | `~/backup/20261113 Satay CC Demo and Recovery v2 prepresentation.zip` (580,382,452 bytes, 1069 files) + `.sha256`: sha256 `fed94429cb49c580b65ef87a2a8b7831999cecf8b0c8d2a19209e410b291466f` (rebuilt after the key-handler fix; supersedes `a9318424…`). Identical copy on Danta `/mnt/danta/`, re-hashed after `sync` with direct I/O (bypassing the page cache). The v1 copy on Danta also re-verified. The extracted v2 folder is kept beside the zip in `~/backup`. Source pins: jiuwenswarm `df8069b1`; restore check passed (`RESTORE-CHECK.json`). |
 | Private factory checkpoints (internal only, never on Danta) | `~/backup/factory-checkpoints/checkpoint-20261113T073737-_4t_l8fj` and `checkpoint-20261113T084854-04hpi0hd` |
 | Pre-continuation backup | `~/backup/demo-session-20261113.tgz` (unchanged) |
 

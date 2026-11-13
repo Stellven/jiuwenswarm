@@ -1,0 +1,67 @@
+{
+  "objective": "(replaced by `jiuwenswarm-factory ask \"<instruction>\"`)",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false,
+    "engine_slice": "expert_weight_readiness"
+  },
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write",
+    "gpu.use"
+  ],
+  "target": "jetson-orin",
+  "budget": {
+    "max_turns": 10,
+    "wall_clock_s": 3600
+  },
+  "contract_id": "qwen36-quick-v1",
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "engine.expert_streaming",
+  "source": {
+    "subpath": "llama.cpp",
+    "pre_integration_commit": "cf34d3113",
+    "branch": "direct"
+  },
+  "operator_labels": {},
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp",
+      "base_commit": "cf34d311332e362198f0a410c466d1e940287d02",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "model": {
+      "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+      "bytes": 22360456160
+    },
+    "baseline": {
+      "image_tag": "factory/llamacpp:bare-cf34d311",
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "note": "plain-source build of cf34d3113; contract reference image"
+    },
+    "workload_contract": "qwen36-quick-v1 (frozen; byte-identical greedy stdout, 32 tokens, short prompt p0-short.txt)",
+    "capsules": [
+      "engine.expert_streaming@2.0.1",
+      "factory.methodology_ab",
+      "factory.integration_skill",
+      "factory.builder",
+      "factory.engine_inspector",
+      "factory.lab_client",
+      "factory.evidence"
+    ],
+    "host": {
+      "name": "Satay",
+      "board": "Jetson Orin Nano Super 8GB",
+      "l4t": "R36.5.2",
+      "mem_total_kib": 7789756
+    },
+    "evidence_workspace": "FACTORY_HOME store, task-scoped",
+    "budget_note": "builds ~3-5 min incl. queue; one screen lab run ~2-3 min; GPU and build work is serialized in the host queue"
+  }
+}

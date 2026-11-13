@@ -99,6 +99,28 @@ async def auth(command, home):
         await service.transport.close()
 
 
+def ask_task(args, home):
+    """Build an operator task from a template plus a plain-language instruction; save it under home/tasks."""
+    from datetime import datetime, timezone
+    from pathlib import Path
+    template = Path(args.template) if args.template else Path(__file__).with_name('tasks') / 'direct.json'
+    task = json.loads(template.read_text(encoding='utf-8'))
+    stamp = datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')  # branch names must be lowercase
+    task['objective'] = args.instruction.strip()
+    if not task['objective']:
+        raise ValueError('instruction must not be empty')
+    task['source']['branch'] = args.branch or f'direct-{stamp}'
+    if args.max_turns:
+        task['budget']['max_turns'] = args.max_turns
+    if args.wall_clock:
+        task['budget']['wall_clock_s'] = args.wall_clock
+    out = Path(home) / 'tasks' / f'ask-{stamp}.json'
+    if not args.dry_run:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(task, indent=2) + '\n', encoding='utf-8')
+    return out, task
+
+
 def main(argv=None):
     check_legacy_config_or_exit()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -116,6 +138,16 @@ def main(argv=None):
         command.add_argument('--plain', action='store_true')
         if name == 'show':
             command.add_argument('id', nargs='?', help='evidence record ID; omit to show all records')
+    ask = sub.add_parser('ask', help='tell the agent what to do in plain words: create the task from a template and run it (no web frontend)')
+    ask.add_argument('instruction', help='the objective, e.g. "integrate expert_fill ... build once ... screen once"')
+    ask.add_argument('--template', help='task JSON supplying contract, source, resources (default: tasks/direct.json)')
+    ask.add_argument('--branch', help='owned checkout branch for this task (default: direct-<UTC time>)')
+    ask.add_argument('--max-turns', type=int)
+    ask.add_argument('--wall-clock', type=int, help='seconds')
+    ask.add_argument('--model', help='agent model (sets JIUWENSWARM_CODEX_MODEL, e.g. gpt-6.1-sol)')
+    ask.add_argument('--grant', action='append', help='operator grant (repeatable; default: the template allowed_effects)')
+    ask.add_argument('--dry-run', action='store_true', help='print the task JSON and exit')
+    ask.add_argument('--plain', action='store_true')
     baseline = sub.add_parser('baseline-import', help='operator: link the existing plain-engine build into a task (no rebuild)')
     baseline.add_argument('task_id')
     baseline.add_argument('--from-task', default='operator-bare-build')
@@ -209,6 +241,21 @@ def main(argv=None):
     try:
         if args.command in {'login', 'auth-status'}:
             asyncio.run(auth(args.command, home))
+            return
+        if args.command == 'ask':
+            task_file, task = ask_task(args, home)
+            if args.dry_run:
+                print(json.dumps(task, indent=2))
+                return
+            if args.model:
+                import os
+                os.environ['JIUWENSWARM_CODEX_MODEL'] = args.model
+            controller = Controller(home, grants=args.grant or task['allowed_effects'])
+            task_id = controller.init_task(task_file)
+            print(f'task {task_id} · branch {task["source"]["branch"]} · follow with: jiuwenswarm-factory story {task_id} --follow --demo',
+                  flush=True)
+            result = asyncio.run(controller.run(task_id))
+            print(format_status(scrub(result), args.plain, controller._snapshot(task_id)))
             return
         controller = Controller(home, grants=getattr(args, 'grant', []))
         if args.command == 'init':

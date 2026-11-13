@@ -22,3 +22,14 @@ Hard stop for this continuation: 12:40 UTC, which leaves about 0.5 h of margin u
 
 | Package (re-pin, restore check, zip), Danta copy and direct-I/O verification, commits and push | 09:17 | 09:26 | 0.15 h | 0 | — |
 | **Final charge** | | | **2.26 h of 6 h** | **0 h of 2 h** | Stopped at completion; no time consumed just because it remained. |
+
+## Operator-requested proof run (added on the operator's explicit request)
+
+The operator asked to show, without the web frontend, that a JiuwenSwarm agent can be told to apply the CC task to llama.cpp, integrate the components through the CC runner, build through the CC runner, and get a working engine.
+
+- **What runs:** `jiuwenswarm-factory ask "<instruction>" --model gpt-6.1-sol`, using the `tasks/direct.json` template. Contract: `qwen36-quick-v1`. Slice: `expert_weight_readiness`.
+- **Parent:** plain llama.cpp `cf34d3113`. Baseline image: `bare-cf34d311`.
+- **Scope:** integrate `expert_fill` plus its dormant prerequisites, one build, one screen lab run. No ABBA, no other components, no tuning.
+- **Expected observation:** three component commits, one successful build image, and a screen whose output equals reference `cad62aa9…` and whose fill engagement checks pass.
+- **Cost and stop rule:** about 10 min of lab occupation (build plus one screen) and at most 60 min of wall time (task budget: 10 turns, 3600 s). Stop on the agent's terminal decision, or after two infrastructure failures.
+- **Not a performance claim.** The screen timing is preliminary by contract.
