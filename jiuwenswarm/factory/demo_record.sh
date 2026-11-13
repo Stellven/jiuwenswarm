@@ -15,7 +15,8 @@ SESSION=factory-demo
 mkdir -p "$OUT"
 cd "$ROOT"
 
-T=$($JW factory init "$TASK_JSON")
+# RESUME_TASK=<task id> continues an interrupted task (e.g. after a host reboot) in a new recording segment.
+T=${RESUME_TASK:-$($JW factory init "$TASK_JSON")}
 echo "$T" > "$OUT/task-id"; echo "$T" > "$FH/demo-task-id-3"
 cp "$TASK_JSON" "$OUT/task.json"
 git rev-parse HEAD > "$OUT/jiuwenswarm-commit"
