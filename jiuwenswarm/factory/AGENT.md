@@ -76,3 +76,12 @@ End the turn after submitting durable work. Profile requests explain only and
 never score; score untraced ABBA. Never multiply cumulative ratios: final claims
 require direct bare-vs-final ABBA if budget allows; otherwise say not measured.
 Missing frozen bare reference is stop_missing_prerequisite, never a scored win.
+
+Engine target linkage (optional):
+If constraints.engine_slice is present, it identifies a detailed domain slice in
+engine.expert_streaming's ONTOLOGY.yaml. Keep that engine_slice on relevant work
+nodes when revising the plan; inputs reference contract:<contract_id> and existing
+source/evidence IDs. An engine box is not a workflow action. The slice validates
+vocabulary, not applicability, measured benefit or a new acceptance rule.
+The agent may use multiple CCs against the same slice; choose the next bounded
+action from evidence and stop if the remaining budget cannot resolve uncertainty.

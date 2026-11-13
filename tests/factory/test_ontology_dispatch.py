@@ -20,8 +20,8 @@ def node(key, **fields):
 
 def test_ontology_and_component_ids():
     vocab = ontology.load()
-    assert (vocab['id'], vocab['version'], vocab['status']) == ('satay.engine-ontology', '0.1', 'provisional')
-    assert len(ontology.PATH.read_text().splitlines()) <= 150
+    assert (vocab['id'], vocab['version'], vocab['status']) == ('satay.engine-ontology', '0.2', 'provisional')
+    assert len(ontology.PATH.read_text().splitlines()) <= 160
     schema = json.loads((ontology.PATH.parents[2] / 'schemas/component.schema.json').read_text())
     for path in components.ROOT.glob('*/component.yaml'):
         material = components.load(path.parent.name)
@@ -150,3 +150,21 @@ def test_pending_revision_keeps_attempt_links_and_validates_vocabulary(store):
     for change in [dict(requires_evidence=['unknown.quantity']), dict(resources={'class': 'unknown'})]:
         with pytest.raises(ValueError):
             plan_patch(store, 't', {'update': [dict(node_id='existing', **change)]}, 2, 1)
+
+
+def test_engine_slice_target_and_contract_link(store):
+    from jiuwenswarm.factory.taskgraph import initial_plan
+    task = dict(task_id='t', contract_id='frozen', constraints={'engine_slice': 'expert_weight_readiness'})
+    seed = initial_plan(task)
+    assert all(n['engine_slice'] == 'expert_weight_readiness' and 'contract:frozen' in n['inputs']
+               for n in seed['add'])
+    store.advance_decision('t', 0, dict(hypothesis='Observe the named engine target'))
+    plan_patch(store, 't', {'add': [node('inspect', engine_slice='expert_weight_readiness')]}, 0, 1)
+    assert plan_get(store, 't')['nodes'][0]['engine_slice'] == 'expert_weight_readiness'
+    with pytest.raises(ValueError, match='ontology slice'):
+        plan_patch(store, 't', {'update': [dict(node_id='inspect', engine_slice='gpu_magic')]}, 1, 1)
+    with pytest.raises(ValueError, match='ontology slice'):
+        initial_plan(dict(task, constraints={'engine_slice': 'gpu_magic'}))
+    assert 'engine_slice' not in initial_plan(dict(task, constraints={}))['add'][0]
+    parsed = parse_engagement('expert_phase: stats decode_tokens=32\n')
+    assert parsed['phase']['labels']['decode_tokens']['unit'] == 'tokens'

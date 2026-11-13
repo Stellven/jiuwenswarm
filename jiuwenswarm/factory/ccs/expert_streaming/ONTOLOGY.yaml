@@ -1,5 +1,5 @@
 id: satay.engine-ontology
-version: '0.1'
+version: '0.2'
 status: provisional
 entities:
   engine_revision: Source commit plus any retained patch identity.
@@ -133,7 +133,7 @@ quantities:
   readiness.prompt_selected: {"unit": "count", "phase": "prompt", "source": {"line": "expert_readiness: stats", "field": "prompt_selected"}, "region": "M.readiness", "distinct_from": []}
   readiness.prompt_missing_bytes: {"unit": "bytes", "phase": "prompt", "source": {"line": "expert_readiness: stats", "field": "prompt_missing_bytes"}, "region": "M.readiness", "distinct_from": []}
   readiness.probe_ns_total: {"unit": "ns", "phase": "run", "source": {"line": "expert_readiness: stats", "field": "probe_ns_total"}, "region": "M.readiness", "distinct_from": []}
-  phase.decode_tokens: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "decode_tokens"}, "region": "L3", "distinct_from": []}
+  phase.decode_tokens: {"unit": "tokens", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "decode_tokens"}, "region": "L3", "distinct_from": []}
   phase.decode_wall_ns: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "decode_wall_ns"}, "region": "L3", "distinct_from": []}
   faults.minflt: {"unit": "count", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "minflt"}, "region": "L3", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "decode.ms_per_token"]}
   faults.majflt: {"unit": "count", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "majflt"}, "region": "L3", "distinct_from": []}
@@ -148,3 +148,10 @@ quantities:
   latency.rest_ns_mean: {"unit": "ns", "phase": "decode", "source": {"line": "expert_phase: stats", "field": "rest_ns_mean"}, "region": "L3", "distinct_from": []}
   decode.ms_per_token: {"unit": "ms/token", "phase": "decode", "source": {"line": "eval time", "field": "ms_per_token"}, "region": "L3", "distinct_from": ["prediction.recall_at_k", "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted", "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted", "faults.minflt"]}
   prompt.ms_per_token: {"unit": "ms/token", "phase": "prompt", "source": {"line": "prompt eval time", "field": "ms_per_token"}, "region": "L3", "distinct_from": []}
+
+# Domain slices name engine boxes, not scheduled work.
+slices:
+  expert_weight_readiness:
+    purpose: Make selected expert weights available before CPU expert execution under -cmoe.
+    regions: [L4.router, L4.selected_expert, L4.expert_execution, M.expert_weight_range, M.read_request, M.readiness, M.page_cache, M.memory_budget]
+    quantities: [fill.decode_bytes_read, fill.demand_wait_ns_per_token, prediction.recall_at_k, readiness.ready_bytes_predicted, readiness.missing_bytes_predicted, readiness.duplicate_demand_bytes, decode.ms_per_token]

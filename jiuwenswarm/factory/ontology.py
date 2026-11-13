@@ -16,6 +16,11 @@ def load():
                 or spec['region'] not in ontology['entities']['regions']
                 or set(spec['distinct_from']) - quantities.keys()):
             raise ValueError('Invalid engine ontology quantity')
+    for slice_ in ontology.get('slices', {}).values():
+        if (not slice_.get('purpose')
+                or set(slice_['regions']) - ontology['entities']['regions'].keys()
+                or set(slice_['quantities']) - quantities.keys()):
+            raise ValueError('Invalid engine ontology slice')
     return ontology
 
 
@@ -36,3 +41,10 @@ def validate_component(material):
         if not isinstance(ids, list) or any(not isinstance(v, str) or v not in known for v in ids):
             raise ValueError('Unknown ontology ids in component ' + field)
     return material
+
+
+def validate_slice(slice_id):
+    """Validate a domain target; it grants no execution or acceptance authority."""
+    if not isinstance(slice_id, str) or slice_id not in load().get('slices', {}):
+        raise ValueError('Unknown engine ontology slice')
+    return load()['slices'][slice_id]

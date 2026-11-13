@@ -19,7 +19,7 @@ FIXTURE = Path(__file__).parent / 'fixtures/expert_streaming/stderr.txt'
 
 def test_capsule_materials_and_components():
     cc = load(CAPSULE / 'cc.yaml')
-    assert cc['id'] == 'engine.expert_streaming' and cc['version'] == '2.0.0'
+    assert cc['id'] == 'engine.expert_streaming' and cc['version'] == '2.0.1'
     assert set(cc['capabilities']) == {'applicability','engagement'}
     for material in cc['materials'].values():
         path = (CAPSULE / material['path']).resolve()

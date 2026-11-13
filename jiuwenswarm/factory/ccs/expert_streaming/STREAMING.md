@@ -78,3 +78,28 @@ revision qualifications matter):
 - `LLAMA_EXPERT_PREGATE_MAX_INFLIGHT`: 1..64 (also capped by fill threads)
 - `LLAMA_EXPERT_PREGATE_ORDER`: after|before
 - `LLAMA_MMAP_ADVICE`: random enables; any other value keeps default advice
+
+## Name the engine target, then revise the work
+
+For a new task, constraints.engine_slice = expert_weight_readiness links the
+operator's engineering contract to the named domain slice in ONTOLOGY.yaml.
+The host seeds that target and the scored contract reference onto work nodes.
+Keep the target when revising relevant work; no task graph is an engine diagram.
+Use the slice's regions to explain where the chosen component acts and its
+quantities to name the discriminating observation. The engine ontology is a
+small provisional vocabulary, not a complete inferred model of llama.cpp.
+
+The existing decision loop is sufficient: inspect known evidence, state one
+hypothesis and a deferred alternative, choose the minimum applicable component
+set, build only changed source, screen correctness and engagement, and compare
+only if the budget and screen justify it. Update the decision from the new
+observations; continue, revert or report inconclusive. Never prescribe a fixed
+number of improving versions. A single agent may consult this methodology,
+factory.methodology_ab, factory.integration_skill and the builder/lab capsules
+in one task. Guidance is read by the agent; it does not itself execute patches.
+
+For the recovery/demo task, existing evidence is the default. Its six-hour total
+and two-hour lab ceilings do not require consuming either budget. At most one
+new candidate is justified only by a discriminating existing observation; do not
+rerun simply to obtain a prettier number. Preserve all attempts and distinguish
+recorded demonstrations, preliminary screens and scored comparisons.

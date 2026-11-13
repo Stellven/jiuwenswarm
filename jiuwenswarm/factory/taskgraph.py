@@ -16,7 +16,7 @@ STATES = frozenset('proposed ready running blocked done failed cancelled superse
 TERMINAL = {'cancelled', 'superseded'}
 NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on', 'state',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
-               'outcome', 'entities', 'requires_evidence', 'resources'}
+               'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice'}
 
 
 def initialize(db):
@@ -68,6 +68,9 @@ def _validate(nodes):
             raise ValueError('Plan reason must be text')
         if 'outcome' in node and (not isinstance(node['outcome'], str) or not node['outcome'].strip()):
             raise ValueError('Plan outcome must be nonempty text')
+        if 'engine_slice' in node:
+            from .ontology import validate_slice
+            validate_slice(node['engine_slice'])
         if 'entities' in node:
             _ids(node['entities'])
         if 'requires_evidence' in node:
@@ -124,7 +127,7 @@ def _apply(nodes, patch, decision_rev):
     for operation in ('update', 'cancel', 'supersede'):
         for change in patch.get(operation, []):
             allowed = {'node_id', 'state', 'evidence_ids', 'attempt_ids', 'depends_on', 'reason',
-                       'outcome', 'entities', 'requires_evidence', 'resources'} if operation == 'update' else {'node_id', 'reason'} | ({'by'} if operation == 'supersede' else set())
+                       'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice'} if operation == 'update' else {'node_id', 'reason'} | ({'by'} if operation == 'supersede' else set())
             required = {'node_id'} if operation == 'update' else allowed
             _object(change, allowed, required)
             key = identifier(change['node_id'])
@@ -288,10 +291,18 @@ def initial_plan(task):
         ('accept', 'accept', 'Decide from comparable evidence', None),
         ('report', 'report', 'Report result and limitations', None),
     ]
+    constraints = task.get('constraints', {})
+    slice_id = constraints.get('engine_slice') if isinstance(constraints, dict) else None
+    target = {}
+    if slice_id is not None:
+        from .ontology import validate_slice
+        validate_slice(slice_id)
+        target = {'engine_slice': slice_id}
     nodes = []
     for key, kind, title, capability in specs:
         nodes.append(_node(dict(node_id=key, kind=kind, title=title, capability=capability,
-                     inputs=[task['task_id']], depends_on=[nodes[-1]['node_id']] if nodes else [],
+                     inputs=[task['task_id']] + (["contract:" + task['contract_id']] if target else []),
+                     **target, depends_on=[nodes[-1]['node_id']] if nodes else [],
                      reason='Host suggestion; agent may cancel, replace or reorder from evidence.'), 0))
     return {'add': nodes}
 

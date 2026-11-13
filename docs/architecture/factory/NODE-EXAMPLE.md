@@ -1,86 +1,66 @@
-# Node vocabulary and an expert-readiness instance
+# Engine slice, contract and work nodes
 
-These are records in the existing factory store, not a new planning service.
-The engine vocabulary is [ONTOLOGY.yaml](../../../jiuwenswarm/factory/ccs/expert_streaming/ONTOLOGY.yaml).
-The operator replaces every `<run5:...>` placeholder with actual evidence IDs;
-this example makes no live-run claim.
+This replaces the old presentation example with its unfilled run placeholders.
+Historical task records are unchanged. The example below is explanatory, not a
+claim that a new engine run has occurred.
 
-| Vocabulary | Record or field implementing it |
+## Two kinds of node
+
+The system ontology describes engine boxes: L3 generation loop, L4 model
+operations and router/selected-expert/expert-execution, L5 CPU/GPU kernels, and
+M weight ranges/read requests/readiness/page cache/memory budget. These local
+labels are canonical for this capsule; other architecture drawings may number
+layers differently. Match named boxes, not numbers.
+
+The detailed domain slice `expert_weight_readiness` groups the affected boxes.
+Under Satay's `-cmoe` configuration expert computation is on CPU. Buffered reads
+and predictive reads make mapped weight bytes available through shared memory;
+these components do not migrate experts to GPU.
+
+A work node is an inspect/integrate/build/measure/decide action, not an engine box.
+Multiple work nodes and multiple CCs can target the same domain slice. Plans are
+revisable evidence records; stored evidence/source/image references are shared
+context, not a copy of the entire environment passed along DAG edges.
+
+## Contract to intervention to evidence
+
+For new tasks use `constraints.engine_slice: expert_weight_readiness`.
+The existing operator task contains objective, constraints, source, resources,
+budget and `contract_id`. This engineering brief is distinct from the frozen lab
+contract that fixes correctness and measurement conditions. The host copies the
+slice to seeded work nodes and adds `contract:<contract_id>` to their inputs.
+Unknown slice identifiers are rejected. Old tasks without this optional field
+keep their existing behavior; no past recording acquires invented metadata.
+
+| Link | Concrete implementation |
 |---|---|
-| Task contract | Task `objective`, `constraints`, `contract_id`; attempt request snapshots the versioned evaluation contract. |
-| Plan revision | Immutable observation `kind=taskgraph_patch`, `values.rev`, `parent_rev`, `decision_rev`, `patch`. |
-| Work node | Graph `nodes[]`: `node_id`, `kind`, `outcome`, `entities`, `capability`, `requires_evidence`, `resources`, `state`. |
-| Attempt | Store `attempts`: `attempt_id`, `request`, `state`, `result_refs`; linked by node `attempt_ids` and optional request `node_id`. |
-| Dependency | Node `depends_on`; every dependency must be done before an explicitly node-linked submission. |
-| Observation | Store `observations`: `obs_id`, `kind`, `values`, `source_artifacts`; engagement counter `labels` carry quantity, unit and phase. |
-| Assessment | Store `evaluations`: correctness, evidence completeness, execution outcome; A/B `inputs.acceptance` and observation `values.acceptance`. |
-| Decision | Store `decisions`: hypothesis, evidence IDs, action, revision lineage; optional atomic `plan_patch`. |
-| Resource claim | Node `resources.class` expresses requested class; attempt `resources.job_class` records the actual queue class. The host/jobq owns allocation. |
+| Domain target | `expert_weight_readiness`, regions and quantities in ONTOLOGY.yaml |
+| Method | engine.expert_streaming guide: inspect demand I/O, choose a mechanism, inspect effective settings, stop or revise on contradictory evidence |
+| Intervention | expert_fill modifies L4.selected_expert and M.read_request; its mmap_advice and router_prefetch source prerequisites can remain disabled |
+| Optional later method | expert_pregate predicts upcoming selection and requests asynchronous reads; recall alone is not readiness |
+| Integration | factory.integration_skill supplies application guidance; the agent applies and commits source changes |
+| Build | factory.builder.submit/status/result: durable job and identified image, not submission-equals-success |
+| Evaluation | factory.lab_client.submit or ab_submit plus status/result, under the pinned contract |
+| Interpretation | factory.methodology_ab supplies comparison rules; factory.evidence publishes observations, decisions and revised work graph |
 
-Objective: **make selected expert weights ready before use**. Candidate component
-`expert_fill` implements `expert_streaming.demand_fill`; `expert_pregate`
-implements `expert_streaming.predictive_read`. These are component capability
-identities, not newly callable engine-execution tools. `modifies_region` and
-`quantities` describe their mechanisms and evidence in the ontology.
+A work node may have `engine_slice: expert_weight_readiness`,
+`requires_evidence: [fill.decode_bytes_read, decode.ms_per_token]`, source and
+contract references in `inputs`, and result links in `evidence_ids`/`attempt_ids`.
+Component materials identify `implements`, `modifies_region` and `quantities`.
+Together these explain contract -> slice -> component -> source -> image ->
+observations -> decision without inventing another ontology service.
 
-The following is the `patch` of a decision-linked `plan_patch` call. Supply the
-current `expected_graph_rev` and an existing `decision_rev` from Run 5 separately.
+## Operational limits and version boundary
 
-```json
-{
-  "add": [
-    {
-      "node_id": "<run5:build_node_id>",
-      "kind": "build",
-      "title": "Build selected expert-readiness mechanism",
-      "outcome": "An admitted image containing the selected component source",
-      "entities": ["engine_revision:<run5:engine_revision>", "source_tree:<run5:source_tree>", "component:expert_fill", "component:expert_pregate"],
-      "capability": "factory.builder.submit",
-      "resources": {"class": "build"},
-      "state": "proposed"
-    },
-    {
-      "node_id": "<run5:measure_node_id>",
-      "kind": "measure",
-      "title": "Measure readiness before selected expert use",
-      "outcome": "Make selected expert weights ready before use, with comparable evidence",
-      "entities": ["image:<run5:image_id>", "model:<run5:model_id>", "quantization:<run5:quantization>", "workload:<run5:workload>", "contract:<run5:contract_id>", "region:M.readiness"],
-      "capability": "factory.lab_client.ab_submit",
-      "depends_on": ["<run5:build_node_id>"],
-      "requires_evidence": [
-        "readiness.ready_bytes_predicted", "readiness.missing_bytes_predicted",
-        "readiness.ready_bytes_unpredicted", "readiness.missing_bytes_unpredicted",
-        "readiness.duplicate_demand_bytes", "readiness.wasted_async_bytes"
-      ],
-      "resources": {"class": "gpu"},
-      "state": "proposed"
-    }
-  ]
-}
-```
+The host validates slice and quantity names, component references, graph
+lifecycle and dispatch readiness. Applicability uses heuristic evidence-gap
+ranking. This is not proof of optimal selection, nor does a slice automatically
+satisfy engagement or acceptance obligations. The agent must publish supporting
+evidence and the ordinary acceptance rules still apply.
 
-Submit the build with `node_id=<run5:build_node_id>`, retain
-`<run5:build_attempt_id>` in that node's `attempt_ids`, and attach its result
-evidence before marking it done. Then submit measurement with
-`node_id=<run5:measure_node_id>`. Dispatch refuses unknown, superseded, cancelled,
-done or failed nodes, and nodes with unfinished dependencies. Calls without
-`node_id` retain the existing behavior. Submission records `node_id` in the
-attempt request; it does not automatically patch node state or attempt links.
-
-Pass the measurement node's `requires_evidence` to `expert_streaming.engagement`
-with `<run5:measurement_attempt_id>`. Missing required counters are returned in
-`missing_required`, per run and across runs; a printed zero is measured. Node
-requirements describe evidence obligations; they do not change the scoring
-contract or automatically establish acceptance. Entity references are descriptive.
-
-Acceptance follows the pinned component material's module type:
-
-| Module type | Acceptance |
-|---|---|
-| Performance (`expert_fill`, `expert_pregate`, `inflight_join`, `mmap_advice`, `router_prefetch`) | Valid complete comparable ABBA, byte-identical correctness, passing engagement and gate `improved`. |
-| Observability (`expert_readiness`, `phase_stats`, `thread_names`) | Correctness and every engagement check pass; overhead `1/ratio - 1 <= max(overhead_bound, gate threshold)`. Missing capture is invalid. |
-| Prerequisite | Retain dormant only with an explicit `keep_dormant` decision, source dependencies and runtime switches off; no enabled performance win is claimed. |
-
-Record `<run5:evaluation_id>` and `<run5:decision_rev>` with the assessment.
-Recall, readiness, faults and decode time remain distinct evidence: a readiness
-improvement alone does not establish a decode speedup.
+The capsule is now 2.0.1 with ontology 0.2: the slice and method explanation are
+added, and phase.decode_tokens is correctly labelled tokens rather than ns.
+`cc-rsi-v1` remains the immutable older baseline. These are new-version changes,
+not a retroactive alteration of what the recorded run used. No extra cycle CC
+is necessary: the host decision loop and existing method already support repeat,
+revise and stop, with no fixed number of versions.
