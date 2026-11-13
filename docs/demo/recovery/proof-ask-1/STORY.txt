@@ -1,0 +1,32 @@
+ factory · cc5e8585 · Qwen3.6-35B-A3B on jetson-orin · ACCEPT · 3 turns · 13:10
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 01:16  ✓     integrate  commit b7910f72 ·
+ 01:19  ·     expert_streaming_applicability Read-only inspection; not performance scoring
+ 01:41  rev 1 integrate  Task requires exactly three source components and a single screen.
+ 01:55  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 02:36  ✓     integrate  commit 885eec82 ·
+ 02:54  rev 2 build      Ordered source integration completed and clean source verified by
+                         dc19110a3710414892c7ec9b8d9fa3e1.
+ 02:55  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 03:15  ·     build      3445e556 queued · durable job
+ 03:36  ·     build      3445e556 running · durable job
+ 07:54  ✓     build      3445e556 · 165 s → image a15f04f0
+ 08:02  ✓     build      3445e556 succeeded · durable job · survived turn end
+ 08:38  rev 3 investigate Successful builder evidence permits bounded runtime screening.
+ 08:39  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+ 08:58  rev 4 measure    Successful build receipt supports single authorized screen
+ 09:15  ·     lab        bbc85611 queued · durable job
+ 09:15  ✓     admit      297828dd · image a15f04f0 · target jetson-orin
+ 09:37  ·     lab        bbc85611 running · durable job
+ 11:29  ✓     contract   qwen36-quick-v1 · pass · ok · complete · stdout cad62aa9 == reference
+                         cad62aa9 · engagement 0/2
+ 11:29  ✓     lab        32 tokens · 898.36 ms/token · ok · reaped
+ 11:29  ✓     upload     durable
+ 11:39  ✓     lab        bbc85611 succeeded · durable job · survived turn end
+ 12:11  ·     expert_streaming_engagement Read-only inspection; not performance scoring
+ 13:02  rev 5 accept     bbc85611ca9e48039e4354a0c819f35e:evaluation proves frozen correctness and
+                         stderr plus 86cb7c42ca3e431383a9344f096b1359 prove demand-fill engagement.
+ 13:03  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+chain: component ✓ → commit ✓ → build ✓ → image ✓ → admission ✓ → lab ✓ → evaluation ✓
+evidence: 50 records · 29 artifacts · 7874957 bytes

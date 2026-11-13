@@ -1,0 +1,18 @@
+Plan factory-cc5e8585445c484ba4d5b5b0dd96c31c · graph rev 5
+[done] inspect: Inspect task source and constraints (factory.engine_inspector.inspect)
+  [done] applicability: Assess component applicability
+    [cancelled] baseline-build: Build baseline (factory.builder.submit)
+      [cancelled] baseline-measure: Measure baseline (factory.lab_client.submit)
+    [done] integrate: Integrate engine.expert_streaming
+      [done] candidate-build: Build candidate (factory.builder.submit)
+        [cancelled] candidate-measure: Measure candidate against baseline (factory.lab_client.ab_submit)
+        [done] candidate-screen: Single expert_fill screen (factory.lab_client.submit)
+          [done] accept: Decide from comparable evidence
+            [done] report: Report result and limitations
+Ready frontier: (empty)
+Revision history:
+  graph 1 ← decision 0 (seed): add: inspect, applicability, baseline-build, baseline-measure, integrate, candidate-build, candidate-measure, accept, report
+  graph 2 ← decision 1 (decision): add: candidate-screen; cancel: baseline-build, baseline-measure, candidate-measure; update: inspect, applicability, integrate, accept
+  graph 3 ← decision 2 (decision): update: integrate
+  graph 4 ← decision 3 (decision): update: candidate-build
+  graph 5 ← decision 5 (decision): update: candidate-screen, accept, report
