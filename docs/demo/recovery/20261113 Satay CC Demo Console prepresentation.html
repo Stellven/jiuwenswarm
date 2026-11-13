@@ -135,7 +135,7 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>show(b.dataset.p)
 let started=null,interval=null;const clock=document.querySelector('#clock'),timer=document.querySelector('#timer');
 function toggleTimer(){if(interval){clearInterval(interval);interval=null;timer.textContent='Start rehearsal';return}started=performance.now();timer.textContent='Stop rehearsal';interval=setInterval(()=>{let s=Math.floor((performance.now()-started)/1000);clock.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')+' / 10:00';clock.style.color=s>600?'#ffa996':'#f2cf88'},200)}
 timer.onclick=toggleTimer;document.querySelector('#notesbtn').onclick=()=>document.body.classList.toggle('shownotes');
-document.addEventListener('keydown',e=>{if(e.target.closest('input,textarea')||e.ctrlKey||e.metaKey||e.altKey)return;const cur=views.indexOf(document.querySelector('.page.active').id.slice(2));
+document.addEventListener('keydown',e=>{if((e.target.closest&&e.target.closest('input,textarea'))||e.ctrlKey||e.metaKey||e.altKey)return;const cur=views.indexOf(document.querySelector('.page.active').id.slice(2));
 if(/^[1-6]$/.test(e.key))show(views[+e.key-1]);else if(e.key==='ArrowRight'&&e.target!==video)show(views[Math.min(cur+1,views.length-1)]);else if(e.key==='ArrowLeft'&&e.target!==video)show(views[Math.max(cur-1,0)]);
 else if(e.key==='n'||e.key==='N')document.body.classList.toggle('shownotes');else if(e.key==='t'||e.key==='T')toggleTimer();
 else if(e.key===' '&&views[cur]==='replay'&&e.target!==video){e.preventDefault();video.paused?video.play():video.pause()}});
