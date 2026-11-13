@@ -1,4 +1,4 @@
-# 20261113 Satay CC Demo and Recovery v2 prepresentation
+# 20261113 Satay CC Demo and Recovery v3 prepresentation
 
 **Presenting:** open `20261113 Satay CC Demo Console prepresentation.html` in Chrome. It needs only a browser and this folder: no inference, network or factory. Press `N` for speaker notes and `1`–`6` to change views. The script is in `PRESENTATION.md`, and answers to likely questions are in `ATTACK QUESTIONS.md`.
 
@@ -10,12 +10,15 @@
 |---|---|---|---|
 | J-OM13 | Historical 64-token matched experiment, fill plus predictive reads | Confirmed | The headline: 841.5 → 711.4 ms/token (−15.5% time, +18.3% throughput), four runs per headline arm |
 | Fresh recording | Task `factory-e5b8d4b7`, 32-token fill-only | Inconclusive | Shows the CC-guided process and decision |
+| Proof run (new in v3) | Task `factory-cc5e8585`: one plain-words `jiuwenswarm-factory ask` instruction, no web frontend | Accepted in 13 min; output identical to the frozen reference | Shows an agent integrating, building and screening through the CC runner. Operator fixed the scope. Not a speed claim |
+| J-ASK1 (new in v3) | 1-round ABBA, plain vs the proof-run image, 32 tokens | Null (+7.6%, gate 23.4%) | Context only; never combined with J-OM13 |
 
 The two are never treated as one run.
 
 ## Reading order
 
 1. `PRESENTATION.md`: the timed script and evidence boundaries.
+   - v3 adds `proof-ask-1/README.md`, with evidence in `evidence/proof-ask-1/` and `evidence/J-ASK1/`. The talk and console are unchanged from v2.
 2. `context/engineering/ENGINEERING-DETAILS.md`: the two engineering details and their sources.
 3. `ONTOLOGY.md`: the system ontology, engine slice, contract, work graph and CCs, and what the new slice link does.
 4. `ATTACK QUESTIONS.md`: concise answers and limitations.

@@ -28,11 +28,14 @@ AUTHORED = ['20261113 Satay CC Demo Console prepresentation.html', 'START HERE.m
             'PRESENTATION.md', 'RECOVERY.md', 'REPLAY.md', 'ONTOLOGY.md', 'ATTACK QUESTIONS.md',
             'REVIEW.md', 'VALIDATION.md', 'BUDGET.md', 'HANDOFF.md', 'MODEL-CONFIG.md']
 OVERLAY_DIRS = {'scripts': 'scripts', 'context/engineering': 'context/engineering', 'media': 'media',
-                'reviews': 'reviews', 'tooling': 'tooling'}
+                'reviews': 'reviews', 'tooling': 'tooling', 'proof-ask-1': 'proof-ask-1'}
 EXTRA = {HERE / 'extracts/factory-e5b8d4b7-decisions.json': 'evidence/incremental/decisions.json',
          CCS / 'methodology_ab/AB.md': 'context/methodology_ab/AB.md',
          CCS / 'expert_streaming/components/expert_fill/component.yaml': 'context/expert_streaming/components/expert_fill.component.yaml',
-         J / 'docs/architecture/factory/NODE-EXAMPLE.md': 'context/NODE-EXAMPLE.md'}
+         J / 'docs/architecture/factory/NODE-EXAMPLE.md': 'context/NODE-EXAMPLE.md',
+         # v3: the 'factory ask' proof run (sanitized store export) and its J-ASK1 speed check
+         Path('/home/muk/backup/proof-ask-1-evidence'): 'evidence/proof-ask-1',
+         Path('/home/muk/projects/siminfeng/experiments/jetson/OM/J-ASK1'): 'evidence/J-ASK1'}
 REPOS = {'jiuwenswarm': Path('/home/muk/projects/jiuwenswarm'), 'siminfeng': Path('/home/muk/projects/siminfeng'),
          'tools': Path('/home/muk/tools'), 'llama-engine': Path('/home/muk/.jiuwenswarm-factory/agent-workspace/llama.cpp')}
 SECRET = [re.compile(rb'-----BEGIN (?:OPENSSH|RSA|EC|DSA) PRIVATE KEY-----'), re.compile(rb'\bsk-(?:proj-)?[A-Za-z0-9_-]{32,}'),

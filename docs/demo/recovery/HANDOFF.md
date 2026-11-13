@@ -132,3 +132,12 @@ Neither was touched. Close the tmux session yourself if it is yours.
   - **Start it again before any factory build or lab job:** `systemctl --user start satay-jobq`. Without the worker, factory jobs stay queued forever.
   - Worth fixing later: back the idle poll off to about 1 s in siminfeng `bin/jobq`.
 - **saurav** is in the `docker` group and has read-only `/srv/satay-shared/` (model hard link, prompts, contracts, baseline build record, README, SHA256SUMS).
+
+## Update: v3 package (adds the `ask` proof run)
+
+v3 is v2 plus three additions:
+- the `factory ask` proof run, `proof-ask-1/` and `evidence/proof-ask-1/` (sanitized store export)
+- the J-ASK1 speed check, `evidence/J-ASK1/`
+- source bundles re-pinned to the current commits
+
+The talk, console and video are unchanged. The v1 and v2 zips stay unchanged in `~/backup` and on Danta. The v3 hash is recorded in `VALIDATION.md` after the build.
