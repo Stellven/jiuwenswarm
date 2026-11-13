@@ -1,4 +1,6 @@
-> **Branch `ai4r_ccv2`:** JiuwenSwarm plus the Codex-as-model integration plus a Capability Capsule (CC) v2 runner that agents use as native tools. The earlier AI4Research M1 machinery is removed. See the [architecture page](docs/architecture/README.md), [install and run](docs/architecture/ccv2/README.md) and the [demonstration evidence](artifacts/ccv2-demo/SUMMARY.md). The JiuwenSwarm documentation below describes the underlying platform.
+> **Branch `cc-siminfeng`: Jetson Orin Nano software factory using Capability Capsules.** Start with the [branch record](docs/architecture/factory/20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md) for implemented behavior, exact revision boundaries, results and limitations. This builds on the CC v2 runtime and preserved Codex integration; the earlier M1 machinery remains removed. The JiuwenSwarm documentation below describes the underlying platform.
+
+Lab developers: [complete CC catalog, declarations and integration guide](docs/architecture/factory/20261113%20CC%20Catalog%20and%20Lab%20Integration%20postpresentation.md).
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />

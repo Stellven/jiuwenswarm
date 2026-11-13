@@ -1,45 +1,29 @@
-# START HERE — Satay software factory demo (uses CCs)
+# 20261113 Jetson Software Factory Start Here postpresentation
 
-**Repo / branch:** `Stellven/jiuwenswarm`, branch `cc-siminfeng` (descends from AI4Research-Main `141c1c4`; lab tools in submodule `lab/siminfeng`).
-**What it shows (≈5 min):** plain llama.cpp + a task contract → JiuwenSwarm runs an agent that uses a few CCs (expert streaming, integration, build, lab, evidence) → an improved engine: **711.4 vs 841.5 ms/token (1.18×), identical output** (J-OM13 direct A/B). All results are recorded evidence; nothing is rebuilt or benchmarked during the talk.
+This branch documents and implements the software-factory proof of concept developed on **Satay, NVIDIA Jetson Orin Nano Super 8GB**.
 
-## Run the demo (on Satay)
-```sh
-cd ~/projects/jiuwenswarm
-export FACTORY_HOME=~/.jiuwenswarm-factory PATH=$PWD/.venv/bin:$PATH
-jiuwenswarm factory demo preflight     # checks pack, assets, store, port
-jiuwenswarm factory demo build         # ~20 s, assembles the offline pack from real evidence
-jiuwenswarm factory demo serve         # http://127.0.0.1:8790, opens the browser
-```
-Controls (keyboard → ← space, or from a terminal): `jiuwenswarm factory demo {next,prev,pause,resume,goto N,status}`.
+Start with the [branch record](docs/architecture/factory/20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md). It covers the architecture, CCs, task/contract/ontology relationships, completed work, results, failed or inconclusive trials, and reuse instructions.
 
-| # | Section | Evidence | s |
-|---|---|---|---|
-| 1–2 | Two slides: one token through the engine; the factory loop | slides | 30+30 |
-| 3 | Plain llama.cpp `cf34d311` + the task contract | Run 4 records | 30 |
-| 4 | JiuwenSwarm invoking CCs (material reads, cc_call receipts) | Run 4 telemetry | 35 |
-| 5 | Source changes → built image | Run 4 commits + build receipts | 35 |
-| 6 | Selected vs predicted experts, readiness | separate unscored capture J-XS4 | 35 |
-| 7 | The agent changes its plan (CONFIG_MISSING → integrate reporting first) | Run 5 excerpt (held for later; kept nothing) | 40 |
-| 8 | Result: 1.18×, identical output | J-OM13 (12-run A/B); Run 4 single runs | 35 |
-| 9 | Handoff: `engine.expert_streaming` 2.0.0, tag `cc-rsi-v1` | RSI-START-HERE.md | 25 |
+- **Factory integration proof:** task `cc5e8585...`, image `a15f04f0...`, completed build and fixed-workload correctness screen. Not a speed claim.
+- **Historical performance:** separate J-OM13 fill-plus-predictive-read experiment, image `1274abb8...`, 841.5 to 711.4 ms/token. Not the fill-only proof run.
+- **Negative results:** Run 5 stopped without a kept component; the recorded fill-only task and J-ASK1 were inconclusive.
+- **Next hardware:** Spark requires separate qualification; its follow-up work is not a Jetson branch result.
 
-Rehearsed: all 9 sections advance on schedule (timed run 2026-11-12), total 295 s; every asset served (HTTP 200).
+## Full CC catalog for lab developers
 
-## Fallback (no browser/server)
-```sh
-less -R artifacts/factory/evidence/factory-bd173c082bf34ae3b8471938c19b8068/STORY.txt   # Run 4 story
-less artifacts/factory/evidence/factory-53db494559954fc6a690a9a014afbf21/PLAN.txt         # Run 5 plan revisions
-xdg-open ~/.jiuwenswarm-factory/demo-pack/assets/activity.html                           # expert activity
-scriptreplay -t artifacts/factory/recording/evolve-run4.timing artifacts/factory/recording/evolve-run4.typescript -d 200
-```
+[All 16 factory CCs and 4 runtime examples](docs/architecture/factory/20261113%20CC%20Catalog%20and%20Lab%20Integration%20postpresentation.md) include full declarations, inputs/outputs, every material link, native entry points and the lab integration boundary.
 
-## The real end-to-end command (not run during the talk)
-```sh
-T=$(jiuwenswarm factory init jiuwenswarm/factory/tasks/rsi-small-fill.json)
-jiuwenswarm factory run "$T" --grant process.exec --grant workspace.read --grant workspace.write --grant gpu.use
-```
-(~10 min per lab round with the fast contract `qwen36-quick-v1`.)
+## Read and reuse
 
-## RSI
-Frozen CC baseline: tag **`cc-rsi-v1`** — see `RSI-START-HERE.md`.
+1. [Repository boundary](docs/architecture/factory/REPOS.md): JiuwenSwarm owns the factory; Siminfeng is the hardware-facing lab and is pinned as `lab/siminfeng`.
+2. [Jetson operating runbook](docs/architecture/factory/RUNBOOK.md): historical prerequisites and paths to inspect before adapting a new owned environment.
+3. [Proof instruction and results](docs/demo/recovery/proof-ask-1/README.md): what the operator prescribed, what the agent did and what the screen established.
+4. [Task graph](docs/architecture/factory/TASK-GRAPH.md) and [engine/node ontology](docs/architecture/factory/NODE-EXAMPLE.md): traceability and replay, not automatic scheduling or semantic proof.
+5. [CC declarations](jiuwenswarm/factory/ccs/), [tasks](jiuwenswarm/factory/tasks/) and [contracts](jiuwenswarm/factory/contracts/): full source definitions.
+6. [Local RSI assignment](docs/rsi/2026-11-13/README.md): bounded proposed improvements, not already demonstrated optimizations.
+
+## Historical presentation material
+
+The [recovery package start page](docs/demo/recovery/START%20HERE.md), [proof run](docs/demo/recovery/proof-ask-1/README.md) and [November 12 status](docs/architecture/factory/STATUS-2026-11-12.md) retain original evidence and context. Replay and offline views do not submit builds or rerun inference. Host service status and paths in historical handoffs are not current-state guarantees.
+
+The November 13 presentation was successful according to the presenter. No new presentation is planned here; the next effort is deeper experiments and reusable capabilities.

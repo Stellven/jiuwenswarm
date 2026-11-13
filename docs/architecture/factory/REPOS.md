@@ -1,5 +1,7 @@
 # Two repositories, one software factory
 
+See the [Jetson branch record](20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md) for the reviewed published/local revisions and result boundaries. The pinned submodule and an external runtime lab checkout may differ; record both rather than assuming the pin identifies the executed tools.
+
 The factory is a **software factory that uses CCs** (Capability Capsules) to improve software — here, an inference engine. It is not a factory of CCs.
 
 | | `Stellven/jiuwenswarm` branch `cc-siminfeng` (renamed from `ai4r/iterative-cc-factory` on 2026-11-12) | `Muxite/siminfeng` (submodule `lab/siminfeng`) |

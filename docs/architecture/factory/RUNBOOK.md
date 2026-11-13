@@ -1,6 +1,8 @@
 # Satay factory runbook
 
-The factory is one native JiuwenSwarm/Codex agent using six CCs. The host enforces grants, durable state and job lifecycle; the deterministic Manager admits the image and ingests lab evidence. Native CCs are trusted-local code. See [AMENDMENT.md](AMENDMENT.md), [MIGRATION.md](MIGRATION.md) and [LINEAGE.md](LINEAGE.md).
+For current attribution and limitations, read the [Jetson branch record](20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md). Commands below document the historical Jetson environment; verify paths, versions, queue state and host ownership before new execution.
+
+The factory uses a JiuwenSwarm/Codex agent and task-selected CCs; catalog size is not an invocation count. The host enforces grants, durable state and job lifecycle; the deterministic Manager admits the image and ingests lab evidence. Native CCs are trusted-local code. See [AMENDMENT.md](AMENDMENT.md), [MIGRATION.md](MIGRATION.md) and [LINEAGE.md](LINEAGE.md).
 
 ## Setup and pins
 

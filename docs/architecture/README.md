@@ -1,4 +1,8 @@
-# Architecture: JiuwenSwarm + Capability Capsules v2 (`ai4r_ccv2`)
+# Architecture: JiuwenSwarm software factory (`cc-siminfeng`)
+
+Start with the [Jetson branch record](factory/20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md) for current scope, results and limitations. The CC v2 architecture below is the foundation; the factory extension is described at the end.
+
+See also the [full CC catalog and lab integration guide](factory/20261113%20CC%20Catalog%20and%20Lab%20Integration%20postpresentation.md).
 
 ## What this branch is for
 A reduced JiuwenSwarm in which a real agent discovers, reads and uses Capability Capsules (CCs) through a small runner. Base JiuwenSwarm and the Codex-as-model integration are kept. The earlier AI4Research M1 machinery (intent compiler, old capsule pipeline, RSI console, benchmarks, its design package) was removed on purpose and is not documented here. It remains in git history and on `AI4Research-Main`.
