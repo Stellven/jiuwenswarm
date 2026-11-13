@@ -1,6 +1,6 @@
 # Launch / replay — incremental CC demo
 
-**Watch (no Satay needed):** `artifacts/factory/demo-incremental/demo-final.mp4` (6.8 min; sha256 in `SHA256SUMS`).
+**Watch (no Satay needed):** `artifacts/factory/demo-incremental/demo-final.mp4` (6.9 min; sha256 in `SHA256SUMS`).
 Captions name the phase; the footer shows real elapsed run time; waits are compressed and marked "⏩ … compressed".
 
 **Replay the raw terminal sessions** (uncompressed, real timing; `-d 20` = 20× speed):
