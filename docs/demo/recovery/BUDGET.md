@@ -20,4 +20,5 @@ Hard stop for this continuation: 12:40 UTC, which leaves about 0.5 h of margin u
 | v2 work: preserve generators, checkpoint, console and engine diagram, browser checks, engineering details, script and Q&A, four reviews and fixes, tests, validation docs | 08:49 | 09:17 | 0.47 h | 0 | No lab or build job was submitted. The only model calls were the four reviewers (three Claude subagents and one GPT-6 Astra advisor). |
 | **Charged at 09:17** | | | **2.11 h** | **0 h** | |
 
-Remaining after 09:17: packaging (rebundle, zip, Danta copy and verification), commit and push. Expected to take under 0.3 h.
+| Package (re-pin, restore check, zip), Danta copy and direct-I/O verification, commits and push | 09:17 | 09:26 | 0.15 h | 0 | — |
+| **Final charge** | | | **2.26 h of 6 h** | **0 h of 2 h** | Stopped at completion; no time consumed just because it remained. |
