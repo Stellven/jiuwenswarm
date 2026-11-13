@@ -22,3 +22,8 @@ Crash-safe resume (active-time budget, new session `<task>-sN` with context), `f
 - Future capsule candidates: adaptive expert-read policy, workload-aware CPU/GPU placement, KV-cache/context-memory management.
 - USB drive `Danta` (/dev/sda1, exFAT, 57.7 GB) attached but NOT mounted (needs sudo): `sudo mkdir -p /mnt/danta && sudo mount -o uid=1000,gid=1000 /dev/sda1 /mnt/danta`, then copy
   `artifacts/factory/demo-incremental/`, `~/.jiuwenswarm-factory/` and `siminfeng/experiments/jetson/OM/J-OM13` (see below).
+
+## Disk cleanup (done, approved)
+Removed 12 superseded docker image tags (kept bare-cf34d311, incremental4-fill, bd173c08-restored/pregate, om11, d4b71bcc-thread-names-1),
+pruned build cache >72h, removed 5 side worktrees (branches pushed first: ai4r/ccv2-revise, ai4r/contract-loop, ai4r/demo, ai4r/f15-taskgraph, c2/heavy-guard).
+Root 90% -> 85% (18 GB free). Biggest remaining: ~/models (38 GB), docker images ~10 GB. Local backup: `~/backup/demo-session-20261113.tgz`.
