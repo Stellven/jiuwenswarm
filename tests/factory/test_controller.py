@@ -356,3 +356,21 @@ def test_resume_after_crash_new_session_and_downtime_not_counted(tmp_path, rig):
     assert message['objective'] == 'Operator objective' and 'NEW agent session' in message['host_observation']
     # Real running time was 60 s; the in-flight crashed turn (30 s) is lost, never the 10 000 s of downtime.
     assert 30 <= result['budget_used']['wall_clock_s'] <= 100
+
+
+def test_operator_note_reopens_inconclusive_task(tmp_path, rig):
+    make_task(tmp_path, rig, max_turns=4)
+    async def first(request):
+        publish(rig, 'report_inconclusive')
+        yield {'event_type': 'chat.final'}
+    rig.facade = first
+    assert asyncio.run(rig.run('t'))['outcome'] == 'report_inconclusive'
+    seen = []
+    async def second(request):
+        seen.append(json.loads(request.params['query']))
+        publish(rig, 'accept')
+        yield {'event_type': 'chat.final'}
+    rig.facade = second
+    state = rig._load('t'); state['operator_notes'] = ['baseline imported']; rig._save('t', state)
+    result = asyncio.run(rig.run('t'))
+    assert result['outcome'] == 'accept' and seen[0]['operator_notes'] == ['baseline imported']

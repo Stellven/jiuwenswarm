@@ -273,6 +273,8 @@ class Controller:
         message = dict(task_id=task['task_id'], decision_rev=current['current_decision_rev'],
                        evidence_cursor=current['evidence_cursor'], changed_attempts=changed,
                        remaining_budget=self._remaining(task, state))
+        if state.get('operator_notes'):
+            message['operator_notes'] = state.pop('operator_notes')
         if state['missing_decision']:
             message['host_observation'] = 'Previous turn ended without publishing a new decision revision.'
         if state['turns'] == 0 or state.pop('needs_context', False):
@@ -399,7 +401,9 @@ class Controller:
             state = self._load(task_id)
             if 'pending_turn_rev' in state:
                 state['missing_decision'] = task['current_decision_rev'] == state['pending_turn_rev']
-            if state['outcome'] in TERMINAL:
+            # An operator fix (e.g. baseline-import) reopens an inconclusive task; accept/reject stay final.
+            reopen = bool(state.get('operator_notes')) and state['outcome'] in {'report_inconclusive', 'partial'}
+            if state['outcome'] in TERMINAL and not reopen:
                 return self.status(task_id)
             missing = sorted(set(task.get('allowed_effects', [])) - set(self.grants))
             if missing and not self.grants:
@@ -429,7 +433,7 @@ class Controller:
                     decisions = self._snapshot(task_id)['decisions']
                     latest = max(decisions, key=lambda d: d['rev'], default={})
                     action = latest.get('action', {}).get('type')
-                    if action in TERMINAL and latest.get('evidence_ids'):
+                    if action in TERMINAL and latest.get('evidence_ids') and not state.get('operator_notes'):
                         self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(task))
                         return self._finish(task_id, state, action)
                     if remaining['turns'] <= 0:
@@ -467,6 +471,18 @@ class Controller:
                 if self.facade is None:
                     from jiuwenswarm.server.runtime.codex_subscription.service import get_service
                     await get_service().transport.close()
+
+    def import_baseline(self, task_id, source_task='operator-bare-build', source_attempt=None):
+        """Link the existing plain-engine build receipt into a task and tell the agent on its next turn."""
+        from .manager import Manager, import_baseline_build
+        info = import_baseline_build(Manager(self.store, self.home / 'lab-spool'), task_id, source_task, source_attempt)
+        state = self._load(task_id)
+        state.setdefault('operator_notes', []).append(
+            'Operator imported the existing plain baseline build (no rebuild) so it can be admitted for the A/B: '
+            + json.dumps(dict(tag=info['tag'], id=info['id'], build_attempt_id=info['build_attempt_id']))
+            + f" (from {info['imported_from']}). Use it as the base image of the fill ABBA.")
+        self._save(task_id, state)
+        return info
 
     async def resume(self, task_id):
         return await self.run(task_id)

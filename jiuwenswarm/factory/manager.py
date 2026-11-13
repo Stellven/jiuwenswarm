@@ -254,6 +254,34 @@ class Manager:
         return results
 
 
+def import_baseline_build(manager, task_id, source_task='operator-bare-build', source_attempt=None):
+    """Operator action: link an already-succeeded plain-engine build into this task (no build is run).
+
+    The new attempt carries the source receipt verbatim and records where it came from, so admission applies
+    the same image-identity checks as for a newly built candidate. Returns what an A/B request needs."""
+    manager.store.get_task(task_id)
+    rows = [a for a in manager.store.dump(source_task)['attempts'] if a['kind'] == 'build' and a['state'] == 'succeeded'
+            and (source_attempt is None or a['attempt_id'] == source_attempt)]
+    if len(rows) != 1:
+        raise ValueError(f'expected exactly one succeeded build in {source_task}, found {len(rows)}; pass --attempt')
+    src = rows[0]
+    receipt_bytes = manager.store.artifact_bytes(source_task, src['attempt_id'] + ':receipt')
+    receipt = json.loads(receipt_bytes)
+    key = 'baseline-' + src['attempt_id'][:8]
+    manager.store.put_artifact(task_id, key + ':receipt', receipt_bytes, 'application/json', key)
+    try:
+        attempt = manager.store._get('attempts', task_id, key)
+    except NotFound:
+        attempt = manager.store.create_attempt(task_id, dict(attempt_id=key, kind='build', idem_key=key,
+            fingerprint=hashlib.sha256(receipt_bytes).hexdigest(),
+            request=dict(imported_from=f"{source_task}:{src['attempt_id']}", tag=src['request'].get('tag'))))
+    for state in ('running', 'succeeded'):
+        if attempt['state'] in {'queued', 'running'} and attempt['state'] != 'succeeded':
+            attempt = manager.store.transition_attempt(task_id, key, state)
+    return dict(build_attempt_id=key, tag=src['request'].get('tag'), id=receipt['image_id'],
+                imported_from=f"{source_task}:{src['attempt_id']}")
+
+
 def freeze_reference(manager, contract_id, image):
     contract = contracts.load(contract_id)
     reference = contracts.reference_info(contract)

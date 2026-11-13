@@ -116,6 +116,10 @@ def main(argv=None):
         command.add_argument('--plain', action='store_true')
         if name == 'show':
             command.add_argument('id', nargs='?', help='evidence record ID; omit to show all records')
+    baseline = sub.add_parser('baseline-import', help='operator: link the existing plain-engine build into a task (no rebuild)')
+    baseline.add_argument('task_id')
+    baseline.add_argument('--from-task', default='operator-bare-build')
+    baseline.add_argument('--attempt')
     plan = sub.add_parser('plan', help='show revisable task graph and decision-linked history')
     plan.add_argument('task_id')
     plan.add_argument('--rev', type=int)
@@ -209,6 +213,8 @@ def main(argv=None):
         elif args.command in {'run', 'resume'}:
             result = asyncio.run(getattr(controller, args.command)(args.task_id))
             print(format_status(scrub(result), args.plain, controller._snapshot(args.task_id)))
+        elif args.command == 'baseline-import':
+            print(json.dumps(controller.import_baseline(args.task_id, args.from_task, args.attempt), indent=2))
         elif args.command == 'show':
             result = (controller.store.read(args.task_id, args.id) if args.id
                       else controller.store.dump(args.task_id))
