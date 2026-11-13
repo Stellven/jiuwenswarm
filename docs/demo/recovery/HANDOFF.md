@@ -120,3 +120,15 @@ Neither was touched. Close the tmux session yourself if it is yours.
 - Effective-config logging in fill-only builds.
 - A warm/cold cache protocol for headline claims.
 - New capsules for CPU/GPU placement and KV-cache memory.
+
+## Update 14:12 UTC: host freed for saurav's RSI work
+
+- **Closed the idle `factory-demo` tmux session** from the 03:16 recording. Its pane process had been polling at about 4% CPU for 11 h.
+  - The presentation segments and video in `artifacts/factory/demo-incremental/` are separate files and are unchanged.
+  - The raw `session.typescript` gained 175 trailing bytes when the recorder exited.
+- **Stopped `satay-jobq.service`** with `systemctl --user stop satay-jobq`. The queue was empty: 0 queued, 0 running.
+  - The idle worker busy-polls every 50 ms, which costs about 45% of a core. That is noise for anyone's timed runs.
+  - The unit is still **enabled**, so it comes back on boot.
+  - **Start it again before any factory build or lab job:** `systemctl --user start satay-jobq`. Without the worker, factory jobs stay queued forever.
+  - Worth fixing later: back the idle poll off to about 1 s in siminfeng `bin/jobq`.
+- **saurav** is in the `docker` group and has read-only `/srv/satay-shared/` (model hard link, prompts, contracts, baseline build record, README, SHA256SUMS).
