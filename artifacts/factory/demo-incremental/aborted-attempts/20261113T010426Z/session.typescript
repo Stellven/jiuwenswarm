@@ -1,0 +1,282 @@
+Script started on 2026-11-13 01:04:26+00:00 [<not executed on terminal>]
+[?1049h[?1h=[H[J[34h[?25h[?1000l[?1002l[?1003l[?1006l[?1005l[m[34h[?25h[?1006l[?1000l[?1002l[?1003l[?2004l[1;1H[1;48r[>c[>q[23;103H[?25l[1;102H[30m│[2;102H│[3;102H│[4;102H│[5;102H│[6;102H│[7;102H│[8;102H│[9;102H│[10;102H│[11;102H│[12;102H│[13;102H│[14;102H│[15;102H│[16;102H│[17;102H│[18;102H│[19;102H│[20;102H│[21;102H│[22;102H├──────────────────────────────────────────────────────────────────────[23;102H│[24;102H│[25;102H│[26;102H│[27;102H│[28;102H│[29;102H│[30;102H│[31;102H│[32;102H│[33;102H│[34;102H│[35;102H│[36;102H│[37;102H│[38;102H│[39;102H│[40;102H│[41;102H│[42;102H│[43;102H│[44;102H│[45;102H│[46;102H│[47;102H│[48;102H│[m[1;101H[1K[1m[H JiuwenSwarm software factory · task 3d24382b[m[2;101H[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[2B[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[34h[?25h[23d[m[34h[?25h[?1006l[?1000l[?1002l[?1003l[?2004l[1;1H[1;48r[23;103H[?25l[1;102H[30m│[2;102H│[3;102H│[4;102H│[5;102H│[6;102H│[7;102H│[8;102H│[9;102H│[10;102H│[11;102H│[12;102H│[13;102H│[14;102H│[15;102H│[16;102H│[17;102H│[18;102H│[19;102H│[20;102H│[21;102H│[22;102H├──────────────────────────────────────────────────────────────────────[23;102H│[24;102H│[25;102H│[26;102H│[27;102H│[28;102H│[29;102H│[30;102H│[31;102H│[32;102H│[33;102H│[34;102H│[35;102H│[36;102H│[37;102H│[38;102H│[39;102H│[40;102H│[41;102H│[42;102H│[43;102H│[44;102H│[45;102H│[46;102H│[47;102H│[48;102H│[m[1;101H[1K[1m[H JiuwenSwarm software factory · task 3d24382b[m[2;101H[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[2B[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[34h[?25h[23d[3;1H Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout,
+ branch `demo-incremental-2`) and the frozen fast contract qwen36-quick-v1. Use
+ engine.expert_streaming as your engineering method: read its guide and the current evidence, then
+ make one meaningful behavioural change at a time. For every decision write the mechanism
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports
+ continuing. For each intervention: integrate, build once through the builder (never rebuild
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best
+ under the same contract and keep or revert by the component's acceptance rule. Do not group
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output
+ identity and engagement.[23;103H[20;1H[30m[1m plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[23;103H[m[1m CC activity · guidance the agent reads, capabilities it calls[24;103H[m[30m[1m ── agent turn 1 ────────────────────[25;103H[m[33m 23:46 read   · None[m[26;103H[30m[1m 23:46 call  evidence.read  [evidence][27;103H[m[30m[1m 23:46 call  evidence.query  [evidence][28;103H[m[30m[1m 23:46 call  evidence.plan_get  [evidence][29;103H[m[33m 23:46 read  engine.expert_streaming · guide[m[30;103H[33m 23:46 read  engine.expert_streaming · method[31;103H[m[33m 23:46 read  engine.expert_streaming · expert_fill[32;103H[m[33m 23:46 read  engine.expert_streaming · expert_pregate[33;103H[m[33m 23:46 read  integration_skill · integrate[34;103H[m[33m 23:46 read  methodology_ab · methodology[35;103H[m[30m[1m 23:46 call  evidence.read  [evidence][36;103H[m[30m[1m 23:46 call  evidence.query  [evidence][37;103H[m[30m[1m 23:46 call  evidence.plan_get  [evidence][38;103H[m[33m 23:46 read  engine.expert_streaming · guide[39;103H[m[31m 23:46 call  evidence.publish  [evidence] INVALID_INPUT[40;103H[m[30m[1m 23:46 call  inspector.inspect  [engine_inspector][41;103H[m[33m 23:46 read  components.mmap_advice · component[42;103H 23:46 read  components.router_prefetch · component[43;103H[m[33m 23:46 read  components.expert_fill · component[44;103H 23:46 read  engine.expert_streaming · source_map[45;103H[m[30m[1m 23:47 call  evidence.read  [evidence][46;103H[m[30m[1m 23:47 call  evidence.read  [evidence][47;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][48;103H[m[33m 23:47 read  components.mmap_advice ·[37D[m[?25l[30m[1m[23d 23:46 call  evidence.read  [evidence][m[K[30m[1m[24;103H 23:46 call  evidence.query  [evidence][m[K[30m[1m[25;103H 23:46 call  evidence.plan_get  [evidence][m[K[33m[26;103H 23:46 read  engine.expert_streaming · guide[39m[K[33m[27;103H 23:46 read  engine.expert_streaming · method[39m[K[33m[28;103H 23:46 read  engine.expert_streaming · expert_fill[39m[K[33m[29;103H 23:46 read  engine.expert_streaming · expert_pregate[39m[K[33m[30;103H 23:46 read  integration_skill · integrate[39m[K[33m[31;103H 23:46 read  methodology_ab · methodology[39m[K[30m[1m[32;103H 23:46 call  evidence.read  [evidence][m[K[30m[1m[33;103H 23:46 call  evidence.query  [evidence][m[K[30m[1m[34;103H 23:46 call  evidence.plan_get  [evidence][m[K[33m[35;103H 23:46 read  engine.expert_streaming · guide[39m[K[31m[36;103H 23:46 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[30m[1m[37;103H 23:46 call  inspector.inspect  [engine_inspector][m[K[33m[38;103H 23:46 read  components.mmap_advice · component[39m[K[33m[39;103H 23:46 read  components.router_prefetch · component[39m[K[33m[40;103H 23:46 read  components.expert_fill · component[39m[K[33m[41;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[42;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[43;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[44;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[45;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[46;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[47;103H 23:47 read  components.expert_fill · patch_03[39m[K[48;103H[K[34h[?25h[33m 23:47 read  components.router_prefetch ·[41D[m[?25l[33m[23d 23:46 read  engine.expert_streaming · method[39m[K[33m[24;103H 23:46 read  engine.expert_streaming · expert_fill[39m[K[33m[25;103H 23:46 read  engine.expert_streaming · expert_pregate[39m[K[33m[26;103H 23:46 read  integration_skill · integrate[39m[K[33m[27;103H 23:46 read  methodology_ab · methodology[39m[K[30m[1m[28;103H 23:46 call  evidence.read  [evidence][m[K[30m[1m[29;103H 23:46 call  evidence.query  [evidence][m[K[30m[1m[30;103H 23:46 call  evidence.plan_get  [evidence][m[K[33m[31;103H 23:46 read  engine.expert_streaming · guide[39m[K[31m[32;103H 23:46 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[30m[1m[33;103H 23:46 call  inspector.inspect  [engine_inspector][m[K[33m[34;103H 23:46 read  components.mmap_advice · component[39m[K[33m[35;103H 23:46 read  components.router_prefetch · component[39m[K[33m[36;103H 23:46 read  components.expert_fill · component[39m[K[33m[37;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[38;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[39;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[40;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[41;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[42;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[43;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[44;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[45;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[46;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[47;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[48;103H[K[34h[?25h[33m 23:47 read  integration_skill ·[32D[m[?25l[33m[23d 23:46 read  methodology_ab · methodology[39m[K[30m[1m[24;103H 23:46 call  evidence.read  [evidence][m[K[30m[1m[25;103H 23:46 call  evidence.query  [evidence][m[K[30m[1m[26;103H 23:46 call  evidence.plan_get  [evidence][m[K[33m[27;103H 23:46 read  engine.expert_streaming · guide[39m[K[31m[28;103H 23:46 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[30m[1m[29;103H 23:46 call  inspector.inspect  [engine_inspector][m[K[33m[30;103H 23:46 read  components.mmap_advice · component[39m[K[33m[31;103H 23:46 read  components.router_prefetch · component[39m[K[33m[32;103H 23:46 read  components.expert_fill · component[39m[K[33m[33;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[34;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[35;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[36;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[37;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[38;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[39;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[40;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[41;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[42;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[43;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[44;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[45;103H 23:47 call  evidence.query  [evidence][m[K[31m[46;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[47;103H 23:48 decision rev 1 · integrate[39m[K[48;103H[K[34h[?25h[?25l[30m[1m[23d 23:46 call  evidence.plan_get  [evidence][m[K[33m[24;103H 23:46 read  engine.expert_streaming · guide[39m[K[31m[25;103H 23:46 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[30m[1m[26;103H 23:46 call  inspector.inspect  [engine_inspector][m[K[33m[27;103H 23:46 read  components.mmap_advice · component[39m[K[33m[28;103H 23:46 read  components.router_prefetch · component[39m[K[33m[29;103H 23:46 read  components.expert_fill · component[39m[K[33m[30;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[31;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[32;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[33;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[34;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[35;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[36;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[37;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[38;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[39;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[40;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[41;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[42;103H 23:47 call  evidence.query  [evidence][m[K[31m[43;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[44;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[45;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[46;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[47;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[48;103H[K[34h[?25h[?25l[33m[23d 23:46 read  engine.expert_streaming · guide[39m[K[31m[24;103H 23:46 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[30m[1m[25;103H 23:46 call  inspector.inspect  [engine_inspector][m[K[33m[26;103H 23:46 read  components.mmap_advice · component[39m[K[33m[27;103H 23:46 read  components.router_prefetch · component[39m[K[33m[28;103H 23:46 read  components.expert_fill · component[39m[K[33m[29;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[30;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[31;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[32;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[33;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[34;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[35;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[36;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[37;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[38;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[39;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[40;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[41;103H 23:47 call  evidence.query  [evidence][m[K[31m[42;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[43;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[44;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[45;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[46;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[47;103H 23:49 call  evidence.publish  [evidence][m[K[48;103H[K[34h[?25h[33m 23:49 decision rev 2 ·[23D[m[?25l[33m[23d 23:46 read  components.mmap_advice · component[39m[K[33m[24;103H 23:46 read  components.router_prefetch · component[39m[K[33m[25;103H 23:46 read  components.expert_fill · component[39m[K[33m[26;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[27;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[28;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[29;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[30;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[31;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[32;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[33;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[34;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[35;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[36;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[37;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[38;103H 23:47 call  evidence.query  [evidence][m[K[31m[39;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[40;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[41;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[42;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[43;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[44;103H 23:49 call  evidence.publish  [evidence][m[K[33m[45;103H 23:49 decision rev 2 · build[39m[K[30m[1m[46;103H 23:49 call  evidence.publish  [evidence][m[K[30m[1m[47;103H 23:49 call  evidence.plan_patch  [evidence][m[K[48;103H[K[34h[?25h[?25l[33m[23d 23:46 read  components.expert_fill · component[39m[K[33m[24;103H 23:46 read  engine.expert_streaming · source_map[39m[K[30m[1m[25;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[26;103H 23:47 call  evidence.read  [evidence][m[K[30m[1m[27;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[28;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[29;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[30;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[31;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[32;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[33;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[34;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[35;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[36;103H 23:47 call  evidence.query  [evidence][m[K[31m[37;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[38;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[39;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[40;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[41;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[42;103H 23:49 call  evidence.publish  [evidence][m[K[33m[43;103H 23:49 decision rev 2 · build[39m[K[30m[1m[44;103H 23:49 call  evidence.publish  [evidence][m[K[30m[1m[45;103H 23:49 call  evidence.plan_patch  [evidence][m[K[31m[46;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[47;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[48;103H[K[34h[?25h[?25l[30m[1m[23d 23:47 call  evidence.read  [evidence][m[K[30m[1m[24;103H 23:47 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[25;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[26;103H 23:47 read  components.mmap_advice · patch_01[39m[K[33m[27;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[28;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[29;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[30;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[31;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[32;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[33;103H 23:47 call  evidence.query  [evidence][m[K[31m[34;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[35;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[36;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[37;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[38;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[39;103H 23:49 call  evidence.publish  [evidence][m[K[33m[40;103H 23:49 decision rev 2 · build[39m[K[30m[1m[41;103H 23:49 call  evidence.publish  [evidence][m[K[30m[1m[42;103H 23:49 call  evidence.plan_patch  [evidence][m[K[31m[43;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[44;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[45;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[46;103H 23:50 call  builder.submit  [builder] INVALID_INPUT[39m[K[30m[1m[47;103H 23:50 call  builder.submit  [builder][m[K[48;103H[K[34h[?25h[?25l[33m[23d 23:47 read  components.mmap_advice · patch_01[39m[K[33m[24;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[25;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[26;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[27;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[28;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[29;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[30;103H 23:47 call  evidence.query  [evidence][m[K[31m[31;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[32;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[33;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[34;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[35;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[36;103H 23:49 call  evidence.publish  [evidence][m[K[33m[37;103H 23:49 decision rev 2 · build[39m[K[30m[1m[38;103H 23:49 call  evidence.publish  [evidence][m[K[30m[1m[39;103H 23:49 call  evidence.plan_patch  [evidence][m[K[31m[40;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[41;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[42;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[43;103H 23:50 call  builder.submit  [builder] INVALID_INPUT[39m[K[30m[1m[44;103H 23:50 call  builder.submit  [builder][m[K[33m[45;103H 23:54 built image ?[39m[K[30m[1m[46;103H ── agent turn 2 ────────────────────[m[K[30m[1m[47;103H ── agent turn 3 ────────────────────[m[K[48;103H[K[34h[?25h[30m[1m ── agent turn 4 ────────────────────[?25l[m[33m[23;103H 23:47 read  components.expert_fill · patch_03[39m[K[33m[24;103H 23:47 read  components.router_prefetch · patch_02[39m[K[33m[25;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[26;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[27;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[28;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[29;103H 23:47 call  evidence.query  [evidence][m[K[31m[30;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[31;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[32;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[33;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[34;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[35;103H 23:49 call  evidence.publish  [evidence][m[K[33m[36;103H 23:49 decision rev 2 · build[39m[K[30m[1m[37;103H 23:49 call  evidence.publish  [evidence][m[K[30m[1m[38;103H 23:49 call  evidence.plan_patch  [evidence][m[K[31m[39;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[40;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[41;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[42;103H 23:50 call  builder.submit  [builder] INVALID_INPUT[39m[K[30m[1m[43;103H 23:50 call  builder.submit  [builder][m[K[33m[44;103H 23:54 built image ?[39m[K[30m[1m[45;103H ── agent turn 2 ────────────────────[m[K[30m[1m[46;103H ── agent turn 3 ────────────────────[m[K[30m[1m[47;103H ── agent turn 4 ────────────────────[m[K[48;103H[K[34h[?25h[1;21r[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[1d[1m Source · branch demo-incremental-2 · plain base cf34d3113 (grey) → CC[2;103H changes (amber)[1;48r[48;103H[m[3d[33m ab87eb75d demo : dormant mmap_advice 1554b5b6a5b9efc0d487453408db83a2[4;103H3cd00cff[5;103H 043e7e693 demo : dormant router_prefetch 9fce108d33c500f57ab48d4eab1c[6;103H24a191b2[7;103H 09c74539a demo : expert_fill demand reads 03 de969b13d381df8e43c18bb1[8;103H95fb2155[48;103H[m[9d[33m diff vs plain: 9 files changed, 903 insertions(+), 5 deletions(-)[48;103H[m[10d[30m[1m  src/llama-context.cpp       | 458 ++++++++++++++++++++++++++++++++++[11;103H++++++[12;103H  src/llama-context.h         |  53 +++++[13;103H  src/llama-expert-fill.h     | 261 +++++++++++++++++++++++[14;103H  src/llama-mmap.cpp          |  19 +-[15;103H  src/llama-model-loader.cpp  |  18 +-[16;103H  src/llama-model.cpp         |  48 +++++[17;103H  src/llama-model.h           |   7 +[48;103H[m[18d[33m image f7742a193de9[48;103H[m[?7727h[22;1H[2m factory · 3d24382b · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 5 turns · 78:41
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+[m[30m[1m 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+[m[33m 00:55  ✓     integrate  commit e02f45ec ·
+[30m[1m 01:09  ·     expert_streaming_applicability Read-only inspection; not performance scoring
+[m[33m 02:17  rev 1 integrate  expert_fill · Task plus inspector and applicability evidence justify fill
+                         test.
+[2m                   why   Parallel buffered demand fill of selected nonresident expert ranges may
+                         reduce compute-thread fault stalls. expert_fill fits this directly;
+                         prerequisite source 01-02 stays disabled.
+                   open  Engagement, stdout identity and decode benefit unknown. Defer predictive
+                         pregate until fill evidence supports continuation; no tuning.
+[m[30m[1m 02:43  ·     integration.progress integration.progress[48;103H[m[35;1H[33m 03:14  ✓     integrate  commit 09c74539 ·
+[30m[1m 03:42  ·     integration.expert_fill No performance or correctness claim; legacy inspector detects
+                         patch09 only, absent by design.
+[m[33m 03:43  rev 2 build      expert_fill · Integration observation and clean-source inspector establish
+                         readiness to build once.
+[2m                   why   Parallel buffered demand fill of selected nonresident expert ranges may
+                         reduce compute-thread fault stalls. expert_fill fits this directly;
+                         prerequisite source 01-02 stays disabled.
+                   open  Engagement, stdout identity and decode benefit unknown. Defer predictive
+                         pregate until fill evidence supports continuation; no tuning.
+[m[30m[1m 03:44  ·     taskgraph_patch Work record; does not authorize execution or acceptance.
+[m[33m 08:36  ✓     build      cc3c7199 · 167 s → image f7742a19[48;103H[m[30m[1m ── agent turn 5 ────────────────────[37D[m[?25l[33m[23d 23:47 read  components.router_prefetch · patch_02[39m[K[33m[24;103H 23:47 read  components.expert_fill · patch_04[39m[K[33m[25;103H 23:47 read  components.expert_fill · patch_05[39m[K[31m[26;103H 23:47 call  evidence.publish  [evidence] STALE_REVISION[39m[K[33m[27;103H 23:47 read  integration_skill · preflight[39m[K[30m[1m[28;103H 23:47 call  evidence.query  [evidence][m[K[31m[29;103H 23:48 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[30;103H 23:48 decision rev 1 · integrate[39m[K[30m[1m[31;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[32;103H 23:48 call  evidence.publish  [evidence][m[K[30m[1m[33;103H 23:49 call  inspector.inspect  [engine_inspector][m[K[30m[1m[34;103H 23:49 call  evidence.publish  [evidence][m[K[33m[35;103H 23:49 decision rev 2 · build[39m[K[30m[1m[36;103H 23:49 call  evidence.publish  [evidence][m[K[30m[1m[37;103H 23:49 call  evidence.plan_patch  [evidence][m[K[31m[38;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[39;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[40;103H 23:49 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[41;103H 23:50 call  builder.submit  [builder] INVALID_INPUT[39m[K[30m[1m[42;103H 23:50 call  builder.submit  [builder][m[K[33m[43;103H 23:54 built image ?[39m[K[30m[1m[44;103H ── agent turn 2 ────────────────────[m[K[30m[1m[45;103H ── agent turn 3 ────────────────────[m[K[30m[1m[46;103H ── agent turn 4 ────────────────────[m[K[30m[1m[47;103H ── agent turn 5 ────────────────────[m[K[48;103H[K[34h[?25h[47;1H[32mchain: component ✓ → commit ✓ → build ✓ → image ✓ → admission · → lab · → evaluation ·
+[39m[2mevidence: 22 records · 10 artifacts ·[65C[m[?25l[1;101H[1K
+ Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout,         
+ branch `demo-incremental-2`) and the frozen fast contract qwen36-quick-v1. Use                      
+ engine.expert_streaming as your engineering method: read its guide and the current evidence, then   
+ make one meaningful behavioural change at a time. For every decision write the mechanism            
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what     
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [17;101H[1K identity and engagement.[18;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [20;101H[1K[2m
+ factory · 3d24382b · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 5 turns · 78:41[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [24;101H[1K[33m 00:55  ✓     integrate  commit e02f45ec ·[30m[1m
+ 01:09  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:17  rev 1 integrate  expert_fill · Task plus inspector and applicability evidence justify fill[39m   [27;101H[1K[33m                         test.[2m
+                   why   Parallel buffered demand fill of selected nonresident expert ranges may[m     [33m[2m
+                         reduce compute-thread fault stalls. expert_fill fits this directly;[m         [33m[2m
+                         prerequisite source 01-02 stays disabled.[m                                   [33m[2m
+                   open  Engagement, stdout identity and decode benefit unknown. Defer predictive[m    [33m[2m
+                         pregate until fill evidence supports continuation; no tuning.[m               [30m[1m
+ 02:43  ·     integration.progress integration.progress[m                                              [34;101H[1K[33m 03:14  ✓     integrate  commit 09c74539 ·[30m[1m
+ 03:42  ·     integration.expert_fill No performance or correctness claim; legacy inspector detects[m  [30m[1m
+                         patch09 only, absent by design.[m                                             [33m
+ 03:43  rev 2 build      expert_fill · Integration observation and clean-source inspector establish[39m  [38;101H[1K[33m                         readiness to build once.[2m
+                   why   Parallel buffered demand fill of selected nonresident expert ranges may[m     [33m[2m
+                         reduce compute-thread fault stalls. expert_fill fits this directly;[m         [33m[2m
+                         prerequisite source 01-02 stays disabled.[m                                   [33m[2m
+                   open  Engagement, stdout identity and decode benefit unknown. Defer predictive[m    [33m[2m
+                         pregate until fill evidence supports continuation; no tuning.[m               [30m[1m
+ 03:44  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [33m
+ 08:36  ✓     build      cc3c7199 · 167 s → image f7742a19[39m                                           [32m
+chain: component ✓ → commit ✓ → build ✓ → image ✓ → admission · → lab · → evaluation ·[39m               [47;101H[1K[2mevidence: 22 records · 10 artifacts · 24993 bytes[m[48;101H[1K[34h[?25h[2C
+Script done on 2026-11-13 01:05:55+00:00 [COMMAND_EXIT_CODE="0"]

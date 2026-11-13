@@ -1,0 +1,76 @@
+2026-11-13 01:05:56 | common | default_trace_id | INFO | Registered connector pool type: default
+Registered connector pool type: default
+2026-11-13 01:05:57 | common | default_trace_id | INFO | Registered connector pool type: httpx
+Registered connector pool type: httpx
+2026-11-13 01:05:58 | common | default_trace_id | INFO | Registered query expression support for milvus
+Registered query expression support for milvus
+2026-11-13 01:05:58 | common | default_trace_id | INFO | Registered query expression support for chroma
+Registered query expression support for chroma
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ExcelParser for .xlsx
+Registered parser ExcelParser for .xlsx
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ExcelParser for .csv
+Registered parser ExcelParser for .csv
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ExcelParser for .tsv
+Registered parser ExcelParser for .tsv
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser TxtMdParser for .txt
+Registered parser TxtMdParser for .txt
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser TxtMdParser for .md
+Registered parser TxtMdParser for .md
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser TxtMdParser for .markdown
+Registered parser TxtMdParser for .markdown
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser HTMLFileParser for .htm
+Registered parser HTMLFileParser for .htm
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser HTMLFileParser for .html
+Registered parser HTMLFileParser for .html
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser JSONParser for .json
+Registered parser JSONParser for .json
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser PDFParser for .pdf
+Registered parser PDFParser for .pdf
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser WordParser for .docx
+Registered parser WordParser for .docx
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ImageParser for .png
+Registered parser ImageParser for .png
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ImageParser for .jpg
+Registered parser ImageParser for .jpg
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ImageParser for .jpeg
+Registered parser ImageParser for .jpeg
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ImageParser for .webp
+Registered parser ImageParser for .webp
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ImageParser for .gif
+Registered parser ImageParser for .gif
+2026-11-13 01:05:59 | common | default_trace_id | INFO | Registered parser ImageParser for .jfif
+Registered parser ImageParser for .jfif
+setup plugin alembic.autogenerate.schemas
+setup plugin alembic.autogenerate.tables
+setup plugin alembic.autogenerate.types
+setup plugin alembic.autogenerate.constraints
+setup plugin alembic.autogenerate.defaults
+setup plugin alembic.autogenerate.comments
+setup plugin alembic.ext.checkconstraint_byname
+loading built-in prompt resource /home/muk/projects/jiuwenswarm/.venv/lib/python3.12/site-packages/openjiuwen/symphony/retrieval/common/prompts/retrieval_disclosure.yaml
+2026-11-13 01:06:03.641 INFO jiuwenswarm.server.runtime.agent_adapter.agent_adapters: [SDK] Resolved SDK: codex_subscription
+2026-11-13 01:06:03.644 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] Initialized adapter: sdk=codex_subscription, mode=agent
+2026-11-13 01:06:03.656 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] 处理流式请求: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc channel_id=web session_id=factory-de94e1e2ea464ee7b73905280dc17ce3 sdk=codex_subscription
+2026-11-13 01:06:04.177 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop starting: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc is_team=False
+2026-11-13 01:06:04.178 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task started: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc session_id=factory-de94e1e2ea464ee7b73905280dc17ce3
+2026-11-13 01:06:11.015 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #1: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc event_type=chat.delta
+2026-11-13 01:06:11.016 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #2: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc event_type=chat.delta
+2026-11-13 01:06:11.016 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #1: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc event_type=chat.delta item_type=chunk
+2026-11-13 01:06:11.019 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #2: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc event_type=chat.delta item_type=chunk
+2026-11-13 01:06:11.023 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task chunk #3: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc event_type=chat.delta
+2026-11-13 01:06:11.024 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] consumer loop yield #3: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc event_type=chat.delta item_type=chunk
+2026-11-13 01:09:53.847 INFO jiuwenswarm.server.runtime.agent_adapter.interface: [JiuWenSwarm] run_stream_task finished: request_id=factory-de94e1e2ea464ee7b73905280dc17ce3-1-******c438f89bca9e50536a5cc total_chunks=334
+Task: factory-de94e1e2ea464ee7b73905280dc17ce3 · partial · rev 3
+Budget: 1/16 turns · 100:00/100:00
+Now
+  build:
+  Clean integration evidenced by fa5789c145a34c60be07492b5faad4bb and
+  e2870ca4559c4538ab276241f72f9198.
+Jobs
+  build · queued · age 96:05
+Evidence
+  tasks 1, decisions 3, artifacts 2, observations 7, attempts 1, evaluations 0, uploads 0 · 3862
+  bytes
+Last evaluation
+  none
+Readiness: ✓ decision_published · ✗ jobs_idle · ✗ evaluations_present

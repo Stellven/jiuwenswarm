@@ -1,0 +1,66 @@
+{
+  "objective": "Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout, branch `demo-incremental-2`) and the frozen fast contract qwen36-quick-v1. Use engine.expert_streaming as your engineering method: read its guide and the current evidence, then make one meaningful behavioural change at a time. For every decision write the mechanism hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what is still unknown plus one alternative you are deferring and why. Candidates, not predetermined winners: demand fill first (expert_fill, with its source prerequisites installed but their switches off), then predictive reads (expert_pregate) only if the fill evidence supports continuing. For each intervention: integrate, build once through the builder (never rebuild unchanged source), run one cheap screen (a single lab run: output identity and engagement; its timing is preliminary), then if the screen passes run one 1-round ABBA against the current best under the same contract and keep or revert by the component's acceptance rule. Do not group unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round ABBA of the plain baseline image versus the final image as the headline comparison, then finish with accept, reject or report_inconclusive and a short report of ms/token per arm, output identity and engagement.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false
+  },
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write",
+    "gpu.use"
+  ],
+  "target": "jetson-orin",
+  "budget": {
+    "max_turns": 16,
+    "wall_clock_s": 5400
+  },
+  "contract_id": "qwen36-quick-v1",
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "engine.expert_streaming",
+  "source": {
+    "subpath": "llama.cpp",
+    "pre_integration_commit": "cf34d3113",
+    "branch": "demo-incremental-2"
+  },
+  "operator_labels": {},
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp",
+      "base_commit": "cf34d311332e362198f0a410c466d1e940287d02",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "model": {
+      "path": "/home/muk/models/campaign/qwen36-35b-a3b/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
+      "sha256": "707a55a8a4397ecde44de0c499d3e68c1ad1d240d1da65826b4949d1043f4450",
+      "bytes": 22360456160
+    },
+    "baseline": {
+      "image_tag": "factory/llamacpp:bare-cf34d311",
+      "image_id": "sha256:a9a0c71c08091badf3eb65cda3edc16a57387fd7151076b6dd197f13fe8ac3e6",
+      "note": "plain-source build of cf34d3113; contract reference image"
+    },
+    "workload_contract": "qwen36-bare-greedy-v1 (frozen; byte-identical greedy stdout, 64 tokens)",
+    "capsules": [
+      "engine.expert_streaming@2.0.0",
+      "factory.methodology_ab",
+      "factory.integration_skill",
+      "factory.builder",
+      "factory.engine_inspector",
+      "factory.lab_client",
+      "factory.evidence"
+    ],
+    "host": {
+      "name": "Satay",
+      "board": "Jetson Orin Nano Super 8GB",
+      "l4t": "R36.5.2",
+      "mem_total_kib": 7789756
+    },
+    "evidence_workspace": "FACTORY_HOME store, task-scoped",
+    "budget_note": "builds ~2-3 min; one 2-round ABBA ~20-35 min; GPU work is serialized in the host queue"
+  }
+}

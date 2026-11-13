@@ -1,0 +1,1 @@
+attempt 3 (resume): agent session NEW_SESSION_REQUIRED after reboot and wall-clock budget consumed by downtime; abandoned, fresh task follows

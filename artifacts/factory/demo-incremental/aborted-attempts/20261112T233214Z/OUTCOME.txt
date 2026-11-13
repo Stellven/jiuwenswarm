@@ -1,0 +1,1 @@
+attempt 1: agent stopped report_inconclusive on DISK_SPACE_LOW (host); operator freed 4.2 GB of exported image tarballs in ~/projects/xs-dev (images kept in docker)

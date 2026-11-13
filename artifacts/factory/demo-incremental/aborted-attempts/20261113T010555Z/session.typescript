@@ -1,0 +1,463 @@
+Script started on 2026-11-13 01:05:55+00:00 [<not executed on terminal>]
+[?1049h[?1h=[H[J[34h[?25h[?1000l[?1002l[?1003l[?1006l[?1005l[m[34h[?25h[?1006l[?1000l[?1002l[?1003l[?2004l[1;1H[1;48r[>c[>q[23;103H[?25l[1;102H[30m│[2;102H│[3;102H│[4;102H│[5;102H│[6;102H│[7;102H│[8;102H│[9;102H│[10;102H│[11;102H│[12;102H│[13;102H│[14;102H│[15;102H│[16;102H│[17;102H│[18;102H│[19;102H│[20;102H│[21;102H│[22;102H├──────────────────────────────────────────────────────────────────────[23;102H│[24;102H│[25;102H│[26;102H│[27;102H│[28;102H│[29;102H│[30;102H│[31;102H│[32;102H│[33;102H│[34;102H│[35;102H│[36;102H│[37;102H│[38;102H│[39;102H│[40;102H│[41;102H│[42;102H│[43;102H│[44;102H│[45;102H│[46;102H│[47;102H│[48;102H│[m[1;101H[1K[1m[H JiuwenSwarm software factory · task de94e1e2[m[2;101H[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[2B[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[34h[?25h[23d[m[34h[?25h[?1006l[?1000l[?1002l[?1003l[?2004l[1;1H[1;48r[23;103H[?25l[1;102H[30m│[2;102H│[3;102H│[4;102H│[5;102H│[6;102H│[7;102H│[8;102H│[9;102H│[10;102H│[11;102H│[12;102H│[13;102H│[14;102H│[15;102H│[16;102H│[17;102H│[18;102H│[19;102H│[20;102H│[21;102H│[22;102H├──────────────────────────────────────────────────────────────────────[23;102H│[24;102H│[25;102H│[26;102H│[27;102H│[28;102H│[29;102H│[30;102H│[31;102H│[32;102H│[33;102H│[34;102H│[35;102H│[36;102H│[37;102H│[38;102H│[39;102H│[40;102H│[41;102H│[42;102H│[43;102H│[44;102H│[45;102H│[46;102H│[47;102H│[48;102H│[m[1;101H[1K[1m[H JiuwenSwarm software factory · task de94e1e2[m[2;101H[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K
+[1K[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[2B[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[34h[?25h[23d[3;1H Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout,[23;103H[4;1H branch `demo-incremental-3`) and the frozen fast contract qwen36-quick-v1. Use[23;103H[5;1H engine.expert_streaming as your engineering method: read its guide and the current evidence, then[23;103H[6;1H make one meaningful behavioural change at a time. For every decision write the mechanism[23;103H[7;1H hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what[23;103H[8;1H is still unknown plus one alternative you are deferring and why. Candidates, not predetermined[23;103H[9;1H winners: demand fill first (expert_fill, with its source prerequisites installed but their[23;103H[10;1H switches off), then predictive reads (expert_pregate) only if the fill evidence supports[23;103H[11;1H continuing. For each intervention: integrate, build once through the builder (never rebuild[23;103H[12;1H unchanged source), run one cheap screen (a single lab run: output identity and engagement; its[23;103H[13;1H timing is preliminary), then if the screen passes run one 1-round ABBA against the current best[23;103H[14;1H under the same contract and keep or revert by the component's acceptance rule. Do not group[23;103H[15;1H unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round[23;103H[16;1H ABBA of the plain baseline image versus the final image as the headline comparison, then finish[23;103H[17;1H with accept, reject or report_inconclusive and a short report of ms/token per arm, output[23;103H[18;1H identity and engagement.[23;103H[20;1H[30m[1m plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[23;103H[m[1m CC activity · guidance the agent reads, capabilities it calls[m[24;103H[1;21r[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[1;48r[24;103H[1d[1m Source · branch demo-incremental-3 · plain base cf34d3113 (grey) → CC[2;103H changes (amber)[24;103H[m[3d[30m[1m cf34d3113 plain llama.cpp (no changes yet)[24;103H[m[?7727h[22;1H[2m factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12
+ ──────────────────────────────────────────────────────────────────────────────────────────────────
+[m[30m[1m 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[16C[m[30m[1m ── agent turn 1 ────────────────────[25;103H[m[33m 01:06 read   · None[26;103H[m[33m 01:06 read  engine.expert_streaming · guide[27;103H[m[33m 01:06 read  engine.expert_streaming · method[28;103H 01:06 read  integration_skill · integrate[29;103H 01:06 read  methodology_ab · methodology[30;103H[m[30m[1m 01:06 call  evidence.read  [evidence][31;103H[m[30m[1m 01:06 call  evidence.query  [evidence][32;103H[m[30m[1m 01:06 call  evidence.plan_get  [evidence][33;103H[m[30m[1m 01:06 call  evidence.read  [evidence][34;103H[m[30m[1m 01:06 call  evidence.query  [evidence][35;103H[m[30m[1m 01:06 call  evidence.plan_get  [evidence][36;103H[m[33m 01:06 read  engine.expert_streaming · mmap_advice[37;103H[m[33m 01:06 read  engine.expert_streaming · router_prefetch[38;103H 01:06 read  engine.expert_streaming · source_map[39;103H 01:06 read  engine.expert_streaming · expert_fill[40;103H 01:06 read  integration_skill · preflight[41;103H[m[31m 01:06 call  evidence.publish  [evidence] INVALID_INPUT[42;103H[m[33m 01:06 read  components.mmap_advice · component[43;103H[m[33m 01:06 read  components.router_prefetch · component[44;103H[m[30m[1m 01:07 call  inspector.inspect  [engine_inspector][45;103H[m[25;1H[33m 01:11  ✓     integrate  commit 09c74539 ·[45;103H[m[33m 01:07 read  components.expert_fill · component[46;103H[m[30m[1m 01:07 call  evidence.query  [evidence][47;103H[m[30m[1m 01:07 call  evidence.query  [evidence][48;103H[m[?25l[30m[1m[23d ── agent turn 1 ────────────────────[m[K[33m[24;103H 01:06 read   · None[39m[K[33m[25;103H 01:06 read  engine.expert_streaming · guide[39m[K[33m[26;103H 01:06 read  engine.expert_streaming · method[39m[K[33m[27;103H 01:06 read  integration_skill · integrate[39m[K[33m[28;103H 01:06 read  methodology_ab · methodology[39m[K[30m[1m[29;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[30;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[31;103H 01:06 call  evidence.plan_get  [evidence][m[K[30m[1m[32;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[33;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[34;103H 01:06 call  evidence.plan_get  [evidence][m[K[33m[35;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[36;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[37;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[38;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[39;103H 01:06 read  integration_skill · preflight[39m[K[31m[40;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[41;103H 01:06 read  components.mmap_advice · component[39m[K[33m[42;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[43;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[44;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[45;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[46;103H 01:07 call  evidence.query  [evidence][m[K[31m[47;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[48;103H[K[34h[?25h[33m 01:07 decision rev 1 ·[23D[m[?25l[33m[23d 01:06 read  engine.expert_streaming · guide[39m[K[33m[24;103H 01:06 read  engine.expert_streaming · method[39m[K[33m[25;103H 01:06 read  integration_skill · integrate[39m[K[33m[26;103H 01:06 read  methodology_ab · methodology[39m[K[30m[1m[27;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[28;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[29;103H 01:06 call  evidence.plan_get  [evidence][m[K[30m[1m[30;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[31;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[32;103H 01:06 call  evidence.plan_get  [evidence][m[K[33m[33;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[34;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[35;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[36;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[37;103H 01:06 read  integration_skill · preflight[39m[K[31m[38;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[39;103H 01:06 read  components.mmap_advice · component[39m[K[33m[40;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[41;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[42;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[43;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[44;103H 01:07 call  evidence.query  [evidence][m[K[31m[45;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[46;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[47;103H 01:07 call  evidence.publish  [evidence][m[K[48;103H[K[34h[?25h[26;1H[30m[1m 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch
+                         to resolve.
+[m[33m[2m                   why   Demand fill replaces compute-thread mmap faults with parallel selected-
+                         expert reads; expert_fill directly tests this mechanism.
+                   open  Required branch identity, baseline admission and IO cost remain unknown.
+                         Defer pregate until fill-only evidence supports it.[48;103H[m[?25l[33m[23d 01:06 read  engine.expert_streaming · method[39m[K[33m[24;103H 01:06 read  integration_skill · integrate[39m[K[33m[25;103H 01:06 read  methodology_ab · methodology[39m[K[30m[1m[26;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[27;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[28;103H 01:06 call  evidence.plan_get  [evidence][m[K[30m[1m[29;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[30;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[31;103H 01:06 call  evidence.plan_get  [evidence][m[K[33m[32;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[33;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[34;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[35;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[36;103H 01:06 read  integration_skill · preflight[39m[K[31m[37;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[38;103H 01:06 read  components.mmap_advice · component[39m[K[33m[39;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[40;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[41;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[42;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[43;103H 01:07 call  evidence.query  [evidence][m[K[31m[44;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[45;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[46;103H 01:07 call  evidence.publish  [evidence][m[K[31m[47;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[48;103H[K[34h[?25h[32;1H[30m[1m 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[48;103H[m[?25l[33m[23d 01:06 read  integration_skill · integrate[39m[K[33m[24;103H 01:06 read  methodology_ab · methodology[39m[K[30m[1m[25;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[26;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[27;103H 01:06 call  evidence.plan_get  [evidence][m[K[30m[1m[28;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[29;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[30;103H 01:06 call  evidence.plan_get  [evidence][m[K[33m[31;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[32;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[33;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[34;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[35;103H 01:06 read  integration_skill · preflight[39m[K[31m[36;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[37;103H 01:06 read  components.mmap_advice · component[39m[K[33m[38;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[39;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[40;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[41;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[42;103H 01:07 call  evidence.query  [evidence][m[K[31m[43;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[44;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[45;103H 01:07 call  evidence.publish  [evidence][m[K[31m[46;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[47;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[48;103H 01:07 read  components.router_prefetch · patch_02[39m[K[34h[?25h[?25l[30m[1m[23;103H 01:06 call  evidence.read  [evidence][m[K[30m[1m[24;103H 01:06 call  evidence.query  [evidence][m[K[30m[1m[25;103H 01:06 call  evidence.plan_get  [evidence][m[K[33m[26;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[27;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[28;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[29;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[30;103H 01:06 read  integration_skill · preflight[39m[K[31m[31;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[32;103H 01:06 read  components.mmap_advice · component[39m[K[33m[33;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[34;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[35;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[36;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[37;103H 01:07 call  evidence.query  [evidence][m[K[31m[38;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[39;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[40;103H 01:07 call  evidence.publish  [evidence][m[K[31m[41;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[42;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[43;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[44;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[45;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[46;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[47;103H 01:07 read  components.expert_fill · patch_05[39m[K[48;103H[K[34h[?25h[?25l[30m[1m[23d 01:06 call  evidence.query  [evidence][m[K[30m[1m[24;103H 01:06 call  evidence.plan_get  [evidence][m[K[33m[25;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[26;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[27;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[28;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[29;103H 01:06 read  integration_skill · preflight[39m[K[31m[30;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[31;103H 01:06 read  components.mmap_advice · component[39m[K[33m[32;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[33;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[34;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[35;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[36;103H 01:07 call  evidence.query  [evidence][m[K[31m[37;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[38;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[39;103H 01:07 call  evidence.publish  [evidence][m[K[31m[40;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[41;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[42;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[43;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[44;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[45;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[46;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[47;103H 01:08 call  evidence.read  [evidence][m[K[48;103H[K[34h[?25h[?25l[30m[1m[23d 01:06 call  evidence.plan_get  [evidence][m[K[33m[24;103H 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[25;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[26;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[27;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[28;103H 01:06 read  integration_skill · preflight[39m[K[31m[29;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[30;103H 01:06 read  components.mmap_advice · component[39m[K[33m[31;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[32;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[33;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[34;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[35;103H 01:07 call  evidence.query  [evidence][m[K[31m[36;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[37;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[38;103H 01:07 call  evidence.publish  [evidence][m[K[31m[39;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[40;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[41;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[42;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[43;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[44;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[45;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[46;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[47;103H 01:08 call  evidence.read  [evidence][m[K[48;103H[K[34h[?25h[33m 01:08 decision rev 2 ·[23D[m[?25l[33m[23d 01:06 read  engine.expert_streaming · mmap_advice[39m[K[33m[24;103H 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[25;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[26;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[27;103H 01:06 read  integration_skill · preflight[39m[K[31m[28;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[29;103H 01:06 read  components.mmap_advice · component[39m[K[33m[30;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[31;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[32;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[33;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[34;103H 01:07 call  evidence.query  [evidence][m[K[31m[35;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[36;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[37;103H 01:07 call  evidence.publish  [evidence][m[K[31m[38;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[39;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[40;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[41;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[42;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[43;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[44;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[45;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[46;103H 01:08 call  evidence.read  [evidence][m[K[33m[47;103H 01:08 decision rev 2 · integrate[39m[K[48;103H[K[34h[?25h[?25l[33m[23d 01:06 read  engine.expert_streaming · router_prefetch[39m[K[33m[24;103H 01:06 read  engine.expert_streaming · source_map[39m[K[33m[25;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[26;103H 01:06 read  integration_skill · preflight[39m[K[31m[27;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[28;103H 01:06 read  components.mmap_advice · component[39m[K[33m[29;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[30;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[31;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[32;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[33;103H 01:07 call  evidence.query  [evidence][m[K[31m[34;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[35;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[36;103H 01:07 call  evidence.publish  [evidence][m[K[31m[37;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[38;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[39;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[40;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[41;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[42;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[43;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[44;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[45;103H 01:08 call  evidence.read  [evidence][m[K[33m[46;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[47;103H 01:08 call  evidence.publish  [evidence][m[K[48;103H[K[34h[?25h[33;1H[33m 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports
+                         bounded fill trial
+[2m                   why   Parallel buffered reads before selected-expert compute can reduce
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is
+                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[48;103H[m[40;1H[33m[2m                         only. Defer predictive pregate until fill evidence demonstrates useful
+                         demand IO and acceptable performance.
+[m[30m[1m 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[48;103H[m[1;21r[1;103H[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K
+[K[1d[1m Source · branch demo-incremental-3 · plain base cf34d3113 (grey) → CC[2;103H changes (amber)[1;48r[48;103H[m[3d[33m 991aef817 demo : dormant mmap_advice 1554b5b6a5b9efc0d487453408db83a2[4;103H3cd00cff[5;103H fec7db677 demo : router_prefetch 9fce108d33c500f57ab48d4eab1c24a191b2[6;103H0f8268b1[7;103H 3d87ed695 demo : expert_fill de969b13d381df8e43c18bb195fb215527b89997[8;103H8bf15549[48;103H[m[9d[33m diff vs plain: 9 files changed, 903 insertions(+), 5 deletions(-)[48;103H[m[10d[30m[1m  src/llama-context.cpp       | 458 ++++++++++++++++++++++++++++++++++[11;103H++++++[12;103H  src/llama-context.h         |  53 +++++[13;103H  src/llama-expert-fill.h     | 261 +++++++++++++++++++++++[14;103H  src/llama-mmap.cpp          |  19 +-[15;103H  src/llama-model-loader.cpp  |  18 +-[16;103H  src/llama-model.cpp         |  48 +++++[17;103H  src/llama-model.h           |   7 +[48;103H[m[?25l[33m[23d 01:06 read  engine.expert_streaming · source_map[39m[K[33m[24;103H 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[25;103H 01:06 read  integration_skill · preflight[39m[K[31m[26;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[27;103H 01:06 read  components.mmap_advice · component[39m[K[33m[28;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[29;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[30;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[31;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[32;103H 01:07 call  evidence.query  [evidence][m[K[31m[33;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[34;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[35;103H 01:07 call  evidence.publish  [evidence][m[K[31m[36;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[37;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[38;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[39;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[40;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[41;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[42;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[43;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[44;103H 01:08 call  evidence.read  [evidence][m[K[33m[45;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[46;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[47;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[48;103H[K[34h[?25h[43;1H[33m 03:01  ✓     integrate  commit 3d87ed69 ·[48;103H[m[?25l[33m[23d 01:06 read  engine.expert_streaming · expert_fill[39m[K[33m[24;103H 01:06 read  integration_skill · preflight[39m[K[31m[25;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[26;103H 01:06 read  components.mmap_advice · component[39m[K[33m[27;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[28;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[29;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[30;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[31;103H 01:07 call  evidence.query  [evidence][m[K[31m[32;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[33;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[34;103H 01:07 call  evidence.publish  [evidence][m[K[31m[35;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[36;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[37;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[38;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[39;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[40;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[41;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[42;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[43;103H 01:08 call  evidence.read  [evidence][m[K[33m[44;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[45;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[46;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[47;103H 01:09 call  evidence.publish  [evidence][m[K[48;103H[K[34h[?25h[?25l[33m[23d 01:06 read  integration_skill · preflight[39m[K[31m[24;103H 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[25;103H 01:06 read  components.mmap_advice · component[39m[K[33m[26;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[27;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[28;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[29;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[30;103H 01:07 call  evidence.query  [evidence][m[K[31m[31;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[32;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[33;103H 01:07 call  evidence.publish  [evidence][m[K[31m[34;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[35;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[36;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[37;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[38;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[39;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[40;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[41;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[42;103H 01:08 call  evidence.read  [evidence][m[K[33m[43;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[44;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[45;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[46;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[47;103H 01:09 call  evidence.read  [evidence][m[K[48;103H[K[34h[?25h[44;1H[30m[1m 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet
+                         verified.[48;103H[m[?25l[31m[23d 01:06 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[24;103H 01:06 read  components.mmap_advice · component[39m[K[33m[25;103H 01:06 read  components.router_prefetch · component[39m[K[30m[1m[26;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[27;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[28;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[29;103H 01:07 call  evidence.query  [evidence][m[K[31m[30;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[31;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[32;103H 01:07 call  evidence.publish  [evidence][m[K[31m[33;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[34;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[35;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[36;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[37;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[38;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[39;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[40;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[41;103H 01:08 call  evidence.read  [evidence][m[K[33m[42;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[43;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[44;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[45;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[46;103H 01:09 call  evidence.read  [evidence][m[K[30m[1m[47;103H 01:09 call  evidence.plan_get  [evidence][m[K[48;103H[K[34h[?25h[33m 01:09 decision rev 3 ·[23D[m[?25l[33m[23d 01:06 read  components.router_prefetch · component[39m[K[30m[1m[24;103H 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[25;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[26;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[27;103H 01:07 call  evidence.query  [evidence][m[K[31m[28;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[29;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[30;103H 01:07 call  evidence.publish  [evidence][m[K[31m[31;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[32;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[33;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[34;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[35;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[36;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[37;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[38;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[39;103H 01:08 call  evidence.read  [evidence][m[K[33m[40;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[41;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[42;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[43;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[44;103H 01:09 call  evidence.read  [evidence][m[K[30m[1m[45;103H 01:09 call  evidence.plan_get  [evidence][m[K[33m[46;103H 01:09 decision rev 3 · build[39m[K[30m[1m[47;103H 01:09 call  evidence.publish  [evidence][m[K[48;103H[K[34h[?25h[46;1H[33m 03:33  rev 3 build      expert_fill · Clean integration evidenced by[48;103H[m[47;1H[33m                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[48;103H[m[?25l[1;101H[1K
+ Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout,         
+ branch `demo-incremental-3`) and the frozen fast contract qwen36-quick-v1. Use                      
+ engine.expert_streaming as your engineering method: read its guide and the current evidence, then   
+ make one meaningful behavioural change at a time. For every decision write the mechanism            
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what     
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [17;101H[1K identity and engagement.[18;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [20;101H[1K[2m
+ factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [24;101H[1K[33m 01:11  ✓     integrate  commit 09c74539 ·[30m[1m
+ 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch[m [26;101H[1K[30m[1m                         to resolve.[m[33m[2m
+                   why   Demand fill replaces compute-thread mmap faults with parallel selected-[m     [33m[2m
+                         expert reads; expert_fill directly tests this mechanism.[m                    [33m[2m
+                   open  Required branch identity, baseline admission and IO cost remain unknown.[m    [33m[2m
+                         Defer pregate until fill-only evidence supports it.[m                         [30m[1m
+ 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports[39m       [33;101H[1K[33m                         bounded fill trial[2m
+                   why   Parallel buffered reads before selected-expert compute can reduce[m           [33m[2m
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour[m       [33m[2m
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is[m   [37;101H[1K[33m[2m                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[m     [33m[2m
+                         only. Defer predictive pregate until fill evidence demonstrates useful[m      [33m[2m
+                         demand IO and acceptable performance.[m                                       [30m[1m
+ 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [42;101H[1K[33m 03:01  ✓     integrate  commit 3d87ed69 ·[30m[1m
+ 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet[m        [44;101H[1K[30m[1m                         verified.[m[33m
+ 03:33  rev 3 build      expert_fill · Clean integration evidenced by[39m                                [33m
+                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[39m      [33m[2m
+                   why   Build fill-only candidate to test whether parallel preads of nonresident[m    [48;101H[1K[34h[?25h[2C[?25l[H Recorded incremental demo. Start from identified plain llama.cpp cf34d3113 (owned checkout,         
+ branch `demo-incremental-3`) and the frozen fast contract qwen36-quick-v1. Use                      
+ engine.expert_streaming as your engineering method: read its guide and the current evidence, then   
+ make one meaningful behavioural change at a time. For every decision write the mechanism            
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what     
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [16;101H[1K identity and engagement.[17;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [19;101H[1K[2m
+ factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [23;101H[1K[33m 01:11  ✓     integrate  commit 09c74539 ·[30m[1m
+ 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch[m [25;101H[1K[30m[1m                         to resolve.[m[33m[2m
+                   why   Demand fill replaces compute-thread mmap faults with parallel selected-[m     [33m[2m
+                         expert reads; expert_fill directly tests this mechanism.[m                    [33m[2m
+                   open  Required branch identity, baseline admission and IO cost remain unknown.[m    [33m[2m
+                         Defer pregate until fill-only evidence supports it.[m                         [30m[1m
+ 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports[39m       [32;101H[1K[33m                         bounded fill trial[2m
+                   why   Parallel buffered reads before selected-expert compute can reduce[m           [33m[2m
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour[m       [33m[2m
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is[m   [36;101H[1K[33m[2m                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[m     [33m[2m
+                         only. Defer predictive pregate until fill evidence demonstrates useful[m      [33m[2m
+                         demand IO and acceptable performance.[m                                       [30m[1m
+ 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [41;101H[1K[33m 03:01  ✓     integrate  commit 3d87ed69 ·[30m[1m
+ 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet[m        [43;101H[1K[30m[1m                         verified.[m[33m
+ 03:33  rev 3 build      expert_fill · Clean integration evidenced by[39m                                [33m
+                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[39m      [33m[2m
+                   why   Build fill-only candidate to test whether parallel preads of nonresident[m    [33m[2m
+                         experts reduce decode stalls; prerequisite switches off isolates fill.[m      [48;101H[1K[34h[?25h[2C[?25l[H branch `demo-incremental-3`) and the frozen fast contract qwen36-quick-v1. Use                      
+ engine.expert_streaming as your engineering method: read its guide and the current evidence, then   
+ make one meaningful behavioural change at a time. For every decision write the mechanism            
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what     
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [15;101H[1K identity and engagement.[16;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [18;101H[1K[2m
+ factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [22;101H[1K[33m 01:11  ✓     integrate  commit 09c74539 ·[30m[1m
+ 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch[m [24;101H[1K[30m[1m                         to resolve.[m[33m[2m
+                   why   Demand fill replaces compute-thread mmap faults with parallel selected-[m     [33m[2m
+                         expert reads; expert_fill directly tests this mechanism.[m                    [33m[2m
+                   open  Required branch identity, baseline admission and IO cost remain unknown.[m    [33m[2m
+                         Defer pregate until fill-only evidence supports it.[m                         [30m[1m
+ 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports[39m       [31;101H[1K[33m                         bounded fill trial[2m
+                   why   Parallel buffered reads before selected-expert compute can reduce[m           [33m[2m
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour[m       [33m[2m
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is[m   [35;101H[1K[33m[2m                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[m     [33m[2m
+                         only. Defer predictive pregate until fill evidence demonstrates useful[m      [33m[2m
+                         demand IO and acceptable performance.[m                                       [30m[1m
+ 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [40;101H[1K[33m 03:01  ✓     integrate  commit 3d87ed69 ·[30m[1m
+ 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet[m        [42;101H[1K[30m[1m                         verified.[m[33m
+ 03:33  rev 3 build      expert_fill · Clean integration evidenced by[39m                                [33m
+                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[39m      [33m[2m
+                   why   Build fill-only candidate to test whether parallel preads of nonresident[m    [33m[2m
+                         experts reduce decode stalls; prerequisite switches off isolates fill.[m      [33m[2m
+                   open  Build viability, byte-identical output and runtime engagement remain[m        [48;101H[1K[34h[?25h[2C[?25l[H engine.expert_streaming as your engineering method: read its guide and the current evidence, then   
+ make one meaningful behavioural change at a time. For every decision write the mechanism            
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what     
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [14;101H[1K identity and engagement.[15;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [17;101H[1K[2m
+ factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [21;101H[1K[33m 01:11  ✓     integrate  commit 09c74539 ·[30m[1m
+ 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch[m [23;101H[1K[30m[1m                         to resolve.[m[33m[2m
+                   why   Demand fill replaces compute-thread mmap faults with parallel selected-[m     [33m[2m
+                         expert reads; expert_fill directly tests this mechanism.[m                    [33m[2m
+                   open  Required branch identity, baseline admission and IO cost remain unknown.[m    [33m[2m
+                         Defer pregate until fill-only evidence supports it.[m                         [30m[1m
+ 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports[39m       [30;101H[1K[33m                         bounded fill trial[2m
+                   why   Parallel buffered reads before selected-expert compute can reduce[m           [33m[2m
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour[m       [33m[2m
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is[m   [34;101H[1K[33m[2m                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[m     [33m[2m
+                         only. Defer predictive pregate until fill evidence demonstrates useful[m      [33m[2m
+                         demand IO and acceptable performance.[m                                       [30m[1m
+ 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [39;101H[1K[33m 03:01  ✓     integrate  commit 3d87ed69 ·[30m[1m
+ 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet[m        [41;101H[1K[30m[1m                         verified.[m[33m
+ 03:33  rev 3 build      expert_fill · Clean integration evidenced by[39m                                [33m
+                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[39m      [33m[2m
+                   why   Build fill-only candidate to test whether parallel preads of nonresident[m    [33m[2m
+                         experts reduce decode stalls; prerequisite switches off isolates fill.[m      [33m[2m
+                   open  Build viability, byte-identical output and runtime engagement remain[m        [33m[2m
+                         untested. Defer pregate because no fill run evidence exists.[m                [48;101H[1K[34h[?25h[2C[30m[1m 03:33  ·[93C[m[?25l[H make one meaningful behavioural change at a time. For every decision write the mechanism            
+ hypothesis and why the chosen component fits it in `hypothesis`, and in `uncertainty` name what     
+ is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [13;101H[1K identity and engagement.[14;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [16;101H[1K[2m
+ factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [20;101H[1K[33m 01:11  ✓     integrate  commit 09c74539 ·[30m[1m
+ 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch[m [22;101H[1K[30m[1m                         to resolve.[m[33m[2m
+                   why   Demand fill replaces compute-thread mmap faults with parallel selected-[m     [33m[2m
+                         expert reads; expert_fill directly tests this mechanism.[m                    [33m[2m
+                   open  Required branch identity, baseline admission and IO cost remain unknown.[m    [33m[2m
+                         Defer pregate until fill-only evidence supports it.[m                         [30m[1m
+ 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports[39m       [29;101H[1K[33m                         bounded fill trial[2m
+                   why   Parallel buffered reads before selected-expert compute can reduce[m           [33m[2m
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour[m       [33m[2m
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is[m   [33;101H[1K[33m[2m                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[m     [33m[2m
+                         only. Defer predictive pregate until fill evidence demonstrates useful[m      [33m[2m
+                         demand IO and acceptable performance.[m                                       [30m[1m
+ 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [38;101H[1K[33m 03:01  ✓     integrate  commit 3d87ed69 ·[30m[1m
+ 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet[m        [40;101H[1K[30m[1m                         verified.[m[33m
+ 03:33  rev 3 build      expert_fill · Clean integration evidenced by[39m                                [33m
+                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[39m      [33m[2m
+                   why   Build fill-only candidate to test whether parallel preads of nonresident[m    [33m[2m
+                         experts reduce decode stalls; prerequisite switches off isolates fill.[m      [33m[2m
+                   open  Build viability, byte-identical output and runtime engagement remain[m        [33m[2m
+                         untested. Defer pregate because no fill run evidence exists.[m                [30m[1m
+ 03:33  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [48;101H[1K[34h[?25h[2C[?25l[30m[1m[23d 01:07 call  inspector.inspect  [engine_inspector][m[K[33m[24;103H 01:07 read  components.expert_fill · component[39m[K[30m[1m[25;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[26;103H 01:07 call  evidence.query  [evidence][m[K[31m[27;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[28;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[29;103H 01:07 call  evidence.publish  [evidence][m[K[31m[30;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[31;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[32;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[33;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[34;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[35;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[36;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[37;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[38;103H 01:08 call  evidence.read  [evidence][m[K[33m[39;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[40;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[41;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[42;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[43;103H 01:09 call  evidence.read  [evidence][m[K[30m[1m[44;103H 01:09 call  evidence.plan_get  [evidence][m[K[33m[45;103H 01:09 decision rev 3 · build[39m[K[30m[1m[46;103H 01:09 call  evidence.publish  [evidence][m[K[31m[47;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[48;103H[K[34h[?25h[?25l[33m[23d 01:07 read  components.expert_fill · component[39m[K[30m[1m[24;103H 01:07 call  evidence.query  [evidence][m[K[30m[1m[25;103H 01:07 call  evidence.query  [evidence][m[K[31m[26;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[27;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[28;103H 01:07 call  evidence.publish  [evidence][m[K[31m[29;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[30;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[31;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[32;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[33;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[34;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[35;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[36;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[37;103H 01:08 call  evidence.read  [evidence][m[K[33m[38;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[39;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[40;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[41;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[42;103H 01:09 call  evidence.read  [evidence][m[K[30m[1m[43;103H 01:09 call  evidence.plan_get  [evidence][m[K[33m[44;103H 01:09 decision rev 3 · build[39m[K[30m[1m[45;103H 01:09 call  evidence.publish  [evidence][m[K[31m[46;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[47;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[48;103H[K[34h[?25h[?25l[30m[1m[23d 01:07 call  evidence.query  [evidence][m[K[30m[1m[24;103H 01:07 call  evidence.query  [evidence][m[K[31m[25;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[26;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[27;103H 01:07 call  evidence.publish  [evidence][m[K[31m[28;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[29;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[30;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[31;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[32;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[33;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[34;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[35;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[36;103H 01:08 call  evidence.read  [evidence][m[K[33m[37;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[38;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[39;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[40;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[41;103H 01:09 call  evidence.read  [evidence][m[K[30m[1m[42;103H 01:09 call  evidence.plan_get  [evidence][m[K[33m[43;103H 01:09 decision rev 3 · build[39m[K[30m[1m[44;103H 01:09 call  evidence.publish  [evidence][m[K[31m[45;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[46;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[47;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[48;103H[K[34h[?25h[?25l[30m[1m[23d 01:07 call  evidence.query  [evidence][m[K[31m[24;103H 01:07 call  evidence.publish  [evidence] INVALID_INPUT[39m[K[33m[25;103H 01:07 decision rev 1 · investigate[39m[K[30m[1m[26;103H 01:07 call  evidence.publish  [evidence][m[K[31m[27;103H 01:07 call  evidence.read  [evidence] NOT_FOUND[39m[K[30m[1m[28;103H 01:07 call  expert_streaming.applicability  [engine.expert_streaming][m[33m[29;103H 01:07 read  components.router_prefetch · patch_02[39m[K[33m[30;103H 01:07 read  components.expert_fill · patch_03[39m[K[33m[31;103H 01:07 read  components.mmap_advice · patch_01[39m[K[33m[32;103H 01:07 read  components.expert_fill · patch_04[39m[K[33m[33;103H 01:07 read  components.expert_fill · patch_05[39m[K[30m[1m[34;103H 01:08 call  evidence.read  [evidence][m[K[30m[1m[35;103H 01:08 call  evidence.read  [evidence][m[K[33m[36;103H 01:08 decision rev 2 · integrate[39m[K[30m[1m[37;103H 01:08 call  evidence.publish  [evidence][m[K[30m[1m[38;103H 01:08 call  inspector.inspect  [engine_inspector][m[K[30m[1m[39;103H 01:09 call  evidence.publish  [evidence][m[K[30m[1m[40;103H 01:09 call  evidence.read  [evidence][m[K[30m[1m[41;103H 01:09 call  evidence.plan_get  [evidence][m[K[33m[42;103H 01:09 decision rev 3 · build[39m[K[30m[1m[43;103H 01:09 call  evidence.publish  [evidence][m[K[31m[44;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[45;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[31m[46;103H 01:09 call  builder.submit  [builder] INVALID_INPUT[39m[K[30m[1m[47;103H 01:09 call  builder.submit  [builder][m[K[48;103H[K[34h[?25h[32mchain: component ✓ → commit ✓ → build · → image · → admission · → lab · → evaluation ·[16C[m[?25l[H is still unknown plus one alternative you are deferring and why. Candidates, not predetermined      
+ winners: demand fill first (expert_fill, with its source prerequisites installed but their          
+ switches off), then predictive reads (expert_pregate) only if the fill evidence supports            
+ continuing. For each intervention: integrate, build once through the builder (never rebuild         
+ unchanged source), run one cheap screen (a single lab run: output identity and engagement; its      
+ timing is preliminary), then if the screen passes run one 1-round ABBA against the current best     
+ under the same contract and keep or revert by the component's acceptance rule. Do not group         
+ unrelated active optimizations and do not tune parameters. After the last keep, run one 1-round     
+ ABBA of the plain baseline image versus the final image as the headline comparison, then finish     
+ with accept, reject or report_inconclusive and a short report of ms/token per arm, output           [11;101H[1K identity and engagement.[12;101H[1K[30m[1m
+ plain llama.cpp cf34d3113 · contract qwen36-quick-v1 · Jetson Orin Nano 8GB · Qwen3.6-35B-A3B[m       [14;101H[1K[2m
+ factory · de94e1e2 · Qwen3.6-35B-A3B on jetson-orin · IN PROGRESS · 1 turns · 00:12[m                 [2m
+ ──────────────────────────────────────────────────────────────────────────────────────────────────[m  [30m[1m
+ 00:00  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [18;101H[1K[33m 01:11  ✓     integrate  commit 09c74539 ·[30m[1m
+ 01:44  rev 1 investigate Task and inspector 3170ac9f2cb240ab93f2e52518736553 expose source mismatch[m [20;101H[1K[30m[1m                         to resolve.[m[33m[2m
+                   why   Demand fill replaces compute-thread mmap faults with parallel selected-[m     [33m[2m
+                         expert reads; expert_fill directly tests this mechanism.[m                    [33m[2m
+                   open  Required branch identity, baseline admission and IO cost remain unknown.[m    [33m[2m
+                         Defer pregate until fill-only evidence supports it.[m                         [30m[1m
+ 01:57  ·     expert_streaming_applicability Read-only inspection; not performance scoring[m           [33m
+ 02:19  rev 2 integrate  expert_fill · Applicability c2dbb66032244ea59d4755904260d0f6 supports[39m       [27;101H[1K[33m                         bounded fill trial[2m
+                   why   Parallel buffered reads before selected-expert compute can reduce[m           [33m[2m
+                         synchronous demand-fault stalls. Integrate only expert_fill behaviour[m       [33m[2m
+                         (03-05); prerequisite mmap_advice (01) and router_prefetch (02) source is[m   [31;101H[1K[33m[2m                         necessary but…
+                   open  Speed benefit and runtime engagement unknown; applicability is guidance[m     [33m[2m
+                         only. Defer predictive pregate until fill evidence demonstrates useful[m      [33m[2m
+                         demand IO and acceptable performance.[m                                       [30m[1m
+ 02:19  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [36;101H[1K[33m 03:01  ✓     integrate  commit 3d87ed69 ·[30m[1m
+ 03:14  ·     integration.expert_fill Source inspection only; build/activation/output not yet[m        [38;101H[1K[30m[1m                         verified.[m[33m
+ 03:33  rev 3 build      expert_fill · Clean integration evidenced by[39m                                [33m
+                         fa5789c145a34c60be07492b5faad4bb and e2870ca4559c4538ab276241f72f9198.[39m      [33m[2m
+                   why   Build fill-only candidate to test whether parallel preads of nonresident[m    [33m[2m
+                         experts reduce decode stalls; prerequisite switches off isolates fill.[m      [33m[2m
+                   open  Build viability, byte-identical output and runtime engagement remain[m        [33m[2m
+                         untested. Defer pregate because no fill run evidence exists.[m                [30m[1m
+ 03:33  ·     taskgraph_patch Work record; does not authorize execution or acceptance.[m               [32m
+chain: component ✓ → commit ✓ → build · → image · → admission · → lab · → evaluation ·[39m               [47;101H[1K[2mevidence: 14 records · 2 artifacts · 3862 bytes[m[48;101H[1K[34h[?25h[2C[1;48r[m[?1l>[H[J[34h[?25h[?1000l[?1002l[?1003l[?1006l[?1005l[?7727l[?1004l[?1049l[exited]
+
+Script done on 2026-11-13 02:47:29+00:00 [COMMAND_EXIT_CODE="0"]
