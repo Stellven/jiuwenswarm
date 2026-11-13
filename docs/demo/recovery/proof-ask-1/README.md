@@ -46,3 +46,25 @@ No web frontend or server is involved.
 
 - **Sanitized export:** `~/backup/proof-ask-1-evidence/` (14 MB). Credential pattern scan: no hits.
 - **Task JSON:** `task.json`, generated from `jiuwenswarm/factory/tasks/direct.json`.
+
+## Follow-up speed check (J-ASK1, operator-allowed 10 min of lab time)
+
+This is one 1-round ABBA (plain, fill, fill, plain) on the frozen 32-token contract. It used the siminfeng `cc/abrun` harness through the shared queue as job `job-279d89e2`, from 14:02 to 14:08, about 6.5 min of lab time.
+
+| Arm | Runs (ms/token) | Mean |
+|---|---|---|
+| plain `bare-cf34d311` | 972.59, 865.27 | 918.93 |
+| fill `proof-ask-1-expert-fill` | 886.44, 812.60 | 849.52 |
+
+- **Speed:** 7.6% less time per token (A/B ratio 1.0817, +8.2% throughput).
+- **Gate: null.** The A/A noise was 11.7%, so the threshold is 23.4%. This one-round result is not a confirmed improvement.
+- **Output:** identical (`cad62aa9…`) in all four runs.
+- **Engagement:** fill checks 3/3 in both fill runs.
+- **Contention:** `host_contention` false in all runs.
+- **I/O:** decode read 0.20 vs 0.29 GiB/token.
+
+**How this compares:**
+- It is consistent with the recorded task's two null ABBAs (+7.66% and +11.99%).
+- It does not change the confirmed headline, which is J-OM13 (fill plus predictive reads, 64 tokens, 15.5%).
+
+Results are in siminfeng `experiments/jetson/OM/J-ASK1/` (commit `7cab011`).

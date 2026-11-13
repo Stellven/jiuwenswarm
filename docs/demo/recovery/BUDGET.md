@@ -34,4 +34,4 @@ The operator asked to show, without the web frontend, that a JiuwenSwarm agent c
 - **Cost and stop rule:** about 10 min of lab occupation (build plus one screen) and at most 60 min of wall time (task budget: 10 turns, 3600 s). Stop on the agent's terminal decision, or after two infrastructure failures.
 - **Not a performance claim.** The screen timing is preliminary by contract.
 
-**Result:** task `factory-cc5e8585…` accepted at 13:46, 13 min 10 s of wall time. Lab occupation was about 8 min: build `3445e556` (queued 03:15–08:02) plus screen `bbc85611` (09:15–11:39). There was no ABBA and no other experiment. Cumulative lab use is now about 0.14 h of the 2 h. See `proof-ask-1/README.md`.
+**Result:** task `factory-cc5e8585…` accepted at 13:46, 13 min 10 s of wall time. Lab occupation was about 8 min: build `3445e556` (queued 03:15–08:02) plus screen `bbc85611` (09:15–11:39). There was no ABBA and no other experiment. Cumulative lab use is now about 0.14 h of the 2 h. Then J-ASK1, a 1-round speed ABBA allowed by the operator (≤10 min), used 6.5 min: cumulative lab about 0.25 h of 2 h. See `proof-ask-1/README.md`.
