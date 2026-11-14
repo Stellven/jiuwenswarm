@@ -1,0 +1,32 @@
+{
+  "schema": "strata.source.provenance.v2",
+  "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "demands": [
+    "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel"
+  ],
+  "operations": [
+    {
+      "id": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+      "function_sha256": "b45cead8540ee15dc886f45eef5c4b6b0c517695289645bdb7f60880af96a7ae",
+      "source_sha256": "be4e764205523c261db967fc28ffd6afaf626f73573d8a22a5b82ab3c39f11de",
+      "operation": "rms_norm",
+      "category": "normalization",
+      "lowering_kind": "cooperative",
+      "features": {
+        "barrier": false,
+        "shuffle": true,
+        "shared": false,
+        "thread_index": true,
+        "block_index": true,
+        "collectives": [
+          "__shfl_down_sync",
+          "__shfl_sync"
+        ],
+        "has_softmax": false,
+        "configurable_experts": false,
+        "configurable_k": false,
+        "stable_index_tie": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+__global__ void moe_combine_kernel(const float* __restrict__ parts, const float* __restrict__ weights,
+                                   const float* __restrict__ shared, float* __restrict__ y, int n_embd,
+                                   int k, int has_shared) {
+    const int j = blockIdx.x * blockDim.x + threadIdx.x;
+    if (j >= n_embd) return;
+    // Accumulate in DOUBLE, in the reference's own order (`for i in range(k): out[t] += w[t,i] * g[0]`).
+    // f32 would be defensible for ten terms, but the reference is float64 and this is one line.
+    double acc = 0.0;
+    for (int e = 0; e < k; ++e) acc += (double) weights[e] * (double) parts[(size_t) e * n_embd + j];
+    // The SHARED output is added PLAIN - not router-weighted, not renormalised against the routed sum.
+    if (has_shared) acc += (double) shared[j];
+    y[j] = (float) acc;
+}

@@ -1,0 +1,25 @@
+void reference(const float* logits, int n_expert, int k, int* ids, float* w) {
+    double mx = logits[0];
+    for (int e = 1; e < n_expert; ++e) mx = std::max(mx, (double) logits[e]);
+    double sum = 0;
+    std::vector<double> p((size_t) n_expert);
+    for (int e = 0; e < n_expert; ++e) {
+        p[(size_t) e] = std::exp((double) logits[e] - mx);
+        sum += p[(size_t) e];
+    }
+    for (int e = 0; e < n_expert; ++e) p[(size_t) e] /= sum;
+
+    // stable descending: std::stable_sort with a strict greater-than keeps equal elements in index order
+    std::vector<int> idx((size_t) n_expert);
+    std::iota(idx.begin(), idx.end(), 0);
+    std::stable_sort(idx.begin(), idx.end(),
+                     [&](int a, int b) { return p[(size_t) a] > p[(size_t) b]; });
+    double s = 0;
+    for (int i = 0; i < k; ++i) {
+        ids[i] = idx[(size_t) i];
+        w[i] = (float) p[(size_t) idx[(size_t) i]];
+        s += p[(size_t) idx[(size_t) i]];
+    }
+    s = std::max(s, RENORM_CLAMP);
+    for (int i = 0; i < k; ++i) w[i] = (float) ((double) w[i] / s);
+}

@@ -1,0 +1,361 @@
+
+> openjiuwen-web@0.1.0 prebuild
+> cd ../../../.. && node ./jiuwenswarm/scripts/generate-agent-folders.js
+
+扫描目录: /workspace/jiuwenswarm/jiuwenswarm/resources/agent
+✅ 成功生成文件结构: /workspace/jiuwenswarm/jiuwenswarm/resources/agent/workspace/agent-data.json
+📁 找到的文件夹: [
+  'workspace',
+  'workspace/memory',
+  'workspace/skills',
+  'workspace/skills/advanced-daily-report',
+  'workspace/skills/advanced-daily-report/analyzers',
+  'workspace/skills/advanced-daily-report/collectors',
+  'workspace/skills/advanced-daily-report/generators',
+  'workspace/skills/agent-creator',
+  'workspace/skills/agent-creator/references',
+  'workspace/skills/agent-creator/scripts',
+  'workspace/skills/agent-group-creator',
+  'workspace/skills/agent-group-creator/references',
+  'workspace/skills/agent-group-creator/scripts',
+  'workspace/skills/akg-agents',
+  'workspace/skills/ascend-moe-optimizer-auto-trace',
+  'workspace/skills/ascend-moe-optimizer-auto-trace/scripts',
+  'workspace/skills/ascend-moe-optimizer-trace-analyzer',
+  'workspace/skills/ascend-moe-optimizer-trace-analyzer/analyzers',
+  'workspace/skills/ascend-moe-optimizer-trace-analyzer/config',
+  'workspace/skills/baoyu-image-gen',
+  'workspace/skills/baoyu-image-gen/references',
+  'workspace/skills/baoyu-image-gen/references/config',
+  'workspace/skills/baoyu-image-gen/references/providers',
+  'workspace/skills/baoyu-image-gen/scripts',
+  'workspace/skills/baoyu-image-gen/scripts/codex-imagegen',
+  'workspace/skills/baoyu-image-gen/scripts/providers',
+  'workspace/skills/cross-channel-history-retrieval',
+  'workspace/skills/cross-channel-history-retrieval/scripts',
+  'workspace/skills/deepep-to-cam-converter',
+  'workspace/skills/deepep-to-cam-converter/references',
+  'workspace/skills/delayed-restart-app',
+  'workspace/skills/doc-update',
+  'workspace/skills/docx-pro',
+  'workspace/skills/docx-pro/scripts',
+  'workspace/skills/dynamic-memory-cli',
+  'workspace/skills/dynamic-memory-cli/agents',
+  'workspace/skills/dynamic-memory-cli/references',
+  'workspace/skills/dynamic-memory-cli/scripts',
+  'workspace/skills/financial-document-parser',
+  'workspace/skills/gitcode-api',
+  'workspace/skills/gitcode-api/references',
+  'workspace/skills/gitcode-api/scripts',
+  'workspace/skills/gitcode-api/tasks',
+  'workspace/skills/harmonyos-dev-suite',
+  'workspace/skills/harmonyos-dev-suite/agents',
+  'workspace/skills/harmonyos-dev-suite/assets',
+  'workspace/skills/harmonyos-dev-suite/references',
+  'workspace/skills/harmonyos-dev-suite/scripts',
+  'workspace/skills/huawei-cloud-maas-setup',
+  'workspace/skills/huawei-cloud-maas-setup/references',
+  'workspace/skills/huawei-cloud-maas-setup/scripts',
+  'workspace/skills/huawei-cloud-maas-setup/scripts/lib',
+  'workspace/skills/llm-wiki',
+  'workspace/skills/local-doc-ocr',
+  'workspace/skills/local-doc-ocr/examples',
+  'workspace/skills/local-doc-ocr/scripts',
+  'workspace/skills/openJiuwen-DeepSearch',
+  'workspace/skills/openJiuwen-DeepSearch/scripts',
+  'workspace/skills/pdf-extraction',
+  'workspace/skills/plugin-creator',
+  'workspace/skills/plugin-creator/references',
+  'workspace/skills/plugin-creator/scripts',
+  'workspace/skills/ppt-creation',
+  'workspace/skills/ppt-creation/base',
+  'workspace/skills/ppt-creation/components',
+  'workspace/skills/ppt-creation/references',
+  'workspace/skills/ppt-creation/scripts',
+  'workspace/skills/ppt-creation/scripts/opc',
+  'workspace/skills/ppt-creation/scripts/opc/schemas',
+  'workspace/skills/ppt-creation/scripts/opc/schemas/ecma/fouth-edition',
+  'workspace/skills/ppt-creation/scripts/opc/schemas/ISO-IEC29500-4_2016',
+  'workspace/skills/ppt-creation/scripts/opc/schemas/mce',
+  'workspace/skills/ppt-creation/scripts/opc/schemas/microsoft',
+  'workspace/skills/ppt-creation/workflows',
+  'workspace/skills/pptx-generator',
+  'workspace/skills/pptx-generator/references',
+  'workspace/skills/project-maintainer',
+  'workspace/skills/project-maintainer/agents',
+  'workspace/skills/project-maintainer/references',
+  'workspace/skills/project-maintainer/scripts',
+  'workspace/skills/rsi-program-dataset-creator',
+  'workspace/skills/rsi-program-dataset-creator/references',
+  'workspace/skills/rsi-program-dataset-creator/scripts',
+  'workspace/skills/skill-creator',
+  'workspace/skills/skill-creator-normal',
+  'workspace/skills/skill-creator-normal/agents',
+  'workspace/skills/skill-creator-normal/assets',
+  'workspace/skills/skill-creator-normal/eval-viewer',
+  'workspace/skills/skill-creator-normal/references',
+  'workspace/skills/skill-creator-normal/scripts',
+  'workspace/skills/skill-gen-4-enterprise-doc',
+  'workspace/skills/skill-gen-4-enterprise-doc/reference',
+  'workspace/skills/skill-gen-4-enterprise-doc/scripts',
+  'workspace/skills/skill-gen-4-enterprise-doc/scripts/skill_gen',
+  'workspace/skills/skill-gen-4-enterprise-doc/scripts/skill_gen/url_ingest',
+  'workspace/skills/skill-omni-creation',
+  'workspace/skills/skill-omni-creation/agents',
+  'workspace/skills/skill-omni-creation/scripts',
+  'workspace/skills/skvm-general',
+  'workspace/skills/skvm-jit',
+  ... 13 more items
+]
+
+> openjiuwen-web@0.1.0 build
+> tsc && vite build
+
+[file-api] 使用仓库根目录: /workspace/jiuwenswarm/jiuwenswarm
+vite v5.4.21 building for production...
+transforming...
+✓ 5327 modules transformed.
+rendering chunks...
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/services/webClient.ts is dynamically imported by /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/workspace/localFilePicker.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/workspace/projectDirectoryPicker.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/workspace/projectDirectoryPicker.ts but also statically imported by /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/App.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/ChatPanel/InputArea.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/ChatPanel/MessageItem.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/ChatPanel/ProactiveRecommendationCard.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/ChatPanel/SkillPickerPanel.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/ChatPanel/slashCommands/registry.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/ConnectorMarket/CreatePluginPage.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/CronPanel/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/HeartbeatPanel/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SessionsPanel/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillGraphPanel/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillPanel/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillPanel/useEvolution.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillPanel/useHubMarketplace.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillPanel/useRetrievalIndexBuild.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillPanel/useSkillFilesTab.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/SkillPanel/useSymphonyGraph.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/teamArea/SwarmflowTreeView.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/ClawHubSearchModal/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/SkillNetSearchModal/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/SourceManagerModal/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/TeamSkillsHubModal/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/agentManagement/client.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/agentManagement/groupClient.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/code-mode/gitClient.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/historyRestore.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/ccApi.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/rsiApi.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/useRsiEvents.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/settings/modules/archivedTasks/useArchivedTaskLists.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/settings/modules/experimental/VideoDuplexModelSettings.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/taskAsr/useTaskAsr.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/teamHistoryPanelRestore.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/trajectory/TrajectoryPanel.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/workspace/archivedTaskClient.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/workspace/projectRegistryClient.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/hooks/useAssetPublish.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/hooks/useWebSocket.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/multi-session/sidebar/ConversationSidebar.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/services/assetPublishApi.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/services/connectorApi.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/services/personalContextApi.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/services/pluginPackagesApi.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/stores/authStore.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/stores/cronStore.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/stores/sessionStore.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/utils/tts.ts, /workspace/jiuwenswarm/jiuwenswarm/extensions/video_duplex/frontend/TaskFullDuplexAction.tsx, /workspace/jiuwenswarm/jiuwenswarm/extensions/video_duplex/frontend/TaskFullDuplexRuntime.tsx, /workspace/jiuwenswarm/jiuwenswarm/extensions/video_duplex/frontend/VideoLivePanel/index.tsx, /workspace/jiuwenswarm/jiuwenswarm/extensions/video_duplex/frontend/VideoLivePanel/joyaiProvider.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/rsiApi.ts is dynamically imported by /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/rsiStore.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/rsiStore.ts but also statically imported by /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/components/CreateExperimentDialog.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/components/RsiDetailHeader.tsx, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/rsiArtifactFiles.ts, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/rsi/useRsiEvents.ts, dynamic import will not move module into another chunk.
+
+[plugin:vite:reporter] [plugin vite:reporter] 
+(!) /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/node_modules/jszip/dist/jszip.min.js is dynamically imported by /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/components/teamArea/ResearchRunControls.tsx but also statically imported by /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/node_modules/docx-preview/dist/docx-preview.mjs, /workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/src/features/shareImageArchive.ts, dynamic import will not move module into another chunk.
+
+computing gzip size...
+dist/index.html                                            2.47 kB │ gzip:     1.35 kB
+dist/assets/shareImagePng.worker-DV7L3oJO.js               3.57 kB
+dist/assets/rsi-evaluating-x1epdFG4.svg                    4.27 kB │ gzip:     1.72 kB
+dist/assets/baichuan-CtU4EFSj.png                          4.29 kB
+dist/assets/xai-D6RK__sW.png                               4.29 kB
+dist/assets/KaTeX_Size3-Regular-CTq5MqoE.woff              4.42 kB
+dist/assets/team-DyW8SLZm.svg                              4.56 kB │ gzip:     2.11 kB
+dist/assets/html-BxnixBzN.svg                              4.68 kB │ gzip:     1.77 kB
+dist/assets/md-Cp_W6tTw.svg                                4.70 kB │ gzip:     1.85 kB
+dist/assets/KaTeX_Size4-Regular-Dl5lxZxV.woff2             4.93 kB
+dist/assets/duplex-playback-S7TAql5R.js                    5.12 kB
+dist/assets/KaTeX_Size2-Regular-Dy4dx90m.woff2             5.21 kB
+dist/assets/rsi-delete-BviABETK.svg                        5.24 kB │ gzip:     2.01 kB
+dist/assets/minimax-DD9DnvI7.svg                           5.37 kB │ gzip:     2.27 kB
+dist/assets/python-qRWlzYya.svg                            5.40 kB │ gzip:     2.16 kB
+dist/assets/google-B89G92vX.png                            5.43 kB
+dist/assets/KaTeX_Size1-Regular-mCD8mA8B.woff2             5.47 kB
+dist/assets/rsi-best-Cwujp7tP.svg                          5.59 kB │ gzip:     2.27 kB
+dist/assets/KaTeX_Size4-Regular-BF-4gkZK.woff              5.98 kB
+dist/assets/KaTeX_Size2-Regular-oD1tc_U0.woff              6.19 kB
+dist/assets/structure-pl8SuA2y.svg                         6.29 kB │ gzip:     2.33 kB
+dist/assets/KaTeX_Size1-Regular-C195tn64.woff              6.50 kB
+dist/assets/image-1T31BrDK.svg                             6.77 kB │ gzip:     1.70 kB
+dist/assets/KaTeX_Caligraphic-Regular-Di6jR-x-.woff2       6.91 kB
+dist/assets/KaTeX_Caligraphic-Bold-Dq_IR9rO.woff2          6.91 kB
+dist/assets/KaTeX_Size3-Regular-DgpXs0kz.ttf               7.59 kB
+dist/assets/status-processing-DU7ve-EA.svg                 7.62 kB │ gzip:     1.44 kB
+dist/assets/KaTeX_Caligraphic-Regular-CTRA-rTL.woff        7.66 kB
+dist/assets/empty-artifacts-BZgTrAw2.svg                   7.67 kB │ gzip:     2.41 kB
+dist/assets/empty-planning-qRPwOkWw.svg                    7.71 kB │ gzip:     1.63 kB
+dist/assets/KaTeX_Caligraphic-Bold-BEiXGLvX.woff           7.72 kB
+dist/assets/pc-feature-3-BX8xExjU.svg                      8.80 kB │ gzip:     2.77 kB
+dist/assets/KaTeX_Script-Regular-D3wIWfF6.woff2            9.64 kB
+dist/assets/meta-DKJXgEUV.png                              9.66 kB
+dist/assets/perplexity-EE4hoygl.png                        9.76 kB
+dist/assets/mimo-BRxSYChu.svg                              9.80 kB │ gzip:     3.96 kB
+dist/assets/rsi-icon-BxqEFqqo.svg                         10.17 kB │ gzip:     2.21 kB
+dist/assets/empty-references-DAk4pDT7.svg                 10.28 kB │ gzip:     2.89 kB
+dist/assets/KaTeX_SansSerif-Regular-DDBCnlJ7.woff2        10.34 kB
+dist/assets/KaTeX_Size4-Regular-DWFBv043.ttf              10.36 kB
+dist/assets/KaTeX_Script-Regular-D5yQViql.woff            10.59 kB
+dist/assets/empty-members-DeKrFDvK.svg                    10.69 kB │ gzip:     3.86 kB
+dist/assets/KaTeX_Fraktur-Regular-CTYiF6lA.woff2          11.32 kB
+dist/assets/KaTeX_Fraktur-Bold-CL6g_b3V.woff2             11.35 kB
+dist/assets/KaTeX_Size2-Regular-B7gKUWhC.ttf              11.51 kB
+dist/assets/KaTeX_SansSerif-Italic-C3H0VqGB.woff2         12.03 kB
+dist/assets/KaTeX_SansSerif-Bold-D1sUS0GD.woff2           12.22 kB
+dist/assets/KaTeX_Size1-Regular-Dbsnue_I.ttf              12.23 kB
+dist/assets/KaTeX_SansSerif-Regular-CS6fqUqJ.woff         12.32 kB
+dist/assets/KaTeX_Caligraphic-Regular-wX97UBjC.ttf        12.34 kB
+dist/assets/pc-feature-2-Cy00PL_W.svg                     12.35 kB │ gzip:     3.41 kB
+dist/assets/KaTeX_Caligraphic-Bold-ATXxdsX0.ttf           12.37 kB
+dist/assets/toutiao-C82lMOz1.svg                          12.97 kB │ gzip:     9.17 kB
+dist/assets/KaTeX_Fraktur-Regular-Dxdc4cR9.woff           13.21 kB
+dist/assets/KaTeX_Fraktur-Bold-BsDP51OF.woff              13.30 kB
+dist/assets/KaTeX_Typewriter-Regular-CO6r4hn1.woff2       13.57 kB
+dist/assets/KaTeX_SansSerif-Italic-DN2j7dab.woff          14.11 kB
+dist/assets/KaTeX_SansSerif-Bold-DbIhKOiC.woff            14.41 kB
+dist/assets/cohere-C9M1rUjr.png                           15.41 kB
+dist/assets/groq-BYxwq3Lx.png                             15.41 kB
+dist/assets/gitcode-DBvCfMpi.png                          15.66 kB
+dist/assets/rsi-empty-exams-BnfQGBC-.svg                  15.79 kB │ gzip:     4.49 kB
+dist/assets/KaTeX_Typewriter-Regular-C0xS9mPB.woff        16.03 kB
+dist/assets/KaTeX_Math-BoldItalic-CZnvNsCZ.woff2          16.40 kB
+dist/assets/KaTeX_Math-Italic-t53AETM-.woff2              16.44 kB
+dist/assets/KaTeX_Script-Regular-C5JkGWo-.ttf             16.65 kB
+dist/assets/KaTeX_Main-BoldItalic-DxDJ3AOS.woff2          16.78 kB
+dist/assets/KaTeX_Main-Italic-NWA7e6Wa.woff2              16.99 kB
+dist/assets/KaTeX_Math-BoldItalic-iY-2wyZ7.woff           18.67 kB
+dist/assets/KaTeX_Math-Italic-DA0__PXp.woff               18.75 kB
+dist/assets/empty-box-Bd6HHuC3.svg                        19.16 kB │ gzip:     8.09 kB
+dist/assets/KaTeX_Main-BoldItalic-SpSLRI95.woff           19.41 kB
+dist/assets/KaTeX_SansSerif-Regular-BNo7hRIc.ttf          19.44 kB
+dist/assets/KaTeX_Fraktur-Regular-CB_wures.ttf            19.57 kB
+dist/assets/KaTeX_Fraktur-Bold-BdnERNNW.ttf               19.58 kB
+dist/assets/KaTeX_Main-Italic-BMLOBm91.woff               19.68 kB
+dist/assets/GitHub-D-MAFWRW.svg                           20.90 kB │ gzip:    15.36 kB
+dist/assets/KaTeX_SansSerif-Italic-YYjJ1zSn.ttf           22.36 kB
+dist/assets/feishu-c1tHCS65.svg                           23.09 kB │ gzip:     9.43 kB
+dist/assets/KaTeX_SansSerif-Bold-CFMepnvq.ttf             24.50 kB
+dist/assets/rsi-feature1-B1d1sM-6.svg                     24.62 kB │ gzip:     7.24 kB
+dist/assets/ort-wasm-simd-threaded-Rz2TxrO3.mjs           24.62 kB
+dist/assets/KaTeX_Main-Bold-Cx986IdX.woff2                25.32 kB
+dist/assets/rsi-step1-D_B8eJ3N.svg                        25.42 kB │ gzip:     7.69 kB
+dist/assets/KaTeX_Main-Regular-B22Nviop.woff2             26.27 kB
+dist/assets/KaTeX_Typewriter-Regular-D3Ib7_Hf.ttf         27.56 kB
+dist/assets/KaTeX_AMS-Regular-BQhdFMY1.woff2              28.08 kB
+dist/assets/KaTeX_Main-Bold-Jm3AIy58.woff                 29.91 kB
+dist/assets/KaTeX_Main-Regular-Dr94JaBh.woff              30.77 kB
+dist/assets/KaTeX_Math-BoldItalic-B3XSjfu4.ttf            31.20 kB
+dist/assets/KaTeX_Math-Italic-flOr_0UB.ttf                31.31 kB
+dist/assets/KaTeX_Main-BoldItalic-DzxPMmG6.ttf            32.97 kB
+dist/assets/KaTeX_AMS-Regular-DMm9YOAa.woff               33.52 kB
+dist/assets/KaTeX_Main-Italic-3WenGoN9.ttf                33.58 kB
+dist/assets/rsi-feature2-Cc3xmcIg.svg                     33.79 kB │ gzip:    11.86 kB
+dist/assets/rsi-step3-Cv0SRezH.svg                        34.92 kB │ gzip:    11.43 kB
+dist/assets/silero.worker-DfLg1t9v.js                     50.64 kB
+dist/assets/KaTeX_Main-Bold-waoOVXN0.ttf                  51.34 kB
+dist/assets/KaTeX_Main-Regular-ypZvNtVU.ttf               53.58 kB
+dist/assets/KaTeX_AMS-Regular-DRggAlZN.ttf                63.63 kB
+dist/assets/xiaoyi-s3wVh3_4.svg                           71.16 kB │ gzip:    53.45 kB
+dist/assets/rsi-step2-BkFM_7p5.svg                        74.87 kB │ gzip:    21.34 kB
+dist/assets/zhihu-D4RYax5I.svg                            76.83 kB │ gzip:    57.54 kB
+dist/assets/pc-step-1-D9f4QwtS.svg                        87.12 kB │ gzip:    21.07 kB
+dist/assets/edge-bookmarks-Cz-tZ_5v.svg                  131.44 kB │ gzip:    98.71 kB
+dist/assets/pptxPreview.worker-BtYrAnxf.js               148.12 kB
+dist/assets/pangu-DMNefh7L.svg                           162.72 kB │ gzip:   122.40 kB
+dist/assets/teamleader-yQJg16m_.svg                      253.14 kB │ gzip:   188.77 kB
+dist/assets/bee-static-D5AZM8Xv.png                      279.88 kB
+dist/assets/Team-4-J7qykKw7.svg                          323.82 kB │ gzip:   243.56 kB
+dist/assets/Team-3-Dl1GZRPc.svg                          355.90 kB │ gzip:   267.71 kB
+dist/assets/rsi-background2-CZlZ2MJS.svg                 358.35 kB │ gzip:   269.42 kB
+dist/assets/Team-5-C28LXX42.svg                          376.56 kB │ gzip:   283.12 kB
+dist/assets/user-in-team-DagiubyH.svg                    415.42 kB │ gzip:   312.49 kB
+dist/assets/Team-6-DKnVhcrN.svg                          437.88 kB │ gzip:   329.30 kB
+dist/assets/Team-2-Dql8LHt3.svg                          470.43 kB │ gzip:   353.69 kB
+dist/assets/rsi-background-C_oq_STH.svg                  929.54 kB │ gzip:   697.93 kB
+dist/assets/spreadsheetPreview.worker-CK4ZsbC3.js      1,113.98 kB
+dist/assets/rsi-optimize-B4YzcQQc.svg                  1,320.56 kB │ gzip:   984.30 kB
+dist/assets/bee-flying-COl2UB-p.webp                   1,843.14 kB
+dist/assets/silero_vad_v5-Dt9-bTDn.onnx                2,327.52 kB
+dist/assets/home-banner-BixnzpLp.svg                   2,554.29 kB │ gzip: 1,923.23 kB
+dist/assets/pc-step-2-Dc-FvGNE.svg                     2,644.19 kB │ gzip: 1,969.06 kB
+dist/assets/ort-wasm-simd-threaded-BQQNiIPt.wasm      11,246.03 kB
+dist/assets/TrajectoryPanel-BOLg4v8m.css                 131.52 kB │ gzip:    25.16 kB
+dist/assets/index-DPqP1bwS.css                           767.12 kB │ gzip:   116.50 kB
+dist/assets/channel-D1UUALDi.js                            0.11 kB │ gzip:     0.13 kB
+dist/assets/init-Gi6I4Gst.js                               0.15 kB │ gzip:     0.13 kB
+dist/assets/chunk-QZHKN3VN-TUwo4bSV.js                     0.19 kB │ gzip:     0.16 kB
+dist/assets/chunk-55IACEB6-CbDfwdqF.js                     0.27 kB │ gzip:     0.23 kB
+dist/assets/chunk-4BX2VUAB-BCvp6uph.js                     0.30 kB │ gzip:     0.21 kB
+dist/assets/chunk-FMBD7UC4-83Y1kLc5.js                     0.37 kB │ gzip:     0.27 kB
+dist/assets/stateDiagram-v2-BHNVJYJU-BMdV3szc.js           0.39 kB │ gzip:     0.29 kB
+dist/assets/classDiagram-4FO5ZUOK-lZkwiuPf.js              0.47 kB │ gzip:     0.32 kB
+dist/assets/classDiagram-v2-Q7XG4LA2-lZkwiuPf.js           0.47 kB │ gzip:     0.32 kB
+dist/assets/chunk-2J33WTMH-Bu8O5CHc.js                     0.53 kB │ gzip:     0.38 kB
+dist/assets/infoDiagram-5YYISTIA-Dq3pEf7Q.js               0.59 kB │ gzip:     0.41 kB
+dist/assets/toml-Bm5Em-hy.js                               1.14 kB │ gzip:     0.54 kB
+dist/assets/ordinal-Cboi1Yqb.js                            1.19 kB │ gzip:     0.57 kB
+dist/assets/ini-BEwlwnbL.js                                1.53 kB │ gzip:     0.50 kB
+dist/assets/chunk-ND2GUHAM-bV5wfDbL.js                     1.89 kB │ gzip:     0.84 kB
+dist/assets/shell-CjFT_Tl9.js                              2.57 kB │ gzip:     1.21 kB
+dist/assets/diagram-5GNKFQAL-DeOXlNa8.js                   2.76 kB │ gzip:     1.37 kB
+dist/assets/stex-BsDSf4zR.js                               3.11 kB │ gzip:     1.20 kB
+dist/assets/lua-VAEuO923.js                                3.41 kB │ gzip:     1.43 kB
+dist/assets/arc-DQMyICf-.js                                3.42 kB │ gzip:     1.47 kB
+dist/assets/index-BxL34HOE.js                              3.43 kB │ gzip:     1.73 kB
+dist/assets/sileroVad-isFeleT9.js                          3.73 kB │ gzip:     1.55 kB
+dist/assets/swift-BzpIVaGY.js                              3.96 kB │ gzip:     1.79 kB
+dist/assets/diagram-LMA3HP47-BvI3Ymu2.js                   4.24 kB │ gzip:     1.86 kB
+dist/assets/linear-DN6BBpEx.js                             4.62 kB │ gzip:     1.89 kB
+dist/assets/defaultLocale-DX6XiGOO.js                      4.69 kB │ gzip:     2.18 kB
+dist/assets/ruby-B2Rjki9n.js                               5.16 kB │ gzip:     2.15 kB
+dist/assets/pieDiagram-4H26LBE5-eVYiQil3.js                5.32 kB │ gzip:     2.36 kB
+dist/assets/xml-sdJ4AIDG.js                                5.38 kB │ gzip:     1.21 kB
+dist/assets/diagram-2AECGRRQ-BOHBcr1h.js                   5.96 kB │ gzip:     2.52 kB
+dist/assets/toml-vGWfd6FD.js                               6.43 kB │ gzip:     1.28 kB
+dist/assets/index-DCDA4kXd.js                              7.47 kB │ gzip:     3.27 kB
+dist/assets/kotlin-BdnUsdx6.js                             8.79 kB │ gzip:     2.13 kB
+dist/assets/perl-CdXCOZ3F.js                               9.75 kB │ gzip:     3.46 kB
+dist/assets/stateDiagram-AJRCARHV-BbCWthgo.js             10.37 kB │ gzip:     3.62 kB
+dist/assets/yaml-Buea-lGh.js                              10.51 kB │ gzip:     2.27 kB
+dist/assets/diagram-KO2AKTUF-DOg-ircx.js                  10.82 kB │ gzip:     4.17 kB
+dist/assets/dagre-BM42HDAG-CXmtUVxH.js                    11.40 kB │ gzip:     4.21 kB
+dist/assets/index-CBiY5kpB.js                             11.59 kB │ gzip:     5.17 kB
+dist/assets/index-DwqIMThE.js                             14.02 kB │ gzip:     6.08 kB
+dist/assets/index-CkUitA-y.js                             14.79 kB │ gzip:     5.97 kB
+dist/assets/rust-B1yitclQ.js                              15.07 kB │ gzip:     2.72 kB
+dist/assets/lua-BaeVxFsk.js                               15.54 kB │ gzip:     3.16 kB
+dist/assets/diagram-OG6HWLK6-CN2FPxYZ.js                  15.93 kB │ gzip:     5.70 kB
+dist/assets/ishikawaDiagram-YF4QCWOH-DblTy11K.js          17.56 kB │ gzip:     6.68 kB
+dist/assets/kanban-definition-UN3LZRKU-BOZ3R-K6.js        20.70 kB │ gzip:     7.29 kB
+dist/assets/clike-JgAqeYFi.js                             22.11 kB │ gzip:     7.78 kB
+dist/assets/mindmap-definition-RKZ34NQL-75nOXN4E.js       23.36 kB │ gzip:     7.89 kB
+dist/assets/sankeyDiagram-5OEKKPKP-VaJWm7uh.js            23.39 kB │ gzip:     8.58 kB
+dist/assets/sql-CRqJ_cUM.js                               23.43 kB │ gzip:     7.42 kB
+dist/assets/journeyDiagram-JHISSGLW-DXvd9e6X.js           23.59 kB │ gzip:     8.36 kB
+dist/assets/graph-BlwPajkw.js                             23.94 kB │ gzip:     8.32 kB
+dist/assets/wardleyDiagram-YWT4CUSO-CK42KH77.js           26.10 kB │ gzip:     6.94 kB
+dist/assets/index-DyAEQGE4.js                             26.49 kB │ gzip:     8.79 kB
+dist/assets/erDiagram-TEJ5UH35-BxPs4Af4.js                26.97 kB │ gzip:     9.37 kB
+dist/assets/scss-D5BDwBP9.js                              27.20 kB │ gzip:     4.20 kB
+dist/assets/java-CylS5w8V.js                              27.22 kB │ gzip:     4.26 kB
+dist/assets/index-qezxqJxg.js                             28.11 kB │ gzip:    12.69 kB
+dist/assets/index-qRNK3VXF.js                             28.55 kB │ gzip:    11.61 kB
+dist/assets/gitGraphDiagram-PVQCEYII-DlNaJn7t.js          29.94 kB │ gzip:     8.87 kB
+dist/assets/index-BGkc5nEC.js                             30.82 kB │ gzip:    12.65 kB
+dist/assets/requirementDiagram-4Y6WPE33-CJwycRBg.js       31.20 kB │ gzip:     9.82 kB
+dist/assets/timeline-definition-PNZ67QCA-CNf370Ek.js      31.36 kB │ gzip:    10.43 kB
+dist/assets/quadrantDiagram-W4KKPZXB-BRJvdyMT.js          34.50 kB │ gzip:    10.14 kB
+dist/assets/layout-Boy8vhSP.js                            35.84 kB │ gzip:    12.87 kB
+dist/assets/chunk-AQP2D5EJ-Cysi8rtH.js                    37.55 kB │ gzip:    12.24 kB
+dist/assets/xychartDiagram-2RQKCTM6-BJ3D0F-G.js           40.39 kB │ gzip:    11.56 kB
+dist/assets/index-DV9mGkZs.js                             40.73 kB │ gzip:    16.74 kB
+dist/assets/vennDiagram-CIIHVFJN-CcIry29F.js              41.84 kB │ gzip:    15.58 kB
+dist/assets/index-a25Hr1yu.js                             45.13 kB │ gzip:    19.16 kB
+dist/assets/go-C27-OAKa.js                                46.82 kB │ gzip:     5.18 kB
+dist/assets/css-CLj8gQPS.js                               49.04 kB │ gzip:    11.86 kB
+dist/assets/chunk-727SXJPM-DLCLmhwv.js                    49.09 kB │ gzip:    15.75 kB
+dist/assets/markdown-Cvjx9yec.js                          59.34 kB │ gzip:     5.64 kB
+dist/assets/flowDiagram-I6XJVG4X-NRQORECA.js              61.18 kB │ gzip:    19.51 kB
+dist/assets/ganttDiagram-6RSMTGT7-41Mtj6BI.js             69.29 kB │ gzip:    23.35 kB
+dist/assets/python-B6aJPvgy.js                            69.95 kB │ gzip:     9.13 kB
+dist/assets/c4Diagram-AAUBKEIU-cBqMnt-4.js                69.96 kB │ gzip:    19.64 kB
+dist/assets/index-Dwavs3BH.js                             70.81 kB │ gzip:    25.84 kB
+dist/assets/c-BIGW1oBm.js                                 72.11 kB │ gzip:    10.51 kB
+dist/assets/blockDiagram-GPEHLZMM-Cn0-_tF5.js             75.11 kB │ gzip:    21.60 kB
+dist/assets/docx-preview-BPk-nO01.js                      76.36 kB │ gzip:    20.68 kB
+dist/assets/cose-bilkent-S5V4N54A-CnvYEh6D.js             81.55 kB │ gzip:    22.44 kB
+dist/assets/index-BNCg4kTM.js                             84.67 kB │ gzip:    33.50 kB
+dist/assets/swift-C2oV4EkX.js                             86.38 kB │ gzip:    14.84 kB
+dist/assets/csharp-DSvCPggb.js                            90.19 kB │ gzip:    10.75 kB
+dist/assets/less-B1dDrJ26.js                              97.07 kB │ gzip:    14.70 kB
+dist/assets/index-0yvMUxXy.js                             97.88 kB │ gzip:    28.46 kB
+dist/assets/index-BbhOKNeu.js                            103.91 kB │ gzip:    34.37 kB
+dist/assets/php-CZAV7PzP.js                              113.11 kB │ gzip:    28.76 kB
+dist/assets/sequenceDiagram-3UESZ5HK-CYISU_Kq.js         117.30 kB │ gzip:    31.17 kB
+dist/assets/mdx-Cmh6b_Ma.js                              136.11 kB │ gzip:    23.35 kB
+dist/assets/architectureDiagram-3BPJPVTR-yTcXlzCi.js     149.54 kB │ gzip:    42.27 kB
+dist/assets/html-CfGypltT.js                             231.90 kB │ gzip:    28.31 kB
+dist/assets/ruby-C9jzt__X.js                             425.79 kB │ gzip:    41.33 kB
+dist/assets/cytoscape.esm-CUqq0XTU.js                    443.69 kB │ gzip:   142.35 kB
+dist/assets/mermaid.core-ODXO1lZh.js                     583.95 kB │ gzip:   136.71 kB
+dist/assets/TrajectoryPanel-I8fYyszH.js                  689.87 kB │ gzip:   167.81 kB
+dist/assets/cynefin-VYW2F7L2-Lv89vVtG.js                 690.52 kB │ gzip:   155.07 kB
+dist/assets/cpp-DddhVWhK.js                              796.96 kB │ gzip:    55.59 kB
+dist/assets/index-D3Y6_zC1.js                          4,544.59 kB │ gzip: 1,356.42 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 31.23s

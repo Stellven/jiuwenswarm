@@ -69,6 +69,7 @@
     "unsupportedProtocol": "不支持的 A2UI 协议版本：{{version}}"
   },
   "nav": {
+    "workflow": "Workflow",
     "chat": "对话",
     "work": "任务",
     "agent": "专家",

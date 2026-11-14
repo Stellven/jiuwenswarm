@@ -1,0 +1,242 @@
+{
+  "schema": "strata.core.project.v1",
+  "project_dir": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/stages/n7/1/workspace/strata_native",
+  "source_commit": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "selected": [
+    "router",
+    "swiglu",
+    "moe_combine"
+  ],
+  "operations": [
+    {
+      "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "name": "router_top10_kernel",
+      "operation": "router",
+      "category": "routing",
+      "binding": "invoke_49ab87035bb021f7",
+      "validation_input": "tests/operations/49ab87035bb021f7-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/49ab87035bb021f7-input.txt",
+        "--operation",
+        "src/kernels/cuda/router_top10.cu:router_top10_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "builtin_reference_available": true
+    },
+    {
+      "source_id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "name": "swiglu_kernel",
+      "operation": "swiglu",
+      "category": "activation",
+      "binding": "invoke_82afe71f227b1515",
+      "validation_input": "tests/operations/82afe71f227b1515-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/82afe71f227b1515-input.txt",
+        "--operation",
+        "src/kernels/cuda/shared_expert.cu:swiglu_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "builtin_reference_available": true
+    },
+    {
+      "source_id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "name": "moe_combine_kernel",
+      "operation": "moe_combine",
+      "category": "aggregation",
+      "binding": "invoke_6f47e6c5df6f167e",
+      "validation_input": "tests/operations/6f47e6c5df6f167e-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/6f47e6c5df6f167e-input.txt",
+        "--operation",
+        "src/kernels/cuda/shared_expert.cu:moe_combine_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "builtin_reference_available": true
+    }
+  ],
+  "generated_files": [
+    {
+      "path": "include/strata_core.h",
+      "sha256": "f239e2ae076689e33abac18502778cb85de3edc3aa23c1a9baecba08ebc866d1",
+      "bytes": 579
+    },
+    {
+      "path": "include/cuda_cpu_runtime.h",
+      "sha256": "9f9768f242ce65c194dc2dd0d3796e5b1be04df6bca6be47a13f109e8938f017",
+      "bytes": 7244
+    },
+    {
+      "path": "src/strata_core.cpp",
+      "sha256": "b27dc5103bb0b3b63b3ee2c9994ca983f09998e03bdb8af70d48e8ff4a439b74",
+      "bytes": 10137
+    },
+    {
+      "path": "src/main.cpp",
+      "sha256": "27c5ed0322d1299bc92aedcb4130111affd43d732574018c9fe3b57bf1c6caf7",
+      "bytes": 3913
+    },
+    {
+      "path": "tests/numerical.cpp",
+      "sha256": "a7801a18d8e02976ccd245402e81a7d137fd60f04b4619a21f62a0b6f1f01d7d",
+      "bytes": 5889
+    },
+    {
+      "path": "tests/cli-input.txt",
+      "sha256": "d88367a651579d9c77529213ecabcad894d11b73ba531c723bb3f17682ecdaea",
+      "bytes": 104
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "45bc7389d8f981f87cf69d9b90035090c6224f0adcb708452a2712cc3c0c02f0",
+      "bytes": 1274
+    },
+    {
+      "path": "cmake/FindAscendCL.cmake",
+      "sha256": "03d6ba3ff185ac7ad41554ab81d1555a1c89b851a59ce0e0e053874db82dec51",
+      "bytes": 1029
+    },
+    {
+      "path": "src/ascend_backend.cpp",
+      "sha256": "d8ee25737fc8cd412d2a3596388d2a268ebe9d1981a63f622b6ce6f6cea88fc4",
+      "bytes": 2470
+    },
+    {
+      "path": "tests/operations/49ab87035bb021f7-input.txt",
+      "sha256": "21a2b561464657d1d5ca92c6c0d37e70a0c1867017d39b6bf3b91595f1e28488",
+      "bytes": 13
+    },
+    {
+      "path": "tests/operations/82afe71f227b1515-input.txt",
+      "sha256": "d7f61d22a7b40d122b8e6f6d40695766aa5cf17ece868e5a33c62b269f522ce7",
+      "bytes": 22
+    },
+    {
+      "path": "tests/operations/6f47e6c5df6f167e-input.txt",
+      "sha256": "354a898cf68eaacda22847d475fb5b048ce4c25eadfb9818e4c05dc23fec7ee0",
+      "bytes": 38
+    },
+    {
+      "path": "reference/router.cu.txt",
+      "sha256": "5920423a25efd6324885ee0c4a11439183783914f250c307b8b54acb65dbaa4a",
+      "bytes": 6143
+    },
+    {
+      "path": "reference/swiglu.cu.txt",
+      "sha256": "191cd8e2e4d928f3d53d4890447ab6ecd2daf65adbc1798976cb457050408cc4",
+      "bytes": 330
+    },
+    {
+      "path": "reference/moe_combine.cu.txt",
+      "sha256": "131a3ef18b0af21c5db2feae127664ededa3926ad93a603cfd428df7d1766641",
+      "bytes": 857
+    },
+    {
+      "path": "reference/router_reference.cpp.txt",
+      "sha256": "99e7bbc233a614f14375770722d3a54d49b5de35bd741f327f067d68181ff931",
+      "bytes": 1060
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "949b9b0aada7476006469e58ee4ffb0e0f68c2d9137e90a356757b61a09d37f0",
+      "bytes": 1093
+    },
+    {
+      "path": "README.md",
+      "sha256": "096912fda2dffed112b5e83d2023802d5fcbc03abf0df448fc0416a6e2636206",
+      "bytes": 2286
+    },
+    {
+      "path": "reference/provenance.json",
+      "sha256": "428da051f8cc6bb99cb2ebfc5d2f78cc17b340d47e5c89107491d6d394c983c8",
+      "bytes": 2439
+    },
+    {
+      "path": "code_diff.json",
+      "sha256": "8c7dda3b93e429dfda95ff4a55dfc8395cca8683b9e1bf9b283027bfd8e4b1dc",
+      "bytes": 17230
+    }
+  ],
+  "code_diff": "code_diff.json",
+  "cli": {
+    "mode": "combined",
+    "format": "whitespace: N K D; N logits; N*D gate; N*D up; D shared",
+    "argv": [
+      "strata_engine",
+      "--input",
+      "PATH"
+    ],
+    "operations": [
+      {
+        "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "name": "router_top10_kernel",
+        "operation": "router",
+        "category": "routing",
+        "binding": "invoke_49ab87035bb021f7",
+        "validation_input": "tests/operations/49ab87035bb021f7-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/49ab87035bb021f7-input.txt",
+          "--operation",
+          "src/kernels/cuda/router_top10.cu:router_top10_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "builtin_reference_available": true
+      },
+      {
+        "source_id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "name": "swiglu_kernel",
+        "operation": "swiglu",
+        "category": "activation",
+        "binding": "invoke_82afe71f227b1515",
+        "validation_input": "tests/operations/82afe71f227b1515-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/82afe71f227b1515-input.txt",
+          "--operation",
+          "src/kernels/cuda/shared_expert.cu:swiglu_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "builtin_reference_available": true
+      },
+      {
+        "source_id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "name": "moe_combine_kernel",
+        "operation": "moe_combine",
+        "category": "aggregation",
+        "binding": "invoke_6f47e6c5df6f167e",
+        "validation_input": "tests/operations/6f47e6c5df6f167e-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/6f47e6c5df6f167e-input.txt",
+          "--operation",
+          "src/kernels/cuda/shared_expert.cu:moe_combine_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "builtin_reference_available": true
+      }
+    ],
+    "validation_input": "tests/cli-input.txt",
+    "validation_case": {
+      "kind": "isolated_external_numeric_input",
+      "semantic_oracle_available": true
+    }
+  },
+  "targets": [
+    "strata_engine",
+    "strata_core_test"
+  ],
+  "runtime": "cpu_cooperative_cuda_reference",
+  "scope": "Source-lowered production computational kernels; CPU cooperative CUDA reference execution. No model loader or full token-generation claim",
+  "native_activation_generated": true,
+  "native_device_validated": false,
+  "full_inference_validated": false
+}

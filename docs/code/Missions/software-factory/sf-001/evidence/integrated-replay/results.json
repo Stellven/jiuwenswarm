@@ -1,0 +1,608 @@
+{
+  "cases": [
+    {
+      "case": "core",
+      "run_id": "6db7a2b968c8434eaa9a508a6d16a7cf",
+      "recorded_status": "completed",
+      "event_count": 162,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:08:31.848830+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:08:31.889108+00:00"
+        },
+        {
+          "cursor": 6,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:08:31.964585+00:00"
+        },
+        {
+          "cursor": 51,
+          "status": "running",
+          "node_count": 18,
+          "artifact_count": 22,
+          "recorded_time": "2026-11-14T02:09:13.399986+00:00"
+        },
+        {
+          "cursor": 63,
+          "status": "running",
+          "node_count": 18,
+          "artifact_count": 26,
+          "recorded_time": "2026-11-14T02:09:25.218112+00:00"
+        },
+        {
+          "cursor": 64,
+          "status": "running",
+          "node_count": 18,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:09:25.231411+00:00"
+        },
+        {
+          "cursor": 68,
+          "status": "running",
+          "node_count": 18,
+          "artifact_count": 33,
+          "recorded_time": "2026-11-14T02:09:25.281478+00:00"
+        },
+        {
+          "cursor": 69,
+          "status": "running",
+          "node_count": 18,
+          "artifact_count": 33,
+          "recorded_time": "2026-11-14T02:09:25.288128+00:00"
+        },
+        {
+          "cursor": 162,
+          "status": "completed",
+          "node_count": 19,
+          "artifact_count": 65,
+          "recorded_time": "2026-11-14T02:09:43.802652+00:00"
+        },
+        {
+          "cursor": 64,
+          "status": "running",
+          "node_count": 18,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:09:25.231411+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "normalization",
+      "run_id": "02446be989844a3fb7e43dc9bd6a8e0a",
+      "recorded_status": "completed",
+      "event_count": 149,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:08:32.030764+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:08:32.054499+00:00"
+        },
+        {
+          "cursor": 6,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:08:32.114688+00:00"
+        },
+        {
+          "cursor": 37,
+          "status": "running",
+          "node_count": 14,
+          "artifact_count": 18,
+          "recorded_time": "2026-11-14T02:09:03.535845+00:00"
+        },
+        {
+          "cursor": 46,
+          "status": "running",
+          "node_count": 14,
+          "artifact_count": 22,
+          "recorded_time": "2026-11-14T02:09:12.206808+00:00"
+        },
+        {
+          "cursor": 47,
+          "status": "running",
+          "node_count": 14,
+          "artifact_count": 27,
+          "recorded_time": "2026-11-14T02:09:12.279757+00:00"
+        },
+        {
+          "cursor": 51,
+          "status": "running",
+          "node_count": 14,
+          "artifact_count": 29,
+          "recorded_time": "2026-11-14T02:09:12.566478+00:00"
+        },
+        {
+          "cursor": 52,
+          "status": "running",
+          "node_count": 14,
+          "artifact_count": 29,
+          "recorded_time": "2026-11-14T02:09:12.575715+00:00"
+        },
+        {
+          "cursor": 149,
+          "status": "completed",
+          "node_count": 15,
+          "artifact_count": 61,
+          "recorded_time": "2026-11-14T02:09:32.510587+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "mixed_oracle",
+      "run_id": "b152d434c8e14b01adc8c4aa40ad83f2",
+      "recorded_status": "completed",
+      "event_count": 164,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:09:32.523189+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:09:32.555326+00:00"
+        },
+        {
+          "cursor": 6,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:09:32.590612+00:00"
+        },
+        {
+          "cursor": 44,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 20,
+          "recorded_time": "2026-11-14T02:10:04.784000+00:00"
+        },
+        {
+          "cursor": 54,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 24,
+          "recorded_time": "2026-11-14T02:10:15.554243+00:00"
+        },
+        {
+          "cursor": 55,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 29,
+          "recorded_time": "2026-11-14T02:10:15.603572+00:00"
+        },
+        {
+          "cursor": 59,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:10:15.757289+00:00"
+        },
+        {
+          "cursor": 60,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:10:15.762879+00:00"
+        },
+        {
+          "cursor": 164,
+          "status": "completed",
+          "node_count": 17,
+          "artifact_count": 65,
+          "recorded_time": "2026-11-14T02:10:38.673334+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "native",
+      "run_id": "baf3d77a8301423180ccda45fb11c66b",
+      "recorded_status": "blocked",
+      "event_count": 302,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:09:43.816242+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 19,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:09:43.840820+00:00"
+        },
+        {
+          "cursor": 6,
+          "status": "running",
+          "node_count": 19,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:09:43.875977+00:00"
+        },
+        {
+          "cursor": 51,
+          "status": "running",
+          "node_count": 25,
+          "artifact_count": 22,
+          "recorded_time": "2026-11-14T02:10:20.784121+00:00"
+        },
+        {
+          "cursor": 63,
+          "status": "running",
+          "node_count": 25,
+          "artifact_count": 26,
+          "recorded_time": "2026-11-14T02:10:32.852077+00:00"
+        },
+        {
+          "cursor": 64,
+          "status": "running",
+          "node_count": 25,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:10:32.868852+00:00"
+        },
+        {
+          "cursor": 68,
+          "status": "running",
+          "node_count": 25,
+          "artifact_count": 33,
+          "recorded_time": "2026-11-14T02:10:32.932728+00:00"
+        },
+        {
+          "cursor": 69,
+          "status": "running",
+          "node_count": 25,
+          "artifact_count": 33,
+          "recorded_time": "2026-11-14T02:10:32.950415+00:00"
+        },
+        {
+          "cursor": 302,
+          "status": "blocked",
+          "node_count": 26,
+          "artifact_count": 81,
+          "recorded_time": "2026-11-14T02:11:02.548005+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "parent_workflow",
+      "run_id": "9e4d7d2016844066b504d87bc712b06c",
+      "recorded_status": "completed",
+      "event_count": 31,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:10:38.684501+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 1,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:10:38.686395+00:00"
+        },
+        {
+          "cursor": 8,
+          "status": "running",
+          "node_count": 4,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:10:38.729193+00:00"
+        },
+        {
+          "cursor": 31,
+          "status": "completed",
+          "node_count": 4,
+          "artifact_count": 16,
+          "recorded_time": "2026-11-14T02:11:05.449851+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "missing_oracle",
+      "run_id": "68c1f757248741c6b14d0bcf7a3fc978",
+      "recorded_status": "blocked",
+      "event_count": 126,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:11:39.535156+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:11:39.561111+00:00"
+        },
+        {
+          "cursor": 6,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:11:39.619305+00:00"
+        },
+        {
+          "cursor": 44,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 20,
+          "recorded_time": "2026-11-14T02:12:20.579259+00:00"
+        },
+        {
+          "cursor": 54,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 24,
+          "recorded_time": "2026-11-14T02:12:34.360796+00:00"
+        },
+        {
+          "cursor": 55,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 29,
+          "recorded_time": "2026-11-14T02:12:34.371605+00:00"
+        },
+        {
+          "cursor": 59,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:12:34.409874+00:00"
+        },
+        {
+          "cursor": 60,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:12:34.414701+00:00"
+        },
+        {
+          "cursor": 126,
+          "status": "blocked",
+          "node_count": 17,
+          "artifact_count": 50,
+          "recorded_time": "2026-11-14T02:12:49.766392+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "wrong_oracle",
+      "run_id": "0121a742659c402eb9efc66265502573",
+      "recorded_status": "failed",
+      "event_count": 128,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:11:39.739169+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:11:39.881216+00:00"
+        },
+        {
+          "cursor": 6,
+          "status": "running",
+          "node_count": 12,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:11:39.933981+00:00"
+        },
+        {
+          "cursor": 44,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 20,
+          "recorded_time": "2026-11-14T02:12:18.899857+00:00"
+        },
+        {
+          "cursor": 54,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 24,
+          "recorded_time": "2026-11-14T02:12:33.529146+00:00"
+        },
+        {
+          "cursor": 55,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 29,
+          "recorded_time": "2026-11-14T02:12:33.548092+00:00"
+        },
+        {
+          "cursor": 59,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:12:33.599048+00:00"
+        },
+        {
+          "cursor": 60,
+          "status": "running",
+          "node_count": 16,
+          "artifact_count": 31,
+          "recorded_time": "2026-11-14T02:12:33.604327+00:00"
+        },
+        {
+          "cursor": 128,
+          "status": "failed",
+          "node_count": 17,
+          "artifact_count": 52,
+          "recorded_time": "2026-11-14T02:12:49.558176+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    },
+    {
+      "case": "internal_stage",
+      "run_id": "cab4cb9235184b8d9b45c1ef40825589",
+      "recorded_status": "completed",
+      "event_count": 29,
+      "checkpoints": [
+        {
+          "cursor": 0,
+          "status": "created",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": null
+        },
+        {
+          "cursor": 1,
+          "status": "planning",
+          "node_count": 0,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:19:22.692470+00:00"
+        },
+        {
+          "cursor": 4,
+          "status": "running",
+          "node_count": 1,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:19:22.695202+00:00"
+        },
+        {
+          "cursor": 8,
+          "status": "running",
+          "node_count": 3,
+          "artifact_count": 0,
+          "recorded_time": "2026-11-14T02:19:22.742572+00:00"
+        },
+        {
+          "cursor": 29,
+          "status": "completed",
+          "node_count": 3,
+          "artifact_count": 15,
+          "recorded_time": "2026-11-14T02:19:48.292085+00:00"
+        }
+      ],
+      "factory_mutations": [],
+      "sse_connections": [],
+      "browser_errors": []
+    }
+  ],
+  "checks": [
+    "Eight real historical runs; no workflow rerun or new backend execution",
+    "All displayed node/status/artifact/log states match the shared prefix-only projector",
+    "Every replay edge color matches the shared actual receipt validator used by the offline viewer",
+    "Cursor0 and rewind remove future source/artifacts/logs/status",
+    "Actual source content appears only after recorded publication",
+    "Raw event and stage back/forward controls work",
+    "Native pointer timeline drag works",
+    "Play/Pause and1x/4x/16x advance only recorded prefixes; pause is stable",
+    "Replay mode blocks Construct and has no task submission form",
+    "No factory mutation or SSE request from historical replay",
+    "Return to live and recorded revision selection preserve honest modes",
+    "Two viewports keep independent panels without outer scrolling",
+    "No browser errors"
+  ],
+  "not_claimed": [
+    "Native or full-model inference correctness",
+    "Replay creates new execution results"
+  ]
+}

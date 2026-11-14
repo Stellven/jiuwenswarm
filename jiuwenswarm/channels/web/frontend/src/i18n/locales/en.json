@@ -69,6 +69,7 @@
     "unsupportedProtocol": "Unsupported A2UI protocol version: {{version}}"
   },
   "nav": {
+    "workflow": "Workflow",
     "chat": "Chat",
     "work": "Tasks",
     "agent": "Experts",

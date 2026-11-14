@@ -1,0 +1,93 @@
+{
+  "run_id": "b152d434c8e14b01adc8c4aa40ad83f2",
+  "run_status": "completed",
+  "package_sha256": "202bdf402d328a85019a4ad490e49123f4d24131c269c77a98070e78e96e6816",
+  "oracle_runner_sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+  "execution_artifact_sha256": "35bef896a78af9c3e6ebbf6aa4c686ad41bca4a1c9ee4c62079d5f70bbdc3f22",
+  "portability_artifact_sha256": "913c8e917423eea1059eddd7cd3ddd9623eee16088b8f6a76f99067ea94bf3f6",
+  "ctest_stdout_sha256": "1faba56e4ee5e321f472c207636ccbd09e125ebec6b9afd479d544769c6ec41f",
+  "ctest_argv": [
+    "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/stages/n17/1/toolchain/bin/ctest",
+    "--test-dir",
+    "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/stages/n11/1/independent-build",
+    "--output-on-failure"
+  ],
+  "ctest_pid": 41668,
+  "ctest_stdout": "Test project /workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/stages/n11/1/independent-build\n    Start 1: source_lowered_core_numerical\n1/2 Test #1: source_lowered_core_numerical ....   Passed    0.01 sec\n    Start 2: task_oracle_acceptance\n2/2 Test #2: task_oracle_acceptance ...........   Passed    0.08 sec\n\n100% tests passed out of 2\n\nTotal Test time (real) =   0.10 sec\n",
+  "operation_coverage": [
+    {
+      "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "name": "router_top10_kernel",
+      "operation": "router",
+      "built_in_status": "passed",
+      "built_in_comparisons": 284,
+      "oracle_comparisons": 0,
+      "oracle_cases": [],
+      "status": "passed"
+    },
+    {
+      "source_id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+      "name": "scale_kernel",
+      "operation": "elementwise",
+      "built_in_status": "unverified",
+      "built_in_comparisons": 0,
+      "oracle_comparisons": 4,
+      "oracle_cases": [
+        1
+      ],
+      "status": "passed"
+    }
+  ],
+  "oracle_receipts": [
+    {
+      "source_id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+      "expected": {
+        "output": [
+          2,
+          -4,
+          0,
+          7
+        ]
+      },
+      "actual": {
+        "backend": "CPU",
+        "output": [
+          2,
+          -4,
+          0,
+          7
+        ]
+      },
+      "comparisons": 4,
+      "receipt_sha256": "5b6e896bca4ed0d7f45848f69dcd11383693a08fbbdb197fda1cefab225d4275"
+    }
+  ],
+  "negative_runs": [
+    {
+      "id": "68c1f757248741c6b14d0bcf7a3fc978",
+      "status": "blocked",
+      "error_code": "numerical_oracle_missing",
+      "package_published": false
+    },
+    {
+      "id": "0121a742659c402eb9efc66265502573",
+      "status": "failed",
+      "error_code": "oracle_numerical_mismatch",
+      "package_published": false
+    }
+  ],
+  "checks": [
+    "Real browser downloaded ZIP SHA equals published package and independently rebuilt package",
+    "ZIP contains exact numeric acceptance JSON from the stored formal task",
+    "ZIP contains actual standalone runner bytes and all source-manifest file hashes match",
+    "Actual independently rebuilt CTest process ran two separate passing tests",
+    "Recorded CTest stdout matches actual registered process artifact bytes",
+    "Independent numeric comparison of actual scalar CLI output against supplied expected values",
+    "Coverage ledger distinguishes 284 router built-in comparisons from 4 independently supplied scale comparisons",
+    "Missing oracle blocks and incorrect oracle fails; both publish no package"
+  ],
+  "not_claimed": [
+    "Native execution or full-model inference validation",
+    "Business or AI quality acceptance of the Value Report"
+  ]
+}

@@ -131,6 +131,10 @@ def register_http_routes(app: FastAPI, channel: WebChannel) -> None:
 
     mount_research_routes(app, channel)
 
+    from jiuwenswarm.gateway.channel_manager.web.factory_http import mount_factory_routes
+
+    mount_factory_routes(app, channel)
+
 
 async def _serve_channel_websocket(channel: WebChannel, websocket: WebSocket) -> None:
     # Protected research uses its required exact Origin/Host grant hook. The

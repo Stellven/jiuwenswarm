@@ -17,6 +17,7 @@ import { SessionSidebar } from './components/SessionSidebar';
 import { SkillPanel } from './components/SkillPanel';
 import { AgentManagementPanel } from './components/AgentManagementPanel';
 import { RsiPage } from './features/rsi/RsiPage';
+import { WorkflowDemo } from './features/workflowDemo/WorkflowDemo';
 import {
   normalizeRSIEnabled,
   setRSIFeatureEnabled,
@@ -3862,6 +3863,11 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
             </div>
           </>
         )}
+        {activeNav === 'workflow' && (
+          <div className="app-section min-h-0 min-w-0" data-testid="app-workflow-section">
+            <WorkflowDemo />
+          </div>
+        )}
         {activeNav === 'experiments' && (
           <div className="app-section">
             <RsiPage />
@@ -4038,7 +4044,8 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       <ToastStack />
 
       {/* 连接状态提示 */}
-      {!isConnected && (
+      {/* Factory reports its HTTP/SSE connection errors inside its own view. */}
+      {!isConnected && activeNav !== 'workflow' && (
         <div className="app-toast-wrapper app-toast-wrapper--top" data-testid="app-connection-toast">
           <div
             className="app-connection-toast animate-rise"

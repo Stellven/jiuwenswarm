@@ -1,0 +1,7 @@
+__global__ void swiglu_kernel(const float* __restrict__ gate, const float* __restrict__ up,
+                              float* __restrict__ out, int n) {
+    const int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n) return;
+    const double x = (double) gate[i];
+    out[i] = (float) (x / (1.0 + exp(-x))) * up[i];
+}

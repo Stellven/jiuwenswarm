@@ -1,0 +1,50 @@
+[
+  {
+    "name": "core",
+    "position": "162 / 162",
+    "status": "completed",
+    "nodes": 19,
+    "graph": "Production Graph \u00b7 9",
+    "edge_colors": {
+      "pending": 0,
+      "running": 0,
+      "verified": 28,
+      "failed": 0
+    },
+    "errors": [],
+    "requests": [],
+    "html_load": "set_content: managed browser policy blocks file URLs"
+  },
+  {
+    "name": "mixed",
+    "position": "164 / 164",
+    "status": "completed",
+    "nodes": 17,
+    "graph": "Production Graph \u00b7 7",
+    "edge_colors": {
+      "pending": 0,
+      "running": 0,
+      "verified": 25,
+      "failed": 0
+    },
+    "errors": [],
+    "requests": [],
+    "html_load": "set_content: managed browser policy blocks file URLs"
+  },
+  {
+    "name": "failed-oracle",
+    "position": "128 / 128",
+    "status": "failed",
+    "nodes": 17,
+    "graph": "Production Graph \u00b7 7",
+    "edge_colors": {
+      "pending": 9,
+      "running": 0,
+      "verified": 14,
+      "failed": 2
+    },
+    "errors": [],
+    "requests": [],
+    "html_load": "set_content: managed browser policy blocks file URLs"
+  }
+]

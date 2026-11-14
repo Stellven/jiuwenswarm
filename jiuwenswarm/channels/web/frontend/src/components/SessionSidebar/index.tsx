@@ -14,6 +14,7 @@ import UpdateIcon from '../../assets/sidebar/download-update.svg?react';
 import WorkIcon from '../../assets/工作.svg?react';
 import SkillDesignIcon from '../../assets/agent-management/agent-skill.svg?react';
 import AgentDesignIcon from '../../assets/智能体.svg?react';
+import WorkflowIcon from '../../assets/code-mode/codehub-branch.svg?react';
 import PluginIcon from '../../assets/agent-management/extension.svg?react';
 import type { SidebarNavKey } from '../../utils/frontendPlatform';
 import type {
@@ -80,6 +81,7 @@ const personalContextNavIcon = (
 
 const mainNavItems: NavItem[] = [
   { key: 'chat', labelKey: 'nav.work', icon: <WorkIcon aria-hidden /> },
+  { key: 'workflow', labelKey: 'nav.workflow', icon: <WorkflowIcon aria-hidden /> },
   { key: 'agents', labelKey: 'nav.agent', icon: <AgentDesignIcon aria-hidden /> },
   { key: 'skills', labelKey: 'nav.skills', icon: <SkillDesignIcon aria-hidden /> },
   { key: 'connectorMarket', labelKey: 'nav.connectorMarket', icon: connectorMarketNavIcon },

@@ -1,0 +1,42 @@
+export const copy = {
+  title: 'STRATA Software Factory',
+  narrative: 'Construct, build, execute, and verify STRATA through composable engineering stages.',
+  pool: 'Sub-workflow Pool',
+  canvas: 'Execution Graph',
+  details: 'Execution Details',
+  run: 'Construct STRATA',
+  running: 'Running',
+  refresh: 'Refresh',
+  repository: 'Repository',
+  revision: 'Commit SHA',
+  model: 'Model path',
+  backend: 'Backend',
+  objective: 'Objective',
+  runId: 'Run ID',
+  currentGraph: 'Current graph',
+  history: 'Graph history',
+  stage: 'Stage',
+  entrypoint: 'Entrypoint',
+  inputs: 'Inputs',
+  outputs: 'Outputs',
+  tools: 'Tools',
+  environment: 'Environment',
+  verification: 'Verification',
+  commands: 'Commands',
+  events: 'Events',
+  artifacts: 'Artifacts',
+  error: 'Error',
+  attempt: (number: number) => `Attempt ${number}`,
+  dependencies: 'Artifact dependencies',
+  goals: [
+    { value: 'source.analysis', label: 'Analyze source' },
+    { value: 'construction.package', label: 'Source project' },
+    { value: 'value.report', label: 'Value assessment' },
+    { value: 'inference.result', label: 'Model inference' },
+    { value: 'verification.comparison', label: 'Original comparison' },
+  ],
+} as const;
+
+export function userGoalSelection(goals: readonly string[]): string[] {
+  return goals.filter((kind) => copy.goals.some((goal) => goal.value === kind));
+}

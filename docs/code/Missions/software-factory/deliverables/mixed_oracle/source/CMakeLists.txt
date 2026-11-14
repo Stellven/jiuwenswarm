@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.24)
+project(strata_source_lowered_core LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(STRATA_CORE_BACKEND CPU CACHE STRING "CPU cooperative reference or optional real Ascend activation")
+set_property(CACHE STRATA_CORE_BACKEND PROPERTY STRINGS CPU ASCEND)
+add_library(strata_core src/strata_core.cpp)
+target_include_directories(strata_core PUBLIC include)
+if(STRATA_CORE_BACKEND STREQUAL "ASCEND")
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+ find_package(AscendCL REQUIRED)
+ message(FATAL_ERROR "Selected source expressions have no native implementation; CPU cooperative execution is not Ascend")
+ find_package(Threads REQUIRED)
+ target_sources(strata_core PRIVATE src/ascend_backend.cpp)
+ target_compile_definitions(strata_core PRIVATE STRATA_CORE_ASCEND=1)
+ target_link_libraries(strata_core PRIVATE AscendCL::ascendcl AscendCL::opapi Threads::Threads)
+elseif(NOT STRATA_CORE_BACKEND STREQUAL "CPU")
+ message(FATAL_ERROR "Unknown backend; no fallback permitted")
+endif()
+add_executable(strata_engine src/main.cpp)
+target_link_libraries(strata_engine PRIVATE strata_core)
+add_executable(strata_core_test tests/numerical.cpp)
+target_link_libraries(strata_core_test PRIVATE strata_core)
+enable_testing()
+add_test(NAME source_lowered_core_numerical COMMAND strata_core_test)
+
+find_package(Python3 3.9 COMPONENTS Interpreter REQUIRED)
+add_test(NAME task_oracle_acceptance
+ COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/tests/verify_task_oracle.py"
+ --binary $<TARGET_FILE:strata_engine>
+ --project "${CMAKE_CURRENT_SOURCE_DIR}/project.json"
+ --oracle "${CMAKE_CURRENT_SOURCE_DIR}/tests/task-oracle.json")
