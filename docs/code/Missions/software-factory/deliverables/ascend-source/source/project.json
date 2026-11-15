@@ -1,0 +1,486 @@
+{
+  "schema": "strata.core.project.v1",
+  "project_dir": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/stages/n7/1/workspace/strata_native",
+  "source_commit": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "selected": [
+    "router",
+    "swiglu",
+    "moe_combine"
+  ],
+  "operations": [
+    {
+      "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "name": "router_top10_kernel",
+      "operation": "router",
+      "category": "routing",
+      "binding": "invoke_49ab87035bb021f7",
+      "validation_input": "tests/operations/49ab87035bb021f7-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/49ab87035bb021f7-input.txt",
+        "--operation",
+        "src/kernels/cuda/router_top10.cu:router_top10_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "builtin_reference_available": true
+    },
+    {
+      "source_id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "name": "swiglu_kernel",
+      "operation": "swiglu",
+      "category": "activation",
+      "binding": "invoke_82afe71f227b1515",
+      "validation_input": "tests/operations/82afe71f227b1515-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/82afe71f227b1515-input.txt",
+        "--operation",
+        "src/kernels/cuda/shared_expert.cu:swiglu_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "builtin_reference_available": true
+    },
+    {
+      "source_id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "name": "moe_combine_kernel",
+      "operation": "moe_combine",
+      "category": "aggregation",
+      "binding": "invoke_6f47e6c5df6f167e",
+      "validation_input": "tests/operations/6f47e6c5df6f167e-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/6f47e6c5df6f167e-input.txt",
+        "--operation",
+        "src/kernels/cuda/shared_expert.cu:moe_combine_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "builtin_reference_available": true
+    }
+  ],
+  "generated_files": [
+    {
+      "path": "include/strata_core.h",
+      "sha256": "f239e2ae076689e33abac18502778cb85de3edc3aa23c1a9baecba08ebc866d1",
+      "bytes": 579
+    },
+    {
+      "path": "include/cuda_cpu_runtime.h",
+      "sha256": "9f9768f242ce65c194dc2dd0d3796e5b1be04df6bca6be47a13f109e8938f017",
+      "bytes": 7244
+    },
+    {
+      "path": "src/strata_core.cpp",
+      "sha256": "633d1c882b0a05ac35d216d7ed849334c598dd1de0ba6e645bddb0539418f0fb",
+      "bytes": 9791
+    },
+    {
+      "path": "src/main.cpp",
+      "sha256": "27c5ed0322d1299bc92aedcb4130111affd43d732574018c9fe3b57bf1c6caf7",
+      "bytes": 3913
+    },
+    {
+      "path": "tests/numerical.cpp",
+      "sha256": "ec0030f3748635196d8699e92d94c0c069e986d19e17cf7bbda5071973c46119",
+      "bytes": 5934
+    },
+    {
+      "path": "tests/cli-input.txt",
+      "sha256": "d88367a651579d9c77529213ecabcad894d11b73ba531c723bb3f17682ecdaea",
+      "bytes": 104
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "f222f5f7e7e06d404693968854a266860d7a72167767f8be33c6f2c6ea7df322",
+      "bytes": 1378
+    },
+    {
+      "path": "cmake/FindAscendCL.cmake",
+      "sha256": "80574288e10cb5b552f415a770612a0ad57e8dea79d89714d479f5254756416a",
+      "bytes": 1535
+    },
+    {
+      "path": "include/ascend_runtime.h",
+      "sha256": "65c23ba822ab6f1fad1fefa29810ea9be1a928f78ea82f2d227d7789805b65d9",
+      "bytes": 5007
+    },
+    {
+      "path": "src/strata_native.cpp",
+      "sha256": "c08cfc7a90f4cb8024e2362257a93736f0e18a0c508d6a1a5409f93dd98b7319",
+      "bytes": 1202
+    },
+    {
+      "path": "src/ascend/moe_combine.cpp",
+      "sha256": "78f585ae8ba897fc00cc944de3d0c471d29b0a2068f4a8070e44fd374967f752",
+      "bytes": 1404
+    },
+    {
+      "path": "src/ascend/router.cpp",
+      "sha256": "aafc7c123670ea8cdaf288778e6c9092d23a9884edfc6a50b540c6f9f2a0dfc1",
+      "bytes": 2208
+    },
+    {
+      "path": "src/ascend/swiglu.cpp",
+      "sha256": "517de386dfcaee5eb818f14b0ef18c21212b6b2992fa4433ebc984ea5ae27c75",
+      "bytes": 846
+    },
+    {
+      "path": "native/manifest.json",
+      "sha256": "3d29e282da967debf6c1f178c02542a7cd122d4a8e919b9c7f0357f32caeda83",
+      "bytes": 9405
+    },
+    {
+      "path": "scripts/prepare_ascend.py",
+      "sha256": "c34c8e2e23cd9dd6b14b2033df9947df8387a4d127094e66f43afb76ab1dbed2",
+      "bytes": 6301
+    },
+    {
+      "path": "tests/operations/49ab87035bb021f7-input.txt",
+      "sha256": "21a2b561464657d1d5ca92c6c0d37e70a0c1867017d39b6bf3b91595f1e28488",
+      "bytes": 13
+    },
+    {
+      "path": "tests/operations/82afe71f227b1515-input.txt",
+      "sha256": "d7f61d22a7b40d122b8e6f6d40695766aa5cf17ece868e5a33c62b269f522ce7",
+      "bytes": 22
+    },
+    {
+      "path": "tests/operations/6f47e6c5df6f167e-input.txt",
+      "sha256": "354a898cf68eaacda22847d475fb5b048ce4c25eadfb9818e4c05dc23fec7ee0",
+      "bytes": 38
+    },
+    {
+      "path": "reference/router.cu.txt",
+      "sha256": "5920423a25efd6324885ee0c4a11439183783914f250c307b8b54acb65dbaa4a",
+      "bytes": 6143
+    },
+    {
+      "path": "reference/swiglu.cu.txt",
+      "sha256": "191cd8e2e4d928f3d53d4890447ab6ecd2daf65adbc1798976cb457050408cc4",
+      "bytes": 330
+    },
+    {
+      "path": "reference/moe_combine.cu.txt",
+      "sha256": "131a3ef18b0af21c5db2feae127664ededa3926ad93a603cfd428df7d1766641",
+      "bytes": 857
+    },
+    {
+      "path": "reference/router_reference.cpp.txt",
+      "sha256": "99e7bbc233a614f14375770722d3a54d49b5de35bd741f327f067d68181ff931",
+      "bytes": 1060
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "949b9b0aada7476006469e58ee4ffb0e0f68c2d9137e90a356757b61a09d37f0",
+      "bytes": 1093
+    },
+    {
+      "path": "README.md",
+      "sha256": "819519305b25c114529c851e1272c635029810f2cb291f049182c2824fb1432e",
+      "bytes": 3578
+    },
+    {
+      "path": "reference/provenance.json",
+      "sha256": "428da051f8cc6bb99cb2ebfc5d2f78cc17b340d47e5c89107491d6d394c983c8",
+      "bytes": 2439
+    },
+    {
+      "path": "code_diff.json",
+      "sha256": "301f20bec22ad7831a2a488d81dcf671afb74a57b495448be969d29cf2e02b84",
+      "bytes": 30835
+    }
+  ],
+  "code_diff": "code_diff.json",
+  "cli": {
+    "mode": "combined",
+    "format": "whitespace: N K D; N logits; N*D gate; N*D up; D shared",
+    "argv": [
+      "strata_engine",
+      "--input",
+      "PATH"
+    ],
+    "operations": [
+      {
+        "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "name": "router_top10_kernel",
+        "operation": "router",
+        "category": "routing",
+        "binding": "invoke_49ab87035bb021f7",
+        "validation_input": "tests/operations/49ab87035bb021f7-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/49ab87035bb021f7-input.txt",
+          "--operation",
+          "src/kernels/cuda/router_top10.cu:router_top10_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "builtin_reference_available": true
+      },
+      {
+        "source_id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "name": "swiglu_kernel",
+        "operation": "swiglu",
+        "category": "activation",
+        "binding": "invoke_82afe71f227b1515",
+        "validation_input": "tests/operations/82afe71f227b1515-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/82afe71f227b1515-input.txt",
+          "--operation",
+          "src/kernels/cuda/shared_expert.cu:swiglu_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "builtin_reference_available": true
+      },
+      {
+        "source_id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "name": "moe_combine_kernel",
+        "operation": "moe_combine",
+        "category": "aggregation",
+        "binding": "invoke_6f47e6c5df6f167e",
+        "validation_input": "tests/operations/6f47e6c5df6f167e-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/6f47e6c5df6f167e-input.txt",
+          "--operation",
+          "src/kernels/cuda/shared_expert.cu:moe_combine_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "builtin_reference_available": true
+      }
+    ],
+    "validation_input": "tests/cli-input.txt",
+    "validation_case": {
+      "kind": "isolated_external_numeric_input",
+      "semantic_oracle_available": true
+    }
+  },
+  "targets": [
+    "strata_engine",
+    "strata_core_test"
+  ],
+  "runtime": "cpu_cooperative_cuda_reference",
+  "scope": "Source-lowered production computational kernels; CPU cooperative CUDA reference execution. No model loader or full token-generation claim",
+  "backend_sources": {
+    "CPU": [
+      "src/strata_core.cpp"
+    ],
+    "ASCEND": [
+      "src/strata_native.cpp",
+      "src/ascend/moe_combine.cpp",
+      "src/ascend/router.cpp",
+      "src/ascend/swiglu.cpp"
+    ]
+  },
+  "native_runtime": "cann_aclnn_device_graph_candidate",
+  "native_activation_generated": true,
+  "native_generation": {
+    "schema": "strata.ascend.generation.v1",
+    "complete": true,
+    "operations": [
+      {
+        "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "operation": "router",
+        "source_sha256": "4fa8260d101ba1d5c82e9ee1ee6260ca3f8a7d8020493254682dd0e597c5e94a",
+        "function_sha256": "6ad4e33231f928eedbfd8b924c520f4e3cd2796abb2f464697aa2ae1fbd80809",
+        "source_contract_fingerprint": "952d58536155b76bc5d410932128f4f6fe41f92e4d44cb368a0001626576935c",
+        "generated": true,
+        "generation_status": "GENERATED",
+        "native_compilation": "NOT_RUN",
+        "device_execution": "NOT_RUN",
+        "numerical_equivalence": "NOT_RUN",
+        "contract": {
+          "version": "router-softmax-stable-gather-clamp-v1",
+          "primitives": [
+            "softmax",
+            "sort",
+            "add",
+            "maximum",
+            "div"
+          ],
+          "graph": [
+            "softmax over all experts",
+            "stable descending probability sort; ascending index ties",
+            "first k probabilities",
+            "ordered selected-probability sum",
+            "max(sum, 2**-14)",
+            "selected probabilities / denominator"
+          ],
+          "precision": "Production FP64 exp/sums with FP32 probability rounding; CANN FP32 softmax/sums. Near-tie expert IDs require exact device validation."
+        },
+        "contract_sha256": "102caf356ad6b82d1c6c2191f0d7923b2a98bb040688a96ab89b15cc33cfd215",
+        "implementation": "src/ascend/router.cpp"
+      },
+      {
+        "source_id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+        "operation": "swiglu",
+        "source_sha256": "8168fc598e974c423e8c09ee632d2c9fc67321b3beddcd001b4408b932ebcc79",
+        "function_sha256": "88378a953090b2e2883a557aa03f23ed21d36b7dfba99f727320031c0aab4f58",
+        "source_contract_fingerprint": "8019913d2dc829e336148f3dd61c7c8f6e2041253b13e0d70b0234b1cb50e618",
+        "generated": true,
+        "generation_status": "GENERATED",
+        "native_compilation": "NOT_RUN",
+        "device_execution": "NOT_RUN",
+        "numerical_equivalence": "NOT_RUN",
+        "contract": {
+          "version": "silu-then-multiply-v1",
+          "primitives": [
+            "silu",
+            "mul"
+          ],
+          "graph": [
+            "silu(gate)",
+            "FP32 silu result * up"
+          ],
+          "precision": "Production FP64 SiLU rounded to FP32 before multiplication; CANN FP32 SiLU. Requires task-tolerance device comparison."
+        },
+        "contract_sha256": "64efaadc22de99ebe2aedd98e2f63fe4745a810e6c7827dca33fee130b435c98",
+        "implementation": "src/ascend/swiglu.cpp"
+      },
+      {
+        "source_id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+        "operation": "moe_combine",
+        "source_sha256": "8168fc598e974c423e8c09ee632d2c9fc67321b3beddcd001b4408b932ebcc79",
+        "function_sha256": "7d491edf290b701705a3ea3a8d6646e6d25197891c8caaca6c3944d88d2a6cd9",
+        "source_contract_fingerprint": "d0a56dfb896d156b9478cd79558fefe60d6755ebef7b5cfdf54f9326ca86a7f3",
+        "generated": true,
+        "generation_status": "GENERATED",
+        "native_compilation": "NOT_RUN",
+        "device_execution": "NOT_RUN",
+        "numerical_equivalence": "NOT_RUN",
+        "contract": {
+          "version": "ordered-weighted-experts-plus-shared-v1",
+          "primitives": [
+            "mul",
+            "add"
+          ],
+          "graph": [
+            "broadcast expert weights * expert rows",
+            "ordered expert-index addition",
+            "plain optional shared addition"
+          ],
+          "precision": "Production ordered FP64 products/sum; candidate ordered FP32 products/sum. Requires task-tolerance device comparison, including cancellation cases."
+        },
+        "contract_sha256": "7cec9d275e3a81932742ec75819dc62039a1f2ab56123b125807af2593e38be5",
+        "implementation": "src/ascend/moe_combine.cpp"
+      }
+    ],
+    "primitives": [
+      "add",
+      "div",
+      "maximum",
+      "mul",
+      "silu",
+      "softmax",
+      "sort"
+    ],
+    "required_headers": [
+      "acl/acl.h",
+      "aclnn/acl_meta.h",
+      "aclnnop/aclnn_add.h",
+      "aclnnop/aclnn_div.h",
+      "aclnnop/aclnn_maximum.h",
+      "aclnnop/aclnn_mul.h",
+      "aclnnop/aclnn_silu.h",
+      "aclnnop/aclnn_softmax.h",
+      "aclnnop/aclnn_sort.h"
+    ],
+    "source_generation": "GENERATED",
+    "native_compilation": "NOT_RUN",
+    "device_execution": "NOT_RUN",
+    "numerical_equivalence": "NOT_RUN",
+    "full_model": "NOT_RUN",
+    "cpu_fallback_permitted": false,
+    "precision_policy": "Candidate CANN FP32 graphs require real-device acceptance at task tolerances; expert IDs and stable ties require exact agreement",
+    "runtime_api_evidence": [
+      {
+        "url": "https://github.com/Ascend/msprof/blob/fd5a9872692ec9a9ab7d7ecd887b8e7ea0755db8/samples/common/util_acl.h",
+        "establishes": [
+          "aclInit",
+          "aclrtSetDevice",
+          "aclrtCreateContext",
+          "aclrtSetCurrentContext",
+          "aclrtCreateStream",
+          "aclrtDestroyStream",
+          "aclrtDestroyContext"
+        ]
+      },
+      {
+        "url": "https://github.com/Ascend/msprof/blob/fd5a9872692ec9a9ab7d7ecd887b8e7ea0755db8/samples/mstx_with_domain/mstx_with_domain.cpp",
+        "establishes": [
+          "aclCreateTensor dimensions/strides/storage",
+          "aclCreateScalar",
+          "aclnnAdd two-stage dispatch",
+          "workspace lifetime",
+          "aclrtMemcpy",
+          "aclrtMalloc"
+        ]
+      }
+    ],
+    "api_evidence": {
+      "add": {
+        "header_url": "https://raw.githubusercontent.com/Celkryos/cann/e27cccb26ba2a8256c1e8ca910f78756bbcc2627/math/add/op_api/aclnn_add.h",
+        "header_sha256": "5d30cbee550d3d2fe1ca0fc995f52dd4a0c61bd4157847db25f66f243a4384ea",
+        "declarations": [
+          "aclnnStatus aclnnAddGetWorkspaceSize( const aclTensor* self, const aclTensor* other, const aclScalar* alpha, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnAdd(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)"
+        ]
+      },
+      "div": {
+        "header_url": "https://raw.githubusercontent.com/Celkryos/cann/e27cccb26ba2a8256c1e8ca910f78756bbcc2627/math/div/op_api/aclnn_div.h",
+        "header_sha256": "cb3361933581784be778b3cac4d827dd4d6d23dbce82723ad28e96629dd7a340",
+        "declarations": [
+          "aclnnStatus aclnnDivGetWorkspaceSize( const aclTensor* self, const aclTensor* other, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnDiv(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)"
+        ]
+      },
+      "maximum": {
+        "header_url": "https://raw.githubusercontent.com/Celkryos/cann/e27cccb26ba2a8256c1e8ca910f78756bbcc2627/math/maximum/op_api/aclnn_maximum.h",
+        "header_sha256": "7c0f416abd2dd0421a8e901fb8fd69d66e16d5c0d21f7dbdcf3db3be0e0769a2",
+        "declarations": [
+          "aclnnStatus aclnnMaximumGetWorkspaceSize( const aclTensor* self, const aclTensor* other, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnMaximum(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)"
+        ]
+      },
+      "mul": {
+        "header_url": "https://raw.githubusercontent.com/Celkryos/cann/e27cccb26ba2a8256c1e8ca910f78756bbcc2627/math/mul/op_api/aclnn_mul.h",
+        "header_sha256": "3f89ead86531bcef1b220e47f56ca0cfdb8af6984581347242021a07a22442d3",
+        "declarations": [
+          "aclnnStatus aclnnMulGetWorkspaceSize(const aclTensor* self, const aclTensor* other, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnMul(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)"
+        ]
+      },
+      "silu": {
+        "header_url": "https://raw.githubusercontent.com/hicann/ops-nn/1338f06dc07d3d24ec3d461a99effee198f92cef/activation/swish/op_api/aclnn_silu.h",
+        "header_sha256": "4fc6dd472efc3296b1e27e47f224a5d501681c032fcc087cb35b0819507d3363",
+        "declarations": [
+          "aclnnStatus aclnnSiluGetWorkspaceSize(const aclTensor* self, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnSilu(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)"
+        ]
+      },
+      "softmax": {
+        "header_url": "https://raw.githubusercontent.com/hicann/ops-nn/1338f06dc07d3d24ec3d461a99effee198f92cef/activation/softmax_v2/op_api/aclnn_softmax.h",
+        "header_sha256": "6da12c867bd0ad74ba4652ec111f55e733f81587f16d427efdd7334ddaade866",
+        "declarations": [
+          "aclnnStatus aclnnSoftmaxGetWorkspaceSize(const aclTensor* self, int64_t dim, aclTensor* out, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnSoftmax(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, aclrtStream stream)"
+        ]
+      },
+      "sort": {
+        "header_url": "https://raw.githubusercontent.com/Celkryos/cann/e27cccb26ba2a8256c1e8ca910f78756bbcc2627/math/sort/op_api/aclnn_sort.h",
+        "header_sha256": "ddf9a3502018208a2cc02e483bb316ccf38487d3fd3436e163ca012216cc9f13",
+        "declarations": [
+          "aclnnStatus aclnnSortGetWorkspaceSize(const aclTensor* self, bool stable, int64_t dim, bool descending, aclTensor* valuesOut, aclTensor* indicesOut, uint64_t* workspaceSize, aclOpExecutor** executor)",
+          "aclnnStatus aclnnSort(void* workspace, uint64_t workspaceSize, aclOpExecutor* executor, const aclrtStream stream)"
+        ]
+      }
+    }
+  },
+  "native_device_validated": false,
+  "full_inference_validated": false
+}

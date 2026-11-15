@@ -129,7 +129,7 @@ def _packages() -> dict[str, str]:
                        if item.metadata.get('Name')))
 
 
-def capture_recipe(run_directory, stages, request) -> dict:
+def capture_recipe(run_directory, stages, request, workflow_catalog: dict | None = None) -> dict:
     """Capture executor bytes before planning; never overwrite an existing recipe.
 
     The returned object is JSON serializable. Persist it in the run record and
@@ -179,7 +179,19 @@ def capture_recipe(run_directory, stages, request) -> dict:
         catalog = [stage.serializable() for stage in stages]
         catalog_raw = _canonical(catalog)
         request_raw = _canonical(_redact(request))
-        for name, raw in [('catalog.json', catalog_raw), ('request.json', request_raw)]:
+        retained_data = [('catalog.json', catalog_raw), ('request.json', request_raw)]
+        workflow_metadata = {}
+        if workflow_catalog is not None:
+            from .workflow_recording import validate_workflow_library
+            try:
+                workflow_raw = _canonical(workflow_catalog)
+                validate_workflow_library(json.loads(workflow_raw), catalog)
+            except (ValueError, TypeError, KeyError, AttributeError) as error:
+                raise StageFailure('invalid_workflow_definition', str(error)) from error
+            retained_data.append(('workflow-library.json', workflow_raw))
+            workflow_metadata = {'workflow_catalog_path': str(destination / 'workflow-library.json'),
+                                 'workflow_catalog_sha256': _digest(workflow_raw)}
+        for name, raw in retained_data:
             (temporary / name).write_bytes(raw)
             (temporary / name).chmod(0o444)
         manifest = {'schema': _SCHEMA, 'captured_at': datetime.now(timezone.utc).isoformat(),
@@ -188,7 +200,7 @@ def capture_recipe(run_directory, stages, request) -> dict:
                     'request_path': str(destination / 'request.json'),
                     'request_sha256': _digest(_canonical(request)), 'request_capture_sha256': _digest(request_raw),
                     'request_redacted': _redact(request) != request,
-                    'host': _git(factory, selected),
+                    **workflow_metadata, 'host': _git(factory, selected),
                     'interpreter': {'executable': str(Path(sys.executable).resolve()), 'version': sys.version,
                                     'implementation': sys.implementation.name}, 'packages': _packages()}
         raw = _canonical(manifest)
@@ -233,7 +245,10 @@ def verify_recipe(recipe) -> None:
                     _changed('Executor source path escaped its captured root', source=entry['relative_path'])
                 if _digest(path.read_bytes()) != entry['sha256']:
                     _changed('Executor source bytes changed', source=entry['relative_path'], kind=field)
-        for path_field, hash_field in [('catalog_path', 'catalog_sha256'), ('request_path', 'request_capture_sha256')]:
+        retained_data = [('catalog_path', 'catalog_sha256'), ('request_path', 'request_capture_sha256')]
+        if 'workflow_catalog_path' in data or 'workflow_catalog_sha256' in data:
+            retained_data.append(('workflow_catalog_path', 'workflow_catalog_sha256'))
+        for path_field, hash_field in retained_data:
             if _digest(Path(data[path_field]).read_bytes()) != data[hash_field]:
                 _changed('Captured executor catalog or request changed', part=path_field)
     except StageFailure as error:

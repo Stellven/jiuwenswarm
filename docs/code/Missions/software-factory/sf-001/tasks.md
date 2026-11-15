@@ -73,3 +73,41 @@ R8 remains UNFINISHED: full native mathematical/runtime implementation as well a
 Replay checks: 16 prefix/receipt regressions, 8 offline export checks and 18 existing UI/client checks passed. Main frontend build passed (31.23s). Browser verification exercised eight existing runs with zero factory mutations, zero replay SSE connections and zero browser errors. Offline HTML verification observed zero network requests and errors, including actual recorded failure/retry edge transitions. No workflow, source clone, C++ construction or inference was rerun for replay.
 
 Evidence: [integrated replay](evidence/integrated-replay/results.json), [offline replay](evidence/publication/offline-replay-browser.json), [export tests](evidence/publication/replay-export-tests.txt), [projection tests](evidence/publication/replay-projection-tests.txt), [frontend build](evidence/publication/frontend-replay-build.txt). The archived source projects and ZIPs retain their exact recorded bytes.
+
+## Monday complete presentation implementation
+
+- [x] T012 Portable verified historical recording bundles + owner-checked read-only API; fresh-checkout data path.
+- [x] T013 Integrated minimal full-flow UI: task, stage hierarchy/lineage, dynamic graph, source/Code Diff/build/verification/artifacts, real recording comparison.
+- [x] T014 One-command launcher and complete recorded rehearsal against the existing built host UI.
+- [x] T015 Correct source-only native core generation and backend evidence separation; source-bound routing, activation and aggregation CANN implementations. Target compilation, device execution and the complete model remain under unfinished T006/R8.
+- [x] T016 Same-candidate checks and independent manager-view audit; corrected capture timing/scroll evidence and rechecked the actual host. Source-production demonstration PASS; full AC-005 remains NOT_COMPLETE.
+- [x] T017 Replace singleton-only extraction evidence with executable multi-child parents, typed partial imports, frozen library and recorded selected/skipped siblings (AC-010).
+
+Historical recordings remain immutable. New code changes require new tests/evidence for affected behavior; recorded CPU completion cannot close native target acceptance.
+
+## Corrected Monday source-production candidate
+
+Primary real run: `11a6ce02166b4618baea6db59aaf44ec`, completed **132 events, 15 nodes, 54 artifacts**. Fixed STRATA source: `13eedf552417a6a791a7d13c6597e24300ee3a09`. Frozen workflow library SHA-256: `c3e5a4c28656f2b8be1176964b4e05971efef8d82972461f57e060541cda2a1c`.
+
+Three real multi-child subworkflows establish the required granularity: function extraction has `discover → extract`; scalar and cooperative implementation each have `extract → lower`. Six actual partial imports select only extraction's `extract` and implementation's `lower` for three source operations; their own unused siblings are not executed. Source-derived cooperative versus scalar contracts select different implementation parents. Full refs and parent hashes distinguish reused canonical stages. The complete original definitions, import receipts, execution entrypoints and consumed files are retained in `recordings/ascend-inner-stages.zip`.
+
+Actual generated CANN math is delivered in `deliverables/ascend-source/source/src/ascend/{router,swiglu,moe_combine}.cpp`, with runtime header, CPU reference, build scripts and tests. The 27-file source package SHA-256 is `30c509c862799b14cf5e80aea6c291ee653f7f574d004ca92316f2fceae07449`. Factory CPU validation performed **352 comparisons** (routing 284, activation 51, aggregation 17). A separate detached ZIP rebuild and CTest also passed; that QA is explicitly outside the original factory timeline and never inserted into its 132 events.
+
+| Acceptance slice | Current evidence | Result |
+| --- | --- | --- |
+| AC-002/AC-010 partial internal-stage construction | Actual six partial imports, frozen multi-child registry, consumed artifacts and recorded graph | PASS for source-production scope |
+| AC-003 selected source operations | 20 input/edge receipts; exact source/ZIP/diff bytes; actual CPU comparisons | PASS for selected CPU-reference checks; target math parity unverified |
+| AC-006/AC-009 replay and delivery | [Real host rehearsal](evidence/monday-rehearsal/results.json), 11 checks, 12 real GET requests, no errors or execution POST | PASS |
+| AC-007 source project | Published 27-file CANN/CPU project; actual factory CPU build/tests and independent detached source rebuild | PASS for source and CPU-reference delivery; native compilation NOT_RUN |
+| AC-005 full target inference | Complete target runtime/model implementation, SDK/device/model and original comparison | NOT_COMPLETE; target compile/device/model/comparison NOT_RUN |
+| AC-008 model-based Value Agent | Existing deterministic evidence report; configured real provider absent | Real model invocation NOT_RUN |
+
+Corrected-hierarchy backend checkpoint: **133 passed** in 329.666s, [raw log](evidence/monday-rehearsal/backend-tests.log). Subsequent reader-only origin hardening: 10 library tests passed; immutable C5 recording still verifies. Frontend: 26 scoped checks plus 16 projection regressions, production build passed. Real browser checks prove exact full-ref selection, backend-bounded SSE, native CPP/diff agreement with ZIP bytes, complete recorded process log, CPU/native outcome separation, real source download and rewind removal. No frontend timer advances production states. Original C3 recordings retain their earlier library and are not claimed as runs of this corrected candidate.
+
+The initial source-only run `528acf3c90ff4d7c95e67d4fcff15c01` is retained in `recordings/archive/ascend-source-before-inner-pool.zip`; it does not establish AC-010. The original full-model/native goal and overall task remain unfinished. This checkpoint does not change their acceptance threshold.
+
+Independent manager-view re-audit: [findings and actual evidence](evidence/monday-rehearsal/independent-audit.md). The four presentation questions—input, selected inner stages, new cross-parent chain, source/build/log/ZIP output—are understandable in the actual host. Diff capture waits for real source bytes; process capture visibly shows PID 25114, exit 0 and literal CPU352 output. No new production execution was needed for rehearsal.
+
+Final portable-reader follow-up: historical POSIX/Windows-drive/UNC paths are validated lexically, without native-host reinterpretation or access to original paths. Exact path-map keys and original metadata remain unchanged. Final affected reader/path/SSE/export suite: **38 tests passed**, [raw output](evidence/monday-rehearsal/final-portable-reader-tests.log); launcher/library checks: **14 passed**. Linux preflight validates all five packaged recordings and 244 sealed host assets. Cross-platform lexical cases are checked; actual Windows OS execution remains NOT_RUN.
+
+Portable prebuilt release: [fresh-unpack checks](evidence/monday-rehearsal/package-verification-summary.json) verified 1,349 file hashes, sealed host startup, five owned recordings, exact C5 source download and original SSE events with zero execution dispatch. Real guided browser video: 98.27 seconds, 2,933,508 bytes; [capture evidence](evidence/monday-rehearsal/monday-real-replay-summary.json) records nine checks, GET-only factory requests, unchanged recording list and no page errors. Presentation pauses are browser recording interactions; production graph changes remain exclusively original backend events.

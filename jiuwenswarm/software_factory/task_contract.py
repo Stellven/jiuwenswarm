@@ -8,7 +8,7 @@ from __future__ import annotations
 from .contracts import StageFailure
 
 ACCEPTANCE_GOALS = {
-    'source_project': 'construction.package', 'cpu_validation': 'construction.portability',
+    'source_project': 'construction.package', 'cpu_validation': 'construction.cpu_validation',
     'full_model_inference': 'inference.result', 'compare_original': 'verification.comparison',
     'native_execution': 'inference.result',
 }
@@ -51,6 +51,10 @@ def compile_goals(request):
         for name, enabled in task['acceptance'].items():
             if enabled and ACCEPTANCE_GOALS[name] not in goals:
                 goals.append(ACCEPTANCE_GOALS[name])
+        # A deliverable source project must rebuild from its detached ZIP on
+        # the requested target. CPU reference acceptance is a separate goal.
+        if task['acceptance'].get('source_project') and 'construction.portability' not in goals:
+            goals.append('construction.portability')
         if task['acceptance'].get('native_execution') and request.get('target_backend', 'ascend') != 'ascend':
             raise StageFailure('target_contract_conflict', 'Native Ascend acceptance requires target_backend=ascend')
     if not goals:

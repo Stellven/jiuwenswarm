@@ -1,0 +1,9 @@
+[ 16%] Building CXX object CMakeFiles/strata_core.dir/src/strata_core.cpp.o
+[ 33%] Linking CXX static library libstrata_core.a
+[ 33%] Built target strata_core
+[ 50%] Building CXX object CMakeFiles/strata_engine.dir/src/main.cpp.o
+[ 66%] Building CXX object CMakeFiles/strata_core_test.dir/tests/numerical.cpp.o
+[ 83%] Linking CXX executable strata_engine
+[ 83%] Built target strata_engine
+[100%] Linking CXX executable strata_core_test
+[100%] Built target strata_core_test

@@ -7,6 +7,8 @@ executes these stage instances with its existing command/artifact machinery.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field, replace
+import hashlib
+import json
 import re
 from typing import Mapping, Sequence
 
@@ -67,9 +69,11 @@ class StageInstance:
     stage_id: str
     input_bindings: Mapping[str, PortReference]
     workflow_path: str
+    pool_origin: Mapping = field(default_factory=dict)
 
     def serializable(self):
         return {'id': self.id, 'stage_id': self.stage_id, 'workflow_path': self.workflow_path,
+                'pool_origin': dict(self.pool_origin),
                 'input_bindings': {name: value.serializable() for name, value in self.input_bindings.items()}}
 
 
@@ -179,6 +183,44 @@ class WorkflowRegistry:
         outputs = {name: self._resolve(binding, available) for name, binding in definition.outputs.items()}
         return nodes, outputs
 
+    def pool_origin(self, full_ref, selected_refs=None):
+        """Resolve one exact declared child; repeated callables remain distinct.
+
+        Siblings exclude the referenced child itself. Selection receipts can
+        therefore distinguish an imported leaf from its complete parent without
+        treating the same callable in another parent as a selected sibling.
+        """
+        segments = full_ref.split('/')
+        if len(segments) != 3 or segments[0] not in self.workflows:
+            raise StageFailure('unknown_workflow', 'A pool origin requires a registered full child reference')
+        workflow = self.workflows[segments[0]]
+        parent = next((ref for ref in workflow.subworkflows if ref.id == segments[1]), None)
+        if parent is None:
+            raise StageFailure('unknown_workflow', full_ref)
+        definition = self.subworkflows[parent.definition]
+        child = next((ref for ref in definition.stages if ref.id == segments[2]), None)
+        if child is None:
+            raise StageFailure('unknown_workflow', full_ref)
+        parent_ref = '/'.join(segments[:2])
+        children = [parent_ref+'/'+ref.id for ref in definition.stages]
+        selected = [ref for ref in (selected_refs or [full_ref]) if ref.rsplit('/', 1)[0] == parent_ref]
+        if full_ref not in selected or any(ref not in children for ref in selected):
+            raise StageFailure('workflow_contract_mismatch', 'Selected child references do not belong to the declared parent')
+        selected = [ref for ref in children if ref in selected]
+        siblings = [ref for ref in children if ref != full_ref]
+        encoded = json.dumps(asdict(definition), sort_keys=True, separators=(',', ':'),
+                             ensure_ascii=False, allow_nan=False).encode()
+        return {'schema': 'factory.pool.origin.v1', 'full_ref': full_ref, 'parent_ref': parent_ref,
+                'canonical_stage_id': child.stage_id, 'parent_definition_id': definition.id,
+                'parent_definition_hash': hashlib.sha256(encoded).hexdigest(),
+                'selected_refs': selected, 'all_sibling_refs': siblings,
+                'unselected_sibling_refs': [ref for ref in siblings if ref not in selected]}
+
+    def _with_origins(self, graph):
+        selected = [node.workflow_path for node in graph.nodes]
+        return replace(graph, nodes=tuple(replace(node, pool_origin=self.pool_origin(node.workflow_path, selected))
+                                          for node in graph.nodes))
+
     def expand(self, path: str, instance_id='main') -> ExpandedGraph:
         _identifier(instance_id)
         segments = path.split('/')
@@ -200,10 +242,10 @@ class WorkflowRegistry:
                 inputs = {name: PortReference(None, name, kind) for name, kind in stage.inputs.items()}
                 instance = StageInstance(prefix + '/' + step.id, stage.id, inputs, path)
                 outputs = {name: PortReference(instance.id, name, kind) for name, kind in stage.outputs.items()}
-                return ExpandedGraph(path, instance_id, stage.inputs, (instance,), outputs)
+                return self._with_origins(ExpandedGraph(path, instance_id, stage.inputs, (instance,), outputs))
             inputs = {name: PortReference(None, name, kind) for name, kind in definition.inputs.items()}
             nodes, outputs = self._expand_subworkflow(definition, prefix, inputs)
-            return ExpandedGraph(path, instance_id, definition.inputs, tuple(nodes), outputs)
+            return self._with_origins(ExpandedGraph(path, instance_id, definition.inputs, tuple(nodes), outputs))
         available = {'$input': {name: PortReference(None, name, kind) for name, kind in workflow.inputs.items()}}
         nodes = []
         for reference in workflow.subworkflows:
@@ -218,7 +260,7 @@ class WorkflowRegistry:
         if not workflow.outputs:
             raise StageFailure('invalid_workflow_definition', f'No outputs in {workflow.id}')
         outputs = {name: self._resolve(binding, available) for name, binding in workflow.outputs.items()}
-        return ExpandedGraph(path, instance_id, workflow.inputs, tuple(nodes), outputs)
+        return self._with_origins(ExpandedGraph(path, instance_id, workflow.inputs, tuple(nodes), outputs))
 
     def export_stage_refs(self):
         result = []
@@ -227,9 +269,11 @@ class WorkflowRegistry:
                 definition = self.subworkflows[reference.definition]
                 for step in definition.stages:
                     stage = self.stages[step.stage_id]
-                    result.append({'path': '/'.join((workflow.id, reference.id, step.id)),
+                    path = '/'.join((workflow.id, reference.id, step.id))
+                    result.append({'path': path,
                                    'stage_id': stage.id, 'entrypoint': stage.serializable()['entrypoint'],
-                                   'inputs': dict(stage.inputs), 'outputs': dict(stage.outputs)})
+                                   'inputs': dict(stage.inputs), 'outputs': dict(stage.outputs),
+                                   'pool_origin': self.pool_origin(path)})
         return result
 
     def export(self):
@@ -237,19 +281,49 @@ class WorkflowRegistry:
                 'subworkflows': [asdict(value) for value in self.subworkflows.values()],
                 'stage_refs': self.export_stage_refs()}
 
+    def snapshot(self):
+        # Tuple-bearing frozen dataclasses become portable JSON lists here.
+        return json.loads(json.dumps({'schema': 'factory.workflow.library.v1', **self.export()},
+                                     ensure_ascii=False, allow_nan=False))
+
 
 def default_definitions(stages: Mapping[str, Stage]):
     """Declared runnable parents; missing optional families are simply unavailable."""
     subs = []
     workflows = []
 
-    def leaf(identifier, stage_id, alias):
-        stage = stages[stage_id]
-        definition = SubworkflowDefinition(identifier, stage.name, dict(stage.inputs),
-            (StageRef(alias, stage_id, {name: Binding('$input', name) for name in stage.inputs}),),
-            {name: Binding(alias, name) for name in stage.outputs})
+    def composition(identifier, name, children):
+        required, produced, steps, outputs, output_types = {}, {}, [], {}, {}
+        for alias, stage_id in children:
+            stage = stages[stage_id]
+            bindings = {}
+            for port, kind in stage.inputs.items():
+                if kind in produced:
+                    bindings[port] = produced[kind]
+                else:
+                    external = port
+                    if external in required and required[external] != kind:
+                        external = alias+'_'+port
+                    required[external] = kind
+                    bindings[port] = Binding('$input', external)
+            steps.append(StageRef(alias, stage_id, bindings))
+            for port, kind in stage.outputs.items():
+                produced[kind] = Binding(alias, port)
+                key = port if port not in outputs else alias+'_'+port
+                outputs[key] = Binding(alias, port)
+                output_types[key] = kind
+        definition = SubworkflowDefinition(identifier, name, required, tuple(steps), outputs)
         subs.append(definition)
-        return definition
+        return definition, output_types
+
+    # Existing public leaf paths stay stable. These parents execute genuine
+    # upstream children when selected whole; selecting a leaf exposes only the
+    # leaf's typed inputs and leaves those siblings outside the imported graph.
+    child_pools = {
+        ('function_extraction', 'function_extraction'): [('discover', 'source.discover'), ('extract', 'source.bind_operation')],
+        ('scalar_implementation', 'scalar_lowering'): [('extract', 'source.bind_operation'), ('lower', 'lower.scalar')],
+        ('cooperative_implementation', 'cooperative_lowering'): [('extract', 'source.bind_operation'), ('lower', 'lower.cooperative')],
+    }
 
     # Each sequence explicitly names real stage entrypoints. Cross-family inputs
     # remain visible typed inputs rather than invented implicit products.
@@ -261,7 +335,7 @@ def default_definitions(stages: Mapping[str, Stage]):
         ('scalar_implementation', 'Scalar source implementation', [('scalar_lowering', 'lower.scalar', 'lower')]),
         ('cooperative_implementation', 'Cooperative source implementation', [('cooperative_lowering', 'lower.cooperative', 'lower')]),
         ('construction', 'STRATA core construction', [('operator_mapping', 'construction.ascend_mapper', 'map'), ('source_generation', 'construction.codegen', 'generate'), ('cpp_build', 'construction.build', 'compile')]),
-        ('verification', 'Core verification', [('core_validation', 'construction.execute', 'execute')]),
+        ('verification', 'Core verification', [('core_validation', 'construction.execute', 'execute'), ('cpu_reference_validation', 'construction.cpu_validation', 'cpu_reference')]),
         ('delivery', 'Source delivery', [('source_packaging', 'construction.package', 'package'), ('source_portability', 'construction.rebuild_package', 'rebuild')]),
         ('engineering', 'Native component engineering', [('source_analysis', 'source.inspect', 'inspect'), ('backend_implementation', 'strata.implement', 'implement'), ('native_build', 'strata.build_components', 'compile')]),
         ('baseline', 'Original model evaluation', [('original_build', 'strata.baseline_build', 'compile'), ('original_inference', 'strata.baseline_inference', 'infer')]),
@@ -272,14 +346,16 @@ def default_definitions(stages: Mapping[str, Stage]):
         ('assessment', 'Observed factory assessment', [('value_analysis', 'value.assess', 'assess')]),
     ]
     for workflow_id, name, members in families:
-        if not all(stage_id in stages for _, stage_id, _ in members):
+        if not all(stage_id in stages for sub_id, final_stage, alias in members
+                   for _, stage_id in child_pools.get((workflow_id, sub_id), [(alias, final_stage)])):
             continue
         inputs = {}
         producers = {}
         references = []
         outputs = {}
         for sub_id, stage_id, alias in members:
-            definition = leaf(workflow_id + '-' + sub_id, stage_id, alias)
+            children = child_pools.get((workflow_id, sub_id), [(alias, stage_id)])
+            definition, declared_outputs = composition(workflow_id + '-' + sub_id, stages[stage_id].name, children)
             bindings = {}
             for port, kind in definition.inputs.items():
                 if kind in producers:
@@ -293,7 +369,7 @@ def default_definitions(stages: Mapping[str, Stage]):
                     inputs[external] = kind
                     bindings[port] = Binding('$input', external)
             references.append(SubworkflowRef(sub_id, definition.id, bindings))
-            for port, kind in stages[stage_id].outputs.items():
+            for port, kind in declared_outputs.items():
                 producers[kind] = Binding(sub_id, port)
                 key = port if port not in outputs else sub_id + '_' + port
                 outputs[key] = Binding(sub_id, port)

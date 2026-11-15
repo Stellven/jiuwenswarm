@@ -142,19 +142,25 @@ class Context:
 
 
 class Execution:
-    def __init__(self, directory: Path, request: dict, stages: list[Stage], run_id=None):
+    def __init__(self, directory: Path, request: dict, stages: list[Stage], run_id=None, workflow_registry=None):
         self.directory = directory.resolve()
         self.directory.mkdir(parents=True, exist_ok=True)
         self.stages = {s.id: s for s in stages}
         self.artifacts: dict[str, Artifact] = {}
         self.lock = threading.RLock()
         self.changed = threading.Condition(self.lock)
+        from .workflow_definitions import WorkflowRegistry
+        self.registry = workflow_registry or WorkflowRegistry(list(stages))
+        workflow_catalog = self.registry.snapshot()
+        workflow_catalog_sha256 = hashlib.sha256(json.dumps(workflow_catalog, sort_keys=True, separators=(',', ':'),
+                                                           ensure_ascii=False, allow_nan=False).encode()).hexdigest()
         from .provenance import capture_recipe
-        self.recipe = capture_recipe(self.directory, list(stages), request)
+        self.recipe = capture_recipe(self.directory, list(stages), request, workflow_catalog=workflow_catalog)
         recipe_digest = hashlib.sha256(json.dumps([(v['relative_path'], v['sha256']) for v in self.recipe['files']],
                                                   sort_keys=True).encode()).hexdigest()
         self.snapshot = {'id': run_id or directory.name, 'status': 'created', 'request': request,
                          'recipe': self.recipe, 'recipe_digest': recipe_digest,
+                         'workflow_catalog': workflow_catalog, 'workflow_catalog_sha256': workflow_catalog_sha256,
                          'created_at': now(), 'updated_at': now(), 'executor': {'pid': os.getpid(), 'start_ticks': process_identity(os.getpid())}, 'nodes': [], 'edges': [], 'artifacts': [],
                          'graph_revisions': [], 'error': None, 'sequence': 0}
         self.events_path = self.directory / 'events.jsonl'
@@ -213,8 +219,17 @@ class Execution:
                 errors.append(str(error))
         raise StageFailure('no_compatible_path', f'Cannot produce {kind}: {errors}')
 
-    def add_node(self, stage, input_bindings=None, parameters=None, instance_id=None):
+    def _stage_origin(self, stage):
+        references = [ref for ref in self.registry.export_stage_refs() if ref['stage_id'] == stage.id]
+        canonical = [ref for ref in references if ref['path'].rsplit('/', 1)[0] == stage.workflow_id+'/'+stage.subworkflow_id]
+        selected = canonical if len(canonical) == 1 else references
+        # An ambiguous callable has no inferred pool selection. Callers select
+        # its full registered reference explicitly through import_workflow.
+        return deepcopy(selected[0]['pool_origin']) if len(selected) == 1 else None
+
+    def add_node(self, stage, input_bindings=None, parameters=None, instance_id=None, pool_origin=None):
         bindings, parameters = deepcopy(input_bindings or {}), deepcopy(parameters or {})
+        origin = deepcopy(pool_origin) if pool_origin is not None else self._stage_origin(stage)
         canonical = {}
         for name, binding in bindings.items():
             parent = next((n for n in self.snapshot['nodes'] if n['id'] == binding['node_id']), None)
@@ -225,6 +240,8 @@ class Execution:
                 canonical[name]['artifact_id'] = binding.get('artifact_id')
         identity = hashlib.sha256(json.dumps({'stage': stage.serializable(), 'bindings': canonical,
                                              'recipe': self.snapshot.get('recipe_digest'),
+                                             'pool_ref': origin['full_ref'] if origin else None,
+                                             'parent_definition_hash': origin['parent_definition_hash'] if origin else None,
                                              'parameters': parameters}, sort_keys=True).encode()).hexdigest()
         existing = next((n for n in self.snapshot['nodes'] if n.get('instance_key') == identity), None)
         if existing:
@@ -233,6 +250,8 @@ class Execution:
                 'workflow_id': stage.workflow_id, 'subworkflow_id': stage.subworkflow_id,
                 'status': 'pending', 'attempts': [], 'instance_key': identity,
                 'instance_id': instance_id, 'input_bindings': bindings, 'parameters': parameters}
+        if origin:
+            node.update(pool_origin=origin, workflow_path=origin['full_ref'])
         self.snapshot['nodes'].append(node)
         return node
 
@@ -249,12 +268,8 @@ class Execution:
             bindings[name] = {'node_id': artifact.producer, 'artifact_id': artifact.id, 'kind': kind,
                               'port': artifact.metadata.get('output_port')}
         node = self.add_node(stage, bindings, parameters, instance_id)
-        from .workflow_definitions import WorkflowRegistry
-        registry = WorkflowRegistry(list(self.stages.values()))
-        origins = [v for v in registry.export_stage_refs() if v['stage_id'] == stage.id]
-        if origins:
-            selected = registry.expand(origins[0]['path'], instance_id=node['id'])
-            node['workflow_path'] = origins[0]['path']
+        if node.get('pool_origin') and 'workflow_selection' not in node:
+            selected = self.registry.expand(node['pool_origin']['full_ref'], instance_id=node['id'])
             node['workflow_selection'] = selected.serializable()
         for artifact in inputs.values():
             self.add_edge(artifact.producer, node['id'], artifact.kind)
@@ -269,10 +284,11 @@ class Execution:
 
     def import_workflow(self, path, external_inputs=None, instance_id='main', parameters=None, registry=None):
         """Execute a registered parent or extract its nested executable stages."""
-        from .workflow_definitions import WorkflowRegistry
-        registry = registry or WorkflowRegistry(list(self.stages.values()))
+        registry = registry or self.registry
         graph = registry.expand(path, instance_id=instance_id).serializable()
         external_inputs = dict(external_inputs or {})
+        if set(external_inputs) - set(graph['inputs']):
+            raise StageFailure('contract_invalid', 'Workflow received undeclared external input ports')
         producers = {}
         for name, kind in graph['inputs'].items():
             if name in external_inputs:
@@ -294,11 +310,23 @@ class Execution:
             for name, binding in declared['input_bindings'].items():
                 bindings[name] = ({'node_id': imported[binding['node_id']]['id'], 'kind': binding['kind'], 'port': binding['port']}
                                   if binding['node_id'] else dict(producers[binding['port']]))
-            node = self.add_node(stage, bindings, parameters=parameters, instance_id=declared['id'])
-            node['workflow_path'] = path
+            node = self.add_node(stage, bindings, parameters=parameters, instance_id=declared['id'],
+                                 pool_origin=declared['pool_origin'])
+            if 'workflow_selection' not in node:
+                node['workflow_selection'] = graph
+            receipt = {'path': path, 'instance_id': instance_id, 'pool_origin': declared['pool_origin']}
+            if receipt not in node.setdefault('workflow_selections', []):
+                node['workflow_selections'].append(receipt)
             imported[declared['id']] = node
             for binding in bindings.values():
                 self.add_edge(binding['node_id'], node['id'], binding['kind'])
+        library = registry.snapshot()
+        library_sha256 = hashlib.sha256(json.dumps(library, sort_keys=True, separators=(',', ':'),
+                                                ensure_ascii=False, allow_nan=False).encode()).hexdigest()
+        self.emit('workflow.expanded', payload={'path': path, 'instance_id': instance_id, 'graph': graph,
+            'pool_origins': [{**declared['pool_origin'], 'node_id': imported[declared['id']]['id']}
+                             for declared in graph['nodes']],
+            'workflow_catalog_sha256': library_sha256})
         self.graph_revision(f'Expanded executable workflow selection {path}')
         outputs = {}
         for name, output in graph['outputs'].items():

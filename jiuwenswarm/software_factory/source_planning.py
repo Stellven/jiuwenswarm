@@ -74,7 +74,9 @@ def select_operations(discovery, requirements):
 
 def bind_operation(ctx, inputs):
     discovery = inputs['discovery'].read_json()
-    key = ctx.parameters['operation_id']
+    key = ctx.parameters.get('operation_id')
+    if not isinstance(key, str) or not key:
+        raise StageFailure('invalid_operation_selection', 'Function extraction requires the actual discovered operation_id parameter')
     descriptor = next((v for v in discovery['operations'] if (v.get('id') or v.get('name')) == key), None)
     if descriptor is None:
         raise StageFailure('source_operation_missing', key)
@@ -102,10 +104,16 @@ def compose_implementation(ctx, inputs):
     requirements = inputs['requirements'].read_json()
     selected = select_operations(discovery, requirements)
     products, decisions = [], []
+    registry = ctx.execution.registry
+    extraction_ref = 'function_extraction/function_extraction/extract'
+    extraction = registry.expand(extraction_ref)
+    if len(extraction.nodes) != 1 or extraction.nodes[0].stage_id != 'source.bind_operation':
+        raise StageFailure('invalid_workflow_definition', 'The registered extraction pool does not bind the actual source extractor')
     for descriptor in selected:
         operator_id = descriptor.get('id') or descriptor['name']
-        extracted = ctx.execution.invoke_stage('source.bind_operation', {'discovery': inputs['discovery']},
-                                               parameters={'operation_id': operator_id})['operator']
+        instance = ctx.node['id']+'-'+hashlib.sha256(operator_id.encode()).hexdigest()[:12]
+        extracted = ctx.execution.import_workflow(extraction_ref, {'discovery': inputs['discovery']},
+            instance_id=instance+'-extract', parameters={'operation_id': operator_id})['operator']
         candidates = sorted([stage for stage in ctx.execution.stages.values()
                              if stage.inputs == {'operator': 'source.operator'} and
                              stage.outputs == {'core': 'core.lowered'} and
@@ -114,12 +122,20 @@ def compose_implementation(ctx, inputs):
         if not candidates:
             raise StageBlocked('implementation_capability_missing', 'No executable stage accepts this source structure', descriptor)
         stage = candidates[0]
+        references = [ref for ref in registry.export_stage_refs() if ref['stage_id'] == stage.id]
+        if not references:
+            raise StageBlocked('implementation_capability_missing', 'Executable lowering is not registered in a reusable workflow pool',
+                               {'stage_id': stage.id, 'operation_id': operator_id})
+        selected_ref = sorted(references, key=lambda ref: ref['path'])[0]['path']
         decision = {'operation_id': operator_id, 'sourcefile': _path(descriptor), 'features': descriptor.get('features'),
                     'lowering_kind': descriptor['lowering_kind'], 'selected_stage': stage.id,
+                    'extraction_ref': extraction_ref, 'selected_ref': selected_ref,
+                    'pool_origin': registry.pool_origin(selected_ref),
                     'input_sha256': extracted.sha256}
         decisions.append(decision)
         ctx.execution.emit('implementation.selected', ctx.node['id'], decision)
-        product = ctx.execution.invoke_stage(stage.id, {'operator': extracted})['core']
+        product = ctx.execution.import_workflow(selected_ref, {'operator': extracted},
+                                                instance_id=instance+'-lower')['core']
         products.append(product)
     core = merge_core([ctx.consume_json(product) for product in products])
     if requirements.get('oracle') is not None:

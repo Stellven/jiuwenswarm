@@ -687,6 +687,7 @@ function applyTeamTaskToolCall(_sessionId: string, _toolCall: ToolCall) {
 }
 
 interface UseWebSocketOptions {
+  enabled?: boolean;
   activeSessionId?: string;
   provider?: string;
   apiKey?: string;
@@ -975,6 +976,7 @@ const ARCHIVE_EVENT_REFRESH_DEBOUNCE_MS = 300;
 export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   const { t } = useTranslation();
   const {
+    enabled = true,
     activeSessionId,
     provider,
     apiKey,
@@ -988,6 +990,8 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     onModelsUpdated,
     onCronResultArrived,
   } = options;
+  const enabledRef = useRef(enabled);
+  enabledRef.current = enabled;
   const activeSessionMode = useSessionStore(
     (state) => state.runtimes[activeSessionId ?? '']?.mode,
   );
@@ -1233,6 +1237,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
   const handleConnectionAck = useCallback(
     (payload: Record<string, unknown>) => {
+      if (!enabledRef.current) return;
       const ackPayload = payload as unknown as ConnectionAckPayload;
       setConnected(true);
       if (Array.isArray(ackPayload.tools)) {
@@ -1255,6 +1260,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       params?: Record<string, unknown>,
       requestOptions?: WebRequestOptions
     ): Promise<T> => {
+      if (!enabledRef.current) throw new Error('Chat transport is inactive for the current view');
       return webClient.request<T>(method, params, requestOptions);
     },
     []
@@ -2773,6 +2779,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   );
 
   useEffect(() => {
+    if (!enabled) return;
     const applyTeamMemberShutdown = (memberId: string, sessionId?: string) => {
       const normalizedMemberId = memberId.trim();
       if (!normalizedMemberId) {
@@ -5415,6 +5422,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       unsubs.forEach((fn) => fn());
     };
   }, [
+    enabled,
     appendTeamMemberOutputDelta,
     closeHeartbeatSessionState,
     drainTaskQueueIfIdle,
@@ -5443,6 +5451,14 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   ]);
 
   useEffect(() => {
+    if (!enabled) {
+      lastConnectSignatureRef.current = '';
+      setIsConnected(false);
+      setConnectionState('closed');
+      setConnected(false);
+      void webClient.disconnect('inactive view');
+      return;
+    }
     const connectOptions: WebConnectOptions = {
       provider,
       apiKey,
@@ -5465,8 +5481,10 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
         if (previousSignature && previousSignature !== nextSignature && state !== 'closed') {
           await webClient.disconnect('connect options changed');
         }
+        if (!enabledRef.current) return;
         await webClient.connect(connectOptions);
       } catch (error) {
+        if (!enabledRef.current) return;
         const webError = error as WebError;
         onErrorRef.current?.(webError.message || 'WebSocket connection error');
       }
@@ -5474,11 +5492,13 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
 
     void runConnect();
   }, [
+    enabled,
     apiBase,
     apiKey,
     model,
     projectDir,
     provider,
+    setConnected,
   ]);
 
   useEffect(() => {
@@ -5499,6 +5519,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   ]);
 
   useEffect(() => {
+    if (!enabled) return;
     const connectOptions: WebConnectOptions = {
       provider,
       apiKey,
@@ -5507,8 +5528,11 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       projectDir,
     };
     const reconnectByDebugToggle = () => {
+      if (!enabledRef.current) return;
       void webClient.disconnect('debug mode toggled').then(() => {
+        if (!enabledRef.current) return;
         void webClient.connect(connectOptions).catch((error) => {
+          if (!enabledRef.current) return;
           const webError = error as WebError;
           onErrorRef.current?.(webError.message || 'WebSocket reconnect error');
         });
@@ -5518,10 +5542,12 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     return () => {
       window.removeEventListener(WS_RECONNECT_EVENT, reconnectByDebugToggle);
     };
-  }, [apiBase, apiKey, model, projectDir, provider]);
+  }, [enabled, apiBase, apiKey, model, projectDir, provider]);
 
   useEffect(() => {
+    if (!enabled) return;
     const unsub = webClient.onStateChange((state) => {
+      if (!enabledRef.current) return;
       setConnectionState(state);
       const connected = state === 'ready';
       setIsConnected(connected);
@@ -5614,6 +5640,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
       unsub();
     };
   }, [
+    enabled,
     captureTeamConnectionForSession,
     clearPendingAgentGroupBinding,
     clearPendingSubagentCorrelations,
@@ -5623,6 +5650,7 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
   ]);
 
   useEffect(() => {
+    if (!enabled) return;
     // 真实环境联调方案 9c：未完成目标超过 1 分钟没收到新的 goal.snapshot/goal.updated 事件，
     // 主动 get 一次兜底，避免长时间静默期间前端展示的状态跟后端实际状态脱节。用一个共享轮询
     // 巡检所有 session，而不是给每个 session 单独起 setTimeout——避免目标频繁切换 session 时
@@ -5653,9 +5681,10 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     return () => {
       window.clearInterval(timer);
     };
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     const markAllRuntimes = () => {
       const runtimes = useChatStore.getState().runtimes;
       for (const sid of Object.keys(runtimes)) {
@@ -5671,10 +5700,10 @@ export function useWebSocket(options: UseWebSocketOptions): UseWebSocketReturn {
     return () => {
       window.clearInterval(timer);
     };
-  }, []);
+  }, [enabled]);
 
   return {
-    isConnected,
+    isConnected: enabled && isConnected,
     connectionState,
     request,
     persistMedia,

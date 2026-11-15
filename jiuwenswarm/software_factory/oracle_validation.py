@@ -274,7 +274,7 @@ def run_oracle_cases(ctx,binary,source_dir,oracle,requirements_sha256):
              'successful_or_compared_cases':reports,'native_device_validated':False,'full_inference_validated':False})
     return {'status':'passed','cases':reports,'comparisons':total,'max_abs_error':maximum,
             'requirements_sha256':requirements_sha256,
-            'scope':'User-supplied independent numeric acceptance cases on the generated CPU CLI',
+            'scope':'User-supplied independent numeric acceptance cases on the generated target CLI',
             'native_device_validated':False,'full_inference_validated':False}
 
 
@@ -307,7 +307,7 @@ def validate_project(ctx,binary,self_test,source_dir,oracle,requirements_sha256)
     invalid = (not _number(error) or error<0 or error>1e-5 or
                type(numerical.get('outputs_compared')) is not int or numerical['outputs_compared']<0)
     if process_failure is not None or invalid or any(item['status']=='failed' for item in coverage):
-        raise OracleError('numerical_mismatch','Generated CPU core failed independent numerical validation',
+        raise OracleError('numerical_mismatch','Generated computational core failed independent numerical validation',
             {'numerical_result':numerical,'operation_coverage':coverage,'oracle_validation':external,
              'stdout_path':command['stdout_path'],'stderr_path':command['stderr_path']})
     uncovered = [item['source_id'] for item in coverage if item['status']!='passed']
@@ -329,7 +329,7 @@ def main(argv=None):
     import argparse
     import subprocess
     import sys
-    parser = argparse.ArgumentParser(description='Execute the generated CPU project against its supplied numeric acceptance cases')
+    parser = argparse.ArgumentParser(description='Execute the generated project against its supplied numeric acceptance cases')
     parser.add_argument('--binary',required=True)
     parser.add_argument('--project',required=True)
     parser.add_argument('--oracle',required=True)

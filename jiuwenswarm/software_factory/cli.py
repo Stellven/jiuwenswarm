@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 
 from .engine import FactoryService
+from .recordings import RecordingsStore, default_recordings_directory, export_recording
+from .replay_export import ReplayExportError
 
 
 def main():
@@ -21,14 +23,37 @@ def main():
     parser.add_argument('--core', action='append', choices=['router', 'swiglu', 'moe_combine'])
     parser.add_argument('--workflow', dest='workflow_path')
     parser.add_argument('--task-file', type=Path)
+    parser.add_argument('--recordings', type=Path, default=default_recordings_directory(),
+                        help='Directory of portable read-only recording ZIPs')
+    portable = parser.add_mutually_exclusive_group()
+    portable.add_argument('--export-recording', type=Path, metavar='RUN_DIR',
+                          help='Export existing evidence without executing the factory')
+    portable.add_argument('--import-recording', type=Path, metavar='BUNDLE_ZIP')
+    portable.add_argument('--list-recordings', action='store_true')
+    parser.add_argument('--output', type=Path, help='Portable recording ZIP destination')
     args = parser.parse_args()
+    recordings = RecordingsStore(args.recordings)
+    try:
+        if args.export_recording:
+            if not args.output:
+                parser.error('--export-recording requires --output')
+            print(json.dumps(export_recording(args.export_recording, args.output), indent=2))
+            return 0
+        if args.import_recording:
+            print(json.dumps(recordings.import_bundle(args.import_recording), indent=2))
+            return 0
+        if args.list_recordings:
+            print(json.dumps({'recordings': recordings.list('local-operator')}, indent=2))
+            return 0
+    except (ReplayExportError, OSError) as error:
+        parser.exit(1, f'Recording operation failed: {error}\n')
     service = FactoryService(Path(args.root))
     if args.serve:
         from fastapi import FastAPI
         import uvicorn
         from .api import create_router
         app = FastAPI(title='Software Factory')
-        app.include_router(create_router(service))
+        app.include_router(create_router(service, recordings=recordings))
         uvicorn.run(app, host=args.host, port=args.port)
         return 0
     if not args.goals and not args.workflow_path and not args.task_file:

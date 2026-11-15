@@ -5,15 +5,11 @@
 const recording = REPLAY_RECORDING;
 const replayEvents = normalizeReplayEvents(recording.events);
 const el = (id) => document.getElementById(id);
-const controls = { play: el('play'), previous: el('previous'), next: el('next'), seek: el('seek'), speed: el('speed') };
+const controls = { previous: el('previous'), next: el('next'), seek: el('seek'), final: el('final') };
 let cursor = 0;
 let selectedNode = null;
 let followExecution = true;
 let activeTab = 'Terminal';
-let playing = false;
-let frame = null;
-let clockStart = 0;
-let clockOffset = 0;
 let projected;
 
 function make(tag, text, className) {
@@ -297,6 +293,7 @@ function render() {
   controls.seek.value = String(cursor);
   controls.previous.disabled = cursor === 0;
   controls.next.disabled = cursor === replayEvents.length;
+  controls.final.disabled = cursor === replayEvents.length;
   el('position').textContent = `${cursor} / ${replayEvents.length}`;
   el('run-id').textContent = recording.run.id;
   el('record-time').textContent = utc(projected.replay.time);
@@ -307,42 +304,10 @@ function render() {
   renderDetail();
 }
 
-function pause() {
-  playing = false;
-  if (frame !== null) cancelAnimationFrame(frame);
-  frame = null;
-  controls.play.textContent = 'Play';
-}
-
-function tick(now) {
-  if (!playing) return;
-  const elapsed = clockOffset + (now - clockStart) * Number(controls.speed.value);
-  let nextCursor = cursor;
-  while (nextCursor < replayEvents.length && eventOffset(replayEvents, nextCursor) <= elapsed) nextCursor += 1;
-  if (nextCursor !== cursor) { cursor = nextCursor; render(); }
-  if (cursor >= replayEvents.length) pause();
-  else frame = requestAnimationFrame(tick);
-}
-
-controls.play.onclick = () => {
-  if (playing) { pause(); return; }
-  if (cursor >= replayEvents.length) cursor = 0;
-  followExecution = true;
-  clockOffset = cursor ? eventOffset(replayEvents, cursor - 1) : 0;
-  clockStart = performance.now();
-  playing = true;
-  controls.play.textContent = 'Pause';
-  frame = requestAnimationFrame(tick);
-};
-controls.previous.onclick = () => { pause(); followExecution = true; cursor = Math.max(0, cursor - 1); render(); };
-controls.next.onclick = () => { pause(); followExecution = true; cursor = Math.min(replayEvents.length, cursor + 1); render(); };
+controls.previous.onclick = () => { followExecution = true; cursor = Math.max(0, cursor - 1); render(); };
+controls.next.onclick = () => { followExecution = true; cursor = Math.min(replayEvents.length, cursor + 1); render(); };
+controls.final.onclick = () => { followExecution = true; cursor = replayEvents.length; render(); };
 controls.seek.max = String(replayEvents.length);
-controls.seek.oninput = () => { pause(); followExecution = true; cursor = Number(controls.seek.value); render(); };
-controls.speed.onchange = () => {
-  if (!playing) return;
-  clockOffset = cursor ? eventOffset(replayEvents, cursor - 1) : 0;
-  clockStart = performance.now();
-};
+controls.seek.oninput = () => { followExecution = true; cursor = Number(controls.seek.value); render(); };
 window.addEventListener('resize', renderGraph);
-window.addEventListener('beforeunload', pause);
 render();

@@ -1,0 +1,13 @@
+{
+  "video": "/workspace/software-factory-delivery/monday/monday-real-replay.mp4",
+  "duration_seconds": 98.266667,
+  "bytes": 2933508,
+  "sha256": "a92f262383352140ba9ca6d4ea9d092d447911cc3082945dcfa095eb90fefb6a",
+  "checks_passed": 9,
+  "page_errors": [],
+  "factory_non_get_requests": [],
+  "script": "/workspace/software-factory-delivery/monday/record_real_replay.py",
+  "log": "/workspace/software-factory-delivery/monday/monday-real-replay-recording.log",
+  "evidence": "/workspace/software-factory-delivery/monday/monday-real-replay-recording.json",
+  "recording_id": "11a6ce02166b4618baea6db59aaf44ec"
+}

@@ -1,0 +1,253 @@
+{
+  "run_id": "11a6ce02166b4618baea6db59aaf44ec",
+  "status": "completed",
+  "workflow_catalog_sha256": "c3e5a4c28656f2b8be1176964b4e05971efef8d82972461f57e060541cda2a1c",
+  "selected_partial_calls": [
+    {
+      "schema": "factory.pool.origin.v1",
+      "full_ref": "function_extraction/function_extraction/extract",
+      "parent_ref": "function_extraction/function_extraction",
+      "canonical_stage_id": "source.bind_operation",
+      "parent_definition_id": "function_extraction-function_extraction",
+      "parent_definition_hash": "55f639bf9cc1afb41ebeda3d47ae40358cce7dd4d6bc2955208a3babd95f4d8f",
+      "selected_refs": [
+        "function_extraction/function_extraction/extract"
+      ],
+      "all_sibling_refs": [
+        "function_extraction/function_extraction/discover"
+      ],
+      "unselected_sibling_refs": [
+        "function_extraction/function_extraction/discover"
+      ]
+    },
+    {
+      "schema": "factory.pool.origin.v1",
+      "full_ref": "cooperative_implementation/cooperative_lowering/lower",
+      "parent_ref": "cooperative_implementation/cooperative_lowering",
+      "canonical_stage_id": "lower.cooperative",
+      "parent_definition_id": "cooperative_implementation-cooperative_lowering",
+      "parent_definition_hash": "7d1d3172f2b0249e90e362a891aab17f7ec4b3786ad17e3d264f16afc1ccb68e",
+      "selected_refs": [
+        "cooperative_implementation/cooperative_lowering/lower"
+      ],
+      "all_sibling_refs": [
+        "cooperative_implementation/cooperative_lowering/extract"
+      ],
+      "unselected_sibling_refs": [
+        "cooperative_implementation/cooperative_lowering/extract"
+      ]
+    },
+    {
+      "schema": "factory.pool.origin.v1",
+      "full_ref": "function_extraction/function_extraction/extract",
+      "parent_ref": "function_extraction/function_extraction",
+      "canonical_stage_id": "source.bind_operation",
+      "parent_definition_id": "function_extraction-function_extraction",
+      "parent_definition_hash": "55f639bf9cc1afb41ebeda3d47ae40358cce7dd4d6bc2955208a3babd95f4d8f",
+      "selected_refs": [
+        "function_extraction/function_extraction/extract"
+      ],
+      "all_sibling_refs": [
+        "function_extraction/function_extraction/discover"
+      ],
+      "unselected_sibling_refs": [
+        "function_extraction/function_extraction/discover"
+      ]
+    },
+    {
+      "schema": "factory.pool.origin.v1",
+      "full_ref": "scalar_implementation/scalar_lowering/lower",
+      "parent_ref": "scalar_implementation/scalar_lowering",
+      "canonical_stage_id": "lower.scalar",
+      "parent_definition_id": "scalar_implementation-scalar_lowering",
+      "parent_definition_hash": "917e6b5f6c1e3e2169dbef81ec62f6e8c3ec8d705d750c7adcd294852fa62044",
+      "selected_refs": [
+        "scalar_implementation/scalar_lowering/lower"
+      ],
+      "all_sibling_refs": [
+        "scalar_implementation/scalar_lowering/extract"
+      ],
+      "unselected_sibling_refs": [
+        "scalar_implementation/scalar_lowering/extract"
+      ]
+    },
+    {
+      "schema": "factory.pool.origin.v1",
+      "full_ref": "function_extraction/function_extraction/extract",
+      "parent_ref": "function_extraction/function_extraction",
+      "canonical_stage_id": "source.bind_operation",
+      "parent_definition_id": "function_extraction-function_extraction",
+      "parent_definition_hash": "55f639bf9cc1afb41ebeda3d47ae40358cce7dd4d6bc2955208a3babd95f4d8f",
+      "selected_refs": [
+        "function_extraction/function_extraction/extract"
+      ],
+      "all_sibling_refs": [
+        "function_extraction/function_extraction/discover"
+      ],
+      "unselected_sibling_refs": [
+        "function_extraction/function_extraction/discover"
+      ]
+    },
+    {
+      "schema": "factory.pool.origin.v1",
+      "full_ref": "scalar_implementation/scalar_lowering/lower",
+      "parent_ref": "scalar_implementation/scalar_lowering",
+      "canonical_stage_id": "lower.scalar",
+      "parent_definition_id": "scalar_implementation-scalar_lowering",
+      "parent_definition_hash": "917e6b5f6c1e3e2169dbef81ec62f6e8c3ec8d705d750c7adcd294852fa62044",
+      "selected_refs": [
+        "scalar_implementation/scalar_lowering/lower"
+      ],
+      "all_sibling_refs": [
+        "scalar_implementation/scalar_lowering/extract"
+      ],
+      "unselected_sibling_refs": [
+        "scalar_implementation/scalar_lowering/extract"
+      ]
+    }
+  ],
+  "source_math_path": "src/ascend/router.cpp",
+  "package_sha256": "30c509c862799b14cf5e80aea6c291ee653f7f574d004ca92316f2fceae07449",
+  "checkpoints": [
+    {
+      "cursor": 0,
+      "node_count": 0,
+      "selected_refs": []
+    },
+    {
+      "cursor": 19,
+      "node_count": 8,
+      "selected_refs": [
+        "construction/operator_mapping/map",
+        "construction/source_generation/generate",
+        "source_acquisition/cuda_analysis/scan",
+        "source_acquisition/repository_fetch/fetch",
+        "source_acquisition/semantic_discovery/discover",
+        "task_preparation/requirements/compile",
+        "transformation/implementation_composition/compose",
+        "verification/cpu_reference_validation/cpu_reference"
+      ]
+    },
+    {
+      "cursor": 61,
+      "node_count": 14,
+      "selected_refs": [
+        "construction/operator_mapping/map",
+        "construction/source_generation/generate",
+        "cooperative_implementation/cooperative_lowering/lower",
+        "function_extraction/function_extraction/extract",
+        "scalar_implementation/scalar_lowering/lower",
+        "source_acquisition/cuda_analysis/scan",
+        "source_acquisition/repository_fetch/fetch",
+        "source_acquisition/semantic_discovery/discover",
+        "task_preparation/requirements/compile",
+        "transformation/implementation_composition/compose",
+        "verification/cpu_reference_validation/cpu_reference"
+      ]
+    },
+    {
+      "cursor": 72,
+      "node_count": 14,
+      "selected_refs": [
+        "construction/operator_mapping/map",
+        "construction/source_generation/generate",
+        "cooperative_implementation/cooperative_lowering/lower",
+        "function_extraction/function_extraction/extract",
+        "scalar_implementation/scalar_lowering/lower",
+        "source_acquisition/cuda_analysis/scan",
+        "source_acquisition/repository_fetch/fetch",
+        "source_acquisition/semantic_discovery/discover",
+        "task_preparation/requirements/compile",
+        "transformation/implementation_composition/compose",
+        "verification/cpu_reference_validation/cpu_reference"
+      ]
+    },
+    {
+      "cursor": 132,
+      "node_count": 15,
+      "selected_refs": [
+        "construction/operator_mapping/map",
+        "construction/source_generation/generate",
+        "cooperative_implementation/cooperative_lowering/lower",
+        "environment_repair/dependency_recovery/install",
+        "function_extraction/function_extraction/extract",
+        "scalar_implementation/scalar_lowering/lower",
+        "source_acquisition/cuda_analysis/scan",
+        "source_acquisition/repository_fetch/fetch",
+        "source_acquisition/semantic_discovery/discover",
+        "task_preparation/requirements/compile",
+        "transformation/implementation_composition/compose",
+        "verification/cpu_reference_validation/cpu_reference"
+      ]
+    },
+    {
+      "cursor": 0,
+      "node_count": 0,
+      "selected_refs": []
+    }
+  ],
+  "requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/catalog"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/replay?after=0&speed=16&until=19"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/replay?after=61&speed=16&until=72"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a34"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a31"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a34"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a27"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a30"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a54"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:5175/api/v1/factory/recordings/11a6ce02166b4618baea6db59aaf44ec/artifacts/a31"
+    }
+  ],
+  "page_errors": [],
+  "checks": [
+    "Actual host deep-link stays Workflow and English",
+    "Frozen multi-child library precedes execution",
+    "Exact full-ref selection; skipped siblings never blue",
+    "Every displayed node matches real graph.updated prefix",
+    "Backend-bounded SSE stops at actual publications",
+    "Native CPP and diff literal bytes from real published ZIP",
+    "Recorded worker and real subprocesses visible",
+    "CPU352 distinct from native-device/model NOT_RUN",
+    "Actual source ZIP downloads without workspace path dependency",
+    "Rewind removes future outputs",
+    "No POST, live run SSE or factory execution"
+  ]
+}

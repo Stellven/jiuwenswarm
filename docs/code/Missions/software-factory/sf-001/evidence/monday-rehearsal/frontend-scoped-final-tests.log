@@ -1,0 +1,27 @@
+
+> openjiuwen-web@0.1.0 test:workflow-demo
+> esbuild src/features/workflowDemo/factoryClient.ts src/features/workflowDemo/graphLayout.ts src/features/workflowDemo/copy.en.ts src/features/workflowDemo/presentationModel.ts --bundle --platform=node --format=esm --outdir=node_modules/.cache/factory-ui && esbuild src/features/workflowDemo/WorkflowDemo.tsx src/features/workflowDemo/ExecutionLog.tsx --bundle --packages=external --platform=node --format=esm --outdir=node_modules/.cache/factory-ui --loader:.css=empty --define:import.meta.env={} && node --test tests/workflow-demo-runtime.test.mjs tests/workflow-demo-presentation.test.mjs tests/workflow-execution-log.test.mjs
+
+
+  node_modules/.cache/factory-ui/factoryClient.js      717.5kb
+  node_modules/.cache/factory-ui/presentationModel.js    9.7kb
+  node_modules/.cache/factory-ui/graphLayout.js          3.4kb
+  node_modules/.cache/factory-ui/copy.en.js              2.7kb
+
+⚡ Done in 67ms
+
+  node_modules/.cache/factory-ui/WorkflowDemo.js  652.9kb
+  node_modules/.cache/factory-ui/ExecutionLog.js  520.1kb
+
+⚡ Done in 69ms
+✔ tests/workflow-demo-presentation.test.mjs (1625.81434ms)
+✔ tests/workflow-demo-runtime.test.mjs (255.987075ms)
+✔ tests/workflow-execution-log.test.mjs (1239.513988ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1633.360765

@@ -33,6 +33,7 @@ export interface Artifact {
   sha256: string;
   size: number;
   producer: string;
+  metadata?: { output_port?: string; [key: string]: unknown };
 }
 
 export interface CodeDiffFile {
@@ -41,6 +42,7 @@ export interface CodeDiffFile {
   source_code: string;
   generated_code: string;
   language?: string;
+  target?: string;
 }
 
 export interface CodeDiffArtifact {
@@ -73,6 +75,10 @@ export interface CommandRecord {
   stderr_path?: string;
   stdout?: string;
   stderr?: string;
+  started_at?: string;
+  finished_at?: string | null;
+  pid?: number;
+  duration_s?: number;
 }
 
 export interface FactoryAttempt {
@@ -95,6 +101,51 @@ export interface FactoryNode {
   subworkflow_id: string;
   status: string;
   attempts: FactoryAttempt[];
+  instance_key?: string;
+  instance_id?: string;
+  parameters?: Record<string, unknown>;
+  input_bindings?: Record<string, unknown>;
+  workflow_path?: string;
+  workflow_selection?: { path?: string };
+  pool_origin?: PoolOrigin;
+}
+
+export interface PoolOrigin {
+  schema?: 'factory.pool.origin.v1';
+  full_ref: string;
+  parent_ref: string;
+  canonical_stage_id: string;
+  parent_definition_id?: string;
+  parent_definition_hash: string;
+  selected_refs: string[];
+  all_sibling_refs: string[];
+  unselected_sibling_refs: string[];
+}
+
+export interface WorkflowLibrary {
+  schema: 'factory.workflow.library.v1';
+  workflows: {
+    id: string;
+    name: string;
+    inputs: Record<string, string>;
+    subworkflows: { id: string; definition: string; bindings: Record<string, { source: string; port: string }> }[];
+    outputs: Record<string, { source: string; port: string }>;
+  }[];
+  subworkflows: {
+    id: string;
+    name: string;
+    inputs: Record<string, string>;
+    stages: { id: string; stage_id: string; bindings: Record<string, { source: string; port: string }> }[];
+    outputs: Record<string, { source: string; port: string }>;
+  }[];
+  stage_refs: {
+    path: string;
+    stage_id: string;
+    entrypoint: string;
+    inputs: Record<string, string>;
+    outputs: Record<string, string>;
+    pool_origin: PoolOrigin;
+  }[];
 }
 
 export interface FactoryEdge {
@@ -217,6 +268,9 @@ export interface FactoryRun {
   graph_revisions: GraphRevision[];
   error?: unknown;
   sequence: number;
+  workflow_catalog?: WorkflowLibrary;
+  workflow_catalog_sha256?: string;
+  executor?: { pid?: number; start_ticks?: string | null; [key: string]: unknown };
 }
 
 export interface FactoryEvent {
@@ -233,7 +287,36 @@ export interface FactoryEvents {
   status: string;
 }
 
+export interface FactoryRecordingSummary {
+  id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  request: FactoryRequest;
+  event_count: number;
+  graph_revision_count: number;
+  artifact_count: number;
+  provenance: unknown;
+  read_only: true;
+  label?: string;
+}
+
+export interface FactoryRecording {
+  schema: 'ai4r.recording-view:1';
+  run: FactoryRun;
+  events: FactoryEvent[];
+  catalog: StageDeclaration[];
+  provenance: unknown;
+  read_only: true;
+  workflow_catalog?: WorkflowLibrary | null;
+}
+
 const base = '/api/v1/factory';
+
+function artifactPath(runId: string, id: string, recordingId?: string): string {
+  const namespace = recordingId ? 'recordings' : 'runs';
+  return `/${namespace}/${encodeURIComponent(recordingId || runId)}/artifacts/${encodeURIComponent(id)}`;
+}
 
 async function responseFor(path: string, init: RequestInit = {}): Promise<Response> {
   const transport = hasResearchSession() ? researchFetch : fetch;
@@ -301,6 +384,27 @@ export async function readEventStream(response: Response, receive: (frame: Facto
 
 export const factoryClient = {
   catalog: (signal?: AbortSignal) => request<FactoryCatalog>('/catalog', { signal }),
+  recordings: (signal?: AbortSignal) => request<{ recordings: FactoryRecordingSummary[] }>('/recordings', { signal }),
+  recording: (id: string, signal?: AbortSignal) =>
+    request<FactoryRecording>(`/recordings/${encodeURIComponent(id)}`, { signal }),
+  replay: async (
+    id: string,
+    after: number,
+    speed: number,
+    receive: (frame: FactoryStreamFrame) => void,
+    signal?: AbortSignal,
+    until?: number,
+  ) =>
+    readEventStream(
+      await responseFor(
+        `/recordings/${encodeURIComponent(id)}/replay?after=${after}&speed=${speed}${until === undefined ? '' : `&until=${until}`}`,
+        {
+          signal,
+          headers: { Accept: 'text/event-stream' },
+        },
+      ),
+      receive,
+    ),
   start: (body: FactoryRequest, signal?: AbortSignal) =>
     request<FactoryRun>('/runs', { method: 'POST', body: JSON.stringify(body), signal }),
   run: (id: string, signal?: AbortSignal) => request<FactoryRun>(`/runs/${encodeURIComponent(id)}`, { signal }),
@@ -314,12 +418,10 @@ export const factoryClient = {
       }),
       receive,
     ),
-  artifact: (runId: string, id: string) =>
-    responseFor(`/runs/${encodeURIComponent(runId)}/artifacts/${encodeURIComponent(id)}`),
-  artifactText: async (runId: string, id: string, signal?: AbortSignal) =>
-    (await responseFor(`/runs/${encodeURIComponent(runId)}/artifacts/${encodeURIComponent(id)}`, { signal })).text(),
-  artifactUrl: (runId: string, id: string) =>
-    `${base}/runs/${encodeURIComponent(runId)}/artifacts/${encodeURIComponent(id)}`,
+  artifact: (runId: string, id: string, recordingId?: string) => responseFor(artifactPath(runId, id, recordingId)),
+  artifactText: async (runId: string, id: string, signal?: AbortSignal, recordingId?: string) =>
+    (await responseFor(artifactPath(runId, id, recordingId), { signal })).text(),
+  artifactUrl: (runId: string, id: string, recordingId?: string) => `${base}${artifactPath(runId, id, recordingId)}`,
 };
 
 export function isTerminal(status: string): boolean {

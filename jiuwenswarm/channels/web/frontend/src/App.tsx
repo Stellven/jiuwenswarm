@@ -398,7 +398,19 @@ function AppContent({
   const [chatWelcomeVariant, setChatWelcomeVariant] = useState<'group-create' | null>(null);
   const [trajectoryUiRequested, setTrajectoryUiRequested] = useState(false);
 
-  const [activeNav, setActiveNav] = useState<MainNavKey>('chat');
+  const [activeNav, setActiveNav] = useState<MainNavKey>(() =>
+    new URLSearchParams(window.location.search).get('view') === 'workflow' ? 'workflow' : 'chat',
+  );
+  const workflowActive = activeNav === 'workflow';
+  const activeNavRef = useRef(activeNav);
+  activeNavRef.current = activeNav;
+  const [requestedLanguage] = useState(() => {
+    const language = new URLSearchParams(window.location.search).get('lng');
+    return language === 'en' || language === 'zh' ? language : null;
+  });
+  useEffect(() => {
+    if (requestedLanguage) void i18n.changeLanguage(requestedLanguage);
+  }, [i18n, requestedLanguage]);
   const masterEnabled = usePersonalContextStore(
     (s) => s.config.collection_enabled || s.config.agent_use_enabled,
   );
@@ -620,6 +632,7 @@ function AppContent({
   } = useSingleAgentPanelState();
 
   useEffect(() => {
+    if (activeNavRef.current === 'workflow') return;
     if (route.kind === 'chat-session') {
       sessionIdRef.current = route.sessionId;
       setSessionId(route.sessionId);
@@ -1026,8 +1039,10 @@ function AppContent({
     refreshGoal,
     drainTaskQueueIfIdle,
   } = useWebSocket({
+    enabled: !workflowActive,
     activeSessionId: sessionId,
     onConnect: () => {
+      if (activeNavRef.current === 'workflow') return;
       setConnectionFailed(false);
       console.log('Connected');
       // 连接建立/断线重连后重拉侧边栏定时任务列表（useCronStore）：web 先行
@@ -1040,16 +1055,20 @@ function AppContent({
       console.log('Disconnected');
     },
     onError: (error) => {
+      if (activeNavRef.current === 'workflow') return;
       setConnectionFailed(true);
       console.error('WebSocket error:', error);
     },
     onConfigChanged: () => {
+      if (activeNavRef.current === 'workflow') return;
       handleConfigChanged();
     },
     onModelsUpdated: () => {
+      if (activeNavRef.current === 'workflow') return;
       handleModelsRefresh();
     },
     onCronResultArrived: (cronSessionId: string, cronJobId: string) => {
+      if (activeNavRef.current === 'workflow') return;
       // 仅当用户当前停留在该任务的"立即执行"页面时才自动跳转：
       // - 多个任务同时返回结果时，不会互相跳转覆盖
       // - 用户已手动切走时不打扰
@@ -1731,7 +1750,7 @@ function AppContent({
       setServerConfig(config);
       useCodexSubscription.getState().set({ enabled: config.runtime_mode === 'codex_subscription' });
       setConfigError(null);
-      if (!modelSetupGuideEvaluatedRef.current) {
+      if (activeNavRef.current !== 'workflow' && !modelSetupGuideEvaluatedRef.current) {
         modelSetupGuideEvaluatedRef.current = true;
         if (config.runtime_mode !== 'codex_subscription' && (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled))) {
           setActiveNav('chat');
@@ -2121,7 +2140,7 @@ function AppContent({
 
   // 连接成功后从 config.yaml 同步 preferred_language 到前端显示
   useEffect(() => {
-    if (!isConnected) return;
+    if (!isConnected || requestedLanguage) return;
     void webRequest<{ preferred_language?: string }>('locale.get_conf')
       .then((payload) => {
         const lang = payload?.preferred_language;
@@ -2130,7 +2149,7 @@ function AppContent({
         }
       })
       .catch(() => {});
-  }, [isConnected]);
+  }, [i18n, isConnected, requestedLanguage]);
 
   // 连接成功后拉取个人上下文配置，使总开关（派生态）在刷新后与后端持久化状态一致
   useEffect(() => {
@@ -3661,7 +3680,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
         applicationPlugins={visibleApplicationPlugins}
       />
 
-      {modelSetupGuideStep !== null ? (
+      {!workflowActive && modelSetupGuideStep !== null ? (
         <ModelSetupGuide
           step={modelSetupGuideStep}
           onAcknowledge={acknowledgeModelSetupGuide}
@@ -3671,10 +3690,10 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
 
       {/* Main Content */}
       <main className={`content ${activeNav === 'chat' ? 'content--chat' : ''} ${effectiveTeamAreaExpanded ? 'content--team-expanded' : ''}`}>
-        {serverConfig?.runtime_mode === 'codex_subscription' && (
+        {!workflowActive && serverConfig?.runtime_mode === 'codex_subscription' && (
           <CodexSubscriptionConnection connected={isConnected} request={request} />
         )}
-        {configError && (
+        {!workflowActive && configError && (
           <div className="card mb-4" data-testid="app-config-error">
             <div className="text-sm text-text-muted">
               {configError}. {t('app.configErrorHint')}
@@ -4041,7 +4060,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       </main>
 
       {/* 全局命令式 toast 渲染出口（toast.open） */}
-      <ToastStack />
+      {!workflowActive && <ToastStack />}
 
       {/* 连接状态提示 */}
       {/* Factory reports its HTTP/SSE connection errors inside its own view. */}

@@ -1,0 +1,20 @@
+test_changed_host_source_and_missing_build_cannot_be_presented_as_current (test_demo.DemoTests.test_changed_host_source_and_missing_build_cannot_be_presented_as_current) ... ok
+test_modified_or_missing_compiled_asset_fails_presentation_preflight (test_demo.DemoTests.test_modified_or_missing_compiled_asset_fails_presentation_preflight) ... ok
+test_one_app_serves_host_and_real_recorded_cpp_without_dispatch (test_demo.DemoTests.test_one_app_serves_host_and_real_recorded_cpp_without_dispatch) ... Executing <Task finished name='Task-10' coro=<DemoTests.test_one_app_serves_host_and_real_recorded_cpp_without_dispatch() done, defined at /workspace/jiuwenswarm/tests/software_factory/test_demo.py:67> result=None created at /opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py:100> took 0.609 seconds
+ok
+test_preflight_reads_real_bundles_without_constructing_an_executor (test_demo.DemoTests.test_preflight_reads_real_bundles_without_constructing_an_executor) ... ok
+test_actual_production_library_is_retained_before_first_task_event (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_actual_production_library_is_retained_before_first_task_event) ... ok
+test_capture_retains_full_canonical_library_and_rejects_changed_file (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_capture_retains_full_canonical_library_and_rejects_changed_file) ... ok
+test_claimed_selected_sibling_requires_actual_selection_scope (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_claimed_selected_sibling_requires_actual_selection_scope) ... ok
+test_expanded_selection_matches_actual_node_and_declared_partial_scope (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_expanded_selection_matches_actual_node_and_declared_partial_scope) ... ok
+test_inline_and_retained_library_hashes_must_match (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_inline_and_retained_library_hashes_must_match) ... ok
+test_known_full_reference_cannot_lose_its_recorded_origin (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_known_full_reference_cannot_lose_its_recorded_origin) ... ok
+test_legacy_recording_never_gains_current_library (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_legacy_recording_never_gains_current_library) ... ok
+test_portable_library_exact_after_original_deleted_without_registry_or_execution (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_portable_library_exact_after_original_deleted_without_registry_or_execution) ... ok
+test_rehashed_invalid_stage_contracts_and_forward_bindings_fail_closed (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_rehashed_invalid_stage_contracts_and_forward_bindings_fail_closed) ... ok
+test_selected_and_unselected_sibling_receipts_cannot_be_spoofed (test_workflow_library_recordings.WorkflowLibraryRecordingTests.test_selected_and_unselected_sibling_receipts_cannot_be_spoofed) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 1.215s
+
+OK

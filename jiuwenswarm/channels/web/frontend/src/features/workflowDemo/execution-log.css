@@ -1,0 +1,190 @@
+.wd-execution-log {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.wd-log-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.wd-log-heading h3,
+.wd-log-process h4,
+.wd-log-command-list h4 {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+.wd-log-heading p {
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+.wd-log-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(0, 2fr);
+  align-items: start;
+  gap: 16px;
+  min-width: 0;
+}
+.wd-log-command-list {
+  max-height: 70vh;
+  overflow: auto;
+  border-right: 1px solid var(--color-border-default);
+  padding-right: 12px;
+}
+.wd-log-command-list section + section {
+  margin-top: 16px;
+}
+.wd-log-command-list h4 span {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+.wd-log-command-list ol {
+  padding: 0;
+  margin: 8px 0 0;
+  list-style: none;
+}
+.wd-log-command-list button {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 5px;
+  overflow-wrap: anywhere;
+}
+.wd-log-command-list button[aria-pressed='true'] {
+  border-color: var(--color-action-primary);
+  background: var(--color-surface-muted);
+}
+.wd-log-command-list button span {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+.wd-log-process {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.wd-log-argv,
+.wd-log-stream pre {
+  margin: 0;
+  padding: 10px;
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  font: var(--font-size-sm)/1.5 var(--font-mono);
+  user-select: text;
+}
+.wd-log-argv {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wd-log-metadata {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+  margin: 0;
+  font-size: var(--font-size-sm);
+}
+.wd-log-metadata > div:first-child {
+  grid-column: 1 / -1;
+}
+.wd-log-metadata dt {
+  color: var(--color-text-secondary);
+  margin-bottom: 3px;
+}
+.wd-log-metadata dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  overflow-wrap: anywhere;
+}
+.wd-log-stream h4 {
+  margin-bottom: 6px;
+}
+.wd-log-stream pre {
+  max-height: 45vh;
+  min-height: 44px;
+  overflow: auto;
+  white-space: pre;
+}
+.wd-log-downloads {
+  border-top: 1px solid var(--color-border-default);
+  padding-top: 12px;
+}
+.wd-log-downloads > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: var(--font-size-sm);
+}
+.wd-log-downloads a {
+  color: var(--color-action-primary);
+}
+.wd-log-downloads code {
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+}
+.wd-execution-log [role='alert'] {
+  color: var(--color-feedback-danger);
+}
+.wd-log-activity h4,
+.wd-execution-log > h4 {
+  margin: 0 0 8px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+.wd-log-activity > ol {
+  max-height: 360px;
+  overflow: auto;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-block: 1px solid var(--color-border-default);
+}
+.wd-log-activity > ol > li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border-default);
+  font-size: var(--font-size-sm);
+}
+.wd-log-activity-heading {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  width: 100%;
+}
+.wd-log-activity time,
+.wd-log-activity code {
+  font-family: var(--font-mono);
+  color: var(--color-text-secondary);
+  overflow-wrap: anywhere;
+}
+.wd-log-activity ul {
+  padding-left: 16px;
+  margin: 0;
+}
+.wd-log-activity a {
+  color: var(--color-action-primary);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 1100px) {
+  .wd-log-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .wd-log-command-list {
+    max-height: 220px;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border-default);
+    padding: 0 0 12px;
+  }
+}

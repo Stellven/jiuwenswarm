@@ -1,0 +1,5 @@
+# Minimal runtime for the existing host UI and real Software Factory.
+# Install with: python -m pip install -r jiuwenswarm/software_factory/requirements-demo.txt
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+pydantic>=2,<3

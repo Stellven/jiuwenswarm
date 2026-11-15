@@ -1,0 +1,26 @@
+{"elapsed_s": 2.382, "scene": "Actual task and frozen existing pool; source-only Ascend target"}
+{"elapsed_s": 7.387, "scene": "Continue actual backend recording", "after": 0, "until": 19, "publication": "Source acquired"}
+{"elapsed_s": 16.043, "scene": "Source acquired; next stages still prefix-gated"}
+{"elapsed_s": 18.051, "scene": "Continue actual backend recording", "after": 19, "until": 61, "publication": "Internal stages composed"}
+{"elapsed_s": 21.521, "scene": "Partial inner-stage selections with genuinely skipped siblings"}
+{"elapsed_s": 26.595, "scene": "Inspect exact selected leaf and its other existing sibling"}
+{"elapsed_s": 29.629, "scene": "Actual cross-parent typed dependency spine"}
+{"elapsed_s": 33.637, "scene": "Continue actual backend recording", "after": 61, "until": 72, "publication": "Ascend C++ source published"}
+{"elapsed_s": 35.866, "scene": "Actual generated Ascend CANN math file", "path": "src/ascend/router.cpp", "source_sha256": "aafc7c123670ea8cdaf288778e6c9092d23a9884edfc6a50b540c6f9f2a0dfc1"}
+{"elapsed_s": 40.882, "scene": "CANN Softmax, stable Sort, weighting and normalization source"}
+{"elapsed_s": 45.069, "scene": "Literal original CUDA versus actual Ascend math Code Diff"}
+{"elapsed_s": 49.127, "scene": "Recorded Python worker and genuine stage activity", "worker_pid": 24787}
+{"elapsed_s": 53.161, "scene": "Actual in-process generation event and published C++/ZIP files"}
+{"elapsed_s": 56.181, "scene": "Continue actual backend recording", "after": 72, "until": 130, "publication": "CPU validation report published"}
+{"elapsed_s": 61.336, "scene": "Real CPU-reference CMake configuration argv", "command": "n8/2/1", "pid": 25025, "exit_code": 0}
+{"elapsed_s": 64.377, "scene": "Actual recorded process PID, timestamps, duration and exit code"}
+{"elapsed_s": 67.512, "scene": "Real make compilation command", "command": "n8/2/2", "pid": 25056, "exit_code": 0}
+{"elapsed_s": 69.543, "scene": "Complete actual compiler stdout"}
+{"elapsed_s": 72.68, "scene": "Actual compiled CPU-reference test process", "command": "n8/2/3", "pid": 25114, "exit_code": 0}
+{"elapsed_s": 75.71, "scene": "Actual numeric test stdout: 352 outputs compared", "pid": 25114}
+{"elapsed_s": 79.943, "scene": "CPU reference: 352 comparisons and per-function outcomes"}
+{"elapsed_s": 83.993, "scene": "Separate actual native compilation/device/model NOT_RUN evidence"}
+{"elapsed_s": 88.023, "scene": "Continue actual backend recording", "after": 130, "until": 132, "publication": "Recorded outcome: completed"}
+{"elapsed_s": 88.555, "scene": "Download the actual generated native source ZIP", "package_sha256": "30c509c862799b14cf5e80aea6c291ee653f7f574d004ca92316f2fceae07449"}
+{"elapsed_s": 91.777, "scene": "Final actual source-production composition; no new execution"}
+{"raw_video": "/workspace/software-factory-delivery/monday/replay-video-raw/page@f003964ccd13667c148ff1909e6b8a95.webm", "duration_wall_s": 97.605, "checks": 9, "page_errors": []}

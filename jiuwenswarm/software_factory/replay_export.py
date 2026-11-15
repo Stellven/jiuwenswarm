@@ -15,7 +15,9 @@ import html
 import json
 from pathlib import Path
 import re
-from typing import Any
+from typing import Any, Callable
+
+from .recorded_paths import historical_child
 
 
 class ReplayExportError(ValueError):
@@ -83,11 +85,17 @@ def _encoded(raw: bytes) -> str:
     return base64.b64encode(raw).decode('ascii')
 
 
-def load_recording(run_dir: str | Path) -> dict:
-    """Validate existing disk evidence without consulting mutable working code."""
+def load_recording(run_dir: str | Path, *, read_file: Callable | None = None) -> dict:
+    """Validate immutable evidence using disk files or an explicit portable reader.
+
+    A portable reader implements the same ownership/hash/size contract as
+    ``_read`` and returns the original path as its second result. Recorded
+    metadata is never relocated or rewritten by this validator.
+    """
     root = Path(run_dir).resolve(strict=True)
-    run_raw, _ = _read(root, 'run.json')
-    event_raw, _ = _read(root, 'events.jsonl')
+    read = read_file or _read
+    run_raw, _ = read(root, 'run.json')
+    event_raw, _ = read(root, 'events.jsonl')
     run = _json(run_raw, 'run.json')
     if not isinstance(run, dict) or not isinstance(run.get('id'), str):
         raise ReplayExportError('Invalid factory run')
@@ -127,28 +135,54 @@ def load_recording(run_dir: str | Path) -> dict:
     recipe = run.get('recipe', {})
     if not recipe.get('manifest_path') or not recipe.get('manifest_sha256'):
         raise ReplayExportError('Recording has no immutable executor recipe')
-    manifest_raw, _ = _read(root, recipe['manifest_path'], sha256=recipe['manifest_sha256'])
+    manifest_raw, _ = read(root, recipe['manifest_path'], sha256=recipe['manifest_sha256'])
     manifest = _json(manifest_raw, 'recipe manifest')
     retained_recipe = {key: value for key, value in recipe.items()
                        if key not in {'manifest_path', 'manifest_sha256'}}
     if retained_recipe != manifest:
         raise ReplayExportError('run.json recipe does not match retained manifest')
     for entry in manifest.get('files', []):
-        _read(root, entry['snapshot_path'], sha256=entry['sha256'], size=entry['size'])
+        read(root, entry['snapshot_path'], sha256=entry['sha256'], size=entry['size'])
     recipe_digest = _sha(json.dumps([(entry['relative_path'], entry['sha256'])
                                     for entry in manifest['files']],
                                    sort_keys=True).encode())
     if recipe_digest != run.get('recipe_digest'):
         raise ReplayExportError('Executor source recipe digest mismatch')
-    catalog_raw, _ = _read(root, manifest['catalog_path'], sha256=manifest['catalog_sha256'])
-    request_raw, _ = _read(root, manifest['request_path'], sha256=manifest['request_capture_sha256'])
+    catalog_raw, _ = read(root, manifest['catalog_path'], sha256=manifest['catalog_sha256'])
+    request_raw, _ = read(root, manifest['request_path'], sha256=manifest['request_capture_sha256'])
     catalog = _json(catalog_raw, 'recorded catalog')
+    workflow_catalog = None
+    workflow_raw = None
+    workflow_fields = {'workflow_catalog_path', 'workflow_catalog_sha256'}
+    if workflow_fields & manifest.keys():
+        if not workflow_fields <= manifest.keys():
+            raise ReplayExportError('Incomplete frozen workflow library receipt')
+        workflow_raw, _ = read(root, manifest['workflow_catalog_path'],
+                               sha256=manifest['workflow_catalog_sha256'])
+        workflow_catalog = _json(workflow_raw, 'frozen workflow library')
+        from .workflow_recording import (validate_recorded_pool_origins, validate_recorded_workflow_selections,
+                                         validate_workflow_library, workflow_library_sha256)
+        try:
+            validate_workflow_library(workflow_catalog, catalog)
+            if (run.get('workflow_catalog') != workflow_catalog or
+                    run.get('workflow_catalog_sha256') != manifest['workflow_catalog_sha256'] or
+                    workflow_library_sha256(workflow_catalog) != manifest['workflow_catalog_sha256']):
+                raise ValueError('Run snapshot differs from frozen workflow library')
+            validate_recorded_pool_origins(workflow_catalog, run.get('nodes', []))
+            for revision in revisions:
+                validate_recorded_pool_origins(workflow_catalog, revision.get('nodes', []))
+            validate_recorded_workflow_selections(workflow_catalog, run.get('nodes', []), events,
+                                                   manifest['workflow_catalog_sha256'])
+        except (ValueError, TypeError, KeyError, AttributeError) as error:
+            raise ReplayExportError(str(error)) from error
+    elif 'workflow_catalog' in run or 'workflow_catalog_sha256' in run:
+        raise ReplayExportError('Workflow library is not attested by the original recipe')
 
     artifacts: dict[str, dict] = {}
     for artifact in run.get('artifacts', []):
         if artifact['id'] in artifacts:
             raise ReplayExportError(f'Duplicate artifact id: {artifact["id"]}')
-        raw, _ = _read(root, artifact['path'], sha256=artifact['sha256'], size=artifact['size'])
+        raw, _ = read(root, artifact['path'], sha256=artifact['sha256'], size=artifact['size'])
         artifacts[artifact['id']] = {'record': artifact, 'raw': raw}
     published: dict[str, int] = {}
     for event in events:
@@ -173,8 +207,8 @@ def load_recording(run_dir: str | Path) -> dict:
                             'repository_url': source.get('repository_url', run.get('request', {}).get('repository_url')),
                             'sha256': artifact['sha256']})
             if source.get('source_dir') and artifact_id in published:
-                license_path = Path(source['source_dir']) / 'LICENSE'
-                license_raw, license_resolved = _read(root, license_path)
+                license_path = historical_child(source['source_dir'], 'LICENSE')
+                license_raw, license_resolved = read(root, license_path)
                 licenses.append({'repository_url': source.get('repository_url'),
                                  'commit_sha': source.get('commit_sha'),
                                  'path': str(license_resolved), 'sha256': _sha(license_raw),
@@ -203,7 +237,13 @@ def load_recording(run_dir: str | Path) -> dict:
                     'recipe-manifest.json': _encoded(manifest_raw),
                     'recorded-catalog.json': _encoded(catalog_raw),
                     'recorded-request.json': _encoded(request_raw)}
-    return {'schema': 'ai4r.offline-replay:1', 'run': run, 'events': events,
+    workflow_metadata = {}
+    workflow_provenance = {}
+    if workflow_raw is not None:
+        raw_evidence['workflow-library.json'] = _encoded(workflow_raw)
+        workflow_metadata['workflow_catalog'] = workflow_catalog
+        workflow_provenance['workflow_catalog_sha256'] = manifest['workflow_catalog_sha256']
+    return {'schema': 'ai4r.offline-replay:1', 'run': run, 'events': events, **workflow_metadata,
             'catalog': catalog, 'attachments': attachments, 'raw_evidence': raw_evidence,
             'licenses': licenses,
             'provenance': {'run_id': run['id'], 'run_sha256': _sha(run_raw),
@@ -211,7 +251,7 @@ def load_recording(run_dir: str | Path) -> dict:
                            'recipe_digest': recipe_digest, 'catalog_sha256': _sha(catalog_raw),
                            'source_commits': commits, 'source_files': manifest['files'],
                            'artifact_count': len(artifacts), 'event_count': len(events),
-                           'graph_revision_count': len(revisions)}}
+                           'graph_revision_count': len(revisions), **workflow_provenance}}
 
 
 def _safe_json(value: Any) -> str:
@@ -269,7 +309,7 @@ def export_replay(run_dir: str | Path, output: str | Path) -> dict:
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-{script_hash}'; style-src 'unsafe-inline'; connect-src 'none'; object-src 'none'; base-uri 'none'">
 <title>{title}</title><style>{_theme_css()}{_CSS}</style></head><body>
 <header><h1>AI4Research Software Factory</h1><p>Retrieve, compose, execute, and verify stages to construct source code.</p></header>
-<div class="controls"><strong>Recorded run</strong><button id="play">Play</button><button id="previous">Previous</button><button id="next">Next</button><input id="seek" type="range" min="0" value="0" aria-label="Recorded event"><select id="speed" aria-label="Replay speed"><option value="1">1×</option><option value="4" selected>4×</option><option value="16">16×</option></select><span id="position"></span></div>
+<div class="controls"><strong>Recorded run · manual navigation</strong><button id="previous" data-testid="workflow-offline-previous">Previous</button><button id="next" data-testid="workflow-offline-next">Next</button><button id="final" data-testid="workflow-offline-final">Final result</button><input id="seek" data-testid="workflow-offline-seek" type="range" min="0" value="0" aria-label="Recorded event"><span id="position"></span></div>
 <div class="record"><span id="run-id"></span><span id="record-time"></span><span id="run-status"></span></div>
 <main><aside class="panel"><h2>Stage Pool</h2><div id="pool" class="scroll"></div></aside><section class="panel"><h2 id="graph-title">Production Graph</h2><div class="canvas"><div class="graph" id="graph"></div></div></section><aside class="panel"><h2>Execution Details</h2><div class="tabs" id="tabs"></div><div id="detail-heading" class="detail-heading"></div><div id="detail" class="detail-content"></div></aside></main>
 <script type="module">{script}</script></body></html>'''

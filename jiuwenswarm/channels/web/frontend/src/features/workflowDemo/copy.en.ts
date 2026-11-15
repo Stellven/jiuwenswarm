@@ -40,3 +40,36 @@ export const copy = {
 export function userGoalSelection(goals: readonly string[]): string[] {
   return goals.filter((kind) => copy.goals.some((goal) => goal.value === kind));
 }
+
+export const stageLabels: Record<string, string> = {
+  'source.fetch': 'Fetch source',
+  'source.inspect': 'Inspect source',
+  'source.cuda_ast': 'Analyze CUDA',
+  'source.discover': 'Discover operators',
+  'source.bind_operation': 'Extract function',
+  'task.compile': 'Compile task',
+  'metadata.compose_core': 'Compose operators',
+  'metadata.ast_to_ascend': 'Lower algorithms',
+  'lower.scalar': 'Lower scalar',
+  'lower.cooperative': 'Lower collective',
+  'construction.ascend_mapper': 'Map operators',
+  'construction.codegen': 'Generate C++',
+  'construction.build': 'Compile C++',
+  'construction.execute': 'Check arithmetic',
+  'construction.package': 'Package ZIP',
+  'construction.rebuild_package': 'Rebuild ZIP',
+  'strata.implement': 'Implement backend',
+  'strata.build_components': 'Build CPU components',
+  'strata.verify_components': 'Check components',
+  'strata.build_full': 'Build model engine',
+  'strata.baseline_build': 'Build original',
+  'strata.baseline_inference': 'Run original',
+  'strata.inference': 'Run model',
+  'strata.compare': 'Compare results',
+  'environment.inspect': 'Inspect environment',
+  'toolchain.install': 'Install toolchain',
+  'candidate.integrate_generated': 'Integrate C++',
+  'candidate.package': 'Package candidate',
+  'value.assess': 'Assess value',
+  'workflow.execute': 'Execute selection',
+};

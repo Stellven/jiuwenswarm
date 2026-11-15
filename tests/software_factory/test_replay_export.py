@@ -106,8 +106,10 @@ class ReplayExportTests(unittest.TestCase):
         self.assertIn('\\u0026', document)
         self.assertIn('\\u2028', document)
         self.assertIn("connect-src 'none'", document)
-        self.assertIn('requestAnimationFrame', document)
-        self.assertNotRegex(document, r'\b(?:setTimeout|setInterval|fetch|EventSource)\s*\(')
+        self.assertIn('Recorded run · manual navigation', document)
+        self.assertIn('Final result', document)
+        self.assertNotRegex(document, r'\b(?:requestAnimationFrame|cancelAnimationFrame|setTimeout|setInterval|fetch|EventSource)\s*\(')
+        self.assertNotIn('performance.now', document)
         self.assertIn('--color-action-primary:#2563eb;', document)
         self.assertIn('var(--color-feedback-success)', document)
         script = document.split('<script type="module">', 1)[1].rsplit('</script>', 1)[0]

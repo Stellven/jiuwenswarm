@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/Button/Button';
 import type { FactoryEvent } from './factoryClient';
-import { eventOffset, replayDuration } from './replayProjection.js';
+import type { ReplayCheckpoint } from './presentationModel';
 
 interface ReplayControlsProps {
   runId: string;
@@ -9,7 +8,15 @@ interface ReplayControlsProps {
   events: FactoryEvent[];
   cursor: number;
   onCursorChange: (cursor: number) => void;
+  onPlay: (speed: number) => void;
+  onPause: () => void;
+  playing: boolean;
+  canPlay?: boolean;
+  playbackSpeed: number;
+  onSpeedChange: (speed: number) => void;
   onReturnLive: () => void;
+  returnLabel?: string;
+  checkpoints: ReplayCheckpoint[];
 }
 
 export function ReplayControls({
@@ -18,40 +25,19 @@ export function ReplayControls({
   events,
   cursor,
   onCursorChange,
+  onPlay,
+  onPause,
+  playing,
+  canPlay = true,
+  playbackSpeed,
+  onSpeedChange,
   onReturnLive,
+  returnLabel = 'Return to live',
+  checkpoints,
 }: ReplayControlsProps) {
-  const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const eventOffsets = useMemo(() => events.map((_, index) => eventOffset(events, index)), [events]);
-  const cursorRef = useRef(cursor);
-  useEffect(() => {
-    cursorRef.current = cursor;
-  }, [cursor]);
-
-  useEffect(() => {
-    if (!playing) return;
-    let frame = 0;
-    let previousTime: number | null = null;
-    let elapsed = cursorRef.current ? eventOffsets[cursorRef.current - 1] : 0;
-    const duration = replayDuration(events);
-    const tick = (time: number) => {
-      if (previousTime !== null) elapsed += (time - previousTime) * speed;
-      previousTime = time;
-      let next = cursorRef.current;
-      while (next < events.length && eventOffsets[next] <= elapsed) next += 1;
-      if (next !== cursorRef.current) {
-        cursorRef.current = next;
-        onCursorChange(next);
-      }
-      if (next >= events.length || elapsed > duration) setPlaying(false);
-      else frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [playing, speed, events, eventOffsets, onCursorChange]);
-
+  const currentCheckpoint = checkpoints.filter((checkpoint) => checkpoint.cursor <= cursor).slice(-1)[0];
   const seek = (next: number) => {
-    setPlaying(false);
+    onPause();
     onCursorChange(Math.max(0, Math.min(events.length, next)));
   };
   const step = (direction: -1 | 1) => {
@@ -90,6 +76,22 @@ export function ReplayControls({
         data-testid="workflow-demo-replay-timeline"
       />
       <div className="wd-replay-buttons">
+        <label htmlFor="factory-checkpoint" data-testid="workflow-demo-checkpoint-label">
+          Checkpoint
+        </label>
+        <select
+          id="factory-checkpoint"
+          value={currentCheckpoint?.cursor ?? ''}
+          onChange={(event) => seek(Number(event.target.value))}
+          data-testid="workflow-demo-replay-checkpoint"
+        >
+          <option value="">Start</option>
+          {checkpoints.map((checkpoint) => (
+            <option key={checkpoint.sequence} value={checkpoint.cursor}>
+              {checkpoint.label}
+            </option>
+          ))}
+        </select>
         <Button
           size="sm"
           disabled={cursor === 0}
@@ -108,13 +110,28 @@ export function ReplayControls({
         </Button>
         <Button
           size="sm"
-          disabled={events.length === 0 || (!playing && cursor >= events.length)}
-          onClick={() => setPlaying((value) => !value)}
+          disabled={!playing && (!canPlay || events.length === 0 || cursor >= events.length)}
+          onClick={() => (playing ? onPause() : onPlay(playbackSpeed))}
           aria-pressed={playing}
           data-testid="workflow-demo-replay-play-pause"
         >
-          {playing ? 'Pause' : 'Play'}
+          {playing ? 'Pause' : cursor === 0 ? 'Start walkthrough' : 'Continue'}
         </Button>
+        <select
+          value={playbackSpeed}
+          onChange={(event) => {
+            onPause();
+            onSpeedChange(Number(event.target.value));
+          }}
+          aria-label="Replay speed"
+          data-testid="workflow-demo-replay-speed"
+        >
+          {[1, 4, 16].map((speed) => (
+            <option key={speed} value={speed} data-testid="workflow-demo-replay-speed-option" data-variant={speed}>
+              {speed}x
+            </option>
+          ))}
+        </select>
         <Button
           size="sm"
           disabled={cursor >= events.length}
@@ -131,23 +148,23 @@ export function ReplayControls({
         >
           Next stage
         </Button>
-        <select
-          value={speed}
-          onChange={(event) => setSpeed(Number(event.target.value))}
-          aria-label="Replay speed"
-          data-testid="workflow-demo-replay-speed"
+        <Button
+          size="sm"
+          disabled={cursor >= events.length}
+          onClick={() => seek(events.length)}
+          data-testid="workflow-demo-replay-result"
         >
-          {[1, 4, 16].map((value) => (
-            <option value={value} key={value}>
-              {value}x
-            </option>
-          ))}
-        </select>
-        <Button size="sm" onClick={onReturnLive} data-testid="workflow-demo-replay-return-live">
-          Return to live
+          Final result
         </Button>
-        <Button size="sm" disabled data-testid="workflow-demo-run-button">
-          Construct STRATA
+        <Button
+          size="sm"
+          onClick={() => {
+            onPause();
+            onReturnLive();
+          }}
+          data-testid="workflow-demo-replay-return-live"
+        >
+          {returnLabel}
         </Button>
       </div>
     </section>

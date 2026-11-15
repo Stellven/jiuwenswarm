@@ -1,0 +1,23 @@
+{
+  "archive": "/workspace/software-factory-delivery/monday/strata-factory-monday.zip",
+  "archive_sha256": "0a3cfc06a0926bac38d6786a0f6a41fddb421a391cbc2afd1169440e5f23cc44",
+  "archive_bytes": 40795989,
+  "windows_powershell_execution": "NOT_RUN",
+  "package_file_hashes_checked": 1349,
+  "http_sse_and_source_download": {
+    "host_html_status": 200,
+    "host_entry_asset_sha256": "a2987c317aca0b36e89bc84659f56f1239b3f7e4b6830f0912c360be784a2be0",
+    "recordings": [
+      "11a6ce02166b4618baea6db59aaf44ec",
+      "baf3d77a8301423180ccda45fb11c66b",
+      "b152d434c8e14b01adc8c4aa40ad83f2",
+      "02446be989844a3fb7e43dc9bd6a8e0a",
+      "6db7a2b968c8434eaa9a508a6d16a7cf"
+    ],
+    "frozen_multi_child_parents": 3,
+    "frozen_library_sha256": "c3e5a4c28656f2b8be1176964b4e05971efef8d82972461f57e060541cda2a1c",
+    "native_source_zip_sha256": "30c509c862799b14cf5e80aea6c291ee653f7f574d004ca92316f2fceae07449",
+    "sse_original_events": 2,
+    "production_runs_dispatched": 0
+  }
+}

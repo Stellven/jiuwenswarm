@@ -14,6 +14,7 @@ from fastapi import HTTPException, Request
 def mount_factory_routes(app, channel) -> None:
     from jiuwenswarm.software_factory.api import create_router
     from jiuwenswarm.software_factory.engine import FactoryService
+    from jiuwenswarm.software_factory.recordings import RecordingsStore, default_recordings_directory
 
     configured = os.environ.get("JIUWENSWARM_FACTORY_ROOT")
     data_root = Path(os.environ.get("JIUWENSWARM_DATA_DIR", str(Path.cwd() / ".factory")))
@@ -37,4 +38,7 @@ def mount_factory_routes(app, channel) -> None:
             except ResearchError as error:
                 raise HTTPException(status_code=401, detail="Factory access requires an authorized host session") from error
 
-    app.include_router(create_router(service, authorize=authorize))
+    recordings = RecordingsStore(os.environ.get('JIUWENSWARM_FACTORY_RECORDINGS',
+                                                 str(default_recordings_directory())))
+    app.state.factory_recordings = recordings
+    app.include_router(create_router(service, authorize=authorize, recordings=recordings))

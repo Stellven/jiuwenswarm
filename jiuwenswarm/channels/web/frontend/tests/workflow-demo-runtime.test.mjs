@@ -97,7 +97,8 @@ test('production component has no source demo data, fixture, or timed execution 
   assert.doesNotMatch(code, /eventsFor|applyEvent|matched_subworkflows|failed_then_retried/);
   assert.match(code, /factoryClient\.start/);
   assert.match(code, /factoryClient\.events/);
-  assert.match(code, /factoryClient\.artifact/);
+  const evidence = await readFile(new URL('../src/features/workflowDemo/EvidencePanel.tsx', import.meta.url), 'utf8');
+  assert.match(evidence, /factoryClient\.artifact/);
 });
 
 test('SSE frames preserve actual backend event payloads across chunk boundaries', async () => {
@@ -415,4 +416,11 @@ test('oracle tolerances must be finite nonnegative numbers', () => {
       /finite and nonnegative/,
     );
   }
+});
+
+test('recording navigation contains no frontend clock or autonomous graph progression', async () => {
+  const controls = await readFile(new URL('../src/features/workflowDemo/ReplayControls.tsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(controls, /setTimeout|setInterval|requestAnimationFrame|Date\.now|performance\.now/);
+  assert.match(controls, /onCursorChange/);
+  assert.match(controls, /events\.length/);
 });

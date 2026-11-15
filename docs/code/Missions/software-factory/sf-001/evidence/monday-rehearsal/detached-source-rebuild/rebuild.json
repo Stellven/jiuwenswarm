@@ -1,0 +1,47 @@
+{
+  "source_run_id": "11a6ce02166b4618baea6db59aaf44ec",
+  "source_package_sha256": "30c509c862799b14cf5e80aea6c291ee653f7f574d004ca92316f2fceae07449",
+  "commands": [
+    {
+      "argv": [
+        "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/stages/n15/1/toolchain/bin/cmake",
+        "-S",
+        "/workspace/software-factory-delivery/monday/detached-native-source/source",
+        "-B",
+        "/workspace/software-factory-delivery/monday/detached-native-source/build",
+        "-DSTRATA_CORE_BACKEND=CPU",
+        "-DCMAKE_BUILD_TYPE=Release"
+      ],
+      "pid_scope": "external artifact QA, not an original factory stage",
+      "exit_code": 0,
+      "stdout_path": "/workspace/software-factory-delivery/monday/detached-native-source/configure.stdout",
+      "stderr_path": "/workspace/software-factory-delivery/monday/detached-native-source/configure.stderr"
+    },
+    {
+      "argv": [
+        "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/stages/n15/1/toolchain/bin/cmake",
+        "--build",
+        "/workspace/software-factory-delivery/monday/detached-native-source/build",
+        "--parallel",
+        "2"
+      ],
+      "pid_scope": "external artifact QA, not an original factory stage",
+      "exit_code": 0,
+      "stdout_path": "/workspace/software-factory-delivery/monday/detached-native-source/build.stdout",
+      "stderr_path": "/workspace/software-factory-delivery/monday/detached-native-source/build.stderr"
+    },
+    {
+      "argv": [
+        "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/stages/n15/1/toolchain/bin/ctest",
+        "--test-dir",
+        "/workspace/software-factory-delivery/monday/detached-native-source/build",
+        "--output-on-failure"
+      ],
+      "pid_scope": "external artifact QA, not an original factory stage",
+      "exit_code": 0,
+      "stdout_path": "/workspace/software-factory-delivery/monday/detached-native-source/ctest.stdout",
+      "stderr_path": "/workspace/software-factory-delivery/monday/detached-native-source/ctest.stderr"
+    }
+  ],
+  "scope": "Independent detached-source CPU reference rebuild only. Original factory events are unchanged. Ascend compile/device/model validation is NOT_RUN."
+}

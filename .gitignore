@@ -160,3 +160,6 @@ report/index.html
 tests/.t48-*
 *_LOCAL.md
 docs/**/*.log
+
+# Local Software Factory execution outputs.
+/.factory-runs/

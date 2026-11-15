@@ -2,19 +2,34 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '../../components/ui/Button/Button';
 import { copy, userGoalSelection } from './copy.en';
-import { factoryClient, isTerminal, parseCodeDiff, parseEngineeringTask, pretty, statusColor } from './factoryClient';
+import { factoryClient, isTerminal, parseEngineeringTask, pretty, statusColor } from './factoryClient';
 import type {
   Artifact,
-  CodeDiffArtifact,
   FactoryCatalog,
   FactoryEdge,
   FactoryEvent,
   FactoryNode,
   FactoryRun,
   StageDeclaration,
+  FactoryRecordingSummary,
+  WorkflowLibrary,
 } from './factoryClient';
 import { edgeDeliveryStatus, edgePath, layoutGraph } from './graphLayout';
 import { ReplayControls } from './ReplayControls';
+import { ArtifactList, EvidencePanel } from './EvidencePanel';
+import { CapabilityPool } from './CapabilityPool';
+import {
+  catalogFromStages,
+  compositionCounts,
+  nextRecordedCursor,
+  nodeOperationIdentity,
+  recordingTitle,
+  requestScope,
+  stageLabel,
+  publishedSourceProducer,
+  replayCheckpoints,
+  nodePoolRef,
+} from './presentationModel';
 import { normalizeReplayEvents, projectReplay } from './replayProjection.js';
 import './workflow-demo.css';
 
@@ -22,14 +37,15 @@ const repository = 'https://github.com/niko1221/strata';
 const runStorageKey = 'ai4research.factory.last-run';
 const initialTask = JSON.stringify(
   {
-    description: 'Construct the supported STRATA core source from the selected production modules.',
+    description:
+      'Construct STRATA for Huawei Ascend Native, build it, execute model inference, and compare with the original.',
     capabilities: ['routing', 'activation', 'aggregation'],
     acceptance: {
       source_project: true,
       cpu_validation: true,
-      full_model_inference: false,
-      native_execution: false,
-      compare_original: false,
+      full_model_inference: true,
+      native_execution: true,
+      compare_original: true,
     },
   },
   null,
@@ -40,7 +56,16 @@ function storedRunId(): string {
   try {
     const requested = new URLSearchParams(window.location.search).get('factoryRun');
     if (requested) return requested;
-    return localStorage.getItem(runStorageKey) ?? '';
+    return '';
+  } catch {
+    return '';
+  }
+}
+
+function requestedRecording(): string {
+  try {
+    const query = new URLSearchParams(window.location.search);
+    return query.get('recording') ?? query.get('factoryRecording') ?? '';
   } catch {
     return '';
   }
@@ -58,149 +83,18 @@ function StatusDot({ status }: { status: string }) {
   return <span className="wd-status" data-variant={statusColor(status)} role="img" aria-label={status} />;
 }
 
-function ArtifactList({ runId, artifacts }: { runId: string; artifacts: Artifact[] }) {
-  const [error, setError] = useState('');
-  const objectUrls = useRef(new Set<string>());
-  useEffect(() => {
-    const activeUrls = objectUrls.current;
-    return () => {
-      activeUrls.forEach((url) => URL.revokeObjectURL(url));
-      activeUrls.clear();
-    };
-  }, []);
-  const download = async (artifact: Artifact) => {
-    try {
-      setError('');
-      const response = await factoryClient.artifact(runId, artifact.id);
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = artifact.path.split(/[\\/]/).pop() || artifact.id;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      objectUrls.current.add(url);
-    } catch (failure) {
-      setError(String(failure));
-    }
-  };
-  return (
-    <div>
-      <ul className="wd-artifact-list" data-testid="workflow-demo-artifact-list">
-        {artifacts.map((artifact) => (
-          <li key={artifact.id} data-testid="workflow-demo-artifact" data-variant={artifact.id}>
-            <a
-              href={factoryClient.artifactUrl(runId, artifact.id)}
-              onClick={(event) => {
-                event.preventDefault();
-                void download(artifact);
-              }}
-            >
-              {/\.zip$/i.test(artifact.path) ? artifact.path.split(/[\\/]/).pop() : artifact.kind}
-            </a>
-            <code>{artifact.path}</code>
-            <code>{artifact.sha256}</code>
-          </li>
-        ))}
-      </ul>
-      {error && (
-        <p role="alert" className="wd-error">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function CodeDiffPanel({ runId, artifact }: { runId: string; artifact: Artifact }) {
-  const [result, setResult] = useState<{ identity: string; data?: CodeDiffArtifact; error?: string } | null>(null);
-  const identity = `${runId}/${artifact.id}/${artifact.sha256}`;
-  useEffect(() => {
-    const controller = new AbortController();
-    void factoryClient
-      .artifactText(runId, artifact.id, controller.signal)
-      .then((text) => {
-        const data = parseCodeDiff(text);
-        if (!controller.signal.aborted) setResult({ identity, data });
-      })
-      .catch((failure) => {
-        if (!controller.signal.aborted) setResult({ identity, error: String(failure) });
-      });
-    return () => controller.abort();
-  }, [runId, artifact.id, identity]);
-
-  const current = result?.identity === identity ? result : null;
-  return (
-    <section className="wd-code-diff" data-testid="workflow-demo-code-diff" data-artifact={artifact.id}>
-      <h3>Code Diff</h3>
-      {current?.error && (
-        <p className="wd-error" role="alert" data-testid="workflow-demo-code-diff-error">
-          {current.error}
-        </p>
-      )}
-      {current?.data?.files.map((file, index) => (
-        <div
-          className="wd-code-diff-grid"
-          key={`${identity}/${index}`}
-          data-testid="workflow-demo-code-diff-file"
-          data-variant={file.generated_path}
-        >
-          <section className="wd-code-diff-pane" aria-label={`Original source: ${file.source_path}`}>
-            <h4>{/\.(cu|cuh)$/i.test(file.source_path) ? 'Original CUDA' : 'Original source'}</h4>
-            <code className="wd-code-diff-path">{file.source_path}</code>
-            <pre data-testid="workflow-demo-code-diff-original">
-              <code>{file.source_code}</code>
-            </pre>
-          </section>
-          <section className="wd-code-diff-pane" aria-label={`Generated C++: ${file.generated_path}`}>
-            <h4>Generated C++</h4>
-            <code className="wd-code-diff-path">{file.generated_path}</code>
-            <pre data-testid="workflow-demo-code-diff-generated">
-              <code>{file.generated_code}</code>
-            </pre>
-          </section>
-        </div>
-      ))}
-    </section>
-  );
-}
-
-function ValueReportPanel({ runId, artifact }: { runId: string; artifact: Artifact }) {
-  const [result, setResult] = useState<{ identity: string; text?: string; error?: string } | null>(null);
-  const identity = `${runId}/${artifact.id}/${artifact.sha256}`;
-  useEffect(() => {
-    const controller = new AbortController();
-    void factoryClient
-      .artifactText(runId, artifact.id, controller.signal)
-      .then((text) => {
-        if (!text.trim()) throw new Error('Value report artifact is empty');
-        if (!controller.signal.aborted) setResult({ identity, text });
-      })
-      .catch((failure) => {
-        if (!controller.signal.aborted) setResult({ identity, error: String(failure) });
-      });
-    return () => controller.abort();
-  }, [runId, artifact.id, identity]);
-  const current = result?.identity === identity ? result : null;
-  return (
-    <section className="wd-value-report" data-testid="workflow-demo-value-report" data-artifact={artifact.id}>
-      <h3>Value Report</h3>
-      {current?.error && (
-        <p className="wd-error" role="alert" data-testid="workflow-demo-value-report-error">
-          {current.error}
-        </p>
-      )}
-      {current?.text && <pre data-testid="workflow-demo-value-report-content">{current.text}</pre>}
-    </section>
-  );
-}
-
 function ContractDetails({ stage }: { stage: StageDeclaration }) {
   return (
     <div className="wd-contract" data-testid="workflow-demo-stage-contract">
-      <p className="wd-lineage">
-        {stage.workflow_id} / {stage.subworkflow_id} / {stage.id}
-      </p>
+      <h3>Canonical stage contract</h3>
+      <dl className="wd-lineage" data-testid="workflow-demo-contract-lineage">
+        <dt>Workflow</dt>
+        <dd>{stage.workflow_id}</dd>
+        <dt>Sub-workflow</dt>
+        <dd>{stage.subworkflow_id}</dd>
+        <dt>Stage</dt>
+        <dd>{stage.id}</dd>
+      </dl>
       <h4>{copy.entrypoint}</h4>
       <code>{stage.entrypoint}</code>
       <h4>{copy.inputs}</h4>
@@ -230,12 +124,44 @@ function ContractDetails({ stage }: { stage: StageDeclaration }) {
   );
 }
 
-function ExecutionDetails({ run, node, events }: { run: FactoryRun; node: FactoryNode; events: FactoryEvent[] }) {
+function ExecutionDetails({
+  run,
+  node,
+  events,
+  recordingId,
+}: {
+  run: FactoryRun;
+  node: FactoryNode;
+  events: FactoryEvent[];
+  recordingId?: string;
+}) {
+  const origin = nodePoolRef(node).split('/');
   return (
     <div data-testid="workflow-demo-node-execution">
-      <p className="wd-lineage">
-        {node.workflow_id} / {node.subworkflow_id} / {node.stage_id}
-      </p>
+      <dl className="wd-lineage" data-testid="workflow-demo-node-lineage">
+        <dt>Workflow</dt>
+        <dd data-testid="workflow-demo-node-workflow">{origin[0] || node.workflow_id}</dd>
+        <dt>Sub-workflow</dt>
+        <dd data-testid="workflow-demo-node-subworkflow">{origin[1] || node.subworkflow_id}</dd>
+        <dt>Stage</dt>
+        <dd data-testid="workflow-demo-node-stage">{origin[2] || node.stage_id}</dd>
+        <dt>Canonical stage ID</dt>
+        <dd data-testid="workflow-demo-node-canonical-stage">{node.stage_id}</dd>
+        <dt>Instance</dt>
+        <dd data-testid="workflow-demo-node-instance">{node.instance_id || node.instance_key || node.id}</dd>
+        {nodePoolRef(node) && (
+          <>
+            <dt>Selected internal path</dt>
+            <dd data-testid="workflow-demo-node-origin">{nodePoolRef(node)}</dd>
+          </>
+        )}
+        {nodeOperationIdentity(node, run) && (
+          <>
+            <dt>Source function</dt>
+            <dd data-testid="workflow-demo-node-operation">{nodeOperationIdentity(node, run)}</dd>
+          </>
+        )}
+      </dl>
       {node.attempts.map((attempt) => (
         <section
           className="wd-attempt"
@@ -255,7 +181,7 @@ function ExecutionDetails({ run, node, events }: { run: FactoryRun; node: Factor
           {!!attempt.inputs?.length && (
             <>
               <h4>{copy.inputs}</h4>
-              <ArtifactList runId={run.id} artifacts={attempt.inputs} />
+              <ArtifactList runId={run.id} artifacts={attempt.inputs} recordingId={recordingId} />
             </>
           )}
           {!!attempt.commands?.length && (
@@ -292,7 +218,7 @@ function ExecutionDetails({ run, node, events }: { run: FactoryRun; node: Factor
           {!!attempt.outputs?.length && (
             <>
               <h4>{copy.outputs}</h4>
-              <ArtifactList runId={run.id} artifacts={attempt.outputs} />
+              <ArtifactList runId={run.id} artifacts={attempt.outputs} recordingId={recordingId} />
             </>
           )}
         </section>
@@ -338,8 +264,26 @@ function Graph({
   select: (id: string) => void;
 }) {
   const layout = useMemo(() => layoutGraph(nodes, edges), [nodes, edges]);
+  const scroll = useRef<HTMLDivElement>(null);
+  const previousFollow = useRef('');
+  useEffect(() => {
+    const previous = previousFollow.current;
+    previousFollow.current = selected;
+    if (previous === selected || !selected) return;
+    const container = scroll.current;
+    const node = Array.from(
+      container?.querySelectorAll<HTMLButtonElement>('[data-testid="workflow-demo-node"]') ?? [],
+    ).find((element) => element.dataset.variant === selected);
+    if (!container || !node) return;
+    const nodeBox = node.getBoundingClientRect();
+    const viewport = container.getBoundingClientRect();
+    container.scrollTop = Math.max(
+      0,
+      container.scrollTop + nodeBox.top - viewport.top - (container.clientHeight - nodeBox.height) / 2,
+    );
+  }, [selected]);
   return (
-    <div className="wd-graph-scroll" data-testid="workflow-demo-graph">
+    <div ref={scroll} className="wd-graph-scroll" data-testid="workflow-demo-graph">
       <svg
         viewBox={`0 0 800 ${layout.height}`}
         className="wd-graph"
@@ -407,7 +351,7 @@ function Graph({
                 data-variant={node.id}
                 data-status={node.status}
               >
-                <span>{node.name}</span>
+                <span>{stageLabel(node)}</span>
                 <StatusDot status={node.status} />
               </button>
             </foreignObject>
@@ -420,11 +364,18 @@ function Graph({
 
 export function WorkflowDemo() {
   const [catalog, setCatalog] = useState<FactoryCatalog | null>(null);
+  const [recordedCatalog, setRecordedCatalog] = useState<FactoryCatalog | null>(null);
+  const [recordedLibrary, setRecordedLibrary] = useState<WorkflowLibrary | null>(null);
+  const [recordings, setRecordings] = useState<FactoryRecordingSummary[]>([]);
+  const [recordingId, setRecordingId] = useState(requestedRecording);
+  const navigationChosen = useRef(false);
+  const [loadingRecording, setLoadingRecording] = useState(false);
   const [runId, setRunId] = useState(storedRunId);
   const [run, setRun] = useState<FactoryRun | null>(null);
   const [events, setEvents] = useState<FactoryEvent[]>([]);
   const [selected, setSelected] = useState('');
   const [stageId, setStageId] = useState('');
+  const [poolRef, setPoolRef] = useState('');
   const [revision, setRevision] = useState('');
   const [model, setModel] = useState('');
   const [taskText, setTaskText] = useState(initialTask);
@@ -437,9 +388,26 @@ export function WorkflowDemo() {
   ]);
   const [replay, setReplay] = useState(requestedReplay);
   const [replayCursor, setReplayCursor] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(4);
+  const [inspectedRevision, setInspectedRevision] = useState<number | null>(null);
+  const replayStream = useRef<AbortController | null>(null);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const mounted = useRef(true);
+  const pauseReplay = useCallback(() => {
+    replayStream.current?.abort();
+    replayStream.current = null;
+    setPlaying(false);
+  }, []);
+
+  useEffect(
+    () => () => {
+      replayStream.current?.abort();
+      replayStream.current = null;
+    },
+    [recordingId, runId],
+  );
 
   useEffect(() => {
     mounted.current = true;
@@ -465,7 +433,57 @@ export function WorkflowDemo() {
   }, [loadCatalog]);
 
   useEffect(() => {
-    if (!runId) return;
+    const controller = new AbortController();
+    void factoryClient
+      .recordings(controller.signal)
+      .then((value) => {
+        if (controller.signal.aborted) return;
+        setRecordings(value.recordings);
+        const hasRequestedRun = new URLSearchParams(window.location.search).has('factoryRun');
+        if (!navigationChosen.current && !hasRequestedRun && !requestedRecording() && value.recordings.length) {
+          setRun(null);
+          setEvents([]);
+          setRecordingId(value.recordings[0].id);
+          setReplay(true);
+        }
+      })
+      .catch((failure) => {
+        if (!controller.signal.aborted) setError(String(failure));
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!recordingId) return;
+    const controller = new AbortController();
+    setLoadingRecording(true);
+    setError('');
+    void factoryClient
+      .recording(recordingId, controller.signal)
+      .then((value) => {
+        if (controller.signal.aborted) return;
+        setRun(value.run);
+        setRunId(value.run.id);
+        setEvents(value.events);
+        setRecordedCatalog(catalogFromStages(value.catalog));
+        setRecordedLibrary(value.workflow_catalog || value.run.workflow_catalog || null);
+        setSelected('');
+        setStageId('');
+        setPoolRef('');
+        setReplayCursor(0);
+        setReplay(true);
+      })
+      .catch((failure) => {
+        if (!controller.signal.aborted) setError(String(failure));
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingRecording(false);
+      });
+    return () => controller.abort();
+  }, [recordingId]);
+
+  useEffect(() => {
+    if (!runId || recordingId) return;
     const controller = new AbortController();
     let refreshInFlight: Promise<void> | null = null;
     let refreshAgain = false;
@@ -540,11 +558,11 @@ export function WorkflowDemo() {
     };
     void connect();
     return () => controller.abort();
-  }, [runId, replay]);
+  }, [runId, replay, recordingId]);
 
   const start = async (event: FormEvent) => {
     event.preventDefault();
-    if (replay || (!goals.length && !taskText.trim()) || submitting) return;
+    if (recordingId || replay || (!goals.length && !taskText.trim()) || submitting) return;
     setSubmitting(true);
     setError('');
     try {
@@ -561,6 +579,7 @@ export function WorkflowDemo() {
       setEvents([]);
       setSelected(snapshot.nodes[0]?.id ?? '');
       setStageId('');
+      setPoolRef('');
       setRunId(snapshot.id);
       try {
         localStorage.setItem(runStorageKey, snapshot.id);
@@ -581,6 +600,7 @@ export function WorkflowDemo() {
       return { events: [] as FactoryEvent[], error: String(failure) };
     }
   }, [events]);
+  const checkpoints = useMemo(() => replayCheckpoints(recording.events), [recording.events]);
   const projection = useMemo(() => {
     if (!replay || !run || recording.error) return null;
     try {
@@ -603,20 +623,85 @@ export function WorkflowDemo() {
     graphNodes.find((node) => node.id === selected) ??
     (replay ? (graphNodes.find((node) => node.id === latestNodeEvent?.node_id) ?? graphNodes[0]) : undefined);
   const currentRevision = replay ? displayRun?.graph_revisions[displayRun.graph_revisions.length - 1] : undefined;
-  const seekReplay = useCallback((cursor: number) => {
-    setReplayCursor(cursor);
-    setSelected('');
-    setStageId('');
-  }, []);
+  const seekReplay = useCallback(
+    (cursor: number) => {
+      pauseReplay();
+      setReplayCursor(cursor);
+      setSelected(
+        run && cursor === recording.events.length
+          ? publishedSourceProducer(projectReplay(run, recording.events, cursor))
+          : '',
+      );
+      setStageId('');
+      setPoolRef('');
+      setInspectedRevision(null);
+    },
+    [pauseReplay, run, recording.events],
+  );
+  const playReplay = (speed: number) => {
+    if (!recordingId || !run || recording.error || replayCursor >= recording.events.length) return;
+    pauseReplay();
+    const controller = new AbortController();
+    replayStream.current = controller;
+    setPlaying(true);
+    setInspectedRevision(null);
+    setError('');
+    let position = replayCursor;
+    const after = recording.events[position - 1]?.sequence ?? 0;
+    const checkpoint = checkpoints.find((item) => item.cursor > position);
+    const stopCursor = checkpoint?.cursor ?? recording.events.length;
+    const until = checkpoint?.sequence ?? recording.events[recording.events.length - 1]?.sequence ?? 0;
+    void factoryClient
+      .replay(
+        recordingId,
+        after,
+        speed,
+        (frame) => {
+          if (controller.signal.aborted || replayStream.current !== controller) return;
+          if (frame.event !== 'recorded') throw new Error('Invalid recorded replay stream frame');
+          position = nextRecordedCursor(recording.events, position, frame.data);
+          if (position > stopCursor) throw new Error('Replay stream passed the selected publication checkpoint');
+          setReplayCursor(position);
+          setSelected(
+            position === recording.events.length
+              ? publishedSourceProducer(projectReplay(run, recording.events, position))
+              : '',
+          );
+          setStageId('');
+          setPoolRef('');
+        },
+        controller.signal,
+        until,
+      )
+      .then(() => {
+        if (!controller.signal.aborted && position !== stopCursor)
+          throw new Error('Replay stream ended before the selected publication checkpoint');
+      })
+      .catch((failure) => {
+        if (!controller.signal.aborted && replayStream.current === controller) setError(String(failure));
+      })
+      .finally(() => {
+        if (replayStream.current === controller) {
+          replayStream.current = null;
+          setPlaying(false);
+        }
+      });
+  };
   const enterReplay = (cursor = 0) => {
     setError('');
     seekReplay(cursor);
     setReplay(true);
   };
   const returnLive = () => {
+    pauseReplay();
+    if (recordingId) {
+      newTask();
+      return;
+    }
     setReplay(false);
     setSelected('');
     setStageId('');
+    setPoolRef('');
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete('replay');
@@ -624,6 +709,55 @@ export function WorkflowDemo() {
     } catch {
       /* Replay state does not require URL storage. */
     }
+  };
+  const newTask = () => {
+    navigationChosen.current = true;
+    pauseReplay();
+    setRecordingId('');
+    setRunId('');
+    setRun(null);
+    setEvents([]);
+    setReplay(false);
+    setSelected('');
+    setStageId('');
+    setPoolRef('');
+    setInspectedRevision(null);
+    setTaskText(initialTask);
+    setBackend('ascend');
+    setGoals(['construction.package', 'value.report', 'inference.result', 'verification.comparison']);
+    setRevision('');
+    setModel('');
+    setError('');
+    const url = new URL(window.location.href);
+    url.searchParams.delete('recording');
+    url.searchParams.delete('factoryRecording');
+    url.searchParams.delete('factoryRun');
+    url.searchParams.delete('replay');
+    window.history.replaceState(window.history.state, '', url);
+  };
+  const openRecording = (id: string) => {
+    navigationChosen.current = true;
+    if (id === recordingId) return;
+    pauseReplay();
+    setRun(null);
+    setRunId('');
+    setRecordedCatalog(null);
+    setRecordedLibrary(null);
+    setEvents([]);
+    setSelected('');
+    setStageId('');
+    setPoolRef('');
+    setInspectedRevision(null);
+    setReplayCursor(0);
+    setReplay(true);
+    setRecordingId(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set('view', 'workflow');
+    url.searchParams.set('recording', id);
+    url.searchParams.delete('factoryRecording');
+    url.searchParams.delete('factoryRun');
+    url.searchParams.set('replay', '1');
+    window.history.replaceState(window.history.state, '', url);
   };
   const jumpToRevision = (revisionNumber: string) => {
     const index = recording.events.findIndex(
@@ -634,28 +768,21 @@ export function WorkflowDemo() {
       return;
     }
     enterReplay(index + 1);
+    setInspectedRevision(Number(revisionNumber));
   };
-  const selectedStage = catalog?.stages.find((stage) => stage.id === (stageId || selectedNode?.stage_id));
+  const displayCatalog = recordingId ? recordedCatalog : catalog;
+  const workflowLibrary = recordingId ? recordedLibrary : run?.workflow_catalog;
+  const inspectedPoolStage = workflowLibrary?.stage_refs.find((reference) => reference.path === poolRef);
+  const sourceOnlyTask =
+    !!run?.request.goals.includes('construction.native_sources') &&
+    run.request.goals.every((goal) => ['construction.native_sources', 'construction.cpu_validation'].includes(goal)) &&
+    !run.request.task?.acceptance.native_execution &&
+    !run.request.task?.acceptance.full_model_inference;
+  const selectedStage = displayCatalog?.stages.find((stage) => stage.id === (stageId || selectedNode?.stage_id));
   const selectedRunActive = !!run && !isTerminal(run.status);
   const availableGoals = (catalog?.goals ?? []).filter((kind) => copy.goals.some((goal) => goal.value === kind));
   const publishedArtifacts = Array.isArray(displayRun?.artifacts) ? displayRun.artifacts : [];
-  const codeDiffArtifact = publishedArtifacts
-    .slice()
-    .reverse()
-    .find((artifact) => artifact.kind === 'construction.code_diff');
-  const valueReportArtifact = publishedArtifacts
-    .slice()
-    .reverse()
-    .find((artifact) => artifact.kind === 'value.report');
-  const deliverables =
-    publishedArtifacts
-      .filter((artifact) =>
-        /^(candidate|implementation|construction|build|inference|verification|value)\./.test(artifact.kind),
-      )
-      .sort(
-        (first, second) =>
-          Number(second.kind === 'construction.package') - Number(first.kind === 'construction.package'),
-      ) ?? [];
+  const counts = compositionCounts(graphNodes);
 
   return (
     <div
@@ -664,79 +791,134 @@ export function WorkflowDemo() {
       data-run-id={displayRun?.id ?? runId}
       data-status={displayRun?.status ?? ''}
       data-mode={replay ? 'replay' : 'live'}
+      data-recording-id={recordingId}
     >
       <header className="wd-header">
         <h1 data-testid="workflow-demo-title">{copy.title}</h1>
-        <p>{copy.narrative}</p>
       </header>
       <div className="wd-layout">
-        <section className="wd-panel wd-pool" aria-label={copy.pool} data-testid="workflow-demo-pool">
-          <div className="wd-panel-heading">
-            <h2>{copy.pool}</h2>
-            <button
-              type="button"
-              onClick={() => void loadCatalog()}
-              aria-label="Refresh capability pool"
-              data-testid="workflow-demo-refresh-pool"
-            >
-              {copy.refresh}
-            </button>
-          </div>
-          <div className="wd-pool-scroll">
-            {catalog?.groups.map((workflow) => (
-              <section
-                className="wd-workflow-group"
-                key={workflow.id}
-                data-testid="workflow-demo-workflow-group"
-                data-variant={workflow.id}
-              >
-                <h3>{workflow.name}</h3>
-                {catalog.subworkflows
-                  .filter((item) => item.workflow_id === workflow.id)
-                  .map((subworkflow) => (
-                    <section
-                      className="wd-group"
-                      key={`${workflow.id}/${subworkflow.id}`}
-                      data-testid="workflow-demo-pool-group"
-                      data-variant={subworkflow.id}
-                    >
-                      <h4>{subworkflow.name}</h4>
-                      {subworkflow.stages.map((stage) => (
-                        <button
-                          type="button"
-                          key={stage.id}
-                          className="wd-pool-card"
-                          data-testid="workflow-demo-pool-card"
-                          data-variant={stage.id}
-                          aria-pressed={stageId === stage.id}
-                          data-selection={
-                            displayRun?.nodes.some((node) => node.stage_id === stage.id) ? 'selected' : 'idle'
-                          }
-                          onClick={() => {
-                            setStageId(stage.id);
-                            setSelected('');
-                          }}
-                        >
-                          {stage.name}
-                        </button>
-                      ))}
-                    </section>
-                  ))}
-              </section>
-            ))}
-          </div>
-        </section>
+        <CapabilityPool
+          catalog={displayCatalog}
+          run={displayRun}
+          nodes={graphNodes}
+          library={workflowLibrary}
+          selected={poolRef || (selectedNode && nodePoolRef(selectedNode)) || stageId || ''}
+          onSelect={(id, fullRef) => {
+            setStageId(id);
+            setPoolRef(fullRef || '');
+            setSelected('');
+          }}
+          onRefresh={() => void loadCatalog()}
+        />
         <section className="wd-panel wd-canvas-panel" aria-label={copy.canvas} data-testid="workflow-demo-canvas-panel">
-          {!replay ? (
+          <div className="wd-recording-navigation" data-testid="workflow-demo-recording-navigation">
+            <label htmlFor="factory-recording" data-testid="workflow-demo-recording-label">
+              Task recording
+            </label>
+            <select
+              id="factory-recording"
+              value={recordingId}
+              onChange={(event) => (event.target.value ? openRecording(event.target.value) : newTask())}
+              data-testid="workflow-demo-recording-selector"
+            >
+              <option value="">New task</option>
+              {recordings.map((item) => (
+                <option
+                  key={item.id}
+                  value={item.id}
+                  data-testid="workflow-demo-recording-option"
+                  data-variant={item.id}
+                >
+                  {recordingTitle(item)} ·{' '}
+                  {item.request.goals.includes('construction.native_sources')
+                    ? 'source recording'
+                    : item.request.target_backend.toUpperCase()}{' '}
+                  · {item.status}
+                </option>
+              ))}
+            </select>
+            <Button size="sm" onClick={newTask} data-testid="workflow-demo-new-task">
+              New task
+            </Button>
+          </div>
+          {replay && run ? (
+            <section className="wd-recorded-request" data-testid="workflow-demo-recorded-input">
+              <h3 data-testid="workflow-demo-recorded-input-title">Recorded request</h3>
+              <p className="wd-task-description" data-testid="workflow-demo-recorded-task">
+                {run.request.task?.description || run.request.goals.join(', ')}
+              </p>
+              <dl className="wd-request-fields">
+                <div>
+                  <dt>Input source</dt>
+                  <dd data-testid="workflow-demo-recorded-source-role">
+                    {run.request.task?.source_scope?.some((scope) => /cuda|\.cuh?\b/i.test(scope))
+                      ? 'STRATA CUDA'
+                      : 'STRATA source'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Recorded target</dt>
+                  <dd data-testid="workflow-demo-recorded-target">{run.request.target_backend.toUpperCase()}</dd>
+                </div>
+                {run.request.task?.acceptance.cpu_validation && (
+                  <div>
+                    <dt>Source validation</dt>
+                    <dd data-testid="workflow-demo-recorded-cpu-role">CPU checks requested</dd>
+                  </div>
+                )}
+                {typeof run.request.options?.reference_backend === 'string' &&
+                  (run.request.task?.acceptance.compare_original ||
+                    run.request.goals.includes('verification.comparison')) && (
+                    <div>
+                      <dt>Original reference</dt>
+                      <dd data-testid="workflow-demo-recorded-reference-role">
+                        {run.request.options.reference_backend.toUpperCase()} (configured)
+                      </dd>
+                    </div>
+                  )}
+                <div>
+                  <dt>Capabilities</dt>
+                  <dd data-testid="workflow-demo-recorded-capabilities">
+                    {run.request.task?.capabilities?.join(', ') || '—'}
+                  </dd>
+                </div>
+                <div className="wd-request-scope">
+                  <dt>Source scope</dt>
+                  <dd data-testid="workflow-demo-recorded-source-scope">
+                    {run.request.task?.source_scope?.join(', ') || '—'}
+                  </dd>
+                </div>
+                <div className="wd-request-acceptance">
+                  <dt>Acceptance</dt>
+                  <dd data-testid="workflow-demo-recorded-acceptance">{requestScope(run.request)}</dd>
+                  {sourceOnlyTask && (
+                    <dd className="wd-native-source-scope" data-testid="workflow-demo-recorded-native-scope">
+                      Source generation and CPU reference; native compile, device and model execution not requested
+                    </dd>
+                  )}
+                </div>
+                <div>
+                  <dt>Repository</dt>
+                  <dd>
+                    <a
+                      href={run.request.repository_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      data-testid="workflow-demo-recorded-repository"
+                    >
+                      {run.request.repository_url.replace('https://github.com/', '')}
+                    </a>
+                  </dd>
+                </div>
+              </dl>
+            </section>
+          ) : !recordingId && !replay ? (
             <form className="wd-composer" onSubmit={(event) => void start(event)} data-testid="workflow-demo-task-form">
-              <div className="wd-panel-heading">
-                <h2>{copy.canvas}</h2>
-                {run && <StatusDot status={run.status} />}
-              </div>
-              <a className="wd-repository" href={repository} target="_blank" rel="noreferrer">
-                niko1221/strata
-              </a>
-              <label className="wd-task-label" htmlFor="factory-engineering-task">
+              <label
+                className="wd-task-label"
+                htmlFor="factory-engineering-task"
+                data-testid="workflow-demo-task-label"
+              >
                 Engineering task
               </label>
               <textarea
@@ -745,9 +927,44 @@ export function WorkflowDemo() {
                 value={taskText}
                 onChange={(event) => setTaskText(event.target.value)}
                 aria-label="Engineering task"
-                rows={6}
+                rows={3}
                 data-testid="workflow-demo-engineering-task"
               />
+              <div className="wd-run-fields">
+                <a
+                  className="wd-repository"
+                  href={repository}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-testid="workflow-demo-repository"
+                >
+                  niko1221/strata
+                </a>
+                <select
+                  aria-label={copy.backend}
+                  value={backend}
+                  onChange={(event) => setBackend(event.target.value as typeof backend)}
+                  data-testid="workflow-demo-backend"
+                >
+                  <option value="ascend">Ascend Native</option>
+                  <option value="cpu">CPU</option>
+                  <option value="cuda">CUDA</option>
+                </select>
+                <input
+                  aria-label={copy.revision}
+                  placeholder={copy.revision}
+                  value={revision}
+                  onChange={(event) => setRevision(event.target.value)}
+                  data-testid="workflow-demo-revision"
+                />
+                <input
+                  aria-label={copy.model}
+                  placeholder={copy.model}
+                  value={model}
+                  onChange={(event) => setModel(event.target.value)}
+                  data-testid="workflow-demo-model-path"
+                />
+              </div>
               <div className="wd-goals" role="group" aria-label={copy.objective}>
                 {availableGoals.map((kind) => (
                   <label key={kind}>
@@ -766,88 +983,82 @@ export function WorkflowDemo() {
                   </label>
                 ))}
               </div>
-              <div className="wd-run-fields">
-                <input
-                  aria-label={copy.revision}
-                  placeholder={copy.revision}
-                  value={revision}
-                  onChange={(event) => setRevision(event.target.value)}
-                  data-testid="workflow-demo-revision"
-                />
-                <select
-                  aria-label={copy.backend}
-                  value={backend}
-                  onChange={(event) => setBackend(event.target.value as typeof backend)}
-                  data-testid="workflow-demo-backend"
-                >
-                  <option value="ascend">Ascend Native</option>
-                  <option value="cpu">CPU</option>
-                  <option value="cuda">CUDA</option>
-                </select>
-                <input
-                  aria-label={copy.model}
-                  placeholder={copy.model}
-                  value={model}
-                  onChange={(event) => setModel(event.target.value)}
-                  data-testid="workflow-demo-model-path"
-                />
-                <Button
-                  type="submit"
-                  disabled={!catalog || (!goals.length && !taskText.trim()) || submitting || selectedRunActive}
-                  data-testid="workflow-demo-run-button"
-                >
-                  {submitting || selectedRunActive ? copy.running : copy.run}
-                </Button>
-              </div>
-              {!!(error || run?.error) && (
-                <pre className="wd-error" role="alert" data-testid="workflow-demo-error">
-                  {error || pretty(run?.error)}
-                </pre>
-              )}
+              <Button
+                type="submit"
+                disabled={!catalog || (!goals.length && !taskText.trim()) || submitting || selectedRunActive}
+                data-testid="workflow-demo-run-button"
+              >
+                {submitting || selectedRunActive ? copy.running : copy.run}
+              </Button>
               {run && (
-                <div className="wd-run-navigation">
-                  <code data-testid="workflow-demo-run-id">{run.id}</code>
-                  <Button
-                    size="sm"
-                    disabled={!isTerminal(run.status) || !events.length || !!recording.error}
-                    onClick={() => enterReplay()}
-                    data-testid="workflow-demo-enter-replay"
-                  >
-                    Replay
-                  </Button>
-                  <select
-                    aria-label={copy.history}
-                    value=""
-                    onChange={(event) => jumpToRevision(event.target.value)}
-                    data-testid="workflow-demo-graph-revision"
-                  >
-                    <option value="">{copy.currentGraph}</option>
-                    {run.graph_revisions.map((item) => (
-                      <option key={item.revision} value={item.revision}>
-                        Revision {item.revision}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Button
+                  size="sm"
+                  disabled={!isTerminal(run.status) || !events.length || !!recording.error}
+                  onClick={() => enterReplay()}
+                  data-testid="workflow-demo-enter-replay"
+                >
+                  Replay
+                </Button>
               )}
             </form>
-          ) : (
-            <>
-              <ReplayControls
-                runId={run?.id ?? runId}
-                recordedTime={projection?.run?.replay.time ?? null}
-                events={recording.events}
-                cursor={projection?.run?.replay.cursor ?? 0}
-                onCursorChange={seekReplay}
-                onReturnLive={returnLive}
-              />
-              {!!(error || recording.error || projection?.error || displayRun?.error) && (
-                <pre className="wd-error" role="alert" data-testid="workflow-demo-error">
-                  {error || recording.error || projection?.error || pretty(displayRun?.error)}
-                </pre>
-              )}
-            </>
+          ) : null}
+          {loadingRecording && (
+            <p className="wd-loading" role="status" data-testid="workflow-demo-recording-loading">
+              Loading recording
+            </p>
           )}
+          {replay && run && (
+            <ReplayControls
+              key={recordingId || run.id}
+              runId={run.id}
+              recordedTime={projection?.run?.replay.time ?? null}
+              events={recording.events}
+              cursor={projection?.run?.replay.cursor ?? 0}
+              onCursorChange={seekReplay}
+              onPlay={playReplay}
+              onPause={pauseReplay}
+              playing={playing}
+              canPlay={!!recordingId && !loadingRecording && !recording.error}
+              playbackSpeed={playbackSpeed}
+              onSpeedChange={setPlaybackSpeed}
+              checkpoints={checkpoints}
+              onReturnLive={returnLive}
+              returnLabel={recordingId ? 'New task' : 'Return to live'}
+            />
+          )}
+          {!!(error || recording.error || projection?.error || displayRun?.error) && (
+            <pre className="wd-error" role="alert" data-testid="workflow-demo-error">
+              {error || recording.error || projection?.error || pretty(displayRun?.error)}
+            </pre>
+          )}
+          <div className="wd-graph-heading" data-testid="workflow-demo-graph-heading">
+            <h2 data-testid="workflow-demo-canvas-title">{copy.canvas}</h2>
+            <span data-testid="workflow-demo-composition-counts">
+              {counts.workflows} workflows · {counts.subworkflows} sub-workflows · {counts.stages} stages ·{' '}
+              {counts.implementations} lowering instances
+            </span>
+            {displayRun && (
+              <span className="wd-run-status" data-testid="workflow-demo-run-status">
+                <StatusDot status={displayRun.status} />
+                {sourceOnlyTask && displayRun.status === 'completed' ? 'Source complete' : displayRun.status}
+              </span>
+            )}
+            {run && (
+              <select
+                aria-label={copy.history}
+                value=""
+                onChange={(event) => jumpToRevision(event.target.value)}
+                data-testid="workflow-demo-graph-revision"
+              >
+                <option value="">{copy.currentGraph}</option>
+                {run.graph_revisions.map((item) => (
+                  <option key={item.revision} value={item.revision}>
+                    Revision {item.revision}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           <Graph
             nodes={graphNodes}
             edges={graphEdges}
@@ -856,22 +1067,26 @@ export function WorkflowDemo() {
             select={(id) => {
               setSelected(id);
               setStageId('');
+              setPoolRef('');
             }}
           />
-          {displayRun && deliverables.length > 0 && (
-            <section className="wd-deliveries" data-testid="workflow-demo-deliverables">
-              <h3>{copy.outputs}</h3>
-              <ArtifactList runId={displayRun.id} artifacts={deliverables} />
-            </section>
-          )}
+          <EvidencePanel
+            run={displayRun}
+            events={graphEvents}
+            recordingId={recordingId || undefined}
+            catalog={displayCatalog}
+            library={workflowLibrary}
+            selected={selectedNode?.id ?? ''}
+            onSelectNode={(id) => {
+              setSelected(id);
+              setStageId('');
+              setPoolRef('');
+            }}
+          />
         </section>
         <aside className="wd-panel wd-detail" aria-label={copy.details} data-testid="workflow-demo-detail">
-          <h2>{copy.details}</h2>
-          {displayRun && codeDiffArtifact && <CodeDiffPanel runId={displayRun.id} artifact={codeDiffArtifact} />}
-          {displayRun && valueReportArtifact && (
-            <ValueReportPanel runId={displayRun.id} artifact={valueReportArtifact} />
-          )}
-          {currentRevision && (
+          <h2 data-testid="workflow-demo-detail-title">{copy.details}</h2>
+          {currentRevision && inspectedRevision === currentRevision.revision && (
             <section className="wd-replan-reason" data-testid="workflow-demo-replan-reason">
               <h3>Revision {currentRevision.revision}</h3>
               <p>{currentRevision.reason}</p>
@@ -879,28 +1094,35 @@ export function WorkflowDemo() {
           )}
           {(selectedNode || selectedStage) && (
             <div className="wd-detail-title">
-              <h3>{stageId ? selectedStage?.name : (selectedNode?.name ?? selectedStage?.name)}</h3>
+              <h3 data-testid="workflow-demo-selected-stage">
+                {stageId ? selectedStage?.name : (selectedNode?.name ?? selectedStage?.name)}
+              </h3>
               {selectedNode && !stageId && <StatusDot status={selectedNode.status} />}
             </div>
           )}
-          {selectedStage && <ContractDetails stage={selectedStage} />}
           {displayRun && selectedNode && !stageId && (
-            <ExecutionDetails run={displayRun} node={selectedNode} events={graphEvents} />
+            <ExecutionDetails
+              run={displayRun}
+              node={selectedNode}
+              events={graphEvents}
+              recordingId={recordingId || undefined}
+            />
           )}
-          {graphEvents.some((event) => event.type === 'command.output') && (
-            <section className="wd-terminal" data-testid="workflow-demo-terminal">
-              <h3>Terminal</h3>
-              <pre>
-                {graphEvents
-                  .filter((event) => event.type === 'command.output')
-                  .slice(-300)
-                  .map(
-                    (event) => `[${event.node_id} ${String(event.payload.stream)}] ${String(event.payload.text ?? '')}`,
-                  )
-                  .join('')}
-              </pre>
+          {inspectedPoolStage && (
+            <section data-testid="workflow-demo-inspected-pool-stage">
+              <h3>Pool internal stage</h3>
+              <p data-testid="workflow-demo-inspected-pool-ref">{inspectedPoolStage.path}</p>
+              <dl className="wd-lineage">
+                <dt>Parent definition</dt>
+                <dd>{inspectedPoolStage.pool_origin.parent_definition_id}</dd>
+                <dt>Definition SHA-256</dt>
+                <dd>{inspectedPoolStage.pool_origin.parent_definition_hash}</dd>
+                <dt>Other internal children</dt>
+                <dd>{inspectedPoolStage.pool_origin.all_sibling_refs.join(', ') || 'None'}</dd>
+              </dl>
             </section>
           )}
+          {selectedStage && <ContractDetails stage={selectedStage} />}
         </aside>
       </div>
     </div>

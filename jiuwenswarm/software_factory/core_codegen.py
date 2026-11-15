@@ -377,7 +377,7 @@ for(int row=0;row<rows;++row){
         test+='}catch(const std::exception& error){check.status="failed";check.error=error.what();failed=true;}}\n'
     test+=r'''long long compared=0;double maximum=0;bool complete=true;
 for(const auto& check:checks){compared+=check.outputs_compared;maximum=std::max(maximum,check.max_abs_error);complete=complete&&check.status=="passed";}
-std::cout<<std::setprecision(17)<<"{\"check\":\"source_lowered_strata_core\",\"outputs_compared\":"<<compared<<",\"max_abs_error\":"<<maximum<<",\"coverage_complete\":"<<(complete?"true":"false")<<",\"operation_checks\":[";
+std::cout<<std::setprecision(17)<<"{\"backend\":\""<<strata_core::backend()<<"\",\"check\":\"source_lowered_strata_core\",\"outputs_compared\":"<<compared<<",\"max_abs_error\":"<<maximum<<",\"coverage_complete\":"<<(complete?"true":"false")<<",\"operation_checks\":[";
 for(size_t i=0;i<checks.size();++i){const auto& check=checks[i];if(i)std::cout<<',';
  std::cout<<"{\"source_id\":";quote(check.source_id);std::cout<<",\"name\":";quote(check.name);
  std::cout<<",\"operation\":";quote(check.operation);std::cout<<",\"status\":";quote(check.status);
@@ -394,21 +394,22 @@ project(strata_source_lowered_core LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(STRATA_CORE_BACKEND CPU CACHE STRING "CPU cooperative reference or optional real Ascend activation")
+set(STRATA_CORE_BACKEND CPU CACHE STRING "CPU cooperative reference or device-only CANN operator graphs")
 set_property(CACHE STRATA_CORE_BACKEND PROPERTY STRINGS CPU ASCEND)
-add_library(strata_core src/strata_core.cpp)
-target_include_directories(strata_core PUBLIC include)
 if(STRATA_CORE_BACKEND STREQUAL "ASCEND")
+ @ASCEND_GUARD@
  list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
  find_package(AscendCL REQUIRED)
- @ASCEND_GUARD@
  find_package(Threads REQUIRED)
- target_sources(strata_core PRIVATE src/ascend_backend.cpp)
+ add_library(strata_core src/strata_native.cpp @ASCEND_SOURCES@)
  target_compile_definitions(strata_core PRIVATE STRATA_CORE_ASCEND=1)
  target_link_libraries(strata_core PRIVATE AscendCL::ascendcl AscendCL::opapi Threads::Threads)
+elseif(STRATA_CORE_BACKEND STREQUAL "CPU")
+ add_library(strata_core src/strata_core.cpp)
 elseif(NOT STRATA_CORE_BACKEND STREQUAL "CPU")
  message(FATAL_ERROR "Unknown backend; no fallback permitted")
 endif()
+target_include_directories(strata_core PUBLIC include)
 add_executable(strata_engine src/main.cpp)
 target_link_libraries(strata_engine PRIVATE strata_core)
 add_executable(strata_core_test tests/numerical.cpp)
@@ -417,10 +418,6 @@ enable_testing()
 add_test(NAME source_lowered_core_numerical COMMAND strata_core_test)
 '''
 
-
-FIND_ASCEND = 'set(AscendCL_ROOT "$ENV{ASCEND_HOME_PATH}" CACHE PATH "Real CANN toolkit root")\nfind_path(AscendCL_INCLUDE_DIR acl/acl.h HINTS "${AscendCL_ROOT}" PATH_SUFFIXES include)\nfind_path(AscendCL_OP_INCLUDE_DIR aclnnop/aclnn_silu.h HINTS "${AscendCL_ROOT}" PATH_SUFFIXES include)\nfind_library(AscendCL_LIBRARY ascendcl HINTS "${AscendCL_ROOT}" PATH_SUFFIXES lib64)\nfind_library(AscendCL_OPAPI_LIBRARY opapi HINTS "${AscendCL_ROOT}" PATH_SUFFIXES lib64)\ninclude(FindPackageHandleStandardArgs)\nfind_package_handle_standard_args(AscendCL REQUIRED_VARS AscendCL_INCLUDE_DIR AscendCL_OP_INCLUDE_DIR AscendCL_LIBRARY AscendCL_OPAPI_LIBRARY)\nif(AscendCL_FOUND)\n  add_library(AscendCL::ascendcl UNKNOWN IMPORTED)\n  set_target_properties(AscendCL::ascendcl PROPERTIES IMPORTED_LOCATION "${AscendCL_LIBRARY}" INTERFACE_INCLUDE_DIRECTORIES "${AscendCL_INCLUDE_DIR};${AscendCL_OP_INCLUDE_DIR}")\n  add_library(AscendCL::opapi UNKNOWN IMPORTED)\n  set_target_properties(AscendCL::opapi PROPERTIES IMPORTED_LOCATION "${AscendCL_OPAPI_LIBRARY}")\nendif()\n'
-
-ASCEND_SOURCE = '#include <acl/acl.h>\n#include <aclnn/acl_meta.h>\n#include <aclnnop/aclnn_silu.h>\n#include <aclnnop/aclnn_mul.h>\n#include <mutex>\n#include <stdexcept>\n#include <string>\nnamespace strata_core {\nnamespace {\nvoid check(int code,const char* op) { if(code)throw std::runtime_error(std::string(op)+" failed: "+std::to_string(code)); }\nstruct Storage {\n void* ptr=nullptr;size_t bytes;\n explicit Storage(size_t size):bytes(size){check(aclrtMalloc(&ptr,size,ACL_MEM_MALLOC_NORMAL_ONLY),"aclrtMalloc");}\n ~Storage(){if(ptr)aclrtFree(ptr);}\n};\nstruct Tensor {\n aclTensor* ptr=nullptr;\n Tensor(Storage& buffer,int64_t size){int64_t shape[]={size},stride[]={1};ptr=aclCreateTensor(shape,1,ACL_FLOAT,stride,0,ACL_FORMAT_ND,shape,1,buffer.ptr);if(!ptr)throw std::runtime_error("aclCreateTensor failed");}\n ~Tensor(){if(ptr)aclDestroyTensor(ptr);}\n};\nstruct Session {\n aclrtStream stream=nullptr;\n Session(){check(aclInit(nullptr),"aclInit");check(aclrtSetDevice(0),"aclrtSetDevice");check(aclrtCreateStream(&stream),"aclrtCreateStream");}\n ~Session(){if(stream)aclrtDestroyStream(stream);}\n};\n}\nvoid ascend_swiglu(const float* gate,const float* up,float* output,int n) {\n static std::mutex mutex;const std::lock_guard<std::mutex> guard(mutex);static Session session;\n const size_t size=size_t(n)*sizeof(float);Storage g(size),u(size),s(size),y(size);Tensor gt(g,n),ut(u,n),st(s,n),yt(y,n);\n check(aclrtMemcpy(g.ptr,size,gate,size,ACL_MEMCPY_HOST_TO_DEVICE),"gate upload");\n check(aclrtMemcpy(u.ptr,size,up,size,ACL_MEMCPY_HOST_TO_DEVICE),"up upload");\n uint64_t bytes=0;aclOpExecutor* executor=nullptr;\n check(aclnnSiluGetWorkspaceSize(gt.ptr,st.ptr,&bytes,&executor),"aclnnSiluGetWorkspaceSize");\n if(bytes){Storage workspace(bytes);check(aclnnSilu(workspace.ptr,bytes,executor,session.stream),"aclnnSilu");check(aclrtSynchronizeStream(session.stream),"Silu sync");}\n else{check(aclnnSilu(nullptr,0,executor,session.stream),"aclnnSilu");check(aclrtSynchronizeStream(session.stream),"Silu sync");}\n check(aclnnMulGetWorkspaceSize(st.ptr,ut.ptr,yt.ptr,&bytes,&executor),"aclnnMulGetWorkspaceSize");\n if(bytes){Storage workspace(bytes);check(aclnnMul(workspace.ptr,bytes,executor,session.stream),"aclnnMul");check(aclrtSynchronizeStream(session.stream),"Mul sync");}\n else{check(aclnnMul(nullptr,0,executor,session.stream),"aclnnMul");check(aclrtSynchronizeStream(session.stream),"Mul sync");}\n check(aclrtMemcpy(output,size,y.ptr,size,ACL_MEMCPY_DEVICE_TO_HOST),"result download");\n}\n}\n'
 
 def _validation_input(inventory):
     mode=inventory['cli']['mode']
@@ -438,37 +435,22 @@ def _validation_input(inventory):
     return '\n'.join(lines)+'\n'
 
 
-def _native_activation(record):
-    """Prove the narrow source expression supported by the optional CANN port.
-
-    CPU lowering has no expression whitelist. This check protects a DIFFERENT
-    hand-ported native implementation from silently accepting changed arithmetic.
-    """
-    if record['operation']!='swiglu':return False
-    body=re.sub(r'\s+','',strip_comments(record['body']))
-    params=record['parameters'];gate,up,out,extent=[p['name'] for p in params]
-    pattern=(r'constint(\w+)=blockIdx\.x\*blockDim\.x\+threadIdx\.x;'
-             r'if\(\1>='+re.escape(extent)+r'\)return;constdouble(\w+)=\(double\)'+re.escape(gate)+r'\[\1\];'
-             +re.escape(out)+r'\[\1\]=\(float\)\(\2/\(1\.0\+exp\(-\2\)\)\)\*'+re.escape(up)+r'\[\1\];')
-    return bool(re.fullmatch(pattern,body))
-
-
 def generate_project(inventory,destination):
     validate_core(inventory)
     destination=Path(destination).resolve();destination.mkdir(parents=True,exist_ok=True)
     source=_source(inventory)
-    activation=next((record for record in inventory['kernels'].values() if _native_activation(record)),None)
-    if activation:
-        source=source.replace('namespace strata_core {\n','namespace strata_core {\n#ifdef STRATA_CORE_ASCEND\nvoid ascend_swiglu(const float*,const float*,float*,int);\n#endif\n',1)
-        launch=_invocation(activation,['gate','up','output','n'],'unsigned((n+31)/32)')
-        source=source.replace(launch,'#ifdef STRATA_CORE_ASCEND\n ascend_swiglu(gate,up,output,n);\n#else\n '+launch+'\n#endif')
-        source=source.replace('const char* backend(){return "CPU";}', 'const char* backend(){\n#ifdef STRATA_CORE_ASCEND\n return "Ascend activation; CPU cooperative router/aggregation";\n#else\n return "CPU";\n#endif\n}')
-    guard='' if activation else 'message(FATAL_ERROR "Selected source expressions have no native implementation; CPU cooperative execution is not Ascend")'
+    from .ascend_codegen import generate_native_files, find_ascend_cmake, OPERATIONS as native_operations
+    native_files,native_generation=generate_native_files(inventory,_binding_name)
+    activation=any(item['operation']=='swiglu' and item['generated'] for item in native_generation['operations'])
+    missing=[item['source_id'] for item in native_generation['operations'] if not item['generated']]
+    guard=('message(FATAL_ERROR "Selected source expressions have no native implementation; CPU cooperative execution is not Ascend: '+', '.join(missing)+'")') if missing else ''
+    native_sources=' '.join(name for name in native_files if name.startswith('src/ascend/') and name.endswith('.cpp'))
     files={'include/strata_core.h':_header(inventory),'include/cuda_cpu_runtime.h':CPU_RUNTIME,
         'src/strata_core.cpp':source,'src/main.cpp':_main(inventory),'tests/numerical.cpp':_tests(inventory),
-        'tests/cli-input.txt':_validation_input(inventory),'CMakeLists.txt':CMAKE.replace('@ASCEND_GUARD@',guard),
-        'cmake/FindAscendCL.cmake':FIND_ASCEND}
-    if activation:files['src/ascend_backend.cpp']=ASCEND_SOURCE
+        'tests/cli-input.txt':_validation_input(inventory),'CMakeLists.txt':CMAKE.replace('@ASCEND_GUARD@',guard).replace('@ASCEND_SOURCES@',native_sources),
+        'cmake/FindAscendCL.cmake':find_ascend_cmake(native_generation)}
+    files.update(native_files)
+    files['scripts/prepare_ascend.py']=Path(__file__).with_name('native_build.py').read_text()
     task_oracle=inventory.get('task_oracle')
     oracle_metadata=None
     if task_oracle is not None:
@@ -521,7 +503,19 @@ An application supplies its own numeric file using this selected contract:
 
 For multiple independently selected capabilities, pass --operation SOURCE_ID. Function names are accepted only as convenience aliases; source IDs identify exact producers. The bundled tests/cli-input.txt is an isolated arithmetic validation input, not model weights or production inference. Each selected known production source is called through its unique binding and receives an operation_checks result from its independent reference in tests/numerical.cpp. Aggregate comparison counts do not prove coverage of other sources. Arbitrary discovered scalar arithmetic requires a task-provided semantic oracle; zero reference comparisons must not be treated as correctness validation.
 
-Optional STRATA_CORE_BACKEND=ASCEND requires real CANN headers, libraries and a device. Only a structurally proven SiLU-times-up activation has an explicit native aclnnSilu/aclnnMul implementation; remaining operations are CPU. Changed activation mathematics without a corresponding native implementation fails configuration. There is no silent backend fallback. All native/full-model validation flags remain false until actual target evidence exists.
+STRATA_CORE_BACKEND=ASCEND compiles src/strata_native.cpp and src/ascend/*.cpp, with no cooperative CPU kernels in that target. Concrete CANN graphs implement router softmax/stable-sort/top-k/clamped renormalization, SiLU-times-up activation, ordered weighted expert aggregation with optional shared addition, and stride-32 weighted RMS normalization when their complete immutable source contracts are recognized. Unsupported selected source contracts fail ASCEND configuration before SDK discovery. native/manifest.json records each bound source/function hash, graph, actual API-header evidence, and generated/compiled/device/equivalence status separately.
+
+    cmake -S . -B build-ascend -DSTRATA_CORE_BACKEND=ASCEND
+    cmake --build build-ascend --parallel 2
+    ctest --test-dir build-ascend --output-on-failure
+
+The standalone preparation runner checks source hashes without accessing hardware:
+
+    python scripts/prepare_ascend.py --check-source-only
+
+With actual prerequisites supplied, --compile performs only target compilation; --validate additionally executes the native operator comparisons. Its report records each layer separately and never marks full-model inference passed.
+
+Native compilation requires actual CANN headers/libraries; execution requires a real Ascend device. Router/activation/combination candidate FP32 graphs differ from production FP64 intermediates. Task-tolerance comparisons and exact expert-index/stable-tie checks on the actual device remain mandatory. Source generation and CPU tests never establish native numerical equivalence. This computational-core project has no model loader or token-generation implementation; full-model status remains NOT_RUN and requires the separate integrated model path.
 
 Source casts, expression ordering and collective structure are retained. CPU exp/rsqrt implementations may differ from device math intrinsics; CPU checks do not establish GPU bit equality. The independent upstream router host reference uses double probabilities whereas production selection rounds them to float; tests separately cover the production tie case.
 '''
@@ -535,6 +529,12 @@ Source casts, expression ordering and collective structure are retained. CPU exp
     generated=[{'path':name,'sha256':_hash(code),'bytes':len(code.encode())} for name,code in files.items()]
     diff={'schema':'strata.code.diff.v1','files':[{'source_path':record['path'],'generated_path':'src/strata_core.cpp','source_code':record['source_code'],'generated_code':record['semantic_ir']['lowered_cpp']} for record in inventory['kernels'].values()],
           'selected':inventory['selected'],'transforms':['Discovered signatures and executable tensor contracts','Production kernel body retained; CUDA execution primitives lowered to C++20 cooperative CPU runtime','Source casts, local types, loop/control/selection operations retained'], 'generated_files':generated}
+    for record,native in zip(inventory['kernels'].values(),native_generation['operations']):
+        if native['generated']:
+            diff['files'].append({'source_path':record['path'],'generated_path':native['implementation'],
+                'source_code':record['source_code'],'generated_code':native_operations[record['operation']],
+                'target':'ASCEND','source_contract_fingerprint':native['source_contract_fingerprint'],
+                'precision':native['contract']['precision'],'native_compilation':'NOT_RUN','device_execution':'NOT_RUN'})
     (destination/'code_diff.json').write_text(json.dumps(diff,indent=2)+'\n')
     generated.append({'path':'code_diff.json','sha256':_hash((destination/'code_diff.json').read_bytes()),'bytes':(destination/'code_diff.json').stat().st_size})
     cli=dict(inventory['cli']);cli['validation_input']='tests/cli-input.txt'
@@ -544,7 +544,11 @@ Source casts, expression ordering and collective structure are retained. CPU exp
     metadata={'schema':'strata.core.project.v1','project_dir':str(destination),'source_commit':inventory['commit_sha'],
         'selected':inventory['selected'],'operations':operation_metadata,'generated_files':generated,'code_diff':'code_diff.json','cli':cli,
         'targets':['strata_engine','strata_core_test'],'runtime':'cpu_cooperative_cuda_reference','scope':inventory['scope'],
-        'native_activation_generated':bool(activation),'native_device_validated':False,'full_inference_validated':False}
+        'backend_sources':{'CPU':['src/strata_core.cpp'],
+                          'ASCEND':['src/strata_native.cpp']+native_sources.split()},
+        'native_runtime':'cann_aclnn_device_graph_candidate',
+        'native_activation_generated':bool(activation),'native_generation':native_generation,
+        'native_device_validated':False,'full_inference_validated':False}
     if oracle_metadata is not None:metadata['task_oracle']=oracle_metadata
     (destination/'project.json').write_text(json.dumps(metadata,indent=2)+'\n')
     return metadata

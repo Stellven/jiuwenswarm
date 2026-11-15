@@ -67,8 +67,9 @@ with sync_playwright() as p:
     errors, duplicate_keys = [], []
     page.on('console', lambda message: duplicate_keys.append(message.text) if 'same key' in message.text else None)
     page.on('pageerror', lambda error: errors.append(str(error)))
-    page.goto(BASE, wait_until='domcontentloaded')
-    page.locator('[data-testid="session-sidebar-nav-item"][data-variant="workflow"]').click(timeout=60000)
+    page.goto(BASE + '?view=workflow&factoryRun=' + RUN, wait_until='domcontentloaded')
+    expect(page.locator('[data-testid="session-sidebar-nav-item"][data-variant="workflow"]')).to_be_visible(timeout=60000)
+    page.locator('[data-testid="workflow-demo-evidence-tab"][data-variant="diff"]').click()
     panel = page.get_by_test_id('workflow-demo-code-diff')
     expect(panel).to_be_visible(timeout=30000)
     expect(panel).to_have_attribute('data-artifact', code_diff['id'])
@@ -87,13 +88,14 @@ with sync_playwright() as p:
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')
     page.screenshot(path=str(OUT / 'code-diff.png'))
     if value_report:
+        page.locator('[data-testid="workflow-demo-evidence-tab"][data-variant="value"]').click()
         report_panel = page.get_by_test_id('workflow-demo-value-report')
         expect(report_panel).to_have_attribute('data-artifact', value_report['id'])
         expect(report_panel.get_by_test_id('workflow-demo-value-report-content')).to_have_text(raw_value.decode(), use_inner_text=False)
         assert report_panel.get_by_test_id('workflow-demo-value-report-content').text_content() == raw_value.decode()
         report_panel.scroll_into_view_if_needed()
         page.screenshot(path=str(OUT / 'value-report.png'))
-        panel.scroll_into_view_if_needed()
+    page.locator('[data-testid="workflow-demo-evidence-tab"][data-variant="downloads"]').click()
     link = page.locator('[data-testid="workflow-demo-deliverables"] a').filter(has_text='huawei_native_strata.zip').first
     expect(link).to_be_visible()
     with page.expect_download(timeout=60000) as downloaded:
@@ -106,6 +108,7 @@ with sync_playwright() as p:
         cpp_name = next(name for name in archive.namelist() if name == 'src/strata_core.cpp' or name.endswith('/src/strata_core.cpp'))
         assert archive.read(cpp_name) == raw_cpp
         archive_files = archive.namelist()
+    page.locator('[data-testid="workflow-demo-evidence-tab"][data-variant="diff"]').click()
     page.set_viewport_size({'width':1366,'height':768})
     expect(panel).to_be_visible()
     assert page.evaluate('document.documentElement.scrollWidth <= innerWidth')

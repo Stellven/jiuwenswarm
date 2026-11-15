@@ -1,0 +1,1410 @@
+{
+  "frontend": {
+    "directory": "/workspace/jiuwenswarm/jiuwenswarm/channels/web/frontend/dist",
+    "source_sha256": "907896c2d0a3c6cbf95f0f3eddcef609459d35f811d25e46d9ca2a1b138cfd00",
+    "asset_count": 244
+  },
+  "recordings": [
+    {
+      "id": "11a6ce02166b4618baea6db59aaf44ec",
+      "status": "completed",
+      "created_at": "2026-11-15T19:25:30.145318+00:00",
+      "updated_at": "2026-11-15T19:26:39.956505+00:00",
+      "request": {
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "target_backend": "ascend",
+        "goals": [
+          "construction.native_sources",
+          "construction.cpu_validation"
+        ],
+        "task": {
+          "description": "Generate an Ascend/CANN C++ source project from the real STRATA routing, activation and aggregation implementation, and independently compile and numerically validate its CPU reference. Source production only; native device execution and full-model inference require separate acceptance.",
+          "source_scope": [
+            "src/kernels/cuda/*.cu"
+          ],
+          "capabilities": [
+            "routing",
+            "activation",
+            "aggregation"
+          ],
+          "acceptance": {
+            "cpu_validation": true
+          }
+        },
+        "owner_id": "local-operator",
+        "options": {
+          "jobs": 2
+        }
+      },
+      "event_count": 132,
+      "graph_revision_count": 9,
+      "artifact_count": 54,
+      "read_only": true,
+      "provenance": {
+        "run_id": "11a6ce02166b4618baea6db59aaf44ec",
+        "run_sha256": "5a715729f7b5db584f4520b0374e9ec51a50541262a8072fc03aa8cec1f03981",
+        "events_sha256": "70da2251f380b56d5e39e8cad5a426bf5ba3f3760b269ff669a1fc0988eee92b",
+        "recipe_sha256": "9f4c5aa916c4075c7c75cc7e2c8dbceb26c51dd8f1dee745a93c13a82d5861b9",
+        "recipe_digest": "39f995bc4d2be218f8c0ab4e9a27fb1e058c4f75f6995dba0f631704ee29b8fd",
+        "catalog_sha256": "aee7fd44e3b901e65040e247c4e7b202952ef7bb18e5808c46363dd5e7420e93",
+        "source_commits": [
+          {
+            "artifact_id": "a11",
+            "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+            "repository_url": "https://github.com/niko1221/strata",
+            "sha256": "51a0912acde0ed09eddede8f0575598dcb777d3fc7ae1390bf5aab8fc2752e29"
+          }
+        ],
+        "source_files": [
+          {
+            "relative_path": "__init__.py",
+            "root": "factory",
+            "sha256": "85ab781419a651e7b842c7c7745c3cb88e96077198fb772cf7c0fb3accb70454",
+            "size": 191,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/__init__.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/__init__.py"
+          },
+          {
+            "relative_path": "adapters/ast_to_ascend.py",
+            "root": "factory",
+            "sha256": "1690d2aeec836ae76599c83de833c3f1b525a3c3dd53dff27d02194a6d0ec20e",
+            "size": 3520,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/adapters/ast_to_ascend.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/adapters/ast_to_ascend.py"
+          },
+          {
+            "relative_path": "api.py",
+            "root": "factory",
+            "sha256": "f9bb084ee074456314f2d48ebd3e4ad91edf30b774f35aaa773d62816e146d66",
+            "size": 13467,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/api.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/api.py"
+          },
+          {
+            "relative_path": "ascend_codegen.py",
+            "root": "factory",
+            "sha256": "335e2c1248f6a6fec28644762256c3cc5ec09ad98812b210c30862b50691b0dd",
+            "size": 28409,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/ascend_codegen.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/ascend_codegen.py"
+          },
+          {
+            "relative_path": "catalog.py",
+            "root": "factory",
+            "sha256": "e5c932de5307ad217d7d5f1519736ebade483000ec1af7a8b0630e579093776a",
+            "size": 26482,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/catalog.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/catalog.py"
+          },
+          {
+            "relative_path": "cli.py",
+            "root": "factory",
+            "sha256": "455d408dff8f7d904b3c58dbded1daf58f15dab8a8a8bfea79e773897f330dd2",
+            "size": 3715,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/cli.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cli.py"
+          },
+          {
+            "relative_path": "construction_pipeline.py",
+            "root": "factory",
+            "sha256": "4ca76ad15ca7acae8edb8930e0397c279e6ff8dd0881c293fc491be24611e044",
+            "size": 24827,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/construction_pipeline.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/construction_pipeline.py"
+          },
+          {
+            "relative_path": "contracts.py",
+            "root": "factory",
+            "sha256": "862b114720b9fa93d1fcc7cbd4354a3cf262d226b9f2733a0529e4531cbc79dd",
+            "size": 3786,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/contracts.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/contracts.py"
+          },
+          {
+            "relative_path": "core_codegen.py",
+            "root": "factory",
+            "sha256": "8342449327183e9f70e3286c61c43678f411ffad72c73dcce9ad725096c9c9ac",
+            "size": 40115,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/core_codegen.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/core_codegen.py"
+          },
+          {
+            "relative_path": "cuda_lowering.py",
+            "root": "factory",
+            "sha256": "8779f7de109784031dff1572390107b76177d191768ed98198cdb106a6f8cab7",
+            "size": 22452,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/cuda_lowering.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cuda_lowering.py"
+          },
+          {
+            "relative_path": "demo.py",
+            "root": "factory",
+            "sha256": "41c9aecef86fb73d00600455fa7d3d3f94750e1b99b6208d81b164d561afa0ae",
+            "size": 7355,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/demo.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/demo.py"
+          },
+          {
+            "relative_path": "engine.py",
+            "root": "factory",
+            "sha256": "d6f2e7e4ea1265e105ea18ce05ec8244a5d1735add07f740fcff469fbcbb6a8f",
+            "size": 40075,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/engine.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/engine.py"
+          },
+          {
+            "relative_path": "generated_candidate.py",
+            "root": "factory",
+            "sha256": "83737c2db1d42de175dab17b5eedaa662eb0fca8b2d3704e80fb054fcc6e9c17",
+            "size": 25864,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/generated_candidate.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/generated_candidate.py"
+          },
+          {
+            "relative_path": "native_build.py",
+            "root": "factory",
+            "sha256": "c34c8e2e23cd9dd6b14b2033df9947df8387a4d127094e66f43afb76ab1dbed2",
+            "size": 6301,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/native_build.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/native_build.py"
+          },
+          {
+            "relative_path": "oracle_validation.py",
+            "root": "factory",
+            "sha256": "db8db6b184f4af6f9168a9954f48e4f794b53cbf3f69074071b2d2ddc7f9a819",
+            "size": 22284,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/oracle_validation.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/oracle_validation.py"
+          },
+          {
+            "relative_path": "provenance.py",
+            "root": "factory",
+            "sha256": "4d7e661071b90bdcd98700188e438d9702259744d3a37a534dc3ab42be8a93b1",
+            "size": 16118,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/provenance.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/provenance.py"
+          },
+          {
+            "relative_path": "recordings.py",
+            "root": "factory",
+            "sha256": "2795f1a2221e39173d0da29347a2bf6a430e6be9c35ec9962821bb64079b513d",
+            "size": 16011,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/recordings.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/recordings.py"
+          },
+          {
+            "relative_path": "replay_export.py",
+            "root": "factory",
+            "sha256": "7912a30d8fbb30dfd39027f3e5eab21112663ef55599e379c1fa07e4c6c679f5",
+            "size": 23216,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/replay_export.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/replay_export.py"
+          },
+          {
+            "relative_path": "scripts/analyze_cuda.py",
+            "root": "factory",
+            "sha256": "9523404d5b735a68ec8b5f1e919d6a064de6cc9ae64b505f49b2323f019f0e56",
+            "size": 2365,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/scripts/analyze_cuda.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/scripts/analyze_cuda.py"
+          },
+          {
+            "relative_path": "source_planning.py",
+            "root": "factory",
+            "sha256": "9280282e29e57346663c9a72fa63979eae04f27d61a998152ed236f67e9cb9d0",
+            "size": 11438,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/source_planning.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/source_planning.py"
+          },
+          {
+            "relative_path": "strata_inference.py",
+            "root": "factory",
+            "sha256": "b34ac3c62f6ff3ab4facc611ad43236915807838d0f1f900786baef4e638bf77",
+            "size": 22238,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/strata_inference.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_inference.py"
+          },
+          {
+            "relative_path": "strata_patch.py",
+            "root": "factory",
+            "sha256": "ade74a2af9ee8236fbec43726023727ce3babfcc91949e58fb4be947342aeb3d",
+            "size": 4807,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/strata_patch.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_patch.py"
+          },
+          {
+            "relative_path": "strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "root": "factory",
+            "sha256": "724902b774f48d27c8f25773e89f0a7896c1afa619b0bbb4e31c326524a53cd6",
+            "size": 3859,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert.cpp",
+            "root": "factory",
+            "sha256": "39154692c3729058ddbe06241775f434d194d502066d1edbe08f194fd9f7b6f2",
+            "size": 4385,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/strata_port/src/kernels/ascend/expert.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert.cpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "root": "factory",
+            "sha256": "aa081bd3f3aa0da54b33753d01ecee166c8785a5d1e209dd350e0b6380dc70e8",
+            "size": 3319,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp"
+          },
+          {
+            "relative_path": "strata_stages.py",
+            "root": "factory",
+            "sha256": "9f22f1a157534e7d50160c895c69f99397a1d05622dfce6d7339e374368fcc73",
+            "size": 10875,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/strata_stages.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_stages.py"
+          },
+          {
+            "relative_path": "task_contract.py",
+            "root": "factory",
+            "sha256": "bcefc4cbb57b39e67496cccbd7860b839756eaad6f7b86506feff181d8dfd13b",
+            "size": 3851,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/task_contract.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/task_contract.py"
+          },
+          {
+            "relative_path": "value_agent.py",
+            "root": "factory",
+            "sha256": "ffe0975ab0a81ba6d89ccd7c22c40fe267060fcc8587ec0cf386f2a35830660b",
+            "size": 36507,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/value_agent.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/value_agent.py"
+          },
+          {
+            "relative_path": "workflow_definitions.py",
+            "root": "factory",
+            "sha256": "1cd0dfaab47088a3f3373af6185cee1fa8b95ddd5b35f4029582fc21dfbbcaaa",
+            "size": 21754,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/workflow_definitions.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/workflow_definitions.py"
+          },
+          {
+            "relative_path": "workflow_recording.py",
+            "root": "factory",
+            "sha256": "eb52e6166ef8964bf58638f0fc793145b97b77f37f5ada58c2ab81792d0fa567",
+            "size": 11965,
+            "snapshot_path": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec/recipe/source/factory/workflow_recording.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/workflow_recording.py"
+          }
+        ],
+        "artifact_count": 54,
+        "event_count": 132,
+        "graph_revision_count": 9,
+        "workflow_catalog_sha256": "c3e5a4c28656f2b8be1176964b4e05971efef8d82972461f57e060541cda2a1c",
+        "bundle_sha256": "21c1aee1cc46d3f024a2a57fc421b21bb62a9c1c043f09118b9813083334f2b8",
+        "original_run_root": "/workspace/factory-monday-corrected/11a6ce02166b4618baea6db59aaf44ec",
+        "path_map_sha256": "f3c7829294aec143b1359d610d3bd9581f1c990ecef0006960b690283b5b47f2"
+      }
+    },
+    {
+      "id": "baf3d77a8301423180ccda45fb11c66b",
+      "status": "blocked",
+      "created_at": "2026-11-14T02:08:32.313346+00:00",
+      "updated_at": "2026-11-14T02:11:02.548101+00:00",
+      "request": {
+        "goals": [
+          "value.report",
+          "construction.package",
+          "construction.portability",
+          "inference.result",
+          "verification.comparison"
+        ],
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "model_path": null,
+        "target_backend": "ascend",
+        "options": {
+          "jobs": 2,
+          "prompt_tokens": [
+            1
+          ],
+          "max_new": 1,
+          "max_context": 256,
+          "ple_gguf": null,
+          "logits_atol": 1e-05,
+          "logits_rtol": 0.0001,
+          "cuda_architectures": null,
+          "core_algorithms": null,
+          "reference_backend": "cuda"
+        },
+        "task": {
+          "description": "Build a generated-source STRATA candidate for native Ascend inference and compare with the original CUDA model.",
+          "source_scope": [
+            "src/kernels/cuda/*.cu"
+          ],
+          "capabilities": [
+            "routing",
+            "activation",
+            "aggregation"
+          ],
+          "acceptance": {
+            "source_project": true,
+            "cpu_validation": true,
+            "full_model_inference": true,
+            "native_execution": true,
+            "compare_original": true
+          }
+        },
+        "workflow_path": null,
+        "workflow_parameters": {},
+        "owner_id": "local-operator"
+      },
+      "event_count": 302,
+      "graph_revision_count": 9,
+      "artifact_count": 81,
+      "read_only": true,
+      "provenance": {
+        "run_id": "baf3d77a8301423180ccda45fb11c66b",
+        "run_sha256": "ea6011e008fb98af44859fa1822e65889e6b45bac047f1c178721e2b9efb08e9",
+        "events_sha256": "48f986f9bafe92ca5be7d1d27a3a96e6cb499e21f6d706f801c93eed0399d014",
+        "recipe_sha256": "5267cd89249433c92dffc170c349e046043c95ee84d501d1d605abca8415b3d0",
+        "recipe_digest": "29da76161cef3dd019d2b2d3c06fdc3650d6170b986017827b4711dc9fbe4cea",
+        "catalog_sha256": "5223538e0d33cb861dee34897e6dfcc0ac91a4165fb260e4e41ddfa1ffe077f8",
+        "source_commits": [
+          {
+            "artifact_id": "a11",
+            "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+            "repository_url": "https://github.com/niko1221/strata",
+            "sha256": "86f0709c1acebe09fb5a216d8a29ebee93320694235e0221b975c7131cdba000"
+          }
+        ],
+        "source_files": [
+          {
+            "relative_path": "__init__.py",
+            "root": "factory",
+            "sha256": "85ab781419a651e7b842c7c7745c3cb88e96077198fb772cf7c0fb3accb70454",
+            "size": 191,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/__init__.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/__init__.py"
+          },
+          {
+            "relative_path": "adapters/ast_to_ascend.py",
+            "root": "factory",
+            "sha256": "1690d2aeec836ae76599c83de833c3f1b525a3c3dd53dff27d02194a6d0ec20e",
+            "size": 3520,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/adapters/ast_to_ascend.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/adapters/ast_to_ascend.py"
+          },
+          {
+            "relative_path": "api.py",
+            "root": "factory",
+            "sha256": "8f80210992544147f78a48bd67e5042903c52fd4d87f98b1201bc7cd6719f013",
+            "size": 8634,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/api.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/api.py"
+          },
+          {
+            "relative_path": "catalog.py",
+            "root": "factory",
+            "sha256": "e5c932de5307ad217d7d5f1519736ebade483000ec1af7a8b0630e579093776a",
+            "size": 26482,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/catalog.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/catalog.py"
+          },
+          {
+            "relative_path": "cli.py",
+            "root": "factory",
+            "sha256": "36498fc917086648bb86c1fda109db9c5ef21e919ea982245f6ec56a54475e29",
+            "size": 2217,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/cli.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cli.py"
+          },
+          {
+            "relative_path": "construction_pipeline.py",
+            "root": "factory",
+            "sha256": "ac7d578f075c2490ace449885583e7b67ddb67486a60b4d2eda2623961d6688c",
+            "size": 18215,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/construction_pipeline.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/construction_pipeline.py"
+          },
+          {
+            "relative_path": "contracts.py",
+            "root": "factory",
+            "sha256": "862b114720b9fa93d1fcc7cbd4354a3cf262d226b9f2733a0529e4531cbc79dd",
+            "size": 3786,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/contracts.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/contracts.py"
+          },
+          {
+            "relative_path": "core_codegen.py",
+            "root": "factory",
+            "sha256": "aca8be7d12bffee2c4a0ea26f9c09930ced93c6ee28c336318ae5e722d9666c4",
+            "size": 42374,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/core_codegen.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/core_codegen.py"
+          },
+          {
+            "relative_path": "cuda_lowering.py",
+            "root": "factory",
+            "sha256": "8779f7de109784031dff1572390107b76177d191768ed98198cdb106a6f8cab7",
+            "size": 22452,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/cuda_lowering.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cuda_lowering.py"
+          },
+          {
+            "relative_path": "engine.py",
+            "root": "factory",
+            "sha256": "1f635776d75f4b1725efd1e1bf4939bfe2fab770e5633f8bb366fb4ea9a58557",
+            "size": 37661,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/engine.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/engine.py"
+          },
+          {
+            "relative_path": "generated_candidate.py",
+            "root": "factory",
+            "sha256": "83737c2db1d42de175dab17b5eedaa662eb0fca8b2d3704e80fb054fcc6e9c17",
+            "size": 25864,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/generated_candidate.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/generated_candidate.py"
+          },
+          {
+            "relative_path": "oracle_validation.py",
+            "root": "factory",
+            "sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+            "size": 22275,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/oracle_validation.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/oracle_validation.py"
+          },
+          {
+            "relative_path": "provenance.py",
+            "root": "factory",
+            "sha256": "9b06f00ac19ff5f27a47846062bc4a0b29fc88f58ce9e778e2b8c7233a5c94d0",
+            "size": 15092,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/provenance.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/provenance.py"
+          },
+          {
+            "relative_path": "scripts/analyze_cuda.py",
+            "root": "factory",
+            "sha256": "9523404d5b735a68ec8b5f1e919d6a064de6cc9ae64b505f49b2323f019f0e56",
+            "size": 2365,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/scripts/analyze_cuda.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/scripts/analyze_cuda.py"
+          },
+          {
+            "relative_path": "source_planning.py",
+            "root": "factory",
+            "sha256": "2c0113eba17965cf58edc31a8ed21c635ad97e3d0af1340af2d6efc0083c4824",
+            "size": 10116,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/source_planning.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/source_planning.py"
+          },
+          {
+            "relative_path": "strata_inference.py",
+            "root": "factory",
+            "sha256": "b34ac3c62f6ff3ab4facc611ad43236915807838d0f1f900786baef4e638bf77",
+            "size": 22238,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/strata_inference.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_inference.py"
+          },
+          {
+            "relative_path": "strata_patch.py",
+            "root": "factory",
+            "sha256": "ade74a2af9ee8236fbec43726023727ce3babfcc91949e58fb4be947342aeb3d",
+            "size": 4807,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/strata_patch.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_patch.py"
+          },
+          {
+            "relative_path": "strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "root": "factory",
+            "sha256": "724902b774f48d27c8f25773e89f0a7896c1afa619b0bbb4e31c326524a53cd6",
+            "size": 3859,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert.cpp",
+            "root": "factory",
+            "sha256": "39154692c3729058ddbe06241775f434d194d502066d1edbe08f194fd9f7b6f2",
+            "size": 4385,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/strata_port/src/kernels/ascend/expert.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert.cpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "root": "factory",
+            "sha256": "aa081bd3f3aa0da54b33753d01ecee166c8785a5d1e209dd350e0b6380dc70e8",
+            "size": 3319,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp"
+          },
+          {
+            "relative_path": "strata_stages.py",
+            "root": "factory",
+            "sha256": "9f22f1a157534e7d50160c895c69f99397a1d05622dfce6d7339e374368fcc73",
+            "size": 10875,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/strata_stages.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_stages.py"
+          },
+          {
+            "relative_path": "task_contract.py",
+            "root": "factory",
+            "sha256": "3620dd9a79fab4e7fe6525193f87bea1de388f7bae1036b27a4bcb075ae969af",
+            "size": 3544,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/task_contract.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/task_contract.py"
+          },
+          {
+            "relative_path": "value_agent.py",
+            "root": "factory",
+            "sha256": "ffe0975ab0a81ba6d89ccd7c22c40fe267060fcc8587ec0cf386f2a35830660b",
+            "size": 36507,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/value_agent.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/value_agent.py"
+          },
+          {
+            "relative_path": "workflow_definitions.py",
+            "root": "factory",
+            "sha256": "5095bc1ba886a8497279e7e810ab898a4bde82ab618936b93c3c020ec78c9cd1",
+            "size": 16936,
+            "snapshot_path": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b/recipe/source/factory/workflow_definitions.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/workflow_definitions.py"
+          }
+        ],
+        "artifact_count": 81,
+        "event_count": 302,
+        "graph_revision_count": 9,
+        "bundle_sha256": "24ab1db437bdfdac13f53ceb303d9821a7bffc7aa5cb52a11259998bc3b2e7f9",
+        "original_run_root": "/workspace/factory-runs/baf3d77a8301423180ccda45fb11c66b",
+        "path_map_sha256": "6ffd3f5c66b2c1dfd423bc250fa9720627d8ec58bea96047c6a51e93d51db4a7"
+      }
+    },
+    {
+      "id": "b152d434c8e14b01adc8c4aa40ad83f2",
+      "status": "completed",
+      "created_at": "2026-11-14T02:08:32.192682+00:00",
+      "updated_at": "2026-11-14T02:10:38.673385+00:00",
+      "request": {
+        "goals": [
+          "value.report",
+          "construction.package",
+          "construction.portability"
+        ],
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "model_path": null,
+        "target_backend": "cpu",
+        "options": {
+          "jobs": 2,
+          "prompt_tokens": [
+            1
+          ],
+          "max_new": 1,
+          "max_context": 256,
+          "ple_gguf": null,
+          "logits_atol": 1e-05,
+          "logits_rtol": 0.0001,
+          "cuda_architectures": null,
+          "core_algorithms": null,
+          "reference_backend": "cuda"
+        },
+        "task": {
+          "description": "Compose production routing and scalar scaling with independent numeric acceptance for each selected operation.",
+          "source_scope": [
+            "src/kernels/cuda/router_top10.cu",
+            "src/kernels/cuda/elementwise.cu"
+          ],
+          "capabilities": [
+            "routing",
+            "scale_kernel"
+          ],
+          "acceptance": {
+            "source_project": true,
+            "cpu_validation": true
+          },
+          "oracle": {
+            "cases": [
+              {
+                "input": "4 2 1 -2 0 3.5\n",
+                "expected": {
+                  "output": [
+                    2,
+                    -4,
+                    0,
+                    7
+                  ]
+                },
+                "operation": "scale_kernel",
+                "atol": 1e-06,
+                "rtol": 1e-06
+              }
+            ]
+          }
+        },
+        "workflow_path": null,
+        "workflow_parameters": {},
+        "owner_id": "local-operator"
+      },
+      "event_count": 164,
+      "graph_revision_count": 7,
+      "artifact_count": 65,
+      "read_only": true,
+      "provenance": {
+        "run_id": "b152d434c8e14b01adc8c4aa40ad83f2",
+        "run_sha256": "8ad3e9e4f7efd322e7324832a978398eed12f58d2dd145613212bcda5f89763d",
+        "events_sha256": "21f89cf872cf831650220559b638df84b8b150a04a17a7fb7ede87da760b5dbb",
+        "recipe_sha256": "00a02abcf4562d0a7edffb4c6c7695dba753dbf575f4401928f228b771ae9322",
+        "recipe_digest": "29da76161cef3dd019d2b2d3c06fdc3650d6170b986017827b4711dc9fbe4cea",
+        "catalog_sha256": "5223538e0d33cb861dee34897e6dfcc0ac91a4165fb260e4e41ddfa1ffe077f8",
+        "source_commits": [
+          {
+            "artifact_id": "a11",
+            "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+            "repository_url": "https://github.com/niko1221/strata",
+            "sha256": "45e56a613c222da777d179ba30aa2a3b43208f93a1c6d013b5b929aa09cae640"
+          }
+        ],
+        "source_files": [
+          {
+            "relative_path": "__init__.py",
+            "root": "factory",
+            "sha256": "85ab781419a651e7b842c7c7745c3cb88e96077198fb772cf7c0fb3accb70454",
+            "size": 191,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/__init__.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/__init__.py"
+          },
+          {
+            "relative_path": "adapters/ast_to_ascend.py",
+            "root": "factory",
+            "sha256": "1690d2aeec836ae76599c83de833c3f1b525a3c3dd53dff27d02194a6d0ec20e",
+            "size": 3520,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/adapters/ast_to_ascend.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/adapters/ast_to_ascend.py"
+          },
+          {
+            "relative_path": "api.py",
+            "root": "factory",
+            "sha256": "8f80210992544147f78a48bd67e5042903c52fd4d87f98b1201bc7cd6719f013",
+            "size": 8634,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/api.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/api.py"
+          },
+          {
+            "relative_path": "catalog.py",
+            "root": "factory",
+            "sha256": "e5c932de5307ad217d7d5f1519736ebade483000ec1af7a8b0630e579093776a",
+            "size": 26482,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/catalog.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/catalog.py"
+          },
+          {
+            "relative_path": "cli.py",
+            "root": "factory",
+            "sha256": "36498fc917086648bb86c1fda109db9c5ef21e919ea982245f6ec56a54475e29",
+            "size": 2217,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/cli.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cli.py"
+          },
+          {
+            "relative_path": "construction_pipeline.py",
+            "root": "factory",
+            "sha256": "ac7d578f075c2490ace449885583e7b67ddb67486a60b4d2eda2623961d6688c",
+            "size": 18215,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/construction_pipeline.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/construction_pipeline.py"
+          },
+          {
+            "relative_path": "contracts.py",
+            "root": "factory",
+            "sha256": "862b114720b9fa93d1fcc7cbd4354a3cf262d226b9f2733a0529e4531cbc79dd",
+            "size": 3786,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/contracts.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/contracts.py"
+          },
+          {
+            "relative_path": "core_codegen.py",
+            "root": "factory",
+            "sha256": "aca8be7d12bffee2c4a0ea26f9c09930ced93c6ee28c336318ae5e722d9666c4",
+            "size": 42374,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/core_codegen.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/core_codegen.py"
+          },
+          {
+            "relative_path": "cuda_lowering.py",
+            "root": "factory",
+            "sha256": "8779f7de109784031dff1572390107b76177d191768ed98198cdb106a6f8cab7",
+            "size": 22452,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/cuda_lowering.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cuda_lowering.py"
+          },
+          {
+            "relative_path": "engine.py",
+            "root": "factory",
+            "sha256": "1f635776d75f4b1725efd1e1bf4939bfe2fab770e5633f8bb366fb4ea9a58557",
+            "size": 37661,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/engine.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/engine.py"
+          },
+          {
+            "relative_path": "generated_candidate.py",
+            "root": "factory",
+            "sha256": "83737c2db1d42de175dab17b5eedaa662eb0fca8b2d3704e80fb054fcc6e9c17",
+            "size": 25864,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/generated_candidate.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/generated_candidate.py"
+          },
+          {
+            "relative_path": "oracle_validation.py",
+            "root": "factory",
+            "sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+            "size": 22275,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/oracle_validation.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/oracle_validation.py"
+          },
+          {
+            "relative_path": "provenance.py",
+            "root": "factory",
+            "sha256": "9b06f00ac19ff5f27a47846062bc4a0b29fc88f58ce9e778e2b8c7233a5c94d0",
+            "size": 15092,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/provenance.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/provenance.py"
+          },
+          {
+            "relative_path": "scripts/analyze_cuda.py",
+            "root": "factory",
+            "sha256": "9523404d5b735a68ec8b5f1e919d6a064de6cc9ae64b505f49b2323f019f0e56",
+            "size": 2365,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/scripts/analyze_cuda.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/scripts/analyze_cuda.py"
+          },
+          {
+            "relative_path": "source_planning.py",
+            "root": "factory",
+            "sha256": "2c0113eba17965cf58edc31a8ed21c635ad97e3d0af1340af2d6efc0083c4824",
+            "size": 10116,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/source_planning.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/source_planning.py"
+          },
+          {
+            "relative_path": "strata_inference.py",
+            "root": "factory",
+            "sha256": "b34ac3c62f6ff3ab4facc611ad43236915807838d0f1f900786baef4e638bf77",
+            "size": 22238,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/strata_inference.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_inference.py"
+          },
+          {
+            "relative_path": "strata_patch.py",
+            "root": "factory",
+            "sha256": "ade74a2af9ee8236fbec43726023727ce3babfcc91949e58fb4be947342aeb3d",
+            "size": 4807,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/strata_patch.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_patch.py"
+          },
+          {
+            "relative_path": "strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "root": "factory",
+            "sha256": "724902b774f48d27c8f25773e89f0a7896c1afa619b0bbb4e31c326524a53cd6",
+            "size": 3859,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert.cpp",
+            "root": "factory",
+            "sha256": "39154692c3729058ddbe06241775f434d194d502066d1edbe08f194fd9f7b6f2",
+            "size": 4385,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/strata_port/src/kernels/ascend/expert.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert.cpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "root": "factory",
+            "sha256": "aa081bd3f3aa0da54b33753d01ecee166c8785a5d1e209dd350e0b6380dc70e8",
+            "size": 3319,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp"
+          },
+          {
+            "relative_path": "strata_stages.py",
+            "root": "factory",
+            "sha256": "9f22f1a157534e7d50160c895c69f99397a1d05622dfce6d7339e374368fcc73",
+            "size": 10875,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/strata_stages.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_stages.py"
+          },
+          {
+            "relative_path": "task_contract.py",
+            "root": "factory",
+            "sha256": "3620dd9a79fab4e7fe6525193f87bea1de388f7bae1036b27a4bcb075ae969af",
+            "size": 3544,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/task_contract.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/task_contract.py"
+          },
+          {
+            "relative_path": "value_agent.py",
+            "root": "factory",
+            "sha256": "ffe0975ab0a81ba6d89ccd7c22c40fe267060fcc8587ec0cf386f2a35830660b",
+            "size": 36507,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/value_agent.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/value_agent.py"
+          },
+          {
+            "relative_path": "workflow_definitions.py",
+            "root": "factory",
+            "sha256": "5095bc1ba886a8497279e7e810ab898a4bde82ab618936b93c3c020ec78c9cd1",
+            "size": 16936,
+            "snapshot_path": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/recipe/source/factory/workflow_definitions.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/workflow_definitions.py"
+          }
+        ],
+        "artifact_count": 65,
+        "event_count": 164,
+        "graph_revision_count": 7,
+        "bundle_sha256": "5e0fa8a446716834a88bcc10b5017f912318dcb1f28a86148ac86c419cea64b2",
+        "original_run_root": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2",
+        "path_map_sha256": "b3d980b2bace37ef3d4f96f506749ef656fbd54da58d8fb0e18298e7f5df7c33"
+      }
+    },
+    {
+      "id": "02446be989844a3fb7e43dc9bd6a8e0a",
+      "status": "completed",
+      "created_at": "2026-11-14T02:08:32.029944+00:00",
+      "updated_at": "2026-11-14T02:09:32.510651+00:00",
+      "request": {
+        "goals": [
+          "value.report",
+          "construction.package",
+          "construction.portability"
+        ],
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "model_path": null,
+        "target_backend": "cpu",
+        "options": {
+          "jobs": 2,
+          "prompt_tokens": [
+            1
+          ],
+          "max_new": 1,
+          "max_context": 256,
+          "ple_gguf": null,
+          "logits_atol": 1e-05,
+          "logits_rtol": 0.0001,
+          "cuda_architectures": null,
+          "core_algorithms": null,
+          "reference_backend": "cuda"
+        },
+        "task": {
+          "description": "Construct production normalization from the actual elementwise source module.",
+          "source_scope": [
+            "src/kernels/cuda/elementwise.cu"
+          ],
+          "capabilities": [
+            "normalization"
+          ],
+          "acceptance": {
+            "source_project": true,
+            "cpu_validation": true
+          }
+        },
+        "workflow_path": null,
+        "workflow_parameters": {},
+        "owner_id": "local-operator"
+      },
+      "event_count": 149,
+      "graph_revision_count": 5,
+      "artifact_count": 61,
+      "read_only": true,
+      "provenance": {
+        "run_id": "02446be989844a3fb7e43dc9bd6a8e0a",
+        "run_sha256": "c9121c41eb342127ffcc72c174259607ff412daf46cdd793bf0a546974e0edec",
+        "events_sha256": "93a5bbd56153e40efd95d1e509437c14b76914d4f8a95eb32b87db521b055978",
+        "recipe_sha256": "f3b9b36c7ff676f5f1485c40436444c69239f2243d82dbcaabbe744e92276f25",
+        "recipe_digest": "29da76161cef3dd019d2b2d3c06fdc3650d6170b986017827b4711dc9fbe4cea",
+        "catalog_sha256": "5223538e0d33cb861dee34897e6dfcc0ac91a4165fb260e4e41ddfa1ffe077f8",
+        "source_commits": [
+          {
+            "artifact_id": "a11",
+            "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+            "repository_url": "https://github.com/niko1221/strata",
+            "sha256": "f4b3752f2a9769a7704ab8baffcdfbfc83b246bf4dbfdcc0f7f55a818746b5d5"
+          }
+        ],
+        "source_files": [
+          {
+            "relative_path": "__init__.py",
+            "root": "factory",
+            "sha256": "85ab781419a651e7b842c7c7745c3cb88e96077198fb772cf7c0fb3accb70454",
+            "size": 191,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/__init__.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/__init__.py"
+          },
+          {
+            "relative_path": "adapters/ast_to_ascend.py",
+            "root": "factory",
+            "sha256": "1690d2aeec836ae76599c83de833c3f1b525a3c3dd53dff27d02194a6d0ec20e",
+            "size": 3520,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/adapters/ast_to_ascend.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/adapters/ast_to_ascend.py"
+          },
+          {
+            "relative_path": "api.py",
+            "root": "factory",
+            "sha256": "8f80210992544147f78a48bd67e5042903c52fd4d87f98b1201bc7cd6719f013",
+            "size": 8634,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/api.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/api.py"
+          },
+          {
+            "relative_path": "catalog.py",
+            "root": "factory",
+            "sha256": "e5c932de5307ad217d7d5f1519736ebade483000ec1af7a8b0630e579093776a",
+            "size": 26482,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/catalog.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/catalog.py"
+          },
+          {
+            "relative_path": "cli.py",
+            "root": "factory",
+            "sha256": "36498fc917086648bb86c1fda109db9c5ef21e919ea982245f6ec56a54475e29",
+            "size": 2217,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/cli.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cli.py"
+          },
+          {
+            "relative_path": "construction_pipeline.py",
+            "root": "factory",
+            "sha256": "ac7d578f075c2490ace449885583e7b67ddb67486a60b4d2eda2623961d6688c",
+            "size": 18215,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/construction_pipeline.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/construction_pipeline.py"
+          },
+          {
+            "relative_path": "contracts.py",
+            "root": "factory",
+            "sha256": "862b114720b9fa93d1fcc7cbd4354a3cf262d226b9f2733a0529e4531cbc79dd",
+            "size": 3786,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/contracts.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/contracts.py"
+          },
+          {
+            "relative_path": "core_codegen.py",
+            "root": "factory",
+            "sha256": "aca8be7d12bffee2c4a0ea26f9c09930ced93c6ee28c336318ae5e722d9666c4",
+            "size": 42374,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/core_codegen.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/core_codegen.py"
+          },
+          {
+            "relative_path": "cuda_lowering.py",
+            "root": "factory",
+            "sha256": "8779f7de109784031dff1572390107b76177d191768ed98198cdb106a6f8cab7",
+            "size": 22452,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/cuda_lowering.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cuda_lowering.py"
+          },
+          {
+            "relative_path": "engine.py",
+            "root": "factory",
+            "sha256": "1f635776d75f4b1725efd1e1bf4939bfe2fab770e5633f8bb366fb4ea9a58557",
+            "size": 37661,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/engine.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/engine.py"
+          },
+          {
+            "relative_path": "generated_candidate.py",
+            "root": "factory",
+            "sha256": "83737c2db1d42de175dab17b5eedaa662eb0fca8b2d3704e80fb054fcc6e9c17",
+            "size": 25864,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/generated_candidate.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/generated_candidate.py"
+          },
+          {
+            "relative_path": "oracle_validation.py",
+            "root": "factory",
+            "sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+            "size": 22275,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/oracle_validation.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/oracle_validation.py"
+          },
+          {
+            "relative_path": "provenance.py",
+            "root": "factory",
+            "sha256": "9b06f00ac19ff5f27a47846062bc4a0b29fc88f58ce9e778e2b8c7233a5c94d0",
+            "size": 15092,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/provenance.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/provenance.py"
+          },
+          {
+            "relative_path": "scripts/analyze_cuda.py",
+            "root": "factory",
+            "sha256": "9523404d5b735a68ec8b5f1e919d6a064de6cc9ae64b505f49b2323f019f0e56",
+            "size": 2365,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/scripts/analyze_cuda.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/scripts/analyze_cuda.py"
+          },
+          {
+            "relative_path": "source_planning.py",
+            "root": "factory",
+            "sha256": "2c0113eba17965cf58edc31a8ed21c635ad97e3d0af1340af2d6efc0083c4824",
+            "size": 10116,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/source_planning.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/source_planning.py"
+          },
+          {
+            "relative_path": "strata_inference.py",
+            "root": "factory",
+            "sha256": "b34ac3c62f6ff3ab4facc611ad43236915807838d0f1f900786baef4e638bf77",
+            "size": 22238,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/strata_inference.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_inference.py"
+          },
+          {
+            "relative_path": "strata_patch.py",
+            "root": "factory",
+            "sha256": "ade74a2af9ee8236fbec43726023727ce3babfcc91949e58fb4be947342aeb3d",
+            "size": 4807,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/strata_patch.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_patch.py"
+          },
+          {
+            "relative_path": "strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "root": "factory",
+            "sha256": "724902b774f48d27c8f25773e89f0a7896c1afa619b0bbb4e31c326524a53cd6",
+            "size": 3859,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert.cpp",
+            "root": "factory",
+            "sha256": "39154692c3729058ddbe06241775f434d194d502066d1edbe08f194fd9f7b6f2",
+            "size": 4385,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/strata_port/src/kernels/ascend/expert.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert.cpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "root": "factory",
+            "sha256": "aa081bd3f3aa0da54b33753d01ecee166c8785a5d1e209dd350e0b6380dc70e8",
+            "size": 3319,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp"
+          },
+          {
+            "relative_path": "strata_stages.py",
+            "root": "factory",
+            "sha256": "9f22f1a157534e7d50160c895c69f99397a1d05622dfce6d7339e374368fcc73",
+            "size": 10875,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/strata_stages.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_stages.py"
+          },
+          {
+            "relative_path": "task_contract.py",
+            "root": "factory",
+            "sha256": "3620dd9a79fab4e7fe6525193f87bea1de388f7bae1036b27a4bcb075ae969af",
+            "size": 3544,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/task_contract.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/task_contract.py"
+          },
+          {
+            "relative_path": "value_agent.py",
+            "root": "factory",
+            "sha256": "ffe0975ab0a81ba6d89ccd7c22c40fe267060fcc8587ec0cf386f2a35830660b",
+            "size": 36507,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/value_agent.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/value_agent.py"
+          },
+          {
+            "relative_path": "workflow_definitions.py",
+            "root": "factory",
+            "sha256": "5095bc1ba886a8497279e7e810ab898a4bde82ab618936b93c3c020ec78c9cd1",
+            "size": 16936,
+            "snapshot_path": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/recipe/source/factory/workflow_definitions.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/workflow_definitions.py"
+          }
+        ],
+        "artifact_count": 61,
+        "event_count": 149,
+        "graph_revision_count": 5,
+        "bundle_sha256": "587afd07e4891980b6273114ad21c39a8aafa7889e006c01a6e86a4455047b73",
+        "original_run_root": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a",
+        "path_map_sha256": "1eeca45dbed3356a9e70eaafac55a6078cedab226cf7ce110d7d38bbe09524f7"
+      }
+    },
+    {
+      "id": "6db7a2b968c8434eaa9a508a6d16a7cf",
+      "status": "completed",
+      "created_at": "2026-11-14T02:08:31.848085+00:00",
+      "updated_at": "2026-11-14T02:09:43.802700+00:00",
+      "request": {
+        "goals": [
+          "value.report",
+          "construction.package",
+          "construction.portability"
+        ],
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "model_path": null,
+        "target_backend": "cpu",
+        "options": {
+          "jobs": 2,
+          "prompt_tokens": [
+            1
+          ],
+          "max_new": 1,
+          "max_context": 256,
+          "ple_gguf": null,
+          "logits_atol": 1e-05,
+          "logits_rtol": 0.0001,
+          "cuda_architectures": null,
+          "core_algorithms": null,
+          "reference_backend": "cuda"
+        },
+        "task": {
+          "description": "Construct the discovered STRATA routing, activation and aggregation source project.",
+          "source_scope": [
+            "src/kernels/cuda/*.cu"
+          ],
+          "capabilities": [
+            "routing",
+            "activation",
+            "aggregation"
+          ],
+          "acceptance": {
+            "source_project": true,
+            "cpu_validation": true
+          }
+        },
+        "workflow_path": null,
+        "workflow_parameters": {},
+        "owner_id": "local-operator"
+      },
+      "event_count": 162,
+      "graph_revision_count": 9,
+      "artifact_count": 65,
+      "read_only": true,
+      "provenance": {
+        "run_id": "6db7a2b968c8434eaa9a508a6d16a7cf",
+        "run_sha256": "cd83f2ccae95faf2216c69c8e58b09211c87e7f9c2cd05a42005739924c9cdb7",
+        "events_sha256": "697cc13182162290e920e416e4faf48009cd595d625b07fd392c8b2db42ebbd0",
+        "recipe_sha256": "f03470f066521a6eb3e51cd28068f3f0cee5349a66760ce47164d2bf13e36ce9",
+        "recipe_digest": "29da76161cef3dd019d2b2d3c06fdc3650d6170b986017827b4711dc9fbe4cea",
+        "catalog_sha256": "5223538e0d33cb861dee34897e6dfcc0ac91a4165fb260e4e41ddfa1ffe077f8",
+        "source_commits": [
+          {
+            "artifact_id": "a11",
+            "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+            "repository_url": "https://github.com/niko1221/strata",
+            "sha256": "66f667c817f5ff1783432d9602e9119913dcda9554ba485b0b385317f5adbb26"
+          }
+        ],
+        "source_files": [
+          {
+            "relative_path": "__init__.py",
+            "root": "factory",
+            "sha256": "85ab781419a651e7b842c7c7745c3cb88e96077198fb772cf7c0fb3accb70454",
+            "size": 191,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/__init__.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/__init__.py"
+          },
+          {
+            "relative_path": "adapters/ast_to_ascend.py",
+            "root": "factory",
+            "sha256": "1690d2aeec836ae76599c83de833c3f1b525a3c3dd53dff27d02194a6d0ec20e",
+            "size": 3520,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/adapters/ast_to_ascend.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/adapters/ast_to_ascend.py"
+          },
+          {
+            "relative_path": "api.py",
+            "root": "factory",
+            "sha256": "8f80210992544147f78a48bd67e5042903c52fd4d87f98b1201bc7cd6719f013",
+            "size": 8634,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/api.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/api.py"
+          },
+          {
+            "relative_path": "catalog.py",
+            "root": "factory",
+            "sha256": "e5c932de5307ad217d7d5f1519736ebade483000ec1af7a8b0630e579093776a",
+            "size": 26482,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/catalog.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/catalog.py"
+          },
+          {
+            "relative_path": "cli.py",
+            "root": "factory",
+            "sha256": "36498fc917086648bb86c1fda109db9c5ef21e919ea982245f6ec56a54475e29",
+            "size": 2217,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/cli.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cli.py"
+          },
+          {
+            "relative_path": "construction_pipeline.py",
+            "root": "factory",
+            "sha256": "ac7d578f075c2490ace449885583e7b67ddb67486a60b4d2eda2623961d6688c",
+            "size": 18215,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/construction_pipeline.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/construction_pipeline.py"
+          },
+          {
+            "relative_path": "contracts.py",
+            "root": "factory",
+            "sha256": "862b114720b9fa93d1fcc7cbd4354a3cf262d226b9f2733a0529e4531cbc79dd",
+            "size": 3786,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/contracts.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/contracts.py"
+          },
+          {
+            "relative_path": "core_codegen.py",
+            "root": "factory",
+            "sha256": "aca8be7d12bffee2c4a0ea26f9c09930ced93c6ee28c336318ae5e722d9666c4",
+            "size": 42374,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/core_codegen.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/core_codegen.py"
+          },
+          {
+            "relative_path": "cuda_lowering.py",
+            "root": "factory",
+            "sha256": "8779f7de109784031dff1572390107b76177d191768ed98198cdb106a6f8cab7",
+            "size": 22452,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/cuda_lowering.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/cuda_lowering.py"
+          },
+          {
+            "relative_path": "engine.py",
+            "root": "factory",
+            "sha256": "1f635776d75f4b1725efd1e1bf4939bfe2fab770e5633f8bb366fb4ea9a58557",
+            "size": 37661,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/engine.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/engine.py"
+          },
+          {
+            "relative_path": "generated_candidate.py",
+            "root": "factory",
+            "sha256": "83737c2db1d42de175dab17b5eedaa662eb0fca8b2d3704e80fb054fcc6e9c17",
+            "size": 25864,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/generated_candidate.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/generated_candidate.py"
+          },
+          {
+            "relative_path": "oracle_validation.py",
+            "root": "factory",
+            "sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+            "size": 22275,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/oracle_validation.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/oracle_validation.py"
+          },
+          {
+            "relative_path": "provenance.py",
+            "root": "factory",
+            "sha256": "9b06f00ac19ff5f27a47846062bc4a0b29fc88f58ce9e778e2b8c7233a5c94d0",
+            "size": 15092,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/provenance.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/provenance.py"
+          },
+          {
+            "relative_path": "scripts/analyze_cuda.py",
+            "root": "factory",
+            "sha256": "9523404d5b735a68ec8b5f1e919d6a064de6cc9ae64b505f49b2323f019f0e56",
+            "size": 2365,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/scripts/analyze_cuda.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/scripts/analyze_cuda.py"
+          },
+          {
+            "relative_path": "source_planning.py",
+            "root": "factory",
+            "sha256": "2c0113eba17965cf58edc31a8ed21c635ad97e3d0af1340af2d6efc0083c4824",
+            "size": 10116,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/source_planning.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/source_planning.py"
+          },
+          {
+            "relative_path": "strata_inference.py",
+            "root": "factory",
+            "sha256": "b34ac3c62f6ff3ab4facc611ad43236915807838d0f1f900786baef4e638bf77",
+            "size": 22238,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/strata_inference.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_inference.py"
+          },
+          {
+            "relative_path": "strata_patch.py",
+            "root": "factory",
+            "sha256": "ade74a2af9ee8236fbec43726023727ce3babfcc91949e58fb4be947342aeb3d",
+            "size": 4807,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/strata_patch.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_patch.py"
+          },
+          {
+            "relative_path": "strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "root": "factory",
+            "sha256": "724902b774f48d27c8f25773e89f0a7896c1afa619b0bbb4e31c326524a53cd6",
+            "size": 3859,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/include/strata/kernels/ascend/expert_adapter.hpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert.cpp",
+            "root": "factory",
+            "sha256": "39154692c3729058ddbe06241775f434d194d502066d1edbe08f194fd9f7b6f2",
+            "size": 4385,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/strata_port/src/kernels/ascend/expert.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert.cpp"
+          },
+          {
+            "relative_path": "strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "root": "factory",
+            "sha256": "aa081bd3f3aa0da54b33753d01ecee166c8785a5d1e209dd350e0b6380dc70e8",
+            "size": 3319,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_port/src/kernels/ascend/expert_adapter_test.cpp"
+          },
+          {
+            "relative_path": "strata_stages.py",
+            "root": "factory",
+            "sha256": "9f22f1a157534e7d50160c895c69f99397a1d05622dfce6d7339e374368fcc73",
+            "size": 10875,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/strata_stages.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/strata_stages.py"
+          },
+          {
+            "relative_path": "task_contract.py",
+            "root": "factory",
+            "sha256": "3620dd9a79fab4e7fe6525193f87bea1de388f7bae1036b27a4bcb075ae969af",
+            "size": 3544,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/task_contract.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/task_contract.py"
+          },
+          {
+            "relative_path": "value_agent.py",
+            "root": "factory",
+            "sha256": "ffe0975ab0a81ba6d89ccd7c22c40fe267060fcc8587ec0cf386f2a35830660b",
+            "size": 36507,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/value_agent.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/value_agent.py"
+          },
+          {
+            "relative_path": "workflow_definitions.py",
+            "root": "factory",
+            "sha256": "5095bc1ba886a8497279e7e810ab898a4bde82ab618936b93c3c020ec78c9cd1",
+            "size": 16936,
+            "snapshot_path": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf/recipe/source/factory/workflow_definitions.py",
+            "working_path": "/workspace/jiuwenswarm/jiuwenswarm/software_factory/workflow_definitions.py"
+          }
+        ],
+        "artifact_count": 65,
+        "event_count": 162,
+        "graph_revision_count": 9,
+        "bundle_sha256": "5bd326c1ba109e402fa52fb2793fa007ee4aaccfb75851a251860b101066ee9a",
+        "original_run_root": "/workspace/factory-runs/6db7a2b968c8434eaa9a508a6d16a7cf",
+        "path_map_sha256": "903476f849d28303b17c3ae362bf33527875fe01514f972b45f5731405ae4a0b"
+      }
+    }
+  ],
+  "mode": "existing-host-ui",
+  "execution_dispatched": false
+}

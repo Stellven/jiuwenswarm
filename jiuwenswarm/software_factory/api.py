@@ -2,20 +2,24 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import inspect
 import ipaddress
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable, Literal
-from urllib.parse import urlparse
+from urllib.parse import quote, urlparse
 
-from fastapi import APIRouter, HTTPException, Request
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .catalog import STRATA_REPOSITORY
 from .contracts import StageFailure
 from .engine import FactoryService
+from .recordings import RecordingsStore, default_recordings_directory
+from .replay_export import ReplayExportError
 
 
 class RunOptions(BaseModel):
@@ -55,8 +59,10 @@ class RunRequest(BaseModel):
     workflow_parameters: dict[str, Any] = Field(default_factory=dict)
 
 
-def create_router(service: FactoryService, authorize: Callable[[Request, str], Any] | None = None):
+def create_router(service: FactoryService, authorize: Callable[[Request, str], Any] | None = None,
+                  recordings: RecordingsStore | None = None):
     router = APIRouter(prefix='/api/v1/factory', tags=['Software Factory'])
+    recordings = recordings or RecordingsStore(default_recordings_directory())
 
     async def owner(request: Request, action='status'):
         if authorize:
@@ -94,6 +100,93 @@ def create_router(service: FactoryService, authorize: Callable[[Request, str], A
         if run['request'].get('owner_id') != identity:
             raise HTTPException(404, 'Unknown factory run')
         return run
+
+    def recorded(operation, *args):
+        try:
+            return operation(*args)
+        except FileNotFoundError:
+            raise HTTPException(404, 'Unknown factory recording or artifact')
+        except ReplayExportError as error:
+            raise HTTPException(409, str(error))
+
+    def download(raw: bytes, filename: str):
+        # Only bytes obtained through the validated ID lookup reach this path.
+        # The historical file path is never used as a serving destination.
+        media_type = ('application/zip' if filename.endswith('.zip') else
+                      'application/json' if filename.endswith('.json') else
+                      'application/octet-stream')
+        return Response(raw, media_type=media_type,
+                        headers={'Content-Disposition': "attachment; filename*=UTF-8''" + quote(filename, safe=''),
+                                 'X-Content-Type-Options': 'nosniff',
+                                 'Cache-Control': 'private, no-store',
+                                 'X-Content-SHA256': hashlib.sha256(raw).hexdigest()})
+
+    @router.get('/recordings')
+    async def list_recordings(request: Request):
+        identity = await owner(request)
+        return {'recordings': recorded(recordings.list, identity)}
+
+    @router.get('/recordings/{run_id}')
+    async def get_recording(request: Request, run_id: str):
+        identity = await owner(request)
+        return recorded(recordings.get, run_id, identity)
+
+    @router.get('/recordings/{run_id}/replay')
+    async def replay_recording(request: Request, run_id: str,
+                               after: int = Query(default=0, ge=0),
+                               until: int | None = Query(default=None, ge=0),
+                               speed: int = Query(default=4)):
+        identity = await owner(request)
+        if speed not in {1, 4, 16}:
+            raise HTTPException(422, 'Replay speed must be 1, 4 or 16')
+        view = recorded(recordings.get, run_id, identity)
+        events = view['events']
+        if after > len(events):
+            raise HTTPException(422, 'Replay cursor exceeds the recorded event sequence')
+        endpoint = len(events) if until is None else until
+        if endpoint < after or endpoint > len(events):
+            raise HTTPException(422, 'Replay endpoint must be between the cursor and recorded event sequence')
+        raw = recorded(recordings.evidence, run_id, 'events.jsonl', identity)
+        if hashlib.sha256(raw).hexdigest() != view['provenance']['events_sha256']:
+            raise HTTPException(409, 'Recording changed while opening replay')
+        lines = raw.splitlines()
+
+        def timestamp(event):
+            return datetime.fromisoformat(event['time'].replace('Z', '+00:00'))
+
+        async def frames():
+            # A connection owns only a cursor over immutable evidence. Closing
+            # it cancels the pending wait through StreamingResponse; no factory
+            # task, graph mutation, synthetic snapshot or completion is emitted.
+            previous = timestamp(events[after - 1] if after else events[0])
+            for index in range(after, endpoint):
+                if await request.is_disconnected():
+                    return
+                event = events[index]
+                current = timestamp(event)
+                delay = (current - previous).total_seconds() / speed
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                if await request.is_disconnected():
+                    return
+                yield (f'id: {event["sequence"]}\nevent: recorded\ndata: '.encode('utf-8') +
+                       lines[index] + b'\n\n')
+                previous = current
+
+        return StreamingResponse(frames(), media_type='text/event-stream',
+                                 headers={'Cache-Control': 'private, no-store',
+                                          'X-Accel-Buffering': 'no'})
+
+    @router.get('/recordings/{run_id}/artifacts/{artifact_id}')
+    async def recorded_artifact(request: Request, run_id: str, artifact_id: str):
+        identity = await owner(request)
+        raw, filename = recorded(recordings.artifact, run_id, artifact_id, identity)
+        return download(raw, filename)
+
+    @router.get('/recordings/{run_id}/evidence/{name}')
+    async def recorded_evidence(request: Request, run_id: str, name: str):
+        identity = await owner(request)
+        return download(recorded(recordings.evidence, run_id, name, identity), name)
 
     @router.get('/catalog')
     async def catalog(request: Request):
