@@ -1,0 +1,67 @@
+cc: '2'
+id: engine.kv_reuse_lab
+version: 1.0.0
+materials:
+  method:
+    kind: method
+    path: METHOD.md
+  skill:
+    kind: skill
+    path: SKILL.md
+  component:
+    kind: component
+    path: COMPONENT.json
+  sources:
+    kind: reference
+    path: SOURCES.json
+  verification_units:
+    kind: reference
+    path: VERIFICATION-UNITS.json
+  fixture:
+    kind: reference
+    path: fixtures/example.json
+  examples:
+    kind: reference
+    path: EXAMPLES.json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  prefix:
+    kind: tool
+    does: Inspect exact prefix identity, reference-counted paged token storage and architecture-specific KV size estimates.
+    takes: 
+      spec: json
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  allocator:
+    kind: tool
+    does: Inspect exact prefix identity, reference-counted paged token storage and architecture-specific KV size estimates.
+    takes: 
+      spec: json
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  estimate:
+    kind: tool
+    does: Inspect exact prefix identity, reference-counted paged token storage and architecture-specific KV size estimates.
+    takes: 
+      spec: json
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  verify:
+    kind: tool
+    does: Run package-attached CPU invariant checks, without host qualification.
+    takes: {}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]

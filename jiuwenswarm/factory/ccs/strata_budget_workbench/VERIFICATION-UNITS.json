@@ -1,0 +1,21 @@
+{
+  "units": [
+    {
+      "id": "profile-purity",
+      "scope": "CPU",
+      "check": "Only budget changes; input remains unchanged"
+    },
+    {
+      "id": "placement-integrity",
+      "scope": "CPU",
+      "check": "Budget admission and layer/aggregate corruption rejected"
+    },
+    {
+      "id": "memory-scope",
+      "scope": "CPU",
+      "check": "Missing stays unknown; cgroup and host independent"
+    }
+  ],
+  "command": "python verification.py",
+  "certification": "Reference checks only; separate GPU and model acceptance required"
+}

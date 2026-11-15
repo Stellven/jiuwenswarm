@@ -1,0 +1,26 @@
+{
+  "format": "factory-source-verification/1",
+  "qualification": "unqualified-runtime-candidate",
+  "passed": [
+    "git diff --check",
+    "clean committed task-owned source",
+    "patch/source SHA256 and base identity retained"
+  ],
+  "not_run": [
+    "CPU helper compile/run",
+    "native CUDA build",
+    "HIP/Metal/SYCL builds",
+    "unset runtime parity",
+    "fixed-placement A/A",
+    "model correctness"
+  ],
+  "cpu_command": "c++ -std=c++17 -O2 -Isrc/dsv41 src/dsv41/ds4_fixed_placement_test.cpp -o OWNED_OUTPUT && OWNED_OUTPUT",
+  "runtime_obligations": [
+    "exact requested=effective budget",
+    "safe budget >= requested",
+    "same complete per-layer and aggregate placement hashes",
+    "same effective chunk/full six experts",
+    "retain any repeated token mismatch",
+    "same frozen quality/resources/cleanup/deadline"
+  ]
+}

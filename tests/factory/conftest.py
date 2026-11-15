@@ -12,11 +12,14 @@ import pytest
 from jiuwenswarm.factory.jobs import Jobs, TERMINAL
 from jiuwenswarm.factory.store import Store
 
-JOBQ = Path('/home/muk/projects/siminfeng/bin/jobq')
+from jiuwenswarm.factory.config import JOBQ_BIN
+JOBQ = JOBQ_BIN
 
 
 @pytest.fixture(autouse=True)
 def isolated_jobq(tmp_path, monkeypatch):
+    monkeypatch.delenv('FACTORY_BRIDGE_DIR', raising=False)
+    monkeypatch.delenv('FACTORY_HOST_PYTHON', raising=False)
     directory = tmp_path / 'jobq'
     monkeypatch.setenv('JOBQ_DIR', str(directory))
     assert Path(os.environ['JOBQ_DIR']).is_relative_to(tmp_path)

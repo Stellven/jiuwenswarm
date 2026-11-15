@@ -1,0 +1,18 @@
+{
+  "data": "abcdefghijklmnop",
+  "ranges": [
+    [
+      0,
+      4
+    ],
+    [
+      3,
+      3
+    ],
+    [
+      10,
+      2
+    ]
+  ],
+  "max_gap": 0
+}

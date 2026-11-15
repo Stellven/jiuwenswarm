@@ -1,0 +1,12 @@
+{
+  "profile": "development-verification-v1",
+  "units": [
+    {
+      "id": "bounded-throughput-job",
+      "runner": "pytest",
+      "target": "tests/factory/test_throughput_workbench.py",
+      "scope": "Finite transforms and actual CC Host evidence/API boundaries. No GPU or performance certification.",
+      "auto_execute_on_import": false
+    }
+  ]
+}

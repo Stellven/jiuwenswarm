@@ -71,6 +71,11 @@ class Jobs:
         return Path((attempt.get('resources') or {}).get('jobq_dir') or self.jobq_dir)
 
     def _call(self, *args, env_extra=None, qdir=None):
+        if os.environ.get('FACTORY_BRIDGE_DIR'):
+            from .bridge import call
+            result = call('queue', args=list(map(str, args)), env=env_extra or {}, qdir=str(qdir or self.jobq_dir))
+            result.check_returncode()
+            return result
         env = dict(os.environ, **(env_extra or {}))
         env.update(JOBQ_DIR=str(qdir or self.jobq_dir),
                    PATH='/usr/local/cuda/bin:' + env.get('PATH', os.defpath),
@@ -113,6 +118,14 @@ class Jobs:
                 if attempt['fingerprint'] != fp:
                     raise KeyConflict('Idempotency key names different inputs')
                 return self._recover(attempt)
+            task = self.store.get_task(task_id)
+            constraints = task.get('constraints', {})
+            limits = constraints.get('attempt_limits', {}) if isinstance(constraints, dict) else {}
+            limit = limits.get(kind)
+            if limit is not None:
+                count = self.store._db.execute('SELECT COUNT(*) FROM attempts WHERE task_id=? AND kind=?', (task_id, kind)).fetchone()[0]
+                if type(limit) is not int or limit < 0 or count >= limit:
+                    raise ValueError('Task attempt budget exhausted: ' + kind)
             attempt = self.store.create_attempt(task_id, dict(kind=kind, request=request,
                 idem_key=idem_key, fingerprint=fp, resources=dict(argv=argv,
                 job_class=job_class, timeout_s=timeout_s, jobq_dir=str(self.jobq_dir))))
@@ -164,7 +177,11 @@ class Jobs:
                 changes['resources'] = dict(attempt['resources'], jobq_state=detail, rc=job.get('rc'),
                                             error=job.get('error'))
                 if state in TERMINAL:
-                    changes['cleanup_state'] = self._cleanup(job)
+                    if os.environ.get('FACTORY_BRIDGE_DIR'):
+                        from .bridge import call
+                        changes['cleanup_state'] = call('cleanup', job_id=job['id']).stdout
+                    else:
+                        changes['cleanup_state'] = self._cleanup(job)
             # A fast command may finish between polls. F02 requires observing
             # the intervening running state before queued -> succeeded.
             if attempt['state'] == 'queued' and state == 'succeeded':

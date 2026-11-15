@@ -1,0 +1,42 @@
+{
+  "checked_utc": "2026-11-15",
+  "implementation": "original CUDA; no upstream code vendored",
+  "sources": [
+    {
+      "url": "https://arxiv.org/abs/2211.15841",
+      "pin": "arxiv:2211.15841",
+      "role": "block sparse alternative to dropped/padded expert tokens",
+      "license": "paper redistribution license not asserted"
+    },
+    {
+      "url": "https://github.com/databricks/megablocks/tree/952db33d6eac334d22c61e47a0d5d41446298784",
+      "pin": "952db33d6eac334d22c61e47a0d5d41446298784",
+      "role": "production research implementation comparison, not dependency",
+      "license": "Apache-2.0 upstream; verify before copying"
+    },
+    {
+      "url": "https://arxiv.org/abs/2403.08245v2",
+      "pin": "arxiv:2403.08245v2",
+      "role": "scattered operations avoid padding and excessive copies",
+      "license": "paper redistribution license not asserted"
+    },
+    {
+      "url": "https://github.com/shawntan/scattermoe/tree/47b5e1502e5a10e82c8e5945d761b877849871e7",
+      "pin": "47b5e1502e5a10e82c8e5945d761b877849871e7",
+      "license": "Apache-2.0; verified pinned LICENSE via primary source",
+      "role": "reference implementation only"
+    },
+    {
+      "url": "https://docs.nvidia.com/cuda/cuda-programming-guide/index.html",
+      "pin": "retrieved 2026-11-15, unversioned documentation",
+      "role": "CTA synchronization, CUDA events and memory hierarchy",
+      "license": "NVIDIA documentation terms; no code copied"
+    }
+  ],
+  "unknowns": [
+    "No real Strata shape histogram",
+    "No nonlinear FFN integration",
+    "No tensor-core implementation",
+    "GB10 full-model benefit unmeasured"
+  ]
+}

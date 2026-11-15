@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.engine_inspector
-version: 1.0.0
+version: 1.1.0
 bindings:
   default:
     kind: native
@@ -85,3 +85,15 @@ capabilities:
     changes:
     - process.exec
     - gpu.use
+
+  inspect_strata:
+    kind: tool
+    does: Inspect the operator-pinned complete Strata asset inventory and fixed workload without launching a model.
+    takes: {}
+    gives:
+      analysis: json
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec

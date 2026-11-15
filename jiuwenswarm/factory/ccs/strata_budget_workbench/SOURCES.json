@@ -1,0 +1,18 @@
+{
+  "implementation": "Original package code; no third-party code copied",
+  "references": [
+    {
+      "path": "projects/fixed-placement",
+      "commit": "89ae0ee6123597636ef162dec826230186c00f3b",
+      "role": "Native budget and placement logging contract"
+    },
+    {
+      "url": "https://github.com/ro99/strata",
+      "role": "Upstream engine; local source-pinned patch required"
+    },
+    {
+      "url": "https://docs.kernel.org/admin-guide/cgroup-v2.html",
+      "role": "memory.current and memory.peak accounting semantics"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "schema": "research-local-checks-v1",
+  "scope": "CPU reference certification only; not factory cc_qualification admission",
+  "units": [
+    {
+      "id": "ssd_streaming_lab.cpu-invariants",
+      "checker": "verification.py",
+      "command": [
+        "{python}",
+        "verification.py"
+      ],
+      "attachment": "verification.py",
+      "fixture": "fixtures/example.json"
+    }
+  ]
+}

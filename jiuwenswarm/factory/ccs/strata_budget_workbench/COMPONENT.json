@@ -1,0 +1,10 @@
+{
+  "role": "cohesive experiment preparation and evidence validation",
+  "components": [
+    "component.py:apply",
+    "component.py:verify_startup",
+    "component.py:summarize_memory"
+  ],
+  "engine_integration": "Requires existing DS4_EXPERT_BUDGET_BYTES native patch; no runtime authority",
+  "status": "exploratory; qualification is separate"
+}

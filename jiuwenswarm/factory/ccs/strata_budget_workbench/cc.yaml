@@ -1,0 +1,36 @@
+cc: '2'
+id: engine.strata_budget_workbench
+version: 1.0.0
+materials:
+  skill: {kind: skill, path: SKILL.md}
+  method: {kind: method, path: METHOD.md}
+  component: {kind: component, path: COMPONENT.json}
+  verification_units: {kind: reference, path: VERIFICATION-UNITS.json}
+  examples: {kind: reference, path: EXAMPLES.json}
+  sources: {kind: reference, path: SOURCES.json}
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  apply:
+    kind: tool
+    does: Construct one-variable resident expert budget profile without execution.
+    takes: {request: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  verify_startup:
+    kind: tool
+    does: Verify safe native budget admission and complete placement identity.
+    takes: {request: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  summarize_memory:
+    kind: tool
+    does: Summarize cgroup and host memory as separate measurements.
+    takes: {request: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]

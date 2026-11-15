@@ -1,0 +1,33 @@
+cc: '2'
+id: factory.deep_profile
+version: 1.0.0
+materials:
+  method:
+    kind: method
+    path: METHOD.md
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  plan:
+    kind: tool
+    does: Propose a fixed native Strata observer run using existing host admission and lifecycle; inspect profiler executable availability without launching them.
+    takes: {}
+    gives:
+      analysis: json
+      evidence: json
+    needs: [python]
+    changes: [process.exec]
+  analyze:
+    kind: tool
+    does: Parse scoped ordinary prompt stream counters, native DS4_PROF or Nsight CSV into separate bounded evidence and instrumentation gaps. Never sum overlap or score traced timings.
+    takes:
+      artifacts:
+        kind: json
+        description: Map stderr, kernels, cuda_api, os_runtime or memcpy to retained current-task artifact IDs.
+    gives:
+      analysis: json
+      evidence: json
+    needs: [python]
+    changes: [process.exec]

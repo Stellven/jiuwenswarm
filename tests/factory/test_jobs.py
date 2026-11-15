@@ -23,7 +23,8 @@ def test_same_key_same_request_returns_same_job(jobs, isolated_jobq):
     job = json.loads(next(isolated_jobq.glob('job-*.json')).read_text())
     env = json.loads(Path(job['env_file']).read_text())
     assert env['PATH'].startswith('/usr/local/cuda/bin:')
-    assert env['DOCKER_CMD_PREFIX'] == 'sg docker -c'
+    from jiuwenswarm.factory.config import DOCKER_PREFIX
+    assert env['DOCKER_CMD_PREFIX'] == DOCKER_PREFIX
 
 
 def test_same_key_changed_request_conflicts(jobs):

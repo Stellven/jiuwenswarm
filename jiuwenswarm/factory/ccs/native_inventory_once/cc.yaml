@@ -1,0 +1,22 @@
+cc: '2'
+id: factory.native_inventory_once
+version: 1.0.0
+materials:
+  component:
+    kind: component
+    path: COMPONENT.json
+  patch:
+    kind: component
+    path: 01-fresh-inventory-once.patch
+  method:
+    kind: method
+    path: METHOD.md
+  skill:
+    kind: skill
+    path: SKILL.md
+  examples:
+    kind: reference
+    path: EXAMPLES.json
+  verification:
+    kind: reference
+    path: VERIFICATION-UNITS.json

@@ -1,0 +1,13 @@
+{
+  "profile": "development-verification-v1",
+  "units": [
+    {
+      "id": "contained-job-workflow",
+      "runner": "pytest",
+      "target": "tests/factory/test_prefill_job_package.py",
+      "scope": "Actual CC Host entrypoints, task/effect boundaries and retained evidence. Build/lab execution uses explicitly labeled fake seams; no runtime performance qualification.",
+      "auto_execute_on_import": false
+    }
+  ],
+  "qualification_note": "Development verification only; no arbitrary execution on import, package-wide certification or scientific acceptance."
+}

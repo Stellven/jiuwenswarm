@@ -1,0 +1,84 @@
+{
+  "fixture_kind": "synthetic reference, not engine evidence",
+  "calls": [
+    {
+      "capability": "apply",
+      "inputs": {
+        "request": {
+          "profile": {
+            "args": [
+              "--pack",
+              "/home/user2/strata-baseline/Strata-data/packs/deepseek-v4.1-flash-ist-das-2.00bpw",
+              "--max-context",
+              "8192",
+              "--eos",
+              "1",
+              "--vision",
+              "off",
+              "--dspark",
+              "none",
+              "--prefill-chunk",
+              "256",
+              "--cpu-threads",
+              "8",
+              "--vram-experts",
+              "1.0",
+              "--reserve-mib",
+              "16384",
+              "--ssd-cache",
+              "0",
+              "--mmap-experts",
+              "on",
+              "--experts",
+              "6",
+              "--verbose",
+              "--dspark-conf",
+              "0.65",
+              "--no-expert-cache"
+            ],
+            "environment": {
+              "DS4_AHEAD": "0",
+              "DS4_ASYNC_T": "4",
+              "DS4_COPY_ALL": "0",
+              "DS4_ENGRAM_CACHE_MB": "64",
+              "DS4_ENGRAM_THREADS": "2",
+              "DS4_EXPERT_BUDGET_BYTES": "76000000000",
+              "DS4_STORE_GB": "0",
+              "DS4_UMA_HEADROOM_GIB": "16",
+              "STRATA_DS4_REUSE": "0"
+            }
+          },
+          "budget_bytes": 68000000000
+        }
+      }
+    },
+    {
+      "capability": "verify_startup",
+      "inputs": {
+        "request": {
+          "stderr": "ds4: fixed expert budget requested=68000000000 effective=68000000000 safe=80000000000 bytes\nds4: fixed placement layer=0 experts=384 resident=200 fnv1a64=0000000000000000\nds4: fixed placement layer=1 experts=384 resident=200 fnv1a64=0000000000000001\nds4: fixed placement layer=2 experts=384 resident=200 fnv1a64=0000000000000002\nds4: fixed placement layer=3 experts=384 resident=200 fnv1a64=0000000000000003\nds4: fixed placement layer=4 experts=384 resident=200 fnv1a64=0000000000000004\nds4: fixed placement layer=5 experts=384 resident=200 fnv1a64=0000000000000005\nds4: fixed placement layer=6 experts=384 resident=200 fnv1a64=0000000000000006\nds4: fixed placement layer=7 experts=384 resident=200 fnv1a64=0000000000000007\nds4: fixed placement layer=8 experts=384 resident=200 fnv1a64=0000000000000008\nds4: fixed placement layer=9 experts=384 resident=200 fnv1a64=0000000000000009\nds4: fixed placement layer=10 experts=384 resident=200 fnv1a64=000000000000000a\nds4: fixed placement layer=11 experts=384 resident=200 fnv1a64=000000000000000b\nds4: fixed placement layer=12 experts=384 resident=200 fnv1a64=000000000000000c\nds4: fixed placement layer=13 experts=384 resident=200 fnv1a64=000000000000000d\nds4: fixed placement layer=14 experts=384 resident=200 fnv1a64=000000000000000e\nds4: fixed placement layer=15 experts=384 resident=200 fnv1a64=000000000000000f\nds4: fixed placement layer=16 experts=384 resident=200 fnv1a64=0000000000000010\nds4: fixed placement layer=17 experts=384 resident=200 fnv1a64=0000000000000011\nds4: fixed placement layer=18 experts=384 resident=200 fnv1a64=0000000000000012\nds4: fixed placement layer=19 experts=384 resident=200 fnv1a64=0000000000000013\nds4: fixed placement layer=20 experts=384 resident=200 fnv1a64=0000000000000014\nds4: fixed placement layer=21 experts=384 resident=200 fnv1a64=0000000000000015\nds4: fixed placement layer=22 experts=384 resident=200 fnv1a64=0000000000000016\nds4: fixed placement layer=23 experts=384 resident=200 fnv1a64=0000000000000017\nds4: fixed placement layer=24 experts=384 resident=200 fnv1a64=0000000000000018\nds4: fixed placement layer=25 experts=384 resident=200 fnv1a64=0000000000000019\nds4: fixed placement layer=26 experts=384 resident=200 fnv1a64=000000000000001a\nds4: fixed placement layer=27 experts=384 resident=200 fnv1a64=000000000000001b\nds4: fixed placement layer=28 experts=384 resident=200 fnv1a64=000000000000001c\nds4: fixed placement layer=29 experts=384 resident=200 fnv1a64=000000000000001d\nds4: fixed placement layer=30 experts=384 resident=200 fnv1a64=000000000000001e\nds4: fixed placement layer=31 experts=384 resident=200 fnv1a64=000000000000001f\nds4: fixed placement layer=32 experts=384 resident=200 fnv1a64=0000000000000020\nds4: fixed placement layer=33 experts=384 resident=200 fnv1a64=0000000000000021\nds4: fixed placement layer=34 experts=384 resident=200 fnv1a64=0000000000000022\nds4: fixed placement layer=35 experts=384 resident=200 fnv1a64=0000000000000023\nds4: fixed placement layer=36 experts=384 resident=200 fnv1a64=0000000000000024\nds4: fixed placement layer=37 experts=384 resident=200 fnv1a64=0000000000000025\nds4: fixed placement layer=38 experts=384 resident=200 fnv1a64=0000000000000026\nds4: fixed placement layer=39 experts=384 resident=200 fnv1a64=0000000000000027\nds4: fixed placement layers=40 fnv1a64=aa9a93dd9cfde6a5\n",
+          "budget_bytes": 68000000000
+        }
+      }
+    },
+    {
+      "capability": "summarize_memory",
+      "inputs": {
+        "request": {
+          "samples": [
+            {
+              "cgroup_current": 100,
+              "cgroup_peak": 120,
+              "available_bytes": 1000
+            },
+            {
+              "cgroup_current": 90,
+              "cgroup_peak": 120,
+              "available_bytes": 1100
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

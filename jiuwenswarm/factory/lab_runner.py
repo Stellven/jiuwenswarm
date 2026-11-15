@@ -15,6 +15,7 @@ import time
 
 from .contract import atomic_json
 
+from .targets import admission_image_matches
 from .config import OM_RUN, DOCKER_PREFIX, MIN_AVAIL_MIB, DOCKER_TIMEOUT, UPLOAD_TIMEOUT
 from .effective_config import ENV_KEYS, parse_effective
 from .nsys_summary import summarize as nsys_summary
@@ -24,13 +25,18 @@ REQUIRED = {'stdout.txt', 'stderr.txt', 'result.json', 'watchdog.jsonl',
 
 def docker(args):
     command = shlex.split(os.environ.get('FACTORY_DOCKER', 'docker')) + list(args)
-    if not os.environ.get('FACTORY_DOCKER'):
-        command = shlex.split(DOCKER_PREFIX) + [shlex.join(command)]
+    prefix = shlex.split(DOCKER_PREFIX)
+    if prefix and not os.environ.get('FACTORY_DOCKER'):
+        command = prefix + [shlex.join(command)]
     return subprocess.run(command, capture_output=True, text=True, timeout=DOCKER_TIMEOUT)
 
 
 def inspect_image(ref):
-    result = docker(['image', 'inspect', ref])
+    if os.environ.get('FACTORY_BRIDGE_DIR'):
+        from .bridge import call
+        result = call('image', ref=ref)
+    else:
+        result = docker(['image', 'inspect', ref])
     if result.returncode:
         raise ValueError('Local image is unavailable')
     return json.loads(result.stdout)[0]
@@ -144,7 +150,7 @@ def run(task, lab_run, admission, contract_id, config, spool):
         image = inspect_image(config['admission']['image']['id'])
         if image['Id'] != config['admission']['image']['id']:
             outcome = 'bad_digest'
-        elif image.get('Architecture') != 'arm64' or (image.get('Config', {}).get('Labels') or {}).get('campaign.target.profile') != 'jetson-orin':
+        elif not admission_image_matches(config['admission'], image):
             outcome = 'wrong_target'
         else:
             model = Path(config['contract']['model']['path'])

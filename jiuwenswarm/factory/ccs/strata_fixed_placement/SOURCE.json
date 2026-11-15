@@ -1,0 +1,20 @@
+{
+  "source": "/home/user2/software-factory-spark-20261113/projects/fixed-placement",
+  "base_commit": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+  "candidate_commit": "89ae0ee6123597636ef162dec826230186c00f3b",
+  "candidate_tree": "55eb1b479a648d5211b2846302a60b6c79f2528e",
+  "clean": true,
+  "files": {
+    "docs/FIXED_PLACEMENT.md": "60ade31ded4ccee4484f97f6a052e86b5731dbe637b4e534a9a781bc20e0e531",
+    "src/dsv41/ds4_fixed_placement.hpp": "c100288504de641d16455d979102f2dfb486d4c3c34f9c2854d3425db9e91327",
+    "src/dsv41/ds4_fixed_placement_test.cpp": "7dd8ab462b58fab324a9dfa766d01aee67c5bcc6bfc9fbec047764c7a24b541b",
+    "src/dsv41/ds4_model.cu": "63ffd0f7c1b1bee24e9fd710ee9836f5748fbbe208d7d2657b62e575f25b94d6"
+  },
+  "patch_sha256": "b837a970a5835dcff63fef93d251f7b352ca49f68d3cea42e91ec189d74b4873",
+  "validation": {
+    "diff_check": "passed",
+    "compiled": false,
+    "gpu_executed": false,
+    "helper_test": "source prepared; not compiled or run"
+  }
+}

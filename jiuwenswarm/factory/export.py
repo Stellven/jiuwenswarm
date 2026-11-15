@@ -45,6 +45,22 @@ def snapshot(home, task_id):
                     record[key] = json.loads(record[key]) if record[key] is not None else None
                 records.append(record)
             result[table] = sorted(records, key=lambda r: (r.get('rev', 0), r.get('created', 0), str(r)))
+        # Loop state is optional in older homes and deliberately stays outside
+        # Store's core schema. Read it in this same read-only transaction;
+        # exporting must never initialize a loop or manufacture missing tables.
+        present = {row['name'] for row in db.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('factory_loop_policy','factory_loop_cycles')")}
+        for table, json_column, order in (
+                ('factory_loop_policy', 'policy', 'task_id'),
+                ('factory_loop_cycles', 'record', 'number')):
+            if table not in present:
+                continue
+            records = []
+            for row in db.execute(f'SELECT * FROM {table} WHERE task_id=? ORDER BY {order}', (task_id,)):
+                record = dict(row)
+                record[json_column] = json.loads(record[json_column])
+                records.append(record)
+            result[table] = records
         if not result['tasks']:
             raise NotFound('Task not found')
         result['events'] = [dict(r) for r in db.execute('SELECT * FROM evidence WHERE task_id=? ORDER BY cursor', (task_id,))]
@@ -165,12 +181,28 @@ def export_task(task_id, out, home=None, extra_files=()):
         record('capsule-releases.json', {'identity_scope': 'export-time checkout; not an attestation of historical loaded bytes',
                                         'algorithm': 'sha256(sorted relative-path + NUL + file-sha256 + LF); excludes __pycache__ and .pyc', 'capsules': releases})
         contract_ids = {v['contract_id'] for v in records['evaluations']}
+        historical = set()
+        origins = []
+        for evaluation in records['evaluations']:
+            contract_snapshot = evaluation.get('contract') or {}
+            if contract_snapshot.get('contract_id') == evaluation['contract_id'] and contract_snapshot.get('version'):
+                digest = sha(json.dumps(contract_snapshot, sort_keys=True).encode())
+                name = 'contracts/snapshot-' + digest + '.json'
+                record(name, contract_snapshot)
+                historical.add(evaluation['contract_id'])
+                origins.append(dict(contract_id=evaluation['contract_id'], source='evaluation_snapshot',
+                                    evaluation_id=evaluation['eval_id'], path=name))
         if task.get('contract_id'):
             contract_ids.add(task['contract_id'])
         for cid in sorted(contract_ids):
+            if cid in historical:
+                continue
             from .contract import load
             contract = load(cid)
-            copy_blob(contract.path, 'contracts/' + contract.path.name)
+            name = 'contracts/' + contract.path.name
+            copy_blob(contract.path, name)
+            origins.append(dict(contract_id=cid, source='export_time_operator_input', path=name))
+        record('contract-origins.json', origins)
         for attempt in records['attempts']:
             if attempt['kind'] != 'build':
                 continue

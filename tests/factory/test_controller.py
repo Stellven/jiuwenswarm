@@ -3,6 +3,8 @@
 These are not live-agent, image, Docker or GPU results.
 """
 import asyncio
+import ast
+import os
 import json
 from pathlib import Path
 import tomllib
@@ -193,15 +195,19 @@ def test_resume_new_session_with_context(tmp_path, rig):
 
 def test_mcp_env_has_factory_vars(tmp_path, rig):
     task = make_task(tmp_path, rig)
+    inherited_pythonpath = os.environ.get('PYTHONPATH', '')
     config = tomllib.loads(configure_agent(task, rig.grants, rig.home).read_text())
     server = config['mcp_servers']['cc']
     env = server['env']
     assert env['FACTORY_HOME'] == str(rig.home)
     assert env['FACTORY_TASK_ID'] == 't'
     assert env['FACTORY_WORKSPACE'] == str(rig.home / 'agent-workspace')
-    assert env['DOCKER_CMD_PREFIX'] == 'sg docker -c'
+    from jiuwenswarm.factory.config import DOCKER_PREFIX
+    assert env['DOCKER_CMD_PREFIX'] == DOCKER_PREFIX
     assert '/usr/local/cuda/bin' in env['PATH'].split(':')
-    assert env['PYTHONPATH'] == str(Path(__file__).resolve().parents[2])
+    expected_pythonpath = os.pathsep.join(dict.fromkeys([str(Path(__file__).resolve().parents[2]),
+        *filter(None, inherited_pythonpath.split(os.pathsep))]))
+    assert env['PYTHONPATH'] == expected_pythonpath
     assert str(rig.home / 'ccstore') in server['args']
     assert '--allow-built' not in server['args']
 
@@ -323,8 +329,22 @@ def test_capsules_run_the_api_in_the_controller_venv(tmp_path):
     assert config['env']['CCV2_PYTHON'] == sys.executable
     assert config['args'].count('--ccs') == 1
     root = Path(__file__).resolve().parents[2] / 'jiuwenswarm/factory/ccs'
+    from jiuwenswarm.ccv2.ccv2 import load
     for wrapper in root.glob('*/run.py'):
-        assert "os.environ.get('FACTORY_PYTHON', sys.executable)" in wrapper.read_text(), wrapper
+        source = wrapper.read_text()
+        declaration = load(wrapper.parent / 'cc.yaml')
+        # Every native wrapper starts in the controller interpreter. Pure
+        # in-process capsules do not spawn another Python to forward.
+        assert declaration['bindings']['default']['command'][0] == '{python}', wrapper
+        if 'from jiuwenswarm.factory.job_packages import main' in source:
+            shared = root.parent / 'job_packages.py'
+            assert "os.environ.get('FACTORY_PYTHON', sys.executable)" in shared.read_text()
+            continue
+        subprocess_calls = [node for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name)
+            and node.func.value.id == 'subprocess']
+        if subprocess_calls:
+            assert "os.environ.get('FACTORY_PYTHON', sys.executable)" in source, wrapper
 
 
 def test_resume_after_crash_new_session_and_downtime_not_counted(tmp_path, rig):
@@ -374,3 +394,78 @@ def test_operator_note_reopens_inconclusive_task(tmp_path, rig):
     state = rig._load('t'); state['operator_notes'] = ['baseline imported']; rig._save('t', state)
     result = asyncio.run(rig.run('t'))
     assert result['outcome'] == 'accept' and seen[0]['operator_notes'] == ['baseline imported']
+
+
+def test_quiet_mode_yields_durable_jobs_without_model_polling(tmp_path, rig, monkeypatch):
+    make_task(tmp_path, rig)
+    monkeypatch.setenv('FACTORY_YIELD_ON_JOBS', '1')
+    calls=[]
+    async def facade(request):
+        calls.append(request)
+        publish(rig, 'build')
+        rig.store.create_attempt('t', dict(attempt_id='quiet-job',kind='build',idem_key='quiet',fingerprint='quiet',request={}))
+        yield {'event_type':'chat.final','content':'Waiting on quiet-job'}
+    rig.facade=facade
+    result=asyncio.run(rig.run('t'))
+    assert result['outcome']=='waiting'
+    assert len(calls)==1 and result['budget_used']['turns']==1
+    state=json.loads(rig._state_path('t').read_text())
+    assert state['outcome']=='waiting' and state['missing_decision'] is False
+    assert result['active_jobs'][0]['attempt_id']=='quiet-job'
+
+
+def test_agent_child_environment_preserves_admitted_runtime_and_bridge(tmp_path, monkeypatch):
+    monkeypatch.setenv('PYTHONPATH','/factory:/opt/factory-site')
+    monkeypatch.setenv('FACTORY_BRIDGE_DIR','/owned/ipc')
+    monkeypatch.setenv('FACTORY_NATIVE_BUILDER_IMAGE','sha256:'+'a'*64)
+    path=configure_agent({'task_id':'t','allowed_effects':[]},home=tmp_path/'isolated')
+    env=tomllib.loads(path.read_text())['mcp_servers']['cc']['env']
+    assert '/opt/factory-site' in env['PYTHONPATH'].split(':')
+    assert env['FACTORY_BRIDGE_DIR']=='/owned/ipc'
+    assert env['FACTORY_NATIVE_BUILDER_IMAGE']=='sha256:'+'a'*64
+
+
+def test_missing_prerequisite_reopens_only_after_operator_note(tmp_path, rig):
+    make_task(tmp_path,rig)
+    calls=[]
+    async def blocked(request):
+        calls.append(request)
+        publish(rig,'stop_missing_prerequisite')
+        yield {'event_type':'chat.final','content':'Missing prerequisite'}
+    rig.facade=blocked
+    assert asyncio.run(rig.run('t'))['outcome']=='stop_missing_prerequisite'
+    assert asyncio.run(rig.run('t'))['outcome']=='stop_missing_prerequisite'
+    assert len(calls)==1
+    before=rig.store.get_task('t')
+    rig.add_note('t','Operator repaired the prerequisite; resume unchanged task.')
+    async def resumed(request):
+        calls.append(request)
+        publish(rig,'accept')
+        yield {'event_type':'chat.final','content':'Unit fixture acceptance'}
+    rig.facade=resumed
+    assert asyncio.run(rig.resume('t'))['outcome']=='accept'
+    assert len(calls)==2
+    after=rig.store.get_task('t')
+    assert before['contract_id']==after['contract_id']
+    assert before['allowed_effects']==after['allowed_effects']
+
+
+def test_operator_note_during_model_turn_survives_stale_checkpoint(tmp_path,rig):
+    make_task(tmp_path,rig)
+    seen=[]
+    async def facade(request):
+        seen.append(json.loads(request.params['query']))
+        if len(seen)==1:
+            other=Controller(rig.home)
+            try:other.add_note('t','Concurrent operator repair must survive this turn.')
+            finally:other.store.close()
+            publish(rig,'investigate')
+        else:
+            assert seen[-1]['operator_notes']==['Concurrent operator repair must survive this turn.']
+            publish(rig,'accept')
+        yield {'event_type':'chat.final','content':'Unit fixture'}
+    rig.facade=facade
+    assert asyncio.run(rig.run('t'))['outcome']=='accept'
+    assert len(seen)==2
+    from jiuwenswarm.factory.operator_notes import pending
+    assert pending(rig.home,'t',rig._load('t'))==[]

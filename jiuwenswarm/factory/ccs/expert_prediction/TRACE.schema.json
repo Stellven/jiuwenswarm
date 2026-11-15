@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Offline expert prediction trace v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "origin", "requests"],
+  "properties": {
+    "schema_version": {"const": 1, "type": "integer"},
+    "origin": {"enum": ["synthetic", "recorded"]},
+    "requests": {
+      "type": "array", "minItems": 2, "maxItems": 128,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["request_id", "split", "events"],
+        "properties": {
+          "request_id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "split": {"enum": ["train", "test"]},
+          "events": {"type": "array", "minItems": 1, "maxItems": 10000, "items": {"$ref": "#/$defs/event"}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "time": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+    "expert": {"type": "integer", "minimum": 0, "maximum": 1000000},
+    "bytes": {"type": "integer", "minimum": 1, "maximum": 1099511627776},
+    "selected": {
+      "type": "object", "additionalProperties": false,
+      "required": ["expert", "bytes"],
+      "properties": {"expert": {"$ref": "#/$defs/expert"}, "bytes": {"$ref": "#/$defs/bytes"}}
+    },
+    "predicted": {
+      "type": "object", "additionalProperties": false,
+      "required": ["expert", "bytes", "ready_ns"],
+      "properties": {
+        "expert": {"$ref": "#/$defs/expert"}, "bytes": {"$ref": "#/$defs/bytes"},
+        "ready_ns": {"anyOf": [{"$ref": "#/$defs/time"}, {"type": "null"}]}
+      }
+    },
+    "event": {
+      "type": "object", "additionalProperties": false,
+      "required": ["phase", "token", "layer", "issued_ns", "demand_ns", "selected", "predicted"],
+      "properties": {
+        "phase": {"enum": ["prefill", "decode"]},
+        "token": {"type": "integer", "minimum": 0, "maximum": 1000000},
+        "layer": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "issued_ns": {"$ref": "#/$defs/time"}, "demand_ns": {"$ref": "#/$defs/time"},
+        "selected": {"type": "array", "minItems": 1, "maxItems": 64, "items": {"$ref": "#/$defs/selected"}},
+        "predicted": {"type": "array", "maxItems": 64, "items": {"$ref": "#/$defs/predicted"}}
+      }
+    }
+  },
+  "$comment": "Python validator also enforces global event/byte bounds, unique request/expert IDs, request holdout, chronological ordering, causal issue/readiness/demand timestamps and consistent expert byte counts."
+}

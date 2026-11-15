@@ -16,7 +16,7 @@ STATES = frozenset('proposed ready running blocked done failed cancelled superse
 TERMINAL = {'cancelled', 'superseded'}
 NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on', 'state',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
-               'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice'}
+               'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch'}
 
 
 def initialize(db):
@@ -68,6 +68,9 @@ def _validate(nodes):
             raise ValueError('Plan reason must be text')
         if 'outcome' in node and (not isinstance(node['outcome'], str) or not node['outcome'].strip()):
             raise ValueError('Plan outcome must be nonempty text')
+        if 'branch' in node:
+            from .branch_workbench import validate_branch
+            validate_branch(node['branch'])
         if 'engine_slice' in node:
             from .ontology import validate_slice
             validate_slice(node['engine_slice'])
@@ -127,7 +130,7 @@ def _apply(nodes, patch, decision_rev):
     for operation in ('update', 'cancel', 'supersede'):
         for change in patch.get(operation, []):
             allowed = {'node_id', 'state', 'evidence_ids', 'attempt_ids', 'depends_on', 'reason',
-                       'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice'} if operation == 'update' else {'node_id', 'reason'} | ({'by'} if operation == 'supersede' else set())
+                       'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch'} if operation == 'update' else {'node_id', 'reason'} | ({'by'} if operation == 'supersede' else set())
             required = {'node_id'} if operation == 'update' else allowed
             _object(change, allowed, required)
             key = identifier(change['node_id'])
@@ -147,6 +150,12 @@ def _apply(nodes, patch, decision_rev):
                         _ids(value)
                         node[field] = list(dict.fromkeys(node[field] + value))
                     elif field != 'node_id':
+                        if field == 'branch' and 'branch' in node:
+                            from .branch_workbench import validate_branch
+                            validate_branch(value)
+                            for fixed in ('parent_id', 'hypothesis', 'allocation', 'capabilities'):
+                                if value.get(fixed) != node['branch'].get(fixed):
+                                    raise ValueError('Branch lineage, hypothesis, allocation and capabilities are immutable; fork to refine')
                         node[field] = value
             else:
                 identifier(change['reason'])
@@ -246,6 +255,9 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
     patch = json.loads(encoded(patch))
     nodes = {n['node_id']: n for n in graph['nodes']}
     _apply(nodes, patch, decision_rev)
+    if any('branch' in n for n in nodes.values()):
+        from .branch_workbench import validate_graph
+        validate_graph(host, task_id, nodes)
     for node in nodes.values():
         host.validate_evidence(task_id, node['evidence_ids'], readable)
         for aid in node['attempt_ids']:
@@ -280,17 +292,27 @@ def apply_decision_patch(store, task_id, decision, readable=()):
 def initial_plan(task):
     """Pure suggested work, with no invented attempt/evidence or execution claim."""
     component = task.get('component_cc')
-    specs = [
-        ('inspect', 'inspect', 'Inspect task source and constraints', 'factory.engine_inspector.inspect'),
-        ('applicability', 'decide', 'Assess component applicability', None),
-        ('baseline-build', 'build', 'Build baseline', 'factory.builder.submit'),
-        ('baseline-measure', 'measure', 'Measure baseline', 'factory.lab_client.submit'),
-        ('integrate', 'integrate', f'Integrate {component or "selected component"}', None),
-        ('candidate-build', 'build', 'Build candidate', 'factory.builder.submit'),
-        ('candidate-measure', 'measure', 'Measure candidate against baseline', 'factory.lab_client.ab_submit'),
-        ('accept', 'accept', 'Decide from comparable evidence', None),
-        ('report', 'report', 'Report result and limitations', None),
-    ]
+    constraints = task.get('constraints', {})
+    if isinstance(constraints, dict) and constraints.get('methodology_driven'):
+        specs = [
+            ('inspect', 'inspect', 'Inspect fixed contract and available evidence', 'factory.engine_inspector.inspect_strata'),
+            ('diagnose', 'decide', 'Choose one uncertainty using methodology CCs', 'factory.methodology_diagnosis.diagnose'),
+            ('experiment', 'measure', 'Submit a justified bounded experiment or stop with evidence', 'factory.lab_client.submit'),
+            ('review', 'decide', 'Review outcomes and retained failures', 'factory.methodology_followup.followup'),
+            ('report', 'report', 'Report findings and propose next input', None),
+        ]
+    else:
+        specs = [
+            ('inspect', 'inspect', 'Inspect task source and constraints', 'factory.engine_inspector.inspect'),
+            ('applicability', 'decide', 'Assess component applicability', None),
+            ('baseline-build', 'build', 'Build baseline', 'factory.builder.submit'),
+            ('baseline-measure', 'measure', 'Measure baseline', 'factory.lab_client.submit'),
+            ('integrate', 'integrate', f'Integrate {component or "selected component"}', None),
+            ('candidate-build', 'build', 'Build candidate', 'factory.builder.submit'),
+            ('candidate-measure', 'measure', 'Measure candidate against baseline', 'factory.lab_client.ab_submit'),
+            ('accept', 'accept', 'Decide from comparable evidence', None),
+            ('report', 'report', 'Report result and limitations', None),
+        ]
     constraints = task.get('constraints', {})
     slice_id = constraints.get('engine_slice') if isinstance(constraints, dict) else None
     target = {}

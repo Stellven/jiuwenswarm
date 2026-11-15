@@ -1,0 +1,40 @@
+{
+  "args": [
+    "--pack",
+    "/home/user2/strata-baseline/Strata-data/packs/deepseek-v4.1-flash-ist-das-2.00bpw",
+    "--max-context",
+    "1024",
+    "--eos",
+    "1",
+    "--vision",
+    "off",
+    "--dspark",
+    "off",
+    "--prefill-chunk",
+    "256",
+    "--cpu-threads",
+    "4",
+    "--vram-experts",
+    "0.5",
+    "--reserve-mib",
+    "32768",
+    "--ssd-cache",
+    "0",
+    "--mmap-experts",
+    "on",
+    "--no-expert-cache",
+    "--experts",
+    "6",
+    "--verbose"
+  ],
+  "env": {
+    "DS4_ASYNC_T": "4",
+    "DS4_UMA_HEADROOM_GIB": "24",
+    "DS4_STORE_GB": "0",
+    "DS4_COPY_ALL": "0",
+    "DS4_AHEAD": "0",
+    "DS4_ENGRAM_THREADS": "2",
+    "DS4_ENGRAM_CACHE_MB": "64"
+  },
+  "timeout_s": 600
+}

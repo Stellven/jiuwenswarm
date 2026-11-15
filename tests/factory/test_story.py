@@ -19,7 +19,7 @@ def chain(tmp_path, monkeypatch):
     with Store(home) as store:
         store.create_task(dict(task_id='factory-synthetic', objective='repair config',
                                initial_run_config={'env': {'K': '48'}},
-                               component_cc='factory.component', contract_id='synthetic', target='test-target'))
+                               component_cc='factory.component', contract_id='synthetic', target='jetson-orin'))
         store.advance_decision('factory-synthetic', 0, dict(action={'type': 'inspect', 'config': {'K': '48'}}, reason_for_change='Inspect first'))
         store.append_observation('factory-synthetic', dict(obs_id='failure', kind='inspect',
             error={'code': 'CONFIG_REJECTED', 'message': 'invalid K=48 (range 1..32)'}, values={'state': 'failed'}))

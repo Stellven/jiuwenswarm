@@ -1,0 +1,8 @@
+{
+  "scope": "Factory-bound CPU/store contract checks; no model or runtime performance acceptance",
+  "units": [
+    {"id": "task-scope-and-immutability", "command": "pytest -o addopts= tests/factory/test_store.py tests/factory/test_taskgraph.py"},
+    {"id": "native-admission-and-context", "command": "pytest -o addopts= tests/factory/test_capsules.py tests/factory/test_controller.py"}
+  ],
+  "limitations": ["Run from the compatible factory checkout with its explicit test dependencies and lab-source configuration.", "The new intake guidance is not yet measured in a second live-agent comparison."]
+}

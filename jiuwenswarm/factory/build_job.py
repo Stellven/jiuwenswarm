@@ -123,18 +123,31 @@ def run(store, task_id, attempt_id, request):
         root.mkdir(parents=True, exist_ok=True)
         stdout.touch()
         stderr.touch()
-        engine = Path(os.environ.get('FACTORY_BUILD_ENGINE', ENGINE)).resolve()
-        for path, expected in ((engine, request['engine_sha256']), (RECIPE, request['recipe_sha256'])):
+        spark = request['target'] == 'spark-gb10'
+        engine = Path(__file__).with_name('spark_engine.py') if spark else Path(os.environ.get('FACTORY_BUILD_ENGINE', ENGINE)).resolve()
+        recipe = Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile' if spark else RECIPE
+        for path, expected in ((engine, request['engine_sha256']), (recipe, request['recipe_sha256'])):
             if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
                 raise PreparationError(dict(code='INPUT_CHANGED', path=str(path)))
         if request.get('patch') and hashlib.sha256(Path(request['patch']).read_bytes()).hexdigest() != request['patch_sha256']:
             raise PreparationError(dict(code='INPUT_CHANGED', path=request['patch']))
-        prepare(root, prep)
+        if spark:
+            if hashlib.sha256(Path(__file__).read_bytes()).hexdigest() != request.get('worker_sha256'):
+                raise PreparationError(dict(code='INPUT_CHANGED', path='build_job.py'))
+            (root/'executed-engine.py').write_bytes(engine.read_bytes())
+            (root/'executed-lifecycle.py').write_bytes(Path(__file__).with_name('lab_lifecycle.py').read_bytes())
+            if hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest() != request.get('lifecycle_sha256'):
+                raise PreparationError(dict(code='INPUT_CHANGED', path='lab_lifecycle.py'))
+            prep.update(status='success', target='spark-gb10')
+        else:
+            prepare(root, prep)
         # Persist preparation before compilation, including on abrupt termination.
         (root / 'prep.json').write_text(json.dumps(prep, indent=2) + '\n')
-        argv = [sys.executable, str(engine), '--target', 'jetson-orin',
+        argv = [sys.executable, str(engine), '--target', request['target'],
                 '--source', request['source']['path'], '--commit', request['source']['commit'],
                 '--tag', request['tag'], '--out', str(out)]
+        if spark:
+            argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit']]
         if request.get('patch'):
             argv += ['--patch', request['patch']]
         with stdout.open('wb') as output, stderr.open('wb') as errors:
@@ -164,18 +177,22 @@ def run(store, task_id, attempt_id, request):
         record_ref = None
         if (out / 'build-record.json').exists():
             record_ref = artifact('build-record', out / 'build-record.json')
+        for log in sorted(out.glob('*.log')):
+            artifact('engine-' + log.name, log, 'text/plain')
+        for source in (root/'executed-engine.py', root/'executed-lifecycle.py'):
+            if source.exists(): artifact(source.name, source, 'text/plain')
         for name, path in (('stdout', stdout), ('stderr', stderr)):
             artifact(name, path if path.is_file() else b'', 'text/plain')
             artifact(name + '-tail', tail(path).encode() if path.is_file() else b'', 'text/plain')
         image_id = (record.get('image') or {}).get('Id')
         receipt = dict(request_fingerprint=attempt['fingerprint'], request=request_ref,
-                       prep=prep_ref, build_record=record_ref, image_id=image_id)
+                       prep=prep_ref, build_record=record_ref, image_id=image_id, target=request.get('target'))
         artifact('receipt', json.dumps(receipt, sort_keys=True).encode())
         pruned = prune_intermediates(out) if rc == 0 and image_id else {}
         values = dict(pruned_intermediates=pruned,status='success' if rc == 0 else 'failed',
             failure_stage=record.get('failure_stage') or (None if rc == 0 else 'prep' if prep['status'] != 'success' else 'build'),
-            image_id=image_id, tag=request['tag'], source_commit=request['source']['commit'],
-            source_tree=record.get('source', {}).get('tree', request['source']['tree']),
+            image_id=image_id, target=request.get('target'), tag=request.get('tag'), source_commit=request.get('source', {}).get('commit'),
+            source_tree=record.get('source', {}).get('tree', request.get('source', {}).get('tree')),
             patch_sha256=record.get('patch_sha256', request.get('patch_sha256')),
             toolchain=record.get('toolchain', prep.get('toolchain', {})),
             base_images=record.get('base_images', prep.get('base_images', {})),
@@ -196,7 +213,9 @@ def main():
     parser.add_argument('--request', required=True, type=Path)
     args = parser.parse_args()
     with Store(Path(os.environ['FACTORY_HOME'])) as store:
-        return run(store, args.task, args.attempt, json.loads(args.request.read_text()))
+        from .lab_lifecycle import QuietLease
+        with QuietLease(store.home.parent / 'lab-lease', kind='build', timeout_s=5400):
+            return run(store, args.task, args.attempt, json.loads(args.request.read_text()))
 
 
 if __name__ == '__main__':

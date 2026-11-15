@@ -255,3 +255,12 @@ def test_native_capsule_plan_calls(graph_store, tmp_path, monkeypatch):
         patch={'add': [node('b', depends_on=['a'])]}, expected_graph_rev=1, decision_rev=1))
     assert receipt['state'] == 'succeeded', receipt
     assert receipt['outputs']['plan']['blocked_reasons']['b']
+
+
+def test_methodology_task_suggestions_do_not_force_component_integration():
+    from jiuwenswarm.factory.taskgraph import initial_plan
+    proposal=initial_plan({'task_id':'broad','contract_id':'fixed-v1','component_cc':'factory.methodology_diagnosis',
+        'constraints':{'methodology_driven':True}})
+    kinds=[node['kind'] for node in proposal['add']]
+    assert 'integrate' not in kinds and 'measure' in kinds
+    assert any(node['capability']=='factory.methodology_followup.followup' for node in proposal['add'])

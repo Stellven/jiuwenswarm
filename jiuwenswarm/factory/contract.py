@@ -31,8 +31,29 @@ def load(contract_id):
         path = CONTRACTS / (str(contract_id) + '.json')
     result = Contract(json.loads(path.read_text()))
     result.path = path.resolve()
+    if result.get('adapter') == 'strata-prefill-scoped-v1':
+        from .prefill_workbench import validate_contract
+        validate_contract(result)
+        return result
+    if result.get('adapter') in {'strata-benchmark-v1','strata-benchmark-v2','strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5'}:
+        from .benchmark import validate_contract
+        validate_contract(result)
+        return result
+    if result.get('adapter') == 'strata-v1':
+        from .engine_adapters import validate_contract
+        validate_contract(result)
+        return result
     if result['version'] < 1 or result['tolerance'] != 'byte-identical stdout':
         raise ValueError('Unsupported contract version or tolerance')
+    return result
+
+
+def load_for_task(task, requested_id):
+    """Resolve the approved file and its internal identifier to the same contract."""
+    approved = task.get('contract_id')
+    result = load(approved or requested_id)
+    if approved and requested_id not in {approved, result['contract_id']}:
+        raise ValueError('Lab contract must match the task')
     return result
 
 

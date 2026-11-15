@@ -1,0 +1,35 @@
+cc: '2'
+id: factory.methodology_followup
+version: 1.0.0
+materials:
+  methodology:
+    kind: method
+    path: METHOD.md
+  ontology:
+    kind: reference
+    path: ONTOLOGY.json
+  component_candidates:
+    kind: reference
+    path: COMPONENT-CANDIDATES.json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  followup:
+    kind: tool
+    does: Convert report-backed uncertainty into a proposed next input; never submit or amend a contract.
+    takes:
+      evidence_ids:
+        kind: json
+      hypothesis_id:
+        kind: text
+        optional: true
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec

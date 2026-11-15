@@ -227,7 +227,17 @@ def dispatch(store, task_id, capability, packet):
     output, error = {}, None
     try:
         inputs = packet.get('inputs', {})
-        if capability == 'inspector.inspect':
+        if capability == 'inspector.inspect_strata':
+            if inputs:
+                raise ValueError('inspect_strata uses only the operator task contract')
+            from .contract import load
+            from .engine_adapters import inspect_assets, validate_contract
+            contract = validate_contract(load(store.get_task(task_id)['contract_id']))
+            output = {'analysis': dict(adapter='strata-v1', contract_id=contract['contract_id'],
+                assets=inspect_assets(contract), workload=contract['workload'],
+                limits=contract['limits'], status='applicable',
+                limitations='Configured settings; effective engagement requires a retained lab run.')}
+        elif capability == 'inspector.inspect':
             output = inspector.inspect(inputs, packet)
         elif capability == 'inspector.preflight':
             output, help_text = inspector.preflight(inputs)

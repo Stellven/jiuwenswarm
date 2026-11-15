@@ -1,0 +1,18 @@
+{
+  "scope": "CPU reference certification only",
+  "command": [
+    "python",
+    "verification.py"
+  ],
+  "exit_code": 0,
+  "result": {
+    "certification": "CPU reference only",
+    "passed": true
+  },
+  "host_transport_tests": {
+    "command": "pytest -q tests/factory/test_research_cache_io.py --no-cov",
+    "passed": 11,
+    "gpu_execution": false
+  },
+  "source_sha256": "8b774a7fe9bd5af71c40b877e539ae60a431b8e73d6f1512228e58bb1a3f440f"
+}

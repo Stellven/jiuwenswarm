@@ -38,7 +38,8 @@ def run(task, run_id, config_path, spool):
             image = inspect_image(admission['image']['id'])
             if image['Id'] != admission['image']['id']:
                 raise ValueError('A/B image digest differs')
-            if image.get('Architecture') != 'arm64' or (image.get('Config', {}).get('Labels') or {}).get('campaign.target.profile') != 'jetson-orin':
+            from .targets import admission_image_matches
+            if not admission_image_matches(admission, image):
                 raise ValueError('A/B image target differs')
         model = Path(config['contract']['model']['path'])
         if model.stat().st_size != config['contract']['model']['size']:

@@ -1,0 +1,60 @@
+cc: '2'
+id: factory.engine_factory_loop
+version: 1.0.0
+materials:
+  methodology:
+    kind: method
+    path: METHOD.md
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  status:
+    kind: tool
+    does: Read durable cycles, pending attempts and remaining operator budgets.
+    takes: {}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  select:
+    kind: tool
+    does: Record an agent-selected report-backed hypothesis and reserve one bounded operator-admitted experiment.
+    takes:
+      cycle_id: {kind: text}
+      evidence_ids: {kind: json}
+      hypothesis_id: {kind: text}
+      template_id: {kind: text}
+      expected_rev: {kind: json}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  execute:
+    kind: tool
+    does: Freeze an exact admitted template into a new child task and submit via the existing durable benchmark queue. Replay recovers the same attempt.
+    takes:
+      cycle_id: {kind: text}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec, gpu.use]
+  collect:
+    kind: tool
+    does: Reconcile the child benchmark, retain failed or successful evidence and expose follow-up proposals for the agent's next decision.
+    takes:
+      cycle_id: {kind: text}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  stop:
+    kind: tool
+    does: Persist stop intent for future experiments without cancelling already queued work.
+    takes:
+      reason: {kind: text}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]

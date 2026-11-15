@@ -1,0 +1,57 @@
+{
+  "schedule": {
+    "token_budget": 4,
+    "prefill_chunk": 2,
+    "max_active": 2,
+    "prefill_reserve": 1,
+    "requests": [
+      {
+        "id": "short",
+        "prompt_tokens": 2,
+        "decode_tokens": 4
+      },
+      {
+        "id": "long",
+        "prompt_tokens": 10,
+        "decode_tokens": 2
+      }
+    ]
+  },
+  "analyze": {
+    "token_budget": 4,
+    "trace": [
+      {
+        "tick": 0,
+        "tokens": 2,
+        "allocations": [
+          {
+            "id": "a",
+            "phase": "prefill",
+            "tokens": 2
+          }
+        ]
+      }
+    ]
+  },
+  "compare": {
+    "workload": {
+      "token_budget": 4,
+      "prefill_chunk": 2,
+      "requests": [
+        {
+          "id": "a",
+          "prompt_tokens": 8,
+          "decode_tokens": 4
+        }
+      ]
+    },
+    "arms": [
+      {
+        "prefill_chunk": 1
+      },
+      {
+        "prefill_chunk": 4
+      }
+    ]
+  }
+}

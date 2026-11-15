@@ -194,3 +194,25 @@ def test_completed_job_reused_without_prior_status(store, request_build, worker)
                             capture_output=True, timeout=15)
     assert result.returncode == 0, result.stderr
     assert Builder(store).submit('t', request_build, 'reused')['attempt_id'] == first['attempt_id']
+
+
+def test_spark_build_identity_binds_dependency_and_target(store, request_build):
+    """Normalization records both clean source trees and the selected worker recipe."""
+    builder = Builder(store)
+    request = dict(request_build, target='spark-gb10', tag='factory/strata:test',
+                   dependency=dict(request_build['source']))
+    spark = builder._request(request)
+    jetson = builder._request(request_build)
+    assert spark['target'] == 'spark-gb10'
+    assert spark['dependency']['commit'] == spark['source']['commit']
+    assert spark['dependency']['tree'] == spark['source']['tree']
+    assert spark['engine_sha256'] != jetson['engine_sha256']
+    assert spark['recipe_sha256'] != jetson['recipe_sha256']
+    from jiuwenswarm.factory.jobs import fingerprint
+    def identity(value):return fingerprint('build',value,['worker'],'build',value['deadline_s'])
+    changed = builder._request(request | {'env': {'BUILD_JOBS':'4'}})
+    assert identity(changed) != identity(spark)
+    with pytest.raises(ValueError,match='Dependency'):
+        builder._request(request | {'dependency':dict(request['dependency'],commit='0'*40)})
+    with pytest.raises(ValueError,match='90 minutes'):
+        builder._request(request | {'deadline_s':5401})

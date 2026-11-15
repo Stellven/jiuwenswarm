@@ -93,6 +93,20 @@ def release(capability):
     return dict(capsule=values['id'].strip(), capsule_version=values['version'].strip(), release_sha256=digest)
 
 
+def attempt_context(capability, outputs):
+    """Retain explicit receipt ownership; nested loop results belong to children."""
+    if not isinstance(outputs, dict):
+        return dict(attempt_id=None, attempt_task_id=None, attempt_attribution=None)
+    cycle = outputs.get('result')
+    if (capability == 'factory_loop.execute' and isinstance(cycle, dict)
+            and cycle.get('state') in {'submitted', 'collected'}
+            and all(isinstance(cycle.get(k), str) and cycle[k]
+                    for k in ('cycle_id', 'child_task_id', 'attempt_id'))):
+        return dict(attempt_id=cycle['attempt_id'], attempt_task_id=cycle['child_task_id'],
+                    attempt_attribution='loop_child_receipt')
+    return dict(attempt_id=outputs.get('attempt_id'), attempt_task_id=None, attempt_attribution=None)
+
+
 def call(home, task_id, capability, packet, result, started, *, replay=False, store=None, turn=None):
     try:
         identity = release(capability)
@@ -102,7 +116,18 @@ def call(home, task_id, capability, packet, result, started, *, replay=False, st
             evidence = store._db.execute('SELECT count(*) FROM evidence WHERE task_id=?', (task_id,)).fetchone()[0]
             artifacts = store._db.execute('SELECT coalesce(sum(size),0) FROM artifacts WHERE task_id=?', (task_id,)).fetchone()[0]
         clean_inputs = sanitize(packet.get('inputs', {}))
+        # Informational routing context only; it is never read by dispatch/admission.
+        try:
+            context = json.loads(os.environ.get('FACTORY_JOB_TELEMETRY', '{}'))
+        except ValueError:
+            context = {}
+        context = {k: context.get(k) for k in ('invoked_capsule', 'invoked_capability',
+                   'invoked_capsule_version', 'invoked_release_sha256')} if isinstance(context, dict) else {}
+        outputs = result.get('outputs', {})
         return emit(home, 'cc.call', task_id, turn=turn, **identity, capability=capability,
+                    **context, backend_capsule=identity['capsule'], backend_capability=capability,
+                    call_id=packet.get('call'),
+                    **attempt_context(capability, outputs),
                     duration_ms=(time.perf_counter() - started) * 1000,
                     in_bytes=len(json.dumps(packet, ensure_ascii=False).encode()),
                     out_bytes=len(json.dumps(result, ensure_ascii=False, allow_nan=False).encode()),
@@ -145,6 +170,7 @@ def record(home, table, value):
             details = values.get('details', {})
             checks = details.get('engagement_checks', {})
             emit(home, event, task_id, record_id=value.get('eval_id', value.get('obs_id')),
+                 attempt_id=value.get('host_run', {}).get('attempt_id'),
                  wall_s=values.get('wall_s', values.get('wall_seconds', values.get('build_wall_seconds'))),
                  gate=values.get('gate'), ratio=values.get('ratio'), aa_gap=values.get('aa_gap'),
                  output_class=values.get('output_class'), per_arm_ms=values.get('per_arm_ms'),

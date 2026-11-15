@@ -196,6 +196,9 @@ class Store:
         record = dict(record)
         identifier(record.get('task_id'))
         identifier(record.get('objective'))
+        if record.get('target'):
+            from .targets import profile
+            profile(record['target'])
         defaults = dict(constraints={}, allowed_effects=[], target={}, budget={}, revision=1, current_decision_rev=0, evidence_cursor=0, created=time.time())
         if any(record.get(key, 0) != 0 for key in ('current_decision_rev', 'evidence_cursor')):
             raise ValueError('New tasks must start at decision revision and cursor zero')
@@ -221,6 +224,9 @@ class Store:
         record = dict(record)
         if record.get('task_id', task_id) != task_id:
             raise ScopeDenied('Decision belongs to another task')
+        for field in ('hypothesis','uncertainty','expected_evidence','stop_condition','reason_for_change'):
+            if field in record and not isinstance(record[field], str):
+                raise ValueError('Decision ' + field + ' must be text; put structured data in observations/action/budget')
         protected = {'rev': expected_rev + 1, 'parent_rev': expected_rev, 'task_id': task_id}
         if any(key in record and record[key] != value for key, value in protected.items()):
             raise ValueError('Decision revision and task identity are host-controlled')
@@ -246,6 +252,9 @@ class Store:
         return result
 
     def append_observation(self, task_id, record):
+        for field in ('kind','limitations'):
+            if field in record and not isinstance(record[field], str):
+                raise ValueError('Observation ' + field + ' must be text; put structured data in values')
         return self._append('observations', task_id, record, dict(obs_id=uuid.uuid4().hex, source_artifacts=[], kind='measurement', values={}, error={}, host_run={}, confidence=None, limitations='', created=time.time()))
 
     def add_evaluation(self, task_id, record):
@@ -497,7 +506,7 @@ class ScopedStore:
 
     def append_observation(self, task_id, record):
         self._agent_id(record.get('obs_id'))
-        if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention', 'taskgraph_patch'}:
+        if 'host_run' in record or record.get('kind') in {'build_result', 'lab_result', 'evaluation', 'admission', 'operator_intervention', 'taskgraph_patch', 'branch_workbench_operation'}:
             raise ScopeDenied('Observation fields are reserved for the host')
         self._check(task_id, write=True)
         return self._store.append_observation(task_id, record)

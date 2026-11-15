@@ -1,5 +1,9 @@
 # Expert streaming into an existing llama.cpp
 
+These are preserved historical llama.cpp patches for their recorded base. They
+are not Strata optimizations. Bind an authorized clean compatible checkout
+before source integration; do not import, apply or commit patches automatically.
+
 On UMA with mmap, selected experts' weight pages are read from the GGUF mapping
 on demand. In stock llama.cpp the compute thread takes the page faults. This
 capability targets MoE with CPU-side experts (`-cmoe`/`--cpu-moe` or CPU `-ot`
@@ -39,7 +43,7 @@ only under AB.md step 9, recording needed_by and the off settings in every arm.
 
 ## Decide from evidence
 
-Read EVIDENCE.md and factory.methodology_ab before integrating. Start with the
+Read EVIDENCE.md, JOB.md and INTEGRATE.md before integrating. Start with the
 identified working engine and frozen reference; inspect effective configuration,
 source dependencies, engagement, and load/prompt/decode separately. Fill not
 engaged means check effective configuration before changing the mechanism.
@@ -94,9 +98,11 @@ hypothesis and a deferred alternative, choose the minimum applicable component
 set, build only changed source, screen correctness and engagement, and compare
 only if the budget and screen justify it. Update the decision from the new
 observations; continue, revert or report inconclusive. Never prescribe a fixed
-number of improving versions. A single agent may consult this methodology,
-factory.methodology_ab, factory.integration_skill and the builder/lab capsules
-in one task. Guidance is read by the agent; it does not itself execute patches.
+number of improving versions. This package includes integration skills and evidence/inspector/build/lab tools
+for the complete bounded job; read JOB.md for their names and lifecycle.
+Independent work may use other packages, but this job does not require opening
+integration_skill, builder and lab_client alongside it. Guidance is read by the
+agent; it does not itself execute patches.
 
 For the recovery/demo task, existing evidence is the default. Its six-hour total
 and two-hour lab ceilings do not require consuming either budget. At most one

@@ -49,6 +49,56 @@ def dispatch(store, task_id, capability, packet):
         from .taskgraph import dispatch_precondition
         dispatch_precondition(store, task_id, inputs['node_id'])
     node_link = {'node_id': inputs['node_id']} if 'node_id' in inputs else {}
+    for prefix, module in (('evidence_digest.', 'evidence_digest'),
+                           ('branch_workbench.', 'branch_workbench'),
+                           ('lab_evidence.', 'lab_evidence'),
+                           ('throughput_workbench.', 'throughput_workbench'),
+                           ('prefill_workbench.', 'prefill_workbench'),
+                           ('cc_qualification.', 'cc_qualification'),
+                           ('job_packages.', 'job_packages'),
+                           ('inference_methods.', 'experiment_methods')):
+        if capability.startswith(prefix):
+            from importlib import import_module
+            return import_module('.' + module, __package__).dispatch(
+                store, task_id, capability.removeprefix(prefix), inputs)
+    if capability.startswith('hypotheses.'):
+        from .hypotheses import dispatch as hypothesis_dispatch
+        return hypothesis_dispatch(store, task_id, capability.removeprefix('hypotheses.'), inputs)
+    if capability.startswith('factory_loop.'):
+        from .loop import dispatch as loop_dispatch
+        return loop_dispatch(store, task_id, capability.removeprefix('factory_loop.'), inputs)
+    if capability.startswith('expert_prediction.'):
+        from .expert_prediction import dispatch as prediction_dispatch
+        return prediction_dispatch(store, task_id, capability.removeprefix('expert_prediction.'), inputs)
+    if capability.startswith('deep_profile.'):
+        from .deep_profile import dispatch as profile_dispatch
+        return profile_dispatch(store, task_id, capability.removeprefix('deep_profile.'), inputs)
+    if capability.startswith('benchmark.'):
+        from .benchmark import Benchmark
+        if hasattr(store, '_check'):
+            store._check(task_id, write=True)
+            host = store._store
+        else:
+            host = store
+        manager = Benchmark(host)
+        operation = capability.removeprefix('benchmark.')
+        if operation == 'submit':
+            fields(inputs, {'contract_id', 'idem_key'}, {'contract_id', 'idem_key'})
+            result = manager.submit(task_id, **inputs)
+            return {'result': {k: result[k] for k in ('attempt_id', 'state', 'jobq_id')}}
+        fields(inputs, {'attempt_id'}, {'attempt_id'})
+        if operation not in {'status', 'result'}:
+            raise ValueError('Unknown benchmark capability')
+        return {'result': getattr(manager, operation)(task_id, **inputs)}
+    if capability == 'strata_prefill.apply':
+        from .strata_prefill import dispatch as prefill_dispatch
+        return prefill_dispatch(inputs)
+    if capability == 'strata_components.apply':
+        from .strata_components import dispatch as component_dispatch
+        return component_dispatch(inputs)
+    if capability.startswith('methodology.'):
+        from .methodology import dispatch as methodology_dispatch
+        return methodology_dispatch(store, task_id, capability.removeprefix('methodology.'), inputs)
     if capability.startswith('expert_streaming.'):
         from .expert_streaming import dispatch as streaming_dispatch
         return streaming_dispatch(store, task_id, capability.removeprefix('expert_streaming.'), inputs)
@@ -60,6 +110,25 @@ def dispatch(store, task_id, capability, packet):
         fields(inputs, {'patch', 'expected_graph_rev', 'decision_rev'},
                {'patch', 'expected_graph_rev', 'decision_rev'})
         return {'plan': plan_patch(store, task_id, **inputs)}
+    if capability.startswith('lifecycle.'):
+        fields(inputs, {'attempt_id'}, {'attempt_id'})
+        operation = capability.removeprefix('lifecycle.')
+        if operation not in {'status', 'recover'}:
+            raise ValueError('Unknown lifecycle capability')
+        from .manager import Manager
+        if hasattr(store, '_check'):
+            store._check(task_id, write=True)
+            host = store._store
+        else:
+            host = store
+        manager = Manager(host, host.home / 'lab-spool')
+        attempt = manager.jobs._get(inputs['attempt_id'])
+        if attempt['task_id'] != task_id or attempt['kind'] != 'lab' or attempt['request'].get('adapter') != 'strata-v1':
+            raise ScopeDenied('Lifecycle requires a current-task Strata lab attempt')
+        if operation == 'recover' and attempt['state'] not in {'succeeded','failed','cancelled'}:
+            raise ValueError('Only terminal attempts may be recovered; cancel active work through lab_client')
+        result = manager.result(attempt['attempt_id'])
+        return {'analysis': result}
     if capability.startswith('lab.'):
         from .manager import Manager
         operation = capability.removeprefix('lab.')
@@ -108,8 +177,8 @@ def dispatch(store, task_id, capability, packet):
             return {key: attempt[key] for key in ('attempt_id', 'state', 'jobq_id')}
         fields(inputs, {'attempt_id'}, {'attempt_id'})
         attempt = builder.jobs._get(inputs['attempt_id'])
-        if attempt['task_id'] != task_id:
-            raise ScopeDenied('Attempt belongs to another task')
+        if attempt['task_id'] != task_id or attempt['kind'] != 'build':
+            raise ScopeDenied('Attempt belongs to another task or is not a build')
         return getattr(builder, operation)(inputs['attempt_id'])
     if capability == 'evidence.query':
         fields(inputs, {'kinds', 'text', 'since', 'limit', 'task_id'})
@@ -144,13 +213,16 @@ def dispatch(store, task_id, capability, packet):
     if inputs['type'] == 'observation':
         if 'expected_rev' in inputs:
             raise ValueError('expected_rev applies only to decisions')
-        if record.get('kind') == 'ab_result':
+        if record.get('kind') in {'ab_result', 'scoped_prefill_result'}:
             raise ScopeDenied('A/B acceptance is reserved for Manager evidence')
         return store.append_observation(task_id, record)
     if inputs['type'] == 'decision':
         if 'expected_rev' in record and 'expected_rev' in inputs and record['expected_rev'] != inputs['expected_rev']:
             raise ValueError('Conflicting expected_rev values')
         expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
+        if record.get('action', {}).get('type') == 'accept':
+            from .acceptance import validate as validate_acceptance
+            validate_acceptance(store, task_id)
         if store.get_task(task_id).get('contract_id') in ENGINE_CONTRACTS or record.get('action', {}).get('type') in {'keep_component', 'keep_dormant', 'revert_component'}:
             from .controller import validate_action
             validate_action(record.get('action'))

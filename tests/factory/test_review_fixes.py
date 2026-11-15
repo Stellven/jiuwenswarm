@@ -153,7 +153,7 @@ def test_retry_spool_isolates_bad_manifests(store, tmp_path, monkeypatch):
 
 
 def worker_request():
-    return dict(engine_sha256='unused', recipe_sha256='unused', tag='factory/llamacpp:test',
+    return dict(target='jetson-orin', engine_sha256='unused', recipe_sha256='unused', tag='factory/llamacpp:test',
                 source={'commit': 'c', 'tree': 't'})
 
 
@@ -274,6 +274,8 @@ def test_story_terminal_boundary_and_effective_summary():
 def test_config_environment_overrides(tmp_path, monkeypatch):
     import os
     import sys
+    monkeypatch.delenv('FACTORY_JOBQ_BIN', raising=False)
+    monkeypatch.delenv('FACTORY_BUILD_ENGINE', raising=False)
     monkeypatch.setenv('SIMINFENG_ROOT', str(tmp_path))
     monkeypatch.setenv('FACTORY_MIN_AVAIL_MIB', '700')
     monkeypatch.setenv('DOCKER_PREFIX', 'custom docker -c')
@@ -283,3 +285,12 @@ def test_config_environment_overrides(tmp_path, monkeypatch):
         text=True, env=os.environ)
     assert json.loads(output) == [str(tmp_path / 'bin/jobq'),
         str(tmp_path / 'cc/build_engine/build_engine.py'), 700, 'custom docker -c']
+
+
+def test_malformed_build_request_retains_failure_evidence(store):
+    request=worker_request();request.pop('target')
+    a=attempt(store,request=request)
+    assert build_job.run(store,'t',a['attempt_id'],request)==1
+    report=store.read('t',a['attempt_id']+':build-result')
+    assert report['values']['status']=='failed'
+    assert report['values']['target'] is None

@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.expert_streaming
-version: 2.0.1
+version: 2.1.0
 materials:
   guide:
     kind: skill
@@ -38,6 +38,24 @@ materials:
   phase_stats:
     kind: component
     path: components/phase_stats/component.yaml
+  ab_method:
+    kind: method
+    path: AB.md
+  integrate:
+    kind: skill
+    path: INTEGRATE.md
+  repair:
+    kind: skill
+    path: REPAIR.md
+  preflight:
+    kind: skill
+    path: PREFLIGHT.md
+  integration_job:
+    kind: skill
+    path: JOB.md
+  job_verification:
+    kind: reference
+    path: JOB-VERIFICATION.json
 bindings:
   default:
     kind: native
@@ -91,6 +109,414 @@ capabilities:
       status: json
       missing_required: json
       evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  evidence_query:
+    kind: tool
+    does: Query bounded task-scoped evidence summaries and cursor.
+    takes:
+      kinds:
+        kind: json
+        optional: true
+      text:
+        kind: text
+        optional: true
+      since:
+        kind: json
+        optional: true
+      limit:
+        kind: json
+        optional: true
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      items: json
+      cursor: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  evidence_read:
+    kind: tool
+    does: Read a task-scoped evidence record, with bounded artifact preview.
+    takes:
+      id: text
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  evidence_publish:
+    kind: tool
+    does: Publish an immutable observation/artifact or compare-and-swap decision revision.
+    takes:
+      type: text
+      record: json
+      expected_rev:
+        kind: json
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  inspect:
+    kind: tool
+    does: Inspect an authorized source checkout, host and optional local image; publish
+      evidence.
+    takes:
+      source:
+        kind: handle
+        description: Host-bound workspace handle; subpath selects its repository root.
+      subpath:
+        kind: text
+        optional: true
+      image:
+        kind: json
+        optional: true
+    gives:
+      source: json
+      host: json
+      image:
+        kind: json
+        optional: true
+      evidence: json
+    needs:
+    - python
+    - workspace
+    changes:
+    - workspace.read
+    - process.exec
+  inspect_strata:
+    kind: tool
+    does: Inspect the operator-pinned complete Strata asset inventory and fixed workload
+      without launching a model.
+    takes: {}
+    gives:
+      analysis: json
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  preflight:
+    kind: tool
+    does: Resolve local image Id and reject unsupported flags using help cached by
+      immutable Id.
+    takes:
+      image: json
+      tool: text
+      argv:
+        kind: json
+        schema:
+          type: array
+          items:
+            type: string
+    gives:
+      ok: json
+      unsupported_flags: json
+      help_sha256: text
+      image: json
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
+  verify_effective_config:
+    kind: tool
+    does: Run one bounded CPU-only model config probe in an NVIDIA-runtime container
+      and publish actual stderr evidence.
+    takes:
+      image: json
+      env: json
+    gives:
+      requested: json
+      effective: json
+      mismatches: json
+      image: json
+      exit_status: json
+      aborted: json
+      invalid_line:
+        kind: text
+        optional: true
+      engine_lines:
+        kind: json
+        optional: true
+      evidence: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
+  build_submit:
+    kind: tool
+    does: Submit a durable build job. This acknowledges submission, not success; inspect
+      status and result separately.
+    takes:
+      request: json
+      idem_key: text
+      node_id:
+        kind: text
+        optional: true
+    gives:
+      attempt_id: text
+      state: text
+      jobq_id: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  build_status:
+    kind: tool
+    does: Read and reconcile the owned build attempt.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  build_cancel:
+    kind: tool
+    does: Request cancellation of the owned build attempt.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  build_result:
+    kind: tool
+    does: Read build result references; submission alone is not success.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  lab_submit:
+    kind: tool
+    does: Admit an image object with exactly tag and immutable id, plus a separate
+      build_attempt_id, and submit a fixed lab evaluation through the GPU queue. run_config
+      may include profile nsys to trace the run with Nsight Systems; the result then
+      carries a kernel, CUDA API and OS-runtime breakdown. Traced timing is perturbed
+      and is never speed evidence.
+    takes:
+      image:
+        kind: json
+        schema:
+          type: object
+          additionalProperties: false
+          required:
+          - tag
+          - id
+          properties:
+            tag:
+              type: string
+            id:
+              type: string
+              pattern: ^sha256:[a-f0-9]{64}$
+      build_attempt_id: text
+      contract_id: text
+      run_config: json
+      idem_key: text
+      node_id:
+        kind: text
+        optional: true
+    gives:
+      admission: json
+      attempt_id: text
+      state: text
+      jobq_id: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
+  lab_status:
+    kind: tool
+    does: Read the owned lab attempt from the durable queue.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  lab_cancel:
+    kind: tool
+    does: Cancel an owned ordinary or A/B lab attempt and reap its container.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  lab_result:
+    kind: tool
+    does: Read evaluation and evidence references for the owned lab attempt.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+      execution_outcome: text
+      evaluation: json
+      evidence_refs: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  lab_ab_submit:
+    kind: tool
+    does: Admit both images and queue one contract-bound ABBA experiment; checks come
+      from component materials.
+    takes:
+      base_image: json
+      candidate_image: json
+      base_env: json
+      candidate_env: json
+      rounds: json
+      component: text
+      idem_key: text
+      node_id:
+        kind: text
+        optional: true
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
+  lab_ab_status:
+    kind: tool
+    does: Read the owned durable A/B job status.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      task_id: text
+      kind: text
+      idem_key: text
+      fingerprint: text
+      request: json
+      state: text
+      jobq_id: json
+      owner: json
+      started: json
+      ended: json
+      resources: json
+      result_refs: json
+      cleanup_state: text
+      history: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  lab_ab_result:
+    kind: tool
+    does: Ingest and read verified A/B verdict, correctness and evidence.
+    takes:
+      attempt_id: text
+    gives:
+      attempt_id: text
+      state: text
+      result_refs: json
+      execution_outcome: text
+      evaluation: json
+      evidence_refs: json
+      ab_result: json
     needs:
     - python
     changes:

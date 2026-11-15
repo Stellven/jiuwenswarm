@@ -1,0 +1,16 @@
+{
+  "format": "optional-native-host-component/1",
+  "status": "proposed_not_applied",
+  "target": "jiuwenswarm/ccv2/ccv2.py",
+  "base_sha256": "26707b7d213fce7a25dffc36ea30fd2edc1e05e1023dc5c7335cec26e45bf1fd",
+  "patch": "01-fresh-inventory-once.patch",
+  "patch_sha256": "1cbde4acb605e9ba6a4f9e5d3a29079b12fab2cce6e52439f689f1acabc98c0e",
+  "kind": "CPU provenance overhead optimization",
+  "protocol_changed": false,
+  "cache_used": false,
+  "freshness": "Enumerate distributions and read current METADATA every invocation",
+  "equivalence": "Same sorted Name/Version rows, duplicates preserved, missing/empty names omitted",
+  "rollback": "Reverse exactly this patch; no migration or receipt schema change",
+  "gpu_tested": false,
+  "admission_granted": false
+}

@@ -19,8 +19,9 @@ FIXTURE = Path(__file__).parent / 'fixtures/expert_streaming/stderr.txt'
 
 def test_capsule_materials_and_components():
     cc = load(CAPSULE / 'cc.yaml')
-    assert cc['id'] == 'engine.expert_streaming' and cc['version'] == '2.0.1'
-    assert set(cc['capabilities']) == {'applicability','engagement'}
+    assert cc['id'] == 'engine.expert_streaming' and cc['version'] == '2.1.0'
+    from jiuwenswarm.factory.job_packages import ROUTES
+    assert set(cc['capabilities']) == set(ROUTES['engine.expert_streaming'])
     for material in cc['materials'].values():
         path = (CAPSULE / material['path']).resolve()
         assert path.is_relative_to(CAPSULE) and path.is_file()

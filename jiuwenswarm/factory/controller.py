@@ -106,10 +106,14 @@ def configure_agent(task, grants=(), home=None):
         args += ['--grant', grant]
     env = {'FACTORY_HOME': str(home), 'FACTORY_TASK_ID': task['task_id'],
            'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': DOCKER_PREFIX,
-           'PYTHONPATH': str(ROOT),
+           'PYTHONPATH': os.pathsep.join(dict.fromkeys([str(ROOT), *filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep))])),
            # Bind native {python} to the controller's admitted environment.
            'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable,
            'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
+    for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR',
+                'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE'):
+        if key in os.environ:
+            env[key] = os.environ[key]
     # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
     reads = read_tasks(task)
     if reads:
@@ -166,6 +170,8 @@ class Controller:
                 raise ValueError(f'{key} must be nonempty text')
         if not isinstance(task['constraints'], (dict, list)) or not isinstance(task['target'], (str, dict)):
             raise ValueError('constraints must be object/list and target must be text/object')
+        from .targets import profile
+        profile(task['target'])
         if not isinstance(task['allowed_effects'], list) or not all(isinstance(g, str) for g in task['allowed_effects']):
             raise ValueError('allowed_effects must be a list of grants')
         for key in ('budget', 'source', 'initial_run_config', 'operator_labels', 'resources'):
@@ -190,10 +196,23 @@ class Controller:
         self._state_path(task['task_id'])
         if task['contract_id'] in ENGINE_CONTRACTS:
             self._init_evolve(source)
+        elif isinstance(task.get('constraints'), dict) and task['constraints'].get('local_commits'):
+            self._init_owned_source(source)
         task = self.store.create_task(task)
         if seed_plan is not None:
             seed_plan(self.store, task)
         return task['task_id']
+
+    def _init_owned_source(self, source):
+        workspace = (self.home / 'agent-workspace').resolve()
+        checkout = (workspace / source['subpath']).resolve()
+        if not checkout.is_relative_to(workspace) or not checkout.is_dir():
+            raise ValueError('Existing isolated source checkout required')
+        result = subprocess.run(['git','-C',str(checkout),'rev-parse','HEAD'],capture_output=True,text=True,check=True)
+        if result.stdout.strip() != source['pre_integration_commit']:
+            raise ValueError('Owned source revision differs from task')
+        if subprocess.run(['git','-C',str(checkout),'status','--porcelain','--untracked-files=all'],capture_output=True,text=True,check=True).stdout:
+            raise ValueError('Initial source must be clean')
 
     def _init_evolve(self, source):
         workspace = (self.home / 'agent-workspace').resolve()
@@ -253,12 +272,19 @@ class Controller:
             yield
 
     def _snapshot(self, task_id):
-        return self.store.dump(task_id)
+        snapshot = self.store.dump(task_id)
+        from .loop import owned_attempts
+        snapshot['attempts'] = owned_attempts(self.store, task_id)
+        return snapshot
 
     def _reconcile(self, task_id):
         for attempt in self._snapshot(task_id)['attempts']:
             if attempt['state'] in ACTIVE | {'unknown'}:
-                self.jobs.status(attempt['attempt_id'])
+                if attempt['kind'] == 'lab':
+                    from .manager import Manager
+                    Manager(self.store, self.home / 'lab-spool').status(attempt['attempt_id'])
+                else:
+                    self.jobs.status(attempt['attempt_id'])
 
     def _remaining(self, task, state):
         return {'turns': max(0, task['budget']['max_turns'] - state['turns']),
@@ -273,8 +299,11 @@ class Controller:
         message = dict(task_id=task['task_id'], decision_rev=current['current_decision_rev'],
                        evidence_cursor=current['evidence_cursor'], changed_attempts=changed,
                        remaining_budget=self._remaining(task, state))
-        if state.get('operator_notes'):
-            message['operator_notes'] = state.pop('operator_notes')
+        from .operator_notes import pending
+        notes = pending(self.home, task['task_id'], state)
+        if notes or state.get('operator_notes'):
+            message['operator_notes'] = state.pop('operator_notes', []) + [n['text'] for n in notes]
+            state['pending_operator_note_ids'] = [n['note_id'] for n in notes]
         if state['missing_decision']:
             message['host_observation'] = 'Previous turn ended without publishing a new decision revision.'
         if state['turns'] == 0 or state.pop('needs_context', False):
@@ -406,7 +435,8 @@ class Controller:
             if 'pending_turn_rev' in state:
                 state['missing_decision'] = task['current_decision_rev'] == state['pending_turn_rev']
             # An operator fix (e.g. baseline-import) reopens an inconclusive task; accept/reject stay final.
-            reopen = bool(state.get('operator_notes')) and state['outcome'] in {'report_inconclusive', 'partial'}
+            from .operator_notes import pending
+            reopen = bool(state.get('operator_notes') or pending(self.home, task_id, state)) and state['outcome'] in {'report_inconclusive', 'partial', 'stop_missing_prerequisite'}
             if state['outcome'] in TERMINAL and not reopen:
                 return self.status(task_id)
             missing = sorted(set(task.get('allowed_effects', [])) - set(self.grants))
@@ -437,13 +467,17 @@ class Controller:
                     decisions = self._snapshot(task_id)['decisions']
                     latest = max(decisions, key=lambda d: d['rev'], default={})
                     action = latest.get('action', {}).get('type')
-                    if action in TERMINAL and latest.get('evidence_ids') and not state.get('operator_notes'):
+                    if action in TERMINAL and latest.get('evidence_ids') and not (state.get('operator_notes') or pending(self.home, task_id, state)):
                         self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(task))
                         return self._finish(task_id, state, action)
                     if remaining['turns'] <= 0:
                         return self._finish(task_id, state, 'partial')
                     active = [a for a in self._snapshot(task_id)['attempts'] if a['state'] in ACTIVE]
                     if active:
+                        if os.environ.get('FACTORY_YIELD_ON_JOBS') == '1':
+                            state['outcome'] = 'waiting'
+                            self._save(task_id, state)
+                            return self.status(task_id)
                         await self.sleep(min(15, remaining['wall_clock_s']))
                         self._reconcile(task_id)
                         self._save(task_id, state)
@@ -462,6 +496,7 @@ class Controller:
                                                timeout=remaining['wall_clock_s'])
                     except asyncio.TimeoutError:
                         return self._finish(task_id, state, 'partial')
+                    state['operator_notes_delivered'] = sorted(set(state.get('operator_notes_delivered', [])) | set(state.pop('pending_operator_note_ids', [])))
                     state['missing_decision'] = self.store.get_task(task_id)['current_decision_rev'] == before
                     state.pop('pending_turn_rev', None)
                     # A turn that neither advanced the decision nor started a job made no progress.
@@ -490,9 +525,10 @@ class Controller:
 
     def add_note(self, task_id, text):
         """Operator instruction delivered with the agent's next turn (reopens inconclusive/partial tasks on resume)."""
-        state = self._load(task_id)
-        state.setdefault('operator_notes', []).append(text)
-        self._save(task_id, state)
+        self._state_path(task_id)
+        self.store.get_task(task_id)
+        from .operator_notes import publish
+        return publish(self.home, task_id, text)
 
     async def resume(self, task_id):
         return await self.run(task_id)

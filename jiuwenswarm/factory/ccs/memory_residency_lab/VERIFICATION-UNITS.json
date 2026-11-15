@@ -1,0 +1,37 @@
+{
+  "format": "research-component-verification/1",
+  "scope": "package attached; not factory.cc_qualification trusted certificates",
+  "runtime_qualified": false,
+  "units": [
+    {
+      "id": "plan-component",
+      "capabilities": [
+        "plan"
+      ],
+      "implementation": "components/implementation.py",
+      "fixture": "fixtures/plan.json",
+      "verification": "verification.py",
+      "claim": "finite input reference; native capabilities need documented build and separate native experiment"
+    },
+    {
+      "id": "verify-component",
+      "capabilities": [
+        "verify"
+      ],
+      "implementation": "components/implementation.py",
+      "fixture": "fixtures/verify.json",
+      "verification": "verification.py",
+      "claim": "finite input reference; native capabilities need documented build and separate native experiment"
+    },
+    {
+      "id": "native_experiment-component",
+      "capabilities": [
+        "native_experiment"
+      ],
+      "implementation": "components/implementation.py",
+      "fixture": "fixtures/native_experiment.json",
+      "verification": "verification.py",
+      "claim": "finite input reference; native capabilities need documented build and separate native experiment"
+    }
+  ]
+}

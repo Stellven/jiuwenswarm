@@ -1,0 +1,17 @@
+{
+  "format": "factory-component/1",
+  "id": "strata.fixed_expert_budget",
+  "source_revision": "89ae0ee6123597636ef162dec826230186c00f3b",
+  "base_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+  "implementation": "src/dsv41/ds4_model.cu::place_experts",
+  "setting": "DS4_EXPERT_BUDGET_BYTES",
+  "proposed_diagnostic_value": "76000000000",
+  "mechanism": "Exact opt-in expert budget; refuse unsafe fallback and emit placement identity.",
+  "allowed_change": "Source candidate plus one env value on a newly pinned image; same setting in both A/A arms.",
+  "claim": "Diagnostic placement control, not a confirmed token-mismatch fix or throughput gain.",
+  "unsupported": [
+    "multiple GPUs/groups/members",
+    "adaptive expert caching",
+    "HIP/Metal/nonCUDA"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "engine.ssd_streaming_lab",
+  "entrypoint": "components.py",
+  "language": "Python stdlib",
+  "capabilities": [
+    "plan",
+    "evaluate",
+    "read_fixture"
+  ],
+  "certification": "CPU reference only",
+  "qualification_admission": false,
+  "runtime_engagement": "not measured",
+  "gpu_execution": false
+}

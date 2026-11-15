@@ -1,0 +1,32 @@
+cc: '2'
+id: factory.expert_prediction
+version: 1.0.0
+materials:
+  method:
+    kind: method
+    path: METHOD.md
+  trace_schema:
+    kind: reference
+    path: TRACE.schema.json
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  evaluate:
+    kind: tool
+    does: Evaluate a bounded expert trace using request-separated temporal holdout, frozen frequency and causal last-token baselines. No inference execution or speed claim.
+    takes:
+      artifact_id: text
+      k:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 64
+    gives:
+      analysis: json
+      evidence: json
+    needs: [python]
+    changes: [process.exec]

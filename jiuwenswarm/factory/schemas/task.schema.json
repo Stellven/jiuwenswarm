@@ -36,9 +36,27 @@
       }
     },
     "target": {
-      "type": [
-        "string",
-        "object"
+      "oneOf": [
+        {
+          "enum": [
+            "jetson-orin",
+            "spark-gb10"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "profile"
+          ],
+          "properties": {
+            "profile": {
+              "enum": [
+                "jetson-orin",
+                "spark-gb10"
+              ]
+            }
+          }
+        }
       ]
     },
     "budget": {

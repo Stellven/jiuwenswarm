@@ -213,14 +213,142 @@ def parse_engagement(stderr, requires_evidence=None):
                 missing_required=[q for q in required if q not in measured])
 
 
+
+def strata_applicability(contract, observed=None, meminfo='/proc/meminfo'):
+    """Inspect the complete approved pack; configuration is not engagement.
+
+    The llama-specific CPU/mmap/2x-memory heuristic does not apply to Strata's
+    GPU/CPU resident slots and multi-file pack. Keep its byte split unknown.
+    """
+    from .engine_adapters import flag, inspect_assets
+    assets = inspect_assets(contract)
+    argv = contract['workload']['argv']
+    mem = {}
+    try:
+        mem = {k: int(v) * 1024 for k, v in re.findall(
+            r'^(MemTotal|MemAvailable):\s+(\d+) kB', Path(meminfo).read_text(), re.M)}
+    except (OSError, ValueError):
+        pass
+    configured = dict(experts=int(flag(argv, '--experts')),
+                      mmap_experts=flag(argv, '--mmap-experts'),
+                      draft_policy=flag(argv, '--dspark'))
+    return dict(expert_bytes=None, other_bytes=None,
+                mem_total=mem.get('MemTotal'), mem_available=mem.get('MemAvailable'),
+                experts_cpu_side=None, mmap=configured['mmap_experts'] == 'on',
+                verdict='unknown', reasons=[
+                    'Approved strata-v1 configuration requests full-six-expert mapped streaming; no execution engagement is inferred.',
+                    'Complete sealed asset inventory checked; total file bytes are not an expert/other tensor split.',
+                    'Strata resident CPU/GPU placement is not described by llama CPU-MoE flags or its 2x-memory heuristic.',
+                    'Native Strata mechanisms require their own readiness/inflight evidence; llama source patches are not automatically applicable.'],
+                candidates=[dict(component='strata_native_streaming', backend='strata-v1',
+                    status='configured_not_measured', configuration=configured, assets=assets,
+                    observed={} if observed is None else _validated_observed(observed),
+                    expected_performance_benefit='unknown')])
+
+
+def _validated_observed(observed):
+    # Reuse ontology/value validation without presenting llama patches as
+    # applicable Strata integrations or interpreting missing signals as zero.
+    _candidates(observed)
+    return observed
+
+
+def parse_strata_engagement(stdout, stderr, contract, requires_evidence=None):
+    """Use native phase evidence; unavailable streaming counters stay unknown."""
+    from .engine_adapters import parse_protocol, validate_contract
+    required = [] if requires_evidence is None else requires_evidence
+    ontology.validate_quantities(required)
+    blocks = {name: dict(status='not_measured') for name in ('config', 'fill', 'pregate', 'readiness', 'phase')}
+    derived = dict(decode_tokens=None, decode_bytes_read_per_token=None,
+                   demand_wait_ms_per_token=None, recall_at_k=None,
+                   readiness_ratio_predicted=None, readiness_ratio_unpredicted=None,
+                   wasted_bytes_per_token=None, duplicate_bytes_per_token=None,
+                   predicted_hits_done_share=None, predicted_hits_inflight_share=None,
+                   predicted_hits_queued_share=None, predicted_hits_resident_share=None)
+    result = dict(backend='strata-v1', status='not_measured', **blocks,
+                  derived=derived, timings={}, quantities={}, requests=[],
+                  draft=dict(status='not_measured', accepted=None, offered=None),
+                  missing_required=list(required))
+    try:
+        validate_contract(contract)
+        parsed = parse_protocol(stdout, stderr, contract)
+    except (ValueError, TypeError, KeyError, OverflowError) as exc:
+        result.update(status='invalid', error=str(exc)[:400])
+        return result
+    rows = parsed['requests']
+    decode_tokens = sum(row['generated_tokens'] for row in rows)
+    prompt_tokens = sum(row['prompt_tokens'] for row in rows)
+    # Tokens and native milliseconds have matching units/phases. Native STAT
+    # disk_mb/CPU counters are deliberately not mapped to llama ontology fields.
+    quantities = {'decode.ms_per_token': sum(row['decode_ms'] for row in rows) / decode_tokens,
+                  'prompt.ms_per_token': sum(row['prefill_ms'] for row in rows) / prompt_tokens}
+    specs = ontology.load()['quantities']
+    timings = {phase: dict(value=quantities[phase + '.ms_per_token'],
+                          quantity=phase + '.ms_per_token', unit=specs[phase + '.ms_per_token']['unit'],
+                          phase=specs[phase + '.ms_per_token']['phase']) for phase in ('prompt', 'decode')}
+    result.update(status='measured', requests=rows, quantities=quantities, timings=timings,
+                  config=dict(status='measured', backend='strata-v1', effective_experts=parsed['effective_experts']),
+                  phase=dict(status='measured', source='native DONE protocol',
+                             counters=[dict(prompt_tokens=row['prompt_tokens'], decode_tokens=row['generated_tokens'],
+                                            prompt_ms=row['prefill_ms'], decode_ms=row['decode_ms']) for row in rows]),
+                  draft=dict(status='measured', accepted=sum(row['accepted_drafts'] for row in rows),
+                             offered=sum(row['offered_drafts'] for row in rows)),
+                  missing_required=[q for q in required if q not in quantities])
+    result['derived']['decode_tokens'] = decode_tokens
+    return result
+
+
+def _strata_contract(record):
+    """Prefer the attempt/evaluation snapshot over the task's current contract."""
+    contract = record.get('contract') or record.get('request', {}).get('contract')
+    return contract if isinstance(contract, dict) and contract.get('adapter') == 'strata-v1' else None
+
+
+def strata_engagement(store, task_id, refs, contract, required):
+    from .store import NotFound
+    stdout_refs = [ref for ref in refs if ref.endswith(':stdout.log') or ref.endswith('/stdout.log')]
+    runs = []
+    retained = []
+    for stdout_ref in stdout_refs:
+        stderr_ref = stdout_ref[:-len('stdout.log')] + 'stderr.log'
+        retained.append(stdout_ref)
+        if stderr_ref not in refs:
+            runs.append(dict(artifact_id=stdout_ref, backend='strata-v1', status='not_measured',
+                             error='Paired raw stderr.log artifact missing', missing_required=list(required)))
+            continue
+        retained.append(stderr_ref)
+        try:
+            stdout = store.artifact_bytes(task_id, stdout_ref).decode('utf-8')
+            stderr = store.artifact_bytes(task_id, stderr_ref).decode('utf-8')
+            parsed = parse_strata_engagement(stdout, stderr, contract, required)
+        except (OSError, UnicodeError, NotFound) as exc:
+            parsed = dict(backend='strata-v1', status='not_measured', error=str(exc)[:400],
+                          missing_required=list(required))
+        runs.append(dict(artifact_id=stdout_ref, stderr_artifact_id=stderr_ref, **parsed))
+    status = ('invalid' if any(run['status'] == 'invalid' for run in runs) else
+              'measured' if runs and all(run['status'] == 'measured' for run in runs) else 'not_measured')
+    return dict(runs=runs, status=status, missing_required=[q for q in required if not runs or
+                any(q in run['missing_required'] for run in runs)]), retained
+
+
 def dispatch(store, task_id, capability, inputs):
     from .api import fields
     if capability == 'applicability':
         from .contract import load
         fields(inputs, {'model_path','argv','observed'})
-        contract = load(store.get_task(task_id)['contract_id'])
-        values = applicability(inputs.get('model_path',contract['model']['path']),
-                               inputs.get('argv',contract['workload']['argv']), observed=inputs.get('observed'))
+        contract = None
+        if 'model_path' in inputs and 'argv' in inputs:
+            model_path, argv = inputs['model_path'], inputs['argv']
+        else:
+            contract = load(store.get_task(task_id)['contract_id'])
+            model_path = inputs.get('model_path', contract.get('model', {}).get('path'))
+            argv = inputs.get('argv', contract['workload']['argv'])
+        if contract and contract.get('adapter') == 'strata-v1' and 'model_path' not in inputs:
+            if argv != contract['workload']['argv']:
+                raise ValueError('Strata pack inspection uses the approved contract argv')
+            values = strata_applicability(contract, observed=inputs.get('observed'))
+        else:
+            values = applicability(model_path, argv, observed=inputs.get('observed'))
         refs = []
     elif capability == 'engagement':
         fields(inputs, {'attempt_id','evaluation_id','requires_evidence'})
@@ -235,13 +363,17 @@ def dispatch(store, task_id, capability, inputs):
             if record.get('kind') != 'lab':
                 raise ValueError('engagement requires a lab or A/B attempt')
             refs = record.get('result_refs', [])
-        stderr_refs = [ref for ref in refs if ref.endswith(':stderr.txt') or ref.endswith('/stderr.txt')]
-        values = dict(runs=[dict(artifact_id=ref, **parse_engagement(store.artifact_bytes(task_id,ref).decode(errors='replace'), required))
-                            for ref in stderr_refs], status='measured' if stderr_refs else 'not_measured')
-        # All supplied runs must carry required evidence; another arm cannot fill its gaps.
-        values['missing_required'] = [q for q in required if not values['runs'] or
-                                      any(q in run['missing_required'] for run in values['runs'])]
-        refs = stderr_refs
+        contract = _strata_contract(record)
+        if contract:
+            values, refs = strata_engagement(store, task_id, refs, contract, required)
+        else:
+            stderr_refs = [ref for ref in refs if ref.endswith(':stderr.txt') or ref.endswith('/stderr.txt')]
+            values = dict(runs=[dict(artifact_id=ref, **parse_engagement(store.artifact_bytes(task_id,ref).decode(errors='replace'), required))
+                                for ref in stderr_refs], status='measured' if stderr_refs else 'not_measured')
+            # All supplied runs must carry required evidence; another arm cannot fill its gaps.
+            values['missing_required'] = [q for q in required if not values['runs'] or
+                                          any(q in run['missing_required'] for run in values['runs'])]
+            refs = stderr_refs
     else:
         raise ValueError('Unknown expert_streaming capability')
     observation = store.append_observation(task_id, dict(kind='expert_streaming_' + capability,

@@ -1,0 +1,164 @@
+{
+  "format": "research-provenance/1",
+  "reuse": "Original stdlib reference implementation; no upstream source copied",
+  "sources": [
+    {
+      "name": "kvcache-ai/ktransformers",
+      "url": "https://github.com/kvcache-ai/ktransformers",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "ca198c50de70abb6827ba6f573bb6671e54436e2",
+      "license": "Apache-2.0",
+      "readme_sha256": "31a7eb93c6f7b55e12d68a7a9cbfa53006de32da14af3adea91c1e4eb7665749",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/kvcache-ai/ktransformers/blob/ca198c50de70abb6827ba6f573bb6671e54436e2/README.md"
+    },
+    {
+      "name": "efeslab/fiddler",
+      "url": "https://github.com/efeslab/fiddler",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "227715bfd6e8c731b29548eab01d9919c4fe9564",
+      "license": "Apache-2.0",
+      "readme_sha256": "45b01cb0b4e2b617f170b6fcf76c6228a234447566331cb73128fa4cfe701803",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/efeslab/fiddler/blob/227715bfd6e8c731b29548eab01d9919c4fe9564/README.md"
+    },
+    {
+      "name": "jjdna/litemoe",
+      "url": "https://github.com/jjdna/litemoe",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "195f49d2e3dae58201e5fcd11846cf7eb8d545a2",
+      "license": "MIT",
+      "readme_sha256": "cc273a69a6d090eb35370ca6c487111a454d446142dc55a8ad584783e0cd1a22",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/jjdna/litemoe/blob/195f49d2e3dae58201e5fcd11846cf7eb8d545a2/README.md"
+    },
+    {
+      "name": "ZhuLinsen/LiteMoE",
+      "url": "https://github.com/ZhuLinsen/LiteMoE",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "2ed582d655663f711d190f4da7e454f6965589b9",
+      "license": "Apache-2.0",
+      "readme_sha256": "e255f676301eb20ebe17c661890faefeaa526b7fb2902c4c1ccfc55d4cc2f494",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/ZhuLinsen/LiteMoE/blob/2ed582d655663f711d190f4da7e454f6965589b9/README.md"
+    },
+    {
+      "name": "mehbul/strata",
+      "url": "https://github.com/mehbul/strata",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "e8647a84bac93cc2fae5f620726621e56fbc9659",
+      "license": "Apache-2.0",
+      "readme_sha256": "684117ff9f17e0d0195e850b2278eb35513b925e569947ad1b0cf91271579646",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/mehbul/strata/blob/e8647a84bac93cc2fae5f620726621e56fbc9659/README.md"
+    },
+    {
+      "name": "FMInference/FlexLLMGen",
+      "url": "https://github.com/FMInference/FlexLLMGen",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "004ffef82b46e8dc8685c55d0cdda650bdaf1269",
+      "license": "Apache-2.0",
+      "readme_sha256": "19cf01b3faca2faff552ebffb5fa677f46fa0c62c6b39d0471dcb0205ba795ac",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/FMInference/FlexLLMGen/blob/004ffef82b46e8dc8685c55d0cdda650bdaf1269/README.md"
+    },
+    {
+      "name": "deepspeedai/DeepSpeed",
+      "url": "https://github.com/deepspeedai/DeepSpeed",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "5dc44e8453df8d02139c2a761aec4d2f4983b451",
+      "license": "Apache-2.0",
+      "readme_sha256": "452cb0816f31b3997e50ea97a88c3ebd6456cdcdd1b36ac079b378a66350edb5",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/deepspeedai/DeepSpeed/blob/5dc44e8453df8d02139c2a761aec4d2f4983b451/README.md"
+    },
+    {
+      "name": "lyogavin/airllm",
+      "url": "https://github.com/lyogavin/airllm",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "8943b05f0d876557b97a3db84c9f5ea8f8884651",
+      "license": "Apache-2.0",
+      "readme_sha256": "1ee1ea96cfb4301a56f14f410d3383c0c24a469108d23ad03a8a5f24a6b04343",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/lyogavin/airllm/blob/8943b05f0d876557b97a3db84c9f5ea8f8884651/README.md"
+    },
+    {
+      "name": "Tiiny-AI/PowerInfer",
+      "url": "https://github.com/Tiiny-AI/PowerInfer",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "8bd56d69906c9d2dba4d3bf6899763401e01a9a4",
+      "license": "MIT",
+      "readme_sha256": "cc5214d9b44a350dd71dfe4466fe3bbd79945947c1fcc21c2e3aa15b24b332f3",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/Tiiny-AI/PowerInfer/blob/8bd56d69906c9d2dba4d3bf6899763401e01a9a4/README.md"
+    },
+    {
+      "name": "turboderp-org/exllamav2",
+      "url": "https://github.com/turboderp-org/exllamav2",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "7dc12af3a81f34ac3f27cd7602ed539b638933ca",
+      "license": "MIT",
+      "readme_sha256": "424978b7da7dfc635249f5990750dc3c4a04de4ffec20ae9ec6746b38d8f5fab",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/turboderp-org/exllamav2/blob/7dc12af3a81f34ac3f27cd7602ed539b638933ca/README.md"
+    },
+    {
+      "name": "ggml-org/llama.cpp",
+      "url": "https://github.com/ggml-org/llama.cpp",
+      "retrieved_utc": "2026-11-14",
+      "code_copied": false,
+      "GB10_validated": false,
+      "revision": "e574a17b062be51b98e239ccd3d3743e3d902333",
+      "license": "MIT",
+      "readme_sha256": "57e3a1a8c422645f4a0c1bf64f41420991ff62b5a265acb66e9d4acee57dc23f",
+      "verification": "primary repository metadata and pinned README retrieved",
+      "primary_readme": "https://github.com/ggml-org/llama.cpp/blob/e574a17b062be51b98e239ccd3d3743e3d902333/README.md"
+    },
+    {
+      "name": "PowerInfer-2",
+      "url": "https://arxiv.org/abs/2406.06282",
+      "revision": "arXiv identifier; version not pinned",
+      "license": "paper license not verified",
+      "verification": "primary paper abstract verified; separate code identity not established",
+      "GB10_validated": false,
+      "applicability": "smartphone design; do not equate to GB10 implementation"
+    },
+    {
+      "name": "ZeRO-Inference",
+      "url": "https://www.deepspeed.ai/2022/09/09/zero-inference.html",
+      "revision": "2022-09-09 article",
+      "license": "article license not verified",
+      "verification": "primary project article verified",
+      "GB10_validated": false
+    },
+    {
+      "name": "Fiddler paper",
+      "url": "https://arxiv.org/abs/2402.07033",
+      "revision": "arXiv identifier; version not pinned",
+      "license": "paper license not verified",
+      "verification": "primary abstract verified; code repository separately pinned",
+      "GB10_validated": false
+    }
+  ],
+  "ambiguity": "LiteMoE names at least jjdna/litemoe, ZhuLinsen/LiteMoE, and SenSys 2024 proxy submodel tuning. No merged identity or borrowed benchmark claims."
+}

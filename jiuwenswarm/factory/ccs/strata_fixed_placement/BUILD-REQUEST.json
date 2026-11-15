@@ -1,0 +1,14 @@
+{
+  "target": "spark-gb10",
+  "source": {
+    "path": "/home/user2/software-factory-spark-20261113/projects/fixed-placement",
+    "commit": "89ae0ee6123597636ef162dec826230186c00f3b"
+  },
+  "dependency": {
+    "path": "/home/user2/software-factory-spark-20261113/sources/strata-ggml",
+    "commit": "3cf03257f219afbe7334045ff7c6a06ac68c627d"
+  },
+  "tag": "factory/strata:fixed-placement-89ae0ee6",
+  "deadline_s": 1800,
+  "env": {}
+}

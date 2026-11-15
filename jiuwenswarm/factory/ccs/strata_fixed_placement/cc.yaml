@@ -1,0 +1,25 @@
+cc: '2'
+id: engine.strata_fixed_placement
+version: 1.0.0
+materials:
+  component:
+    kind: component
+    path: COMPONENT.json
+  patch:
+    kind: component
+    path: fixed-placement.patch
+  provenance:
+    kind: reference
+    path: SOURCE.json
+  build_request:
+    kind: reference
+    path: BUILD-REQUEST.json
+  method:
+    kind: method
+    path: METHOD.md
+  integration:
+    kind: skill
+    path: INTEGRATE.md
+  verification:
+    kind: reference
+    path: VERIFICATION.json

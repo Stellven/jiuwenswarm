@@ -25,9 +25,9 @@ def submit(manager, task_id, base_image, candidate_image, base_env, candidate_en
            rounds, idem_key, component, contract_id=None, node_id=None):
     task = manager.store.get_task(task_id)
     contract_id = contract_id or task.get('contract_id')
-    if task.get('contract_id') and contract_id != task['contract_id']:
-        raise ValueError('A/B contract must match the task')
-    contract = dict(contracts.load(contract_id))
+    contract = dict(contracts.load_for_task(task, contract_id))
+    if contract.get('adapter') == 'strata-v1':
+        raise ValueError('Strata repeatability contract is non-scoring; use methodology.ablation to propose a separately approved comparison contract')
     if not contracts.reference_info(contract).get('stdout_sha256'):
         raise ValueError('Operator must freeze the contract reference before A/B scoring')
     material = components.load(component)

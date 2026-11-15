@@ -1,0 +1,90 @@
+{
+  "cc": "2",
+  "id": "engine.memory_residency_lab",
+  "version": "1.0.0",
+  "materials": {
+    "guide": {
+      "kind": "skill",
+      "path": "SKILL.md"
+    },
+    "method": {
+      "kind": "method",
+      "path": "METHOD.md"
+    },
+    "sources": {
+      "kind": "reference",
+      "path": "SOURCES.json"
+    },
+    "verification": {
+      "kind": "reference",
+      "path": "VERIFICATION-UNITS.json"
+    },
+    "component": {
+      "kind": "component",
+      "path": "COMPONENT.json"
+    },
+    "examples": {
+      "kind": "reference",
+      "path": "EXAMPLES.json"
+    }
+  },
+  "bindings": {
+    "default": {
+      "kind": "native",
+      "command": [
+        "{python}",
+        "{bundle}/run.py"
+      ]
+    }
+  },
+  "capabilities": {
+    "plan": {
+      "kind": "tool",
+      "does": "Plan aligned arena offsets from half-open liveness intervals.",
+      "takes": {
+        "request": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    },
+    "verify": {
+      "kind": "tool",
+      "does": "Check overlap and replay live tensor contents in a byte arena.",
+      "takes": {
+        "request": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    },
+    "native_experiment": {
+      "kind": "tool",
+      "does": "Execute bundled native C++ touch/check experiment for a validated plan.",
+      "takes": {
+        "request": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    }
+  }
+}

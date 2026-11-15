@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.lab_client
-version: 1.0.0
+version: 1.1.0
 bindings:
   default:
     kind: native
@@ -10,12 +10,23 @@ bindings:
 capabilities:
   submit:
     kind: tool
-    does: Admit a local image and submit a fixed lab evaluation through the GPU queue.
+    does: Admit an image object with exactly tag and immutable id, plus a separate build_attempt_id, and submit a fixed lab evaluation through the GPU queue.
       run_config may include profile nsys to trace the run with Nsight Systems; the
       result then carries a kernel, CUDA API and OS-runtime breakdown. Traced timing
       is perturbed and is never speed evidence.
     takes:
-      image: json
+      image:
+        kind: json
+        schema:
+          type: object
+          additionalProperties: false
+          required: [tag, id]
+          properties:
+            tag:
+              type: string
+            id:
+              type: string
+              pattern: '^sha256:[a-f0-9]{64}$'
       build_attempt_id: text
       contract_id: text
       run_config: json

@@ -1,0 +1,94 @@
+{
+  "format": "native-component-round/1",
+  "utc": "2026-11-15T06:26:40Z",
+  "machine": "aarch64",
+  "source_sha256": "46c79d8478ce14a02c66fb7fa39d77b3b9b26a5211a04e6425da48f9f2b7bdc1",
+  "binary_sha256": "f7b8558f7ea5157c4259d1d73d37a3b56ff937d2a149099340394de499cb28a6",
+  "request": {
+    "alignment": 64,
+    "tensors": [
+      {
+        "name": "attention_scratch",
+        "bytes": 8388608,
+        "start": 0,
+        "end": 2
+      },
+      {
+        "name": "expert_scratch",
+        "bytes": 12582912,
+        "start": 2,
+        "end": 4
+      },
+      {
+        "name": "next_layer_scratch",
+        "bytes": 8388608,
+        "start": 4,
+        "end": 6
+      },
+      {
+        "name": "residual",
+        "bytes": 2097152,
+        "start": 0,
+        "end": 6
+      }
+    ]
+  },
+  "result": {
+    "alignment": 64,
+    "allocations": [
+      {
+        "name": "attention_scratch",
+        "bytes": 8388608,
+        "start": 0,
+        "end": 2,
+        "offset": 0
+      },
+      {
+        "name": "expert_scratch",
+        "bytes": 12582912,
+        "start": 2,
+        "end": 4,
+        "offset": 0
+      },
+      {
+        "name": "next_layer_scratch",
+        "bytes": 8388608,
+        "start": 4,
+        "end": 6,
+        "offset": 0
+      },
+      {
+        "name": "residual",
+        "bytes": 2097152,
+        "start": 0,
+        "end": 6,
+        "offset": 12582912
+      }
+    ],
+    "arena_bytes": 14680064,
+    "independent_aligned_bytes": 31457280,
+    "peak_live_payload_lower_bound": 14680064,
+    "saved_bytes": 16777216,
+    "reduction_fraction": 0.5333333333333333,
+    "interval_convention": "[start,end)",
+    "qualification": "native_cpu_scratch_microexperiment_not_engine_rss",
+    "native": {
+      "correct": true,
+      "arena_allocated_bytes": 14680064,
+      "baseline_independent_payload_bytes": 31457280,
+      "baseline_allocate_touch_check_ms": 17.0482,
+      "baseline_checksum": 67108864,
+      "checked_bytes": 35651584,
+      "written_bytes": 31457280,
+      "allocation_touch_check_ms": 18.2027
+    }
+  },
+  "scope": "native CPU payload allocations; explicit synthetic lifetimes; not whole engine memory",
+  "environment": {
+    "os": "Linux",
+    "host_arch": "aarch64",
+    "native_build": "g++ -O2 -std=c++17 native_arena.cpp -o native_arena",
+    "native_binary_distribution": "external experiment artifact; excluded from portable CC package",
+    "measurement_mode": "manual operator-serialized component round; predated host-bound gpu handle declaration"
+  }
+}

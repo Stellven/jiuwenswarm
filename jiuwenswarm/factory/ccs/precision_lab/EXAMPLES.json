@@ -1,0 +1,58 @@
+{
+  "quantize": {
+    "request": {
+      "values": [
+        0,
+        -7,
+        7,
+        0,
+        1,
+        -1,
+        3
+      ],
+      "block_size": 4
+    }
+  },
+  "evaluate": {
+    "request": {
+      "reference": [
+        0,
+        1,
+        2
+      ],
+      "candidate": [
+        0,
+        1.01,
+        2
+      ],
+      "max_abs_budget": 0.02
+    }
+  },
+  "calibrate": {
+    "request": {
+      "values": [
+        0,
+        -7,
+        7,
+        0,
+        1,
+        -1,
+        3
+      ],
+      "block_sizes": [
+        2,
+        4,
+        8
+      ],
+      "max_abs_budget": 0.6
+    }
+  },
+  "memory_plan": {
+    "request": {
+      "weight_elements": 123,
+      "tokens": 128,
+      "kv_heads": 8,
+      "head_dim": 64
+    }
+  }
+}

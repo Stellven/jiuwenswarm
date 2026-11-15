@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "slices": {
+    "decode": {
+      "question": "What is on the decode critical path?",
+      "signals": [
+        "decode_ms",
+        "generated_tokens",
+        "critical_path_wait_ms"
+      ]
+    },
+    "prefill": {
+      "question": "Does prompt processing dominate request latency?",
+      "signals": [
+        "prompt_ms",
+        "prompt_tokens",
+        "ttft_ms"
+      ]
+    },
+    "placement": {
+      "question": "Does residency reduce demand stalls within host headroom?",
+      "signals": [
+        "resident_expert_bytes",
+        "vram_hit",
+        "host_available_bytes"
+      ]
+    },
+    "io": {
+      "question": "Are demand reads on the critical path?",
+      "signals": [
+        "physical_read_bytes",
+        "demand_wait_ms",
+        "ready_at_demand_bytes"
+      ]
+    },
+    "cpu": {
+      "question": "Are CPU scheduling or oversubscription delaying the GPU?",
+      "signals": [
+        "cpu_time_ms",
+        "run_queue_wait_ms",
+        "cpu_quota"
+      ]
+    },
+    "cache": {
+      "question": "How do initialization and fixed repeat workloads differ?",
+      "signals": [
+        "physical_read_bytes",
+        "canonical_ids_sha256",
+        "cache_policy"
+      ]
+    },
+    "draft": {
+      "question": "Does verified drafting save target work at fixed correctness?",
+      "signals": [
+        "draft_accepted",
+        "draft_offered",
+        "decode_ms"
+      ]
+    },
+    "quality": {
+      "question": "Are output and full-model obligations preserved?",
+      "signals": [
+        "canonical_ids_sha256",
+        "finish_reason",
+        "effective_experts",
+        "task_accuracy"
+      ]
+    },
+    "telemetry": {
+      "question": "Are results complete and observer costs bounded?",
+      "signals": [
+        "collector_exit",
+        "container_removed",
+        "observer_overhead",
+        "artifact_integrity"
+      ]
+    }
+  },
+  "meaning": "Vocabulary and questions, not a planner, measured bottleneck or grant."
+}

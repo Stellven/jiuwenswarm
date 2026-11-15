@@ -1,0 +1,168 @@
+"""Native CUDA 13/SM121 Strata builder; no development image or model access."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import re
+import time
+import platform
+
+BASE = 'ghcr.io/ggml-org/llama.cpp@sha256:695214dcb4d4062014335702caee98836bbf92c5974b78331c70e152176cbf08'
+FLAGS = ['-DCMAKE_BUILD_TYPE=Release', '-DSTRATA_BUILD_DSV41=ON', '-DSTRATA_ENABLE_CUDA=ON',
+         '-DSTRATA_BUILD_TESTS=OFF', '-DSTRATA_PORTABLE=ON',
+         '-DSTRATA_ARM64_ARCH=armv8.2-a+dotprod+fp16+i8mm',
+         '-DCMAKE_CUDA_ARCHITECTURES=121-real;121-virtual', '-DGGML_NATIVE=OFF',
+         '-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16+i8mm', '-DGGML_OPENMP=OFF']
+
+NATIVE_COMPILE = r'''
+import hashlib,json,os,pathlib,shutil,subprocess,sys,time,platform
+if platform.machine() not in ("aarch64", "arm64"):raise ValueError("Native ARM64 compilation required")
+source,build,app,receipt,flags=sys.argv[1:]
+flags=json.loads(flags);app=pathlib.Path(app);app.mkdir(parents=True,exist_ok=True)
+tools={t:subprocess.check_output([t,'--version'],text=True) for t in ('nvcc','gcc','cmake','ninja')}
+if 'release 13.' not in tools['nvcc']:raise ValueError('CUDA13 required')
+configure_started=time.monotonic()
+subprocess.run(['cmake','-G','Ninja','-S',source,'-B',build,*flags],check=True)
+configure_seconds=time.monotonic()-configure_started
+compile_started=time.monotonic()
+subprocess.run(['cmake','--build',build,'--parallel','8','--target','strata-dsv41'],check=True)
+compile_seconds=time.monotonic()-compile_started
+executable=pathlib.Path(build)/'strata-dsv41';shutil.copy2(executable,app/executable.name)
+linked=subprocess.check_output(['ldd',str(executable)],text=True)
+for line in linked.splitlines():
+ if '=>' in line:
+  path=pathlib.Path(line.split('=>',1)[1].strip().split()[0])
+  if path.is_file() and (str(path).startswith('/usr/local/cuda') or path.is_relative_to(build)):
+   shutil.copy2(path,app/path.name)
+with executable.open('rb') as stream:digest=hashlib.file_digest(stream,'sha256').hexdigest()
+pathlib.Path(receipt).write_text(json.dumps(dict(toolchain=tools,linked_libraries=linked,compile_host_architecture=platform.machine(),
+ configure_seconds=configure_seconds,compile_seconds=compile_seconds,
+ executable_sha256=digest,toolchain_manifest_sha256=hashlib.sha256(pathlib.Path('/opt/toolchain/toolchain.json').read_bytes()).hexdigest()),indent=2))
+'''
+
+
+def native_compile_argv(image, source, dependency, build, out, flags, *, name=None, labels=None):
+    """No GPU, network, socket or writable source in the native builder."""
+    if not re.fullmatch(r'sha256:[a-f0-9]{64}', image):
+        raise ValueError('Native builder requires an immutable image ID')
+    mounts = [(source, True), (dependency, True), (build, False), (out, False)]
+    argv = ['docker', 'run', '--rm', '--pull=never', '--network=none', '--read-only',
+            '--user', f'{os.getuid()}:{os.getgid()}', '--cap-drop=ALL',
+            '--security-opt=no-new-privileges', '--pids-limit=512', '--cpus=8',
+            '--memory=16g', '--memory-swap=16g', '--tmpfs', '/tmp:rw,nosuid,nodev,size=4g']
+    for path, readonly in mounts:
+        if any(c in str(path) for c in (',', '\n', '\0')):
+            raise ValueError('Invalid builder mount')
+        argv += ['--mount', f'type=bind,src={path},dst={path}' + (',readonly' if readonly else '')]
+    if name:
+        argv += ['--name', name]
+    for key, value in sorted((labels or {}).items()):
+        argv += ['--label', key + '=' + value]
+    for key in ('CFLAGS', 'CXXFLAGS', 'LDFLAGS'):
+        if key in os.environ:
+            argv += ['--env', key + '=' + os.environ[key]]
+    return [*argv, '--entrypoint', '/usr/bin/python3', image, '-c', NATIVE_COMPILE,
+            str(source), str(build), str(out/'image/app'), str(out/'native-compile.json'), json.dumps(flags)]
+
+def main():
+    p = argparse.ArgumentParser()
+    for name in ('target','source','commit','tag','out','dependency','dependency-commit'):
+        p.add_argument('--'+name, required=True)
+    a = p.parse_args()
+    if a.target != 'spark-gb10':
+        raise ValueError('Spark worker target mismatch')
+    source, out = Path(a.source), Path(a.out)
+    out.mkdir(parents=True, exist_ok=False)
+    record = dict(status='failed', target=a.target, source={'commit': a.commit}, flags=FLAGS,
+                  host_architecture=platform.machine(), phase_seconds={})
+    start = time.monotonic()
+    def run(name, argv):
+        phase_started = time.monotonic()
+        try:
+            with (out/(name+'.log')).open('w') as log:
+                subprocess.run(list(map(str,argv)), stdout=log, stderr=subprocess.STDOUT, check=True)
+        finally:
+            record['phase_seconds'][name] = time.monotonic() - phase_started
+        return (out/(name+'.log')).read_text().strip()
+    try:
+        if platform.machine() not in ('aarch64', 'arm64'):
+            raise ValueError('Spark builds require a native ARM64 host; emulation is not admitted')
+        if run('head',['git','-C',source,'rev-parse','HEAD']) != a.commit or run('clean',['git','-C',source,'status','--porcelain','--untracked-files=all']):
+            raise ValueError('Source changed')
+        dependency = Path(a.dependency)
+        if run('dependency-head',['git','-C',dependency,'rev-parse','HEAD']) != a.dependency_commit or run('dependency-clean',['git','-C',dependency,'status','--porcelain','--untracked-files=all']):
+            raise ValueError('Dependency changed')
+        flags = [*FLAGS, '-DSTRATA_GGML_DIR='+str(dependency)]
+        record['flags'] = flags
+        record['dependency'] = dict(path=str(dependency), commit=a.dependency_commit)
+        record['source']['tree'] = run('tree',['git','-C',source,'rev-parse','HEAD^{tree}'])
+        builder_image = os.environ.get('FACTORY_NATIVE_BUILDER_IMAGE')
+        if builder_image:
+            builder_info = json.loads(run('builder-image', ['docker','image','inspect',builder_image]))[0]
+            if builder_info['Id'] != builder_image or builder_info['Architecture'] != 'arm64':
+                raise ValueError('Native ARM64 builder identity mismatch')
+            record['toolchain'] = dict(native_builder_image=builder_image)
+        else:
+            record['toolchain'] = {t:run(t,[t,'--version']) for t in ('nvcc','gcc','cmake','ninja')}
+            if 'release 13.' not in record['toolchain']['nvcc']:
+                raise ValueError('CUDA 13 compiler required')
+        # Host compute admission supplements shared queue exclusivity.
+        gpu = run('gpu-admission',['nvidia-smi','--query-compute-apps=pid,process_name','--format=csv,noheader'])
+        available = int(next(l.split()[1] for l in Path('/proc/meminfo').read_text().splitlines() if l.startswith('MemAvailable:')))
+        record['admission'] = dict(gpu_processes=gpu, available_kib=available)
+        if gpu or available < 16*1024**2:
+            raise ValueError('Unrelated compute or insufficient available memory')
+        identity = dict(source=record['source'], toolchain=record['toolchain'], flags=flags, dependency=record['dependency'],
+                        environment={k:os.environ.get(k) for k in ('PATH','CC','CXX','CUDAHOSTCXX','CUDACXX','CFLAGS','CXXFLAGS','LDFLAGS','LD_LIBRARY_PATH')},
+                        recipe_sha256=hashlib.sha256((Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile').read_bytes()).hexdigest(),
+                        builder_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+        key = hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
+        build = Path(os.environ['FACTORY_HOME']).parent/'cache'/('deepseek-'+key[:24])
+        record['cache_path'], record['configuration_sha256'] = str(build), key
+        record['build_cache_present'] = (build/'CMakeCache.txt').is_file()
+        # Presence is not a hit: Ninja may still rebuild; retain compile timing/logs.
+        app = out/'image/app'
+        if builder_image:
+            build.mkdir(parents=True, exist_ok=True)
+            from jiuwenswarm.factory.lab_lifecycle import OwnedContainerGuard
+            with OwnedContainerGuard(out/'native-owner', builder_image,
+                    lease_root=Path(os.environ['FACTORY_HOME']).parent/'lab-lease',
+                    kind='build', timeout_s=5400) as guard:
+                run('native-compile', native_compile_argv(builder_image, source, dependency, build, out, flags,
+                                                         name=guard.name, labels=guard.labels))
+            record.update(json.loads((out/'native-compile.json').read_text()), native_builder_image=builder_image)
+            record['toolchain']['native_builder_image'] = builder_image
+        else:
+            run('configure',['cmake','-G','Ninja','-S',source,'-B',build,*flags])
+            run('compile',['cmake','--build',build,'--parallel','8','--target','strata-dsv41'])
+            app.mkdir(parents=True)
+            executable = build/'strata-dsv41'
+            shutil.copy2(executable,app/executable.name)
+            # Include non-system shared dependencies resolved by the actual executable.
+            ldd = run('ldd',['ldd',executable])
+            record['linked_libraries'] = ldd
+            for line in ldd.splitlines():
+                if '=>' in line:
+                    path = Path(line.split('=>',1)[1].strip().split()[0])
+                    if path.is_file() and (str(path).startswith('/usr/local/cuda') or path.is_relative_to(build)):
+                        shutil.copy2(path,app/path.name)
+            record['executable_sha256'] = hashlib.sha256(executable.read_bytes()).hexdigest()
+        recipe = Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile'
+        shutil.copy2(recipe,out/'image/Dockerfile')
+        argv = ['docker','build','--network=none','--pull=false','-t',a.tag]
+        from jiuwenswarm.factory.targets import labels
+        for k,v in labels(a.target).items():
+            argv += ['--label',k+'='+v]
+        argv += ['--label','factory.source='+a.commit,'--label','factory.owner=cc-dgx-spark',out/'image']
+        run('package',argv)
+        record['image'] = json.loads(run('image',['docker','image','inspect',a.tag]))[0]
+        record['status'] = 'success'
+    finally:
+        record['build_wall_seconds'] = time.monotonic()-start
+        (out/'build-record.json').write_text(json.dumps(record,indent=2))
+
+if __name__ == '__main__':
+    main()

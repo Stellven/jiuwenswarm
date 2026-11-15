@@ -173,15 +173,20 @@ def test_preflight_flags_and_id_cache(setup, tmp_path, monkeypatch):
 def test_catalog_factory_capsules(tmp_path):
     catalog = Catalog([CCS, CCS / 'expert_streaming/components'], tmp_path / 'catalog')
     rows = catalog.scan()
-    assert len(rows) == 16 and not catalog.errors
+    assert len(list(CCS.glob('*/cc.yaml'))) == 39
+    assert len(rows) == 47 and not catalog.errors
     by_id = {row['cc']: row for row in rows}
-    assert set(by_id) == {'engine.expert_streaming'} | {'factory.' + name for name in NAMES + ['methodology_ab'] + ['components.' + n for n in ['mmap_advice', 'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join', 'phase_stats']]}
-    assert set(by_id['factory.engine_inspector']['capabilities']) == {'inspect', 'preflight', 'verify_effective_config'}
+    assert set(by_id) == {'engine.expert_streaming', 'engine.strata_verified_drafting', 'engine.strata_prefill_chunk', 'engine.strata_prefill_workbench', 'engine.strata_throughput_workbench', 'engine.strata_fixed_placement', 'engine.expert_cache_lab', 'engine.ssd_streaming_lab', 'engine.heterogeneous_placement_lab', 'engine.precision_lab', 'engine.kv_reuse_lab', 'engine.serving_scheduler_lab', 'factory.methodology_transfer_lab', 'engine.strata_budget_workbench', 'engine.memory_residency_lab', 'engine.gpu_kernel_lab', 'factory.branch_workbench', 'factory.cc_workflow_lab', 'factory.native_inventory_once', 'factory.evidence_digest_lab'} | {'factory.' + name for name in NAMES + ['methodology_ab','methodology_diagnosis','methodology_out_of_core','methodology_ablation','methodology_followup','lab_lifecycle','standard_benchmark','deep_profile','engine_factory_loop','expert_prediction','methodology_hypothesis','inference_lab','cc_qualification'] + ['components.' + n for n in ['mmap_advice', 'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join', 'phase_stats']]}
+    assert set(by_id['factory.engine_inspector']['capabilities']) == {'inspect', 'inspect_strata', 'preflight', 'verify_effective_config'}
     assert set(by_id['factory.builder']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
     assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}
     assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish', 'plan_get', 'plan_patch'}
+    from jiuwenswarm.factory.job_packages import ROUTES
+    assert set(by_id['engine.strata_prefill_workbench']['capabilities']) == set(ROUTES['engine.strata_prefill_workbench'])
+    assert set(by_id['factory.cc_qualification']['capabilities']) == {'inspect_package','verify_unit','assess_admission'}
+    assert set(by_id['factory.inference_lab']['capabilities']) == set(ROUTES['factory.inference_lab'])
     assert by_id['factory.engine_component']['capabilities'] == {}
-    assert by_id['factory.integration_skill']['capabilities'] == {}
+    assert set(by_id['factory.integration_skill']['capabilities']) == set(ROUTES['factory.integration_skill'])
 
 
 def test_lab_unknown_attempt_is_not_found(setup, tmp_path):
@@ -192,10 +197,16 @@ def test_lab_unknown_attempt_is_not_found(setup, tmp_path):
 def test_inspect_checkout_and_source_containment(setup, tmp_path):
     from jiuwenswarm.factory.inspector import dispatch
     home, _ = setup
+    import subprocess
+    source = tmp_path / 'independent-source'
+    subprocess.run(['git','init','-q',str(source)],check=True)
+    (source/'README.md').write_text('Independent source fixture, no borrowed Git objects.')
+    subprocess.run(['git','-C',str(source),'add','README.md'],check=True)
+    subprocess.run(['git','-C',str(source),'-c','user.name=Factory fixture','-c','user.email=factory@example.invalid','commit','-qm','fixture'],check=True)
     with Store(home) as store:
         result = dispatch(store.scoped('task'), 'task', 'inspector.inspect', {
             'inputs': {'source': 'workspace', 'subpath': '.'},
-            'resources': {'workspace': {'kind': 'workspace', 'path': str(ROOT)}}})
+            'resources': {'workspace': {'kind': 'workspace', 'path': str(source)}}})
         assert result['outcome'] == 'ok', result
         assert len(result['outputs']['source']['commit']) == 40
         assert isinstance(result['outputs']['source']['dirty'], bool)

@@ -1,0 +1,775 @@
+{
+  "trace": [
+    {
+      "seq": 0,
+      "request": "r0",
+      "token": 0,
+      "layer": 0,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 1,
+      "request": "r0",
+      "token": 0,
+      "layer": 0,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 2,
+      "request": "r0",
+      "token": 0,
+      "layer": 0,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 3,
+      "request": "r0",
+      "token": 0,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 4,
+      "request": "r0",
+      "token": 0,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 5,
+      "request": "r0",
+      "token": 0,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 6,
+      "request": "r0",
+      "token": 0,
+      "layer": 1,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 7,
+      "request": "r0",
+      "token": 0,
+      "layer": 1,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 8,
+      "request": "r0",
+      "token": 0,
+      "layer": 1,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 9,
+      "request": "r0",
+      "token": 0,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 10,
+      "request": "r0",
+      "token": 0,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 11,
+      "request": "r0",
+      "token": 0,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 12,
+      "request": "r1",
+      "token": 0,
+      "layer": 0,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 13,
+      "request": "r1",
+      "token": 0,
+      "layer": 0,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 14,
+      "request": "r1",
+      "token": 0,
+      "layer": 0,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 15,
+      "request": "r1",
+      "token": 0,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 16,
+      "request": "r1",
+      "token": 0,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 17,
+      "request": "r1",
+      "token": 0,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 18,
+      "request": "r1",
+      "token": 0,
+      "layer": 1,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 19,
+      "request": "r1",
+      "token": 0,
+      "layer": 1,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 20,
+      "request": "r1",
+      "token": 0,
+      "layer": 1,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 21,
+      "request": "r1",
+      "token": 0,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 22,
+      "request": "r1",
+      "token": 0,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 23,
+      "request": "r1",
+      "token": 0,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 24,
+      "request": "r0",
+      "token": 1,
+      "layer": 0,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 25,
+      "request": "r0",
+      "token": 1,
+      "layer": 0,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 26,
+      "request": "r0",
+      "token": 1,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 27,
+      "request": "r0",
+      "token": 1,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 28,
+      "request": "r0",
+      "token": 1,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 29,
+      "request": "r0",
+      "token": 1,
+      "layer": 0,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 30,
+      "request": "r0",
+      "token": 1,
+      "layer": 1,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 31,
+      "request": "r0",
+      "token": 1,
+      "layer": 1,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 32,
+      "request": "r0",
+      "token": 1,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 33,
+      "request": "r0",
+      "token": 1,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 34,
+      "request": "r0",
+      "token": 1,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 35,
+      "request": "r0",
+      "token": 1,
+      "layer": 1,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 36,
+      "request": "r1",
+      "token": 1,
+      "layer": 0,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 37,
+      "request": "r1",
+      "token": 1,
+      "layer": 0,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 38,
+      "request": "r1",
+      "token": 1,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 39,
+      "request": "r1",
+      "token": 1,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 40,
+      "request": "r1",
+      "token": 1,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 41,
+      "request": "r1",
+      "token": 1,
+      "layer": 0,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 42,
+      "request": "r1",
+      "token": 1,
+      "layer": 1,
+      "expert": 1,
+      "bytes": 3
+    },
+    {
+      "seq": 43,
+      "request": "r1",
+      "token": 1,
+      "layer": 1,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 44,
+      "request": "r1",
+      "token": 1,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 45,
+      "request": "r1",
+      "token": 1,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 46,
+      "request": "r1",
+      "token": 1,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 47,
+      "request": "r1",
+      "token": 1,
+      "layer": 1,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 48,
+      "request": "r0",
+      "token": 2,
+      "layer": 0,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 49,
+      "request": "r0",
+      "token": 2,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 50,
+      "request": "r0",
+      "token": 2,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 51,
+      "request": "r0",
+      "token": 2,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 52,
+      "request": "r0",
+      "token": 2,
+      "layer": 0,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 53,
+      "request": "r0",
+      "token": 2,
+      "layer": 0,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 54,
+      "request": "r0",
+      "token": 2,
+      "layer": 1,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 55,
+      "request": "r0",
+      "token": 2,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 56,
+      "request": "r0",
+      "token": 2,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 57,
+      "request": "r0",
+      "token": 2,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 58,
+      "request": "r0",
+      "token": 2,
+      "layer": 1,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 59,
+      "request": "r0",
+      "token": 2,
+      "layer": 1,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 60,
+      "request": "r1",
+      "token": 2,
+      "layer": 0,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 61,
+      "request": "r1",
+      "token": 2,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 62,
+      "request": "r1",
+      "token": 2,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 63,
+      "request": "r1",
+      "token": 2,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 64,
+      "request": "r1",
+      "token": 2,
+      "layer": 0,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 65,
+      "request": "r1",
+      "token": 2,
+      "layer": 0,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 66,
+      "request": "r1",
+      "token": 2,
+      "layer": 1,
+      "expert": 2,
+      "bytes": 4
+    },
+    {
+      "seq": 67,
+      "request": "r1",
+      "token": 2,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 68,
+      "request": "r1",
+      "token": 2,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 69,
+      "request": "r1",
+      "token": 2,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 70,
+      "request": "r1",
+      "token": 2,
+      "layer": 1,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 71,
+      "request": "r1",
+      "token": 2,
+      "layer": 1,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 72,
+      "request": "r0",
+      "token": 3,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 73,
+      "request": "r0",
+      "token": 3,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 74,
+      "request": "r0",
+      "token": 3,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 75,
+      "request": "r0",
+      "token": 3,
+      "layer": 0,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 76,
+      "request": "r0",
+      "token": 3,
+      "layer": 0,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 77,
+      "request": "r0",
+      "token": 3,
+      "layer": 0,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 78,
+      "request": "r0",
+      "token": 3,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 79,
+      "request": "r0",
+      "token": 3,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 80,
+      "request": "r0",
+      "token": 3,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 81,
+      "request": "r0",
+      "token": 3,
+      "layer": 1,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 82,
+      "request": "r0",
+      "token": 3,
+      "layer": 1,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 83,
+      "request": "r0",
+      "token": 3,
+      "layer": 1,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 84,
+      "request": "r1",
+      "token": 3,
+      "layer": 0,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 85,
+      "request": "r1",
+      "token": 3,
+      "layer": 0,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 86,
+      "request": "r1",
+      "token": 3,
+      "layer": 0,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 87,
+      "request": "r1",
+      "token": 3,
+      "layer": 0,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 88,
+      "request": "r1",
+      "token": 3,
+      "layer": 0,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 89,
+      "request": "r1",
+      "token": 3,
+      "layer": 0,
+      "expert": 0,
+      "bytes": 2
+    },
+    {
+      "seq": 90,
+      "request": "r1",
+      "token": 3,
+      "layer": 1,
+      "expert": 3,
+      "bytes": 5
+    },
+    {
+      "seq": 91,
+      "request": "r1",
+      "token": 3,
+      "layer": 1,
+      "expert": 4,
+      "bytes": 6
+    },
+    {
+      "seq": 92,
+      "request": "r1",
+      "token": 3,
+      "layer": 1,
+      "expert": 5,
+      "bytes": 7
+    },
+    {
+      "seq": 93,
+      "request": "r1",
+      "token": 3,
+      "layer": 1,
+      "expert": 6,
+      "bytes": 8
+    },
+    {
+      "seq": 94,
+      "request": "r1",
+      "token": 3,
+      "layer": 1,
+      "expert": 7,
+      "bytes": 9
+    },
+    {
+      "seq": 95,
+      "request": "r1",
+      "token": 3,
+      "layer": 1,
+      "expert": 0,
+      "bytes": 2
+    }
+  ],
+  "capacity_bytes": 32,
+  "policy": "lru",
+  "train_events": 24
+}

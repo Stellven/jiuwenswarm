@@ -1,0 +1,29 @@
+cc: '2'
+id: factory.methodology_hypothesis
+version: 1.0.0
+materials:
+  methodology:
+    kind: method
+    path: METHOD.md
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  propose:
+    kind: tool
+    does: Record an agent-authored unmeasured hypothesis linked to scoped evidence; does not fetch citations or execute experiments.
+    takes:
+      hypothesis_id:
+        kind: json
+        schema:
+          type: string
+          pattern: '^[a-z][a-z0-9_-]{0,63}$'
+      hypothesis:
+        kind: json
+    gives:
+      proposal: json
+      observation_id: json
+      replayed: json
+    needs: [python]
+    changes: [process.exec]

@@ -1,5 +1,11 @@
 # Before a bounded engine run
 
+Read JOB.md and identify the target first. The preflight and
+verify_effective_config tools below are llama-compatible probes; they do not
+validate Strata settings. On an unsupported target, publish the missing probe
+and use its authorized verification adapter rather than interpreting llama
+output as target evidence. These probes execute only on explicit tool calls.
+
 Adapted from siminfeng/cc/abrun/preflight.py, test_effective_config.py,
 c2/METHODS.md and c2/MEASUREMENT-GAPS.md. Tag-keyed help caching in the old
 preflight is superseded: resolve docker image inspect Id on every call, then
@@ -7,7 +13,7 @@ cache help by that immutable Id and tool under FACTORY_HOME/preflight/.
 Retagging must never reuse help from the old image. Query /app/<tool> --help
 using --runtime nvidia; reject every unsupported flag before a workload.
 
-Call inspector.verify_effective_config with the exact image and LLAMA_* (LLAMA_EXPERT_* are compared with the effective-config line; other switches are reported as engine_lines)
+Call verify_effective_config with the exact image and LLAMA_* (LLAMA_EXPERT_* are compared with the effective-config line; other switches are reported as engine_lines)
 string environment. It runs one CPU-only Granite token (-ngl 0, context 256),
 with a 45-second subprocess deadline. This checks model-independent parsing,
 not Qwen worker activation or performance. Unknown names and invalid values

@@ -36,7 +36,7 @@ class Manager:
         self.jobs = Jobs(store)
 
     def admit(self, task_id, image_ref, build_attempt_id):
-        self.store.get_task(task_id)
+        task = self.store.get_task(task_id)
         if not isinstance(image_ref, dict) or set(image_ref) != {'tag', 'id'}:
             raise ValueError('image requires tag and id')
         if (not isinstance(image_ref['tag'], str) or not image_ref['tag'] or image_ref['tag'].startswith('-')
@@ -54,10 +54,13 @@ class Manager:
         row = inspect_image(image_ref['tag'])
         if row['Id'] != receipt.get('image_id') or row['Id'] != image_ref['id']:
             raise AdmissionError('BAD_DIGEST', 'Local image Id differs from build receipt or requested Id')
-        if row.get('Architecture') != 'arm64' or (row.get('Config', {}).get('Labels') or {}).get('campaign.target.profile') != 'jetson-orin':
-            raise AdmissionError('WRONG_TARGET', 'Image requires arm64 and campaign.target.profile=jetson-orin')
+        from .targets import validate_image
+        try:
+            target = validate_image(task.get('target') or 'jetson-orin', row, build['request'].get('target'))
+        except ValueError as exc:
+            raise AdmissionError('WRONG_TARGET', str(exc)) from exc
         admission = dict(task_id=task_id, image=dict(image_ref), build_attempt_id=build_attempt_id,
-            delivery='same_host_local_image', architecture='arm64', target_profile='jetson-orin')
+            delivery='same_host_local_image', architecture='arm64', target_profile=target)
         key = hashlib.sha256(encoded(admission).encode()).hexdigest()
         admission['admission_id'] = 'admission:' + key
         self.store.put_artifact(task_id, admission['admission_id'], encoded(admission).encode(),
@@ -74,13 +77,18 @@ class Manager:
         # role is set only by the Manager (freeze_reference -> 'reference'); agents cannot pass it.
         if role not in {'candidate', 'reference'}:
             raise ValueError('role must be candidate or reference')
-        admission = self._admission(task_id, admission_id)
-        contract = contracts.load(contract_id)
         if not isinstance(run_config, dict) or set(run_config) - {'env', 'argv_overrides', 'profile'}:
             raise ValueError('run_config allows env, argv_overrides and profile')
         profile = run_config.get('profile')
-        if profile not in (None, 'nsys'):
-            raise ValueError('run_config.profile must be nsys when given')
+        if profile not in (None, 'nsys', 'strata-native'):
+            raise ValueError('run_config.profile must be nsys or strata-native when given')
+        admission = self._admission(task_id, admission_id)
+        contract = contracts.load_for_task(self.store.get_task(task_id), contract_id)
+        if profile == 'strata-native' and contract.get('adapter') != 'strata-v1':
+            raise ValueError('strata-native profiling requires a Strata contract')
+        if contract.get('adapter') == 'strata-v1':
+            from .strata_lab import submit
+            return submit(self, task_id, admission, contract, run_config, idem_key, node_id)
         from .components import environment
         env = environment(contract, run_config.get('env', {}))
         argv = contract['workload']['argv']
@@ -128,10 +136,26 @@ class Manager:
         return dict(result, ab_result=observation['values'] if observation else None)
 
     def status(self, attempt_id):
-        return self.jobs.status(attempt_id)
+        result = self.jobs.status(attempt_id)
+        attempt = self.jobs._get(attempt_id)
+        root = self.spool_root / attempt_id
+        if (attempt['request'].get('adapter') == 'strata-v1' and result['state'] in {'succeeded','failed','cancelled'}
+                and not (root/'manifest.json').exists()):
+            if os.environ.get('FACTORY_BRIDGE_DIR'):
+                from .bridge import call
+                call('recover_lab', attempt_id=attempt_id).check_returncode()
+            else:
+                from .strata_lab import recover_upload
+                recover_upload(self, attempt['task_id'], attempt_id, root)
+        if attempt['request'].get('adapter') == 'strata-v1' and (root/'manifest.json').exists():
+            self.ingest_upload(attempt['task_id'], attempt_id, root)
+        return result
 
     def cancel(self, attempt_id):
         attempt = self.jobs.cancel(attempt_id)
+        if attempt['request'].get('adapter') == 'strata-v1':
+            self.status(attempt_id)
+            return self.jobs._get(attempt_id)
         root = self.spool_root / attempt_id
         # jobq can SIGKILL an unresponsive worker. Reap only that run's recorded
         # container too, even if the worker's finally block could not execute.
@@ -143,6 +167,7 @@ class Manager:
         return attempt
 
     def result(self, attempt_id):
+        self.status(attempt_id)
         result = self.jobs.result(attempt_id)
         attempt = self.jobs._get(attempt_id)
         evaluation = None
@@ -163,6 +188,9 @@ class Manager:
         if root != self.spool_root / lab_run_id or not root.is_dir():
             raise ValueError('Bundle must be the lab run directory in the configured spool')
         attempt = self.store._get('attempts', task_id, lab_run_id)
+        if attempt['request'].get('adapter') == 'strata-v1':
+            from .strata_lab import ingest
+            return ingest(self, task_id, lab_run_id, root)
         if attempt['request'].get('mode') == 'ab':
             from .ab import ingest
             return ingest(self, task_id, lab_run_id, root)
@@ -274,7 +302,7 @@ def import_baseline_build(manager, task_id, source_task='operator-bare-build', s
     except NotFound:
         attempt = manager.store.create_attempt(task_id, dict(attempt_id=key, kind='build', idem_key=key,
             fingerprint=hashlib.sha256(receipt_bytes).hexdigest(),
-            request=dict(imported_from=f"{source_task}:{src['attempt_id']}", tag=src['request'].get('tag'))))
+            request=dict(imported_from=f"{source_task}:{src['attempt_id']}", tag=src['request'].get('tag'), target=src['request'].get('target'))))
     for state in ('running', 'succeeded'):
         if attempt['state'] in {'queued', 'running'} and attempt['state'] != 'succeeded':
             attempt = manager.store.transition_attempt(task_id, key, state)

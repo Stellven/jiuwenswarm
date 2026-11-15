@@ -1,0 +1,14 @@
+{
+  "id": "engine.expert_cache_lab",
+  "entrypoint": "components.py",
+  "language": "Python stdlib",
+  "capabilities": [
+    "validate",
+    "replay",
+    "predict"
+  ],
+  "certification": "CPU reference only",
+  "qualification_admission": false,
+  "runtime_engagement": "not measured",
+  "gpu_execution": false
+}

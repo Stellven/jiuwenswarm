@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "strata.verified_drafting",
+  "engine": "strata-dsv41",
+  "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+  "kind": "runtime_configuration_component",
+  "source_map": [
+    {"file": "src/dsv41/ds4_main.cpp", "symbols": ["round", "Req.spec", "Model.draft", "Model.verify"], "purpose": "Draft native MTP tokens and accept only target-verified continuation tokens"},
+    {"file": "src/dsv41/ds4_model.cu", "symbols": ["draft", "verify"], "purpose": "Pinned engine's native draft and target paths"}
+  ],
+  "change": {"setting": "--dspark", "baseline": "none", "candidate": "on", "maximum_changed_variables": 1},
+  "fixed": {"--dspark-conf": "0.65", "--experts": "6", "--mmap-experts": "on", "--cpu-threads": "8", "--reserve-mib": "16384", "--vram-experts": "1.0", "--no-expert-cache": true, "STRATA_DS4_REUSE": "0"},
+  "required_engagement": ["full six target experts", "actual offered drafts greater than zero during speed generation", "accepted drafts less than or equal to offered drafts", "normal exit and verified cleanup"],
+  "quality_obligations": ["Freeze the public benchmark sample and scoring before A/B", "Report baseline A/A task and token variability", "Score all selected examples including invalid answers", "Do not relax prior byte-identity contracts", "Do not claim general accuracy or bit-identical greedy output from target verification alone"],
+  "expected_benefit": "unknown",
+  "implementation_status": "configuration_transform_implemented; engine mechanism preexists",
+  "promotion_status": "not_promoted",
+  "authority": "Candidate profile generation only. No source patch, job submission, contract mutation or permission expansion."
+}

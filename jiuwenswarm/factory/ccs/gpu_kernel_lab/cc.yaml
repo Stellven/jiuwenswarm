@@ -1,0 +1,80 @@
+{
+  "cc": "2",
+  "id": "engine.gpu_kernel_lab",
+  "version": "1.0.0",
+  "materials": {
+    "guide": {
+      "kind": "skill",
+      "path": "SKILL.md"
+    },
+    "method": {
+      "kind": "method",
+      "path": "METHOD.md"
+    },
+    "sources": {
+      "kind": "reference",
+      "path": "SOURCES.json"
+    },
+    "verification": {
+      "kind": "reference",
+      "path": "VERIFICATION-UNITS.json"
+    },
+    "component": {
+      "kind": "component",
+      "path": "COMPONENT.json"
+    },
+    "examples": {
+      "kind": "reference",
+      "path": "EXAMPLES.json"
+    }
+  },
+  "bindings": {
+    "default": {
+      "kind": "native",
+      "command": [
+        "{python}",
+        "{bundle}/run.py"
+      ]
+    }
+  },
+  "capabilities": {
+    "evaluate": {
+      "kind": "tool",
+      "does": "Compare route-preserving batched expert matrix-vector output to FP64 CPU oracle.",
+      "takes": {
+        "request": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    },
+    "benchmark": {
+      "kind": "tool",
+      "does": "Execute bundled CUDA kernels and finite shape tile sweep with CPU oracle.",
+      "takes": {
+        "request": "json",
+        "gpu": {
+          "kind": "handle",
+          "description": "Host-bound GPU handle issued only for an exclusive operator-scheduled measurement slot."
+        }
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python",
+        "gpu"
+      ],
+      "changes": [
+        "process.exec",
+        "gpu.use"
+      ]
+    }
+  }
+}

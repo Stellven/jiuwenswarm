@@ -175,3 +175,11 @@ def test_attempt_lifecycle_and_evaluation_fields(store):
     assert (evaluation['execution_outcome'], evaluation['correctness'], evaluation['evidence_completeness']) == ('ok', 'fail', 'partial')
     upload = store.add_upload('a', {'lab_run_id': 'lab', 'sha256': 'abc', 'ack_state': 'pending'})
     assert store.read('a', upload['upload_id']) == upload
+
+
+def test_structured_report_in_text_field_has_actionable_error(store):
+    import pytest
+    with pytest.raises(ValueError,match='expected_evidence must be text'):
+        store.advance_decision('t',0,{'expected_evidence':['receipt']})
+    with pytest.raises(ValueError,match='limitations must be text'):
+        store.append_observation('t',{'kind':'report','limitations':['uncertain']})

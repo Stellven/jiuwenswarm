@@ -4,8 +4,8 @@ Adapted from siminfeng/c2/skills/engine-ab-experiment/SKILL.md, c2/METHODS.md
 and c2/MEASUREMENT-GAPS.md. The old static spec/jobq driver instructions are
 superseded by the factory decision/evidence and builder/lab interfaces.
 
-Read the actual rejection: evidence.query returns bounded summaries/cursor;
-evidence.read(id) returns the record or artifact preview. Follow the source
+Read the actual rejection: evidence_query returns bounded summaries/cursor;
+evidence_read(id) returns the record or artifact preview. Follow the source
 artifact ids. Do not diagnose from an arm name, submission acknowledgement,
 missing metric interpreted as zero, or an old success. Preserve failed evidence.
 

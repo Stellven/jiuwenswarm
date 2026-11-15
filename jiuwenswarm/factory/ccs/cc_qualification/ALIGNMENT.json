@@ -1,0 +1,8 @@
+{
+  "source_repository": "muxite-tools-20261114",
+  "source_commit": "e897ff47a89a2f0e07db1e63b399d45abf0cc02e",
+  "source_documents": ["AI4Research-Notebook/Designs/CC Protocols/README.md", "AI4Research-Notebook/Designs/CC Protocols/FORMAT.md", "AI4Research-Notebook/Designs/CC Protocols/USAGE.md", "AI4Research-Notebook/Designs/CC Protocols/IMPLEMENTATION.md"],
+  "source_pin_receipt": "docs/architecture/factory/UPSTREAM-CC-ALIGNMENT-SOURCE-PINS.json",
+  "alignment": "Domain profile material and explicit verification capabilities; no core schema, registry or automatic checking change.",
+  "claim_scope": "Known local implementation identity and explicitly requested bounded configuration invariants only."
+}

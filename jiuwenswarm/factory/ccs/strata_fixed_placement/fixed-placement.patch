@@ -1,0 +1,167 @@
+diff --git a/docs/FIXED_PLACEMENT.md b/docs/FIXED_PLACEMENT.md
+new file mode 100644
+index 00000000..c4925867
+--- /dev/null
++++ b/docs/FIXED_PLACEMENT.md
+@@ -0,0 +1,19 @@
++# Opt-in fixed expert budget diagnostic
++
++DS4_EXPERT_BUDGET_BYTES accepts a positive decimal integer through9007199254740991.
++It requires CUDA, one GPU/group/member and --no-expert-cache. It preserves the
++existing safe-memory calculation and fails when the requested budget exceeds
++that bound; it never silently reduces the requested value. Unset preserves the
++existing path. The chosen bytes cover the entire expert budget, including any
++loaded draft experts. Freeze the same model, drafting load mode and expert-profile
++file as well as the byte value for comparisons.
++
++The startup emits requested/effective/safe bytes and per-layer plus aggregate
++FNV1a64 hashes of layer index, expert count, resident count and expert-to-slot
++mapping. The hash is diagnostic identity, not a cryptographic integrity proof.
++Compare every layer hash, effective chunk and resources across fresh processes.
++A fixed expert map does not establish deterministic kernels or model correctness.
++The budget does not freeze all scratch allocations or remove host memory guards.
++
++This is an unmeasured diagnostic candidate. It responds to observed fresh-process
++placement variation; that variation has not been proved to cause token mismatch.
+diff --git a/src/dsv41/ds4_fixed_placement.hpp b/src/dsv41/ds4_fixed_placement.hpp
+new file mode 100644
+index 00000000..ba394b0a
+--- /dev/null
++++ b/src/dsv41/ds4_fixed_placement.hpp
+@@ -0,0 +1,32 @@
++// Opt-in deterministic expert-budget helpers. No CUDA dependency.
++#pragma once
++#include <cmath>
++#include <cstdint>
++
++namespace strata::ds4::fixed_placement {
++inline bool parse_budget(const char* text, uint64_t& value) {
++    constexpr uint64_t maximum = 9007199254740991ULL; // exact integer in double
++    if (text == nullptr || *text == '\0') return false;
++    uint64_t result = 0;
++    for (const char* p = text; *p; ++p) {
++        if (*p < '0' || *p > '9') return false;
++        const uint64_t digit = (uint64_t) (*p - '0');
++        if (result > (maximum - digit) / 10) return false;
++        result = result * 10 + digit;
++    }
++    if (result == 0) return false;
++    value = result;
++    return true;
++}
++inline bool fits(uint64_t requested, double safe) {
++    return requested > 0 && std::isfinite(safe) && safe >= (double) requested;
++}
++inline uint64_t hash_initial() { return 14695981039346656037ULL; }
++inline void hash_word(uint64_t& hash, uint32_t word) {
++    // Canonical little-endian uint32 fields, independent of host byte order.
++    for (int b = 0; b < 4; ++b) {
++        hash ^= (word >> (8 * b)) & 255u;
++        hash *= 1099511628211ULL;
++    }
++}
++} // namespace strata::ds4::fixed_placement
+diff --git a/src/dsv41/ds4_fixed_placement_test.cpp b/src/dsv41/ds4_fixed_placement_test.cpp
+new file mode 100644
+index 00000000..90c8d392
+--- /dev/null
++++ b/src/dsv41/ds4_fixed_placement_test.cpp
+@@ -0,0 +1,24 @@
++// CPU-only helper checks; no GPU/model. Compile separately from engine.
++#include "ds4_fixed_placement.hpp"
++#include <cassert>
++#include <limits>
++#include <initializer_list>
++using namespace strata::ds4::fixed_placement;
++int main() {
++    uint64_t n = 7;
++    for (const char* bad : {"", "0", "-1", "+1", " 1", "1 ", "1.0", "1e9", "9007199254740992", "18446744073709551616"}) {
++        assert(!parse_budget(bad, n));
++        assert(n == 7);
++    }
++    assert(!parse_budget(nullptr, n));
++    assert(parse_budget("76000000000", n) && n == 76000000000ULL);
++    assert(fits(n, 76000000000.0));
++    assert(!fits(n, 75999999999.0));
++    assert(!fits(n, std::numeric_limits<double>::infinity()));
++    assert(!fits(n, std::numeric_limits<double>::quiet_NaN()));
++    uint64_t a = hash_initial(), b = hash_initial();
++    hash_word(a, 0x01020304); hash_word(b, 0x01020304);
++    assert(a == b);
++    hash_word(b, 1); assert(a != b);
++    assert(parse_budget("9007199254740991", n) && n == 9007199254740991ULL);
++}
+diff --git a/src/dsv41/ds4_model.cu b/src/dsv41/ds4_model.cu
+index 91835edb..915974c1 100644
+--- a/src/dsv41/ds4_model.cu
++++ b/src/dsv41/ds4_model.cu
+@@ -12,6 +12,7 @@
+ //   moe(x): 6 of 384 routed experts (sqrt-softplus scores, biased top-k) + the shared expert
+ //   h = post * moe + comb^T h;  pre = f_pre
+ // and after the last layer logits = head(rmsnorm(sum_s pre[s] h[s])).
++#include "ds4_fixed_placement.hpp"
+ #include "ds4_marks.hpp"
+ #include "ds4_ring_link.hpp"
+ #include "ds4_launch.h"   // strata_ds4_launch: <<<>>> on CUDA and HIP, a dispatch on Metal
+@@ -5370,6 +5371,22 @@ struct Model::Impl {
+     }
+ 
+     bool place_experts(std::string& err) {
++        uint64_t fixed_budget = 0;
++        const char* fixed_env = std::getenv("DS4_EXPERT_BUDGET_BYTES");
++        if (fixed_env != nullptr) {
++            if (!fixed_placement::parse_budget(fixed_env, fixed_budget)) {
++                err = "DS4_EXPERT_BUDGET_BYTES requires a positive decimal integer <= 9007199254740991";
++                return false;
++            }
++#if !defined(__CUDACC__) || defined(STRATA_USE_HIP) || defined(STRATA_METAL)
++            err = "DS4_EXPERT_BUDGET_BYTES supports CUDA only";
++            return false;
++#endif
++            if (devs.size() != 1 || groups.size() != 1 || groups[0].mem.size() != 1 || o.expert_cache) {
++                err = "DS4_EXPERT_BUDGET_BYTES requires one GPU/group/member and --no-expert-cache";
++                return false;
++            }
++        }
+         // a lending device (Chunk::borrow) whose experts' room would hardly hold the prompt path's (a GPU with little
+         // left for experts, --vram-experts near 0): its own room after all, taken before the experts' as before
+         for (size_t di = 0; di < devs.size() && chunk > 0; ++di) {
+@@ -5443,6 +5460,15 @@ struct Model::Impl {
+                 budget = capped;
+                 room = std::max(0.0, room - std::min(budget, all) * nm);
+             }
++            if (fixed_env != nullptr) {
++                if (!fixed_placement::fits(fixed_budget, budget)) {
++                    err = "DS4_EXPERT_BUDGET_BYTES exceeds the safe expert budget; refusing variable fallback";
++                    return false;
++                }
++                std::fprintf(stderr, "ds4: fixed expert budget requested=%llu effective=%llu safe=%.0f bytes\n",
++                             (unsigned long long) fixed_budget, (unsigned long long) fixed_budget, budget);
++                budget = (double) fixed_budget;
++            }
+             double budget_t = budget;   // the drafter's experts first, all of them (every draft uses its blocks)
+             for (Layer& l : L)
+                 if (l.grp == (int) gi && l.mtp) {
+@@ -5671,6 +5697,22 @@ struct Model::Impl {
+                 CK(cudaMemcpy(x.vram_tab, tab.data(), tab.size() * 8, cudaMemcpyHostToDevice));
+             }
+         }
++        if (fixed_env != nullptr) {
++            uint64_t total_hash = fixed_placement::hash_initial();
++            for (const Layer& l : L) {
++                uint64_t layer_hash = fixed_placement::hash_initial();
++                fixed_placement::hash_word(layer_hash, (uint32_t) l.il);
++                fixed_placement::hash_word(layer_hash, (uint32_t) l.n_exp);
++                fixed_placement::hash_word(layer_hash, (uint32_t) l.n_vram);
++                for (int slot : l.slot) fixed_placement::hash_word(layer_hash, (uint32_t) (slot + 1));
++                fixed_placement::hash_word(total_hash, (uint32_t) layer_hash);
++                fixed_placement::hash_word(total_hash, (uint32_t) (layer_hash >> 32));
++                std::fprintf(stderr, "ds4: fixed placement layer=%d experts=%d resident=%d fnv1a64=%016llx\n",
++                             l.il, l.n_exp, l.n_vram, (unsigned long long) layer_hash);
++            }
++            std::fprintf(stderr, "ds4: fixed placement layers=%zu fnv1a64=%016llx\n",
++                         L.size(), (unsigned long long) total_hash);
++        }
+         return true;
+     }
+ 

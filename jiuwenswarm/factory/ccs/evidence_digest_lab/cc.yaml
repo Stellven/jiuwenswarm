@@ -1,0 +1,32 @@
+cc: '2'
+id: factory.evidence_digest_lab
+version: 1.0.0
+materials:
+  component: {kind: component, path: COMPONENT.json}
+  method: {kind: method, path: METHOD.md}
+  skill: {kind: skill, path: SKILL.md}
+  examples: {kind: reference, path: EXAMPLES.json}
+  verification: {kind: reference, path: VERIFICATION-UNITS.json}
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  index:
+    kind: tool
+    does: Return bounded task-local JSON artifact field shapes and hashes without source values.
+    takes:
+      artifact_ids: json
+      max_output_bytes: {kind: json, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  project:
+    kind: tool
+    does: Return exact JSON-pointer selections with source hashes and explicit omitted top-level keys; fail on bounds.
+    takes:
+      sources: json
+      max_output_bytes: {kind: json, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]

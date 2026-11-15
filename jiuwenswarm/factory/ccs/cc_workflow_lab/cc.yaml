@@ -1,0 +1,52 @@
+cc: '2'
+id: factory.cc_workflow_lab
+version: 1.0.0
+materials:
+  method:
+    kind: method
+    path: METHOD.md
+  skill:
+    kind: skill
+    path: SKILL.md
+  examples:
+    kind: reference
+    path: EXAMPLES.json
+  verification:
+    kind: reference
+    path: VERIFICATION-UNITS.json
+  fixture:
+    kind: reference
+    path: fixtures/qualification.json
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  analyze_receipts:
+    kind: tool
+    does: Summarize up to 128 supplied CPU invocation observations.
+    takes: {spec: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  design_workflow:
+    kind: tool
+    does: Estimate explicit workflow costs without scheduling or widening authority.
+    takes: {spec: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  benchmark_fixture:
+    kind: tool
+    does: Measure only the finite bundled historical CPU receipt fixture.
+    takes: {spec: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  run_batch:
+    kind: tool
+    does: Run up to 16 package-local analysis operations with a fixed allowlist.
+    takes: {spec: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]

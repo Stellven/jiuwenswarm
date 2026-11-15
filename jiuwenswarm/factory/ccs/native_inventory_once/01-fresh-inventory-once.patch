@@ -1,0 +1,29 @@
+--- a/jiuwenswarm/ccv2/ccv2.py
++++ b/jiuwenswarm/ccv2/ccv2.py
+@@ -306,6 +306,17 @@
+ def complete_result(receipt, packet):
+     """Optional mechanical acceptance check; this establishes no semantic quality."""
+     return 'PASS' if receipt['completeness'] == 'complete' else 'FAIL'
++
++
++def _package_inventory():
++    """Fresh inventory with one metadata parse per distribution; no cache."""
++    inventory = []
++    for distribution in importlib.metadata.distributions():
++        metadata = distribution.metadata
++        name = metadata['Name']
++        if name:
++            inventory.append([name, metadata['Version']])
++    return sorted(inventory)
+ 
+ 
+ class Host:
+@@ -687,7 +698,7 @@
+             receipt['provenance'] = {'binding': binding, 'started': time.time(), 'inputs': deepcopy(inputs),
+                                      'source_release': release, 'python': {'path': self.python, 'sha256': file_sha(self.python)},
+                                      'workspace_before': workspace_before, 'verification': verification,
+-                                     'packages': sorted([d.metadata['Name'], d.version] for d in importlib.metadata.distributions() if d.metadata['Name'])}
++                                     'packages': _package_inventory()}
+             if 'provenance' in decl:
+                 receipt['provenance']['build_record'] = self.put_artifact(contained(bundle, decl['provenance']))
+             (attempt / 'request.json').write_bytes(encoded(request))
