@@ -1,0 +1,200 @@
+{
+  "scope": "Job-oriented CC revision; source and package validation",
+  "tests": {
+    "passed": 810,
+    "skipped": 1,
+    "failed": 0,
+    "seconds": 130.89
+  },
+  "revised_packages": [
+    {
+      "id": "engine.expert_streaming",
+      "version": "2.1.0",
+      "release": "ae4a32102cea54eef9528bf5412b1af4a817b5287257f71d892bfb01b3fb0544",
+      "capabilities": [
+        "applicability",
+        "build_cancel",
+        "build_result",
+        "build_status",
+        "build_submit",
+        "engagement",
+        "evidence_publish",
+        "evidence_query",
+        "evidence_read",
+        "inspect",
+        "inspect_strata",
+        "lab_ab_result",
+        "lab_ab_status",
+        "lab_ab_submit",
+        "lab_cancel",
+        "lab_result",
+        "lab_status",
+        "lab_submit",
+        "preflight",
+        "verify_effective_config"
+      ],
+      "materials": [
+        "ab_method",
+        "expert_fill",
+        "expert_pregate",
+        "expert_readiness",
+        "guide",
+        "inflight_join",
+        "integrate",
+        "integration_job",
+        "job_verification",
+        "method",
+        "mmap_advice",
+        "ontology",
+        "phase_stats",
+        "preflight",
+        "repair",
+        "router_prefetch",
+        "source_map",
+        "thread_names"
+      ]
+    },
+    {
+      "id": "factory.inference_lab",
+      "version": "1.1.0",
+      "release": "620ec564770605a85eea14de107de2f6adffa6004eae289c17d35743190140e6",
+      "capabilities": [
+        "ablation",
+        "analyze_profile",
+        "apply_drafting",
+        "apply_prefill",
+        "cache_protocol",
+        "collect",
+        "diagnose",
+        "evaluate_prediction",
+        "execute",
+        "followup",
+        "lab_cancel",
+        "lab_result",
+        "lab_status",
+        "lab_submit",
+        "profile_plan",
+        "propose",
+        "publish",
+        "qualify_prefill",
+        "query",
+        "read",
+        "select",
+        "status",
+        "stop",
+        "test_scope"
+      ],
+      "materials": [
+        "components",
+        "integration",
+        "job_skill",
+        "methodology",
+        "references",
+        "scopes",
+        "verification_units"
+      ]
+    },
+    {
+      "id": "factory.integration_skill",
+      "version": "1.1.0",
+      "release": "56317852a1cb3aa48959093164528bc381dd8b60c63f5e931f9c629af7f5fd8f",
+      "capabilities": [
+        "build_cancel",
+        "build_result",
+        "build_status",
+        "build_submit",
+        "evidence_publish",
+        "evidence_query",
+        "evidence_read",
+        "inspect",
+        "inspect_strata",
+        "lab_ab_result",
+        "lab_ab_status",
+        "lab_ab_submit",
+        "lab_cancel",
+        "lab_result",
+        "lab_status",
+        "lab_submit",
+        "preflight",
+        "verify_effective_config"
+      ],
+      "materials": [
+        "integrate",
+        "integration_job",
+        "job_verification",
+        "preflight",
+        "repair"
+      ]
+    },
+    {
+      "id": "engine.strata_prefill_workbench",
+      "version": "1.1.0",
+      "release": "de7d87edf041aa802975f48495fae88fcbb0aa218f512f39d32221370d69a546",
+      "capabilities": [
+        "ablation",
+        "apply",
+        "collect",
+        "design",
+        "diagnose",
+        "execute",
+        "followup",
+        "inspect",
+        "loop_status",
+        "publish",
+        "qualify_profile",
+        "query",
+        "read",
+        "result",
+        "select",
+        "status",
+        "stop",
+        "submit",
+        "test_scope",
+        "verify_profile"
+      ],
+      "materials": [
+        "component",
+        "integration",
+        "job_verification",
+        "method",
+        "verification_units"
+      ]
+    }
+  ],
+  "retained_data_workflow": {
+    "package": "factory.inference_lab",
+    "capabilities": [
+      "query",
+      "read",
+      "diagnose",
+      "test_scope",
+      "followup",
+      "publish"
+    ],
+    "requests_recognized": 14,
+    "correctness_failures": 1,
+    "new_attempts": 0,
+    "driver": "operator through native CC Host"
+  },
+  "artifacts": [
+    {
+      "path": "/home/user2/software-factory-spark-20261113/results/job-package-final-tests.log",
+      "sha256": "9af133ec731480aa61cd1ea7becf7cab24dd0d18932c3161676e9cec60b41281"
+    },
+    {
+      "path": "/home/user2/software-factory-spark-20261113/results/job-package-retained-analysis.json",
+      "sha256": "0083c1417e766a555e5d82cce1060802b162e3b8eee05486949f35e8fbfdff06"
+    },
+    {
+      "path": "/home/user2/software-factory-spark-20261113/results/job-package-releases.json",
+      "sha256": "e7330714dc306bdf066689de74ddce1d8bbcdc7c93d7e952e3c61f31dc3220ed"
+    }
+  ],
+  "limits": [
+    "No new GPU inference or live-agent experiment in this revision.",
+    "Build/lab execution in workflow tests is simulated.",
+    "Package sealing does not certify runtime performance or correctness.",
+    "Deployed agent image and historical handoff archives have not been refreshed."
+  ],
+  "git_diff_check": "passed"
+}

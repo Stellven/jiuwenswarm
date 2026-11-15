@@ -1,0 +1,64 @@
+{
+  "observed_at_utc": "2026-11-14T18:33:48.161542+00:00",
+  "source_root": "/home/user2/software-factory-spark-20261113/sources/muxite-tools-20261114",
+  "commit": "e897ff47a89a2f0e07db1e63b399d45abf0cc02e",
+  "working_tree_status": "",
+  "scope": "Read-only upstream documents; historical proposed designs are not current execution proof",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "size": 1564,
+      "sha256": "faceab905f00d9abc0a140f4f3e3afda28fc7ef271ab3c8c9fc600f5957b06a4"
+    },
+    {
+      "path": "TRANSFER/CONTINUE.md",
+      "size": 11422,
+      "sha256": "ab4cda7e5a3ed83da622a8b3945615b9c179825deb69caed94d3f3d4a08177e5"
+    },
+    {
+      "path": "AI4Research-Notebook/AGENTS.md",
+      "size": 4404,
+      "sha256": "ea82929c2c7285c3781da6f4032505aa97c0728de46327c43843a6d308360838"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC Protocols/README.md",
+      "size": 4226,
+      "sha256": "f93e24441fa741cafd82c2487813c650a3c1711d7f3bc031ea0324d6a386a5ac"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC Protocols/FORMAT.md",
+      "size": 12994,
+      "sha256": "a726df78366ca6ea1b0d851418d3792317ff21410a34438a686442d3f5ae9c0d"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC Protocols/USAGE.md",
+      "size": 11099,
+      "sha256": "87b516da07bec495da139b2c227ab9d9dc53041e3543e7e18c8601621772eb6a"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC Protocols/IMPLEMENTATION.md",
+      "size": 5764,
+      "sha256": "bbe2511559066136d4c479e1c8e902474b4d068bd6857281b30f31a0b1d579bf"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC and Strata delivery/Start here.md",
+      "size": 6197,
+      "sha256": "25b52f56190a75ece7f0fcaf03d8e97c40cbe831891286980d98f01a243feb98"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC and Strata delivery/Capability capsules/Start here.md",
+      "size": 7381,
+      "sha256": "3fbff20f7a580d0f93d74a2a9a950a2a9d2b55e6e75caed3cadf6dfa90500f19"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC and Strata delivery/Strata Research Lab/guide/Qualification.md",
+      "size": 5775,
+      "sha256": "7a0a1dad3ab41068f183aaacbbb5d77c5397a61f27c51c343d6e2bf3d8330d76"
+    },
+    {
+      "path": "AI4Research-Notebook/Designs/CC and Strata delivery/CC and Software Factory/guide/Discovery and installation.md",
+      "size": 3187,
+      "sha256": "bdeab083ab2e55595e2a5570587adf332bd92f2240d6dc870b09ae36a339ef6e"
+    }
+  ]
+}

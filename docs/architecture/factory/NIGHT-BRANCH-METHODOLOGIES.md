@@ -1,0 +1,58 @@
+# Branching inference factory: November 15 methodology round
+
+This round extends the factory with job-sized capability packages and executes the first experiments manually. It is a preliminary exploration system, not a claim that the engine now autonomously optimizes itself for weeks. The operator's deadline is 03:00 Toronto, November 15 (08:00 UTC). Engine measurements, synthetic components and factory overhead have separate evidence scopes.
+
+## New packages and agent jobs
+
+| Package | Job and bundled capabilities | First application |
+|---|---|---|
+| `engine.strata_budget_workbench` | Construct one-variable expert-budget profiles, verify native admission/placement hashes, summarize memory with explicit accounting scope; integration and interpretation skill | Same qualified engine, 76 GB versus 68 GB expert budget |
+| `engine.memory_residency_lab` | Lifetime/alignment planner, overlap verifier, live-content replay, native arena experiment, methodology for tracing actual completion lifetimes | Synthetic native scratch allocation: 30→14 MiB; engine integration still required |
+| `engine.gpu_kernel_lab` | Bounded expert routes/matrices, CPU correctness oracle, native CUDA route batching and CTA sweep, applicability and measurement skill | Four GPU component shapes; does not estimate model tokens/s |
+| `factory.cc_workflow_lab` | Analyze receipts, design a cohesive job, benchmark fixed fixtures, execute a bounded batch; methodology for separating useful work from invocation overhead | Real Host invocations, release reuse and batch versus separate calls |
+| `factory.native_inventory_once` | Optional source-pinned host patch, reference implementation, equivalence verification and isolated benchmark methodology | Avoid repeated parsing of the same distribution metadata within one invocation; no persistent cache |
+| `factory.branch_workbench` | Durable create/fork/refine/attach/record/prune/status/ready/compare tools with taskgraph history, evidence and budget validation | A completed real JiuwenSwarm CPU mission consumed manual evidence, created five branches and proposed a divergence investigation |
+| `factory.evidence_digest_lab` | Exact bounded artifact projection, field inventory, source/pointer hashes, omissions and systematic evidence-intake skill | Three actual reports projected through native Host; selected values verified, no inferred agent token savings |
+
+The first four are useful contained jobs. Their toolsets include more than one narrow operation because the skill must guide the agent from input validation through useful output and interpretation. The host patch is a material/component package, rather than an artificial one-command tool. Branch tracking is a separate factory responsibility; it does not choose the scientific hypothesis or run the GPU. Multiple CCs may support a node, while a package's own core job does not require constant alternating calls to another package.
+
+## Three possible workflows
+
+**Memory frontier.** The agent sees that the model is larger than physical memory and hypothesizes that fewer resident experts might free useful headroom at acceptable latency. It uses the budget package to propose a single changed profile, preserves a control, then submits the existing qualified lab path. The lab quiets the factory, retains native logs and kernel memory peaks, and recovers its owned container after exit or crash. The agent checks within-arm placement stability, per-question output changes, prefill/decode timing and separate memory scopes. It may fork a smaller budget or reject the branch. An arena-reuse branch is independent: its liveness plan can first be tested without loading the model, but it needs real CUDA completion lifetimes before engine integration.
+
+**Kernel specialization.** The agent studies grouped expert execution, freezes the actual model's tensor formats, routes and device capabilities, and starts with the GPU-kernel package's oracle and a few representative shapes. It records launch counts and device timing rather than translating a synthetic ratio into model throughput. If the subtask improves, the next node integrates the change at a precisely identified Strata call site, preserving selected experts and reduction semantics. The builder compiles natively on ARM64; a small numerical test precedes a full engine run. An independent holdout shape and order reversal are needed because selecting the best CTA from one fixed-order sweep is optimistic. This package currently demonstrates FP32 dispatch batching; it is not a replacement for Strata's quantized kernels or grouped tensor-core GEMM.
+
+**Factory throughput.** The agent finds that thousands of tiny analyses spend more time in Host invocation and provenance generation than useful analysis. The workflow package measures release preparation, native invocation and cohesive batches separately. It can recommend one job-sized invocation while preserving bounded operations and per-item results. The metadata component reduces redundant parsing inside an invocation while collecting fresh inventory on each call. Verify identical outputs, provenance and grant rejection on an isolated Host copy before integrating. Fewer receipts alone is not evidence of a faster analysis algorithm.
+
+## Exploration loop
+
+1. Freeze the machine/model/workload and name the bottleneck evidence. Record unknowns; missing expert traces are not zero misses.
+2. Propose a small set of genuinely different hypotheses with applicability, expected mechanism, cheapest falsifying test and a stop condition. Draw from papers, repository implementations and observed failures. Pin sources before deriving code.
+3. Create branches with cumulative resource reservations. A pruned branch does not refund consumed exploration budget. Record the CC releases and source identities used in each node.
+4. Run the cheapest relevant unit or subsystem test first. The unit can test a buffer layout, routing predictor, I/O queue, quantization error, build cache, tool invocation or GPU kernel. Full-model tests are necessary only when the claim requires them.
+5. Retain raw output and failed attempts durably. Use the evidence to attach findings, refine a completed branch or prune an unsupported alternative. Keep numerical approximation separate from exact execution.
+6. Move promising implementations through integration correctness and controlled engine measurements. Serialize GPU experiments; suspend builds and agent CPU benchmarking during timed cells. Warmup, repetitions, order and accounting scopes are part of the contract.
+7. Compare compatible evidence only. The branch tool's Pareto comparison requires complete speed/memory/quality vectors with the same comparison key and scope. Unknown values stay unknown. Scientific acceptance and production promotion remain separate gates.
+8. Export artifacts and a next-input proposal. A later agent or RSI process should be able to reproduce why a branch exists, which capability changed, which tests qualify it, and why the next experiment is worth its cost.
+
+The current branch workbench is durable bookkeeping and an agent-facing methodology, not a parallel GPU scheduler. Existing leases, lab recovery, artifact hashes and controller budgets remain authoritative. A week-long deployment still needs operator-approved budget renewal, storage retention policy, repeated holdouts, and reliable scheduling across machine ownership changes. These should be tested rather than assumed from a short live-agent mission.
+
+## Attempt log
+
+- Initial manual engine v1 stopped before any GPU launch: the existing source-pin checker correctly rejects nested relative paths. The retry v2 pins the additional CC component separately, preserving the original failed record and the existing checker unchanged.
+- Component runs preserve negative results: the arena experiment saves allocation but does not establish a speedup; earlier custom INT4 GPU decoding was slower than dequantized FP32 despite lower representation memory.
+- Raw memory counters are not interchangeable. On Spark, cgroup accounting does not capture every driver allocation. Resident expert budget, host available memory, process RSS and cgroup peak must be reported separately.
+- New source/CC verification is distinct from engine acceptance. The synthetic kernel, arena and helper packages do not automatically become production-qualified because their reference checks pass.
+
+## Next broad leads and cheapest decisive evidence
+
+- **Prompt chunking:** larger chunks reduce repeated expert dispatch/weight traffic but increase workspace and can alter placement. First verify effective chunk and fixed placement, then compare both pg512/tg128 and pg4096/tg16. The prefill CC now preserves the qualified fixed-budget extension without changing historical contracts.
+- **Expert prediction:** use the existing causal expert-cache/predictor CC on request/token/layer grouped traces. Train on earlier groups and freeze a holdout. A prediction may reorder reads but must not change chosen experts. Ordinary logs expose queued/unpicked counts, not on-time readiness or recall; a next trace instrument must include prediction time, selected IDs, first demand, completion, bytes and coverage on a shared clock. Report observer overhead before running model comparisons.
+- **Transfer versus compute:** use actual native file/read-wait counters to decide whether a grouped CUDA kernel, I/O queue change or CPU-resident expert execution is worth testing. File payload divided by prompt time is not storage bandwidth. Hybrid CPU execution should move activations only after numerical parity is proven for the model's real quantization.
+- **Scratch arena reuse:** capture lifetimes through asynchronous completion, not lexical scope. Strata's `dalloc` and persistent scratch members provide integration anchors. Enforce alignment and persistent-state separation; prove a two-stream overlap test before reusing buffers in the engine.
+- **Kernel launch reduction:** the current GPU CC is a deliberately simple dispatch reference. Its best tile is selected from the measured set, so retest the selected tile on fresh shapes/order before engine integration. Compare against the real existing quantized kernel, not only the serial FP32 microbenchmark.
+- **Factory overhead:** reuse sealed release identities and batch a cohesive analysis job. Do not disguise replay of an old receipt as fresh work. The optional inventory patch keeps provenance fresh each invocation. A future scan/discovery optimization needs stale-source invalidation tests before persistent caching.
+
+CC improvement targets differ by job. A builder is judged by correct reproducible artifacts and time-to-build; a profiler by useful attribution, overhead and missing-evidence detection; a hypothesis package by falsifiable relevant proposals; a measurement package by trustworthy results and recovery; a branch package by durable, bounded decisions. Model tokens/s alone cannot score all of them. The initial Pareto tool currently handles engine speed/memory/quality vectors; factory-cost findings remain explicitly scoped evidence until an appropriate comparison schema is added.
+
+A fourth workflow starts after the live mission: index evidence once, project only scope/results/limits needed for the current decision, preserve hashes, then ask the branch package to refine a falsifiable next contract. Reuse state returned by mutations rather than rereading it. Compare a future live mission against this round’s37 evidence reads and cumulative cached/uncached usage; smaller JSON alone does not prove faster reasoning.

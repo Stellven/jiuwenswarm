@@ -1,0 +1,20 @@
+{
+  "scope": "Documentation coverage, exact manifest identity and local link validation; not runtime qualification.",
+  "factory_packages_covered": 31,
+  "factory_top_level": 23,
+  "factory_nested": 8,
+  "factory_callable_capabilities": 61,
+  "distinct_ids_all_roots": 44,
+  "declarations_checked": 59,
+  "missing_factory_reviews": [],
+  "broken_local_links": [],
+  "reports_sha256": {
+    "ENGINE.md": "a17cda4cd60afd8773a27583482727794f2daf4248466b5ec4789606d9a3fa3b",
+    "INVENTORY.json": "a1755f00ebf8e9fe58844e718d00bfeacfe7037696bb5b4050e2476545d0f9f3",
+    "METHODOLOGY.md": "c4b41612f5d5b26221bdad1b20b86cdb09b1741913119919b1ca8b60a57fa527",
+    "OPERATIONS.md": "7d736c29eecd27113ba6038a05b7b7d035c690eec8c4ef1c7dc76198019f1c79",
+    "README.md": "58b60c654994d1d67805c421717ac50c838de39d28d25c07a9a6f8fa39587cca",
+    "REFERENCES.md": "4f209ae27f6db3a5e930d965d6883d294deb932b505503f78a6ac2e546c3d983",
+    "REPORT-SHAPE-REPLAY.json": "f00518cb695f9068d252c7ce4682318290e1f276d640c88a9cb6944b2db22d03"
+  }
+}

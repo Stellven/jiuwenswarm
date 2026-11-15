@@ -1,0 +1,2512 @@
+{
+  "scope": "Authoring packages only; historical evidence copies, sealed stores and built artifacts are excluded from maintained library counts.",
+  "upstream_revision": "e897ff47a89a2f0e07db1e63b399d45abf0cc02e",
+  "counts": {
+    "factory": 31,
+    "demo": 4,
+    "local_reference": 11,
+    "upstream_reference": 13
+  },
+  "packages": [
+    {
+      "group": "factory",
+      "id": "factory.builder",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/builder/cc.yaml",
+      "manifest_sha256": "97315a48308c6b11a3b68fc2674cf7d113380cc08ffffbfd4924aea25910261f",
+      "capabilities": {
+        "submit": {
+          "does": "Submit a durable build job. This acknowledges submission, not success; inspect status and result separately.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "status": {
+          "does": "Read and reconcile the owned build attempt.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "cancel": {
+          "does": "Request cancellation of the owned build attempt.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "result": {
+          "does": "Read build result references; submission alone is not success.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.cc_qualification",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/cc_qualification/cc.yaml",
+      "manifest_sha256": "c7db051e637df05668a6221c0329527394c9dfb079a5b0f17f80fb4b07fbd996",
+      "capabilities": {
+        "inspect_package": {
+          "does": "Verify an existing sealed package and read its declared verification units and known local implementation identities; no package execution.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "verify_unit": {
+          "does": "Apply one explicit allowlisted in-process domain invariant to saved task evidence; persist a scoped verification result.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "assess_admission": {
+          "does": "Assess selected package capabilities against operator task policy and current verification identities; supplies no grants or runtime/scientific certification.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "alignment": {
+          "kind": "reference",
+          "path": "ALIGNMENT.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.deep_profile",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/deep_profile/cc.yaml",
+      "manifest_sha256": "a5bb3289eaf0c24e60ecc252057e1c245afefd323934ecf38c639a1fb7125b11",
+      "capabilities": {
+        "plan": {
+          "does": "Propose a fixed native Strata observer run using existing host admission and lifecycle; inspect profiler executable availability without launching them.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "analyze": {
+          "does": "Parse scoped native DS4_PROF or Nsight CSV artifacts into phase bottleneck candidates and instrumentation gaps. Never score traced timings.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "method": {
+          "kind": "method",
+          "path": "METHOD.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.engine_component",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/engine_component/cc.yaml",
+      "manifest_sha256": "f1b29e85200ddc4a9071e91738915337e20d199150ec4916141ba5ca3626639c",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch": {
+          "kind": "component",
+          "path": "09-thread-names.patch"
+        },
+        "pre_integration_patch": {
+          "kind": "component",
+          "path": "combined-01-02-03-04-05-06-07-08.patch"
+        },
+        "readme": {
+          "kind": "reference",
+          "path": "README.md"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.engine_factory_loop",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/engine_factory_loop/cc.yaml",
+      "manifest_sha256": "e4fece1eb7d969de48fef7138d1bb045f70d8ba9817f4014590ffe33cc6db66a",
+      "capabilities": {
+        "status": {
+          "does": "Read durable cycles, pending attempts and remaining operator budgets.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "select": {
+          "does": "Record an agent-selected report-backed hypothesis and reserve one bounded operator-admitted experiment.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "execute": {
+          "does": "Freeze an exact admitted template into a new child task and submit via the existing durable benchmark queue. Replay recovers the same attempt.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec",
+            "gpu.use"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "collect": {
+          "does": "Reconcile the child benchmark, retain failed or successful evidence and expose follow-up proposals for the agent's next decision.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "stop": {
+          "does": "Persist stop intent for future experiments without cancelling already queued work.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.engine_inspector",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/engine_inspector/cc.yaml",
+      "manifest_sha256": "d54c564fc649664e187424d51c25cc1860a0173d9bb675936b62ea9ec5ac3847",
+      "capabilities": {
+        "inspect": {
+          "does": "Inspect an authorized source checkout, host and optional local image; publish evidence.",
+          "needs": [
+            "python",
+            "workspace"
+          ],
+          "changes": [
+            "workspace.read",
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "preflight": {
+          "does": "Resolve local image Id and reject unsupported flags using help cached by immutable Id.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec",
+            "gpu.use"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "verify_effective_config": {
+          "does": "Run one bounded CPU-only model config probe in an NVIDIA-runtime container and publish actual stderr evidence.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec",
+            "gpu.use"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "inspect_strata": {
+          "does": "Inspect the operator-pinned complete Strata asset inventory and fixed workload without launching a model.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.evidence",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/evidence/cc.yaml",
+      "manifest_sha256": "4b8f0499f13d55d110c71f9ce56f8ad044375014b9eee005a3fe3ca10f11bb90",
+      "capabilities": {
+        "plan_get": {
+          "does": "Read a replayable work graph, ready frontier, blocked reasons and revision history. Proposed work is a suggestion.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "plan_patch": {
+          "does": "Apply a task-scoped work graph patch by CAS, citing a published decision. Does not start jobs or grant authority.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "query": {
+          "does": "Query bounded task-scoped evidence summaries and cursor.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "read": {
+          "does": "Read a task-scoped evidence record, with bounded artifact preview.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "publish": {
+          "does": "Publish an immutable observation/artifact or compare-and-swap decision revision.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.expert_prediction",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/expert_prediction/cc.yaml",
+      "manifest_sha256": "7f650ac771ce591398c4eb0796d7a83cd3b8942ef575cb73f6a73cf6118c9315",
+      "capabilities": {
+        "evaluate": {
+          "does": "Evaluate a bounded expert trace using request-separated temporal holdout, frozen frequency and causal last-token baselines. No inference execution or speed claim.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "method": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "trace_schema": {
+          "kind": "reference",
+          "path": "TRACE.schema.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "engine.expert_streaming",
+      "version": "2.0.1",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/cc.yaml",
+      "manifest_sha256": "7e906cde6e67a95217f7e8dc464ea6d2916b42d064166cf05a82b59dbe477689",
+      "capabilities": {
+        "applicability": {
+          "does": "Inspect applicability and publish a task-scoped observation; no engine execution.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "engagement": {
+          "does": "Inspect engagement and publish a task-scoped observation; no engine execution.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "guide": {
+          "kind": "skill",
+          "path": "STREAMING.md"
+        },
+        "method": {
+          "kind": "method",
+          "path": "EVIDENCE.md"
+        },
+        "source_map": {
+          "kind": "reference",
+          "path": "SOURCE-MAP.md"
+        },
+        "ontology": {
+          "kind": "reference",
+          "path": "ONTOLOGY.yaml"
+        },
+        "expert_fill": {
+          "kind": "component",
+          "path": "components/expert_fill/component.yaml"
+        },
+        "expert_pregate": {
+          "kind": "component",
+          "path": "components/expert_pregate/component.yaml"
+        },
+        "mmap_advice": {
+          "kind": "component",
+          "path": "components/mmap_advice/component.yaml"
+        },
+        "router_prefetch": {
+          "kind": "component",
+          "path": "components/router_prefetch/component.yaml"
+        },
+        "thread_names": {
+          "kind": "component",
+          "path": "components/thread_names/component.yaml"
+        },
+        "expert_readiness": {
+          "kind": "component",
+          "path": "components/expert_readiness/component.yaml"
+        },
+        "inflight_join": {
+          "kind": "component",
+          "path": "components/inflight_join/component.yaml"
+        },
+        "phase_stats": {
+          "kind": "component",
+          "path": "components/phase_stats/component.yaml"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.expert_fill",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_fill/cc.yaml",
+      "manifest_sha256": "6b151686e6cd2974105e5fd3fbc6ac5bf17e18705daeceb7e7d0deaf568f1ad9",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_03": {
+          "kind": "component",
+          "path": "03-expert-fill.patch"
+        },
+        "patch_04": {
+          "kind": "component",
+          "path": "04-fill-phase.patch"
+        },
+        "patch_05": {
+          "kind": "component",
+          "path": "05-fill-diag.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.expert_pregate",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_pregate/cc.yaml",
+      "manifest_sha256": "df59830d81d41175bf4ebbb4984f618061c648de8eb0123b4cef7daa5f1cc398",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_06": {
+          "kind": "component",
+          "path": "06-pregate.patch"
+        },
+        "patch_07": {
+          "kind": "component",
+          "path": "07-pregate-sched.patch"
+        },
+        "patch_08": {
+          "kind": "component",
+          "path": "08-pregate-observe.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.expert_readiness",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_readiness/cc.yaml",
+      "manifest_sha256": "546ce4412cce27ab8c965e93c0056cda32f084c51b393397e6103a1c17f4c967",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_10": {
+          "kind": "component",
+          "path": "10-expert-readiness.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.inflight_join",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/inflight_join/cc.yaml",
+      "manifest_sha256": "0fa2887292dacf1931db332e2aafc207e74ccba334e02af97206b0670d933902",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_11": {
+          "kind": "component",
+          "path": "11-inflight-join.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.mmap_advice",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/mmap_advice/cc.yaml",
+      "manifest_sha256": "1926832798b5d55207e2736c2cd9ff6ce76b76af19900ecf1a53ff4774182b33",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_01": {
+          "kind": "component",
+          "path": "01-mmap-advice-random.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.phase_stats",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/phase_stats/cc.yaml",
+      "manifest_sha256": "02fab73b8084ff1e9a596e485ae296e6f0184e513dbc60222a23eedd6ff3a096",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_16": {
+          "kind": "component",
+          "path": "16-phase-rusage.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.router_prefetch",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/router_prefetch/cc.yaml",
+      "manifest_sha256": "1b9cb543f6e9e9a7cc16789837024fce3a0a34711a483d6195dd6d8337cfbfb2",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_02": {
+          "kind": "component",
+          "path": "02-router-prefetch.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.components.thread_names",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/thread_names/cc.yaml",
+      "manifest_sha256": "c27f64b4b20bf77abf1e7ea7d0f8773497210529ff423c3f63b8551fceaf1396",
+      "capabilities": {},
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "component.yaml"
+        },
+        "patch_09": {
+          "kind": "component",
+          "path": "09-thread-names.patch"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.inference_lab",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/inference_lab/cc.yaml",
+      "manifest_sha256": "5e2cbad014e192b91a15024c718a8c43cac84eaf1b28745a68aca608fd360df1",
+      "capabilities": {
+        "diagnose": {
+          "does": "Analyze retained experiment reports across inference subsystems; surface uncertainties and inspection candidates.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "ablation": {
+          "does": "Design one-variable diagnostic or ABBA work without executing or scoring it.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "followup": {
+          "does": "Convert report-backed uncertainty into a proposed next input; never submit or amend a contract.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "cache_protocol": {
+          "does": "Describe a bounded out-of-core cache and phase protocol from retained evidence.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "propose": {
+          "does": "Record an agent-authored unmeasured hypothesis linked to scoped evidence; does not fetch citations or execute experiments.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "profile_plan": {
+          "does": "Propose a fixed native Strata observer run using existing host admission and lifecycle; inspect profiler executable availability without launching them.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "analyze_profile": {
+          "does": "Parse scoped native DS4_PROF or Nsight CSV artifacts into phase bottleneck candidates and instrumentation gaps. Never score traced timings.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "evaluate_prediction": {
+          "does": "Evaluate a bounded expert trace using request-separated temporal holdout, frozen frequency and causal last-token baselines. No inference execution or speed claim.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "test_scope": {
+          "does": "Match a claim and engine layer to a scoped verification plan; advisory only, no execution authority.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "scopes": {
+          "kind": "reference",
+          "path": "SCOPES.json"
+        },
+        "verification_units": {
+          "kind": "reference",
+          "path": "VERIFICATION-UNITS.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.integration_skill",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/integration_skill/cc.yaml",
+      "manifest_sha256": "afeffacc53aa17fe946b1392c2e65510d6733614ad66b727a2b51279146b69ef",
+      "capabilities": {},
+      "materials": {
+        "integrate": {
+          "kind": "skill",
+          "path": "INTEGRATE.md"
+        },
+        "repair": {
+          "kind": "skill",
+          "path": "REPAIR.md"
+        },
+        "preflight": {
+          "kind": "skill",
+          "path": "PREFLIGHT.md"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.lab_client",
+      "version": "1.1.0",
+      "path": "jiuwenswarm/factory/ccs/lab_client/cc.yaml",
+      "manifest_sha256": "ac3fb426ea30faa0efb0695887089a456d22f1c220f26f865f150ed93afea216",
+      "capabilities": {
+        "submit": {
+          "does": "Admit an image object with exactly tag and immutable id, plus a separate build_attempt_id, and submit a fixed lab evaluation through the GPU queue. run_config may include profile nsys to trace the run with Nsight Systems; the result then carries a kernel, CUDA API and OS-runtime breakdown. Traced timing is perturbed and is never speed evidence.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "status": {
+          "does": "Read the owned lab attempt from the durable queue.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "cancel": {
+          "does": "Cancel the owned lab attempt and reap its container.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "result": {
+          "does": "Read evaluation and evidence references for the owned lab attempt.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "ab_submit": {
+          "does": "Admit both images and queue one contract-bound ABBA experiment; checks come from component materials.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "ab_status": {
+          "does": "Read the owned durable A/B job status.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "ab_result": {
+          "does": "Ingest and read verified A/B verdict, correctness and evidence.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.lab_lifecycle",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/lab_lifecycle/cc.yaml",
+      "manifest_sha256": "1446119c25e8dfc195da49e440c062ec9dc594979c38aac168e6f3750302c39a",
+      "capabilities": {
+        "status": {
+          "does": "Read owned Strata lifecycle and evidence state through host reconciliation.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "recover": {
+          "does": "Reconcile a terminal owned Strata attempt and import partial failure; never terminate active or unrelated work.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "method": {
+          "kind": "method",
+          "path": "RECOVERY.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.methodology_ab",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/methodology_ab/cc.yaml",
+      "manifest_sha256": "a1fe7ed8c134bb56d6b54b9d9c51ead56186ec0e471231be61a4706fdc94eacd",
+      "capabilities": {},
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "AB.md"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.methodology_ablation",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/methodology_ablation/cc.yaml",
+      "manifest_sha256": "0eaa87fe924ae7bc0040a7262de3f5dcb386fe48f74c5d23ad3de1d0e8ac2ac1",
+      "capabilities": {
+        "ablation": {
+          "does": "Design one-variable diagnostic or ABBA work without executing or scoring it.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "ontology": {
+          "kind": "reference",
+          "path": "ONTOLOGY.json"
+        },
+        "component_candidates": {
+          "kind": "reference",
+          "path": "COMPONENT-CANDIDATES.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.methodology_diagnosis",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/methodology_diagnosis/cc.yaml",
+      "manifest_sha256": "3aa7cd98a104cbe7f15b9669a912e9fcd3b51cd3578306fd0950091fcbb470cf",
+      "capabilities": {
+        "diagnose": {
+          "does": "Analyze retained experiment reports across inference subsystems; surface uncertainties and inspection candidates.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "ontology": {
+          "kind": "reference",
+          "path": "ONTOLOGY.json"
+        },
+        "component_candidates": {
+          "kind": "reference",
+          "path": "COMPONENT-CANDIDATES.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.methodology_followup",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/methodology_followup/cc.yaml",
+      "manifest_sha256": "dfeb44ea00e7ca23de312cb1969656677a3084aaac9c35cc161c3b2fe04d430a",
+      "capabilities": {
+        "followup": {
+          "does": "Convert report-backed uncertainty into a proposed next input; never submit or amend a contract.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "ontology": {
+          "kind": "reference",
+          "path": "ONTOLOGY.json"
+        },
+        "component_candidates": {
+          "kind": "reference",
+          "path": "COMPONENT-CANDIDATES.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.methodology_hypothesis",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/methodology_hypothesis/cc.yaml",
+      "manifest_sha256": "d5912c2d529742565eef091a99a384b56c6c14e7c44ae592e0253c15fbe294d1",
+      "capabilities": {
+        "propose": {
+          "does": "Record an agent-authored unmeasured hypothesis linked to scoped evidence; does not fetch citations or execute experiments.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.methodology_out_of_core",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/methodology_out_of_core/cc.yaml",
+      "manifest_sha256": "f10e15139979f849bd5ea749ec3a21c146b01a133881990b251ce1d3d2fa43dc",
+      "capabilities": {
+        "cache_protocol": {
+          "does": "Describe a bounded out-of-core cache and phase protocol from retained evidence.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "ontology": {
+          "kind": "reference",
+          "path": "ONTOLOGY.json"
+        },
+        "component_candidates": {
+          "kind": "reference",
+          "path": "COMPONENT-CANDIDATES.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "factory.standard_benchmark",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/standard_benchmark/cc.yaml",
+      "manifest_sha256": "fa1d3b3ae2fe906fd52c6f5653a82bc860a77cdcda3b8f94374eb87d14efc19e",
+      "capabilities": {
+        "submit": {
+          "does": "Submit the operator-frozen ARC correctness and pg512/tg128 native speed comparison. Never edits questions, policy, source pins, arm profiles or order.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "status": {
+          "does": "Reconcile the current-task benchmark attempt with the durable GPU queue.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "result": {
+          "does": "Independently verify raw evidence and report correctness and speed gates for a completed current-task benchmark. Partial execution is inconclusive.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "engine.strata_prefill_chunk",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/strata_prefill_chunk/cc.yaml",
+      "manifest_sha256": "403b08fc62ba6daead10eb7e53faf953ea3b2b75501d1d5b37935347eb4f374b",
+      "capabilities": {
+        "apply": {
+          "does": "Produce a candidate changing only the native Strata positive prefill chunk size.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "COMPONENT.json"
+        },
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "engine.strata_prefill_workbench",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/strata_prefill_workbench/cc.yaml",
+      "manifest_sha256": "fa7c4c22b914e7d94e99643a57d305ce16f1a6c8703ce833fedc6ee5f08155f1",
+      "capabilities": {
+        "inspect": {
+          "does": "Inspect the current task's frozen prefill scope, workload and obligations without model execution.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "design": {
+          "does": "Draft a separate screen or confirm prefill contract; no admission, contract mutation or performance claim.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "apply": {
+          "does": "Change only the bounded native prefill chunk in a full-six static profile.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "verify_profile": {
+          "does": "Check the requested static profile and chunk value; runtime engagement remains unmeasured.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "submit": {
+          "does": "Submit the exact operator-admitted bounded fresh-process prefill campaign through host lifecycle and resource guards.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec",
+            "gpu.use"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "status": {
+          "does": "Read and reconcile the current task's owned scoped attempt lifecycle.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "result": {
+          "does": "Independently verify retained raw cells and report a scoped prefill result; no full-generation quality acceptance or automatic promotion.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "method": {
+          "kind": "method",
+          "path": "METHOD.md"
+        },
+        "verification_units": {
+          "kind": "reference",
+          "path": "VERIFICATION-UNITS.json"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "factory",
+      "id": "engine.strata_verified_drafting",
+      "version": "1.0.0",
+      "path": "jiuwenswarm/factory/ccs/strata_verified_drafting/cc.yaml",
+      "manifest_sha256": "8d4856c7548c8f2ed512c93f1712e2a220e7536f67a3f2fa1020aa969224d94d",
+      "capabilities": {
+        "apply": {
+          "does": "Produce a candidate profile changing only native Strata dspark none/on. Does not submit work or change a contract.",
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {
+        "component": {
+          "kind": "component",
+          "path": "COMPONENT.json"
+        },
+        "methodology": {
+          "kind": "method",
+          "path": "METHOD.md"
+        }
+      },
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "demo",
+      "id": "demo.compute_service",
+      "version": "1.0.0",
+      "path": "demo/ccs/compute_service/cc.yaml",
+      "manifest_sha256": "178eb98ab566edec91d0c483601caf379fd1f686e467b3891512183673c319dc",
+      "capabilities": {
+        "api": {
+          "does": "Serve synthetic multiplication with its own pinned OS and Python independent of the host. A published Docker bridge port cannot enforce no-egress, so network.request is required.",
+          "needs": [],
+          "changes": [
+            "process.exec",
+            "network.listen",
+            "network.request"
+          ],
+          "serves": {
+            "interfaces": {
+              "api": {
+                "protocol": "http",
+                "port": 8080,
+                "path": "/",
+                "contract": "api.json"
+              }
+            },
+            "ready": {
+              "interface": "api",
+              "path": "/health"
+            }
+          },
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "image",
+          "image": "sha256:ec5b1df28d09604bf8895fbd83a423165d4970c90a7fed72a57e3bd5142f6551",
+          "command": []
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "demo",
+      "id": "demo.methodology",
+      "version": "1.0.0",
+      "path": "demo/ccs/methodology/cc.yaml",
+      "manifest_sha256": "2680da85d79b2e410eb7c21a4d409fc4a06352fcc4933f31022a45e6188856e5",
+      "capabilities": {},
+      "materials": {
+        "method": {
+          "path": "METHOD.md",
+          "media_type": "text/markdown",
+          "description": "Agent workflow for evaluating the synthetic served compute demo."
+        },
+        "limits": {
+          "path": "LIMITS.md",
+          "media_type": "text/markdown",
+          "description": "Interpretation and evidence limits."
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "demo",
+      "id": "demo.service_client",
+      "version": "1.0.0",
+      "path": "demo/ccs/service_client/cc.yaml",
+      "manifest_sha256": "ab0da6c633eb4f8e0461b256011d9e9a7bd769c0dab599b580f7766d365f2224",
+      "capabilities": {
+        "benchmark": {
+          "does": "Record synthetic loopback client timings, NOT inference-engine TTFT or token-rate evidence; retain successful rows even on request failure.",
+          "needs": [
+            "environment"
+          ],
+          "changes": [
+            "network.request"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/client.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "demo",
+      "id": "demo.workspace_inspect",
+      "version": "1.0.0",
+      "path": "demo/ccs/workspace_inspect/cc.yaml",
+      "manifest_sha256": "80d415a0c8ee8fccf246bf858cddd0d61d4cc3d867c10afe8d1a1ab8f138807d",
+      "capabilities": {
+        "inspect": {
+          "does": "Read a bounded workspace inventory and retain its full summary without modifying the workspace.",
+          "needs": [
+            "workspace"
+          ],
+          "changes": [
+            "workspace.read"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/inspect.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "strata_native_product_inspection",
+      "version": "1.0.0",
+      "path": "tests/ccv2/examples/factory_lab/cc.yaml",
+      "manifest_sha256": "a468b3abe790d0e149bfe0dcd23eda92f55894fd100a901d0b7e55db98cf1f20",
+      "capabilities": {
+        "inspect_product": {
+          "does": "Inspect a synthetic native Strata engine package using the exact upstream manifest loader; never execute its entrypoint.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/worker.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "example.http_product",
+      "version": "1.0.0",
+      "path": "tests/ccv2/examples/http_product/cc.yaml",
+      "manifest_sha256": "e4d5c290000b0ac03c4728bd15433559dfd420d662be71b9afd9786113fd1a77",
+      "capabilities": {
+        "api": {
+          "does": "Serve the synthetic compute API; startup readiness does not establish scientific quality.",
+          "needs": [],
+          "changes": [
+            "process.exec",
+            "network.listen"
+          ],
+          "serves": {
+            "interfaces": {
+              "api": {
+                "protocol": "http",
+                "port": 8080,
+                "path": "/",
+                "contract": "api.json"
+              }
+            },
+            "ready": {
+              "interface": "api",
+              "path": "/health"
+            }
+          },
+          "checks": null
+        },
+        "inspect": {
+          "does": "Describe this product package without starting its service.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/payload/server.py",
+            "--port",
+            "{port.api}"
+          ]
+        },
+        "inspect": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/inspect.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "example.method_library",
+      "version": "1.0.0",
+      "path": "tests/ccv2/examples/method_library/cc.yaml",
+      "manifest_sha256": "95ec90454c4bce9701e197bbf9b53d8c811fe591abc8bfa31fb35eeba4ed4d9a",
+      "capabilities": {},
+      "materials": {
+        "method": {
+          "path": "SKILL.md",
+          "description": "Synthetic methodology and its limitations; read as context without executing code.",
+          "media_type": "text/markdown"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "native_code_delegation",
+      "version": "1.0.0",
+      "path": "tests/ccv2/examples/native_code/cc.yaml",
+      "manifest_sha256": "416f6f50758a3cb33ae32ab1e80c97570d5814e005f692739b7488a268aba63b",
+      "capabilities": {
+        "repair": {
+          "does": "Delegate a bounded repair and execute its regression test in the supplied worktree.",
+          "needs": [
+            "workspace"
+          ],
+          "changes": [
+            "workspace.read",
+            "workspace.write",
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "delegate",
+          "agent": "code_agent"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "cc.examples.portable",
+      "version": "1.0.0",
+      "path": "tests/ccv2/examples/portable/cc.yaml",
+      "manifest_sha256": "a901a50a89952fb4a4d00f81939a16c2466702b28c7aafa8efbcecc802875580",
+      "capabilities": {
+        "trim": {
+          "does": "Remove leading and trailing ASCII whitespace from text.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "empty": {
+          "does": "Complete successfully without outputs.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "echo": {
+          "does": "Return a JSON value unchanged.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "write-text": {
+          "does": "Write UTF-8 text to a returned artifact.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/tool.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "native_code_delegation",
+      "version": "1.0.0",
+      "path": "tests/ccv2/protocol_examples/coding/cc.yaml",
+      "manifest_sha256": "02263de3ecaefd925d9dc2f7a847ecbdaffb47b50c2cb73b3f7140512fc03483",
+      "capabilities": {
+        "repair": {
+          "does": "Delegate a bounded repair and execute its regression test in the supplied worktree.",
+          "needs": [
+            "workspace"
+          ],
+          "changes": [
+            "workspace.read",
+            "workspace.write",
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "delegate",
+          "agent": "code_agent"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "lab.client",
+      "version": "1.0.0",
+      "path": "tests/ccv2/protocol_examples/lab/cc.yaml",
+      "manifest_sha256": "7467ffb26c451c7e53f2d6fb14da0266d940ad2d5626d1104abee9ffddad3a9b",
+      "capabilities": {
+        "benchmark": {
+          "does": "Measure requests to the synthetic compute API; report client duration, not inference latency.",
+          "needs": [
+            "environment"
+          ],
+          "changes": [
+            "network.request"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "observe": {
+          "does": "Report telemetry coverage for the assigned engine; this fixture has no internal tracer.",
+          "needs": [
+            "environment"
+          ],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/client.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "example.method_library",
+      "version": "1.0.0",
+      "path": "tests/ccv2/protocol_examples/library/cc.yaml",
+      "manifest_sha256": "95ec90454c4bce9701e197bbf9b53d8c811fe591abc8bfa31fb35eeba4ed4d9a",
+      "capabilities": {},
+      "materials": {
+        "method": {
+          "path": "SKILL.md",
+          "description": "Synthetic methodology and its limitations; read as context without executing code.",
+          "media_type": "text/markdown"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "mapie_split_conformal",
+      "version": "1.0.0",
+      "path": "tests/ccv2/protocol_examples/paper-method/cc.yaml",
+      "manifest_sha256": "af01df84f25437e032161686197d1507e08d1611fd94dfa2d82073cad4e47f9b",
+      "capabilities": {
+        "fit_calibrate": {
+          "does": "Fit and conformalize a MAPIE SplitConformalRegressor on supplied training and calibration data.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "predict_intervals": {
+          "does": "Predict calibrated intervals with the fitted MAPIE model.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "evaluate": {
+          "does": "Measure empirical interval coverage and mean width on supplied labels.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/method.py"
+          ],
+          "lock": "requirements-lock.txt"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "example.http_product",
+      "version": "1.0.0",
+      "path": "tests/ccv2/protocol_examples/service/cc.yaml",
+      "manifest_sha256": "c9ef7a33b9c9e5be90f1e1f520eab0cb5b481def3326713e881bbe81befed00b",
+      "capabilities": {
+        "api": {
+          "does": "Serve the synthetic compute API; startup readiness does not establish scientific quality.",
+          "needs": [],
+          "changes": [
+            "process.exec",
+            "network.listen"
+          ],
+          "serves": {
+            "interfaces": {
+              "api": {
+                "protocol": "http",
+                "port": 8080,
+                "path": "/",
+                "contract": "api.json"
+              }
+            },
+            "ready": {
+              "interface": "api",
+              "path": "/health"
+            }
+          },
+          "checks": null
+        },
+        "inspect": {
+          "does": "Describe this product package without starting its service.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/payload/server.py",
+            "--port",
+            "{port.api}"
+          ]
+        },
+        "inspect": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/inspect.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "local_reference",
+      "id": "text.trim",
+      "version": "1.0.0",
+      "path": "tests/ccv2/protocol_examples/trim/cc.yaml",
+      "manifest_sha256": "743bc4381c0f26dc9d4c84327e9e94c6456a97097f11ae33eff600e55de09394",
+      "capabilities": {
+        "trim": {
+          "does": "Remove surrounding ASCII spaces; all-space input returns an empty string.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/tool.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "native_code_delegation",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/examples/coding/cc.yaml",
+      "manifest_sha256": "02263de3ecaefd925d9dc2f7a847ecbdaffb47b50c2cb73b3f7140512fc03483",
+      "capabilities": {
+        "repair": {
+          "does": "Delegate a bounded repair and execute its regression test in the supplied worktree.",
+          "needs": [
+            "workspace"
+          ],
+          "changes": [
+            "workspace.read",
+            "workspace.write",
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "delegate",
+          "agent": "code_agent"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "lab.client",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/examples/lab/cc.yaml",
+      "manifest_sha256": "7467ffb26c451c7e53f2d6fb14da0266d940ad2d5626d1104abee9ffddad3a9b",
+      "capabilities": {
+        "benchmark": {
+          "does": "Measure requests to the synthetic compute API; report client duration, not inference latency.",
+          "needs": [
+            "environment"
+          ],
+          "changes": [
+            "network.request"
+          ],
+          "serves": null,
+          "checks": null
+        },
+        "observe": {
+          "does": "Report telemetry coverage for the assigned engine; this fixture has no internal tracer.",
+          "needs": [
+            "environment"
+          ],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/client.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "example.method_library",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/examples/library/cc.yaml",
+      "manifest_sha256": "95ec90454c4bce9701e197bbf9b53d8c811fe591abc8bfa31fb35eeba4ed4d9a",
+      "capabilities": {},
+      "materials": {
+        "method": {
+          "path": "SKILL.md",
+          "description": "Synthetic methodology and its limitations; read as context without executing code.",
+          "media_type": "text/markdown"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "mapie_split_conformal",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/examples/paper-method/cc.yaml",
+      "manifest_sha256": "af01df84f25437e032161686197d1507e08d1611fd94dfa2d82073cad4e47f9b",
+      "capabilities": {
+        "fit_calibrate": {
+          "does": "Fit and conformalize a MAPIE SplitConformalRegressor on supplied training and calibration data.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "predict_intervals": {
+          "does": "Predict calibrated intervals with the fitted MAPIE model.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "evaluate": {
+          "does": "Measure empirical interval coverage and mean width on supplied labels.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/method.py"
+          ],
+          "lock": "requirements-lock.txt"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "example.http_product",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/examples/service/cc.yaml",
+      "manifest_sha256": "c9ef7a33b9c9e5be90f1e1f520eab0cb5b481def3326713e881bbe81befed00b",
+      "capabilities": {
+        "api": {
+          "does": "Serve the synthetic compute API; startup readiness does not establish scientific quality.",
+          "needs": [],
+          "changes": [
+            "process.exec",
+            "network.listen"
+          ],
+          "serves": {
+            "interfaces": {
+              "api": {
+                "protocol": "http",
+                "port": 8080,
+                "path": "/",
+                "contract": "api.json"
+              }
+            },
+            "ready": {
+              "interface": "api",
+              "path": "/health"
+            }
+          },
+          "checks": null
+        },
+        "inspect": {
+          "does": "Describe this product package without starting its service.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/payload/server.py",
+            "--port",
+            "{port.api}"
+          ]
+        },
+        "inspect": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/inspect.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "text.trim",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/examples/trim/cc.yaml",
+      "manifest_sha256": "743bc4381c0f26dc9d4c84327e9e94c6456a97097f11ae33eff600e55de09394",
+      "capabilities": {
+        "trim": {
+          "does": "Remove surrounding ASCII spaces; all-space input returns an empty string.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/tool.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "examples.easy_results",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/easy_results/cc.yaml",
+      "manifest_sha256": "e83a0dafb8640631ceb014c36f6c272fd137f192c0e68c21e6e6285349b8bae8",
+      "capabilities": {
+        "produce": {
+          "does": "Save a synthetic task result with broad context; no verifier is required to use it.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "review": {
+          "does": "Assess an existing result against an explicit score policy without rerunning its producer.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/worker.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "strata_native_product_inspection",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/factory_lab/cc.yaml",
+      "manifest_sha256": "a468b3abe790d0e149bfe0dcd23eda92f55894fd100a901d0b7e55db98cf1f20",
+      "capabilities": {
+        "inspect_product": {
+          "does": "Inspect a synthetic native Strata engine package using the exact upstream manifest loader; never execute its entrypoint.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/worker.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "example.http_product",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/http_product/cc.yaml",
+      "manifest_sha256": "e4d5c290000b0ac03c4728bd15433559dfd420d662be71b9afd9786113fd1a77",
+      "capabilities": {
+        "api": {
+          "does": "Serve the synthetic compute API; startup readiness does not establish scientific quality.",
+          "needs": [],
+          "changes": [
+            "process.exec",
+            "network.listen"
+          ],
+          "serves": {
+            "interfaces": {
+              "api": {
+                "protocol": "http",
+                "port": 8080,
+                "path": "/",
+                "contract": "api.json"
+              }
+            },
+            "ready": {
+              "interface": "api",
+              "path": "/health"
+            }
+          },
+          "checks": null
+        },
+        "inspect": {
+          "does": "Describe this product package without starting its service.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/payload/server.py",
+            "--port",
+            "{port.api}"
+          ]
+        },
+        "inspect": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/inspect.py"
+          ]
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "mapie_split_conformal",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/mapie/cc.yaml",
+      "manifest_sha256": "4059668414f6dcb06896838c89d01b5bc40fd124f111298a2bba8a42543ad689",
+      "capabilities": {
+        "fit_calibrate": {
+          "does": "Fit and conformalize a MAPIE SplitConformalRegressor on supplied training and calibration data.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "predict_intervals": {
+          "does": "Predict calibrated intervals with the fitted MAPIE model.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "evaluate": {
+          "does": "Measure empirical interval coverage and mean width on supplied labels.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/method.py"
+          ],
+          "lock": "requirements-lock.txt"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "example.method_library",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/method_library/cc.yaml",
+      "manifest_sha256": "95ec90454c4bce9701e197bbf9b53d8c811fe591abc8bfa31fb35eeba4ed4d9a",
+      "capabilities": {},
+      "materials": {
+        "method": {
+          "path": "SKILL.md",
+          "description": "Synthetic methodology and its limitations; read as context without executing code.",
+          "media_type": "text/markdown"
+        }
+      },
+      "bindings": {},
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "native_code_delegation",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/native_code/cc.yaml",
+      "manifest_sha256": "416f6f50758a3cb33ae32ab1e80c97570d5814e005f692739b7488a268aba63b",
+      "capabilities": {
+        "repair": {
+          "does": "Delegate a bounded repair and execute its regression test in the supplied worktree.",
+          "needs": [
+            "workspace"
+          ],
+          "changes": [
+            "workspace.read",
+            "workspace.write",
+            "process.exec"
+          ],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "delegate",
+          "agent": "code_agent"
+        }
+      },
+      "checks": {}
+    },
+    {
+      "group": "upstream_reference",
+      "id": "cc.examples.portable",
+      "version": "1.0.0",
+      "path": "AI4Research-Notebook/Designs/CC Protocols/reference/examples/portable/cc.yaml",
+      "manifest_sha256": "a901a50a89952fb4a4d00f81939a16c2466702b28c7aafa8efbcecc802875580",
+      "capabilities": {
+        "trim": {
+          "does": "Remove leading and trailing ASCII whitespace from text.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "empty": {
+          "does": "Complete successfully without outputs.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "echo": {
+          "does": "Return a JSON value unchanged.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        },
+        "write-text": {
+          "does": "Write UTF-8 text to a returned artifact.",
+          "needs": [],
+          "changes": [],
+          "serves": null,
+          "checks": null
+        }
+      },
+      "materials": {},
+      "bindings": {
+        "default": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/tool.py"
+          ]
+        }
+      },
+      "checks": {}
+    }
+  ],
+  "excluded_generated_local_manifests": 10
+}

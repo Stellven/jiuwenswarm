@@ -5,6 +5,10 @@ introduces no planner, registry, RSI controller, or automatic capsule promotion.
 Only the existing factory agent chooses actions; host grants still apply.
 Implementation uses the Python standard library.
 
+For native job wrapper attribution, separate wrapper/backend spans and read-only
+per-package accounting, see [CC-JOB-METRICS.md](CC-JOB-METRICS.md). Its analyzer
+retains unknown ownership and retry status instead of inferring them from polls.
+
 ## Envelope and durability
 
 `<FACTORY_HOME>/telemetry/events.jsonl` contains UTF-8 JSON objects, one per line:

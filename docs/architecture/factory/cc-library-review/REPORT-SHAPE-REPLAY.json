@@ -1,0 +1,16 @@
+{
+  "scope": "Read-only analysis replay against retained report; no engine run or test suite.",
+  "source": "results/agent-improvement-proof.json:cycles[0].report",
+  "input_verdict": "scoped_correctness_failed",
+  "input_cells": 2,
+  "input_requests": 14,
+  "diagnosis_episodes": 1,
+  "diagnosis_failure_count": 0,
+  "diagnosis_decode_count": 0,
+  "diagnosis_repeatability": {
+    "status": "not_established",
+    "matched_prompt_groups": 0
+  },
+  "recommended_inspection": "establish_repeatability",
+  "interpretation": "Current generic diagnosis does not consume nested scoped cells or scoped correctness verdict. Absence in generic diagnosis must not override the independently verified result."
+}
