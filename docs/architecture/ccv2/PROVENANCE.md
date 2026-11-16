@@ -12,3 +12,7 @@
 The vendored runner is copied from the reference code, then changed as listed in `PROTOCOL-CHANGES.md`.
 
 The runner fixes in `PROTOCOL-CHANGES.md` rows 1 and 2 (`stdin=DEVNULL` on helper children, `--pull=never` on finite image calls) were also applied to the reference copy as local commit `ea057c1` on branch `ccv2-runner-fixes` in `Muxite/tools`. The branch is pushed to `Muxite/tools` as `ccv2-runner-fixes` (based on `main` `89893083`, not merged).
+
+## Current compatibility scope
+
+The import pin above is historical provenance. Local commit `608656eb1` subsequently added module-kind fields to the schemas and runner. Current factory packages therefore use a local extension rejected by the current Muxite CC v2 schema. [PROTOCOL-CHANGES.md](PROTOCOL-CHANGES.md) now records this distinction; [the November 16 review](../factory/MUXITE-CONTEXT-ALIGNMENT-2026-11-16.md) pins the actual comparison. A package release identifies its sealed bytes; external factory backend and deployment identities remain separate obligations.

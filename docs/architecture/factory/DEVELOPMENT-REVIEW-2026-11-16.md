@@ -1,5 +1,7 @@
 # Development review and next milestones
 
+Later addenda: [connected implementation](CONNECTED-DEVELOPMENT-2026-11-16.md) closes some gaps below; [Muxite context alignment](MUXITE-CONTEXT-ALIGNMENT-2026-11-16.md) adds interchange/backend-identity findings and revises the next work order. Preserve this review as the original assessment.
+
 Reviewed 2026-11-16 UTC against local commits `2e06e4b50` and `1ada3481c`, current implementation, retained run reports and the latest agent's next-input proposal. This is a development assessment and proposed milestone sequence, not a new GPU result, qualification certificate or experiment admission. Historical exports remain immutable.
 
 ## Product objective

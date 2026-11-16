@@ -1,0 +1,684 @@
+{
+  "scope": "Read-only structural JSON Schema comparison; no execution, resealing, runtime compatibility or semantic certification",
+  "upstream_commit": "b74121c712ee5378b70ad54c4997cd81563685e7",
+  "factory_commit": "e6099f4210442ef81ec9a54c4d7f11acbe98896e",
+  "upstream_schema_sha256": "b3a86efeac8d839b5513cc1fed35e96b08c381a84fc97b5baa8d07ca3b0c1519",
+  "declarations": 48,
+  "upstream_valid": 0,
+  "valid_without_local_kind_fields": 48,
+  "packages": [
+    {
+      "path": "jiuwenswarm/factory/ccs/branch_workbench/cc.yaml",
+      "declaration_sha256": "dc91cc70b6e0e8d41faf25a0dc0c367b1d9be21b7f99172b06262bb9cea00857",
+      "id": "factory.branch_workbench",
+      "without_local_kind_fields_valid": true,
+      "error_count": 14,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "create"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/builder/cc.yaml",
+      "declaration_sha256": "0d9fcbefaf102d78827489baf033339851691759f9cf74547b9e8482d721098c",
+      "id": "factory.builder",
+      "without_local_kind_fields_valid": true,
+      "error_count": 6,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "result"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/cc_qualification/cc.yaml",
+      "declaration_sha256": "404e5a3fee62a6cf206e9c084dc2f5d2b4c7a223fc992efd1f87ee317c90c654",
+      "id": "factory.cc_qualification",
+      "without_local_kind_fields_valid": true,
+      "error_count": 5,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "inspect_package"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/cc_workflow_lab/cc.yaml",
+      "declaration_sha256": "c42d71f793b9869db5a455d9fa226410b888ba42cb28fbe0f4e4b8f0d007c187",
+      "id": "factory.cc_workflow_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 9,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "analyze_receipts"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/deep_profile/cc.yaml",
+      "declaration_sha256": "fd1f0ae666c6097c470852999912d44e29c161b586a86364c1ff816982f969a1",
+      "id": "factory.deep_profile",
+      "without_local_kind_fields_valid": true,
+      "error_count": 3,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "plan"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/engine_component/cc.yaml",
+      "declaration_sha256": "f1b29e85200ddc4a9071e91738915337e20d199150ec4916141ba5ca3626639c",
+      "id": "factory.engine_component",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "materials",
+          "readme"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/engine_factory_loop/cc.yaml",
+      "declaration_sha256": "fd2b8bcb1c6a832d29d63f6196389589effb0a592cd0c4663e41fb4c05028e94",
+      "id": "factory.engine_factory_loop",
+      "without_local_kind_fields_valid": true,
+      "error_count": 9,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "stop"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/engine_inspector/cc.yaml",
+      "declaration_sha256": "d54c564fc649664e187424d51c25cc1860a0173d9bb675936b62ea9ec5ac3847",
+      "id": "factory.engine_inspector",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "inspect_strata"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/evidence/cc.yaml",
+      "declaration_sha256": "e6dad7ebe6ab3a498cef6c43903ba87da44d67d87fd63077e73ef639c5fc1084",
+      "id": "factory.evidence",
+      "without_local_kind_fields_valid": true,
+      "error_count": 7,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "publish"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/evidence_digest_lab/cc.yaml",
+      "declaration_sha256": "ff6ea54ead315ed0d02e4dfbd30f90ee76d89be1d9e800d1efbfe07cee7b8a81",
+      "id": "factory.evidence_digest_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 7,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "index"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_cache_lab/cc.yaml",
+      "declaration_sha256": "9cd74fccbb2ad2bdd64e04a617fada17aa2e1251ddb2fe9c61757bf0952b141a",
+      "id": "engine.expert_cache_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 13,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "validate"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_prediction/cc.yaml",
+      "declaration_sha256": "7f650ac771ce591398c4eb0796d7a83cd3b8942ef575cb73f6a73cf6118c9315",
+      "id": "factory.expert_prediction",
+      "without_local_kind_fields_valid": true,
+      "error_count": 3,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "evaluate"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/cc.yaml",
+      "declaration_sha256": "fb02cc7e26a4d49baa5f2320cbf00d05df73cc9469cade2581d392e9f8e577cd",
+      "id": "engine.expert_streaming",
+      "without_local_kind_fields_valid": true,
+      "error_count": 38,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "evidence_query"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_fill/cc.yaml",
+      "declaration_sha256": "6b151686e6cd2974105e5fd3fbc6ac5bf17e18705daeceb7e7d0deaf568f1ad9",
+      "id": "factory.components.expert_fill",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "materials",
+          "patch_04"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_pregate/cc.yaml",
+      "declaration_sha256": "df59830d81d41175bf4ebbb4984f618061c648de8eb0123b4cef7daa5f1cc398",
+      "id": "factory.components.expert_pregate",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "materials",
+          "patch_08"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_readiness/cc.yaml",
+      "declaration_sha256": "546ce4412cce27ab8c965e93c0056cda32f084c51b393397e6103a1c17f4c967",
+      "id": "factory.components.expert_readiness",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "materials",
+          "component"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/inflight_join/cc.yaml",
+      "declaration_sha256": "0fa2887292dacf1931db332e2aafc207e74ccba334e02af97206b0670d933902",
+      "id": "factory.components.inflight_join",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "materials",
+          "patch_11"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/mmap_advice/cc.yaml",
+      "declaration_sha256": "1926832798b5d55207e2736c2cd9ff6ce76b76af19900ecf1a53ff4774182b33",
+      "id": "factory.components.mmap_advice",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "materials",
+          "patch_01"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/phase_stats/cc.yaml",
+      "declaration_sha256": "02fab73b8084ff1e9a596e485ae296e6f0184e513dbc60222a23eedd6ff3a096",
+      "id": "factory.components.phase_stats",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "materials",
+          "patch_16"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/router_prefetch/cc.yaml",
+      "declaration_sha256": "1b9cb543f6e9e9a7cc16789837024fce3a0a34711a483d6195dd6d8337cfbfb2",
+      "id": "factory.components.router_prefetch",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "materials",
+          "component"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/expert_streaming/components/thread_names/cc.yaml",
+      "declaration_sha256": "c27f64b4b20bf77abf1e7ea7d0f8773497210529ff423c3f63b8551fceaf1396",
+      "id": "factory.components.thread_names",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "materials",
+          "component"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/gpu_kernel_lab/cc.yaml",
+      "declaration_sha256": "b36088dcbf7b3edc95e1c264c966bface1b0c6cbc2080da1ed4a7ef62db3b565",
+      "id": "engine.gpu_kernel_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 8,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "benchmark"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/heterogeneous_placement_lab/cc.yaml",
+      "declaration_sha256": "c100179267f3fee501725fca92d38aaa80ecc7cc1e4e79098dac82e1519eebe2",
+      "id": "engine.heterogeneous_placement_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 9,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "overlap_schedule"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/inference_lab/cc.yaml",
+      "declaration_sha256": "48014c2567af0dccc52529629a2c4d5d15a803c930a2d36098f8432730d56791",
+      "id": "factory.inference_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 32,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "apply_drafting"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/integration_skill/cc.yaml",
+      "declaration_sha256": "0ce18b600755b09b80f72a84e95d3cad746a374cf60c53ca8852df0fbe21c728",
+      "id": "factory.integration_skill",
+      "without_local_kind_fields_valid": true,
+      "error_count": 23,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "lab_result"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/kv_reuse_lab/cc.yaml",
+      "declaration_sha256": "e05f4ce8c380b89e468f244ace581026d9b2e520ba1a3675b08e96cd085ba975",
+      "id": "engine.kv_reuse_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 11,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "allocator"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/lab_client/cc.yaml",
+      "declaration_sha256": "ac3fb426ea30faa0efb0695887089a456d22f1c220f26f865f150ed93afea216",
+      "id": "factory.lab_client",
+      "without_local_kind_fields_valid": true,
+      "error_count": 7,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "ab_result"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/lab_lifecycle/cc.yaml",
+      "declaration_sha256": "1446119c25e8dfc195da49e440c062ec9dc594979c38aac168e6f3750302c39a",
+      "id": "factory.lab_lifecycle",
+      "without_local_kind_fields_valid": true,
+      "error_count": 3,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "recover"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/memory_residency_lab/cc.yaml",
+      "declaration_sha256": "06b48ead5467e46d0090a54f2988661eade7ce386dace110b8a6a1cc866fa9b9",
+      "id": "engine.memory_residency_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 9,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "verify"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_ab/cc.yaml",
+      "declaration_sha256": "a1fe7ed8c134bb56d6b54b9d9c51ead56186ec0e471231be61a4706fdc94eacd",
+      "id": "factory.methodology_ab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 1,
+      "first_error": {
+        "path": [
+          "materials",
+          "methodology"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_ablation/cc.yaml",
+      "declaration_sha256": "0eaa87fe924ae7bc0040a7262de3f5dcb386fe48f74c5d23ad3de1d0e8ac2ac1",
+      "id": "factory.methodology_ablation",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "ablation"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_diagnosis/cc.yaml",
+      "declaration_sha256": "3aa7cd98a104cbe7f15b9669a912e9fcd3b51cd3578306fd0950091fcbb470cf",
+      "id": "factory.methodology_diagnosis",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "diagnose"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_followup/cc.yaml",
+      "declaration_sha256": "dfeb44ea00e7ca23de312cb1969656677a3084aaac9c35cc161c3b2fe04d430a",
+      "id": "factory.methodology_followup",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "followup"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_hypothesis/cc.yaml",
+      "declaration_sha256": "d5912c2d529742565eef091a99a384b56c6c14e7c44ae592e0253c15fbe294d1",
+      "id": "factory.methodology_hypothesis",
+      "without_local_kind_fields_valid": true,
+      "error_count": 2,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "propose"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_out_of_core/cc.yaml",
+      "declaration_sha256": "f10e15139979f849bd5ea749ec3a21c146b01a133881990b251ce1d3d2fa43dc",
+      "id": "factory.methodology_out_of_core",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "cache_protocol"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/methodology_transfer_lab/cc.yaml",
+      "declaration_sha256": "e4a0ec2b5cba4b4a4c3a5e6337b4254017cfd8e1946cf30e30d3d75600511597",
+      "id": "factory.methodology_transfer_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 10,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "design_trial"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/native_inventory_once/cc.yaml",
+      "declaration_sha256": "d809322d489ca48379fcdf8bb98d79238b0012104017d69dddac6090cb7156c3",
+      "id": "factory.native_inventory_once",
+      "without_local_kind_fields_valid": true,
+      "error_count": 6,
+      "first_error": {
+        "path": [
+          "materials",
+          "component"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/numerical_investigation_lab/cc.yaml",
+      "declaration_sha256": "839827464eb6ae77909f2606a1142b9a0c3596b5f41b4c82a2f38079c417dea5",
+      "id": "factory.numerical_investigation_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 10,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "compare_logits"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/precision_lab/cc.yaml",
+      "declaration_sha256": "e192d26fd39c6fb25069e87f8d0ad061ee0315f954f90e673a40e8cf17a39b82",
+      "id": "engine.precision_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 10,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "calibrate"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/serving_scheduler_lab/cc.yaml",
+      "declaration_sha256": "a5760f278c86269677143139c3347093be1faa0c3522d4b59de009d0c7e09ae3",
+      "id": "engine.serving_scheduler_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 11,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "compare"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/ssd_streaming_lab/cc.yaml",
+      "declaration_sha256": "ad3085df54a617b2ec100dcb89fddb6cdda73154a30034e7d6369d77b077744b",
+      "id": "engine.ssd_streaming_lab",
+      "without_local_kind_fields_valid": true,
+      "error_count": 13,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "read_fixture"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/standard_benchmark/cc.yaml",
+      "declaration_sha256": "fa1d3b3ae2fe906fd52c6f5653a82bc860a77cdcda3b8f94374eb87d14efc19e",
+      "id": "factory.standard_benchmark",
+      "without_local_kind_fields_valid": true,
+      "error_count": 4,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "result"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/strata_budget_workbench/cc.yaml",
+      "declaration_sha256": "a81fbeb220111a9c7b698e6e2e902ced02ebcb6f261ce2c8b7250552e70b1d42",
+      "id": "engine.strata_budget_workbench",
+      "without_local_kind_fields_valid": true,
+      "error_count": 9,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "summarize_memory"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/strata_fixed_placement/cc.yaml",
+      "declaration_sha256": "dc7c6bb9ed4279a436be50c24a3c4db8fd77725ce8e9756b89e149706efb8a47",
+      "id": "engine.strata_fixed_placement",
+      "without_local_kind_fields_valid": true,
+      "error_count": 7,
+      "first_error": {
+        "path": [
+          "materials",
+          "component"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/strata_prefill_chunk/cc.yaml",
+      "declaration_sha256": "cfd240863bbd725820ce9c1471930f4de74195f47fca8355693529361b0559fe",
+      "id": "engine.strata_prefill_chunk",
+      "without_local_kind_fields_valid": true,
+      "error_count": 7,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "coverage"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/strata_prefill_workbench/cc.yaml",
+      "declaration_sha256": "13107610b9b5e019d8911c2971b681d1f60ac0238ea1a5b5e1a1545cf94b8cea",
+      "id": "engine.strata_prefill_workbench",
+      "without_local_kind_fields_valid": true,
+      "error_count": 25,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "read"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/strata_throughput_workbench/cc.yaml",
+      "declaration_sha256": "523fcfc2a67b7e4cdcccd5188e4835b4993c2b21a074405b5b3c1047aba78017",
+      "id": "engine.strata_throughput_workbench",
+      "without_local_kind_fields_valid": true,
+      "error_count": 23,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "stop"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    },
+    {
+      "path": "jiuwenswarm/factory/ccs/strata_verified_drafting/cc.yaml",
+      "declaration_sha256": "8d4856c7548c8f2ed512c93f1712e2a220e7536f67a3f2fa1020aa969224d94d",
+      "id": "engine.strata_verified_drafting",
+      "without_local_kind_fields_valid": true,
+      "error_count": 3,
+      "first_error": {
+        "path": [
+          "capabilities",
+          "apply"
+        ],
+        "message": "Additional properties are not allowed ('kind' was unexpected)"
+      }
+    }
+  ],
+  "note": "Per-package first error retained here; counts cover all errors. In-memory normalization removes only kind under capabilities/materials; it is not a migrated release."
+}

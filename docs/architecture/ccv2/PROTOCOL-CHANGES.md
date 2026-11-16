@@ -1,6 +1,10 @@
 # Changes to the CC protocol and runner
 
-The schemas are unchanged from the source (`jiuwenswarm/ccv2/schemas/`). All changes are in the runner and its edges, and each came from actual use.
+The historical import documentation described unchanged source schemas. The current branch also has a local schema extension, introduced in `608656eb1`: optional `capabilities.*.kind: tool` and `materials.*.kind: component|skill|method|reference`. The runner validates these fields, discovery exposes them, and the factory component loader uses them. The table below records the earlier runner changes; it is not an exhaustive compatibility claim.
+
+Against current `Muxite/tools` commit `b74121c712ee5378b70ad54c4997cd81563685e7`, these fields are not in the closed upstream CC v2 schema. All 48 factory declarations (40 top-level, eight nested) fail that schema; removing only those fields in memory makes all 48 structurally valid. This does not prove runtime portability. See [the source-pinned alignment review](../factory/MUXITE-CONTEXT-ALIGNMENT-2026-11-16.md) and its audit receipt.
+
+Treat the fields as a local extension, not portable CC v2 syntax. Preserve historical sealed releases. Any canonical export or schema migration must produce new package identities and retain role information through a documented compatible representation; do not silently rewrite admitted packages. Ordinary semantic checks remain opt-in.
 
 | # | Change | Found by | Evidence |
 |---|---|---|---|

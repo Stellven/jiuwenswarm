@@ -1,5 +1,7 @@
 # Inference factory development
 
+Latest context and plan reconciliation: [Muxite project alignment](MUXITE-CONTEXT-ALIGNMENT-2026-11-16.md), including the local CC schema extension and remaining construction-loop gaps.
+
 Implementation since that assessment: [connected investigation development](CONNECTED-DEVELOPMENT-2026-11-16.md).
 
 Current assessment and next milestones: [development review,2026-11-16](DEVELOPMENT-REVIEW-2026-11-16.md).
