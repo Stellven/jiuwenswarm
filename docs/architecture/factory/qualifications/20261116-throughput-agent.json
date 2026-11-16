@@ -1,0 +1,215 @@
+{
+  "task_id": "native-throughput-goal-001",
+  "outcome": "report_inconclusive",
+  "workflow": {
+    "id": "throughput-goal",
+    "status": "cancelled",
+    "revision": 18,
+    "sequence": 82,
+    "cleanup_pending": []
+  },
+  "node_count": 18,
+  "history": {
+    "added_snapshots": 3,
+    "total_snapshots": 578,
+    "source_databases": 15,
+    "authority": "Historical evidence only. Preserve failures; do not infer current applicability or execution authority."
+  },
+  "comparisons": [
+    {
+      "attempt_id": "15b90731b65244efaeac4b91fb52d8da",
+      "state": "succeeded",
+      "analysis": {
+        "verdict": "baseline_valid",
+        "execution_complete": true,
+        "stage": "aa",
+        "gates": {
+          "exact_tokens_and_finish": true,
+          "fixed_placement": true,
+          "baseline_timing_stable": true
+        },
+        "baseline_tokens_s": 13.98355684997644,
+        "candidate_tokens_s": null,
+        "relative_gain": null,
+        "conservative_relative_gain": null,
+        "target_relative_gain": 0.1,
+        "process_tokens_s": {
+          "A": [
+            13.88105669544094,
+            14.08605700451194
+          ],
+          "B": []
+        },
+        "promotion_authorized": false,
+        "limitations": [
+          "Fixed workload decode throughput only; no task accuracy or general model score.",
+          "Screen results are exploratory; target_met requires a separate ABBA confirmation.",
+          "Small process sample; no population confidence interval claimed."
+        ],
+        "verification": {
+          "raw_hashes": true,
+          "independent_parse": true,
+          "exact_boundary": true,
+          "manifest_sha256": "eb37b17c3ef7c8d049ed835f2f4a8b0f1a365f1407758203e0180b5f3911f1f6"
+        }
+      },
+      "evidence_refs": [
+        "15b90731b65244efaeac4b91fb52d8da:throughput"
+      ]
+    },
+    {
+      "attempt_id": "96d16c5f09ef406689b158fe3e44f8ce",
+      "state": "succeeded",
+      "analysis": {
+        "verdict": "target_not_met",
+        "execution_complete": true,
+        "stage": "screen",
+        "gates": {
+          "exact_tokens_and_finish": true,
+          "fixed_placement": true,
+          "baseline_timing_stable": true
+        },
+        "baseline_tokens_s": 13.914858459799106,
+        "candidate_tokens_s": 12.927725932210237,
+        "relative_gain": -0.0709408960530038,
+        "conservative_relative_gain": -0.0709408960530038,
+        "target_relative_gain": 0.1,
+        "process_tokens_s": {
+          "A": [
+            13.914858459799106
+          ],
+          "B": [
+            12.927725932210237
+          ]
+        },
+        "promotion_authorized": false,
+        "limitations": [
+          "Fixed workload decode throughput only; no task accuracy or general model score.",
+          "Screen results are exploratory; target_met requires a separate ABBA confirmation.",
+          "Small process sample; no population confidence interval claimed."
+        ],
+        "verification": {
+          "raw_hashes": true,
+          "independent_parse": true,
+          "exact_boundary": true,
+          "manifest_sha256": "ab4ab3c4515e7a279887d8c6ab38a4078e6133153b793ee3cc966cc1f79e18f7"
+        }
+      },
+      "evidence_refs": [
+        "96d16c5f09ef406689b158fe3e44f8ce:throughput"
+      ]
+    },
+    {
+      "attempt_id": "ca30536c6b4b4d348b04a17ccde68a48",
+      "state": "succeeded",
+      "analysis": {
+        "verdict": "target_not_met",
+        "execution_complete": true,
+        "stage": "screen",
+        "gates": {
+          "exact_tokens_and_finish": true,
+          "fixed_placement": true,
+          "baseline_timing_stable": true
+        },
+        "baseline_tokens_s": 14.002231605662153,
+        "candidate_tokens_s": 13.950953678474114,
+        "relative_gain": -0.003662125340599509,
+        "conservative_relative_gain": -0.003662125340599509,
+        "target_relative_gain": 0.1,
+        "process_tokens_s": {
+          "A": [
+            14.002231605662153
+          ],
+          "B": [
+            13.950953678474114
+          ]
+        },
+        "promotion_authorized": false,
+        "limitations": [
+          "Fixed workload decode throughput only; no task accuracy or general model score.",
+          "Screen results are exploratory; target_met requires a separate ABBA confirmation.",
+          "Small process sample; no population confidence interval claimed."
+        ],
+        "verification": {
+          "raw_hashes": true,
+          "independent_parse": true,
+          "exact_boundary": true,
+          "manifest_sha256": "363f59ccd757d7804c7835e115b699ea401d46eb92d44f9a54608371fb8e7ffe"
+        }
+      },
+      "evidence_refs": [
+        "ca30536c6b4b4d348b04a17ccde68a48:throughput"
+      ]
+    },
+    {
+      "attempt_id": "1f28df9ed3be4c1087c87c84e48ae7b0",
+      "state": "succeeded",
+      "analysis": {
+        "verdict": "target_not_met",
+        "execution_complete": true,
+        "stage": "screen",
+        "gates": {
+          "exact_tokens_and_finish": true,
+          "fixed_placement": true,
+          "baseline_timing_stable": true
+        },
+        "baseline_tokens_s": 13.969833889943901,
+        "candidate_tokens_s": 15.326771559259527,
+        "relative_gain": 0.09713341475680748,
+        "conservative_relative_gain": 0.09713341475680748,
+        "target_relative_gain": 0.1,
+        "process_tokens_s": {
+          "A": [
+            13.969833889943901
+          ],
+          "B": [
+            15.326771559259527
+          ]
+        },
+        "promotion_authorized": false,
+        "limitations": [
+          "Fixed workload decode throughput only; no task accuracy or general model score.",
+          "Screen results are exploratory; target_met requires a separate ABBA confirmation.",
+          "Small process sample; no population confidence interval claimed."
+        ],
+        "verification": {
+          "raw_hashes": true,
+          "independent_parse": true,
+          "exact_boundary": true,
+          "manifest_sha256": "23e2ca8a8864c39f7f5a137ea3fd9c7b15dfbf909b96eee9b3e9fd940b9651e6"
+        }
+      },
+      "evidence_refs": [
+        "1f28df9ed3be4c1087c87c84e48ae7b0:throughput"
+      ]
+    }
+  ],
+  "build_receipt": {
+    "build_record": {
+      "artifact_id": "cde38ff6c67e4acfbdf4ef2af4dd44e2:build-record",
+      "sha256": "0915ff24b0b370cfd470f5edd4181b0a3b0c81e43d6304ed646a4949610b0706"
+    },
+    "image_id": "sha256:85873851041f950e322e15165361f47b9401fa1adbb76d0e4e14491015d1315c",
+    "prep": {
+      "artifact_id": "cde38ff6c67e4acfbdf4ef2af4dd44e2:prep",
+      "sha256": "458356d57d2abf8ba3e8b73ee85dce91837593bdb489a6b01dd3aa0b372e5fea"
+    },
+    "request": {
+      "artifact_id": "cde38ff6c67e4acfbdf4ef2af4dd44e2:request",
+      "sha256": "3d09e320c102081f1c451ca075d39af2d13aa33a1e4e0156a2ab422fc8087a58"
+    },
+    "request_fingerprint": "dc7f7e7dba86ce107a83bf8e84390d21231c8436cc48ac80877068fb3fb3f0c0",
+    "target": "spark-gb10"
+  },
+  "report": {
+    "artifact_id": "throughput-goal-final-report",
+    "task_id": "native-throughput-goal-001",
+    "sha256": "84c33a3b40f782073d316e762014722d8ad0382d51ced23200737451672e38e4",
+    "size": 8958,
+    "media_type": "text/plain",
+    "producer_attempt": "1",
+    "location": "artifacts/84/84c33a3b40f782073d316e762014722d8ad0382d51ced23200737451672e38e4",
+    "complete": true,
+    "created": 1794858333.9266222
+  }
+}

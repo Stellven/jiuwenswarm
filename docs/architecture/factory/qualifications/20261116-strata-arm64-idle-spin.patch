@@ -1,0 +1,31 @@
+From c82131559d084d408b3a58b8e7eaaefb02477a8d Mon Sep 17 00:00:00 2001
+From: Factory source workbench <factory@localhost>
+Date: Mon, 16 Nov 2026 14:37:12 -0500
+Subject: [PATCH] Bound ARM64 CPU lane idle spinning to preserve launch
+ capacity
+
+---
+ src/dsv41/ds4_model.cu | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/src/dsv41/ds4_model.cu b/src/dsv41/ds4_model.cu
+index 915974c1..079d8fbd 100644
+--- a/src/dsv41/ds4_model.cu
++++ b/src/dsv41/ds4_model.cu
+@@ -6883,7 +6883,13 @@ struct Model::Impl {
+             }
+             int nw = (int) v.size();
+             if (o.cpu_threads > 0) nw = std::max(X == 0 ? 0 : 1, std::min(nw, o.cpu_threads / NH - (X == 0 ? 1 : 0)));
++#if defined(__aarch64__)
++            // Bound idle CPU-lane spinning on ARM64 so launch and IO work can use the CPU quota.
++            // Worker count, job tickets and the existing condition-variable wakeup protocol are unchanged.
++            out.push_back(std::make_unique<Pool>(nw, v, 200));
++#else
+             out.push_back(std::make_unique<Pool>(nw, v, 20000));   // spin through a token's layers (20 ms)
++#endif
+         }
+         return out;
+     }
+-- 
+2.43.0
+

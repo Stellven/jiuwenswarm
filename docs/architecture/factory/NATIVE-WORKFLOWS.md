@@ -4,6 +4,9 @@ The native service passed bounded GPU execution qualification and is active on
 Spark port 5175. See the [service runbook](SPARK-NATIVE-SERVICE.md) and
 [2026-11-16 qualification record](qualifications/20261116-spark-native.json)
 for scope, evidence, task limits and rollback.
+The subsequent [agent-driven throughput campaign](NATIVE-THROUGHPUT-AGENT.md)
+connects the actual decision maker to this graph runtime and retained experiment
+history; build/inference smoke qualification alone did not exercise that loop.
 
 ## Application and ownership
 
