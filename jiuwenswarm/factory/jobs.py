@@ -121,11 +121,40 @@ class Jobs:
             task = self.store.get_task(task_id)
             constraints = task.get('constraints', {})
             limits = constraints.get('attempt_limits', {}) if isinstance(constraints, dict) else {}
+            owner = constraints.get('campaign_budget_owner', constraints.get('factory_loop_parent', task_id))
+            if owner != task_id:
+                owner_task = self.store.get_task(owner)
+                limits = owner_task.get('constraints', {}).get('attempt_limits', {})
+            campaign_tasks = []
+            for row in self.store._db.execute('SELECT task_id,constraints FROM tasks'):
+                policy = json.loads(row['constraints'])
+                if row['task_id'] == owner or policy.get('campaign_budget_owner', policy.get('factory_loop_parent')) == owner:
+                    campaign_tasks.append(row['task_id'])
             limit = limits.get(kind)
             if limit is not None:
-                count = self.store._db.execute('SELECT COUNT(*) FROM attempts WHERE task_id=? AND kind=?', (task_id, kind)).fetchone()[0]
+                placeholders = ','.join('?' for _ in campaign_tasks)
+                count = self.store._db.execute(f'SELECT COUNT(*) FROM attempts WHERE task_id IN ({placeholders}) AND kind=?', (*campaign_tasks, kind)).fetchone()[0]
                 if type(limit) is not int or limit < 0 or count >= limit:
                     raise ValueError('Task attempt budget exhausted: ' + kind)
+            # Construction allowances share this durable attempt ledger, including
+            # failures. Existing keys return above and Builder reuse creates no row.
+            owner_task = self.store.get_task(owner)
+            authority = owner_task.get('constraints', {}).get('factory_loop', {}).get('experiment_authority')
+            if authority is None:
+                parent_id = constraints.get('factory_loop_parent', task_id)
+                authority = self.store.get_task(parent_id).get('constraints', {}).get('factory_loop', {}).get('experiment_authority')
+            allowance = ('max_build_attempts' if kind == 'build' else
+                         'max_gpu_launches' if kind == 'lab' and job_class == 'gpu' else None)
+            if authority is not None and allowance is not None:
+                limit = authority.get(allowance, 0)
+                placeholders = ','.join('?' for _ in campaign_tasks)
+                rows = self.store._db.execute(
+                    f'SELECT kind,resources FROM attempts WHERE task_id IN ({placeholders})', campaign_tasks)
+                count = sum(row['kind'] == 'build' if allowance == 'max_build_attempts' else
+                            row['kind'] == 'lab' and json.loads(row['resources']).get('job_class') == 'gpu'
+                            for row in rows)
+                if type(limit) is not int or limit < 0 or count >= limit:
+                    raise ValueError('Shared campaign allowance exhausted: ' + allowance)
             attempt = self.store.create_attempt(task_id, dict(kind=kind, request=request,
                 idem_key=idem_key, fingerprint=fp, resources=dict(argv=argv,
                 job_class=job_class, timeout_s=timeout_s, jobq_dir=str(self.jobq_dir))))

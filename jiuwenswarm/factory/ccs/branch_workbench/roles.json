@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "attach": "tool",
+    "compare": "tool",
+    "create": "tool",
+    "fork": "tool",
+    "prune": "tool",
+    "ready": "tool",
+    "record": "tool",
+    "refine": "tool",
+    "status": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "components": "component",
+    "example": "reference",
+    "methodology": "method",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

@@ -1,16 +1,16 @@
 cc: '2'
 id: factory.methodology_ablation
-version: 1.0.0
+version: 1.0.1
 materials:
   methodology:
-    kind: method
     path: METHOD.md
   ontology:
-    kind: reference
     path: ONTOLOGY.json
   component_candidates:
-    kind: reference
     path: COMPONENT-CANDIDATES.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
@@ -19,8 +19,8 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   ablation:
-    kind: tool
-    does: Design one-variable diagnostic or ABBA work without executing or scoring it.
+    does: Design one-variable diagnostic or ABBA work without executing or scoring
+      it.
     takes:
       evidence_ids:
         kind: json

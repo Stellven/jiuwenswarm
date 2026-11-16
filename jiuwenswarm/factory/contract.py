@@ -31,6 +31,10 @@ def load(contract_id):
         path = CONTRACTS / (str(contract_id) + '.json')
     result = Contract(json.loads(path.read_text()))
     result.path = path.resolve()
+    if result.get('adapter') == 'factory-experiment-v1':
+        from .experiments import validate_contract
+        validate_contract(result)
+        return result
     if result.get('adapter') == 'strata-prefill-scoped-v1':
         from .prefill_workbench import validate_contract
         validate_contract(result)

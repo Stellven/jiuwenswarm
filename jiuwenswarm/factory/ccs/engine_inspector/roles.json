@@ -1,0 +1,10 @@
+{
+  "capabilities": {
+    "inspect": "tool",
+    "inspect_strata": "tool",
+    "preflight": "tool",
+    "verify_effective_config": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {}
+}

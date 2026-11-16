@@ -42,19 +42,21 @@ def host_call(tmp_path, package, capability, inputs, grants=('process.exec',), r
 @pytest.mark.parametrize('package', PACKAGES)
 def test_self_contained_job_surface(package):
     declaration = load(CCS / package / 'cc.yaml')
+    from jiuwenswarm.ccv2.roles import read_roles
+    roles=read_roles(declaration,CCS/package)
     assert set(ALIASES) <= set(declaration['capabilities'])
-    assert declaration['version'] == ('2.1.0' if package == 'expert_streaming' else '1.1.0')
+    assert declaration['version'] == ('2.1.1' if package == 'expert_streaming' else '1.1.1')
     assert declaration['id'] == ('engine.expert_streaming' if package == 'expert_streaming' else 'factory.integration_skill')
     for name in ('integrate', 'repair', 'preflight', 'integration_job'):
         material = declaration['materials'][name]
-        assert material['kind'] == 'skill'
+        assert roles['materials'][name] == 'skill'
         assert (CCS / package / material['path']).is_file()
     for capability in ('lab_submit', 'lab_ab_submit', 'preflight', 'verify_effective_config'):
         assert 'gpu.use' in declaration['capabilities'][capability]['changes']
     assert 'workspace.read' in declaration['capabilities']['inspect']['changes']
     if package == 'expert_streaming':
         assert {'applicability', 'engagement'} <= set(declaration['capabilities'])
-        assert sum(material['kind'] == 'component' for material in declaration['materials'].values()) == 8
+        assert sum(role == 'component' for role in roles['materials'].values()) == 8
 
 
 def test_bundled_integration_materials_match_explicit_source():

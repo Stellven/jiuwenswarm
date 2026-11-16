@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.lab_client
-version: 1.1.0
+version: 1.1.1
 bindings:
   default:
     kind: native
@@ -9,24 +9,26 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   submit:
-    kind: tool
-    does: Admit an image object with exactly tag and immutable id, plus a separate build_attempt_id, and submit a fixed lab evaluation through the GPU queue.
-      run_config may include profile nsys to trace the run with Nsight Systems; the
-      result then carries a kernel, CUDA API and OS-runtime breakdown. Traced timing
-      is perturbed and is never speed evidence.
+    does: Admit an image object with exactly tag and immutable id, plus a separate
+      build_attempt_id, and submit a fixed lab evaluation through the GPU queue. run_config
+      may include profile nsys to trace the run with Nsight Systems; the result then
+      carries a kernel, CUDA API and OS-runtime breakdown. Traced timing is perturbed
+      and is never speed evidence.
     takes:
       image:
         kind: json
         schema:
           type: object
           additionalProperties: false
-          required: [tag, id]
+          required:
+          - tag
+          - id
           properties:
             tag:
               type: string
             id:
               type: string
-              pattern: '^sha256:[a-f0-9]{64}$'
+              pattern: ^sha256:[a-f0-9]{64}$
       build_attempt_id: text
       contract_id: text
       run_config: json
@@ -44,7 +46,6 @@ capabilities:
     changes:
     - process.exec
   status:
-    kind: tool
     does: Read the owned lab attempt from the durable queue.
     takes:
       attempt_id: text
@@ -69,7 +70,6 @@ capabilities:
     changes:
     - process.exec
   cancel:
-    kind: tool
     does: Cancel the owned lab attempt and reap its container.
     takes:
       attempt_id: text
@@ -94,7 +94,6 @@ capabilities:
     changes:
     - process.exec
   result:
-    kind: tool
     does: Read evaluation and evidence references for the owned lab attempt.
     takes:
       attempt_id: text
@@ -110,7 +109,6 @@ capabilities:
     changes:
     - process.exec
   ab_submit:
-    kind: tool
     does: Admit both images and queue one contract-bound ABBA experiment; checks come
       from component materials.
     takes:
@@ -145,7 +143,6 @@ capabilities:
     changes:
     - process.exec
   ab_status:
-    kind: tool
     does: Read the owned durable A/B job status.
     takes:
       attempt_id: text
@@ -170,7 +167,6 @@ capabilities:
     changes:
     - process.exec
   ab_result:
-    kind: tool
     does: Ingest and read verified A/B verdict, correctness and evidence.
     takes:
       attempt_id: text
@@ -186,3 +182,7 @@ capabilities:
     - python
     changes:
     - process.exec
+materials:
+  roles:
+    path: roles.json
+    media_type: application/json

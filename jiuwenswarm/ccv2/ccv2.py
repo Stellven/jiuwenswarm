@@ -142,7 +142,7 @@ def callable_entries(declaration):
     return {name: cap for name, cap in declaration.get('capabilities', {}).items() if 'serves' not in cap}
 
 
-def normalize(raw):
+def normalize(raw, *, legacy=False):
     fields(raw, {'cc', 'id', 'version', 'bindings', 'capabilities', 'materials', 'defs', 'provenance'}, {'cc', 'id', 'version'})
     require(raw['cc'] == '2', 'UNSUPPORTED_VERSION', 'Expected protocol version 2')
     require(isinstance(raw['id'], str) and ID.fullmatch(raw['id']), 'INVALID_ID', 'Invalid capsule ID')
@@ -156,7 +156,7 @@ def normalize(raw):
     require(isinstance(materials, dict), 'INVALID_DECLARATION', 'materials must be a map')
     for name, material in materials.items():
         require(isinstance(name, str) and ID.fullmatch(name), 'INVALID_ID', name)
-        fields(material, {'path', 'description', 'media_type', 'kind'}, {'path'})
+        fields(material, {'path', 'description', 'media_type'} | ({'kind'} if legacy else set()), {'path'})
         require(material.get('kind', 'reference') in MATERIAL_KINDS, 'INVALID_MATERIAL', 'kind must be one of ' + ', '.join(sorted(MATERIAL_KINDS)))
         require(isinstance(material['path'], str) and bool(material['path']), 'INVALID_MATERIAL', 'Material path must name a bundled file')
         for field in ('description', 'media_type'):
@@ -192,7 +192,7 @@ def normalize(raw):
         require(isinstance(cap, dict), 'INVALID_DECLARATION', 'Capability must be an object')
         application = 'serves' in cap
         require(ID.fullmatch(name), 'INVALID_ID', name)
-        allowed = {'does', 'takes', 'needs', 'changes', 'guarantees', 'using', 'kind'} | ({'serves'} if application else {'gives'})
+        allowed = {'does', 'takes', 'needs', 'changes', 'guarantees', 'using'} | ({'kind'} if legacy else set()) | ({'serves'} if application else {'gives'})
         fields(cap, allowed, {'does'})
         require(cap.get('kind', 'tool') == 'tool', 'INVALID_DECLARATION', f'{name}.kind must be tool; components, skills and methods are materials')
         require(isinstance(cap['does'], str) and bool(cap['does'].strip()), 'INVALID_DECLARATION', f'{name}.does must explain the action')
@@ -246,9 +246,9 @@ def read_yaml(path):
         raise CCError('INVALID_DECLARATION', str(e)) from e
 
 
-def load(path):
+def load(path, *, legacy=False):
     try:
-        return normalize(read_yaml(path))
+        return normalize(read_yaml(path), legacy=legacy)
     except TypeError as error:
         raise CCError('INVALID_DECLARATION', str(error)) from error
 
@@ -309,7 +309,8 @@ def complete_result(receipt, packet):
 
 
 class Host:
-    def __init__(self, store, resources=None, delegates=None, checkers=None, python=None, session_grants=None):
+    def __init__(self, store, resources=None, delegates=None, checkers=None, python=None, session_grants=None, legacy=False):
+        self.legacy = legacy
         self.store = Path(store).resolve()
         self.store.mkdir(parents=True, exist_ok=True)
         self.resources = resources or {}
@@ -397,7 +398,7 @@ class Host:
 
     def seal(self, bundle):
         bundle = Path(bundle).resolve()
-        decl = load(bundle / 'cc.yaml')
+        decl = load(bundle / 'cc.yaml', legacy=self.legacy)
         rows = tree_files(bundle)
         included = {row['path'] for row in rows}
         def sealed_path(relative, missing='MISSING_MATERIAL'):
@@ -476,8 +477,8 @@ class Host:
             raise CCError('INVALID_RELEASE', str(error)) from error
         require(sha(canonical) == release, 'DIGEST_MISMATCH', 'Release index changed')
         bundle = root / 'bundle'
-        require(normalize(manifest['declaration']) == manifest['declaration'], 'INVALID_RELEASE', 'Index declaration is not normalized')
-        require(load(bundle/'cc.yaml') == manifest['declaration'], 'INVALID_RELEASE', 'cc.yaml and indexed declaration differ')
+        require(normalize(manifest['declaration'], legacy=self.legacy) == manifest['declaration'], 'INVALID_RELEASE', 'Index declaration is not normalized')
+        require(load(bundle/'cc.yaml', legacy=self.legacy) == manifest['declaration'], 'INVALID_RELEASE', 'cc.yaml and indexed declaration differ')
         expected = manifest['files']
         require(expected == sorted(expected, key=lambda row: row['path'].encode('utf-8')), 'INVALID_RELEASE', 'Index paths are not sorted')
         seen = set()

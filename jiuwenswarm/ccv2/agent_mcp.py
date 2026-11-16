@@ -65,11 +65,15 @@ class Catalog:
                 entries.append({'folder': folder.name, 'usable': False, 'error': err})
                 continue
             self.releases[declaration['id']] = release
-            entries.append(self.summary(declaration, release, folder.name))
+            from .roles import read_roles
+            _, bundle = self.host.release(release)
+            roles = read_roles(declaration, bundle, legacy=True)
+            entries.append(self.summary(declaration, release, folder.name, roles))
         return entries
 
     @staticmethod
-    def summary(declaration: dict, release: str, folder: str) -> dict:
+    def summary(declaration: dict, release: str, folder: str, roles=None) -> dict:
+        roles = roles or {}
         callable_ = callable_entries(declaration)
         services = service_entries(declaration)
         caps = {}
@@ -82,13 +86,13 @@ class Catalog:
                 'needs': cap.get('needs', []),
                 'effects': cap.get('changes', []),
                 'binding': (declaration['bindings'].get(cap.get('using', 'default')) or {}).get('kind'),
-                'module': cap.get('kind', 'tool'),
+                'module': roles.get('capabilities', {}).get(name, 'tool'),
             }
         return {
             'cc': declaration['id'], 'version': declaration['version'], 'release': release,
             'folder': folder, 'usable': True, 'capabilities': caps,
             'materials': {k: v.get('description') for k, v in declaration.get('materials', {}).items()},
-            'material_kinds': {k: v.get('kind', 'reference') for k, v in declaration.get('materials', {}).items()},
+            'material_kinds': {k: roles.get('materials', {}).get(k, 'reference') for k in declaration.get('materials', {})},
             'callable': sorted(callable_), 'services': sorted(services),
         }
 

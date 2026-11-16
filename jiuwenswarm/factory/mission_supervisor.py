@@ -205,7 +205,10 @@ class Supervisor:
 
     def _import_result(self, store, manager, attempt):
         adapter = attempt.get('request', {}).get('adapter', '')
-        if adapter == 'strata-prefill-scoped-v1':
+        if adapter == 'factory-experiment-v1':
+            from .experiment_jobs import ExperimentJobs
+            ExperimentJobs(store).result(attempt['task_id'],attempt['attempt_id'])
+        elif adapter == 'strata-prefill-scoped-v1':
             if not any(ref.endswith(':observation') for ref in attempt.get('result_refs', [])):
                 from .prefill_workbench import Workbench
                 Workbench(store).result(attempt['task_id'], attempt['attempt_id'])

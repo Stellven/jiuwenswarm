@@ -48,7 +48,7 @@ class FactoryLoop:
             if type(policy.get(key)) is not int or policy[key] <= 0:
                 raise ValueError('Loop policy requires positive integer ' + key)
         templates = policy.get('templates')
-        if not isinstance(templates, list) or not templates:
+        if not isinstance(templates, list) or (not templates and not policy.get('experiment_authority')):
             raise ValueError('Operator must admit at least one pinned contract template')
         self.templates = {}
         for item in templates:
@@ -214,14 +214,24 @@ class FactoryLoop:
             integration='Agent calls select/execute/collect; existing mission supervisor owns quiet execution.')
 
     @serialized
-    def select(self, cycle_id, evidence_ids, hypothesis_id, template_id, expected_rev, branch_id=None, expected_graph_rev=None):
+    def prepare_experiment(self, experiment_id, specification, image):
+        self._admit()
+        from .experiments import prepare
+        return prepare(self, experiment_id, specification, image)
+
+    @serialized
+    def select(self, cycle_id, evidence_ids, hypothesis_id, template_id=None, expected_rev=None, branch_id=None, expected_graph_rev=None, experiment_id=None):
         """Reserve one cycle before any external effect; agent makes both choices."""
         if type(expected_rev) is not int or expected_rev < 0:
             raise ValueError('expected_rev must be a nonnegative integer')
         if not isinstance(cycle_id, str) or not cycle_id or len(cycle_id) > 100:
             raise ValueError('Bounded nonempty cycle_id required')
+        if (template_id is None) == (experiment_id is None):
+            raise ValueError('Select exactly one template or prepared experiment')
         request = dict(evidence_ids=evidence_ids, hypothesis_id=hypothesis_id,
                        template_id=template_id, expected_rev=expected_rev)
+        if experiment_id is not None:
+            request['experiment_id'] = experiment_id
         if (branch_id is None) != (expected_graph_rev is None):
             raise ValueError('branch_id and expected_graph_rev must be supplied together')
         if branch_id is not None:
@@ -230,18 +240,25 @@ class FactoryLoop:
             if type(expected_graph_rev) is not int or expected_graph_rev < 0:
                 raise ValueError('expected_graph_rev must be a nonnegative integer')
             request.update(branch_id=branch_id, expected_graph_rev=expected_graph_rev)
-        # Validate explicit agent choice using the existing methodology, not a new planner.
-        analysis = methodology.dispatch(self.scoped, self.task_id, 'ablation',
-            dict(evidence_ids=evidence_ids, hypothesis_id=hypothesis_id))['analysis']
-        if template_id not in self.templates:
-            raise ScopeDenied('Contract template is outside operator policy')
-        template = self.templates[template_id]
-        if hypothesis_id not in template['allowed_hypothesis_ids']:
-            raise ScopeDenied('Hypothesis is not admitted for this contract template')
-        raw = Path(template['path']).read_bytes()
-        if hashlib.sha256(raw).hexdigest() != template['sha256']:
-            raise ValueError('Admitted template identity changed')
-        contract = validate_loop_contract(json.loads(raw))
+        if experiment_id is not None:
+            from .experiments import resolve
+            contract, template = resolve(self, experiment_id)
+            spec = contract['specification']
+            if evidence_ids != spec['evidence_ids'] or hypothesis_id != spec['hypothesis']:
+                raise ScopeDenied('Selection must preserve prepared hypothesis and evidence')
+            analysis = dict(candidate=dict(hypothesis=spec['hypothesis'], reason=spec['interpretation']))
+        else:
+            analysis = methodology.dispatch(self.scoped, self.task_id, 'ablation',
+                dict(evidence_ids=evidence_ids, hypothesis_id=hypothesis_id))['analysis']
+            if template_id not in self.templates:
+                raise ScopeDenied('Contract template is outside operator policy')
+            template = self.templates[template_id]
+            if hypothesis_id not in template['allowed_hypothesis_ids']:
+                raise ScopeDenied('Hypothesis is not admitted for this contract template')
+            raw = Path(template['path']).read_bytes()
+            if hashlib.sha256(raw).hexdigest() != template['sha256']:
+                raise ValueError('Admitted template identity changed')
+            contract = validate_loop_contract(json.loads(raw))
         # Template is the complete permitted treatment envelope in v1; no arbitrary
         # parameters, source, image, data, gates or workloads can be supplied here.
         if contract.get('target') != 'spark-gb10':
@@ -364,6 +381,9 @@ class FactoryLoop:
     def _manager(self, cycle):
         if self.benchmark is not None:
             return self.benchmark  # injected adapter is for offline durability tests
+        if cycle['contract'].get('adapter') == 'factory-experiment-v1':
+            from .experiment_jobs import ExperimentJobs
+            return ExperimentJobs(self.store)
         if cycle['contract'].get('adapter') == 'strata-prefill-scoped-v1':
             from .prefill_workbench import Workbench
             return Workbench(self.store)
@@ -373,13 +393,24 @@ class FactoryLoop:
     @serialized
     def execute(self, cycle_id):
         cycle = self._get(cycle_id)
+        from .execution_binding import verify_task
+        binding_id = verify_task(self.store, self.task_id)
+        if binding_id is not None:
+            if cycle['contract'].get('adapter') == 'factory-experiment-v1' and cycle['contract']['execution_binding_id'] != binding_id:
+                raise ScopeDenied('Prepared experiment requires its original execution binding; prepare a new revision')
+            cycle['execution_binding_id'] = binding_id
         if cycle['state'] in {'submitted', 'collected'}:
             return cycle
         # Existing Jobs keys reconcile a crash after queue submission, including
         # recovery after deadline. A fresh external effect always needs budget.
         prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
             (cycle['child_task_id'], cycle['idem_key'])).fetchone()
-        if not prior:
+        build_prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
+            (self.task_id, cycle['idem_key'] + '-build')).fetchone()
+        if not build_prior:
+            build_prior = self.store._db.execute('SELECT attempt_id FROM builder_reuse_keys WHERE task_id=? AND idem_key=?',
+                (self.task_id, cycle['idem_key'] + '-build')).fetchone()
+        if not prior and not build_prior:
             self._check_branch_dispatch(cycle)
             if cycle['contract'].get('adapter') == 'strata-benchmark-v5':
                 from .fixed_screen_benchmark import admit_fixed_screens
@@ -388,6 +419,16 @@ class FactoryLoop:
                 from .fixed_placement_benchmark import admit_final_slot
                 admit_final_slot(self,cycle['contract'],reserving=False)
             self._diagnostic_admission(cycle['contract'], reserving=False)
+            self._admit()
+        if cycle['contract'].get('build_binding') is not None:
+            from .experiment_build import ensure_build
+            cycle, ready = ensure_build(self, cycle)
+            if not ready:
+                return cycle
+        if not prior:
+            # Reconciliation may finish an existing build after stop/deadline,
+            # but a new lab effect still requires current admission.
+            self._check_branch_dispatch(cycle)
             self._admit()
         artifact_id = f"loop-contract:{cycle['number']}"
         raw = (json.dumps(cycle['contract'], indent=2, sort_keys=True, allow_nan=False) + '\n').encode()
@@ -405,6 +446,17 @@ class FactoryLoop:
             allowed_effects=parent['allowed_effects'], budget=parent['budget'],
             constraints=parent['constraints'] | dict(benchmark_contract_sha256=digest,
                 factory_loop_parent=self.task_id), contract_id=path)
+        runtime_binding = None
+        if cycle['contract'].get('adapter') == 'factory-experiment-v1':
+            from .execution_binding import digest as identity_digest
+            base_binding = parent['constraints']['execution_binding']
+            runtime_binding = dict(format='factory-runtime-execution/1',
+                factory_binding_id=base_binding['binding_id'],package_release=base_binding['release'],
+                backend_sha256=base_binding['backend']['sha256'],components=base_binding['components'],
+                runtime_image=cycle['contract']['image'],experiment_sha256=digest,
+                build_receipt_sha256=cycle.get('build_receipt_sha256'))
+            runtime_binding['binding_id'] = identity_digest(runtime_binding)
+            child['constraints']['runtime_execution_binding'] = runtime_binding
         child['constraints'].pop('factory_loop', None)
         for key in TASK_INPUTS:
             if key not in child and key in parent:
@@ -420,6 +472,8 @@ class FactoryLoop:
             if cycle['state'] in {'submitted', 'collected'}:
                 return cycle
             cycle.update(state='dispatching', contract_path=path, contract_sha256=digest)
+            if runtime_binding is not None:
+                cycle['runtime_execution_binding']=runtime_binding
             self._write(cycle, 'dispatch_intent')
         attempt = self._manager(cycle).submit(child_id, path, cycle['idem_key'])
         with self.store._transaction():
@@ -441,6 +495,24 @@ class FactoryLoop:
         # Retain failures and null results as evidence; never silently rerun them.
         report = result.get('analysis') or dict(status=result['state'], error='No analysis available')
         report = dict(report)
+        if cycle['contract'].get('adapter') == 'factory-experiment-v1':
+            attempt = self.store.read(cycle['child_task_id'],cycle['attempt_id'])
+            artifacts = []
+            for source_id in attempt.get('result_refs',[]):
+                source = self.store.read(cycle['child_task_id'],source_id)
+                if 'sha256' not in source:
+                    continue
+                artifact_id = f"loop-artifact:{cycle['number']}:" + source_id.split(':',1)[-1]
+                try:
+                    retained = self.store.read(self.task_id,artifact_id)
+                    if retained['sha256'] != source['sha256']:
+                        raise ValueError('Collected artifact identity conflicts')
+                except NotFound:
+                    retained = self.store.put_artifact(self.task_id,artifact_id,
+                        self.store.artifact_bytes(cycle['child_task_id'],source_id),source['media_type'],None)
+                artifacts.append(dict(artifact_id=artifact_id,sha256=retained['sha256'],
+                                      source_task_id=cycle['child_task_id'],source_artifact_id=source_id))
+            report['raw_artifacts'] = artifacts
         report.setdefault('status', result['state'])
         evidence_id = f"loop-result:{cycle['number']}"
         try:
@@ -449,7 +521,9 @@ class FactoryLoop:
             self.store.append_observation(self.task_id, dict(obs_id=evidence_id, kind='factory_loop_result',
                 values=report, host_run=dict(child_task_id=cycle['child_task_id'], attempt_id=cycle['attempt_id']),
                 limitations='Child benchmark analysis; original child evidence remains retained.'))
-        followup = methodology.dispatch(self.scoped, self.task_id, 'followup', dict(evidence_ids=[evidence_id]))['analysis']
+        followup = (dict(status='evidence_ready', evidence_ids=[evidence_id], promotion_authorized=False)
+                    if cycle['contract'].get('adapter') == 'factory-experiment-v1' else
+                    methodology.dispatch(self.scoped, self.task_id, 'followup', dict(evidence_ids=[evidence_id]))['analysis'])
         with self.store._transaction():
             cycle = self._get(cycle_id)
             if cycle['state'] != 'collected':
@@ -472,7 +546,12 @@ class FactoryLoop:
                 return cycle
             prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
                 (cycle['child_task_id'], cycle['idem_key'])).fetchone()
-            if prior or cycle['state'] not in {'selected', 'dispatching'}:
+            build_prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
+                (self.task_id, cycle['idem_key'] + '-build')).fetchone()
+            if not build_prior:
+                build_prior = self.store._db.execute('SELECT attempt_id FROM builder_reuse_keys WHERE task_id=? AND idem_key=?',
+                    (self.task_id, cycle['idem_key'] + '-build')).fetchone()
+            if prior or build_prior or cycle['state'] not in {'selected', 'dispatching'}:
                 raise ScopeDenied('Recover/collect an existing attempt; abandonment cannot hide submitted work')
             report = dict(status='not_executed', reason=reason, measured=False)
             evidence_id = f"loop-abandoned:{cycle['number']}"
@@ -502,7 +581,9 @@ class FactoryLoop:
 
 def validate_loop_contract(contract):
     """Admit only existing bounded adapter contracts, never arbitrary modules."""
-    if contract.get('adapter') == 'strata-prefill-scoped-v1':
+    if contract.get('adapter') == 'factory-experiment-v1':
+        from .experiments import validate_contract
+    elif contract.get('adapter') == 'strata-prefill-scoped-v1':
         from .prefill_workbench import validate_contract
     else:
         from .benchmark import validate_contract
@@ -522,9 +603,10 @@ def owned_attempts(store, task_id):
 
 
 def dispatch(store, task_id, operation, inputs):
-    methods = {'status': set(), 'select': {'cycle_id', 'evidence_ids', 'hypothesis_id', 'template_id', 'expected_rev'},
+    methods = {'status': set(), 'select': {'cycle_id', 'evidence_ids', 'hypothesis_id', 'expected_rev'},
+               'prepare_experiment': {'experiment_id', 'specification', 'image'},
                'execute': {'cycle_id'}, 'collect': {'cycle_id'}, 'abandon': {'cycle_id', 'reason'}, 'stop': {'reason'}}
-    optional = {'branch_id', 'expected_graph_rev'} if operation == 'select' else set()
+    optional = {'branch_id', 'expected_graph_rev', 'template_id', 'experiment_id'} if operation == 'select' else set()
     if (operation not in methods or not isinstance(inputs, dict)
             or set(inputs) - (methods[operation] | optional) or methods[operation] - set(inputs)):
         raise ValueError('Invalid factory loop operation or input fields')

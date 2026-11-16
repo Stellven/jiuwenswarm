@@ -32,8 +32,11 @@ class Builder:
         if not isinstance(request, dict):
             raise ValueError('Build request must be an object')
         target = profile(request.get('target'))
-        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency'}:
+        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target'}:
             raise ValueError('Unknown build request fields')
+        build_target = request.get('build_target', 'strata-dsv41')
+        if not isinstance(build_target,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',build_target):
+            raise ValueError('Invalid declared build target')
         source = request['source']
         path = Path(source['path']).expanduser().resolve()
         def git(*args):
@@ -73,6 +76,7 @@ class Builder:
             engine_sha256=hashlib.sha256(engine.read_bytes()).hexdigest(),
             recipe_sha256=hashlib.sha256(recipe.read_bytes()).hexdigest())
         if target == 'spark-gb10':
+            normalized['build_target'] = build_target
             normalized['worker_sha256'] = hashlib.sha256(Path(__file__).with_name('build_job.py').read_bytes()).hexdigest()
             normalized['lifecycle_sha256'] = hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest()
             if deadline > 5400:
@@ -109,6 +113,9 @@ class Builder:
             if pinned_dep is not None and request.get('dependency') != pinned_dep:
                 raise ValueError('Build dependency differs from operator input')
         request = self._request(request)
+        binding = constraints.get('execution_binding')
+        if binding:
+            request['execution_binding_id'] = binding['binding_id']
         if node_id is not None:
             request['node_id'] = node_id
         # Stable request path and argv keep attempt identity out of its fingerprint.
@@ -150,6 +157,9 @@ class Builder:
                             (task_id, idem_key, fp, result['attempt_id']))
                     return result
         env = dict(request['env'], FACTORY_HOME=str(self.store.home))
+        if binding:
+            from .execution_binding import worker_environment
+            env.update(worker_environment(binding))
         return self.jobs.submit(task_id, 'build', request, idem_key, 'build', argv, request['deadline_s'], env)
 
     def status(self, attempt_id):

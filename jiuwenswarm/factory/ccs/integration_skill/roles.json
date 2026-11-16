@@ -1,0 +1,30 @@
+{
+  "capabilities": {
+    "build_cancel": "tool",
+    "build_result": "tool",
+    "build_status": "tool",
+    "build_submit": "tool",
+    "evidence_publish": "tool",
+    "evidence_query": "tool",
+    "evidence_read": "tool",
+    "inspect": "tool",
+    "inspect_strata": "tool",
+    "lab_ab_result": "tool",
+    "lab_ab_status": "tool",
+    "lab_ab_submit": "tool",
+    "lab_cancel": "tool",
+    "lab_result": "tool",
+    "lab_status": "tool",
+    "lab_submit": "tool",
+    "preflight": "tool",
+    "verify_effective_config": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "integrate": "skill",
+    "integration_job": "skill",
+    "job_verification": "reference",
+    "preflight": "skill",
+    "repair": "skill"
+  }
+}

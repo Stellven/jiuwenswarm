@@ -1,0 +1,118 @@
+cc: '2'
+id: engine.performance_baseline
+version: 1.0.1
+materials:
+  component:
+    path: COMPONENT.json
+  skill:
+    path: SKILL.md
+  method:
+    path: METHOD.md
+  verification:
+    path: VERIFICATION-UNITS.json
+  oracle:
+    path: harness.py
+  roles:
+    path: roles.json
+  native_oracle:
+    path: oracle.cu
+  build_recipe:
+    path: CMakeLists.txt
+  layout_sources:
+    path: LAYOUT-SOURCES.json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  inspect:
+    does: Account for declared packed layouts, compulsory experts and KV capacity.
+    takes:
+      model: json
+      hardware: json
+      workload: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  replay:
+    does: Simulate fixed-page farthest-next-use eviction with capacity and readiness.
+    takes:
+      trace: json
+      page_bytes: json
+      capacity_bytes: json
+      storage_bytes_per_s: json
+      compute_seconds: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  ceilings:
+    does: Separate compute/traffic bounds, empirical targets, simulations and engine
+      measurements.
+    takes:
+      work: json
+      calibration: json
+      measured_engine:
+        kind: json
+        optional: true
+      simulation:
+        kind: json
+        optional: true
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  experiments:
+    does: Construct a runnable actual-slice oracle specification for the existing
+      factory loop.
+    takes:
+      hypothesis: text
+      evidence_ids: json
+      budget: json
+      slice_spec: json
+      image: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  inspect_gguf:
+    does: Read actual bounded GGUF tensor layouts and metadata; unknown packed formats
+      remain gaps.
+    takes:
+      path: text
+      expected_header_sha256:
+        kind: text
+        optional: true
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  native_experiment:
+    does: Construct a native FP32 model-tensor calibration specification using the
+      existing factory build/loop path.
+    takes:
+      hypothesis: text
+      evidence_ids: json
+      budget: json
+      offset: json
+      shape: json
+      repeats: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

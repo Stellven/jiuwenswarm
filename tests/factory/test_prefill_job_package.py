@@ -53,9 +53,11 @@ def job(tmp_path, monkeypatch):
 def test_actual_host_prefill_job_evidence_method_component_qualification_chain(job):
     host, release, home, contract, call = job
     declaration = host.describe(release)
-    assert declaration['version'] == '1.1.0'
-    assert declaration['materials']['component']['kind'] == 'component'
-    assert declaration['materials']['integration']['kind'] == 'skill'
+    assert declaration['version'] == '1.1.1'
+    from jiuwenswarm.ccv2.roles import read_roles
+    roles = read_roles(declaration, PACKAGE)
+    assert roles['materials']['component'] == 'component'
+    assert roles['materials']['integration'] == 'skill'
     assert call('inspect')['result']['execution_performed'] is False
     published = call('publish', type='observation', record=dict(obs_id='seed', kind='report',
         values={'status': 'success'}))

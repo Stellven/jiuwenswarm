@@ -1,0 +1,14 @@
+{
+  "capabilities": {
+    "plan_get": "tool",
+    "plan_patch": "tool",
+    "publish": "tool",
+    "query": "tool",
+    "read": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

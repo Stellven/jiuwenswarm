@@ -1,0 +1,9 @@
+{
+  "commit": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+  "scope": "Storage enum and block struct definitions only; no kernel qualification",
+  "files": {
+    "ggml/include/ggml.h": "12ee71f99db7db9b353bc02b1fbb57c344ee17c01ac5fb7952b41a637a747ea9",
+    "ggml/src/ggml-common.h": "0061131b615c5721fc88a78feeb22c1f8c450f1c2646a317d80796a653bf595c",
+    "ggml/src/ggml.c": "1a634ca1df25db2fbd526cba9bfe11fccd5aa9b31f819c3cac6b630be03f9f51"
+  }
+}

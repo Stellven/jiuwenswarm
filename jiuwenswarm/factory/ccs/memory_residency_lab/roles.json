@@ -1,0 +1,16 @@
+{
+  "capabilities": {
+    "native_experiment": "tool",
+    "plan": "tool",
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "guide": "skill",
+    "method": "method",
+    "sources": "reference",
+    "verification": "reference"
+  }
+}

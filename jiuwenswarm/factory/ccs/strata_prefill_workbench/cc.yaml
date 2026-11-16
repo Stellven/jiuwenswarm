@@ -1,22 +1,20 @@
 cc: '2'
 id: engine.strata_prefill_workbench
-version: 1.1.0
+version: 1.1.1
 materials:
   method:
-    kind: method
     path: METHOD.md
   verification_units:
-    kind: reference
     path: VERIFICATION-UNITS.json
   component:
-    kind: component
     path: COMPONENT.json
   integration:
-    kind: skill
     path: INTEGRATE.md
   job_verification:
-    kind: reference
     path: JOB-VERIFICATION.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
@@ -25,7 +23,6 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   inspect:
-    kind: tool
     does: Inspect the current task's frozen prefill scope, workload and obligations
       without model execution.
     takes: {}
@@ -36,7 +33,6 @@ capabilities:
     changes:
     - process.exec
   design:
-    kind: tool
     does: Draft a separate screen or confirm prefill contract; no admission, contract
       mutation or performance claim.
     takes:
@@ -57,7 +53,6 @@ capabilities:
     changes:
     - process.exec
   apply:
-    kind: tool
     does: Change only the bounded native prefill chunk in a full-six static profile.
     takes:
       base_profile: json
@@ -69,7 +64,6 @@ capabilities:
     changes:
     - process.exec
   verify_profile:
-    kind: tool
     does: Check the requested static profile and chunk value; runtime engagement remains
       unmeasured.
     takes:
@@ -82,7 +76,6 @@ capabilities:
     changes:
     - process.exec
   submit:
-    kind: tool
     does: Submit the exact operator-admitted bounded fresh-process prefill campaign
       through host lifecycle and resource guards.
     takes:
@@ -96,7 +89,6 @@ capabilities:
     - process.exec
     - gpu.use
   status:
-    kind: tool
     does: Read and reconcile the current task's owned scoped attempt lifecycle.
     takes:
       attempt_id: text
@@ -107,7 +99,6 @@ capabilities:
     changes:
     - process.exec
   result:
-    kind: tool
     does: Independently verify retained raw cells and report a scoped prefill result;
       no full-generation quality acceptance or automatic promotion.
     takes:
@@ -119,7 +110,6 @@ capabilities:
     changes:
     - process.exec
   query:
-    kind: tool
     does: Query bounded task-scoped evidence summaries and cursor.
     takes:
       kinds:
@@ -145,7 +135,6 @@ capabilities:
     changes:
     - process.exec
   read:
-    kind: tool
     does: Read a task-scoped evidence record, with bounded artifact preview.
     takes:
       id: text
@@ -159,7 +148,6 @@ capabilities:
     changes:
     - process.exec
   publish:
-    kind: tool
     does: Publish an immutable observation/artifact or compare-and-swap decision revision.
     takes:
       type: text
@@ -174,7 +162,6 @@ capabilities:
     changes:
     - process.exec
   diagnose:
-    kind: tool
     does: Analyze retained experiment reports across inference subsystems; surface
       uncertainties and inspection candidates.
     takes:
@@ -187,7 +174,6 @@ capabilities:
     changes:
     - process.exec
   ablation:
-    kind: tool
     does: Design one-variable diagnostic or ABBA work without executing or scoring
       it.
     takes:
@@ -203,7 +189,6 @@ capabilities:
     changes:
     - process.exec
   followup:
-    kind: tool
     does: Convert report-backed uncertainty into a proposed next input; never submit
       or amend a contract.
     takes:
@@ -219,7 +204,6 @@ capabilities:
     changes:
     - process.exec
   test_scope:
-    kind: tool
     does: Choose bounded prefill claim obligations and limits; advice grants no execution.
     takes:
       claim: text
@@ -231,7 +215,6 @@ capabilities:
     changes:
     - process.exec
   qualify_profile:
-    kind: tool
     does: Compose a bounded profile change, saved pair evidence, independent unit
       verification and explicit operator-policy assessment; never qualifies runtime
       or performance.
@@ -246,7 +229,6 @@ capabilities:
     changes:
     - process.exec
   loop_status:
-    kind: tool
     does: Read durable cycles, pending attempts and remaining operator budgets.
     takes: {}
     gives:
@@ -256,7 +238,6 @@ capabilities:
     changes:
     - process.exec
   select:
-    kind: tool
     does: Record an agent-selected report-backed hypothesis and reserve one bounded
       operator-admitted experiment.
     takes:
@@ -277,7 +258,6 @@ capabilities:
     changes:
     - process.exec
   execute:
-    kind: tool
     does: Freeze an exact admitted template into a new child task and submit via the
       existing durable benchmark queue. Replay recovers the same attempt.
     takes:
@@ -291,7 +271,6 @@ capabilities:
     - process.exec
     - gpu.use
   collect:
-    kind: tool
     does: Reconcile the child benchmark, retain failed or successful evidence and
       expose follow-up proposals for the agent's next decision.
     takes:
@@ -304,7 +283,6 @@ capabilities:
     changes:
     - process.exec
   stop:
-    kind: tool
     does: Persist stop intent for future experiments without cancelling already queued
       work.
     takes:

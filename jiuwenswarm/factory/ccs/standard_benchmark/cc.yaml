@@ -1,40 +1,49 @@
 cc: '2'
 id: factory.standard_benchmark
-version: 1.0.0
+version: 1.0.1
 materials:
   methodology:
-    kind: method
     path: METHOD.md
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
-    command: ['{python}', '{bundle}/run.py']
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
 capabilities:
   submit:
-    kind: tool
-    does: Submit the operator-frozen ARC correctness and pg512/tg128 native speed comparison. Never edits questions, policy, source pins, arm profiles or order.
+    does: Submit the operator-frozen ARC correctness and pg512/tg128 native speed
+      comparison. Never edits questions, policy, source pins, arm profiles or order.
     takes:
       contract_id: text
       idem_key: text
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec
   status:
-    kind: tool
     does: Reconcile the current-task benchmark attempt with the durable GPU queue.
     takes:
       attempt_id: text
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec
   result:
-    kind: tool
-    does: Independently verify raw evidence and report correctness and speed gates for a completed current-task benchmark. Partial execution is inconclusive.
+    does: Independently verify raw evidence and report correctness and speed gates
+      for a completed current-task benchmark. Partial execution is inconclusive.
     takes:
       attempt_id: text
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec

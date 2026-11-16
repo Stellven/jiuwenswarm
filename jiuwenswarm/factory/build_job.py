@@ -121,6 +121,8 @@ def run(store, task_id, attempt_id, request):
     previous = signal.signal(signal.SIGTERM, stop)
     try:
         root.mkdir(parents=True, exist_ok=True)
+        from .execution_binding import verify_task
+        verify_task(store,task_id)
         stdout.touch()
         stderr.touch()
         spark = request['target'] == 'spark-gb10'
@@ -147,7 +149,8 @@ def run(store, task_id, attempt_id, request):
                 '--source', request['source']['path'], '--commit', request['source']['commit'],
                 '--tag', request['tag'], '--out', str(out)]
         if spark:
-            argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit']]
+            argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit'],
+                     '--build-target', request.get('build_target','strata-dsv41')]
         if request.get('patch'):
             argv += ['--patch', request['patch']]
         with stdout.open('wb') as output, stderr.open('wb') as errors:

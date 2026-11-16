@@ -1,0 +1,17 @@
+{
+  "capabilities": {
+    "capture_plan": "tool",
+    "compare_logits": "tool",
+    "first_divergence": "tool",
+    "import_capture": "tool",
+    "replay_spec": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "method": "method",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

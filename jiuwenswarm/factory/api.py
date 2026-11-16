@@ -44,6 +44,21 @@ from .controller import ENGINE_CONTRACTS  # noqa: E402
 
 
 def dispatch(store, task_id, capability, packet):
+    from .components import SELECTED_BINDING
+    from jiuwenswarm.ccv2.ccv2 import Host
+    task = store.get_task(task_id)
+    binding = task.get('constraints', {}).get('execution_binding')
+    base = getattr(store,'_store',store)
+    token = SELECTED_BINDING.set((Host(base.home/'ccstore',session_grants=[]),binding) if binding else None)
+    try:
+        return _dispatch(store,task_id,capability,packet)
+    finally:
+        SELECTED_BINDING.reset(token)
+
+
+def _dispatch(store, task_id, capability, packet):
+    from .execution_binding import verify_task
+    verify_task(store, task_id)
     inputs = packet.get('inputs', {})
     if capability in {'builder.submit', 'lab.submit', 'lab.ab_submit'} and 'node_id' in inputs:
         from .taskgraph import dispatch_precondition
@@ -270,6 +285,10 @@ def main():
         readable = frozenset(t.strip() for t in os.environ.get('FACTORY_READ_TASKS', '').split(',') if t.strip())
         store = Store(home)
         if store:
+            from .execution_binding import verify_task
+            execution_binding_id = verify_task(store,task_id)
+            if execution_binding_id is not None:
+                telemetry.emit(home,'execution.binding',task_id,binding_id=execution_binding_id,capability=capability)
             # Inspector dispatch: returns a native envelope, including failed
             # probes with their observation/artifact references (F04).
             if sys.argv[1].startswith('inspector.'):

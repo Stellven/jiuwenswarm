@@ -1,60 +1,64 @@
 cc: '2'
 id: engine.ssd_streaming_lab
-version: 1.0.0
+version: 1.0.1
 materials:
   method:
-    kind: method
     path: METHOD.md
   integration:
-    kind: skill
     path: SKILL.md
   component:
-    kind: component
     path: COMPONENT.json
   sources:
-    kind: reference
     path: SOURCES.json
   verification_units:
-    kind: reference
     path: VERIFICATION-UNITS.json
   verification:
-    kind: reference
     path: verification.py
   runtime:
-    kind: reference
     path: components.py
   fixture:
-    kind: reference
     path: fixtures/example.json
   cpu_verification:
-    kind: reference
     path: CPU-VERIFICATION.json
   examples:
-    kind: reference
     path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
-    command: ['{python}', '{bundle}/run.py']
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
 capabilities:
   plan:
-    kind: tool
     does: Coalesce bounded inline positional ranges.
-    takes: {inputs: json}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   evaluate:
-    kind: tool
     does: Evaluate an explicitly modeled positional read schedule.
-    takes: {inputs: json}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   read_fixture:
-    kind: tool
     does: Run actual bounded pread against an owned temporary UTF-8 fixture.
-    takes: {inputs: json}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

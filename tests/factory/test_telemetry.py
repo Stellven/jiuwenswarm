@@ -35,7 +35,7 @@ def test_every_dispatch(monkeypatch, capsys, store, capability, inputs, outcome)
     assert e['error_code'] == result.get('error', {}).get('code')
     if capability.startswith('evidence.'):
         assert e['capsule'] == 'factory.evidence'
-        assert e['capsule_version'] == '1.1.0'
+        assert e['capsule_version'] == '1.1.1'
         assert len(e['release_sha256']) == 64
     assert e['task_evidence_records'] >= 1
 

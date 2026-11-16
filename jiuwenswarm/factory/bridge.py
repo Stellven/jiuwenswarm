@@ -52,6 +52,37 @@ def call(operation, **values):
 
 def handle(packet, workspace, queue, jobq):
     operation = packet['operation']
+    if operation == 'experiment_build_prepare':
+        from .store import Store
+        from .builder import Builder
+        previous=os.environ.pop('FACTORY_BRIDGE_DIR',None)
+        try:
+            with Store(Path(os.environ.get('FACTORY_BRIDGE_HOME',str(workspace/'port-store')))) as store:
+                task=store.get_task(packet['task_id'])
+                authority=task.get('constraints',{}).get('factory_loop',{}).get('experiment_authority',{})
+                source=Path(packet['request']['source']['path']).resolve()
+                if source not in [Path(p).resolve() for p in authority.get('owned_worktrees',[])]:
+                    raise ValueError('Build source outside operator-owned worktrees')
+                result=Builder(store)._request(packet['request'])
+        finally:
+            if previous is not None: os.environ['FACTORY_BRIDGE_DIR']=previous
+        return dict(args=[operation],returncode=0,stdout=json.dumps(result),stderr='')
+    if operation == 'experiment_build_admit':
+        from .store import Store
+        from .loop import FactoryLoop
+        from .experiment_build import ensure_build
+        previous=os.environ.pop('FACTORY_BRIDGE_DIR',None)
+        try:
+            with Store(Path(os.environ.get('FACTORY_BRIDGE_HOME',str(workspace/'port-store')))) as store:
+                loop=FactoryLoop(store,packet['task_id'])
+                cycle=loop._get(packet['cycle_id'])
+                if cycle['contract'].get('adapter')!='factory-experiment-v1' or not cycle['contract'].get('build_binding'):
+                    raise ValueError('No prepared construction build to admit')
+                cycle,ready=ensure_build(loop,cycle)
+                result=dict(cycle=cycle,ready=ready)
+        finally:
+            if previous is not None: os.environ['FACTORY_BRIDGE_DIR']=previous
+        return dict(args=[operation,packet['cycle_id']],returncode=0,stdout=json.dumps(result),stderr='')
     if operation == 'lab_evidence_inspect':
         from .store import Store
         from .lab_evidence import inspect_evidence
@@ -124,7 +155,7 @@ def handle(packet, workspace, queue, jobq):
                 raise ValueError('Queue deadline outside bounds')
             command = args[args.index('--') + 1:]
             if len(command) < 3 or command[1] != '-m' or command[2] not in (
-                    'jiuwenswarm.factory.build_job', 'jiuwenswarm.factory.spark_run', 'jiuwenswarm.factory.spark_probe', 'jiuwenswarm.factory.runtime_job', 'jiuwenswarm.factory.strata_lab',
+                    'jiuwenswarm.factory.experiment_jobs', 'jiuwenswarm.factory.build_job', 'jiuwenswarm.factory.spark_run', 'jiuwenswarm.factory.spark_probe', 'jiuwenswarm.factory.runtime_job', 'jiuwenswarm.factory.strata_lab',
                     'jiuwenswarm.factory.lab_runner', 'jiuwenswarm.factory.ab_runner', 'jiuwenswarm.factory.benchmark_worker', 'jiuwenswarm.factory.prefill_worker'):
                 raise ValueError('Unsupported host worker')
             if not re.fullmatch(r'factory:[a-f0-9]{32}', name):
@@ -158,7 +189,7 @@ def handle(packet, workspace, queue, jobq):
         extra = packet.get('env', {})
         allowed = {'PATH', 'LD_LIBRARY_PATH', 'BUILD_JOBS', 'CC', 'CXX', 'CUDAHOSTCXX', 'CUDACXX',
                    'CUDA_HOME', 'CUDA_PATH', 'CFLAGS', 'CXXFLAGS', 'LDFLAGS', 'FACTORY_HOME',
-                   'BASE_RUNTIME', 'FACTORY_BUILD_ENGINE', 'PYTHONPATH', 'FACTORY_NATIVE_BUILDER_IMAGE', 'FACTORY_BENCHMARK_QUIET_ROOT', 'FACTORY_PREFILL_QUIET_ROOT'}
+                   'BASE_RUNTIME', 'FACTORY_BUILD_ENGINE', 'PYTHONPATH', 'PYTHONSAFEPATH', 'FACTORY_NATIVE_BUILDER_IMAGE', 'FACTORY_BENCHMARK_QUIET_ROOT', 'FACTORY_PREFILL_QUIET_ROOT'}
         if set(extra) - allowed:
             raise ValueError('Unsupported worker environment')
         env = dict(os.environ, **extra, JOBQ_DIR=str(queue), DOCKER_CMD_PREFIX='')
@@ -182,6 +213,26 @@ def handle(packet, workspace, queue, jobq):
     return dict(args=argv, returncode=result.returncode, stdout=result.stdout, stderr=result.stderr)
 
 
+def withheld_ack(inbox, request_path, packet=None, value=None, *, enabled=False, now=None):
+    """Operator-selected recovery exercise; persist one withheld GPU submit ACK."""
+    now = time.time() if now is None else now
+    record_path = Path(inbox)/'lost-submit-ack.json'
+    if record_path.exists():
+        record=json.loads(record_path.read_text())
+        if record['request'] != request_path.name:
+            return None
+        return {'pending':True} if now < record['release_at'] else {'value':record['value']}
+    if not enabled or packet is None or value is None:
+        return None
+    args=packet.get('args',[])
+    if (packet.get('operation')=='queue' and args and args[0]=='submit'
+            and '--class' in args and args[args.index('--class')+1]=='gpu' and value.get('returncode')==0):
+        atomic(record_path,dict(request=request_path.name,withheld_at=now,release_at=now+75,
+            value=value,scope='Controlled lost submit acknowledgement; underlying durable job is unchanged'))
+        return {'pending':True}
+    return None
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--workspace', type=Path, required=True)
@@ -189,6 +240,7 @@ def main():
     p.add_argument('--jobq', type=Path, required=True)
     p.add_argument('--inbox', type=Path, required=True)
     p.add_argument('--seconds', type=int, default=10800)
+    p.add_argument('--drop-first-gpu-ack', action='store_true', help='Explicit recovery exercise: withhold one durable GPU submit acknowledgement for 75 seconds')
     a = p.parse_args()
     a.inbox.mkdir(mode=0o700, parents=True, exist_ok=True)
     lock = (a.inbox/'bridge.lock').open('a')
@@ -199,11 +251,17 @@ def main():
             response = path.with_name(path.name.replace('.request.', '.response.'))
             if response.exists():
                 continue
+            delayed = withheld_ack(a.inbox,path)
+            if delayed:
+                if 'value' in delayed: atomic(response,delayed['value'])
+                continue
             try:
                 packet = json.loads(path.read_text())
                 if path.name.split('.')[0].split('-')[0] != digest(packet):
                     raise ValueError('Request hash mismatch')
                 value = handle(packet, a.workspace.resolve(), a.queue.resolve(), a.jobq.resolve())
+                if withheld_ack(a.inbox,path,packet,value,enabled=a.drop_first_gpu_ack):
+                    continue
             except Exception as exc:
                 value = {'error': str(exc)}
             atomic(response, value)

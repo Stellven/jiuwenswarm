@@ -469,3 +469,28 @@ def test_operator_note_during_model_turn_survives_stale_checkpoint(tmp_path,rig)
     assert len(seen)==2
     from jiuwenswarm.factory.operator_notes import pending
     assert pending(rig.home,'t',rig._load('t'))==[]
+
+
+def test_terminal_decision_returns_before_stream_timeout(tmp_path, rig):
+    make_task(tmp_path, rig)
+    closed=[]
+    async def facade(request):
+        try:
+            publish(rig,'accept')
+            yield {'event_type':'chat.tool_result','result':'decision persisted'}
+            await asyncio.sleep(30)
+        finally:
+            closed.append(True)
+    rig.facade=facade
+    async def run():
+        return await asyncio.wait_for(rig.run('t'),2)
+    result=asyncio.run(run())
+    assert result['outcome']=='accept' and closed==[True]
+
+
+def test_terminal_decision_does_not_hide_unknown_job(tmp_path, rig):
+    make_task(tmp_path,rig)
+    publish(rig,'accept')
+    rig.store.create_attempt('t',dict(attempt_id='uncertain',kind='lab',idem_key='lost',fingerprint='f',request={}))
+    rig.store.transition_attempt('t','uncertain','unknown')
+    assert rig._terminal_ready('t') is False

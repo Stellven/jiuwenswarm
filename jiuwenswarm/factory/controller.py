@@ -287,8 +287,24 @@ class Controller:
                     self.jobs.status(attempt['attempt_id'])
 
     def _remaining(self, task, state):
-        return {'turns': max(0, task['budget']['max_turns'] - state['turns']),
-                'wall_clock_s': max(0, task['budget']['wall_clock_s'] - self._active(state))}
+        remaining = {'turns': max(0, task['budget']['max_turns'] - state['turns']),
+                     'wall_clock_s': max(0, task['budget']['wall_clock_s'] - self._active(state))}
+        owner_id = task.get('constraints', {}).get('campaign_budget_owner')
+        if owner_id:
+            owner = self.store.get_task(owner_id)
+            turns = state['turns']
+            for row in self.store._db.execute('SELECT task_id,constraints FROM tasks'):
+                if row['task_id'] == task['task_id']:
+                    continue
+                constraints = json.loads(row['constraints'])
+                if row['task_id'] == owner_id or constraints.get('campaign_budget_owner') == owner_id:
+                    path = self._state_path(row['task_id'])
+                    if path.exists():
+                        turns += json.loads(path.read_text()).get('turns',0)
+            remaining['turns'] = min(remaining['turns'],max(0,owner['budget']['max_turns']-turns))
+            remaining['wall_clock_s'] = min(remaining['wall_clock_s'],
+                max(0,owner['budget']['wall_clock_s']-(self.clock()-owner['created'])))
+        return remaining
 
     def _message(self, task, state):
         current = self.store.get_task(task['task_id'])
@@ -319,6 +335,42 @@ class Controller:
                 message['readable_prior_tasks'] = read_tasks(task)  # ids only; query their evidence
             message['instructions'] = Path(__file__).with_name('AGENT.md').read_text()
         return json.dumps(message, ensure_ascii=False)
+
+    def _terminal_ready(self, task_id):
+        data = self._snapshot(task_id)
+        latest = max(data['decisions'], key=lambda d: d['rev'], default={})
+        if latest.get('action', {}).get('type') not in TERMINAL or not latest.get('evidence_ids'):
+            return False
+        if any(a['state'] in ACTIVE | {'unknown'} for a in data['attempts']):
+            return False
+        exists = self.store._db.execute("SELECT 1 FROM sqlite_master WHERE name='factory_loop_cycles'").fetchone()
+        if exists and any(json.loads(row['record'])['state'] != 'collected' for row in self.store._db.execute(
+                'SELECT record FROM factory_loop_cycles WHERE task_id=?', (task_id,))):
+            return False
+        self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(self.store.get_task(task_id)))
+        return True
+
+    async def _bounded_turn(self, task_id, query, turn, session_id, timeout):
+        """A persisted terminal decision can end a streaming transport promptly."""
+        running = asyncio.create_task(self._turn(task_id, query, turn, session_id))
+        deadline = asyncio.get_running_loop().time() + timeout
+        try:
+            while True:
+                remaining = deadline - asyncio.get_running_loop().time()
+                if remaining <= 0:
+                    raise asyncio.TimeoutError()
+                done, _ = await asyncio.wait({running}, timeout=min(.2, remaining))
+                if done:
+                    return await running
+                if self._terminal_ready(task_id):
+                    return
+        finally:
+            if not running.done():
+                running.cancel()
+                try:
+                    await running
+                except asyncio.CancelledError:
+                    pass
 
     async def _turn(self, task_id, query, turn, session_id=None):
         from jiuwenswarm.common.schema.agent import AgentRequest
@@ -407,6 +459,7 @@ class Controller:
                     observed = usage(payload)
                     if observed is not None:
                         tokens = {key: observed.get(key) for key in ('input_tokens', 'output_tokens')}
+                        tokens.update({key: observed[key] for key in ('input_tokens_details', 'output_tokens_details', 'cached_input_tokens') if key in observed})
                     if kind in {'chat.error', 'error'}:
                         outcome = 'stream_error'
                 emit({'event': 'turn.end', 'turn': turn})
@@ -467,7 +520,7 @@ class Controller:
                     decisions = self._snapshot(task_id)['decisions']
                     latest = max(decisions, key=lambda d: d['rev'], default={})
                     action = latest.get('action', {}).get('type')
-                    if action in TERMINAL and latest.get('evidence_ids') and not (state.get('operator_notes') or pending(self.home, task_id, state)):
+                    if self._terminal_ready(task_id) and not (state.get('operator_notes') or pending(self.home, task_id, state)):
                         self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(task))
                         return self._finish(task_id, state, action)
                     if remaining['turns'] <= 0:
@@ -491,9 +544,9 @@ class Controller:
                     state['pending_turn_rev'] = before
                     self._save(task_id, state)
                     try:
-                        await asyncio.wait_for(self._turn(task_id, query, state['turns'],
-                                                   f"{task_id}-s{state['session_gen']}" if state.get('session_gen') else None),
-                                               timeout=remaining['wall_clock_s'])
+                        await self._bounded_turn(task_id, query, state['turns'],
+                            f"{task_id}-s{state['session_gen']}" if state.get('session_gen') else None,
+                            remaining['wall_clock_s'])
                     except asyncio.TimeoutError:
                         return self._finish(task_id, state, 'partial')
                     state['operator_notes_delivered'] = sorted(set(state.get('operator_notes_delivered', [])) | set(state.pop('pending_operator_note_ids', [])))

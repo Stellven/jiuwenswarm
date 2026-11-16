@@ -1,20 +1,30 @@
 cc: '2'
 id: factory.numerical_investigation_lab
-version: 1.0.0
+version: 1.0.1
 materials:
-  component: {kind: component, path: COMPONENT.json}
-  method: {kind: method, path: METHOD.md}
-  skill: {kind: skill, path: SKILL.md}
-  examples: {kind: reference, path: EXAMPLES.json}
-  verification: {kind: reference, path: VERIFICATION-UNITS.json}
+  component:
+    path: COMPONENT.json
+  method:
+    path: METHOD.md
+  skill:
+    path: SKILL.md
+  examples:
+    path: EXAMPLES.json
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
-    command: ['{python}', '{bundle}/run.py']
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
 capabilities:
   replay_spec:
-    kind: tool
-    does: Freeze a bounded common-history next-token replay specification and a predeclared numerical policy without executing an engine.
+    does: Freeze a bounded common-history next-token replay specification and a predeclared
+      numerical policy without executing an engine.
     takes:
       baseline_identity: json
       candidate_identity: json
@@ -24,44 +34,56 @@ capabilities:
       vocabulary_size: json
       treatment_fields: json
       comparison_policy: json
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   compare_logits:
-    kind: tool
-    does: Compare externally captured finite full-vocabulary logits under exact replay identity; partial vectors yield unknown top and margin verdicts.
+    does: Compare externally captured finite full-vocabulary logits under exact replay
+      identity; partial vectors yield unknown top and margin verdicts.
     takes:
       spec: json
       baseline: json
       candidate: json
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   first_divergence:
-    kind: tool
-    does: Locate the first different retained output token or length; compare finish reasons without claiming causal diagnosis.
+    does: Locate the first different retained output token or length; compare finish
+      reasons without claiming causal diagnosis.
     takes:
       baseline_ids: json
       candidate_ids: json
       baseline_finish: json
       candidate_finish: json
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   capture_plan:
-    kind: tool
-    does: Plan source-pinned DS4 serve capture at output49 with the original prompt boundary and no drafting; no engine execution.
+    does: Plan source-pinned DS4 serve capture at output49 with the original prompt
+      boundary and no drafting; no engine execution.
     takes:
       profile: json
       spec: json
       arm: json
       dump_prefix: json
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   import_capture:
-    kind: tool
-    does: Import a bounded completed DS4 logit capture with contained evidence paths and exact common-prefix and profile validation.
+    does: Import a bounded completed DS4 logit capture with contained evidence paths
+      and exact common-prefix and profile validation.
     takes:
       spec: json
       arm: json
@@ -71,6 +93,9 @@ capabilities:
       stdin_path: json
       profile: json
       source_main_sha256: json
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

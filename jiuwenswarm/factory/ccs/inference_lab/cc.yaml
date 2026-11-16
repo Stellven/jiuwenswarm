@@ -1,28 +1,24 @@
 cc: '2'
 id: factory.inference_lab
-version: 1.2.1
+version: 1.2.2
 materials:
   methodology:
-    kind: method
     path: METHOD.md
   scopes:
-    kind: reference
     path: SCOPES.json
   verification_units:
-    kind: reference
     path: VERIFICATION-UNITS.json
   job_skill:
-    kind: method
     path: SKILL.md
   components:
-    kind: component
     path: COMPONENTS.json
   integration:
-    kind: reference
     path: INTEGRATION.md
   references:
-    kind: reference
     path: REFERENCES.md
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
@@ -31,8 +27,8 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   inspect_evidence:
-    kind: tool
-    does: Independently verify a collected ledger-owned benchmark child and import bounded raw evidence and resource summaries into this parent task; no execution.
+    does: Independently verify a collected ledger-owned benchmark child and import
+      bounded raw evidence and resource summaries into this parent task; no execution.
     takes:
       cycle_id: text
     gives:
@@ -42,7 +38,6 @@ capabilities:
     changes:
     - process.exec
   diagnose:
-    kind: tool
     does: Analyze retained experiment reports across inference subsystems; surface
       uncertainties and inspection candidates.
     takes:
@@ -55,7 +50,6 @@ capabilities:
     changes:
     - process.exec
   ablation:
-    kind: tool
     does: Design one-variable diagnostic or ABBA work without executing or scoring
       it.
     takes:
@@ -71,7 +65,6 @@ capabilities:
     changes:
     - process.exec
   followup:
-    kind: tool
     does: Convert report-backed uncertainty into a proposed next input; never submit
       or amend a contract.
     takes:
@@ -87,7 +80,6 @@ capabilities:
     changes:
     - process.exec
   cache_protocol:
-    kind: tool
     does: Describe a bounded out-of-core cache and phase protocol from retained evidence.
     takes:
       evidence_ids:
@@ -99,7 +91,6 @@ capabilities:
     changes:
     - process.exec
   propose:
-    kind: tool
     does: Record an agent-authored unmeasured hypothesis linked to scoped evidence;
       does not fetch citations or execute experiments.
     takes:
@@ -119,7 +110,6 @@ capabilities:
     changes:
     - process.exec
   profile_plan:
-    kind: tool
     does: Propose a fixed native Strata observer run using existing host admission
       and lifecycle; inspect profiler executable availability without launching them.
     takes: {}
@@ -131,7 +121,6 @@ capabilities:
     changes:
     - process.exec
   analyze_profile:
-    kind: tool
     does: Parse scoped native DS4_PROF or Nsight CSV artifacts into phase bottleneck
       candidates and instrumentation gaps. Never score traced timings.
     takes:
@@ -147,7 +136,6 @@ capabilities:
     changes:
     - process.exec
   evaluate_prediction:
-    kind: tool
     does: Evaluate a bounded expert trace using request-separated temporal holdout,
       frozen frequency and causal last-token baselines. No inference execution or
       speed claim.
@@ -168,7 +156,6 @@ capabilities:
     changes:
     - process.exec
   test_scope:
-    kind: tool
     does: Match a claim and engine layer to a scoped verification plan; advisory only,
       no execution authority.
     takes:
@@ -181,7 +168,6 @@ capabilities:
     changes:
     - process.exec
   query:
-    kind: tool
     does: Query bounded task-scoped evidence summaries and cursor.
     takes:
       kinds:
@@ -207,7 +193,6 @@ capabilities:
     changes:
     - process.exec
   read:
-    kind: tool
     does: Read a task-scoped evidence record, with bounded artifact preview.
     takes:
       id: text
@@ -221,7 +206,6 @@ capabilities:
     changes:
     - process.exec
   publish:
-    kind: tool
     does: Publish an immutable observation/artifact or compare-and-swap decision revision.
     takes:
       type: text
@@ -236,7 +220,6 @@ capabilities:
     changes:
     - process.exec
   apply_prefill:
-    kind: tool
     does: Produce a candidate changing only the native Strata positive prefill chunk
       size.
     takes:
@@ -258,7 +241,6 @@ capabilities:
     changes:
     - process.exec
   apply_drafting:
-    kind: tool
     does: Produce a candidate profile changing only native Strata dspark none/on.
       Does not submit work or change a contract.
     takes:
@@ -276,7 +258,6 @@ capabilities:
     changes:
     - process.exec
   status:
-    kind: tool
     does: Read durable cycles, pending attempts and remaining operator budgets.
     takes: {}
     gives:
@@ -286,7 +267,6 @@ capabilities:
     changes:
     - process.exec
   select:
-    kind: tool
     does: Record an agent-selected report-backed hypothesis and reserve one bounded
       operator-admitted experiment.
     takes:
@@ -307,7 +287,6 @@ capabilities:
     changes:
     - process.exec
   execute:
-    kind: tool
     does: Freeze an exact admitted template into a new child task and submit via the
       existing durable benchmark queue. Replay recovers the same attempt.
     takes:
@@ -321,7 +300,6 @@ capabilities:
     - process.exec
     - gpu.use
   collect:
-    kind: tool
     does: Reconcile the child benchmark, retain failed or successful evidence and
       expose follow-up proposals for the agent's next decision.
     takes:
@@ -334,7 +312,6 @@ capabilities:
     changes:
     - process.exec
   stop:
-    kind: tool
     does: Persist stop intent for future experiments without cancelling already queued
       work.
     takes:
@@ -347,7 +324,6 @@ capabilities:
     changes:
     - process.exec
   qualify_prefill:
-    kind: tool
     does: Evaluate the saved prefill candidate against an explicit operator policy
       and supported verification unit; no new grants or universal qualification.
     takes:
@@ -364,7 +340,6 @@ capabilities:
     changes:
     - process.exec
   lab_submit:
-    kind: tool
     does: Admit an image object with exactly tag and immutable id, plus a separate
       build_attempt_id, and submit a fixed lab evaluation through the GPU queue. run_config
       may include profile nsys to trace the run with Nsight Systems; the result then
@@ -403,7 +378,6 @@ capabilities:
     - process.exec
     - gpu.use
   lab_status:
-    kind: tool
     does: Read the owned lab attempt from the durable queue.
     takes:
       attempt_id: text
@@ -428,7 +402,6 @@ capabilities:
     changes:
     - process.exec
   lab_result:
-    kind: tool
     does: Read evaluation and evidence references for the owned lab attempt.
     takes:
       attempt_id: text
@@ -444,7 +417,6 @@ capabilities:
     changes:
     - process.exec
   lab_cancel:
-    kind: tool
     does: Cancel the owned lab attempt and reap its container.
     takes:
       attempt_id: text

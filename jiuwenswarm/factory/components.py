@@ -2,22 +2,44 @@
 from pathlib import Path
 import re
 import yaml
+from contextvars import ContextVar
+
+SELECTED_BINDING = ContextVar("factory_component_binding", default=None)
 
 ROOT = Path(__file__).parent / 'ccs' / 'expert_streaming' / 'components'
 
 
-def load(component):
+def load(component, *, host=None, release=None, legacy=False):
     if not isinstance(component, str):
         raise ValueError('component must name a factory component')
     name = component.removeprefix('factory.components.')
     if not re.fullmatch(r'[a-z][a-z0-9_]*', name):
         raise ValueError('Invalid component identifier')
-    path = ROOT / name / 'component.yaml'
-    if not path.is_file():
-        raise ValueError('Unknown component: ' + name)
-    declared = (yaml.safe_load((path.parent / 'cc.yaml').read_text()).get('materials') or {}).get('component') or {}
-    if declared.get('kind') != 'component':
-        raise ValueError('Not a component module (cc.yaml materials.component.kind must be component): ' + name)
+    selected = SELECTED_BINDING.get()
+    if release is None and selected is not None:
+        host, binding = selected
+        matches = [row['release'] for row in binding['components']
+                   if host.describe(row['release'])['id'] == 'factory.components.' + name]
+        if len(matches) != 1:
+            raise ValueError('Component is not selected by the execution binding: ' + name)
+        release = matches[0]
+    if release is not None:
+        if host is None:
+            raise ValueError('Sealed component selection requires its Host')
+        declaration, bundle = host.release(release)
+        if declaration['id'] != 'factory.components.' + name:
+            raise ValueError('Selected release names a different component')
+    else:
+        bundle = ROOT / name
+        if not (bundle / 'cc.yaml').is_file():
+            raise ValueError('Unknown component: ' + name)
+        declaration = yaml.safe_load((bundle / 'cc.yaml').read_text())
+    from jiuwenswarm.ccv2.roles import read_roles
+    roles = read_roles(declaration, bundle, legacy=legacy)
+    if roles['materials'].get('component') != 'component':
+        raise ValueError('Selected material is not declared as a component')
+    from jiuwenswarm.ccv2.ccv2 import contained
+    path = contained(bundle, declaration['materials']['component']['path'])
     from .ontology import validate_component
     return validate_component(yaml.safe_load(path.read_text()))
 

@@ -1,0 +1,11 @@
+{
+  "capabilities": {
+    "followup": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component_candidates": "reference",
+    "methodology": "method",
+    "ontology": "reference"
+  }
+}

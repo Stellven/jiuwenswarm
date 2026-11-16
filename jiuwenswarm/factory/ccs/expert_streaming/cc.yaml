@@ -1,61 +1,46 @@
 cc: '2'
 id: engine.expert_streaming
-version: 2.1.0
+version: 2.1.1
 materials:
   guide:
-    kind: skill
     path: STREAMING.md
   method:
-    kind: method
     path: EVIDENCE.md
   source_map:
-    kind: reference
     path: SOURCE-MAP.md
   ontology:
-    kind: reference
     path: ONTOLOGY.yaml
   expert_fill:
-    kind: component
     path: components/expert_fill/component.yaml
   expert_pregate:
-    kind: component
     path: components/expert_pregate/component.yaml
   mmap_advice:
-    kind: component
     path: components/mmap_advice/component.yaml
   router_prefetch:
-    kind: component
     path: components/router_prefetch/component.yaml
   thread_names:
-    kind: component
     path: components/thread_names/component.yaml
   expert_readiness:
-    kind: component
     path: components/expert_readiness/component.yaml
   inflight_join:
-    kind: component
     path: components/inflight_join/component.yaml
   phase_stats:
-    kind: component
     path: components/phase_stats/component.yaml
   ab_method:
-    kind: method
     path: AB.md
   integrate:
-    kind: skill
     path: INTEGRATE.md
   repair:
-    kind: skill
     path: REPAIR.md
   preflight:
-    kind: skill
     path: PREFLIGHT.md
   integration_job:
-    kind: skill
     path: JOB.md
   job_verification:
-    kind: reference
     path: JOB-VERIFICATION.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
@@ -64,7 +49,6 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   applicability:
-    kind: tool
     does: Inspect applicability and publish a task-scoped observation; no engine execution.
     takes:
       model_path:
@@ -92,7 +76,6 @@ capabilities:
     changes:
     - process.exec
   engagement:
-    kind: tool
     does: Inspect engagement and publish a task-scoped observation; no engine execution.
     takes:
       attempt_id:
@@ -114,7 +97,6 @@ capabilities:
     changes:
     - process.exec
   evidence_query:
-    kind: tool
     does: Query bounded task-scoped evidence summaries and cursor.
     takes:
       kinds:
@@ -140,7 +122,6 @@ capabilities:
     changes:
     - process.exec
   evidence_read:
-    kind: tool
     does: Read a task-scoped evidence record, with bounded artifact preview.
     takes:
       id: text
@@ -154,7 +135,6 @@ capabilities:
     changes:
     - process.exec
   evidence_publish:
-    kind: tool
     does: Publish an immutable observation/artifact or compare-and-swap decision revision.
     takes:
       type: text
@@ -169,7 +149,6 @@ capabilities:
     changes:
     - process.exec
   inspect:
-    kind: tool
     does: Inspect an authorized source checkout, host and optional local image; publish
       evidence.
     takes:
@@ -196,7 +175,6 @@ capabilities:
     - workspace.read
     - process.exec
   inspect_strata:
-    kind: tool
     does: Inspect the operator-pinned complete Strata asset inventory and fixed workload
       without launching a model.
     takes: {}
@@ -208,7 +186,6 @@ capabilities:
     changes:
     - process.exec
   preflight:
-    kind: tool
     does: Resolve local image Id and reject unsupported flags using help cached by
       immutable Id.
     takes:
@@ -232,7 +209,6 @@ capabilities:
     - process.exec
     - gpu.use
   verify_effective_config:
-    kind: tool
     does: Run one bounded CPU-only model config probe in an NVIDIA-runtime container
       and publish actual stderr evidence.
     takes:
@@ -258,7 +234,6 @@ capabilities:
     - process.exec
     - gpu.use
   build_submit:
-    kind: tool
     does: Submit a durable build job. This acknowledges submission, not success; inspect
       status and result separately.
     takes:
@@ -276,7 +251,6 @@ capabilities:
     changes:
     - process.exec
   build_status:
-    kind: tool
     does: Read and reconcile the owned build attempt.
     takes:
       attempt_id: text
@@ -301,7 +275,6 @@ capabilities:
     changes:
     - process.exec
   build_cancel:
-    kind: tool
     does: Request cancellation of the owned build attempt.
     takes:
       attempt_id: text
@@ -326,7 +299,6 @@ capabilities:
     changes:
     - process.exec
   build_result:
-    kind: tool
     does: Read build result references; submission alone is not success.
     takes:
       attempt_id: text
@@ -339,7 +311,6 @@ capabilities:
     changes:
     - process.exec
   lab_submit:
-    kind: tool
     does: Admit an image object with exactly tag and immutable id, plus a separate
       build_attempt_id, and submit a fixed lab evaluation through the GPU queue. run_config
       may include profile nsys to trace the run with Nsight Systems; the result then
@@ -378,7 +349,6 @@ capabilities:
     - process.exec
     - gpu.use
   lab_status:
-    kind: tool
     does: Read the owned lab attempt from the durable queue.
     takes:
       attempt_id: text
@@ -403,7 +373,6 @@ capabilities:
     changes:
     - process.exec
   lab_cancel:
-    kind: tool
     does: Cancel an owned ordinary or A/B lab attempt and reap its container.
     takes:
       attempt_id: text
@@ -428,7 +397,6 @@ capabilities:
     changes:
     - process.exec
   lab_result:
-    kind: tool
     does: Read evaluation and evidence references for the owned lab attempt.
     takes:
       attempt_id: text
@@ -444,7 +412,6 @@ capabilities:
     changes:
     - process.exec
   lab_ab_submit:
-    kind: tool
     does: Admit both images and queue one contract-bound ABBA experiment; checks come
       from component materials.
     takes:
@@ -480,7 +447,6 @@ capabilities:
     - process.exec
     - gpu.use
   lab_ab_status:
-    kind: tool
     does: Read the owned durable A/B job status.
     takes:
       attempt_id: text
@@ -505,7 +471,6 @@ capabilities:
     changes:
     - process.exec
   lab_ab_result:
-    kind: tool
     does: Ingest and read verified A/B verdict, correctness and evidence.
     takes:
       attempt_id: text

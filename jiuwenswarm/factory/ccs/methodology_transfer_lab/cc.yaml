@@ -1,100 +1,64 @@
-{
-  "cc": "2",
-  "id": "factory.methodology_transfer_lab",
-  "version": "0.1.0",
-  "materials": {
-    "skill": {
-      "kind": "skill",
-      "path": "SKILL.md"
-    },
-    "method": {
-      "kind": "method",
-      "path": "METHOD.md"
-    },
-    "component": {
-      "kind": "component",
-      "path": "components.py"
-    },
-    "sources": {
-      "kind": "reference",
-      "path": "SOURCES.json"
-    },
-    "verification": {
-      "kind": "reference",
-      "path": "VERIFICATION-UNITS.json"
-    },
-    "examples": {
-      "kind": "reference",
-      "path": "EXAMPLES.json"
-    },
-    "checker": {
-      "kind": "component",
-      "path": "verification.py"
-    }
-  },
-  "bindings": {
-    "default": {
-      "kind": "native",
-      "command": [
-        "{python}",
-        "{bundle}/run.py"
-      ]
-    }
-  },
-  "capabilities": {
-    "assess_transfer": {
-      "kind": "tool",
-      "does": "Check declared source/target compatibility and semantic lane; never verifies source claims or grants admission.",
-      "takes": {
-        "request": {
-          "kind": "json"
-        }
-      },
-      "gives": {
-        "result": "json"
-      },
-      "needs": [
-        "python"
-      ],
-      "changes": [
-        "process.exec"
-      ]
-    },
-    "design_trial": {
-      "kind": "tool",
-      "does": "Draft a one-variable cheapest-first test recipe and workload shape under an explicit budget.",
-      "takes": {
-        "request": {
-          "kind": "json"
-        }
-      },
-      "gives": {
-        "result": "json"
-      },
-      "needs": [
-        "python"
-      ],
-      "changes": [
-        "process.exec"
-      ]
-    },
-    "analyze_abba": {
-      "kind": "tool",
-      "does": "Compute phase-separated rates and paired ratios from four matched caller-supplied cells; no performance acceptance.",
-      "takes": {
-        "request": {
-          "kind": "json"
-        }
-      },
-      "gives": {
-        "result": "json"
-      },
-      "needs": [
-        "python"
-      ],
-      "changes": [
-        "process.exec"
-      ]
-    }
-  }
-}
+cc: '2'
+id: factory.methodology_transfer_lab
+version: 0.1.1
+materials:
+  skill:
+    path: SKILL.md
+  method:
+    path: METHOD.md
+  component:
+    path: components.py
+  sources:
+    path: SOURCES.json
+  verification:
+    path: VERIFICATION-UNITS.json
+  examples:
+    path: EXAMPLES.json
+  checker:
+    path: verification.py
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  assess_transfer:
+    does: Check declared source/target compatibility and semantic lane; never verifies
+      source claims or grants admission.
+    takes:
+      request:
+        kind: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  design_trial:
+    does: Draft a one-variable cheapest-first test recipe and workload shape under
+      an explicit budget.
+    takes:
+      request:
+        kind: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  analyze_abba:
+    does: Compute phase-separated rates and paired ratios from four matched caller-supplied
+      cells; no performance acceptance.
+    takes:
+      request:
+        kind: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

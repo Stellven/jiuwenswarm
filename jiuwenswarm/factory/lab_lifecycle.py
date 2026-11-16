@@ -211,14 +211,14 @@ def guardian(output, lease_fd=None):
 
 
 class OwnedContainerGuard:
-    """Guard a native builder/CPU Docker command with the same exact ownership.
+    """Guard a native build, CPU, or GPU lab Docker command with the same exact ownership.
 
     The caller must inject ``name`` and every entry of ``labels`` into Docker
     create/run. Writable build mounts are the builder's separate admission
     responsibility. This does not interpret compilation output or score runs.
     """
     def __init__(self, output, image, *, lease_root=None, kind='build', timeout_s=5400):
-        if (not re.fullmatch(r'sha256:[a-f0-9]{64}', image) or kind not in {'build', 'cpu'}
+        if (not re.fullmatch(r'sha256:[a-f0-9]{64}', image) or kind not in {'build', 'cpu', 'lab'}
                 or type(timeout_s) not in (int, float) or not 0 < timeout_s <= 5400):
             raise ValueError('Invalid guarded native container specification')
         self.output = Path(output).resolve()

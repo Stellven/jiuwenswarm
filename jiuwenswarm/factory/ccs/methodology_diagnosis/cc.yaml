@@ -1,16 +1,16 @@
 cc: '2'
 id: factory.methodology_diagnosis
-version: 1.0.0
+version: 1.0.1
 materials:
   methodology:
-    kind: method
     path: METHOD.md
   ontology:
-    kind: reference
     path: ONTOLOGY.json
   component_candidates:
-    kind: reference
     path: COMPONENT-CANDIDATES.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
@@ -19,8 +19,8 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   diagnose:
-    kind: tool
-    does: Analyze retained experiment reports across inference subsystems; surface uncertainties and inspection candidates.
+    does: Analyze retained experiment reports across inference subsystems; surface
+      uncertainties and inspection candidates.
     takes:
       evidence_ids:
         kind: json

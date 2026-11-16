@@ -1,0 +1,12 @@
+{
+  "capabilities": {},
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "method": "method",
+    "patch": "component",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

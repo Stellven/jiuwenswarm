@@ -1,0 +1,10 @@
+{
+  "capabilities": {},
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "patch": "component",
+    "pre_integration_patch": "component",
+    "readme": "reference"
+  }
+}

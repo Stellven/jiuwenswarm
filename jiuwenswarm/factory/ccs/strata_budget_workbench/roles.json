@@ -1,0 +1,16 @@
+{
+  "capabilities": {
+    "apply": "tool",
+    "summarize_memory": "tool",
+    "verify_startup": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "method": "method",
+    "skill": "skill",
+    "sources": "reference",
+    "verification_units": "reference"
+  }
+}

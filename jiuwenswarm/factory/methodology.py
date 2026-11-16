@@ -245,17 +245,23 @@ def ablation(analysis, hypothesis_id=None):
                 final_combined_validation='Compare the final stack directly against the frozen original; do not multiply individual gains.')
 
 
-def followup(analysis, task, hypothesis_id=None):
+def followup(analysis, task, hypothesis_id=None, remaining=None):
     design = ablation(analysis, hypothesis_id)
     candidate = design['candidate']
-    return dict(schema_version=1, status='proposal_only', requires_operator_admission=True,
+    available = dict(remaining or {})
+    estimates = task.get('constraints', {}).get('followup_cost_estimates', {})
+    keys = ('max_turns', 'wall_clock_s', 'max_build_attempts', 'max_completed_gpu_cells')
+    proposed = {key: max(0, min(available.get(key, 0), estimates.get(key, 0))) for key in keys}
+    return dict(remaining_resources=available, cost_estimates=estimates, current_work_executable=False,
+                missing_cost_estimates=[k for k in keys if k not in estimates],
+                schema_version=1, status='proposal_only', requires_operator_admission=True,
                 source_task_id=task['task_id'], source_contract_id=task.get('contract_id'),
                 evidence_ids=analysis['evidence_ids'], objective=candidate['hypothesis'],
                 proposed_input=dict(objective=candidate['hypothesis'],
                     target=task.get('target'), engine_slice=candidate['engine_slice'],
                     hypothesis_id=candidate['id'], uncertainty=candidate['reason'],
                     expected_evidence=candidate['prerequisites'], experiment=design,
-                    budget=dict(max_turns=24, wall_clock_s=14400, max_build_attempts=2, max_completed_gpu_cells=6)),
+                    budget=proposed),
                 contract_change='New contract revision requires operator freeze; this output does not amend or freeze any contract.',
                 authority='Inherit no grants automatically. Operator task admission defines effects and source scope.',
                 discovered_cc_candidate=dict(kind='method_or_component_candidate', engine_slice=candidate['engine_slice'],
@@ -377,7 +383,8 @@ def dispatch(store, task_id, operation, inputs):
     elif operation == 'ablation':
         result = ablation(analysis, inputs.get('hypothesis_id'))
     elif operation == 'followup':
-        result = followup(analysis, task, inputs.get('hypothesis_id'))
+        from .recommendations import remaining_resources
+        result = followup(analysis, task, inputs.get('hypothesis_id'), remaining_resources(store, task))
     else:
         raise ValueError('Unknown methodology capability')
     result['evidence_sources'] = sources

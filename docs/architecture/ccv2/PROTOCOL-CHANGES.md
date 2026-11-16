@@ -17,3 +17,20 @@ Treat the fields as a local extension, not portable CC v2 syntax. Preserve histo
 - **Image services need the `network.request` grant.** A published Docker bridge port cannot be combined with `--network none`, so the runner refuses a service unless egress is granted and says so. This is honest but weak: the service can reach the network. A real no-egress service needs an enforcing network provider, which this branch does not build.
 - **Only `workspace` resources mount into containers.** Other kinds are refused with `UNSUPPORTED_RESOURCE`.
 - **Native execution is not isolated.** The CLI requires `--trusted-local`; the MCP server runs native CCs under the operator's `--grant` list, and receipts record `assurance: trusted_local`. Treat every native CC as team-trusted code.
+
+## Construction-loop canonical migration (2026-11-16)
+
+The earlier compatibility gap is addressed for newly authored factory releases:
+all 48 existing declarations now use the pinned upstream schema, with passive
+`roles.json` materials replacing local capability/material `kind` fields. The
+new performance-baseline package brings the total to 49. Canonical loading is
+the default; historical extended releases require explicit `legacy=True` and
+retain their original manifests and hashes. `factory/ccs/migration.json` records
+old, initial migrated, and final release identities. The copy-only migration
+utility never edits historical release directories.
+
+`scripts/factory/check_construction_compat.py` validates against the supplied
+pinned upstream checkout and executes the mixed baseline package through both
+runners. Factory execution bindings remain outside the CC declaration protocol.
+See [construction-loop contracts](../factory/CONSTRUCTION-LOOP.md) for backend,
+runtime and selected-component provenance and the bounded live acceptance scope.

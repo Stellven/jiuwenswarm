@@ -1,0 +1,10 @@
+{
+  "capabilities": {
+    "analyze": "tool",
+    "plan": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "method": "method"
+  }
+}

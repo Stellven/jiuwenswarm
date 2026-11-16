@@ -1,0 +1,14 @@
+{
+  "format": "factory-component/1",
+  "implementation": "components.py",
+  "roles": [
+    "model_accounting",
+    "page_replay",
+    "ceiling_analysis"
+  ],
+  "oracle": "harness.py",
+  "supported_oracle_layouts": [
+    "f32_le_row_major"
+  ],
+  "engine_acceptance": false
+}

@@ -1,0 +1,13 @@
+{
+  "capabilities": {},
+  "format": "factory-roles/1",
+  "materials": {
+    "build_request": "reference",
+    "component": "component",
+    "integration": "skill",
+    "method": "method",
+    "patch": "component",
+    "provenance": "reference",
+    "verification": "reference"
+  }
+}

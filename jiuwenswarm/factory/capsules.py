@@ -10,10 +10,12 @@ def capsule_rows(root=None):
     rows = []
     for path in sorted(root.rglob('cc.yaml')):
         declaration = load(path)
+        from jiuwenswarm.ccv2.roles import read_roles
+        roles = read_roles(declaration,path.parent,legacy=True)
         caps = declaration.get('capabilities', {})
         rows.append(dict(id=declaration['id'], version=declaration['version'],
                          binding=','.join(sorted({b['kind'] for b in declaration.get('bindings', {}).values()})) or 'material-only',
-                         materials={k: v.get('kind', 'reference') for k, v in declaration.get('materials', {}).items()}, capabilities=list(caps), changes=sorted({e for c in caps.values() for e in c.get('changes', [])}),
+                         materials={k: roles['materials'].get(k,'reference') for k in declaration.get('materials', {})}, capabilities=list(caps), changes=sorted({e for c in caps.values() for e in c.get('changes', [])}),
                          files=len(tree_files(path.parent)), lines=len(path.read_text().splitlines()), valid=True))
     return rows
 

@@ -198,7 +198,12 @@ def export_task(task_id, out, home=None, extra_files=()):
             if cid in historical:
                 continue
             from .contract import load
-            contract = load(cid)
+            try:
+                contract = load(cid)
+            except FileNotFoundError:
+                omissions.append(dict(contract_id=cid, reason='operator_contract_unavailable'))
+                origins.append(dict(contract_id=cid, source='unavailable', path=None))
+                continue
             name = 'contracts/' + contract.path.name
             copy_blob(contract.path, name)
             origins.append(dict(contract_id=cid, source='export_time_operator_input', path=name))

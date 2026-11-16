@@ -1,90 +1,56 @@
-{
-  "cc": "2",
-  "id": "engine.heterogeneous_placement_lab",
-  "version": "1.0.0",
-  "materials": {
-    "guide": {
-      "kind": "skill",
-      "path": "SKILL.md"
-    },
-    "method": {
-      "kind": "method",
-      "path": "METHOD.md"
-    },
-    "sources": {
-      "kind": "reference",
-      "path": "SOURCES.json"
-    },
-    "verification": {
-      "kind": "reference",
-      "path": "VERIFICATION-UNITS.json"
-    },
-    "component": {
-      "kind": "component",
-      "path": "COMPONENT.json"
-    },
-    "examples": {
-      "kind": "reference",
-      "path": "EXAMPLES.json"
-    }
-  },
-  "bindings": {
-    "default": {
-      "kind": "native",
-      "command": [
-        "{python}",
-        "{bundle}/run.py"
-      ]
-    }
-  },
-  "capabilities": {
-    "plan": {
-      "kind": "tool",
-      "does": "Plan all six selected experts using supplied measured costs and shared capacity.",
-      "takes": {
-        "request": "json"
-      },
-      "gives": {
-        "result": "json"
-      },
-      "needs": [
-        "python"
-      ],
-      "changes": [
-        "process.exec"
-      ]
-    },
-    "execute_reference": {
-      "kind": "tool",
-      "does": "Compute weighted expert matvecs with all selected experts on stdlib CPU.",
-      "takes": {
-        "request": "json"
-      },
-      "gives": {
-        "result": "json"
-      },
-      "needs": [
-        "python"
-      ],
-      "changes": [
-        "process.exec"
-      ]
-    },
-    "overlap_schedule": {
-      "kind": "tool",
-      "does": "Estimate dependent transfers and compute; does not execute device work.",
-      "takes": {
-        "request": "json"
-      },
-      "gives": {
-        "result": "json"
-      },
-      "needs": [
-        "python"
-      ],
-      "changes": [
-        "process.exec"
-      ]
-    }
-  }
-}
+cc: '2'
+id: engine.heterogeneous_placement_lab
+version: 1.0.1
+materials:
+  guide:
+    path: SKILL.md
+  method:
+    path: METHOD.md
+  sources:
+    path: SOURCES.json
+  verification:
+    path: VERIFICATION-UNITS.json
+  component:
+    path: COMPONENT.json
+  examples:
+    path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  plan:
+    does: Plan all six selected experts using supplied measured costs and shared capacity.
+    takes:
+      request: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  execute_reference:
+    does: Compute weighted expert matvecs with all selected experts on stdlib CPU.
+    takes:
+      request: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  overlap_schedule:
+    does: Estimate dependent transfers and compute; does not execute device work.
+    takes:
+      request: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

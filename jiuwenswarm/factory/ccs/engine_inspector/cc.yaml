@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.engine_inspector
-version: 1.1.0
+version: 1.1.1
 bindings:
   default:
     kind: native
@@ -9,7 +9,6 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   inspect:
-    kind: tool
     does: Inspect an authorized source checkout, host and optional local image; publish
       evidence.
     takes:
@@ -36,7 +35,6 @@ capabilities:
     - workspace.read
     - process.exec
   preflight:
-    kind: tool
     does: Resolve local image Id and reject unsupported flags using help cached by
       immutable Id.
     takes:
@@ -60,7 +58,6 @@ capabilities:
     - process.exec
     - gpu.use
   verify_effective_config:
-    kind: tool
     does: Run one bounded CPU-only model config probe in an NVIDIA-runtime container
       and publish actual stderr evidence.
     takes:
@@ -85,10 +82,9 @@ capabilities:
     changes:
     - process.exec
     - gpu.use
-
   inspect_strata:
-    kind: tool
-    does: Inspect the operator-pinned complete Strata asset inventory and fixed workload without launching a model.
+    does: Inspect the operator-pinned complete Strata asset inventory and fixed workload
+      without launching a model.
     takes: {}
     gives:
       analysis: json
@@ -97,3 +93,7 @@ capabilities:
     - python
     changes:
     - process.exec
+materials:
+  roles:
+    path: roles.json
+    media_type: application/json

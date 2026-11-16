@@ -1,0 +1,21 @@
+{
+  "capabilities": {
+    "ceilings": "tool",
+    "experiments": "tool",
+    "inspect": "tool",
+    "inspect_gguf": "tool",
+    "native_experiment": "tool",
+    "replay": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "build_recipe": "reference",
+    "component": "component",
+    "method": "method",
+    "native_oracle": "reference",
+    "oracle": "reference",
+    "roles": "reference",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

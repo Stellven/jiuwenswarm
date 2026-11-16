@@ -87,7 +87,8 @@ def test_cpu_session_cannot_launch_benchmark_even_with_fake_handle(tmp_path):
 
 
 def test_gpu_effect_and_handle_are_declared_together():
-    declaration = json.loads((CCS / 'gpu_kernel_lab/cc.yaml').read_text())
+    import yaml
+    declaration = yaml.safe_load((CCS / 'gpu_kernel_lab/cc.yaml').read_text())
     cap = declaration['capabilities']['benchmark']
     assert set(cap['changes']) == {'process.exec', 'gpu.use'}
     assert set(cap['needs']) == {'python', 'gpu'}

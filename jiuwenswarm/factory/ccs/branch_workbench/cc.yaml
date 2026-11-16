@@ -1,22 +1,20 @@
 cc: '2'
 id: factory.branch_workbench
-version: 1.1.0
+version: 1.1.1
 materials:
   methodology:
-    kind: method
     path: METHOD.md
   skill:
-    kind: skill
     path: SKILL.md
   components:
-    kind: component
     path: COMPONENTS.json
   verification:
-    kind: reference
     path: VERIFICATION-UNITS.json
   example:
-    kind: reference
     path: EXAMPLE.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
@@ -25,7 +23,6 @@ bindings:
     - '{bundle}/run.py'
 capabilities:
   create:
-    kind: tool
     does: Create an agent-chosen task branch with bounded CPU/GPU allocation; no execution.
     takes:
       expected_graph_rev:
@@ -50,7 +47,6 @@ capabilities:
     changes:
     - process.exec
   fork:
-    kind: tool
     does: Create an alternative with explicit parent lineage; optional continuation
       dependency.
     takes:
@@ -81,7 +77,6 @@ capabilities:
     changes:
     - process.exec
   refine:
-    kind: tool
     does: Create a revised hypothesis continuing from a completed parent; preserve
       prior evidence.
     takes:
@@ -109,7 +104,6 @@ capabilities:
     changes:
     - process.exec
   record:
-    kind: tool
     does: Attach one current-task reported measurement to a branch; no acceptance.
     takes:
       expected_graph_rev:
@@ -129,7 +123,6 @@ capabilities:
     changes:
     - process.exec
   prune:
-    kind: tool
     does: Cancel an unpromising branch with an explicit reason; retain consumed allocations.
     takes:
       expected_graph_rev:
@@ -149,7 +142,6 @@ capabilities:
     changes:
     - process.exec
   status:
-    kind: tool
     does: Read durable branches, lineage, ready frontier and shared resource reservations.
     takes: {}
     gives:
@@ -159,7 +151,6 @@ capabilities:
     changes:
     - process.exec
   ready:
-    kind: tool
     does: Read task branch readiness without choosing or executing a branch.
     takes: {}
     gives:
@@ -169,7 +160,6 @@ capabilities:
     changes:
     - process.exec
   compare:
-    kind: tool
     does: Compare complete reported speed, memory and quality vectors within identical
       scope and key; unknowns remain unknown.
     takes: {}
@@ -180,7 +170,6 @@ capabilities:
     changes:
     - process.exec
   attach:
-    kind: tool
     does: Attach current-task qualitative or failure evidence, retain unknown metrics,
       and complete the work record without acceptance.
     takes:

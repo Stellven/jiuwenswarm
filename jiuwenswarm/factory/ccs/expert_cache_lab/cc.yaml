@@ -1,60 +1,64 @@
 cc: '2'
 id: engine.expert_cache_lab
-version: 1.0.0
+version: 1.0.1
 materials:
   method:
-    kind: method
     path: METHOD.md
   integration:
-    kind: skill
     path: SKILL.md
   component:
-    kind: component
     path: COMPONENT.json
   sources:
-    kind: reference
     path: SOURCES.json
   verification_units:
-    kind: reference
     path: VERIFICATION-UNITS.json
   verification:
-    kind: reference
     path: verification.py
   runtime:
-    kind: reference
     path: components.py
   fixture:
-    kind: reference
     path: fixtures/example.json
   cpu_verification:
-    kind: reference
     path: CPU-VERIFICATION.json
   examples:
-    kind: reference
     path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
-    command: ['{python}', '{bundle}/run.py']
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
 capabilities:
   validate:
-    kind: tool
     does: Validate bounded inline multi-request expert events.
-    takes: {inputs: json}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   replay:
-    kind: tool
     does: Replay byte bounded LRU LFU or hybrid expert caches on CPU.
-    takes: {inputs: json}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
   predict:
-    kind: tool
     does: Evaluate causal next expert predictions with prefix holdout.
-    takes: {inputs: json}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

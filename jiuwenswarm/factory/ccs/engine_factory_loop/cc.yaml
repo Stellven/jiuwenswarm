@@ -1,73 +1,123 @@
 cc: '2'
 id: factory.engine_factory_loop
-version: 1.1.0
+version: 1.2.0
 materials:
   methodology:
-    kind: method
     path: METHOD.md
-  skill: {kind: skill, path: SKILL.md}
-  verification: {kind: reference, path: VERIFICATION-UNITS.json}
+  skill:
+    path: SKILL.md
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
 bindings:
   default:
     kind: native
-    command: ['{python}', '{bundle}/run.py']
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
 capabilities:
   status:
-    kind: tool
     does: Read durable cycles, pending attempts and remaining operator budgets.
     takes: {}
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec
   select:
-    kind: tool
-    does: Record an agent-selected report-backed hypothesis and reserve one bounded operator-admitted experiment.
+    does: Record an agent-selected report-backed hypothesis and reserve one bounded
+      operator-admitted experiment.
     takes:
-      cycle_id: {kind: text}
-      evidence_ids: {kind: json}
-      hypothesis_id: {kind: text}
-      template_id: {kind: text}
-      expected_rev: {kind: json}
-      branch_id: {kind: text, optional: true}
-      expected_graph_rev: {kind: json, optional: true}
+      cycle_id:
+        kind: text
+      evidence_ids:
+        kind: json
+      hypothesis_id:
+        kind: text
+      template_id:
+        kind: text
+        optional: true
+      expected_rev:
+        kind: json
+      branch_id:
+        kind: text
+        optional: true
+      expected_graph_rev:
+        kind: json
+        optional: true
+      experiment_id:
+        kind: text
+        optional: true
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec
   execute:
-    kind: tool
-    does: Freeze an exact admitted template into a new child task and submit via the existing durable benchmark queue. Replay recovers the same attempt.
+    does: Freeze an exact admitted template into a new child task and submit via the
+      existing durable benchmark queue. Replay recovers the same attempt.
     takes:
-      cycle_id: {kind: text}
+      cycle_id:
+        kind: text
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec, gpu.use]
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
   collect:
-    kind: tool
-    does: Reconcile the child benchmark, retain failed or successful evidence and expose follow-up proposals for the agent's next decision.
+    does: Reconcile the child benchmark, retain failed or successful evidence and
+      expose follow-up proposals for the agent's next decision.
     takes:
-      cycle_id: {kind: text}
+      cycle_id:
+        kind: text
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec
   abandon:
-    kind: tool
-    does: Close only an unsubmitted reservation, retain the reason and spent budget; never hide an existing attempt.
+    does: Close only an unsubmitted reservation, retain the reason and spent budget;
+      never hide an existing attempt.
     takes:
-      cycle_id: {kind: text}
-      reason: {kind: text}
-    gives: {result: json}
-    needs: [python]
-    changes: [process.exec]
-  stop:
-    kind: tool
-    does: Persist stop intent for future experiments without cancelling already queued work.
-    takes:
-      reason: {kind: text}
+      cycle_id:
+        kind: text
+      reason:
+        kind: text
     gives:
       result: json
-    needs: [python]
-    changes: [process.exec]
+    needs:
+    - python
+    changes:
+    - process.exec
+  stop:
+    does: Persist stop intent for future experiments without cancelling already queued
+      work.
+    takes:
+      reason:
+        kind: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  prepare_experiment:
+    does: Validate and freeze an agent-authored experiment under the operator envelope
+      without executing it.
+    takes:
+      experiment_id: text
+      specification: json
+      image: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
