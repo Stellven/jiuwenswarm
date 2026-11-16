@@ -36,7 +36,7 @@ def main():
         until = time.monotonic() + args.seconds
         while True:
             result = service.runtime.tick(args.run_id)
-            if result['status'] in {'completed', 'failed', 'cancelled'} or time.monotonic() >= until:
+            if result['status'] in {'completed', 'failed', 'cancelled', 'needs_reconciliation'} or time.monotonic() >= until:
                 break
             time.sleep(.25)
     else:

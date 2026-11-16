@@ -31,6 +31,7 @@ interface CCEvent {
   receipt?: unknown;
   lab?: unknown;
   outputs?: Record<string, unknown>;
+  node_states?: Record<string, string>;
 }
 interface Catalog {
   task_id: string;
@@ -81,7 +82,7 @@ export function CCWorkflowPanel() {
         const value = await request<CCRun>(`/runs/${encodeURIComponent(run.id)}/tick`, {});
         if (disposed) return;
         await update(value);
-        if (['completed', 'failed', 'cancelled'].includes(value.status)) setRunning(false);
+        if (['completed', 'failed', 'cancelled', 'needs_reconciliation'].includes(value.status)) setRunning(false);
         else timer = setTimeout(advance, 1000);
       } catch (e) {
         setError(String(e));
@@ -103,6 +104,11 @@ export function CCWorkflowPanel() {
       for (const node of event.nodes ?? []) replay.set(node.id, { ...node, receipts: [...node.receipts] });
       const node = event.node_id ? replay.get(event.node_id) : undefined;
       if (node && event.type === 'cc.intent') node.state = 'calling';
+      if (node && event.type === 'cc.transport_error') node.state = 'unknown';
+      for (const [id, state] of Object.entries(event.node_states ?? {})) {
+        const current = replay.get(id);
+        if (current) current.state = state;
+      }
       if (node && event.type === 'cc.receipt') {
         node.state = event.state ?? node.state;
         node.outputs = event.outputs ?? node.outputs;
@@ -117,7 +123,8 @@ export function CCWorkflowPanel() {
       value.node ? [{ from: value.node, to: node.id, data: name }] : [],
     ),
   );
-  const { positions, height } = layoutGraph(nodes, edges);
+  const { positions } = layoutGraph(nodes, edges);
+  const height = Math.max(160, Math.ceil(nodes.length / 2) * 150);
   const detail = nodes.find((node) => node.id === selected);
   const act = async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -205,7 +212,7 @@ export function CCWorkflowPanel() {
           </button>
           <button
             data-testid="workflow-demo-cc-stop"
-            disabled={busy}
+            disabled={busy || cursor !== null}
             onClick={() =>
               void act(async () => {
                 await update(await request<CCRun>(`/runs/${encodeURIComponent(run.id)}/stop`, {}));
@@ -230,49 +237,65 @@ export function CCWorkflowPanel() {
           <button data-testid="workflow-demo-cc-live" onClick={() => setCursor(null)}>
             {label('live')}
           </button>
-          <svg
-            data-testid="workflow-demo-cc-graph"
-            viewBox={`0 0 800 ${height}`}
-            role="img"
-            aria-label={label('graph')}
-          >
-            {edges.map(
-              (edge, index) =>
-                positions[edge.from] &&
-                positions[edge.to] && (
-                  <path
-                    key={index}
-                    d={edgePath(positions[edge.from], positions[edge.to]).d}
-                    fill="none"
-                    stroke="currentColor"
-                  />
-                ),
-            )}
-            {nodes.map((node) => (
-              <g
-                data-testid="workflow-demo-cc-node"
-                data-variant={node.id}
-                key={node.id}
-                role="button"
-                tabIndex={0}
-                aria-label={node.capability}
-                onClick={() => setSelected(node.id)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') setSelected(node.id);
-                }}
-                transform={`translate(${positions[node.id].x},${positions[node.id].y})`}
-              >
-                <rect x={-128} y={-34} width={256} height={68} rx={8} />
-                <text textAnchor="middle" y={-4}>
-                  {node.capability}
-                </text>
-                <text textAnchor="middle" y={20}>
-                  {node.state}
-                </text>
-              </g>
-            ))}
-          </svg>
-          {detail && <pre data-testid="workflow-demo-cc-evidence">{JSON.stringify(detail, null, 2)}</pre>}
+          <div className="cc-workflow-graph-scroll">
+            <svg
+              data-testid="workflow-demo-cc-graph"
+              viewBox={`0 0 800 ${height}`}
+              role="img"
+              aria-label={label('graph')}
+            >
+              {edges.map(
+                (edge, index) =>
+                  positions[edge.from] &&
+                  positions[edge.to] && (
+                    <path
+                      key={index}
+                      d={edgePath(positions[edge.from], positions[edge.to]).d}
+                      fill="none"
+                      stroke="currentColor"
+                    />
+                  ),
+              )}
+              {nodes.map((node) => (
+                <g
+                  data-testid="workflow-demo-cc-node"
+                  data-variant={node.id}
+                  key={node.id}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={node.capability}
+                  onClick={() => setSelected(node.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') setSelected(node.id);
+                  }}
+                  transform={`translate(${positions[node.id].x},${positions[node.id].y})`}
+                >
+                  <rect x={-128} y={-34} width={256} height={68} rx={8} />
+                  <text textAnchor="middle" y={-4}>
+                    {node.capability}
+                  </text>
+                  <text textAnchor="middle" y={20}>
+                    {node.state}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </div>
+          {detail && (
+            <>
+              <pre data-testid="workflow-demo-cc-evidence">
+                {JSON.stringify(
+                  { state: detail.state, inputs: detail.inputs, outputs: detail.outputs, lab: detail.lab },
+                  null,
+                  2,
+                )}
+              </pre>
+              <details data-testid="workflow-demo-cc-receipts">
+                <summary>{label('receipts')}</summary>
+                <pre>{JSON.stringify(detail.receipts, null, 2)}</pre>
+              </details>
+            </>
+          )}
           <details data-testid="workflow-demo-cc-revisions">
             <summary>{label('decisions')}</summary>
             <pre>{JSON.stringify(run.revisions, null, 2)}</pre>

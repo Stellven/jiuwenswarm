@@ -159,3 +159,38 @@ def test_actual_native_cc_transport_without_agent_shell(owned, tmp_path, monkeyp
         'expected_head':inspected['outputs']['result']['head']})
     assert committed['state'] == 'succeeded', committed
     assert git(root, 'show', 'HEAD:probe.txt') == 'candidate'
+
+
+def test_native_workflow_constructs_and_commits_source_with_retained_evidence(owned, tmp_path, monkeypatch):
+    """Real source CCs via nested orchestration; no GPU/build acceptance claim."""
+    from jiuwenswarm.software_factory.cc_prepare import prepare
+    from jiuwenswarm.software_factory.cc_service import CCService
+    store, root = owned
+    monkeypatch.setenv('FACTORY_HOME', str(store.home))
+    monkeypatch.setenv('FACTORY_TASK_ID', 'task')
+    monkeypatch.setenv('FACTORY_PYTHON', sys.executable)
+    monkeypatch.setenv('PYTHONPATH', str(ROOT))
+    config = tmp_path / 'workflow' / 'config.json'
+    prepare(config, 'task', [ROOT / 'jiuwenswarm/factory/ccs/source_workbench'],
+            ['process.exec', 'workspace.write'])
+    service = CCService.from_config(config)
+    head = git(root, 'rev-parse', 'HEAD')
+    source = 'int main() { return 0; }\n'
+    run = service.create(dict(workflow='factory-source_workbench-write', objective='Construct CPU source through CCs',
+        inputs=dict(path='candidate.cpp', text=source, expected_sha256=None)))
+    for _ in range(3):
+        run = service.runtime.tick(run['id'])
+    assert run['status'] == 'completed', run
+    first = run['nodes'][0]
+    assert first['outputs']['result']['sha256'] == hashlib.sha256(source.encode()).hexdigest()
+    service.append(run['id'], dict(workflow='factory-source_workbench-localcommit', instance_id='commit',
+        inputs=dict(paths=['candidate.cpp'], message='workflow construction', expected_head=head),
+        expected_revision=1, decision=dict(reason='Retain constructed source for a later admitted build',
+            evidence=[dict(task_id='task', node_id=first['id'])])))
+    for _ in range(3):
+        run = service.runtime.tick(run['id'])
+    assert run['status'] == 'completed', run
+    assert run['revision'] == 2
+    assert git(root, 'show', 'HEAD:candidate.cpp') == source.strip()
+    assert run['nodes'][-1]['outputs']['result']['parent'] == head
+    assert run['acceptance'] == 'not_assessed'

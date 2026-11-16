@@ -7,7 +7,7 @@ from jiuwenswarm.ccv2.ccv2 import Host
 from .cc_catalog import describe_capabilities
 from .cc_workflow import CCWorkflow
 from .workflow_definitions import (
-    Binding, StageRef, SubworkflowRef, SubworkflowDefinition, WorkflowDefinition, WorkflowRegistry,
+    Binding, PortReference, StageRef, SubworkflowRef, SubworkflowDefinition, WorkflowDefinition, WorkflowRegistry,
 )
 
 
@@ -79,5 +79,7 @@ class CCService:
         # every leaf still has to exist in the operator-selected CC catalog.
         registry = definitions(request['definitions'], list(self.runtime.capabilities.values())) if 'definitions' in request else self.registry
         graph = registry.expand(request['workflow'], instance_id=request['instance_id'])
+        if request.get('bindings'):
+            graph = graph.bind_inputs({name: PortReference(**value) for name, value in request['bindings'].items()})
         return self.runtime.append(run_id, graph, request.get('inputs', {}),
             expected_revision=request['expected_revision'], decision=request['decision'])

@@ -155,7 +155,7 @@ def test_lab_lifecycle_collects_rejection_and_cancellation_continues(setup):
         if operation == 'double':
             outputs = {'value': inputs['value'] * 2, 'attempt_id': 'job-' + str(inputs['value'])}
         elif operation == 'result':
-            outputs = {'execution_outcome': 'succeeded', 'evaluation': {'acceptance': 'reject'}, 'evidence_refs': []}
+            outputs = {'attempt_id': inputs['attempt_id'], 'execution_outcome': 'succeeded', 'evaluation': {'acceptance': 'reject'}, 'evidence_refs': []}
         else:
             outputs = dict(task_id='cpu-test', attempt_id=inputs['attempt_id'], state='succeeded', cleanup_state='reaped')
         return dict(state='succeeded', completeness='complete', outputs=outputs, call=kwargs['key'])
@@ -228,3 +228,33 @@ def test_prepare_existing_packages_and_reload_without_resealing(setup, tmp_path)
     resumed = CCService.from_config(config)
     new = resumed.create({'workflow': 'test-double-double', 'inputs': {'value': 12}, 'objective': 'Pinned native CC'})
     assert finish(resumed.runtime, new['id'])['nodes'][0]['outputs']['value'] == 24
+
+
+def test_wrapped_benchmark_lifecycle_preserves_native_outputs(setup):
+    runtime, registry, host, caps = setup
+    cap = replace(caps[0], outputs={'result': 'json'},
+        lifecycle={'status': 'status', 'result': 'result', 'cancel': 'cancel', 'envelope': 'result'})
+    runtime.capabilities[cap.id] = cap
+    graph = registry.expand('calculate/first')
+    graph = replace(graph, outputs={'result': replace(graph.outputs['value'], port='result')})
+    def describe(_):
+        return {'capabilities': {name: {'changes': []} for name in ('double', 'status', 'cancel', 'result')}}
+    cleanup = 'process_groups_reaped;containers_unverified'
+    def call(release, operation, inputs, **kwargs):
+        output = dict(attempt_id='benchmark', task_id='cpu-test', state='succeeded', cleanup_state=cleanup)
+        if operation == 'result':
+            output['analysis'] = {'verdict': 'reject', 'execution_complete': True}
+        return dict(state='succeeded', completeness='complete', outputs={'result': output}, call=kwargs['key'])
+    with patch.object(host, 'describe', describe), patch.object(host, 'call', call):
+        run = runtime.create(graph, {'value': 2}, objective='Independent benchmark lifecycle')
+        done = finish(runtime, run['id'])
+    assert done['outputs']['result']['attempt_id'] == 'benchmark'
+    assert done['nodes'][0]['lab']['result']['analysis']['verdict'] == 'reject'
+    runtime.stop(run['id'])
+    assert runtime.tick(run['id'])['status'] == 'needs_reconciliation'
+    assert runtime.get(run['id'])['cancellation_complete'] is False
+    cleanup = 'reaped'
+    with patch.object(host, 'describe', describe), patch.object(host, 'call', call):
+        reconciled = finish(runtime, run['id'])
+    assert reconciled['status'] == 'cancelled'
+    assert reconciled['cancellation_complete'] is True

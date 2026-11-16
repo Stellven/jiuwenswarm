@@ -141,7 +141,7 @@ class CCWorkflow:
             run = dict(id=run_id, task_id=self.task_id, identity=self.identity, objective=objective,
                 request_digest=digest(request), status='ready', revision=1, sequence=0,
                 created_at=time.time(), nodes=nodes, stopping=False, stop_reason=None,
-                acceptance='not_assessed', revisions=[dict(revision=1, graph=request['graph'])])
+                acceptance='not_assessed', outputs={}, revisions=[dict(revision=1, graph=request['graph'], inputs=deepcopy(inputs))])
             self._save(db, run, 'workflow.created', revision=1, nodes=deepcopy(nodes))
             return run
 
@@ -164,7 +164,7 @@ class CCWorkflow:
             run['nodes'].extend(nodes)
             run['revision'] += 1
             run['status'] = 'ready'
-            run['revisions'].append(dict(revision=run['revision'], graph=graph.serializable(), decision=decision))
+            run['revisions'].append(dict(revision=run['revision'], graph=graph.serializable(), inputs=deepcopy(inputs), decision=decision))
             self._save(db, run, 'workflow.revised', revision=run['revision'], decision=decision, nodes=deepcopy(nodes))
             return run
 
@@ -228,6 +228,13 @@ class CCWorkflow:
                 self._save(db, run, 'cc.intent', node_id=node['id'], intent=intent)
                 return run, node, intent
             states = {n['state'] for n in run['nodes']}
+            latest = run['revisions'][-1]
+            run['outputs'] = {}
+            for name, ref in latest['graph']['outputs'].items():
+                if ref['node_id'] is None:
+                    run['outputs'][name] = latest['inputs'][ref['port']]
+                elif by_id[ref['node_id']]['state'] == 'completed':
+                    run['outputs'][name] = by_id[ref['node_id']]['outputs'][ref['port']]
             pending = states - {'completed', 'failed', 'cancelled', 'blocked'}
             run['cleanup_pending'] = [n['lab']['attempt_id'] for n in run['nodes'] if n['lab'] and
                 n['lab'].get('status', {}).get('cleanup_state') not in {'reaped', 'no_container_created'}]
@@ -235,10 +242,20 @@ class CCWorkflow:
             run['status'] = ('stopping' if run['stopping'] else 'waiting') if pending else (
                 ('needs_reconciliation' if run['cleanup_pending'] else 'cancelled') if run['stopping']
                 else 'failed' if states & {'failed', 'blocked'} else 'completed')
-            self._save(db, run, 'workflow.state', status=run['status'])
+            self._save(db, run, 'workflow.state', status=run['status'],
+                       node_states={n['id']: n['state'] for n in run['nodes']}, cleanup_pending=run['cleanup_pending'])
             return None
 
     def tick(self, run_id):
+        with self.db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            run = self._get(db, run_id)
+            if run['status'] == 'needs_reconciliation':
+                for node in run['nodes']:
+                    if node['lab'] and node['lab']['attempt_id'] in run['cleanup_pending']:
+                        node['state'] = 'waiting'
+                run['status'] = 'stopping'
+                self._save(db, run, 'workflow.reconciliation_requested')
         claimed = self._claim(run_id)
         if claimed is None:
             return self.get(run_id)
@@ -269,6 +286,7 @@ class CCWorkflow:
             current['receipts'].append(receipt)
             current['operation'] = None
             complete = receipt['state'] == 'succeeded' and receipt['completeness'] == 'complete'
+            output = receipt['outputs'].get(cap.lifecycle.get('envelope'), {}) if cap.lifecycle.get('envelope') else receipt['outputs']
             if receipt['state'] in {'running', 'unknown'}:
                 # Keep the SAME intent for recovery, never spend a retry budget.
                 current.update(state='unknown', operation=intent)
@@ -278,12 +296,12 @@ class CCWorkflow:
             elif intent['phase'] == 'call':
                 current['outputs'] = receipt['outputs']
                 if cap.lifecycle:
-                    current['lab'] = dict(task_id=self.task_id, attempt_id=receipt['outputs']['attempt_id'], collected=False)
+                    current['lab'] = dict(task_id=self.task_id, attempt_id=output['attempt_id'], collected=False)
                     current['state'] = 'waiting'
                 else:
                     current['state'] = 'completed'
             elif intent['phase'] in {'status', 'cancel'}:
-                status = receipt['outputs']
+                status = output
                 if status.get('task_id') != self.task_id or status.get('attempt_id') != current['lab']['attempt_id']:
                     current.update(state='waiting', error='lab_identity_mismatch')
                 else:
@@ -294,13 +312,19 @@ class CCWorkflow:
                             inputs={'attempt_id': current['lab']['attempt_id']}, phase='result',
                             key='wf-' + digest([run_id, current['id'], 'result', current['polls']]))
             else:
-                current['lab'].update(result=receipt['outputs'], collected=True)
+                if output.get('attempt_id') != current['lab']['attempt_id']:
+                    current.update(state='waiting', error='lab_result_identity_mismatch')
+                    self._save(db, run, 'cc.receipt', node_id=current['id'], receipt=receipt,
+                               state=current['state'], lab=current['lab'], outputs=current['outputs'])
+                    return run
+                current['lab'].update(result=output, collected=True)
                 status = current['lab']['status']
-                outcome = receipt['outputs'].get('execution_outcome')
+                outcome = output.get('execution_outcome')
                 if outcome in {'upload_pending', 'pending', 'running', 'unknown'}:
                     current['lab']['collected'] = False
                     current['state'] = 'waiting'
-                elif outcome in {'incomplete_evidence', 'failed', 'error'}:
+                elif (outcome in {'incomplete_evidence', 'failed', 'error'} or output.get('state') == 'failed'
+                      or (output.get('analysis') or {}).get('execution_complete') is False):
                     current['state'] = 'failed'
                 else:
                     current['state'] = 'completed' if status['state'] == 'succeeded' else (

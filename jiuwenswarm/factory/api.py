@@ -103,7 +103,7 @@ def _dispatch(store, task_id, capability, packet):
             result = manager.submit(task_id, **inputs)
             return {'result': {k: result[k] for k in ('attempt_id', 'state', 'jobq_id')}}
         fields(inputs, {'attempt_id'}, {'attempt_id'})
-        if operation not in {'status', 'result'}:
+        if operation not in {'status', 'result', 'cancel'}:
             raise ValueError('Unknown benchmark capability')
         return {'result': getattr(manager, operation)(task_id, **inputs)}
     if capability == 'strata_prefill.apply':

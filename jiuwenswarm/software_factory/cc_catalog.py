@@ -38,13 +38,9 @@ def describe_capabilities(host, releases):
                 continue
             # The previous factory-loop controller remains a rollback entrypoint,
             # not a nested scheduler hidden inside a completed workflow leaf.
-            if declaration['id'] == 'factory.engine_factory_loop' or (
-                declaration['id'] in {'factory.inference_lab', 'factory.strata_throughput_workbench', 'factory.strata_prefill_workbench'}
+            if (declaration['id'] == 'factory.engine_factory_loop' and name in {'select', 'execute', 'collect', 'abandon', 'stop'}) or (
+                declaration['id'] in {'factory.inference_lab', 'engine.strata_throughput_workbench', 'engine.strata_prefill_workbench'}
                 and name in {'select', 'execute', 'collect', 'stop'}):
-                continue
-            if declaration['id'] == 'factory.standard_benchmark' and name == 'submit':
-                # This package has no cancel capability yet. It cannot own live
-                # children under the new scheduler until its lifecycle is ported.
                 continue
             takes = {key: port(value, declaration['defs']) for key, value in spec['takes'].items()}
             gives = {key: port(value, declaration['defs']) for key, value in spec['gives'].items()}
@@ -60,8 +56,12 @@ def describe_capabilities(host, releases):
                            'lab_ab_submit': ('lab_ab_status', 'lab_ab_result', 'lab_cancel')}
                 if name in aliases:
                     lifecycle = dict(zip(('status', 'result', 'cancel'), aliases[name]))
-            if lifecycle and any(operation not in declaration['capabilities'] for operation in lifecycle.values()):
+            if declaration['id'] == 'factory.standard_benchmark' and name == 'submit':
+                lifecycle = dict(status='status', result='result', cancel='cancel', envelope='result')
+            if lifecycle and any(lifecycle[key] not in declaration['capabilities'] for key in ('status', 'result', 'cancel')):
                 raise ValueError('Incomplete factory lifecycle for ' + declaration['id'] + ':' + name)
+            if (name == 'submit' or name.endswith('_submit')) and not lifecycle:
+                continue  # Do not expose an unowned asynchronous dispatch leaf.
             result.append(Capability(declaration['id'] + ':' + name, spec['does'], release, name,
                 {key: value['kind'] for key, value in takes.items()},
                 {key: value['kind'] for key, value in gives.items()},

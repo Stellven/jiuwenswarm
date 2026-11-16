@@ -184,7 +184,7 @@ def _bindings(record, independent=False):
 
 
 def _source(inventory):
-    source='#include "strata_core.h"\n#include "cuda_cpu_runtime.h"\n#include <cmath>\n#include <stdexcept>\nusing std::exp;using std::expf;using std::fmax;using std::fmaxf;using std::fmin;using std::fminf;\n'
+    source='#include "strata_core.h"\n#include "cuda_cpu_runtime.h"\n#include <cmath>\n#include <stdexcept>\nusing std::exp;using ::expf;using std::fmax;using ::fmaxf;using std::fmin;using ::fminf;\n'
     for record in inventory['kernels'].values():source+=record['semantic_ir']['lowered_cpp']+'\n'
     source+='namespace strata_core {\n'
     emitted=set()

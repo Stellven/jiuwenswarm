@@ -39,6 +39,14 @@ acceptance. M1 services remain removed.
   resource admission and durable jobs. Its existing campaign budgets still apply;
   `max_nodes` is an additional composition bound, not a GPU budget.
 - Builder/lab submission acknowledgements wait for status and result collection.
+  The equivalent inference-lab, integration-skill and expert-streaming aliases
+  share that lifecycle. Old factory-loop scheduler operations and submission
+  interfaces lacking a supported cancellation lifecycle are not exposed as
+  native workflow leaves; their packages remain intact for the old entrypoint.
+  The standard benchmark CC now includes scoped cancellation (version 1.1.0),
+  so independently admitted source comparisons can use the same native lifecycle.
+  Its wrapped `result` output remains unchanged; orchestration retains the original
+  CC output envelope and separately tracks the owned attempt.
   Results are collected after failure/cancellation too. Independent branches keep
   progressing when a different branch's cancellation fails. Pending/unknown jobs
   cannot produce completed descendants.

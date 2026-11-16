@@ -336,6 +336,28 @@ class Benchmark:
         if attempt['task_id']!=task_id or attempt['request'].get('adapter') not in ADAPTERS:raise ValueError('Benchmark belongs to another task')
         return self.jobs.status(attempt_id)
 
+    def cancel(self, task_id, attempt_id):
+        # Scope validation precedes any process or container mutation.
+        self.status(task_id, attempt_id)
+        attempt = self.jobs.cancel(attempt_id)
+        if attempt['state'] not in {'succeeded', 'failed', 'cancelled'}:
+            return attempt
+        if not attempt.get('cleanup_state', '').startswith('process_groups_reaped'):
+            return attempt
+        from .lab_lifecycle import load_intent, inspect_owned, recover_run
+        root = self.store.home / 'benchmark-spool' / attempt_id
+        intents = sorted(root.glob('cell-*/*/intent.json'))
+        try:
+            for path in intents:
+                intent = load_intent(path.parent)
+                if inspect_owned(intent) is not None:
+                    recover_run(path.parent, reason='workflow_cancel', seal=False)
+                if inspect_owned(intent) is not None:
+                    raise ValueError('Owned container remains')
+        except (ValueError, OSError, RuntimeError):
+            return metadata(self.store, attempt, cleanup_state='containers_unverified')
+        return metadata(self.store, attempt, cleanup_state='reaped' if intents else 'no_container_created')
+
     def result(self,task_id,attempt_id):
         if os.environ.get('FACTORY_BRIDGE_DIR'):
             self.status(task_id,attempt_id)  # Scope check before delegating host-only analysis.

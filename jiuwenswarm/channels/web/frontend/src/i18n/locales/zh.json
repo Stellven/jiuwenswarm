@@ -4817,6 +4817,7 @@
     "replay": "已记录事件",
     "live": "最新状态",
     "graph": "能力工作流图",
-    "decisions": "决策和图修订"
+    "decisions": "决策和图修订",
+    "receipts": "CC 调用回执"
   }
 }

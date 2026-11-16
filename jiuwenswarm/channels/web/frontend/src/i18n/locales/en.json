@@ -4817,6 +4817,7 @@
     "replay": "Recorded event",
     "live": "Latest state",
     "graph": "Capability workflow graph",
-    "decisions": "Decisions and graph revisions"
+    "decisions": "Decisions and graph revisions",
+    "receipts": "CC invocation receipts"
   }
 }

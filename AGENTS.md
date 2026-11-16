@@ -6,6 +6,7 @@ This branch is a deliberate scope reset. It is base JiuwenSwarm plus the preserv
 The M1 research machinery was removed on purpose: the Intention/intent Compiler, the old capsule pipeline and `capsule_runtime`, `jiuwenswarm/research*`, the RSI console, ccbench/harbor benchmarks and `deploy/m1`. **Do not restore, extend or re-create them, and do not follow the M1 PRD / TASKS / Spec Kit process that earlier versions of this file described.** The old file is kept on `AI4Research-Main` and in git history.
 
 Start here instead:
+- `docs/architecture/factory/NATIVE-WORKFLOWS.md` — DGX Spark integration, current ownership, native CC workflow execution and qualification gates
 - `docs/architecture/README.md` — what the branch is and how the pieces fit
 - `docs/architecture/ccv2/README.md` — install, start, demo
 - `docs/architecture/ccv2/PROVENANCE.md` — base and source revisions
@@ -27,3 +28,15 @@ The operator-authorized engine-factory design decision is recorded in
 [DESIGN-CHANGE-2026-11-12.md](docs/architecture/factory/DESIGN-CHANGE-2026-11-12.md).
 [RESPONSIBILITIES.md](docs/architecture/factory/RESPONSIBILITIES.md) maps M1 responsibilities to current code and Run 5 evidence placeholders.
 In-run revision retains host contract, authority and lifecycle checks; M1 remains removed.
+
+## Native workflow integration (operator-authorized 2026-11-16)
+
+The operator approved merging `dynamical-workflow` into the DGX Spark factory.
+The workflow team owns multiworkflow composition and adaptive graph orchestration;
+the CC/Lab Manager team owns capability semantics, admission, resource lifecycle
+and independent evaluation. This feature-scoped authorization includes
+`jiuwenswarm/software_factory/` and its web integration. Native CC v2 is the
+executable contract; do not introduce a permanent Stage-to-CC adapter or restore M1.
+Existing factory packages remain authoritative. Ascend is an example, not the
+acceptance target. Source and small handoff records belong in Git; model files,
+machine-transfer archives and mutable experiment stores do not.

@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.standard_benchmark
-version: 1.0.1
+version: 1.1.0
 materials:
   methodology:
     path: METHOD.md
@@ -39,6 +39,16 @@ capabilities:
   result:
     does: Independently verify raw evidence and report correctness and speed gates
       for a completed current-task benchmark. Partial execution is inconclusive.
+    takes:
+      attempt_id: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  cancel:
+    does: Cancel only this task's benchmark attempt and reconcile its exact owned containers; pending cleanup remains explicit.
     takes:
       attempt_id: text
     gives:
