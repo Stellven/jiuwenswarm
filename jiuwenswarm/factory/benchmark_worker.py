@@ -114,6 +114,16 @@ def run(contract_path, output, task_id, attempt_id, *, contract_sha256, phase_na
         contract = json.loads(contract_path.read_text())
         tools = _benchmark_tools()
         tools.validate_contract(contract)
+        if contract.get('adapter') == 'strata-construction-v1':
+            from .store import Store
+            from .execution_binding import verify_task
+            from .construction_comparison import verify_lineage
+            with Store(Path(os.environ['FACTORY_HOME'])) as store:
+                verify_task(store,task_id)
+                verify_lineage(store,contract)
+                request=store.read(task_id,attempt_id)['request']
+                if request.get('quiet_required') and request.get('quiet_root') != os.environ.get('FACTORY_BENCHMARK_QUIET_ROOT'):
+                    raise ValueError('Construction comparison quiet authority differs')
         result['stage'] = contract.get('stage', 'main')
         result['source_identity'] = check_source_pins(contract)
         quiet_root = os.environ.get('FACTORY_BENCHMARK_QUIET_ROOT')
@@ -133,7 +143,7 @@ def run(contract_path, output, task_id, attempt_id, *, contract_sha256, phase_na
         dataset = json.loads(dataset_path.read_text())
         phase_cases = dict(quality=dataset['pilot'] if result['stage'] == 'pilot' else dataset['quality'],
                            speed=dataset['speed'][:2] if result['stage'] == 'pilot' else dataset['speed'])
-        if contract.get('adapter') in ('strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5'):
+        if contract.get('adapter') in ('strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5','strata-construction-v1'):
             phase_cases = {phase: tools.phase_cases(contract, dataset, phase) for phase in ('quality', 'speed')}
         if tuple(phase_names) not in (('quality', 'speed'), ('quality',), ('speed',)):
             raise ValueError('Unsupported phase selection')
@@ -171,11 +181,15 @@ def run(contract_path, output, task_id, attempt_id, *, contract_sha256, phase_na
                 cell['phases'][phase] = phase_record
                 atomic_json(output/'progress.json', dict(task_id=task_id, attempt_id=attempt_id,
                     completed_cells=index-1, cell=index, arm=arm, phase=phase, status='running'))
-                phase_record['admission'] = admission(contract['image']['id'])
-                wire = (tools.protocol(phase_cases[phase], arm, contract) if contract.get('adapter') in ('strata-benchmark-v2', 'strata-benchmark-v3', 'strata-benchmark-v4', 'strata-benchmark-v5')
+                from .construction_comparison import image_for, verify_executable
+                actual_image = image_for(contract, arm)
+                phase_record['admission'] = admission(actual_image)
+                if contract.get('adapter') == 'strata-construction-v1':
+                    phase_record['executable_sha256'] = verify_executable(contract, arm)
+                wire = (tools.protocol(phase_cases[phase], arm, contract) if contract.get('adapter') in ('strata-benchmark-v2', 'strata-benchmark-v3', 'strata-benchmark-v4', 'strata-benchmark-v5', 'strata-construction-v1')
                         else tools.protocol(phase_cases[phase], arm))
                 report = lab_recorder.run_container(tools.phase_args(contract, arm, phase), output=phase_output,
-                    image=contract['image']['id'], mounts=[(work['pack'],work['pack']), (work['model_root'],work['model_root'])],
+                    image=actual_image, mounts=[(work['pack'],work['pack']), (work['model_root'],work['model_root'])],
                     gpu=True, environment=profile['environment'], protocol=wire,
                     timeout_s=min(limits[phase+'_timeout_s'], max(0.001, total_timeout-(time.monotonic()-started))), interval_ms=1000, guard_gib=limits['guard_gib'],
                     memory_bytes=limits['memory_bytes'], cpus=limits['cpus'],
@@ -187,7 +201,7 @@ def run(contract_path, output, task_id, attempt_id, *, contract_sha256, phase_na
                     raise RuntimeError(f'{phase} recorder failed: ' + str(report.get('reason')))
                 parsed = tools.parse_native((phase_output/'stdout.log').read_text(),
                                             (phase_output/'stderr.log').read_text(), phase_cases[phase])
-                if contract.get('adapter') in ('strata-benchmark-v2', 'strata-benchmark-v3', 'strata-benchmark-v4', 'strata-benchmark-v5'):
+                if contract.get('adapter') in ('strata-benchmark-v2', 'strata-benchmark-v3', 'strata-benchmark-v4', 'strata-benchmark-v5', 'strata-construction-v1'):
                     tools.verify_prefill_engagement(contract, arm, parsed, (phase_output/'stderr.log').read_text())
                 if len(parsed.get('requests', [])) != len(phase_cases[phase]):
                     raise ValueError('Parsed request count differs from frozen dataset')

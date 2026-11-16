@@ -6,7 +6,8 @@
     "prepare_experiment": "tool",
     "select": "tool",
     "status": "tool",
-    "stop": "tool"
+    "stop": "tool",
+    "prepare_comparison": "tool"
   },
   "format": "factory-roles/1",
   "materials": {

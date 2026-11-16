@@ -125,6 +125,11 @@ class Jobs:
             if owner != task_id:
                 owner_task = self.store.get_task(owner)
                 limits = owner_task.get('constraints', {}).get('attempt_limits', {})
+            if request.get('adapter') == 'strata-construction-v1':
+                campaign = self.store.get_task(owner)
+                seconds = campaign.get('budget', {}).get('wall_clock_s', 0)
+                if seconds <= 0 or time.time() >= campaign['created'] + seconds:
+                    raise ValueError('Independent comparison campaign authorization expired or missing')
             campaign_tasks = []
             for row in self.store._db.execute('SELECT task_id,constraints FROM tasks'):
                 policy = json.loads(row['constraints'])
@@ -149,11 +154,18 @@ class Jobs:
                 limit = authority.get(allowance, 0)
                 placeholders = ','.join('?' for _ in campaign_tasks)
                 rows = self.store._db.execute(
-                    f'SELECT kind,resources FROM attempts WHERE task_id IN ({placeholders})', campaign_tasks)
-                count = sum(row['kind'] == 'build' if allowance == 'max_build_attempts' else
-                            row['kind'] == 'lab' and json.loads(row['resources']).get('job_class') == 'gpu'
+                    f'SELECT kind,resources,request FROM attempts WHERE task_id IN ({placeholders})', campaign_tasks)
+                def launches(req):
+                    contract = req.get('contract', {})
+                    count = contract['runtime_bounds']['phase_containers'] if req.get('adapter') == 'strata-construction-v1' else 1
+                    if type(count) is not int or count <= 0:
+                        raise ValueError('Positive integer phase container reservation required')
+                    return count
+                count = sum(int(row['kind']=='build') if allowance=='max_build_attempts' else
+                            launches(json.loads(row['request'])) if row['kind']=='lab' and json.loads(row['resources']).get('job_class')=='gpu' else 0
                             for row in rows)
-                if type(limit) is not int or limit < 0 or count >= limit:
+                requested = launches(request) if allowance=='max_gpu_launches' else 1
+                if type(limit) is not int or limit < 0 or count + requested > limit:
                     raise ValueError('Shared campaign allowance exhausted: ' + allowance)
             attempt = self.store.create_attempt(task_id, dict(kind=kind, request=request,
                 idem_key=idem_key, fingerprint=fp, resources=dict(argv=argv,

@@ -38,7 +38,7 @@ EVOLVE_ACTIONS = {'investigate', 'tune', 'integrate', 'build', 'measure', 'keep_
 COMPONENT_ACTIONS = {'keep_component', 'keep_dormant', 'revert_component'}
 
 
-def validate_action(action):
+def validate_action(action, *, sealed_component=False):
     if not isinstance(action, dict) or not isinstance(action.get('type'), str):
         raise ValueError('Decision action requires type')
     kind = action['type']
@@ -46,7 +46,10 @@ def validate_action(action):
         raise ValueError('Unsupported evolve action type')
     if kind in COMPONENT_ACTIONS:
         from .components import load, dependents
-        load(action.get('component'))
+        if not sealed_component:
+            load(action.get('component'))
+        elif not isinstance(action.get('component'),str) or not action['component'].strip():
+            raise ValueError('Sealed component identifier required')
         if kind == 'keep_dormant':
             # A rejected component may keep its default-off source only as a prerequisite
             # of components still to be measured; its switch stays off in every arm.
@@ -65,6 +68,24 @@ def validate_action(action):
 
 def validate_keep_evidence(store, task_id, record):
     action = record['action']
+    if store.get_task(task_id).get('constraints',{}).get('factory_loop',{}).get('comparison_templates'):
+        from .construction_comparison import validate_acceptance
+        accepted = validate_acceptance(store,task_id,record.get('evidence_ids',[]))
+        image = action.get('image')
+        image = image.get('id') if isinstance(image,dict) else image
+        from jiuwenswarm.ccv2.ccv2 import Host
+        host = Host(getattr(store,'_store',store).home/'ccstore')
+        component = accepted['lineage']['component']
+        _,bundle = host.release(component['release'])
+        material = host.material(component['release'],component['material'])
+        identifier = json.loads((bundle/material['path']).read_text()).get('id')
+        if identifier != action['component']:
+            raise ValueError('Keep component differs from evaluated source release')
+        if action.get('ratio') != accepted['ratio']:
+            raise ValueError('Keep ratio differs from independently evaluated result')
+        if image != accepted['lineage']['image_id']:
+            raise ValueError('Keep image differs from independently evaluated candidate')
+        return
     for ref in record.get('evidence_ids', []):
         evidence = store.read(task_id, ref)
         if (evidence.get('kind') == 'ab_result'

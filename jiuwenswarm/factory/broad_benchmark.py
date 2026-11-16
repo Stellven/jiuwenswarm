@@ -92,8 +92,13 @@ def engagement(c, arm, parsed, stderr):
 
 def analyze(c, d, cells, decode):
     """Score actual retained cells only. Screens never qualify acceptance."""
-    from .benchmark_analysis import _percentile
     validate_contract(c)
+    return analyze_validated(c, d, cells, decode)
+
+
+def analyze_validated(c, d, cells, decode):
+    """Shared numerical evaluation after an adapter has validated its own policy."""
+    from .benchmark_analysis import _percentile
     if [x['arm'] for x in cells] != c['order']:
         raise ValueError('Missing or reordered broad cells')
     cases = phase_cases(c, d, 'quality')

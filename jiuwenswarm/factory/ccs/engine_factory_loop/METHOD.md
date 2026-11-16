@@ -101,3 +101,12 @@ contract campaign timeout plus 120 worker seconds. Selection marks the branch
 running atomically; collection attaches the result and completes the investigation
 without accepting its scientific claim. Pruned branches stay pruned and retain
 late results in the host cycle ledger. See SKILL.md for recovery and abandon.
+
+Independent source comparisons use `strata-construction-v1` on the existing
+benchmark worker, not the diagnostic recipe. Per-arm image and executable hashes
+link Builder receipts and sealed source components to raw evaluated engine output.
+Confirmation uses quality indices 8–63, disjoint from screen indices 0–7. Every
+warmup and long-output token/finish must agree; timing excludes only the first
+speed request. Fixed-placement references additionally require identical complete
+placement identities in all processes. Keep/accept rehashes and reparses original
+raw evidence and checks the admitted lineage, rather than trusting cached reports.

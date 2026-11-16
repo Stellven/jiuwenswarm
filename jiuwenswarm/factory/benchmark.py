@@ -18,7 +18,7 @@ from .store import encoded, NotFound
 
 ADAPTER='strata-benchmark-v1'
 PREFILL_ADAPTER='strata-benchmark-v2'
-ADAPTERS={ADAPTER,PREFILL_ADAPTER,'strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5'}
+ADAPTERS={ADAPTER,PREFILL_ADAPTER,'strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5','strata-construction-v1'}
 EXECUTION_FILES=('benchmark.py','benchmark_worker.py','benchmark_analysis.py','benchmark_data.py','lab_recorder.py','lab_lifecycle.py')
 V2_EXECUTION_FILES=EXECUTION_FILES+('strata_prefill.py','strata_components.py','strata_lab.py','engine_adapters.py','targets.py')
 
@@ -75,7 +75,10 @@ def _validate_v1_contract(c):
 
 
 def validate_contract(c):
-    """Preserve v1 drafting policy; v2 freezes a separate prefill treatment."""
+    """Preserve historical policies; construction comparisons have separate admission."""
+    if c.get("adapter") == "strata-construction-v1":
+        from .construction_comparison import validate_contract as validate_construction
+        return validate_construction(c)
     if c.get('adapter') == 'strata-benchmark-v5':
         from .fixed_screen_benchmark import validate_contract as validate_screens
         return validate_screens(c)
@@ -137,7 +140,7 @@ def validate_assets(c):
 
 
 def phase_cases(c,d,phase):
-    if c.get('adapter') in ('strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5'):
+    if c.get('adapter') in ('strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5','strata-construction-v1'):
         from .broad_benchmark import phase_cases as broad_cases
         return broad_cases(c,d,phase)
     if phase=='quality':return d['pilot'] if c['stage']=='pilot' else d['quality']
@@ -189,6 +192,9 @@ def parse_native(stdout,stderr,cases):
 
 
 def verify_prefill_engagement(c, arm, parsed, stderr):
+    if c.get('adapter') == 'strata-construction-v1':
+        from .construction_comparison import engagement
+        return engagement(c, arm, parsed, stderr)
     """Fail closed when allocation fallback or an override masks the v2 knob."""
     if c.get('adapter') == 'strata-benchmark-v5':
         from .fixed_screen_benchmark import engagement as screen_engagement
@@ -218,11 +224,18 @@ def verify_phase(c,arm,phase,path,cases):
         raise ValueError('Incomplete/failed benchmark phase: '+str(path))
     intent=json.loads((path/'intent.json').read_text());created=json.loads((path/'inspect-created.json').read_text())
     final=json.loads((path/'inspect-final.json').read_text())
-    if intent['image']!=c['image']['id']:raise ValueError('Image differs from admitted contract')
+    from .construction_comparison import image_for
+    expected_image = image_for(c, arm)
+    if c.get('adapter') == 'strata-construction-v1':
+        build = json.loads((path.parent/(phase+'-result.json')).read_text())
+        expected_binary = c['baseline_executable_sha256'] if arm=='A' or c['campaign_stage']=='aa' else c['lineage']['executable_sha256']
+        if build.get('executable_sha256') != expected_binary:
+            raise ValueError('Executed binary identity differs from built artifact')
+    if intent['image']!=expected_image:raise ValueError('Image differs from admitted contract')
     verify_boundary(created,intent,memory_bytes=c['limits']['memory_bytes'],cpus=8,environment=c['arms'][arm]['environment'])
     if created['Config']['Cmd']!=['-c',GATE,*phase_args(c,arm,phase)] or created['Config']['Entrypoint']!=['/usr/bin/python3']:
         raise ValueError('Actual benchmark argv differs')
-    if (created['Id']!=final['Id'] or final['Image']!=c['image']['id'] or final['State']['Running']
+    if (created['Id']!=final['Id'] or final['Image']!=expected_image or final['State']['Running']
         or final['State']['Pid']!=0 or final['State']['ExitCode']!=0 or final['State']['OOMKilled']):
         raise ValueError('Final state or image invalid')
     devices=created['HostConfig'].get('DeviceRequests') or []
@@ -268,7 +281,9 @@ def analyze_files(c,root):
             item[phase]=verify_phase(c,arm,phase,path,cases);item[phase]['cases']=cases
         cells.append(item)
     from .benchmark_data import load_decoder,decode_answer
-    if c.get('adapter') == 'strata-benchmark-v5':
+    if c.get('adapter') == 'strata-construction-v1':
+        from .construction_comparison import analyze
+    elif c.get('adapter') == 'strata-benchmark-v5':
         from .fixed_screen_benchmark import analyze
     elif c.get('adapter') == 'strata-benchmark-v4':
         from .fixed_placement_benchmark import analyze
@@ -300,6 +315,14 @@ class Benchmark:
             '--output',str(self.store.home/'benchmark-spool'/'{attempt_id}'),'--task',task_id,'--attempt','{attempt_id}']
         environment = dict(FACTORY_HOME=str(self.store.home),
                            PYTHONPATH=str(Path(c['workspace_root'])/'sources/cc-dgx-spark'))
+        if c['adapter'] == 'strata-construction-v1':
+            if not {'process.exec', 'gpu.use'} <= set(task['allowed_effects']):
+                raise ValueError('Independent engine comparison requires process.exec and gpu.use grants')
+            from .construction_comparison import verify_lineage
+            if not os.environ.get('FACTORY_BRIDGE_DIR'):
+                verify_lineage(self.store, c)
+            from .execution_binding import worker_environment
+            environment.update(worker_environment(task['constraints']['execution_binding']))
         parent = task.get('constraints', {}).get('factory_loop_parent')
         if parent:
             from .mission_supervisor import mission_root

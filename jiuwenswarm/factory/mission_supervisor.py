@@ -212,7 +212,7 @@ class Supervisor:
             if not any(ref.endswith(':observation') for ref in attempt.get('result_refs', [])):
                 from .prefill_workbench import Workbench
                 Workbench(store).result(attempt['task_id'], attempt['attempt_id'])
-        elif adapter.startswith('strata-benchmark-'):
+        elif adapter.startswith('strata-benchmark-') or adapter == 'strata-construction-v1':
             # Benchmark owns independent parsing and its result receipt shape.
             if not any(ref.endswith(':observation') for ref in attempt.get('result_refs', [])):
                 from .benchmark import Benchmark

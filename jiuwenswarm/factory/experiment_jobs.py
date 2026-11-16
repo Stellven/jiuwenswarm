@@ -9,6 +9,7 @@ import time
 from .execution_binding import file_digest
 from .experiments import validate_contract
 from .jobs import Jobs
+from .store import FactoryError
 from .lab_lifecycle import OwnedContainerGuard, atomic_json
 
 
@@ -44,8 +45,31 @@ class ExperimentJobs:
         if attempt['task_id'] != task_id:
             raise ValueError('Attempt belongs to another task')
         path = self.store.home / 'experiment-spool' / attempt_id / 'result.json'
-        report = json.loads(path.read_text()) if path.exists() else dict(status=attempt['state'], evidence='partial_or_unavailable')
-        return dict(attempt_id=attempt_id, state=attempt['state'], analysis=report)
+        # Terminal evidence comes from digest-checked retained artifacts, not mutable spool JSON.
+        report = dict(status='incomplete_evidence', execution_outcome='unknown',
+                      evidence_completeness='incomplete', promotion_authorized=False)
+        if attempt['state'] in {'succeeded', 'failed', 'cancelled'}:
+            try:
+                report = json.loads(self.store.artifact_bytes(task_id, attempt_id + ':result.json'))
+                for ref in attempt['result_refs']:
+                    self.store.artifact_bytes(task_id, ref)
+            except (ValueError, KeyError, OSError, FactoryError) as exc:
+                report.update(status='incomplete_evidence', evidence_completeness='incomplete',
+                              error='Retained evidence unavailable or changed: ' + str(exc)[:500])
+        complete = evidence_complete(report)
+        report['verified_complete'] = complete
+        report['promotion_authorized'] = False
+        state = attempt['state']
+        if state == 'succeeded' and not complete:
+            state = 'failed'
+            report.update(status='incomplete_evidence', evidence_completeness='incomplete')
+        return dict(attempt_id=attempt_id, state=state, queue_state=attempt['state'], analysis=report)
+
+
+def evidence_complete(report):
+    return (report.get('evidence_completeness') == 'complete'
+            and report.get('artifact_copy_returncode') == 0
+            and report.get('cleanup', {}).get('container_removed') is True)
 
 
 def container_argv(contract, probe, guard):
@@ -115,7 +139,8 @@ def bounded_run(argv, root, timeout, maximum, completed=None):
 def run(store, task_id, attempt_id, contract_path):
     root=store.home/'experiment-spool'/attempt_id
     root.mkdir(parents=True,exist_ok=False)
-    report=dict(status='failed', promotion_authorized=False, measured_whole_model_tokens_per_second=None)
+    report=dict(status='failed', execution_outcome='not_started', evidence_completeness='incomplete',
+                promotion_authorized=False, measured_whole_model_tokens_per_second=None)
     try:
         task=store.get_task(task_id)
         attempt=store.read(task_id,attempt_id)
@@ -165,17 +190,29 @@ exit "$rc"
                 return None
             result=bounded_run(container_argv(contract,probe,guard),root,limits['timeout_s'],max(1,limits['output_bytes']//2),completed)
             report.update(result)
+            report['execution_outcome'] = 'ok' if result['returncode'] == 0 and not result['stop_reason'] else 'failed'
             inspection=subprocess.run(['docker','inspect',guard.name],stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=15)
             if inspection.returncode==0:
                 report['container_state']=json.loads(inspection.stdout)[0]['State']
             # /out lives in bounded tmpfs. Preserve it before the guard removes the container.
-            copied=subprocess.run(['docker','cp',guard.name+':/out',str(root/'artifacts')],stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=30)
-            report['artifact_copy_returncode']=copied.returncode
-            report['status']='succeeded' if result['returncode']==0 and not result['stop_reason'] else 'failed'
+            try:
+                copied=subprocess.run(['docker','cp',guard.name+':/out',str(root/'artifacts')],stdin=subprocess.DEVNULL,capture_output=True,text=True,timeout=30)
+                report.update(artifact_copy_returncode=copied.returncode,
+                              artifact_copy_stdout=copied.stdout[:4096], artifact_copy_stderr=copied.stderr[:4096])
+            except subprocess.TimeoutExpired as exc:
+                report.update(artifact_copy_returncode=None, artifact_copy_error='timeout',
+                              artifact_copy_stderr=str(exc.stderr or '')[:4096])
+            report['evidence_completeness'] = ('complete' if report.get('artifact_copy_returncode') == 0
+                and inspection.returncode == 0 and result['stop_reason'] != 'output_limit' else 'incomplete')
         report['cleanup']=json.loads((root/'owner/report.json').read_text())
     except Exception as exc:
         report['error']=str(exc)[:2000]
+        report['evidence_completeness']='incomplete'
     finally:
+        if not evidence_complete(report):
+            report.update(status='incomplete_evidence', evidence_completeness='incomplete')
+        else:
+            report['status'] = 'succeeded' if report['execution_outcome'] == 'ok' else 'failed'
         atomic_json(root/'result.json',report)
         refs=[]
         for path in sorted(root.rglob('*')):

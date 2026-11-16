@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.engine_factory_loop
-version: 1.2.1
+version: 1.3.0
 materials:
   methodology:
     path: METHOD.md
@@ -51,6 +51,9 @@ capabilities:
       experiment_id:
         kind: text
         optional: true
+      comparison_id:
+        kind: text
+        optional: true
     gives:
       result: json
     needs:
@@ -58,8 +61,8 @@ capabilities:
     changes:
     - process.exec
   execute:
-    does: Execute an admitted template or authored experiment, reconcile its optional native
-      build, and submit through durable jobs. Replay recovers the same attempt.
+    does: Execute an admitted template or authored experiment, reconcile its optional
+      native build, and submit through durable jobs. Replay recovers the same attempt.
     takes:
       cycle_id:
         kind: text
@@ -71,8 +74,8 @@ capabilities:
     - process.exec
     - gpu.use
   collect:
-    does: Reconcile the child experiment or benchmark, retain failed or successful evidence and
-      expose follow-up proposals for the agent's next decision.
+    does: Reconcile the child experiment or benchmark, retain failed or successful
+      evidence and expose follow-up proposals for the agent's next decision.
     takes:
       cycle_id:
         kind: text
@@ -115,6 +118,22 @@ capabilities:
       experiment_id: text
       specification: json
       image: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  prepare_comparison:
+    does: Bind a completed native source build to a separately operator-admitted independent
+      engine evaluation; never inherit the diagnostic judge.
+    takes:
+      comparison_id:
+        kind: text
+      source_cycle_id:
+        kind: text
+      template_id:
+        kind: text
     gives:
       result: json
     needs:

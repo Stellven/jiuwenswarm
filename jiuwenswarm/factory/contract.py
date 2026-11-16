@@ -39,7 +39,7 @@ def load(contract_id):
         from .prefill_workbench import validate_contract
         validate_contract(result)
         return result
-    if result.get('adapter') in {'strata-benchmark-v1','strata-benchmark-v2','strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5'}:
+    if result.get('adapter') in {'strata-benchmark-v1','strata-benchmark-v2','strata-benchmark-v3','strata-benchmark-v4','strata-benchmark-v5','strata-construction-v1'}:
         from .benchmark import validate_contract
         validate_contract(result)
         return result

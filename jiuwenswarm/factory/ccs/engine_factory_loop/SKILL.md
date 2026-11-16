@@ -19,3 +19,16 @@ identity. A build request must identify a clean owned source commit, dependency 
 declared engine/probe target. Execute reconciles its separate durable build first;
 repeat execute to dispatch the lab after verified artifact admission. Collect every
 attempt, including failure. Probe tolerances never authorize engine promotion.
+
+For a source-built engine comparison, keep the authored diagnostic nonpromoting.
+The operator must separately pin `comparison_templates` (id/path/sha256), including
+baseline A/A, the exact source commit/tree and sealed component material, identical
+runtime profiles, engagement checks and the independent correctness policy. After
+collecting a complete construction diagnostic, call `prepare_comparison` with
+comparison_id, source_cycle_id and template_id. Select using comparison_id instead
+of experiment_id/template_id, and the exact admitted hypothesis. Execute/collect
+normally. The host requires raw-verified A/A before screen, then a qualifying
+screen before the disjoint confirmation holdout. All phase containers count
+against the same GPU allowance, including failed attempts. Missing artifacts or
+any long-output token/finish mismatch cannot qualify keep/accept. Cite the final
+confirmation evidence for acceptance; diagnostic output never supplies the judge.

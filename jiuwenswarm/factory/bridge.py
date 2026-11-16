@@ -52,6 +52,24 @@ def call(operation, **values):
 
 def handle(packet, workspace, queue, jobq):
     operation = packet['operation']
+    if operation in {'construction_prepare','construction_resolve','construction_report'}:
+        from .store import Store
+        from .loop import FactoryLoop
+        from . import construction_comparison as comparison
+        previous = os.environ.pop('FACTORY_BRIDGE_DIR', None)
+        try:
+            with Store(Path(os.environ.get('FACTORY_BRIDGE_HOME', str(workspace/'port-store')))) as store:
+                loop=FactoryLoop(store,packet['task_id'])
+                if operation=='construction_prepare':
+                    loop._admit()
+                    result=comparison.prepare(loop,packet['comparison_id'],packet['source_cycle_id'],packet['template_id'])
+                elif operation=='construction_resolve':
+                    result=comparison.resolve(loop,packet['comparison_id'])
+                else:
+                    result=comparison.raw_report(loop,loop._get(packet['cycle_id']))
+        finally:
+            if previous is not None:os.environ['FACTORY_BRIDGE_DIR']=previous
+        return dict(args=[operation],returncode=0,stdout=json.dumps(result),stderr='')
     if operation == 'experiment_build_prepare':
         from .store import Store
         from .builder import Builder

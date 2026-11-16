@@ -220,16 +220,24 @@ class FactoryLoop:
         return prepare(self, experiment_id, specification, image)
 
     @serialized
-    def select(self, cycle_id, evidence_ids, hypothesis_id, template_id=None, expected_rev=None, branch_id=None, expected_graph_rev=None, experiment_id=None):
+    def prepare_comparison(self, comparison_id, source_cycle_id, template_id):
+        self._admit()
+        from .construction_comparison import prepare
+        return prepare(self, comparison_id, source_cycle_id, template_id)
+
+    @serialized
+    def select(self, cycle_id, evidence_ids, hypothesis_id, template_id=None, expected_rev=None, branch_id=None, expected_graph_rev=None, experiment_id=None, comparison_id=None):
         """Reserve one cycle before any external effect; agent makes both choices."""
         if type(expected_rev) is not int or expected_rev < 0:
             raise ValueError('expected_rev must be a nonnegative integer')
         if not isinstance(cycle_id, str) or not cycle_id or len(cycle_id) > 100:
             raise ValueError('Bounded nonempty cycle_id required')
-        if (template_id is None) == (experiment_id is None):
-            raise ValueError('Select exactly one template or prepared experiment')
+        if sum(v is not None for v in (template_id,experiment_id,comparison_id)) != 1:
+            raise ValueError('Select exactly one template, prepared experiment or comparison')
         request = dict(evidence_ids=evidence_ids, hypothesis_id=hypothesis_id,
                        template_id=template_id, expected_rev=expected_rev)
+        if comparison_id is not None:
+            request['comparison_id'] = comparison_id
         if experiment_id is not None:
             request['experiment_id'] = experiment_id
         if (branch_id is None) != (expected_graph_rev is None):
@@ -240,7 +248,14 @@ class FactoryLoop:
             if type(expected_graph_rev) is not int or expected_graph_rev < 0:
                 raise ValueError('expected_graph_rev must be a nonnegative integer')
             request.update(branch_id=branch_id, expected_graph_rev=expected_graph_rev)
-        if experiment_id is not None:
+        if comparison_id is not None:
+            from .construction_comparison import resolve, stage_admission
+            contract, template = resolve(self,comparison_id)
+            if hypothesis_id != contract['hypothesis']:
+                raise ScopeDenied('Comparison hypothesis must match independent admission')
+            stage_admission(self,contract)
+            analysis = dict(candidate=dict(hypothesis=hypothesis_id,reason='Separately admitted source comparison'))
+        elif experiment_id is not None:
             from .experiments import resolve
             contract, template = resolve(self, experiment_id)
             spec = contract['specification']
@@ -401,6 +416,10 @@ class FactoryLoop:
             cycle['execution_binding_id'] = binding_id
         if cycle['state'] in {'submitted', 'collected'}:
             return cycle
+        if cycle['contract'].get('adapter') == 'strata-construction-v1':
+            from .construction_comparison import resolve
+            current,_ = resolve(self,cycle['request']['comparison_id'])
+            if current != cycle['contract']: raise ValueError('Comparison policy changed before dispatch')
         # Existing Jobs keys reconcile a crash after queue submission, including
         # recovery after deadline. A fresh external effect always needs budget.
         prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
@@ -513,6 +532,12 @@ class FactoryLoop:
                 artifacts.append(dict(artifact_id=artifact_id,sha256=retained['sha256'],
                                       source_task_id=cycle['child_task_id'],source_artifact_id=source_id))
             report['raw_artifacts'] = artifacts
+            from .experiment_jobs import evidence_complete
+            report['verified_complete'] = evidence_complete(report)
+            report['promotion_authorized'] = False
+        if cycle['contract'].get('adapter') == 'strata-construction-v1':
+            report['verified_complete'] = (report.get('verification',{}).get('raw_files_verified') is True
+                and report.get('verification',{}).get('complete_cells') == len(cycle['contract']['order']))
         report.setdefault('status', result['state'])
         evidence_id = f"loop-result:{cycle['number']}"
         try:
@@ -521,8 +546,12 @@ class FactoryLoop:
             self.store.append_observation(self.task_id, dict(obs_id=evidence_id, kind='factory_loop_result',
                 values=report, host_run=dict(child_task_id=cycle['child_task_id'], attempt_id=cycle['attempt_id']),
                 limitations='Child benchmark analysis; original child evidence remains retained.'))
-        followup = (dict(status='evidence_ready', evidence_ids=[evidence_id], promotion_authorized=False)
-                    if cycle['contract'].get('adapter') == 'factory-experiment-v1' else
+        if cycle['contract'].get('adapter') == 'strata-construction-v1':
+            from .construction_comparison import record_evaluation
+            record_evaluation(self,cycle,report,evidence_id)
+        followup = (dict(status='evidence_ready' if report.get('verified_complete') else 'incomplete_evidence',
+                         evidence_ids=[evidence_id], verified_complete=report.get('verified_complete', False), promotion_authorized=False)
+                    if cycle['contract'].get('adapter') in {'factory-experiment-v1','strata-construction-v1'} else
                     methodology.dispatch(self.scoped, self.task_id, 'followup', dict(evidence_ids=[evidence_id]))['analysis'])
         with self.store._transaction():
             cycle = self._get(cycle_id)
@@ -605,8 +634,9 @@ def owned_attempts(store, task_id):
 def dispatch(store, task_id, operation, inputs):
     methods = {'status': set(), 'select': {'cycle_id', 'evidence_ids', 'hypothesis_id', 'expected_rev'},
                'prepare_experiment': {'experiment_id', 'specification', 'image'},
+               'prepare_comparison': {'comparison_id', 'source_cycle_id', 'template_id'},
                'execute': {'cycle_id'}, 'collect': {'cycle_id'}, 'abandon': {'cycle_id', 'reason'}, 'stop': {'reason'}}
-    optional = {'branch_id', 'expected_graph_rev', 'template_id', 'experiment_id'} if operation == 'select' else set()
+    optional = {'branch_id', 'expected_graph_rev', 'template_id', 'experiment_id', 'comparison_id'} if operation == 'select' else set()
     if (operation not in methods or not isinstance(inputs, dict)
             or set(inputs) - (methods[operation] | optional) or methods[operation] - set(inputs)):
         raise ValueError('Invalid factory loop operation or input fields')

@@ -17,6 +17,11 @@ def validate(store, task_id):
         raise ValueError('Non-promoting diagnostic campaigns cannot accept or promote candidates')
     if not isinstance(constraints,dict) or constraints.get('diagnostic_only'):
         return
+    if constraints.get('factory_loop', {}).get('comparison_templates'):
+        from .construction_comparison import validate_acceptance
+        return validate_acceptance(store,task_id)
+    if constraints.get('factory_loop', {}).get('experiment_authority') or constraints.get('runtime_execution_binding'):
+        raise ValueError('Authored diagnostic evidence cannot authorize engine acceptance')
     # Legacy acceptance rules remain in their existing contract path.
     target=task.get('target')
     if (target.get('profile') if isinstance(target,dict) else target) != 'spark-gb10':

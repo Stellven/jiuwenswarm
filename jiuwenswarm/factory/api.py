@@ -238,10 +238,14 @@ def _dispatch(store, task_id, capability, packet):
         expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
         if record.get('action', {}).get('type') == 'accept':
             from .acceptance import validate as validate_acceptance
-            validate_acceptance(store, task_id)
+            accepted = validate_acceptance(store, task_id)
+            if store.get_task(task_id).get('constraints',{}).get('factory_loop',{}).get('comparison_templates'):
+                if accepted['evidence_id'] not in record.get('evidence_ids',[]):
+                    raise ValueError('Accept must cite the independently verified confirmation evidence')
         if store.get_task(task_id).get('contract_id') in ENGINE_CONTRACTS or record.get('action', {}).get('type') in {'keep_component', 'keep_dormant', 'revert_component'}:
             from .controller import validate_action
-            validate_action(record.get('action'))
+            sealed = bool(store.get_task(task_id).get('constraints',{}).get('factory_loop',{}).get('comparison_templates'))
+            validate_action(record.get('action'), sealed_component=sealed and record['action']['type']=='keep_component')
             if record['action']['type'] == 'keep_component':
                 from .controller import validate_keep_evidence
                 validate_keep_evidence(store, task_id, record)
