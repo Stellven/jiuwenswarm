@@ -29,7 +29,10 @@ def frontend_fingerprint(frontend: Path = FRONTEND) -> str:
                   'tailwind.config.js', 'postcss.config.js', 'tsconfig.json')
                  if (frontend / name).is_file())
     digest = hashlib.sha256()
-    for path in sorted(paths):
+    # Path ordering is case-insensitive on Windows. Compare original-case
+    # components explicitly to preserve the existing POSIX build seal on
+    # every host (whole-path string ordering differs at directory boundaries).
+    for path in sorted(paths, key=lambda item: item.relative_to(frontend).parts):
         digest.update(path.relative_to(frontend).as_posix().encode())
         digest.update(b'\0')
         digest.update(hashlib.sha256(path.read_bytes()).digest())

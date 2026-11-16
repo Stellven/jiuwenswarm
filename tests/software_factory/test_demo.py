@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -11,7 +11,7 @@ from unittest.mock import patch
 import httpx
 
 from jiuwenswarm.software_factory.demo import (
-    REPOSITORY, check_frontend, create_app, preflight, record_frontend_build,
+    REPOSITORY, check_frontend, create_app, frontend_fingerprint, preflight, record_frontend_build,
 )
 
 
@@ -32,6 +32,20 @@ def host_fixture(root):
 
 
 class DemoTests(unittest.IsolatedAsyncioTestCase):
+    def test_seal_is_unchanged_under_windows_native_path_ordering(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frontend = host_fixture(Path(directory))
+            for name in ('Banana.tsx', 'apple/file.tsx', 'apple.tsx', 'banana.css'):
+                path = frontend / 'src' / name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(name)
+            record_frontend_build(frontend)
+            expected = frontend_fingerprint(frontend)
+            with patch.object(Path, '__lt__', lambda left, right:
+                              PureWindowsPath(str(left)) < PureWindowsPath(str(right))):
+                self.assertEqual(frontend_fingerprint(frontend), expected)
+                self.assertEqual(check_frontend(frontend)['source_sha256'], expected)
+
     def test_preflight_reads_real_bundles_without_constructing_an_executor(self):
         with tempfile.TemporaryDirectory() as directory:
             frontend = host_fixture(Path(directory))
