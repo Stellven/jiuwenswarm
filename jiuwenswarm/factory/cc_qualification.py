@@ -18,6 +18,8 @@ MODULES = {f'jiuwenswarm.factory.{name}': name + '.py' for name in (
     'benchmark', 'benchmark_worker', 'benchmark_data', 'benchmark_analysis', 'engine_adapters',
     'strata_lab', 'lab_recorder', 'lab_lifecycle', 'targets', 'job_packages')}
 CHECKER = 'strata.prefill_profile.v1'
+CHECKER_V2 = 'strata.prefill_profile.v2'
+V2_MODULES = {'jiuwenswarm.factory.strata_prefill', 'jiuwenswarm.factory.strata_components'}
 DIGEST = re.compile('[a-f0-9]{64}')
 
 
@@ -66,7 +68,12 @@ def _package(store, release):
         raise ValueError('Supply 1..16 verification units')
     seen = set()
     for unit in units:
-        _object(unit, {'id', 'capabilities', 'checker', 'claim'}, 'unit')
+        if not isinstance(unit, dict):
+            raise ValueError('unit must be an object')
+        _object(unit, {'id', 'capabilities', 'checker', 'claim'} |
+            ({'parameters'} if unit.get('checker') == CHECKER_V2 else set()), 'unit')
+        if unit.get('checker') == CHECKER_V2:
+            _v2_parameters(unit['parameters'])
         if (not isinstance(unit['id'], str) or not re.fullmatch('[a-z][a-z0-9._-]{0,63}', unit['id'])
                 or unit['id'] in seen or not isinstance(unit['checker'], str)
                 or not isinstance(unit['claim'], str) or not 1 <= len(unit['claim']) <= 2000):
@@ -133,6 +140,79 @@ def _profile_pair(values):
         limitation='Configuration invariant only; effective allocation, numeric behavior, quality and speed are unmeasured.')
 
 
+def _v2_parameters(parameters):
+    """The sealed unit declares its finite treatment envelope, never evidence."""
+    _object(parameters, {'baseline_chunk', 'candidate_chunks', 'allow_fixed_budget'}, 'v2 parameters')
+    chunks = parameters['candidate_chunks']
+    if (type(parameters['baseline_chunk']) is not int or parameters['baseline_chunk'] != 256
+            or not isinstance(chunks, list) or not 1 <= len(chunks) <= 2
+            or any(type(v) is not int or v not in (512, 1024) for v in chunks)
+            or len(set(chunks)) != len(chunks)
+            or type(parameters['allow_fixed_budget']) is not bool):
+        raise ValueError('Unsupported bounded v2 treatment declaration')
+
+
+def _profile_pair_v2(values, parameters):
+    """Independent one-field proof; no producer imports or runtime qualification."""
+    _v2_parameters(parameters)
+    _object(values, {'baseline_profile', 'candidate_profile'}, 'profile evidence')
+    normalized = copy.deepcopy(values)
+    baseline, candidate = normalized['baseline_profile'], normalized['candidate_profile']
+    if not isinstance(baseline, dict) or not isinstance(candidate, dict):
+        raise ValueError('Profiles must be objects')
+    args = candidate.get('args')
+    if not isinstance(args, list):
+        raise ValueError('Invalid bounded profile argv')
+    chunk = _flag(args, '--prefill-chunk')
+    if chunk not in {str(v) for v in parameters['candidate_chunks']}:
+        raise ValueError('Candidate chunk is outside the sealed v2 declaration')
+    budgets = []
+    for profile in (baseline, candidate):
+        if ('environment' in profile) == ('env' in profile):
+            raise ValueError('Exactly one environment/env mapping required')
+        env = profile.get('environment', profile.get('env'))
+        if not isinstance(env, dict):
+            raise ValueError('Environment must be an object')
+        present = 'DS4_EXPERT_BUDGET_BYTES' in env
+        budget = env.pop('DS4_EXPERT_BUDGET_BYTES', None)
+        if present and (not parameters['allow_fixed_budget']
+                or not isinstance(budget, str) or not re.fullmatch('[1-9][0-9]{0,11}', budget)
+                or not 2**30 <= int(budget) <= 128*2**30):
+            raise ValueError('Fixed expert budget must be declared decimal bytes between 1 and 128 GiB')
+        budgets.append(budget)
+    if budgets[0] != budgets[1]:
+        raise ValueError('Profile pair changes the fixed expert budget')
+    args[args.index('--prefill-chunk') + 1] = '512'
+    observed = _profile_pair(normalized)
+    expected = copy.deepcopy(values['baseline_profile'])
+    expected['args'][expected['args'].index('--prefill-chunk') + 1] = chunk
+    if encoded(expected) != encoded(values['candidate_profile']):
+        raise ValueError('Profile pair changes more than one argument value')
+    observed.update(candidate=chunk, fixed_expert_budget_bytes=budgets[0],
+        fixed_budget_engine_required=budgets[0] is not None,
+        runtime_budget_support_verified=False)
+    return observed
+
+
+def _unit_supported(identity, unit):
+    if unit['checker'] == CHECKER:
+        return (identity['package_id'] == 'engine.strata_prefill_workbench'
+                and set(identity['implementation_module_sha256']) == set(MODULES))
+    if unit['checker'] == CHECKER_V2:
+        return (identity['package_id'] == 'engine.strata_prefill_chunk'
+                and set(identity['implementation_module_sha256']) == V2_MODULES
+                and set(unit['capabilities']) == {'apply'})
+    return False
+
+
+def _check_unit(unit, values):
+    if unit['checker'] == CHECKER:
+        return _profile_pair(values)
+    if unit['checker'] == CHECKER_V2:
+        return _profile_pair_v2(values, unit['parameters'])
+    raise ValueError('Unsupported explicit checker')
+
+
 def _save(store, task_id, kind, values):
     obs_id = kind.replace('_', '-') + '-' + _hash(values)
     try:
@@ -153,9 +233,7 @@ def _save(store, task_id, kind, values):
 def verify_unit(store, task_id, release, unit_id, evidence_id):
     _, material, identity = _package(store, release)
     unit = next((u for u in material['units'] if u['id'] == unit_id), None)
-    if (unit is None or unit['checker'] != CHECKER
-            or identity['package_id'] != 'engine.strata_prefill_workbench'
-            or set(identity['implementation_module_sha256']) != set(MODULES)):
+    if unit is None or not _unit_supported(identity, unit):
         raise ValueError('Missing unit or unsupported explicit checker')
     record = store.read(task_id, evidence_id)
     if record.get('task_id') != task_id or 'values' not in record:
@@ -164,14 +242,14 @@ def verify_unit(store, task_id, release, unit_id, evidence_id):
     if len(encoded(values).encode('utf-8')) > 1024 * 1024:
         raise ValueError('Profile evidence exceeds 1 MiB')
     try:
-        observed = _profile_pair(values)
+        observed = _check_unit(unit, values)
         verdict, reasons = 'passed', []
     except (ValueError, TypeError, KeyError) as exc:
         observed, verdict, reasons = {}, 'failed', [str(exc)]
     result = dict(schema_version=1, identity=identity, unit=unit, evidence_id=evidence_id,
         evidence_task_id=task_id, evidence_values_sha256=_hash(values), verdict=verdict,
         reasons=reasons, observed=observed, tier='bounded_configuration_invariant',
-        checked_by=CHECKER, runtime_qualified=False, scientific_benefit='not_evaluated',
+        checked_by=unit['checker'], runtime_qualified=False, scientific_benefit='not_evaluated',
         execution_authorized=False, promotion_authorized=False)
     return {'verification': result, 'observation_id': _save(store, task_id, 'cc_unit_verification', result)}
 
@@ -207,7 +285,8 @@ def assess_admission(store, task_id, policy_id, verification_ids):
             raise ValueError('Wrong-task, stale release/material/module/checker verification identity')
         unit = value.get('unit', {})
         if (not isinstance(unit, dict) or not isinstance(unit.get('id'), str)
-                or unit['id'] not in units or unit != units[unit['id']] or value.get('checked_by') != CHECKER):
+                or unit['id'] not in units or unit != units[unit['id']]
+                or not _unit_supported(identity, unit) or value.get('checked_by') != unit['checker']):
             raise ValueError('Verification unit/checker differs from sealed package')
         source = store.read(task_id, value['evidence_id'])
         if _hash(source.get('values')) != value.get('evidence_values_sha256'):
@@ -215,7 +294,7 @@ def assess_admission(store, task_id, policy_id, verification_ids):
         # Re-evaluate the bounded check instead of trusting a caller-authored
         # observation that merely claims to be a qualification certificate.
         try:
-            _profile_pair(source['values'])
+            _check_unit(unit, source['values'])
             actual = 'passed'
         except (ValueError, TypeError, KeyError):
             actual = 'failed'

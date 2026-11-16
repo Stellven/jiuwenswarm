@@ -1,0 +1,20 @@
+{
+  "schema": "numerical-investigation-components/1",
+  "implementation": "components.py",
+  "transport": "run.py",
+  "pure_components": [
+    "replay_spec",
+    "compare_logits",
+    "first_divergence"
+  ],
+  "standard_library_only": true,
+  "factory_api_required": false,
+  "engine_capture_adapter": "capture_adapter.py: source-pinned DS4_SERVE_DUMP plan/import; actual capture run not yet verified",
+  "gpu_execution": false,
+  "engine_qualification": false,
+  "capture_transport": "capture_wrapper.py",
+  "references": [
+    "CAPTURE.md",
+    "RETAINED-EVIDENCE.md"
+  ]
+}

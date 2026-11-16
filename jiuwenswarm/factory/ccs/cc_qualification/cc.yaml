@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.cc_qualification
-version: 1.0.0
+version: 1.1.0
 materials:
   methodology:
     kind: method

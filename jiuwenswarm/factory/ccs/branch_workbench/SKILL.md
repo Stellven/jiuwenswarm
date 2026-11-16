@@ -14,3 +14,15 @@ Read `ready` before choosing another action. Read `compare` only as a descriptiv
 ## Avoid redundant context and calls
 
 Every mutation returns the updated graph revision, branches, readiness and reservations. Reuse that returned status for the next dependent operation. Call status/ready again when another actor could have changed the graph or when you need a fresh snapshot, not mechanically after every mutation. This advice follows the November15 live run's repeated status reads; its impact on model cost has not yet been measured. Keep hypotheses concise and cite existing evidence IDs instead of republishing the same report.
+
+## Link an admitted experiment
+
+For a branch that will execute through engine_factory_loop, use the admitted
+hypothesis ID as its hypothesis and reserve campaign_timeout_s+120 GPU seconds.
+Call the loop select tool with branch_id and the current graph revision, then
+execute/collect through that package and the existing quiet supervisor. Status
+returns experiment_cycles from the host ledger; these are separate from
+caller-reported metrics. A collected experiment completes an investigation,
+not scientific acceptance. Refine for the next trial. Pruning blocks fresh
+dispatch but does not erase late results or cancel a running job. Abandon an
+unsubmitted reservation through the loop rather than inventing another cycle.

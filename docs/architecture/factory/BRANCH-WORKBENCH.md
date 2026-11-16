@@ -23,3 +23,16 @@ Offline verification is `pytest -o addopts='' tests/factory/test_branch_workbenc
 The current overnight mission launcher admits only its explicit CPU package/capability allowlist. It removes memory `native_experiment` from the frozen declaration and records both declaration hashes; no package source is altered. No GPU capsule is discoverable. The operator deadline is 2026-11-15 08:00 UTC: starting requires at least ten minutes plus cleanup margin, the outer run timeout leaves 30 seconds for cleanup, and subscription shutdown is bounded. The task and report retain that deadline.
 
 Pass repeatable `--extra-evidence FILE` at freeze to include later long-prefill analysis or factory overhead evidence without changing the primary round. Up to eight regular files of at most 2 MiB each are read with a no-follow file descriptor, checked for changes during reading, copied as `inputs/extra-N-basename`, hashed in the manifest/task and imported as separate operator evidence. The mission prompt requires reading extras while preserving workload and scope differences.
+
+## Connected admitted experiments
+
+The factory-loop CC can now select a ready branch using explicit branch_id and
+expected_graph_rev, atomically reserve the existing cycle and retain its lineage.
+Branch status exposes host-ledger experiment_cycles. Collection attaches result
+evidence and allows an agent continuation, while a pruned branch remains pruned.
+This does not turn branch comparison into an acceptance gate. See
+[connected development](CONNECTED-DEVELOPMENT-2026-11-16.md) and the loop skill.
+
+The example overnight launcher above describes the retained historical run. New
+CPU investigations require an immutable [campaign specification](CPU-CAMPAIGN-SPEC.md);
+its zero-GPU policy is distinct from the existing admitted GPU loop/task path.

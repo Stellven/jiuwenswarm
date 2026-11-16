@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import math
+import json
 import time
 
 from .store import NotFound, encoded, identifier
@@ -131,6 +132,18 @@ def status(store, task_id, graph=None):
         row['measurement'] = (measurement(host, task_id, row['measurement_evidence_id'])
                               if row.get('measurement_evidence_id') else None)
         branches.append(row)
+    # Read only the host cycle ledger; agent-published observations cannot forge
+    # execution lineage. Graph snapshots and cycle lifecycle have separate revisions.
+    cycles = []
+    if host._db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='factory_loop_cycles'").fetchone():
+        cycles = [json.loads(r['record']) for r in host._db.execute(
+            'SELECT record FROM factory_loop_cycles WHERE task_id=? ORDER BY number', (task_id,))]
+    for branch in branches:
+        branch['experiment_cycles'] = [dict(cycle_id=c['cycle_id'], state=c['state'],
+            decision_rev=c['decision_rev'], child_task_id=c['child_task_id'], attempt_id=c['attempt_id'],
+            evidence_id=c.get('evidence_id'), template_sha256=c['template_sha256'],
+            contract_sha256=c.get('contract_sha256'), **c['branch_binding'])
+            for c in cycles if c.get('branch_binding', {}).get('node_id') == branch['node_id']]
     allocated = {r: sum(b['allocation'][r] for b in branches) for r in RESOURCES}
     return dict(schema='factory.branch-workbench/1', task_id=task_id, graph_rev=graph['rev'], branches=branches,
                 ready=[n for n in graph['ready_frontier'] if any(b['node_id'] == n for b in branches)],

@@ -141,3 +141,144 @@ def test_qualification_package_seals_three_capabilities(tmp_path):
     host=Host(tmp_path/'store',session_grants=['process.exec'])
     release=host.prepare(folder)
     assert set(host.describe(release)['capabilities'])=={'inspect_package','verify_unit','assess_admission'}
+
+
+def pair_v2(chunk=1024, budget='96636764160'):
+    values = pair()
+    values['candidate_profile']['args'][-1] = str(chunk)
+    if budget is not None:
+        for profile in values.values():
+            profile['environment']['DS4_EXPERT_BUDGET_BYTES'] = budget
+    return values
+
+
+def test_v1_envelope_does_not_widen():
+    assert q._profile_pair(pair())['candidate'] == '512'
+    for values in (pair_v2(budget=None), pair_v2(chunk=512)):
+        with pytest.raises(ValueError):
+            q._profile_pair(values)
+
+
+@pytest.fixture
+def v2_setup(tmp_path):
+    with Store(tmp_path/'v2-home') as store:
+        host = Host(store.home/'ccstore', session_grants=[])
+        release = host.prepare(Path(q.__file__).parent/'ccs/strata_prefill_chunk')
+        policy = dict(id='chunk-v2', release=release, capabilities=['apply'],
+            required_units=['profile-single-change-v2'], allowed_effects=['process.exec'])
+        store.create_task(dict(task_id='v2', objective='CPU configuration qualification',
+            constraints={'cc_qualification': {'policies': [policy]}}))
+        yield store, release
+
+
+def verify_v2(store, release, values):
+    obs = 'pair-' + q._hash(values)
+    store.append_observation('v2', dict(obs_id=obs, kind='profile_pair', values=values))
+    return q.verify_unit(store.scoped('v2'), 'v2', release, 'profile-single-change-v2', obs)
+
+
+@pytest.mark.parametrize('chunk,budget', [(512, None), (1024, None), (1024, str(2**30)),
+                                         (1024, str(128*2**30))])
+def test_sealed_v2_actual_host_identity_and_admission(v2_setup, chunk, budget):
+    store, release = v2_setup
+    values = pair_v2(chunk, budget)
+    original = copy.deepcopy(values)
+    result = verify_v2(store, release, values)
+    check = result['verification']
+    assert check['verdict'] == 'passed'
+    assert check['checked_by'] == q.CHECKER_V2
+    assert check['observed']['candidate'] == str(chunk)
+    assert check['observed']['fixed_expert_budget_bytes'] == budget
+    assert check['observed']['runtime_budget_support_verified'] is False
+    assert check['runtime_qualified'] is check['execution_authorized'] is False
+    assert set(check['identity']['implementation_module_sha256']) == q.V2_MODULES
+    assert q.assess_admission(store.scoped('v2'), 'v2', 'chunk-v2',
+        [result['observation_id']])['eligibility']['verdict'] == 'eligible'
+    assert values == original
+    assert store._db.execute('SELECT count(*) FROM attempts').fetchone()[0] == 0
+
+
+@pytest.mark.parametrize('mutation', [
+    lambda v: v['candidate_profile']['args'].__setitem__(-1, '2048'),
+    lambda v: v['baseline_profile']['args'].__setitem__(-1, '512'),
+    lambda v: v['candidate_profile']['environment'].update(DS4_EXPERT_BUDGET_BYTES='1073741824'),
+    lambda v: v['candidate_profile']['environment'].pop('DS4_EXPERT_BUDGET_BYTES'),
+    lambda v: [p['environment'].update(DS4_EXPERT_BUDGET_BYTES=None) for p in v.values()],
+    lambda v: [p['environment'].update(DS4_EXPERT_BUDGET_BYTES='01') for p in v.values()],
+    lambda v: [p['environment'].update(DS4_EXPERT_BUDGET_BYTES=str(128*2**30+1)) for p in v.values()],
+    lambda v: [p['environment'].update(DS4_CHUNK='1024') for p in v.values()],
+    lambda v: [p['args'].__setitem__(p['args'].index('--dspark')+1, 'on') for p in v.values()],
+    lambda v: [p['args'].__setitem__(p['args'].index('--experts')+1, '5') for p in v.values()],
+    lambda v: v['candidate_profile'].update(image='other'),
+    lambda v: v['candidate_profile']['limits'].update(cpus=9),
+    lambda v: v['candidate_profile']['limits'].update(cpus=8.0),
+    lambda v: v['candidate_profile']['args'].extend(['--prefill-chunk', '1024']),
+])
+def test_v2_rejects_unsupported_or_multifield_pairs(v2_setup, mutation):
+    store, release = v2_setup
+    values = pair_v2()
+    mutation(values)
+    result = verify_v2(store, release, values)
+    assert result['verification']['verdict'] == 'failed'
+    assert q.assess_admission(store.scoped('v2'), 'v2', 'chunk-v2',
+        [result['observation_id']])['eligibility']['verdict'] == 'blocked'
+
+
+def test_v2_declared_boundaries_and_budget_opt_in():
+    parameters = dict(baseline_chunk=256, candidate_chunks=[512], allow_fixed_budget=False)
+    with pytest.raises(ValueError, match='outside'):
+        q._profile_pair_v2(pair_v2(budget=None), parameters)
+    with pytest.raises(ValueError, match='declared'):
+        q._profile_pair_v2(pair_v2(chunk=512), parameters)
+    for value in ([], [512, 512], [True], [2048]):
+        with pytest.raises(ValueError):
+            q._v2_parameters(dict(parameters, candidate_chunks=value))
+
+
+@pytest.mark.parametrize('changed_file', ['strata_prefill.py', 'strata_components.py',
+                                         'cc_qualification.py', 'api.py'])
+def test_v2_backend_identity_changes_invalidate(v2_setup, monkeypatch, changed_file):
+    store, release = v2_setup
+    result = verify_v2(store, release, pair_v2())
+    original = q._file
+    monkeypatch.setattr(q, '_file', lambda path: '0'*64 if Path(path).name == changed_file else original(path))
+    with pytest.raises(ValueError, match='stale'):
+        q.assess_admission(store.scoped('v2'), 'v2', 'chunk-v2', [result['observation_id']])
+
+
+def test_v2_actual_host_apply_then_independent_qualification(v2_setup, monkeypatch):
+    import sys
+    from jiuwenswarm.factory import strata_prefill
+    store, release = v2_setup
+    monkeypatch.setenv('PYTHONPATH', str(Path(__file__).resolve().parents[2]))
+    host = Host(store.home/'ccstore', session_grants=['process.exec'], python=sys.executable)
+    baseline = pair_v2()['baseline_profile']
+    receipt = host.call(release, 'apply', {'base_profile': baseline, 'chunk_tokens': 1024})
+    assert receipt['state'] == 'succeeded', receipt
+    monkeypatch.setattr(strata_prefill, 'apply', lambda *a: (_ for _ in ()).throw(
+        AssertionError('Independent checker must not call the producer')))
+    result = verify_v2(store, release, dict(baseline_profile=baseline,
+        candidate_profile=receipt['outputs']['profile']))
+    assert result['verification']['verdict'] == 'passed'
+
+
+@pytest.mark.parametrize('mutation', [
+    lambda m: m['units'][0].update(checker='strata.prefill_profile.v99', parameters=None),
+    lambda m: m['implementation_modules'].pop(),
+    lambda m: m['units'][0].update(capabilities=['coverage']),
+])
+def test_v2_unsupported_sealed_verification_denied(v2_setup, tmp_path, mutation):
+    import shutil
+    store, _ = v2_setup
+    package = tmp_path/'unsupported-package'
+    shutil.copytree(Path(q.__file__).parent/'ccs/strata_prefill_chunk', package)
+    path = package/'QUALIFICATION-UNITS.json'
+    material = json.loads(path.read_text())
+    mutation(material)
+    # Unknown checkers keep only the historical common unit fields.
+    if material['units'][0]['checker'] != q.CHECKER_V2:
+        material['units'][0].pop('parameters', None)
+    path.write_text(json.dumps(material))
+    release = Host(store.home/'ccstore').prepare(package)
+    with pytest.raises(ValueError, match='unsupported'):
+        verify_v2(store, release, pair_v2())

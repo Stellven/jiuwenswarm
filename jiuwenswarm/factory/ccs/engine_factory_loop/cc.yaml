@@ -1,10 +1,12 @@
 cc: '2'
 id: factory.engine_factory_loop
-version: 1.0.0
+version: 1.1.0
 materials:
   methodology:
     kind: method
     path: METHOD.md
+  skill: {kind: skill, path: SKILL.md}
+  verification: {kind: reference, path: VERIFICATION-UNITS.json}
 bindings:
   default:
     kind: native
@@ -27,6 +29,8 @@ capabilities:
       hypothesis_id: {kind: text}
       template_id: {kind: text}
       expected_rev: {kind: json}
+      branch_id: {kind: text, optional: true}
+      expected_graph_rev: {kind: json, optional: true}
     gives:
       result: json
     needs: [python]
@@ -47,6 +51,15 @@ capabilities:
       cycle_id: {kind: text}
     gives:
       result: json
+    needs: [python]
+    changes: [process.exec]
+  abandon:
+    kind: tool
+    does: Close only an unsubmitted reservation, retain the reason and spent budget; never hide an existing attempt.
+    takes:
+      cycle_id: {kind: text}
+      reason: {kind: text}
+    gives: {result: json}
     needs: [python]
     changes: [process.exec]
   stop:

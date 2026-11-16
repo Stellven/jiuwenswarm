@@ -30,7 +30,7 @@ sealed=[]
 for capsule in sorted(pathlib.Path('/factory/jiuwenswarm/factory/ccs').iterdir()):
  if (capsule/'cc.yaml').is_file():
   sealed.append(dict(directory=capsule.name,release=host.prepare(capsule)))
-assert {'standard_benchmark','strata_verified_drafting','lab_client','evidence','engine_factory_loop','deep_profile','expert_prediction','strata_prefill_chunk','methodology_hypothesis','strata_prefill_workbench','cc_qualification','inference_lab','strata_throughput_workbench','strata_fixed_placement','expert_cache_lab','ssd_streaming_lab','heterogeneous_placement_lab','precision_lab','kv_reuse_lab','serving_scheduler_lab','methodology_transfer_lab','branch_workbench','cc_workflow_lab','native_inventory_once','strata_budget_workbench','memory_residency_lab','gpu_kernel_lab','evidence_digest_lab'} <= {v['directory'] for v in sealed}
+assert {'standard_benchmark','strata_verified_drafting','lab_client','evidence','engine_factory_loop','deep_profile','expert_prediction','strata_prefill_chunk','methodology_hypothesis','strata_prefill_workbench','cc_qualification','inference_lab','strata_throughput_workbench','strata_fixed_placement','expert_cache_lab','ssd_streaming_lab','heterogeneous_placement_lab','precision_lab','kv_reuse_lab','serving_scheduler_lab','methodology_transfer_lab','branch_workbench','cc_workflow_lab','native_inventory_once','strata_budget_workbench','memory_residency_lab','gpu_kernel_lab','evidence_digest_lab','numerical_investigation_lab'} <= {v['directory'] for v in sealed}
 print(json.dumps(dict(actual_facade_import=True,standalone_source=True,source_bind=False,
  codex_version=subprocess.check_output([str(bundled_codex_path()),'--version'],text=True).strip(),
  sealed_capsules=sealed)))

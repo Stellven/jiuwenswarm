@@ -60,3 +60,11 @@ This draft supports admitted contracts and durable evidence-driven cycles.
 Source changes and builds remain separate agent actions through existing
 component/builder/lab capabilities when explicitly authorized. Neither package
 qualification nor loop execution promotes an engine change automatically.
+
+Connected branch mode adds optional paired select inputs branch_id and expected_graph_rev.
+Set factory_loop.require_branch_binding=true to require them. The branch hypothesis
+is the selected methodology hypothesis ID, and its GPU reservation covers the
+contract campaign timeout plus120 worker seconds. Selection marks the branch
+running atomically; collection attaches the result and completes the investigation
+without accepting its scientific claim. Pruned branches stay pruned and retain
+late results in the host cycle ledger. See SKILL.md for recovery and abandon.

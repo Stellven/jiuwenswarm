@@ -17,17 +17,16 @@ import re
 from pathlib import Path
 import shutil
 import stat
+import subprocess
 import sys
 import time
 
 LAUNCHER = Path(__file__).resolve()
 SOURCE = LAUNCHER.parents[1]
-DEFAULT_ROOT = LAUNCHER.parent if (LAUNCHER.parent / 'manifest.json').is_file() else SOURCE.parents[1] / 'night-branch-jiuwen-v1'
-DEFAULT_ENGINE = SOURCE.parents[1] / 'night-branch-engine-v2/run-001/analysis.json'
-PACKAGES = ('branch_workbench', 'evidence', 'memory_residency_lab', 'inference_lab',
-            'methodology_followup', 'strata_prefill_chunk', 'strata_budget_workbench',
-            'cc_workflow_lab', 'methodology_transfer_lab')
+DEFAULT_ROOT = LAUNCHER.parent if (LAUNCHER.parent / 'manifest.json').is_file() else None
 CPU_CAPABILITIES = {
+    'numerical_investigation_lab': {'replay_spec', 'compare_logits', 'first_divergence'},
+    'evidence_digest_lab': {'index', 'project'},
     'branch_workbench': {'create','fork','refine','attach','record','prune','status','ready','compare'},
     'evidence': {'query','read','publish','plan_get','plan_patch'},
     'memory_residency_lab': {'plan','verify'},
@@ -38,11 +37,80 @@ CPU_CAPABILITIES = {
     'cc_workflow_lab': {'analyze_receipts','design_workflow','run_batch'},
     'methodology_transfer_lab': {'assess_transfer','design_trial','analyze_abba'},
 }
-TASK_ID = 'night-branch-jiuwen-v1'
-LATEST_STOP_UTC = '2026-11-15T08:00:00+00:00'
-LATEST_STOP = datetime.fromisoformat(LATEST_STOP_UTC).timestamp()
-MIN_START_SECONDS = 600
+HISTORICAL_TASK_ID = 'night-branch-jiuwen-v1'
 CLEANUP_SECONDS = 30
+POLICY_FIELDS = {'schema', 'campaign_id', 'deadline_utc', 'objective', 'source_commit',
+                 'packages', 'limits', 'evidence'}
+SAFETY = """ Investigate the pinned evidence using only the selected CPU capsules.
+Choose hypotheses, calls and continuations according to their expected information
+value; no branch or call count is required. Preserve workload/fixture scope,
+negative results and unknown performance/quality values. Publish decisions with
+actual evidence IDs, uncertainty, next bounded action, budget and stop condition.
+Configuration checks and component ratios do not establish engine gains.
+No GPU tools, inference launch, jobs, Docker, compilation, native_experiment,
+source edits, network commands, commits or promotion. Shell/file operations only
+read inputs or write local report artifacts in the workspace. Do not edit runtime,
+launcher, task, database, credentials, MCP configuration or manifests."""
+
+
+def validate_policy(policy, *, admission=False):
+    """Closed CPU-only policy: no implicit packages, effects or refreshed deadline."""
+    if not isinstance(policy, dict) or set(policy) != POLICY_FIELDS or policy['schema'] != 'factory.cpu-campaign/1':
+        raise ValueError('Invalid campaign specification fields/schema')
+    campaign_id = policy['campaign_id']
+    if not isinstance(campaign_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,95}', campaign_id) or campaign_id == HISTORICAL_TASK_ID:
+        raise ValueError('Campaign requires a fresh safe campaign_id')
+    if not isinstance(policy['objective'], str) or not policy['objective'].strip() or len(policy['objective']) > 16000:
+        raise ValueError('Campaign requires a bounded nonempty objective')
+    if not isinstance(policy['source_commit'], str) or not re.fullmatch('[0-9a-f]{40}', policy['source_commit']):
+        raise ValueError('Campaign requires source_commit identity')
+    packages = policy['packages']
+    if not isinstance(packages, list) or not packages or any(not isinstance(p, str) or p not in CPU_CAPABILITIES for p in packages):
+        raise ValueError('Mission accepts bounded CPU packages only')
+    if len(set(packages)) != len(packages) or not {'branch_workbench', 'evidence'} <= set(packages):
+        raise ValueError('Campaign requires unique packages including branch_workbench and evidence')
+    limits = policy['limits']
+    bounds = {'max_turns': 6, 'wall_clock_s': 1500, 'max_branches': 8, 'branch_cpu_seconds': 60,
+              'minimum_start_seconds': 600, 'max_experiments': 0, 'max_builds': 0, 'gpu_seconds': 0}
+    if not isinstance(limits, dict) or set(limits) != set(bounds):
+        raise ValueError('Invalid CPU campaign limits')
+    for key, maximum in bounds.items():
+        minimum = 0 if maximum == 0 else 1
+        if type(limits[key]) is not int or not minimum <= limits[key] <= maximum:
+            raise ValueError('Invalid bounded CPU campaign limit: ' + key)
+    evidence = policy['evidence']
+    if not isinstance(evidence, dict) or set(evidence) != {'engine', 'extra'} or not isinstance(evidence['engine'], str) or not evidence['engine']:
+        raise ValueError('Invalid campaign evidence inputs')
+    if not isinstance(evidence['extra'], list) or len(evidence['extra']) > 8 or any(not isinstance(p, str) or not p for p in evidence['extra']):
+        raise ValueError('At most eight extra evidence paths are admitted')
+    try:
+        deadline = datetime.fromisoformat(policy['deadline_utc'])
+        if deadline.tzinfo is None or deadline.utcoffset() is None:
+            raise ValueError('timezone required')
+    except (TypeError, ValueError) as exc:
+        raise ValueError('Campaign requires an absolute timezone-aware deadline_utc') from exc
+    if time.time() >= deadline.timestamp():
+        raise ValueError('Expired campaign deadline')
+    if admission and time.time() + limits['minimum_start_seconds'] + CLEANUP_SECONDS >= deadline.timestamp():
+        raise ValueError('Insufficient time before the operator latest stop: ' + policy['deadline_utc'])
+    return policy
+
+
+def campaign_task(policy, copied):
+    return dict(task_id=policy['campaign_id'], objective=policy['objective'] + SAFETY,
+        constraints={'methodology_driven': True,
+            'branch_workbench': {'max_branches': policy['limits']['max_branches'],
+                'cpu_seconds': policy['limits']['branch_cpu_seconds'], 'gpu_seconds': 0},
+            'mission': {'cpu_only': True, 'no_jobs': True, 'no_source_edits': True, 'no_promotion': True,
+                'selected_packages': policy['packages'], 'input_sha256': copied,
+                'latest_stop_utc': policy['deadline_utc'],
+                'minimum_start_seconds': policy['limits']['minimum_start_seconds'], 'campaign_policy': policy}},
+        allowed_effects=['process.exec'], target='spark-gb10',
+        budget={k: policy['limits'][k] for k in ('max_turns', 'wall_clock_s')},
+        contract_id='branch-methodology-cpu-v2', initial_run_config={}, component_cc='factory.branch_workbench',
+        source={'subpath': 'inputs', 'pre_integration_commit': policy['source_commit']},
+        operator_labels={'purpose': 'CPU evidence investigation; separate from engine benchmarking',
+                         'model': 'gpt-6.1-sol', 'promotion': False})
 
 
 def digest(path):
@@ -57,6 +125,8 @@ def dump(path, value):
 
 
 def tree(root):
+    if any(p.is_symlink() for p in root.rglob('*')):
+        raise ValueError('Frozen trees must not contain symlinks')
     return {p.relative_to(root).as_posix(): digest(p) for p in sorted(root.rglob('*'))
             if p.is_file() and '__pycache__' not in p.parts and p.suffix != '.pyc'}
 
@@ -77,17 +147,22 @@ def read_regular(path, max_bytes=2 * 1024**2):
 
 def freeze(args):
     root = args.root.resolve()
-    if root.exists():
+    if root.exists() or root.is_symlink():
         raise ValueError('Mission root already exists; preserve it and select a fresh --root')
-    if len(args.extra_evidence) > 8:
-        raise ValueError('At most eight extra evidence files are admitted')
-    primary_data = read_regular(args.engine_evidence)
-    evidence = args.engine_evidence.resolve(strict=True)
-    extras = [(Path(path).resolve(strict=True), read_regular(path)) for path in args.extra_evidence]
-    packages = list(dict.fromkeys([*PACKAGES, *args.package]))
+    if not getattr(args, 'campaign_spec', None):
+        raise ValueError('Fresh freeze requires --campaign-spec')
+    policy = validate_policy(json.loads(read_regular(args.campaign_spec)), admission=True)
+    source_commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=SOURCE, text=True).strip()
+    if source_commit != policy['source_commit']:
+        raise ValueError('Campaign source_commit does not match launcher checkout')
+    if any(not Path(p).is_absolute() for p in [policy['evidence']['engine'], *policy['evidence']['extra']]):
+        raise ValueError('Campaign evidence paths must be absolute')
+    primary_data = read_regular(policy['evidence']['engine'])
+    json.loads(primary_data)
+    evidence = Path(policy['evidence']['engine']).resolve(strict=True)
+    extras = [(Path(path).resolve(strict=True), read_regular(path)) for path in policy['evidence']['extra']]
+    packages = policy['packages']
     for name in packages:
-        if name not in PACKAGES:
-            raise ValueError('Mission accepts bounded CPU packages only: ' + name)
         if not (SOURCE / 'jiuwenswarm/factory/ccs' / name / 'cc.yaml').is_file():
             raise ValueError('Package unavailable: ' + name)
     runtime = root / 'runtime'
@@ -125,18 +200,6 @@ def freeze(args):
         target.write_bytes(data)
         copied[name] = digest(target)
         extra_sources.append(dict(source=str(path), workspace_path='inputs/' + name, sha256=copied[name], bytes=len(data)))
-    total = 0
-    for raw in sorted(evidence.parent.rglob('*')):
-        if not raw.is_file() or raw.is_symlink() or raw.suffix not in {'.json', '.txt', '.log', '.stdout', '.stderr', '.out', '.err'}:
-            continue
-        size = raw.stat().st_size
-        if size > 2 * 1024**2 or total + size > 32 * 1024**2:
-            continue
-        target = inputs / 'engine-raw' / raw.relative_to(evidence.parent)
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(raw, target)
-        copied[target.relative_to(inputs).as_posix()] = digest(target)
-        total += size
     for name in packages:
         package = ccs / name
         for filename in ('ROUND1.json', 'EXAMPLES.json', 'EXAMPLE.json'):
@@ -145,19 +208,11 @@ def freeze(args):
                 target = inputs / (name + '-' + filename)
                 shutil.copy2(path, target)
                 copied[target.name] = digest(target)
-    objective = '''Explore at least two genuinely different solution branches and one evidence-driven continuation using the new branch workbench. You are the decision maker. Read the fixed task and input evidence before selecting hypotheses; no host plan prescribes their content. The operator's manual engine evidence is in inputs/engine-analysis.json and native capsule manual rounds/examples are in inputs/. Read every inputs/extra-* evidence file: these are separately pinned later long-prefill or factory-overhead measurements; preserve their distinct workloads, scopes and dates, and do not rewrite or pool the original manual round. First cc_list, read the branch workbench skill/method plus relevant capsule materials, query evidence, and publish a justified decision. Read branch status for graph_rev (the host seeds an unrelated suggestion graph; branch rev is not assumed zero). Create/fork at least two alternatives, each within its explicit reservation. A branch may use multiple admitted CCs. Actually call new CPU capsules, including engine.memory_residency_lab plan/verify (do not call native_experiment or build a binary), engine.strata_budget_workbench to inspect native startup and measured memory, factory.cc_workflow_lab to analyze pinned real or explicitly historical fixture costs (no new benchmark_fixture or performance measurements), and factory.methodology_transfer_lab to assess transfer or design the next bounded experiment. Use at least three of those new capsules when the evidence supports it; other listed pure CPU methods are available. The copied engine-raw directory provides native startup, resource and raw cell records when present. You may use engine.strata_prefill_chunk.coverage to check whether proposed quality prompts exercise different chunk counts; a matched short-output sample that stays inside one chunk is insufficient treatment coverage. Save real receipt outputs as observations with evidence.publish, then attach those qualitative findings to the corresponding branches. Explain which evidence changed your hypothesis, refine a completed parent into a continuation, call another useful capsule and attach the new evidence. Prune at least one unsupported alternative with an evidence-based reason. Run compare and retain unknown speed/memory/quality values; advice, synthetic examples, and configuration checks do not establish accepted engine gains. Do not infer engine speed from component ratios or make up timing, quality, costs, or measurements. Use record only for actual current-task branch_measurement evidence with explicit scope/key/metrics/cost; attach is appropriate otherwise. Read ready/status between revisions. Publish decisions with observations, hypothesis, uncertainty, next bounded action, expected evidence, budget and stop condition; cite actual evidence IDs. End with a report_inconclusive decision explaining branch outcomes, actual measurements, missing prerequisites, Pareto unknowns and the next useful bounded experiment. No GPU tools, inference launch, jobs, Docker, compilation, native_experiment, source changes, changed contracts, network commands, commits, promotion or arbitrary execution. Shell/file operations only read input files or write local report artifacts inside this workspace. Do not edit runtime, launcher, task, factory database, MCP configuration, credentials or manifests.'''
-    task = dict(task_id=TASK_ID, objective=objective,
-        constraints={'methodology_driven': True, 'branch_workbench': {'max_branches': 8, 'cpu_seconds': 60, 'gpu_seconds': 0},
-                     'mission': {'cpu_only': True, 'no_jobs': True, 'no_source_edits': True, 'no_promotion': True,
-                                 'selected_packages': packages, 'input_sha256': copied, 'latest_stop_utc': LATEST_STOP_UTC,
-                                 'minimum_start_seconds': MIN_START_SECONDS}},
-        allowed_effects=['process.exec'], target='spark-gb10', budget={'max_turns': 6, 'wall_clock_s': 1500},
-        contract_id='branch-methodology-cpu-v1', initial_run_config={}, component_cc='factory.branch_workbench',
-        source={'subpath': 'inputs', 'pre_integration_commit': 'read-only-evidence'},
-        operator_labels={'purpose': 'real JiuwenSwarm branch exploration; separate from engine benchmarking',
-                         'model': 'gpt-6.1-sol', 'promotion': False})
+    dump(root / 'campaign.json', policy)
+    task = campaign_task(policy, copied)
     dump(root / 'task.json', task)
-    dump(root / 'manifest.json', dict(schema='factory.branch-mission/1', task_id=TASK_ID,
+    dump(root / 'manifest.json', dict(schema='factory.branch-mission/2', task_id=policy['campaign_id'],
+        campaign_policy=policy, campaign_sha256=digest(root / 'campaign.json'),
         runtime_files=tree(runtime), task_sha256=digest(root / 'task.json'), input_sha256=copied,
         launcher_sha256=digest(root / 'launch.py'), source_launcher_sha256=digest(Path(__file__)),
         engine_evidence_source=str(evidence), engine_evidence_sha256=hashlib.sha256(primary_data).hexdigest(), extra_evidence=extra_sources, packages=packages, package_capability_restrictions=declarations,
@@ -168,6 +223,29 @@ def freeze(args):
 
 def verify(root):
     manifest = json.loads((root / 'manifest.json').read_text())
+    if manifest.get('schema') == 'factory.branch-mission/2':
+        policy = validate_policy(manifest['campaign_policy'])
+        if digest(root / 'campaign.json') != manifest['campaign_sha256'] or json.loads((root / 'campaign.json').read_text()) != policy:
+            raise ValueError('Frozen campaign policy changed')
+        task = json.loads((root / 'task.json').read_text())
+        if task != campaign_task(policy, manifest['input_sha256']) or manifest['task_id'] != policy['campaign_id'] or manifest['packages'] != policy['packages']:
+            raise ValueError('Frozen campaign/task policy mismatch')
+        if set(manifest['package_capability_restrictions']) != set(policy['packages']):
+            raise ValueError('Frozen package policy mismatch')
+        for name, restriction in manifest['package_capability_restrictions'].items():
+            if not set(restriction['allowed_capabilities']) <= CPU_CAPABILITIES[name]:
+                raise ValueError('Frozen capability policy widened')
+            import yaml
+            declaration = root / 'runtime/jiuwenswarm/factory/ccs' / name / 'cc.yaml'
+            data = yaml.safe_load(declaration.read_text())
+            if digest(declaration) != restriction['frozen_manifest_sha256'] or sorted(data['capabilities']) != restriction['allowed_capabilities']:
+                raise ValueError('Frozen capability declaration changed')
+            if any(set(cap.get('changes', [])) - {'process.exec'} for cap in data['capabilities'].values()):
+                raise ValueError('Frozen capability effects widened')
+        if tree(root / 'factory/agent-workspace/inputs') != manifest['input_sha256']:
+            raise ValueError('Frozen evidence input set changed')
+    elif manifest.get('schema') != 'factory.branch-mission/1':
+        raise ValueError('Unsupported frozen manifest schema')
     if digest(root / 'task.json') != manifest['task_sha256']:
         raise ValueError('Frozen task changed')
     if digest(root / 'launch.py') != manifest['launcher_sha256']:
@@ -180,12 +258,13 @@ def verify(root):
     return manifest
 
 
-def setup(root):
+def setup(root, task_id=None):
+    task_id = task_id or verify(root)['task_id']
     runtime = root / 'runtime'
     sys.path.insert(0, str(runtime))
     # Private dependency environment remains external to the frozen source tree.
     pythonpath = os.pathsep.join([str(runtime), *filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep))])
-    os.environ.update(FACTORY_HOME=str(root / 'factory'), FACTORY_TASK_ID=TASK_ID,
+    os.environ.update(FACTORY_HOME=str(root / 'factory'), FACTORY_TASK_ID=task_id,
         FACTORY_TARGET_PROFILE='spark-gb10', PYTHONPATH=pythonpath, PYTHONDONTWRITEBYTECODE='1',
         JIUWENSWARM_CODEX_MODEL='gpt-6.1-sol', FACTORY_CODEX_MODEL='gpt-6.1-sol',
         JIUWENSWARM_CODEX_AGENT_EFFORT='max', JIUWENSWARM_SKIP_DOTENV='1')
@@ -268,19 +347,20 @@ def export_run(root, store, report):
         except Exception as exc:
             report['export_errors'].append(dict(stage=name, error_type=type(exc).__name__))
             return None
-    snapshot = capture('evidence-snapshot', lambda: store.dump(TASK_ID))
+    task_id = report.get('task_id', HISTORICAL_TASK_ID)
+    snapshot = capture('evidence-snapshot', lambda: store.dump(task_id))
     receipts = capture('native-receipts', lambda: read_receipts(root))
     if receipts is not None:
         report.update(native_receipt_counts=receipts['counts'], incomplete_receipts=receipts['incomplete'],
             incomplete_receipt_count=len(receipts['incomplete']), receipt_manifest_errors=receipts['manifest_errors'])
     from jiuwenswarm.factory.branch_workbench import status, compare
-    branch_status = capture('branches', lambda: status(store, TASK_ID))
-    capture('pareto', lambda: compare(store, TASK_ID))
+    branch_status = capture('branches', lambda: status(store, task_id))
+    capture('pareto', lambda: compare(store, task_id))
     if snapshot is not None and branch_status is not None:
         try:
             operations = [row.get('values', {}).get('operation') for row in snapshot['observations']
                 if row['kind'] == 'branch_workbench_operation']
-            report['exploration_obligations'] = dict(two_or_more_branches=len(branch_status['branches']) >= 2,
+            report['exploration_observations'] = dict(two_or_more_branches=len(branch_status['branches']) >= 2,
                 explicit_fork='fork' in operations, continuation='refine' in operations, retained_pruning='prune' in operations,
                 evidence_attachment=any(op in operations for op in ('attach','record')),
                 comparison_called=bool(receipts and receipts['counts'].get('factory.branch_workbench.compare', {}).get('succeeded')))
@@ -291,11 +371,14 @@ def export_run(root, store, report):
 
 
 async def run(root, auth_source):
-    if time.time() + MIN_START_SECONDS + CLEANUP_SECONDS >= LATEST_STOP:
-        raise ValueError('Insufficient time before the operator latest stop: ' + LATEST_STOP_UTC)
     manifest = verify(root)
+    if manifest.get('schema') != 'factory.branch-mission/2':
+        raise ValueError('Historical campaign is read-only; freeze a fresh campaign')
+    policy = validate_policy(manifest['campaign_policy'], admission=True)
+    task_id = policy['campaign_id']
+    latest_stop = datetime.fromisoformat(policy['deadline_utc']).timestamp()
     manifest_hash = digest(root / 'manifest.json')
-    setup(root)
+    setup(root, task_id)
     from jiuwenswarm.factory.controller import Controller, configure_agent
     from jiuwenswarm.factory.store import NotFound
     from jiuwenswarm.server.runtime.codex_subscription.service import get_service
@@ -304,22 +387,25 @@ async def run(root, auth_source):
     controller = Controller(home=root / 'factory', grants=task['allowed_effects'])
     try:
         try:
-            controller.store.get_task(TASK_ID)
+            existing = controller.store.get_task(task_id)
+            for key in task:
+                if existing[key] != task[key]:
+                    raise ValueError('Stored campaign policy changed on resume: ' + key)
         except NotFound:
             controller.init_task(root / 'task.json')
         # Import verified manual evidence as an observation and as a content
         # addressed artifact. This is operator evidence, never a new benchmark.
-        if not controller.store.query(TASK_ID, kinds=['operator_manual_evidence'], limit=1)['items']:
+        if not controller.store.query(task_id, kinds=['operator_manual_evidence'], limit=1)['items']:
             payload = (root / 'factory/agent-workspace/inputs/engine-analysis.json').read_bytes()
-            artifact = controller.store.put_artifact(TASK_ID, 'manual-engine-analysis', payload, 'application/json', None)
-            controller.store.append_observation(TASK_ID, dict(obs_id='manual-engine-evidence', kind='operator_manual_evidence',
+            artifact = controller.store.put_artifact(task_id, 'manual-engine-analysis', payload, 'application/json', None)
+            controller.store.append_observation(task_id, dict(obs_id='manual-engine-evidence', kind='operator_manual_evidence',
                 source_artifacts=[artifact['artifact_id']], values={'analysis': json.loads(payload),
                     'source_sha256': manifest['engine_evidence_sha256'], 'scope':'operator manual engine evidence, not an autonomous run'},
                 limitations='Read the exact original measurement scope and gates; no promotion authority.'))
         for index, extra in enumerate(manifest.get('extra_evidence', []), 1):
             observation_id = 'operator-extra-' + str(index)
             try:
-                controller.store.read(TASK_ID, observation_id)
+                controller.store.read(task_id, observation_id)
                 continue
             except NotFound:
                 pass
@@ -331,8 +417,8 @@ async def run(root, auth_source):
             except (ValueError, UnicodeDecodeError):
                 value = {'text': payload.decode('utf-8', errors='replace')}
                 media_type = 'text/plain'
-            artifact = controller.store.put_artifact(TASK_ID, observation_id + '-artifact', payload, media_type, None)
-            controller.store.append_observation(TASK_ID, dict(obs_id=observation_id, kind='operator_extra_evidence',
+            artifact = controller.store.put_artifact(task_id, observation_id + '-artifact', payload, media_type, None)
+            controller.store.append_observation(task_id, dict(obs_id=observation_id, kind='operator_extra_evidence',
                 source_artifacts=[artifact['artifact_id']], values={'evidence':value, 'sha256':extra['sha256'],
                     'workspace_path':extra['workspace_path'], 'scope':'separate pinned operator evidence; inspect original scope'},
                 limitations='Do not pool different workloads, measurement scopes or fixture types.'))
@@ -365,7 +451,7 @@ async def run(root, auth_source):
         service.transport.request = observed_request
         started, result, error = time.time(), None, None
         try:
-            result = await asyncio.wait_for(controller.run(TASK_ID), timeout=min(1560, max(1, LATEST_STOP - time.time() - CLEANUP_SECONDS)))
+            result = await asyncio.wait_for(controller.run(task_id), timeout=min(policy['limits']['wall_clock_s'], max(1, latest_stop - time.time() - CLEANUP_SECONDS)))
             return result
         except BaseException as exc:
             error = {'type':type(exc).__name__, 'code':str(exc)[:120] if isinstance(exc,CodexError) else type(exc).__name__}
@@ -385,10 +471,10 @@ async def run(root, auth_source):
                         auth.unlink()
                 except OSError as exc:
                     cleanup_error = cleanup_error or type(exc).__name__
-            report = dict(schema='factory.branch-live-mission/1', task_id=TASK_ID,
+            report = dict(schema='factory.branch-live-mission/1', task_id=task_id,
                 started_at=started, finished_at=time.time(), result=result, error=error, provider_identities=identities,
                 provider_reroutes=reroutes, usage_by_thread=usage, cost_usd=None,
-                requested_model='gpt-6.1-sol', requested_effort='max', latest_stop_utc=LATEST_STOP_UTC,
+                requested_model='gpt-6.1-sol', requested_effort='max', latest_stop_utc=policy['deadline_utc'],
                 manifest_sha256=manifest_hash, auth_symlink_removed=not auth.exists(),
                 cleanup_error=cleanup_error, promotion=False)
             try:
@@ -412,12 +498,14 @@ async def run(root, auth_source):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--root', type=Path, default=DEFAULT_ROOT)
-    parser.add_argument('--engine-evidence', type=Path, default=DEFAULT_ENGINE)
+    parser.add_argument('--campaign-spec', type=Path, help='Fresh immutable CPU campaign JSON; required for freeze')
     parser.add_argument('--auth', type=Path, default=Path('/home/user2/.codex/auth.json'))
-    parser.add_argument('--package', action='append', default=[])
-    parser.add_argument('--extra-evidence', type=Path, action='append', default=[])
     parser.add_argument('operation', choices=['freeze', 'verify', 'run', 'status'])
     args = parser.parse_args()
+    if args.root is None:
+        parser.error('--root is required outside a frozen campaign directory')
+    if args.operation != 'freeze' and args.campaign_spec is not None:
+        parser.error('--campaign-spec is accepted only for freeze; resume uses frozen policy')
     root = args.root.resolve()
     if args.operation == 'freeze':
         result = freeze(args)
@@ -426,13 +514,13 @@ def main():
     elif args.operation == 'run':
         result = asyncio.run(run(root, args.auth))
     else:
-        setup(root)
-        from jiuwenswarm.factory.controller import Controller
-        controller = Controller(home=root / 'factory')
-        try:
-            result = controller.status(TASK_ID)
-        finally:
-            controller.store.close()
+        # Status is read-only, including for historical exports. Controller
+        # construction would create/migrate the database and runtime paths.
+        manifest = verify(root)
+        result = dict(task_id=manifest['task_id'], manifest_sha256=digest(root / 'manifest.json'))
+        result_path = root / 'controller-result.json'
+        if result_path.is_file():
+            result['retained_result'] = json.loads(result_path.read_text())
     print(json.dumps(result, indent=2, default=str))
 
 

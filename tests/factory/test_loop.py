@@ -250,3 +250,157 @@ def test_optional_qualification_gate_reassesses_instead_of_trusting_saved_verdic
     assert cycle['qualification_ids']==['rechecked-qualification']
     decision=store.read('parent','parent:decision:1')
     assert 'rechecked-qualification' in decision['evidence_ids']
+
+
+def linked_loop(tmp_path, *, gpu_seconds=180, require=True):
+    """Real task/graph/loop storage; fake external benchmark only."""
+    from jiuwenswarm.factory.branch_workbench import dispatch as branch
+    from jiuwenswarm.factory.benchmark import EXECUTION_FILES
+    # Reuse the already validated fixture contract without a second schema copy.
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    generator = setup_loop.__wrapped__(tmp_path)
+    store, template = next(generator)
+    task = store.get_task('parent')
+    policy = copy.deepcopy(task['constraints']['factory_loop'])
+    policy['require_branch_binding'] = require
+    store.create_task(dict(task_id='linked', objective='Connected investigation',
+        constraints={'factory_loop': policy, 'branch_workbench': {
+            'max_branches': 4, 'cpu_seconds': 30, 'gpu_seconds': 600}},
+        allowed_effects=['process.exec','gpu.use']))
+    store.append_observation('linked', dict(obs_id='seed',kind='report',values={'status':'success'}))
+    store.advance_decision('linked',0,{'hypothesis':'Compare admitted alternatives'})
+    branch(store,'linked','create',dict(node_id='candidate',hypothesis='measure_io_readiness',
+        allocation={'cpu_seconds':10,'gpu_seconds':gpu_seconds},expected_graph_rev=0,
+        decision_rev=1,idem_key='create'))
+    return generator, store, FakeBenchmark(store), policy
+
+
+def linked_select(loop, **overrides):
+    kwargs=dict(cycle_id='one',evidence_ids=['seed'],hypothesis_id='measure_io_readiness',
+        template_id='draft-pilot',expected_rev=1,branch_id='candidate',expected_graph_rev=1)
+    kwargs.update(overrides)
+    return loop.select(**kwargs)
+
+
+def test_branch_cycle_collect_unlocks_continuation_and_preserves_unknown_metrics(tmp_path):
+    from jiuwenswarm.factory import branch_workbench as bw
+    gen,store,adapter,_=linked_loop(tmp_path)
+    try:
+        loop=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:10)
+        chosen=linked_select(loop)
+        assert chosen['branch_binding']['worker_bound_s']==180
+        assert linked_select(loop)==chosen
+        with pytest.raises(ScopeDenied,match='explicit branch'):
+            loop.select('missing',['seed'],'measure_io_readiness','draft-pilot',2)
+        sent=loop.execute('one');result=loop.collect('one')
+        assert loop.collect('one')==result
+        status=bw.status(store,'linked');row=status['branches'][0]
+        assert row['state']=='done' and row['measurement'] is None
+        assert row['experiment_cycles'][0]['attempt_id']==sent['attempt_id']
+        assert row['experiment_cycles'][0]['evidence_id']==result['evidence_id']
+        assert result['evidence_id'] in row['evidence_ids']
+        assert bw.compare(store,'linked')['unknown']==['candidate']
+        next_state=bw.dispatch(store,'linked','refine',dict(node_id='next',parent_id='candidate',
+            hypothesis='measure_placement',allocation={'cpu_seconds':10,'gpu_seconds':180},
+            expected_graph_rev=status['graph_rev'],decision_rev=2,idem_key='next'))['analysis']
+        assert next_state['ready']==['next']
+        assert adapter.calls==1
+    finally:gen.close()
+
+
+@pytest.mark.parametrize('change,exc', [
+    ({'expected_graph_rev':0},StaleRevision),
+    ({'branch_id':'foreign'},ScopeDenied),
+    ({'hypothesis_id':'measure_placement'},ScopeDenied),
+    ({'expected_graph_rev':None},ValueError),
+])
+def test_branch_selection_rejects_mismatch_atomically(tmp_path,change,exc):
+    gen,store,adapter,_=linked_loop(tmp_path)
+    try:
+        loop=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:10)
+        with pytest.raises(exc):linked_select(loop,**change)
+        assert loop.status()['remaining_cycles']==2
+        assert store.get_task('linked')['current_decision_rev']==1
+        assert adapter.calls==0
+    finally:gen.close()
+
+
+def test_branch_reservation_covers_worker_bound(tmp_path):
+    gen,store,adapter,_=linked_loop(tmp_path,gpu_seconds=179)
+    try:
+        loop=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:10)
+        with pytest.raises(ScopeDenied,match='reservation'):linked_select(loop)
+        assert not loop.status()['cycles']
+    finally:gen.close()
+
+
+@pytest.mark.parametrize('lost_ack',[False,True])
+def test_pruned_branch_blocks_new_dispatch_but_recovers_existing_attempt(tmp_path,lost_ack):
+    from jiuwenswarm.factory import branch_workbench as bw
+    gen,store,adapter,_=linked_loop(tmp_path)
+    try:
+        loop=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:10)
+        linked_select(loop)
+        if lost_ack:
+            adapter.crash=True
+            with pytest.raises(RuntimeError):loop.execute('one')
+        state=bw.status(store,'linked')
+        bw.dispatch(store,'linked','prune',dict(node_id='candidate',reason='Stop this lead',
+            expected_graph_rev=state['graph_rev'],decision_rev=2,idem_key='prune'))
+        recovered=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:1000 if lost_ack else 10)
+        if lost_ack:
+            recovered.execute('one');result=recovered.collect('one')
+            assert store._db.execute('SELECT count(*) FROM attempts').fetchone()[0]==1
+            row=bw.status(store,'linked')['branches'][0]
+            assert row['state']=='cancelled'
+            assert row['experiment_cycles'][0]['evidence_id']==result['evidence_id']
+        else:
+            with pytest.raises(ValueError,match='cancelled'):recovered.execute('one')
+            assert adapter.calls==0
+    finally:gen.close()
+
+
+def test_abandon_spends_reservation_and_cannot_hide_lost_ack(tmp_path):
+    gen,store,adapter,_=linked_loop(tmp_path)
+    try:
+        loop=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:10)
+        linked_select(loop)
+        result=loop.abandon('one','Different diagnostic needed')
+        assert result['result']['analysis']['measured'] is False
+        assert result['state']=='collected'
+        assert loop.status()['remaining_cycles']==1
+        assert loop.abandon('one','Different diagnostic needed')==result
+        with pytest.raises(ValueError,match='replay'):loop.abandon('one','Changed')
+        assert adapter.calls==0
+    finally:gen.close()
+    gen,store,adapter,_=linked_loop(tmp_path/'lost')
+    try:
+        loop=FactoryLoop(store,'linked',benchmark=adapter,clock=lambda:10)
+        linked_select(loop);adapter.crash=True
+        with pytest.raises(RuntimeError):loop.execute('one')
+        with pytest.raises(ScopeDenied,match='existing attempt'):loop.abandon('one','Hide lost acknowledgement')
+        assert loop.execute('one')['state']=='submitted'
+    finally:gen.close()
+
+
+def test_actual_native_host_select_links_branch_and_abandon(tmp_path,monkeypatch):
+    import sys
+    from jiuwenswarm.ccv2.ccv2 import Host
+    gen,store,adapter,_=linked_loop(tmp_path)
+    try:
+        monkeypatch.setenv('FACTORY_HOME',str(store.home))
+        monkeypatch.setenv('FACTORY_TASK_ID','linked')
+        monkeypatch.setenv('FACTORY_PYTHON',sys.executable)
+        monkeypatch.setenv('PYTHONPATH',str(Path(__file__).resolve().parents[2]))
+        host=Host(tmp_path/'native-calls',python=sys.executable)
+        release=host.prepare(Path(__file__).resolve().parents[2]/'jiuwenswarm/factory/ccs/engine_factory_loop')
+        selected=host.call(release,'select',dict(cycle_id='native',evidence_ids=['seed'],
+            hypothesis_id='measure_io_readiness',template_id='draft-pilot',expected_rev=1,
+            branch_id='candidate',expected_graph_rev=1),grants=['process.exec'])
+        assert selected['state']=='succeeded',selected
+        assert selected['outputs']['result']['branch_binding']['node_id']=='candidate'
+        closed=host.call(release,'abandon',dict(cycle_id='native',reason='Native transport qualified'),grants=['process.exec'])
+        assert closed['state']=='succeeded',closed
+        assert closed['outputs']['result']['result']['analysis']['measured'] is False
+        assert adapter.calls==0
+    finally:gen.close()

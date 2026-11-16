@@ -61,6 +61,8 @@ class FactoryLoop:
             if len(item['sha256']) != 64 or any(c not in '0123456789abcdef' for c in item['sha256']):
                 raise ValueError('Template SHA256 required')
             self.templates[item['id']] = item
+        if 'require_branch_binding' in policy and type(policy['require_branch_binding']) is not bool:
+            raise ValueError('require_branch_binding must be boolean')
         self.policy = policy
         self.benchmark = benchmark
         with self.store._transaction(inject=False):
@@ -212,7 +214,7 @@ class FactoryLoop:
             integration='Agent calls select/execute/collect; existing mission supervisor owns quiet execution.')
 
     @serialized
-    def select(self, cycle_id, evidence_ids, hypothesis_id, template_id, expected_rev):
+    def select(self, cycle_id, evidence_ids, hypothesis_id, template_id, expected_rev, branch_id=None, expected_graph_rev=None):
         """Reserve one cycle before any external effect; agent makes both choices."""
         if type(expected_rev) is not int or expected_rev < 0:
             raise ValueError('expected_rev must be a nonnegative integer')
@@ -220,6 +222,14 @@ class FactoryLoop:
             raise ValueError('Bounded nonempty cycle_id required')
         request = dict(evidence_ids=evidence_ids, hypothesis_id=hypothesis_id,
                        template_id=template_id, expected_rev=expected_rev)
+        if (branch_id is None) != (expected_graph_rev is None):
+            raise ValueError('branch_id and expected_graph_rev must be supplied together')
+        if branch_id is not None:
+            if not isinstance(branch_id, str) or not branch_id.strip():
+                raise ValueError('Nonempty branch_id required')
+            if type(expected_graph_rev) is not int or expected_graph_rev < 0:
+                raise ValueError('expected_graph_rev must be a nonnegative integer')
+            request.update(branch_id=branch_id, expected_graph_rev=expected_graph_rev)
         # Validate explicit agent choice using the existing methodology, not a new planner.
         analysis = methodology.dispatch(self.scoped, self.task_id, 'ablation',
             dict(evidence_ids=evidence_ids, hypothesis_id=hypothesis_id))['analysis']
@@ -244,6 +254,7 @@ class FactoryLoop:
                 if existing['request'] != request:
                     raise ValueError('cycle_id replay conflicts with original selection')
                 return existing
+            branch_binding = self._bind_branch(branch_id, expected_graph_rev, hypothesis_id, contract)
             if contract.get('adapter') == 'strata-benchmark-v5':
                 from .fixed_screen_benchmark import admit_fixed_screens
                 admit_fixed_screens(self,contract,reserving=True)
@@ -289,10 +300,66 @@ class FactoryLoop:
                 decision_rev=expected_rev + 1, template_sha256=template['sha256'],
                 child_task_id=f'{self.task_id}-loop-{number}', idem_key=f'factory-loop-{number}',
                 attempt_id=None, contract=contract, qualification_ids=qualification_ids, created=self.clock())
+            if branch_binding is not None:
+                cycle['branch_binding'] = branch_binding
+                from .taskgraph import _apply_patch
+                _apply_patch(self.store, self.task_id, {'update': [dict(node_id=branch_id, state='running',
+                    reason='Agent-selected admitted experiment reserved; no execution or acceptance implied.')]},
+                    expected_graph_rev, decision['rev'])
             self.store._db.execute('INSERT INTO factory_loop_cycles VALUES (?,?,?,?)',
                 (self.task_id, cycle_id, number, encoded(cycle)))
             self._write(cycle, 'selected')
         return cycle
+
+    def _bind_branch(self, branch_id, expected_graph_rev, hypothesis_id, contract):
+        if branch_id is None:
+            if self.policy.get('require_branch_binding') is True:
+                raise ScopeDenied('This loop requires an explicit branch binding')
+            return None
+        from .taskgraph import plan_get
+        graph = plan_get(self.store, self.task_id)
+        if graph['rev'] != expected_graph_rev:
+            raise StaleRevision('Branch graph changed before cycle selection')
+        nodes = {n['node_id']: n for n in graph['nodes']}
+        node = nodes.get(branch_id)
+        if node is None or 'branch' not in node or branch_id not in graph['ready_frontier']:
+            raise ScopeDenied('Branch must be ready in the current task')
+        if node['branch']['hypothesis'] != hypothesis_id:
+            raise ScopeDenied('Branch hypothesis must match the selected hypothesis ID')
+        if any(c.get('branch_binding', {}).get('node_id') == branch_id for c in self._cycles()):
+            raise ScopeDenied('Branch already has an experiment; refine into a new branch')
+        # Both supported submitters add 120 seconds to the campaign worker bound.
+        # This is a conservative allocation, not measured device/CPU consumption.
+        worker_bound = contract['campaign_timeout_s'] + 120
+        if node['branch']['allocation']['gpu_seconds'] < worker_bound:
+            raise ScopeDenied('Branch GPU reservation must cover campaign timeout plus worker margin')
+        return dict(node_id=branch_id, selected_graph_rev=graph['rev'],
+                    hypothesis_id=hypothesis_id, worker_bound_s=worker_bound)
+
+    def _check_branch_dispatch(self, cycle):
+        binding = cycle.get('branch_binding')
+        if binding is None:
+            return
+        from .taskgraph import dispatch_precondition
+        dispatch_precondition(self.store, self.task_id, binding['node_id'])
+
+    def _finish_branch(self, cycle, evidence_id):
+        binding = cycle.get('branch_binding')
+        if binding is None:
+            return
+        from .taskgraph import plan_get, _apply_patch
+        graph = plan_get(self.store, self.task_id)
+        node = next(n for n in graph['nodes'] if n['node_id'] == binding['node_id'])
+        # A prune is not undone by late results. The ledger/status still exposes them.
+        if node['state'] in {'cancelled', 'superseded'}:
+            return
+        branch = dict(node['branch'])
+        if not branch.get('measurement_evidence_id'):
+            branch['stage'] = 'inconclusive'
+        _apply_patch(self.store, self.task_id, {'update': [dict(node_id=node['node_id'],
+            state='done', evidence_ids=[evidence_id], branch=branch,
+            outcome='Experiment collected; inspect scoped evidence before any acceptance decision.')]},
+            graph['rev'], cycle['decision_rev'])
 
     def _manager(self, cycle):
         if self.benchmark is not None:
@@ -313,6 +380,7 @@ class FactoryLoop:
         prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
             (cycle['child_task_id'], cycle['idem_key'])).fetchone()
         if not prior:
+            self._check_branch_dispatch(cycle)
             if cycle['contract'].get('adapter') == 'strata-benchmark-v5':
                 from .fixed_screen_benchmark import admit_fixed_screens
                 admit_fixed_screens(self,cycle['contract'],reserving=False)
@@ -385,9 +453,37 @@ class FactoryLoop:
         with self.store._transaction():
             cycle = self._get(cycle_id)
             if cycle['state'] != 'collected':
+                self._finish_branch(cycle, evidence_id)
                 cycle.update(state='collected', result=result, evidence_id=evidence_id,
                              followup=followup, ended=self.clock())
                 self._write(cycle, 'collected')
+        return cycle
+
+    @serialized
+    def abandon(self, cycle_id, reason):
+        """Close a reservation that has never submitted; do not refund its budget."""
+        if not isinstance(reason, str) or not reason.strip() or len(reason) > 2000:
+            raise ValueError('Bounded nonempty abandonment reason required')
+        with self.store._transaction():
+            cycle = self._get(cycle_id)
+            if cycle.get('abandoned_reason') is not None:
+                if cycle['abandoned_reason'] != reason:
+                    raise ValueError('Abandon replay conflicts with original reason')
+                return cycle
+            prior = self.store._db.execute('SELECT attempt_id FROM attempts WHERE task_id=? AND idem_key=?',
+                (cycle['child_task_id'], cycle['idem_key'])).fetchone()
+            if prior or cycle['state'] not in {'selected', 'dispatching'}:
+                raise ScopeDenied('Recover/collect an existing attempt; abandonment cannot hide submitted work')
+            report = dict(status='not_executed', reason=reason, measured=False)
+            evidence_id = f"loop-abandoned:{cycle['number']}"
+            self.store._insert('observations', dict(task_id=self.task_id, obs_id=evidence_id,
+                kind='factory_loop_result', values=report, source_artifacts=[], error={}, host_run={},
+                confidence=None, limitations='Unsubmitted reservation closed; no budget refund or measurement.', created=self.clock()))
+            self._finish_branch(cycle, evidence_id)
+            cycle.update(state='collected', abandoned_reason=reason, evidence_id=evidence_id,
+                result=dict(state='cancelled', analysis=report), ended=self.clock(),
+                followup=dict(status='proposal_only', requires_operator_admission=True))
+            self._write(cycle, 'abandoned_before_submission')
         return cycle
 
     @serialized
@@ -427,7 +523,9 @@ def owned_attempts(store, task_id):
 
 def dispatch(store, task_id, operation, inputs):
     methods = {'status': set(), 'select': {'cycle_id', 'evidence_ids', 'hypothesis_id', 'template_id', 'expected_rev'},
-               'execute': {'cycle_id'}, 'collect': {'cycle_id'}, 'stop': {'reason'}}
-    if operation not in methods or not isinstance(inputs, dict) or set(inputs) != methods[operation]:
+               'execute': {'cycle_id'}, 'collect': {'cycle_id'}, 'abandon': {'cycle_id', 'reason'}, 'stop': {'reason'}}
+    optional = {'branch_id', 'expected_graph_rev'} if operation == 'select' else set()
+    if (operation not in methods or not isinstance(inputs, dict)
+            or set(inputs) - (methods[operation] | optional) or methods[operation] - set(inputs)):
         raise ValueError('Invalid factory loop operation or input fields')
     return {'result': getattr(FactoryLoop(store, task_id), operation)(**inputs)}
