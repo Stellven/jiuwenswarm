@@ -1,0 +1,46 @@
+cc: '2'
+id: factory.source_workbench
+version: 1.0.0
+materials:
+  methodology:
+    path: METHOD.md
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  inspect:
+    does: Inspect HEAD, status and bounded file paths inside the task-owned checkout.
+    takes:
+      prefix: {kind: text, optional: true}
+      offset: {kind: json, optional: true}
+      limit: {kind: json, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  read:
+    does: Read a bounded source file page and its complete SHA256 identity.
+    takes:
+      path: text
+      offset: {kind: json, optional: true}
+      limit: {kind: json, optional: true}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  write:
+    does: Atomically write bounded source text under an expected SHA256, null for a new file.
+    takes: {path: text, text: text, expected_sha256: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec, workspace.write]
+  localcommit:
+    does: Commit explicit source files locally at an expected HEAD without hooks, filters, signing or remote operations.
+    takes: {paths: json, message: text, expected_head: text}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec, workspace.write]

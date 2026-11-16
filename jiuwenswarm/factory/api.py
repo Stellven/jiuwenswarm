@@ -65,6 +65,7 @@ def _dispatch(store, task_id, capability, packet):
         dispatch_precondition(store, task_id, inputs['node_id'])
     node_link = {'node_id': inputs['node_id']} if 'node_id' in inputs else {}
     for prefix, module in (('evidence_digest.', 'evidence_digest'),
+                           ('source_workbench.', 'source_workbench'),
                            ('branch_workbench.', 'branch_workbench'),
                            ('lab_evidence.', 'lab_evidence'),
                            ('throughput_workbench.', 'throughput_workbench'),

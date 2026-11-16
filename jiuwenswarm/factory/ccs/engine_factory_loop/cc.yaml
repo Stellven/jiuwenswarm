@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.engine_factory_loop
-version: 1.2.0
+version: 1.2.1
 materials:
   methodology:
     path: METHOD.md
@@ -58,8 +58,8 @@ capabilities:
     changes:
     - process.exec
   execute:
-    does: Freeze an exact admitted template into a new child task and submit via the
-      existing durable benchmark queue. Replay recovers the same attempt.
+    does: Execute an admitted template or authored experiment, reconcile its optional native
+      build, and submit through durable jobs. Replay recovers the same attempt.
     takes:
       cycle_id:
         kind: text
@@ -71,7 +71,7 @@ capabilities:
     - process.exec
     - gpu.use
   collect:
-    does: Reconcile the child benchmark, retain failed or successful evidence and
+    does: Reconcile the child experiment or benchmark, retain failed or successful evidence and
       expose follow-up proposals for the agent's next decision.
     takes:
       cycle_id:

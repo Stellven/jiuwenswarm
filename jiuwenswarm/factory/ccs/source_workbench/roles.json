@@ -1,0 +1,13 @@
+{
+  "format": "factory-roles/1",
+  "materials": {
+    "methodology": "method",
+    "verification": "reference"
+  },
+  "capabilities": {
+    "inspect": "tool",
+    "read": "tool",
+    "write": "tool",
+    "localcommit": "tool"
+  }
+}
