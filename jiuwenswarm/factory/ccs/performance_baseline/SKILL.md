@@ -17,3 +17,12 @@ tensor, repeats and sample count, and compare paired_samples fields. The legacy
 resident_matvec_s scalar remains batch timing in both modes. Retain all sample
 checks and report self-check versus independent validation separately. Use
 NATIVE-PROVENANCE.json to inspect the packaged source's construction lineage.
+
+
+For independent numerical replay, read METHOD.md's 1.1.0 admission fields. Keep
+producer self-checks separate from host recomputation. `verify_vectors` reads
+bounded pinned files offline; it does not establish independent admission by itself.
+The host `baseline_replay.verify_attempt` binds the same verifier to admitted task
+pins and retained artifact digests. Report missing vectors as unverified, and never
+use two agreeing producer vectors as an independently recomputed reference. Keep
+GGUF name/type/extent validation and execution provenance explicit dependencies.

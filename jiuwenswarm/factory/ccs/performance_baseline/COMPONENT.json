@@ -4,11 +4,13 @@
   "roles": [
     "model_accounting",
     "page_replay",
-    "ceiling_analysis"
+    "ceiling_analysis",
+    "independent_slice_numerical_replay"
   ],
   "oracle": "harness.py",
   "supported_oracle_layouts": [
     "f32_le_row_major"
   ],
-  "engine_acceptance": false
+  "engine_acceptance": false,
+  "numerical_verifier": "numerical_replay.py"
 }

@@ -1,56 +1,77 @@
 {
   "format": "factory-native-source-provenance/1",
-  "package_version": "1.0.2",
+  "package_version": "1.1.0",
   "source": {
     "path": "oracle.cu",
-    "sha256": "c8036c24cf411b39656d74ad78e83362293ac4f7e2507036fe3e8b9cfb40a2ab",
-    "agent_commit": "aa08fb790561bb6d6ea50774f7acd6c4ac90e13e",
-    "operator_seed_commit": "98e72dee2e343ba9e46040db63ff9d0d24fa2799",
-    "campaign": "construction-acceptance-v2",
-    "task_id": "construction-agent-v2r1",
-    "change": "Paired GPU-event and synchronized host raw samples, per-sample fixed FP64 checks, and optional batch/each synchronization cadence"
+    "sha256": "de289cf20ee82f37832fe02a330fa45c3fb1e5230094f098cc84c3647ea5a6b0",
+    "change": "Opt-in bounded FP32 inputs/outputs and FP64 producer reference, retained outside timed regions; independent host recomputation.",
+    "validation": "CPU/source tests only; no build or hardware execution of this revision"
   },
-  "live_build": {
-    "attempt_id": "ede41bb076fe41a2b3bd686ae90e6d95",
-    "target": "baseline_oracle",
-    "architecture": "aarch64",
-    "cuda_toolchain": "13.0.88",
-    "receipt_sha256": "d6e0de5d595eafd045a02f8303c99b333bc51c7fb11e89ddcf98f48e59a93bed",
-    "executable_sha256": "0a13c2ffa221ff6498b670f7092716d165041239e019623b4eb89fe9449faf05",
-    "runtime_image": "sha256:d3d571a8f85b90a14cb85d22e3f09c7437f744531801ee49d1886d88d0e65e82"
-  },
-  "live_gpu_evidence": [
-    {
-      "attempt_id": "fe2eef3d62dd4a10b32c577b643e946c",
-      "synchronization": "batch",
-      "stdout_sha256": "7a44368de9bac923df651d6ec5fa642d72fdc63ef59de2978e7f51026d45b10b"
-    },
-    {
-      "attempt_id": "035205c056ba43b2b96103e494a95ced",
-      "synchronization": "each",
-      "stdout_sha256": "c24c0347ca6a90d01f57ab3b156dbd1624c5b2640771494b5f01e3be35fdcb92"
-    }
-  ],
   "scope": {
-    "kind": "FP32 actual-tensor calibration construction evidence",
-    "tensor": "blk.0.hc_attn_fn.weight",
-    "offset": 14942034912,
-    "shape": [24, 20480],
-    "repeats": 100,
-    "samples_per_run": 9,
-    "activation": "deterministic calibration input ((column%17)-8)/17, not captured activation",
-    "criterion": "finite(output) and abs(error)<=1e-5+1e-5*abs(reference)",
-    "independent_output_vector_replay": false,
-    "packed_expert_ceiling_established": false,
+    "promotion_authorized": false,
     "whole_model_tokens_per_second": null,
-    "optimality_established": false,
-    "promotion_authorized": false
+    "packed_expert_ceiling_established": false,
+    "live_replay_validated": false
   },
-  "limitations": [
-    "The executable interprets caller-declared bytes as FP32; it does not validate tensor metadata or slice identity itself",
-    "Per-sample numerical results are executable self-checks, not independently replayed output/reference vectors",
-    "Timing changes reflect synchronization cadence and measurement boundaries, not an established kernel speed improvement",
-    "Samples within each process are correlated; observer overhead and storage cache state remain unknown",
-    "This reference identifies retained live artifacts; sealing the package does not independently revalidate those artifacts"
+  "historical": [
+    {
+      "format": "factory-native-source-provenance/1",
+      "package_version": "1.0.2",
+      "source": {
+        "path": "oracle.cu",
+        "sha256": "c8036c24cf411b39656d74ad78e83362293ac4f7e2507036fe3e8b9cfb40a2ab",
+        "agent_commit": "aa08fb790561bb6d6ea50774f7acd6c4ac90e13e",
+        "operator_seed_commit": "98e72dee2e343ba9e46040db63ff9d0d24fa2799",
+        "campaign": "construction-acceptance-v2",
+        "task_id": "construction-agent-v2r1",
+        "change": "Paired GPU-event and synchronized host raw samples, per-sample fixed FP64 checks, and optional batch/each synchronization cadence"
+      },
+      "live_build": {
+        "attempt_id": "ede41bb076fe41a2b3bd686ae90e6d95",
+        "target": "baseline_oracle",
+        "architecture": "aarch64",
+        "cuda_toolchain": "13.0.88",
+        "receipt_sha256": "d6e0de5d595eafd045a02f8303c99b333bc51c7fb11e89ddcf98f48e59a93bed",
+        "executable_sha256": "0a13c2ffa221ff6498b670f7092716d165041239e019623b4eb89fe9449faf05",
+        "runtime_image": "sha256:d3d571a8f85b90a14cb85d22e3f09c7437f744531801ee49d1886d88d0e65e82"
+      },
+      "live_gpu_evidence": [
+        {
+          "attempt_id": "fe2eef3d62dd4a10b32c577b643e946c",
+          "synchronization": "batch",
+          "stdout_sha256": "7a44368de9bac923df651d6ec5fa642d72fdc63ef59de2978e7f51026d45b10b"
+        },
+        {
+          "attempt_id": "035205c056ba43b2b96103e494a95ced",
+          "synchronization": "each",
+          "stdout_sha256": "c24c0347ca6a90d01f57ab3b156dbd1624c5b2640771494b5f01e3be35fdcb92"
+        }
+      ],
+      "scope": {
+        "kind": "FP32 actual-tensor calibration construction evidence",
+        "tensor": "blk.0.hc_attn_fn.weight",
+        "offset": 14942034912,
+        "shape": [
+          24,
+          20480
+        ],
+        "repeats": 100,
+        "samples_per_run": 9,
+        "activation": "deterministic calibration input ((column%17)-8)/17, not captured activation",
+        "criterion": "finite(output) and abs(error)<=1e-5+1e-5*abs(reference)",
+        "independent_output_vector_replay": false,
+        "packed_expert_ceiling_established": false,
+        "whole_model_tokens_per_second": null,
+        "optimality_established": false,
+        "promotion_authorized": false
+      },
+      "limitations": [
+        "The executable interprets caller-declared bytes as FP32; it does not validate tensor metadata or slice identity itself",
+        "Per-sample numerical results are executable self-checks, not independently replayed output/reference vectors",
+        "Timing changes reflect synchronization cadence and measurement boundaries, not an established kernel speed improvement",
+        "Samples within each process are correlated; observer overhead and storage cache state remain unknown",
+        "This reference identifies retained live artifacts; sealing the package does not independently revalidate those artifacts"
+      ]
+    }
   ]
 }

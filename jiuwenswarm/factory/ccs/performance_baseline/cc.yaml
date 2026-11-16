@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.performance_baseline
-version: 1.0.2
+version: 1.1.0
 materials:
   component:
     path: COMPONENT.json
@@ -22,6 +22,8 @@ materials:
     path: LAYOUT-SOURCES.json
   native_provenance:
     path: NATIVE-PROVENANCE.json
+  numerical_replay:
+    path: numerical_replay.py
 bindings:
   default:
     kind: native
@@ -112,6 +114,23 @@ capabilities:
       offset: json
       shape: json
       repeats: json
+      replay_identity:
+        kind: json
+        optional: true
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  verify_vectors:
+    does: Recompute a bounded FP64 matvec from pinned FP32 slice/input bytes and verify
+      retained output vectors; caller pins alone do not establish host admission.
+    takes:
+      weights_path: text
+      replay_root: text
+      expected: json
+      artifact_sha256: json
     gives:
       result: json
     needs:

@@ -149,15 +149,27 @@ from model_layout import inspect_gguf
 TOOLS["inspect_gguf"] = inspect_gguf
 
 
-def native_experiment(hypothesis,evidence_ids,budget,offset,shape,repeats):
+def native_experiment(hypothesis,evidence_ids,budget,offset,shape,repeats,replay_identity=None):
     rows,columns=shape
     if any(type(v) is not int or v<=0 for v in (rows,columns,repeats)) or rows*columns>16777216 or repeats>1000 or type(offset) is not int or offset<0:
         raise ValueError('Invalid bounded tensor slice')
+    recipe=['/opt/strata/baseline_oracle','/model/weights',str(offset),str(rows),str(columns),str(repeats)]
+    if replay_identity is not None:
+        import re
+        if rows>4096 or columns>262144 or set(replay_identity)!={'run_id','tensor_id'}:
+            raise ValueError('Invalid bounded replay identity')
+        for value in replay_identity.values():
+            if not isinstance(value,str) or not re.fullmatch('[A-Za-z0-9_.-]{1,128}',value):
+                raise ValueError('Invalid replay identity')
+        recipe += ['9','batch',replay_identity['run_id'],replay_identity['tensor_id']]
     return dict(hypothesis=hypothesis,evidence_ids=evidence_ids,purpose='gpu_probe',
         changed_variables=['expert_availability'],artifacts={},
-        recipe=['/opt/strata/baseline_oracle','/model/weights',str(offset),str(rows),str(columns),str(repeats)],
+        recipe=recipe,
         measurements=['storage_read_s','resident_matvec_s','copy_bandwidth_bytes_s','launch_overhead_s','maximum_absolute_error',
                       'paired_samples.gpu_event_s','paired_samples.synchronized_host_s','paired_samples.reference_passed'],
-        interpretation='Caller-declared FP32 slice: native oracle does not verify tensor format, boundaries or slice digest. Host metadata validation is required to establish actual FP32 identity. Deterministic calibration activations; CPU FP64 arithmetic self-check without retained output/reference vectors. Default nine paired samples use batch synchronization; resident_matvec_s always uses legacy batch timing. GPU events include stream idle/enqueue gaps; host times include recording/completion. Samples are correlated and observer overhead is unknown. No packed-kernel or end-to-end claim.',budget=budget)
+        interpretation='Caller-declared FP32 slice: native oracle does not verify tensor format, boundaries or slice digest. Host metadata validation is required to establish actual FP32 identity. Deterministic calibration activations; Legacy invocations run without retained output/reference vectors. Opt-in replay_identity retains bounded vectors outside timing for independent host recomputation from pinned slice/input bytes; producer flags are not host verification. Default nine paired samples use batch synchronization; resident_matvec_s always uses legacy batch timing. GPU events include stream idle/enqueue gaps; host times include recording/completion. Samples are correlated and observer overhead is unknown. No packed-kernel or end-to-end claim.',budget=budget)
 
 TOOLS['native_experiment']=native_experiment
+
+from numerical_replay import verify_vectors
+TOOLS['verify_vectors'] = verify_vectors

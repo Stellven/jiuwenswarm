@@ -5,7 +5,8 @@
     "inspect": "tool",
     "inspect_gguf": "tool",
     "native_experiment": "tool",
-    "replay": "tool"
+    "replay": "tool",
+    "verify_vectors": "tool"
   },
   "format": "factory-roles/1",
   "materials": {
@@ -17,6 +18,7 @@
     "oracle": "reference",
     "roles": "reference",
     "skill": "skill",
-    "verification": "reference"
+    "verification": "reference",
+    "numerical_replay": "reference"
   }
 }

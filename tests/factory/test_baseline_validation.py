@@ -114,10 +114,17 @@ def test_packaged_native_provenance_matches_sealed_source(tmp_path):
     host=Host(tmp_path/'ccstore')
     release=host.prepare(root)
     declaration,bundle=host.release(release)
-    assert declaration['version']=='1.0.2'
+    assert declaration['version']=='1.1.0'
     assert read_roles(declaration,bundle)['materials']['native_provenance']=='reference'
     provenance=json.loads((bundle/'NATIVE-PROVENANCE.json').read_text())
     assert hashlib.sha256((bundle/provenance['source']['path']).read_bytes()).hexdigest()==provenance['source']['sha256']
-    assert provenance['source']['agent_commit']=='aa08fb790561bb6d6ea50774f7acd6c4ac90e13e'
+    assert provenance['historical'][0]['source']['agent_commit']=='aa08fb790561bb6d6ea50774f7acd6c4ac90e13e'
     assert provenance['scope']['promotion_authorized'] is False
     assert provenance['scope']['whole_model_tokens_per_second'] is None
+
+
+def test_native_replay_is_opt_in_and_preserves_legacy_argv(baseline):
+    result=baseline.native_experiment('probe',[],{},0,[2,4],10,replay_identity={'run_id':'r1','tensor_id':'tensor.weight'})
+    assert result['recipe'][-4:]==['9','batch','r1','tensor.weight']
+    with pytest.raises(ValueError):
+        baseline.native_experiment('probe',[],{},0,[2,4],10,replay_identity={'run_id':'bad"','tensor_id':'t'})
