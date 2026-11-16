@@ -70,3 +70,73 @@ as `external-round1-cpu-telemetry` and announced through the controller's operat
 inbox. All referenced raw hashes and the original manifest were checked again on
 Spark before publication. This external input must be distinguished from the
 initial plan above. No target, baseline, budget or evaluator was changed.
+
+## Operator steering: generalization
+
+During round 2 the operator asked which prompts/tests were selected, specifically
+to avoid optimizing for one prompt shape. The current workload is operator-chosen,
+not agent-chosen: two requests using the same 1471-token input and 64-token output
+limit, first warming and second measuring. A/A, A/B and ABBA repeat this workload;
+they do not constitute cross-workload validation.
+
+The requirement is retained as `operator-generalization-requirement` and delivered
+to the agent's operator inbox. The frozen campaign continues unchanged as a
+discovery experiment. Even `target_met` would be scoped to that workload; there is
+no runtime promotion or generalization claim.
+
+Before any broader claim, independently freeze a separate holdout suite covering
+code, prose, reasoning and structured content; short/medium/long inputs; short
+and long outputs; and specified cold/warm conditions. Report prefill, decode,
+total request latency, per-case correctness and regressions. Define the aggregate
+and regression tolerances before execution, preserve every case, and do not
+repeatedly tune against holdout outcomes. Match each baseline/candidate pair's
+resource and cache treatment. This suite is a required next validation stage,
+not something already executed or admitted by this campaign's contract.
+
+The first round-2 screen illustrates this distinction. Its decode result was
+13.9388 versus 15.1752 tokens/s (+8.87%, target not met), while retained engine
+phase timings sum to 19.9987 seconds for A versus 25.1937 for B. Candidate prefill
+was slower in this pair. The [verified non-scored diagnostic](20261116-round2-prefill-diagnostic.json)
+records raw hashes and values. This is neither independent client latency nor a
+causal regression finding: run order and cache conditions may confound it. It
+was explicitly supplied as external review, not credited as the agent's discovery.
+
+## Completed result
+
+The real agent finished with scoped `accept`, decision 12, after nine controller
+turns and about 39 minutes. Three source candidates were built and screened:
+
+| Candidate | A tokens/s | B tokens/s | Gain | Outcome |
+| --- | ---: | ---: | ---: | --- |
+| Bounded caller completion wait, inherited 200us worker idle | 13.9388 | 15.1752 | 8.87% | Below target |
+| Immediate ARM worker parking, original caller wait restored | 13.9255 | 14.4878 | 4.04% | Below target |
+| 1ms ARM worker idle bound | 13.9121 | 15.5843 | 12.02% | Qualifying screen |
+| Same 1ms candidate, separate ABBA | 14.0357 mean | 15.6148 mean | 11.25% mean | Frozen discovery target met |
+
+Confirmation's slowest B versus fastest A gain was **10.0175%**, barely above the
+10% threshold. Exact tokens/finish, fixed placement and baseline stability passed.
+Independent post-run re-verification checked raw hashes, protocol boundaries and
+cleanup. Twelve GPU processes, five comparisons and three builds were consumed.
+The agent explicitly stopped its graph after collection: revision 19, 19 completed
+nodes, status `cancelled`, no cleanup pending. No candidate promotion occurred.
+
+The confirmed source is `231b10b9780c8fb678d130a5d23676660e798add`, image
+`sha256:343355fc4ff55d899dd4247ebf8b47025bdf44c7f3431b246f36137e69eb5c59`.
+The library was refreshed to 622 snapshots across 16 stores. All three source
+commits, including unsuccessful interventions and their reversals, are preserved.
+
+- [Actual final agent report](20261116-round2-agent-report.md)
+- [Verified measurements, provenance and learning observations](20261116-round2-summary.json)
+- [Source experiment patch series](20261116-round2-source-experiments.patch)
+- [Parallel round-1 investigation](20261116-round1-investigation.md)
+
+This is evidence of retrieval and changed decisions, followed by a better result
+on the discovery workload. The initial history-based plan preceded external
+telemetry delivery; subsequent mechanistic choices were assisted by that review.
+It is not evidence of autonomous discovery of those counters or model training.
+
+The confirmation's recorded prefill-plus-decode phase times averaged 19.1175s
+for A and 19.2206s for B: there was no mean improvement in that sum. These are
+non-scored engine phase times, not independent client latency or causal evidence.
+Together with the small margin and single prompt, this reinforces the requirement
+for held-out, multi-shape, correctness and latency qualification before promotion.

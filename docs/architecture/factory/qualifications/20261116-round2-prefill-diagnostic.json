@@ -1,0 +1,21 @@
+{
+  "attempt_id": "c39634e9ff744af4bfa05284d8950a2a",
+  "manifest_sha256": "548992df5c3f54dbd23fe3f9021954ead92b8be7afd5482792f74380f8ac604d",
+  "cells": [
+    {
+      "arm": "A",
+      "prefill_ms": 15407.2,
+      "decode_ms": 4591.5,
+      "prefill_plus_decode_ms": 19998.7,
+      "stdout_sha256": "c03583610654bfe39e1ff23b1f17ffe54dc31867ca8861311d7bcfc81238449f"
+    },
+    {
+      "arm": "B",
+      "prefill_ms": 20976.3,
+      "decode_ms": 4217.4,
+      "prefill_plus_decode_ms": 25193.699999999997,
+      "stdout_sha256": "79ac2b4d5a8f1f6dc9ffa3e1ba26cb2ec7606d5c41277a52fcc16d795650e74e"
+    }
+  ],
+  "interpretation": "Non-scored existing diagnostic: candidate decode improved but its measured prefill and sum were slower in this one pair. Cache/order effects may confound attribution. Sum is reported engine phase time, not independently measured full client latency. No acceptance rule changed."
+}

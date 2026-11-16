@@ -1,35 +1,26 @@
-# IT provisioning for the inference software factory
+# IT provisioning for the factory/build host and Spark labs
 
-Observed on the running Spark on 2026-11-16. This is an evidence-based handoff,
-not a claim that a clean-machine installation has been reproduced. It separates
-the working configuration from requirements and gaps. No host settings were
-changed for this inventory, and no new GPU/build jobs were launched.
+The new IT machine is the **factory/controller and build host**; DGX Sparks remain dedicated inference labs. Expected hardware is Intel 13th/14th-generation x86-64, possibly with two RTX 5070 GPUs; exact parts remain undecided. Request **Ubuntu 24.04 LTS amd64**. Local GPUs are optional for compilation and do not replace Spark qualification. See [build/lab separation](BUILD-LAB-SEPARATION.md) for cross-compilation and remote delivery work still required.
+
+The retained inventory below describes the existing Spark lab on 2026-11-16, not a clean installation of the new Intel host. No host settings were changed or new GPU/build jobs launched for this inventory.
 
 ## Values for the IT request form
 
 | Form field | Requested value / clarification |
 | --- | --- |
-| Operating system | **Ubuntu**, NVIDIA-supported DGX Spark ARM64 image if the replacement is another GB10/Spark. Observed image is Ubuntu 24.04.5 LTS with NVIDIA kernel 7.0.0-1019. Do not substitute generic x86 Ubuntu, EulerOS or CentOS without a separate port/qualification. Hardware model remains to be confirmed. |
-| RAID, default two disks RAID1 | **Confirm disk count and hardware first.** Current Spark exposes one root filesystem on `/dev/nvme0n1p2`, approximately 4 TB decimal; no evidence of a two-disk RAID1 arrangement. Do not assume the form's default is applicable. Mirroring must still leave sufficient usable model/build/evidence space. |
-| Partitions | Vendor-recommended boot/system layout is acceptable if the persistent data filesystem has sufficient capacity and supports ordinary Linux ownership, locking and atomic rename. Current `/home` and Docker data share the root NVMe filesystem. Reserve capacity for roughly 240 GiB of model files plus images, build caches and growing experiment history. Do not size the system disk for OS files alone. |
-| Users, default root/admin only | A **named non-root admin account** with sudo, writable workspace, SSH access, approved Docker access and user linger can satisfy this policy. A separate service account is preferable but not required by the observed setup. Current account is `user2`, UID/GID 1002; exact identity may change if ownership/mounts are remapped. Root-only operation is not the qualified setup. |
-| Additional tools, default OS only | **A generic default OS is insufficient.** Verify NVIDIA driver and Container Toolkit/CDI, Docker Engine, Python 3.12 with venv, Git, SSH, systemd user services, the approved ARM64 Python dependency bundle, pinned build/runtime images, factory and queue source, and model assets. The vendor Spark image may already supply much of the GPU/container stack; verify before reinstalling. Node/npm are needed only on a frontend build machine if the built console is transferred. See exact versions and provenance below. |
-| HProxy tools copied | Copying tools does not configure connectivity. IT must provide the approved invocation/configuration, upstream access and certificate requirements, and whether proxy settings apply to the service account, package manager, Docker daemon and agent. No HProxy endpoint, port or credential is inferred here. |
-| Others | Enable persistent user services (linger); keep the console loopback-only on port 5175 and access by SSH tunnel; supply sufficient unified memory and NVMe storage; import approved offline dependencies/models; provision agent authentication privately; install exactly one shared queue worker; qualify GPU access, cleanup and correctness before live cutover. |
+| Operating system | **Ubuntu 24.04 LTS, amd64/x86-64** for the Intel factory/build host, with a supported kernel for its actual hardware. Sparks keep their NVIDIA-supported ARM64 DGX OS. Do not clone Spark's ARM64 OS/Python environment onto Intel. |
+| RAID, default two disks RAID1 | RAID1 is acceptable if two suitable disks are supplied. Confirm usable SSD capacity after mirroring and backups separately. This is a new-host choice, not a requirement inherited from Spark. |
+| Partitions | OS-recommended boot/system layout with adequate persistent SSD space for Docker, sources, compiler/object caches, packaged images and factory evidence; a dedicated data mount is useful. Model weights stay on Spark labs and are **not required on the build host**. Confirm capacities before partitioning. |
+| Users, default root/admin only | A **named non-root admin account** with sudo, writable workspace, SSH, approved Docker access and user linger satisfies this policy. A separate service account is preferable but not mandatory. Root-only operation is not the qualified setup. |
+| Additional tools, default OS only | **Default OS alone is insufficient.** Docker/BuildKit, Python 3.12+venv, approved **x86-64** factory/agent dependencies, Git, SSH, systemd, Node/npm for console builds, CMake/Ninja, GCC/G++ ARM64 cross compiler, pinned CUDA 13.0 cross-SBSA toolkit and compatible ARM64 sysroot/runtime image. Install a separately qualified local NVIDIA driver/Container Toolkit if RTX GPUs will be used; CPU-only cross compilation does not intrinsically need a GPU driver. |
+| HProxy tools copied | IT must provide approved configuration/invocation, upstream access and CA/certificate requirements, including scope for account, package manager, Docker and agent. Copying tools does not configure connectivity; no endpoint/port/credential is assumed. |
+| Others | Persistent user services; console only on loopback port5175; private agent authentication; approved SSH/artifact transfer to Sparks; separate build scheduling from each lab's exclusive GPU queue. Preserve source/toolchain/artifact provenance. Current implementation still needs cross-builder and remote delivery/admission changes. |
 
-If IT only hands over the default OS, arrange approved post-handover installation
-privileges and network/mirror access for the listed dependencies. The form can
-remain concise; the remainder of this document is the installation handoff.
-NVIDIA's [Spark software requirements](https://docs.nvidia.com/dgx/dgx-spark-porting-guide/porting/software-requirements.html)
-and [platform overview](https://docs.nvidia.com/dgx/dgx-spark-porting-guide/latest/overview.html)
-identify the Ubuntu 24.04-based DGX OS and NVIDIA stack underlying this choice.
+If IT hands over only the default OS, arrange approved post-handover installation privileges and network/mirror access. NVIDIA's [CUDA13.0 cross-platform guide](https://docs.nvidia.com/cuda/archive/13.0.3/cuda-installation-guide-linux/index.html#cuda-cross-platform-environment) supports Ubuntu24.04 x86-64 hosts for ARM64-SBSA cross development. This route remains to be qualified for this STRATA recipe.
 
-If the machine is not another Spark/GB10, this is an application requirements
-list, not a compatible image recipe. The current target validates ARM64,
-CUDA 13 and SM121; a different GPU/architecture needs an explicit target profile,
-new builder/runtime images, memory limits and hardware qualification.
+The remaining inventory is the existing **Spark lab reference**. Its unified-memory requirement, 240GiB model directory and ARM64 native images are not Intel-host requirements. The deployment target remains ARM64/CUDA13/SM121; optional local RTX GPUs are a separate target if used for testing. NVIDIA's [Spark software requirements](https://docs.nvidia.com/dgx/dgx-spark-porting-guide/porting/software-requirements.html) describe the lab OS.
 
-## Observed host and what is actually required
+## Observed Spark lab host and requirements for that role
 
 | Layer | Observed current machine | Interpretation |
 | --- | --- | --- |
