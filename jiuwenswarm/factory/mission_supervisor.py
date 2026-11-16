@@ -222,11 +222,16 @@ class Supervisor:
 
     def cancel_owned(self):
         from .manager import Manager
+        errors = []
         with Store(self.home) as store:
             manager = Manager(store, self.home / 'lab-spool')
             for attempt in self.attempts():
                 if attempt['state'] in ACTIVE:
-                    manager.cancel(attempt['attempt_id'])
+                    try:
+                        manager.cancel(attempt['attempt_id'])
+                    except Exception as exc:
+                        errors.append(dict(attempt_id=attempt['attempt_id'], error=type(exc).__name__ + ': ' + str(exc)))
+        return errors
 
     def run(self):
         with (self.home.parent / 'factory-supervisor.lock').open('a') as lock:
@@ -322,10 +327,26 @@ class Supervisor:
                     raise RuntimeError('Control restart allowance exhausted')
             raise TimeoutError('Mission deadline')
         except BaseException as exc:
-            self.recover_control()
-            self.cancel_owned()
+            # Cleanup failures must neither strand later children nor erase the
+            # original stop reason. A cancellation request is not terminal proof.
+            cleanup_errors = []
+            try:
+                self.recover_control()
+            except Exception as cleanup:
+                cleanup_errors.append(dict(operation='recover_control', error=type(cleanup).__name__ + ': ' + str(cleanup)))
+            try:
+                cleanup_errors.extend(self.cancel_owned() or [])
+            except Exception as cleanup:
+                cleanup_errors.append(dict(operation='cancel_owned', error=type(cleanup).__name__ + ': ' + str(cleanup)))
+            pending_attempts = None
+            try:
+                pending_attempts = [a['attempt_id'] for a in self.attempts() if a['state'] in ACTIVE]
+            except Exception as cleanup:
+                cleanup_errors.append(dict(operation='read_attempts', error=type(cleanup).__name__ + ': ' + str(cleanup)))
             result = dict(task_id=self.task, outcome='partial', error=type(exc).__name__ + ': ' + str(exc),
-                          generations=generation, elapsed_s=time.monotonic() - started)
+                          generations=generation, elapsed_s=time.monotonic() - started,
+                          cleanup_errors=cleanup_errors, pending_attempts=pending_attempts,
+                          cancellation_complete=not cleanup_errors and pending_attempts == [])
             atomic_json(self.root / 'supervisor-result.json', result)
             return result
 

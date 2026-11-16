@@ -404,3 +404,26 @@ def test_actual_native_host_select_links_branch_and_abandon(tmp_path,monkeypatch
         assert closed['outputs']['result']['result']['analysis']['measured'] is False
         assert adapter.calls==0
     finally:gen.close()
+
+
+@pytest.mark.parametrize('state', ['queued', 'unknown', 'cancel_requested'])
+def test_parent_terminal_waits_for_child_and_collection(setup_loop, state):
+    from jiuwenswarm.factory.controller import Controller
+    store, _ = setup_loop
+    adapter = FakeBenchmark(store); adapter.state = 'failed'
+    loop = FactoryLoop(store, 'parent', benchmark=adapter, clock=lambda: 10)
+    choose(loop); sent = loop.execute('one')
+    child, attempt = sent['child_task_id'], sent['attempt_id']
+    if state != 'queued':
+        store.transition_attempt(child, attempt, state)
+    store.advance_decision('parent', 1, dict(action={'type': 'reject'}, evidence_ids=['seed']))
+    controller = Controller(store=store, jobs=object())
+    assert controller._terminal_ready('parent') is False
+    store.transition_attempt(child, attempt, 'failed')
+    assert controller._terminal_ready('parent') is False  # terminal execution is not collection
+    loop.stop('parent ending; retain child failure')
+    result = loop.collect('one')
+    assert result['result']['analysis']['verdict'] == 'inconclusive'
+    assert store.read('parent', result['evidence_id'])['host_run'] == dict(child_task_id=child, attempt_id=attempt)
+    store.advance_decision('parent', 2, dict(action={'type': 'reject'}, evidence_ids=[result['evidence_id']]))
+    assert controller._terminal_ready('parent') is True

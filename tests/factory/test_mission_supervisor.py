@@ -274,3 +274,56 @@ def test_sequential_task_state_isolated_and_legacy_receipts_preserved(tmp_path):
     assert mission_root(home,'first')==legacy
     assert mission_root(home,'second')==home/'missions/second'
     assert json.loads((legacy/'deadline.json').read_text())['task_id']=='first'
+
+
+def test_cancel_owned_continues_after_one_child_cancellation_failure(tmp_path, monkeypatch):
+    runner = supervisor(tmp_path)
+    rows = [dict(attempt_id='first', state='unknown'), dict(attempt_id='second', state='running'),
+            dict(attempt_id='finished', state='failed')]
+    runner.attempts = lambda: rows
+    calls = []
+    def cancel(self, attempt_id):
+        calls.append(attempt_id)
+        if attempt_id == 'first':
+            raise RuntimeError('queue unavailable')
+        rows[1]['state'] = 'cancel_requested'
+    monkeypatch.setattr('jiuwenswarm.factory.manager.Manager.cancel', cancel)
+    errors = runner.cancel_owned()
+    assert calls == ['first', 'second']
+    assert errors == [{'attempt_id': 'first', 'error': 'RuntimeError: queue unavailable'}]
+
+
+def test_parent_deadline_retains_pending_children_when_cleanup_fails(tmp_path):
+    runner = supervisor(tmp_path)
+    runner.deadline_s = 0
+    calls = []
+    def recover():
+        calls.append('recover')
+        if len(calls) > 1:
+            raise RuntimeError('control cleanup unavailable')
+    def cancel():
+        calls.append('cancel')
+        raise RuntimeError('queue unavailable')
+    runner.recover_control = recover
+    runner.cancel_owned = cancel
+    runner.attempts = lambda: [dict(attempt_id='child-job', state='unknown')]
+    result = runner.run()
+    assert result['outcome'] == 'partial'
+    assert 'TimeoutError' in result['error']
+    assert calls == ['recover', 'recover', 'cancel']
+    assert result['pending_attempts'] == ['child-job']
+    assert result['cancellation_complete'] is False
+    assert len(result['cleanup_errors']) == 2
+    assert json.loads((runner.root / 'supervisor-result.json').read_text()) == result
+
+
+def test_parent_deadline_does_not_call_requested_cancellation_complete(tmp_path):
+    runner = supervisor(tmp_path)
+    runner.deadline_s = 0
+    runner.recover_control = lambda: None
+    runner.cancel_owned = lambda: []
+    runner.attempts = lambda: [dict(attempt_id='child-job', state='cancel_requested')]
+    result = runner.run()
+    assert result['pending_attempts'] == ['child-job']
+    assert result['cleanup_errors'] == []
+    assert result['cancellation_complete'] is False
