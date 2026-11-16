@@ -17,6 +17,33 @@ from jiuwenswarm.factory.targets import labels
 IMAGE = 'sha256:'+'a'*64
 
 
+@pytest.mark.parametrize('container', ['absent', 'present', 'unavailable', 'not_created'])
+def test_terminal_cleanup_requires_exact_absence(store, tmp_path, monkeypatch, container):
+    from jiuwenswarm.factory.jobs import metadata
+    store.create_task(dict(task_id='cleanup', objective='Cleanup evidence'))
+    attempt = store.create_attempt('cleanup', dict(kind='lab', idem_key='cleanup', fingerprint='cleanup', request={}))
+    attempt = store.transition_attempt('cleanup', attempt['attempt_id'], 'running')
+    attempt = store.transition_attempt('cleanup', attempt['attempt_id'], 'failed')
+    attempt = metadata(store, attempt, cleanup_state='process_groups_reaped;containers_unverified')
+    root = tmp_path / 'cell-root'
+    (root / 'cell').mkdir(parents=True)
+    if container != 'not_created':
+        (root / 'cell/intent.json').write_text('{}')
+    sealed = root / 'manifest.json'
+    sealed.write_text('immutable evidence')
+    monkeypatch.setattr('jiuwenswarm.factory.lab_lifecycle.load_intent', lambda path: {'exact': str(path)})
+    def inspect(intent):
+        assert intent['exact'] == str(root / 'cell')
+        if container == 'unavailable':
+            raise RuntimeError('Docker unavailable')
+        return None if container == 'absent' else {'owned': True}
+    monkeypatch.setattr('jiuwenswarm.factory.lab_lifecycle.inspect_owned', inspect)
+    result = strata_lab.reconcile_cleanup(Manager(store, tmp_path / 'spool'), attempt, root)
+    expected = {'absent': 'reaped', 'not_created': 'no_container_created'}.get(container, attempt['cleanup_state'])
+    assert result['cleanup_state'] == expected
+    assert sealed.read_text() == 'immutable evidence'
+
+
 @pytest.fixture
 def spark_lab(store, tmp_path, monkeypatch, request):
     model = tmp_path/'model.gguf'; model.write_bytes(b'tiny synthetic asset')

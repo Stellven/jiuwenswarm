@@ -121,6 +121,27 @@ def seal(root,task_id,attempt_id,request):
         admission_id=request['admission']['admission_id'],contract_id=request['contract']['contract_id'],files=files))
 
 
+def reconcile_cleanup(manager, attempt, root):
+    """Observe exact container absence without rewriting sealed evidence."""
+    if attempt['state'] not in {'succeeded', 'failed', 'cancelled'}:
+        return attempt
+    if not attempt.get('cleanup_state', '').startswith('process_groups_reaped'):
+        return attempt
+    from .jobs import metadata
+    from .lab_lifecycle import inspect_owned, load_intent
+    cell = root / 'cell'
+    try:
+        if (cell / 'intent.json').exists():
+            if inspect_owned(load_intent(cell)) is not None:
+                return attempt
+            state = 'reaped'
+        else:
+            state = 'no_container_created'
+    except (ValueError, OSError, RuntimeError):
+        return attempt  # Docker errors or ownership mismatch never prove absence.
+    return metadata(manager.store, attempt, cleanup_state=state)
+
+
 def recover_upload(manager, task_id, attempt_id, root):
     from .lab_lifecycle import recover_run
     request = manager.store.read(task_id, attempt_id)['request']

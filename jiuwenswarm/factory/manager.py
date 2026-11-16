@@ -149,6 +149,10 @@ class Manager:
                 recover_upload(self, attempt['task_id'], attempt_id, root)
         if attempt['request'].get('adapter') == 'strata-v1' and (root/'manifest.json').exists():
             self.ingest_upload(attempt['task_id'], attempt_id, root)
+        if (attempt['request'].get('adapter') == 'strata-v1'
+                and not os.environ.get('FACTORY_BRIDGE_DIR')):
+            from .strata_lab import reconcile_cleanup
+            result = reconcile_cleanup(self, self.jobs._get(attempt_id), root)
         return result
 
     def cancel(self, attempt_id):
@@ -169,7 +173,9 @@ class Manager:
     def result(self, attempt_id):
         self.status(attempt_id)
         result = self.jobs.result(attempt_id)
-        attempt = self.jobs._get(attempt_id)
+        # Jobs observes process groups; the adapter additionally observes its
+        # exact container. Do not leave the process-only result as final state.
+        attempt = self.status(attempt_id)
         evaluation = None
         try:
             evaluation = self.store._get('evaluations', attempt['task_id'], attempt_id + ':evaluation')
