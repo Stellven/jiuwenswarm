@@ -13,7 +13,7 @@ changed for this inventory, and no new GPU/build jobs were launched.
 | RAID, default two disks RAID1 | **Confirm disk count and hardware first.** Current Spark exposes one root filesystem on `/dev/nvme0n1p2`, approximately 4 TB decimal; no evidence of a two-disk RAID1 arrangement. Do not assume the form's default is applicable. Mirroring must still leave sufficient usable model/build/evidence space. |
 | Partitions | Vendor-recommended boot/system layout is acceptable if the persistent data filesystem has sufficient capacity and supports ordinary Linux ownership, locking and atomic rename. Current `/home` and Docker data share the root NVMe filesystem. Reserve capacity for roughly 240 GiB of model files plus images, build caches and growing experiment history. Do not size the system disk for OS files alone. |
 | Users, default root/admin only | A **named non-root admin account** with sudo, writable workspace, SSH access, approved Docker access and user linger can satisfy this policy. A separate service account is preferable but not required by the observed setup. Current account is `user2`, UID/GID 1002; exact identity may change if ownership/mounts are remapped. Root-only operation is not the qualified setup. |
-| Additional tools, default OS only | **Default is insufficient.** NVIDIA driver and Container Toolkit/CDI, Docker Engine, Python 3.12 with venv, Git, SSH, systemd user services, the approved ARM64 Python dependency bundle, pinned build/runtime images, factory and queue source, and model assets are required. Node/npm are needed only on a frontend build machine if the built console is transferred. See exact versions and provenance below. |
+| Additional tools, default OS only | **A generic default OS is insufficient.** Verify NVIDIA driver and Container Toolkit/CDI, Docker Engine, Python 3.12 with venv, Git, SSH, systemd user services, the approved ARM64 Python dependency bundle, pinned build/runtime images, factory and queue source, and model assets. The vendor Spark image may already supply much of the GPU/container stack; verify before reinstalling. Node/npm are needed only on a frontend build machine if the built console is transferred. See exact versions and provenance below. |
 | HProxy tools copied | Copying tools does not configure connectivity. IT must provide the approved invocation/configuration, upstream access and certificate requirements, and whether proxy settings apply to the service account, package manager, Docker daemon and agent. No HProxy endpoint, port or credential is inferred here. |
 | Others | Enable persistent user services (linger); keep the console loopback-only on port 5175 and access by SSH tunnel; supply sufficient unified memory and NVMe storage; import approved offline dependencies/models; provision agent authentication privately; install exactly one shared queue worker; qualify GPU access, cleanup and correctness before live cutover. |
 
@@ -47,13 +47,23 @@ new builder/runtime images, memory limits and hardware qualification.
 CPU boost is reported disabled by `lscpu`; no evidence was found that the
 factory changed this setting. Do not automatically change it for provisioning.
 
+The [sanitized package inventory](qualifications/20261116-spark-it-package-inventory.json)
+contains 274 selected installed host packages, the complete 182-distribution
+agent closure's names/versions, its source manifest hash, and 13 retained APT
+install/upgrade records filtered to relevant packages. Package lists are not a
+minimal install recipe. Command lines, direct download URLs and credentials were
+excluded. Retained logs show much of the NVIDIA/Docker/CUDA stack installed or
+upgraded on October 5, before the current November factory integration; it would
+be incorrect to attribute all of those packages to this work. Log rotation and
+image provisioning prevent a complete original-default versus current diff.
+
 ## OS defaults versus deliberate application configuration
 
 Observed sysctls: `vm.swappiness=60`, `vm.max_map_count=1048576`,
 `kernel.unprivileged_userns_clone=1`, `kernel.perf_event_paranoid=4`.
 `/etc/sysctl.d/10-map-count.conf` supplies max_map_count and belongs to the
-`procps` package. We have not established a before/after OS baseline or audited
-APT install history, so these are **observed settings**, not claimed factory
+`procps` package. We have not established a before/after OS baseline; the partial
+APT inventory above does not establish who changed sysctls. These are **observed settings**, not claimed factory
 tuning changes. No blanket sysctl change, privileged container, disabled
 AppArmor/seccomp, or relaxed profiler policy is required by the exercised path.
 

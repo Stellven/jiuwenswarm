@@ -1,0 +1,3219 @@
+{
+  "observed_at_utc": "2026-11-16T20:51:29.934581+00:00",
+  "scope": "Sanitized observed package inventory, not a minimal requirements list, clean bootstrap or proof factory installed every item. APT history may be rotated/incomplete; command lines and direct URLs omitted.",
+  "architecture": "aarch64",
+  "kernel": "7.0.0-1019-nvidia",
+  "agent_closure": {
+    "source": "/home/user2/software-factory-spark-20261113/agent-build-context-001/closure.json",
+    "sha256": "76a5885683516a6111ed99a68f302b1bd46be99b44a5865266ed63ea7396f842",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "distributions": [
+      {
+        "name": "a2a-sdk",
+        "version": "1.0.0"
+      },
+      {
+        "name": "a2ui-agent-sdk",
+        "version": "0.2.1"
+      },
+      {
+        "name": "agentdescent",
+        "version": "0.4.6"
+      },
+      {
+        "name": "aiofiles",
+        "version": "25.1.0"
+      },
+      {
+        "name": "aiohappyeyeballs",
+        "version": "2.6.1"
+      },
+      {
+        "name": "aiohttp",
+        "version": "3.13.5"
+      },
+      {
+        "name": "aiologic",
+        "version": "0.16.0"
+      },
+      {
+        "name": "aiosignal",
+        "version": "1.4.0"
+      },
+      {
+        "name": "aiosqlite",
+        "version": "0.22.1"
+      },
+      {
+        "name": "alembic",
+        "version": "1.18.4"
+      },
+      {
+        "name": "annotated-doc",
+        "version": "0.0.4"
+      },
+      {
+        "name": "annotated-types",
+        "version": "0.7.0"
+      },
+      {
+        "name": "anthropic",
+        "version": "0.120.2"
+      },
+      {
+        "name": "anyio",
+        "version": "4.13.0"
+      },
+      {
+        "name": "attrs",
+        "version": "26.1.0"
+      },
+      {
+        "name": "authlib",
+        "version": "1.7.0"
+      },
+      {
+        "name": "babel",
+        "version": "2.18.0"
+      },
+      {
+        "name": "bcrypt",
+        "version": "5.0.0"
+      },
+      {
+        "name": "beartype",
+        "version": "0.22.9"
+      },
+      {
+        "name": "beautifulsoup4",
+        "version": "4.14.3"
+      },
+      {
+        "name": "cacheout",
+        "version": "0.16.0"
+      },
+      {
+        "name": "cachetools",
+        "version": "7.0.6"
+      },
+      {
+        "name": "certifi",
+        "version": "2026.4.22"
+      },
+      {
+        "name": "cffi",
+        "version": "2.0.0"
+      },
+      {
+        "name": "charset-normalizer",
+        "version": "3.4.7"
+      },
+      {
+        "name": "click",
+        "version": "8.3.3"
+      },
+      {
+        "name": "cloudpickle",
+        "version": "3.1.2"
+      },
+      {
+        "name": "contourpy",
+        "version": "1.4.0"
+      },
+      {
+        "name": "courlan",
+        "version": "1.4.0"
+      },
+      {
+        "name": "cronsim",
+        "version": "2.7"
+      },
+      {
+        "name": "cryptography",
+        "version": "47.0.0"
+      },
+      {
+        "name": "culsans",
+        "version": "0.11.0"
+      },
+      {
+        "name": "cycler",
+        "version": "0.12.1"
+      },
+      {
+        "name": "cyclopts",
+        "version": "4.11.0"
+      },
+      {
+        "name": "dashscope",
+        "version": "1.25.17"
+      },
+      {
+        "name": "dateparser",
+        "version": "1.4.1"
+      },
+      {
+        "name": "distro",
+        "version": "1.9.0"
+      },
+      {
+        "name": "docstring-parser",
+        "version": "0.18.0"
+      },
+      {
+        "name": "docutils",
+        "version": "0.22.4"
+      },
+      {
+        "name": "docx2txt",
+        "version": "0.9"
+      },
+      {
+        "name": "et-xmlfile",
+        "version": "2.0.0"
+      },
+      {
+        "name": "exceptiongroup",
+        "version": "1.3.1"
+      },
+      {
+        "name": "fakeredis",
+        "version": "2.34.1"
+      },
+      {
+        "name": "fastapi",
+        "version": "0.136.1"
+      },
+      {
+        "name": "fastmcp",
+        "version": "2.14.7"
+      },
+      {
+        "name": "filelock",
+        "version": "3.29.0"
+      },
+      {
+        "name": "fonttools",
+        "version": "4.65.0"
+      },
+      {
+        "name": "frozenlist",
+        "version": "1.8.0"
+      },
+      {
+        "name": "fsspec",
+        "version": "2026.3.0"
+      },
+      {
+        "name": "gitcode-api",
+        "version": "1.3.0"
+      },
+      {
+        "name": "google-adk",
+        "version": "2.1.0"
+      },
+      {
+        "name": "google-api-core",
+        "version": "2.30.3"
+      },
+      {
+        "name": "google-auth",
+        "version": "2.49.2"
+      },
+      {
+        "name": "google-genai",
+        "version": "1.73.1"
+      },
+      {
+        "name": "googleapis-common-protos",
+        "version": "1.74.0"
+      },
+      {
+        "name": "graphviz",
+        "version": "0.21"
+      },
+      {
+        "name": "greenlet",
+        "version": "3.5.0"
+      },
+      {
+        "name": "grpcio",
+        "version": "1.80.0"
+      },
+      {
+        "name": "h11",
+        "version": "0.16.0"
+      },
+      {
+        "name": "hf-xet",
+        "version": "1.4.3"
+      },
+      {
+        "name": "htmldate",
+        "version": "1.10.0"
+      },
+      {
+        "name": "httpcore",
+        "version": "1.0.9"
+      },
+      {
+        "name": "httpx",
+        "version": "0.28.1"
+      },
+      {
+        "name": "httpx-sse",
+        "version": "0.4.3"
+      },
+      {
+        "name": "huggingface-hub",
+        "version": "1.12.0"
+      },
+      {
+        "name": "idna",
+        "version": "3.13"
+      },
+      {
+        "name": "importlib-metadata",
+        "version": "8.7.1"
+      },
+      {
+        "name": "intelli-router",
+        "version": "0.1.0"
+      },
+      {
+        "name": "jiter",
+        "version": "0.14.0"
+      },
+      {
+        "name": "joserfc",
+        "version": "1.6.4"
+      },
+      {
+        "name": "json-repair",
+        "version": "0.59.5"
+      },
+      {
+        "name": "json-rpc",
+        "version": "1.15.0"
+      },
+      {
+        "name": "jsonref",
+        "version": "1.1.0"
+      },
+      {
+        "name": "jsonschema",
+        "version": "4.26.0"
+      },
+      {
+        "name": "jsonschema-path",
+        "version": "0.4.6"
+      },
+      {
+        "name": "jsonschema-specifications",
+        "version": "2025.9.1"
+      },
+      {
+        "name": "justext",
+        "version": "3.0.2"
+      },
+      {
+        "name": "kiwisolver",
+        "version": "1.5.1"
+      },
+      {
+        "name": "loguru",
+        "version": "0.7.3"
+      },
+      {
+        "name": "lxml",
+        "version": "6.1.1"
+      },
+      {
+        "name": "mako",
+        "version": "1.3.11"
+      },
+      {
+        "name": "markdown-it-py",
+        "version": "4.0.0"
+      },
+      {
+        "name": "markupsafe",
+        "version": "3.0.3"
+      },
+      {
+        "name": "matplotlib",
+        "version": "3.11.2"
+      },
+      {
+        "name": "mcp",
+        "version": "1.29.0"
+      },
+      {
+        "name": "mdurl",
+        "version": "0.1.2"
+      },
+      {
+        "name": "mermaid-py",
+        "version": "0.8.4"
+      },
+      {
+        "name": "multidict",
+        "version": "6.7.1"
+      },
+      {
+        "name": "numpy",
+        "version": "2.4.4"
+      },
+      {
+        "name": "oauthlib",
+        "version": "3.3.1"
+      },
+      {
+        "name": "openai",
+        "version": "2.32.0"
+      },
+      {
+        "name": "openai-codex-cli-bin",
+        "version": "0.163.0"
+      },
+      {
+        "name": "openapi-pydantic",
+        "version": "0.5.1"
+      },
+      {
+        "name": "openjiuwen",
+        "version": "0.1.18"
+      },
+      {
+        "name": "openpyxl",
+        "version": "3.1.5"
+      },
+      {
+        "name": "opentelemetry-api",
+        "version": "1.41.1"
+      },
+      {
+        "name": "opentelemetry-exporter-otlp-proto-common",
+        "version": "1.41.1"
+      },
+      {
+        "name": "opentelemetry-exporter-otlp-proto-grpc",
+        "version": "1.41.1"
+      },
+      {
+        "name": "opentelemetry-exporter-otlp-proto-http",
+        "version": "1.41.1"
+      },
+      {
+        "name": "opentelemetry-proto",
+        "version": "1.41.1"
+      },
+      {
+        "name": "opentelemetry-sdk",
+        "version": "1.41.1"
+      },
+      {
+        "name": "opentelemetry-semantic-conventions",
+        "version": "0.62b1"
+      },
+      {
+        "name": "orjson",
+        "version": "3.11.8"
+      },
+      {
+        "name": "packaging",
+        "version": "26.2"
+      },
+      {
+        "name": "pandas",
+        "version": "3.0.2"
+      },
+      {
+        "name": "pathable",
+        "version": "0.5.0"
+      },
+      {
+        "name": "pdfminer-six",
+        "version": "20251230"
+      },
+      {
+        "name": "pdfplumber",
+        "version": "0.11.9"
+      },
+      {
+        "name": "pillow",
+        "version": "12.2.0"
+      },
+      {
+        "name": "platformdirs",
+        "version": "4.9.6"
+      },
+      {
+        "name": "portalocker",
+        "version": "3.2.0"
+      },
+      {
+        "name": "prometheus-client",
+        "version": "0.25.0"
+      },
+      {
+        "name": "propcache",
+        "version": "0.4.1"
+      },
+      {
+        "name": "proto-plus",
+        "version": "1.27.2"
+      },
+      {
+        "name": "protobuf",
+        "version": "6.33.6"
+      },
+      {
+        "name": "psutil",
+        "version": "7.2.2"
+      },
+      {
+        "name": "py-key-value-aio",
+        "version": "0.3.0"
+      },
+      {
+        "name": "py-key-value-shared",
+        "version": "0.3.0"
+      },
+      {
+        "name": "pyasn1",
+        "version": "0.6.3"
+      },
+      {
+        "name": "pyasn1-modules",
+        "version": "0.4.2"
+      },
+      {
+        "name": "pycparser",
+        "version": "3.0"
+      },
+      {
+        "name": "pycryptodome",
+        "version": "3.23.0"
+      },
+      {
+        "name": "pydantic",
+        "version": "2.13.3"
+      },
+      {
+        "name": "pydantic-core",
+        "version": "2.46.3"
+      },
+      {
+        "name": "pydantic-settings",
+        "version": "2.14.0"
+      },
+      {
+        "name": "pydocket",
+        "version": "0.18.2"
+      },
+      {
+        "name": "pygments",
+        "version": "2.20.0"
+      },
+      {
+        "name": "pyjwt",
+        "version": "2.12.1"
+      },
+      {
+        "name": "pymilvus",
+        "version": "2.6.9"
+      },
+      {
+        "name": "pyoxigraph",
+        "version": "0.5.8"
+      },
+      {
+        "name": "pyparsing",
+        "version": "3.3.2"
+      },
+      {
+        "name": "pypdfium2",
+        "version": "5.7.1"
+      },
+      {
+        "name": "pyperclip",
+        "version": "1.11.0"
+      },
+      {
+        "name": "pysbd",
+        "version": "0.3.4"
+      },
+      {
+        "name": "python-dateutil",
+        "version": "2.9.0.post0"
+      },
+      {
+        "name": "python-docx",
+        "version": "1.2.0"
+      },
+      {
+        "name": "python-dotenv",
+        "version": "1.2.2"
+      },
+      {
+        "name": "python-json-logger",
+        "version": "4.1.0"
+      },
+      {
+        "name": "python-multipart",
+        "version": "0.0.32"
+      },
+      {
+        "name": "python-socks",
+        "version": "2.8.1"
+      },
+      {
+        "name": "pytz",
+        "version": "2026.2"
+      },
+      {
+        "name": "pyyaml",
+        "version": "6.0.3"
+      },
+      {
+        "name": "redis",
+        "version": "7.4.0"
+      },
+      {
+        "name": "referencing",
+        "version": "0.37.0"
+      },
+      {
+        "name": "regex",
+        "version": "2026.4.4"
+      },
+      {
+        "name": "requests",
+        "version": "2.33.1"
+      },
+      {
+        "name": "rfc8785",
+        "version": "0.1.4"
+      },
+      {
+        "name": "rich",
+        "version": "15.0.0"
+      },
+      {
+        "name": "rich-rst",
+        "version": "1.3.2"
+      },
+      {
+        "name": "rpds-py",
+        "version": "0.30.0"
+      },
+      {
+        "name": "ruamel-yaml",
+        "version": "0.19.1"
+      },
+      {
+        "name": "safetensors",
+        "version": "0.7.0"
+      },
+      {
+        "name": "shellingham",
+        "version": "1.5.4"
+      },
+      {
+        "name": "six",
+        "version": "1.17.0"
+      },
+      {
+        "name": "sniffio",
+        "version": "1.3.1"
+      },
+      {
+        "name": "sortedcontainers",
+        "version": "2.4.0"
+      },
+      {
+        "name": "soupsieve",
+        "version": "2.8.3"
+      },
+      {
+        "name": "sqlalchemy",
+        "version": "2.0.49"
+      },
+      {
+        "name": "sqlmodel",
+        "version": "0.0.38"
+      },
+      {
+        "name": "sse-starlette",
+        "version": "3.4.1"
+      },
+      {
+        "name": "starlette",
+        "version": "0.52.1"
+      },
+      {
+        "name": "tenacity",
+        "version": "9.1.4"
+      },
+      {
+        "name": "tiktoken",
+        "version": "0.12.0"
+      },
+      {
+        "name": "tld",
+        "version": "0.13.2"
+      },
+      {
+        "name": "tokenizers",
+        "version": "0.22.2"
+      },
+      {
+        "name": "tqdm",
+        "version": "4.67.3"
+      },
+      {
+        "name": "trafilatura",
+        "version": "2.1.0"
+      },
+      {
+        "name": "transformers",
+        "version": "5.6.2"
+      },
+      {
+        "name": "typer",
+        "version": "0.25.0"
+      },
+      {
+        "name": "typing-extensions",
+        "version": "4.15.0"
+      },
+      {
+        "name": "typing-inspection",
+        "version": "0.4.2"
+      },
+      {
+        "name": "tzlocal",
+        "version": "5.3.1"
+      },
+      {
+        "name": "uncalled-for",
+        "version": "0.3.1"
+      },
+      {
+        "name": "urllib3",
+        "version": "2.6.3"
+      },
+      {
+        "name": "uvicorn",
+        "version": "0.46.0"
+      },
+      {
+        "name": "watchdog",
+        "version": "6.0.0"
+      },
+      {
+        "name": "watchfiles",
+        "version": "1.1.1"
+      },
+      {
+        "name": "websocket-client",
+        "version": "1.9.0"
+      },
+      {
+        "name": "websockets",
+        "version": "15.0.1"
+      },
+      {
+        "name": "wrapt",
+        "version": "2.1.2"
+      },
+      {
+        "name": "yarl",
+        "version": "1.23.0"
+      },
+      {
+        "name": "zipp",
+        "version": "3.23.1"
+      }
+    ]
+  },
+  "selected_installed_host_packages": [
+    {
+      "name": "binutils",
+      "version": "2.42-4ubuntu2.10"
+    },
+    {
+      "name": "binutils-aarch64-linux-gnu",
+      "version": "2.42-4ubuntu2.10"
+    },
+    {
+      "name": "binutils-common:arm64",
+      "version": "2.42-4ubuntu2.10"
+    },
+    {
+      "name": "build-essential",
+      "version": "12.10ubuntu1"
+    },
+    {
+      "name": "ca-certificates",
+      "version": "20260601~24.04.1"
+    },
+    {
+      "name": "ca-certificates-java",
+      "version": "20240118"
+    },
+    {
+      "name": "cmake",
+      "version": "3.28.3-1build7"
+    },
+    {
+      "name": "cmake-data",
+      "version": "3.28.3-1build7"
+    },
+    {
+      "name": "containerd.io",
+      "version": "2.2.5-1~ubuntu.24.04~noble"
+    },
+    {
+      "name": "cuda-cccl-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-command-line-tools-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-compiler-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-compute-repo-lowpri",
+      "version": "25.10-2"
+    },
+    {
+      "name": "cuda-crt-13-0",
+      "version": "13.0.88-1"
+    },
+    {
+      "name": "cuda-cudart-13-0",
+      "version": "13.0.96-1"
+    },
+    {
+      "name": "cuda-cudart-dev-13-0",
+      "version": "13.0.96-1"
+    },
+    {
+      "name": "cuda-culibos-dev-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-cuobjdump-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-cupti-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-cupti-dev-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-cuxxfilt-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-documentation-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-driver-dev-13-0",
+      "version": "13.0.96-1"
+    },
+    {
+      "name": "cuda-gdb-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-libraries-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-libraries-dev-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-nsight-compute-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-nsight-systems-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-nvcc-13-0",
+      "version": "13.0.88-1"
+    },
+    {
+      "name": "cuda-nvdisasm-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-nvml-dev-13-0",
+      "version": "13.0.87-1"
+    },
+    {
+      "name": "cuda-nvprune-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-nvrtc-13-0",
+      "version": "13.0.88-1"
+    },
+    {
+      "name": "cuda-nvrtc-dev-13-0",
+      "version": "13.0.88-1"
+    },
+    {
+      "name": "cuda-nvtx-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-profiler-api-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-sanitizer-13-0",
+      "version": "13.0.85-1"
+    },
+    {
+      "name": "cuda-toolkit-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-toolkit-13-0-config-common",
+      "version": "13.0.96-1"
+    },
+    {
+      "name": "cuda-toolkit-13-config-common",
+      "version": "13.4.92-1"
+    },
+    {
+      "name": "cuda-toolkit-config-common",
+      "version": "13.4.92-1"
+    },
+    {
+      "name": "cuda-tools-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "cuda-visual-tools-13-0",
+      "version": "13.0.3-1"
+    },
+    {
+      "name": "curl",
+      "version": "8.5.0-2ubuntu10.15"
+    },
+    {
+      "name": "docker-buildx-plugin",
+      "version": "0.35.0-1~ubuntu.24.04~noble"
+    },
+    {
+      "name": "docker-ce",
+      "version": "5:29.6.2-1~ubuntu.24.04~noble"
+    },
+    {
+      "name": "docker-ce-cli",
+      "version": "5:29.6.2-1~ubuntu.24.04~noble"
+    },
+    {
+      "name": "docker-compose-plugin",
+      "version": "5.2.0-1~ubuntu.24.04~noble"
+    },
+    {
+      "name": "g++-13",
+      "version": "13.3.0-6ubuntu2~24.04.1"
+    },
+    {
+      "name": "g++-13-aarch64-linux-gnu",
+      "version": "13.3.0-6ubuntu2~24.04.1"
+    },
+    {
+      "name": "gcc-13",
+      "version": "13.3.0-6ubuntu2~24.04.1"
+    },
+    {
+      "name": "gcc-13-aarch64-linux-gnu",
+      "version": "13.3.0-6ubuntu2~24.04.1"
+    },
+    {
+      "name": "gcc-13-base:arm64",
+      "version": "13.3.0-6ubuntu2~24.04.1"
+    },
+    {
+      "name": "git",
+      "version": "1:2.43.0-1ubuntu7.3"
+    },
+    {
+      "name": "git-man",
+      "version": "1:2.43.0-1ubuntu7.3"
+    },
+    {
+      "name": "libc6:arm64",
+      "version": "2.39-0ubuntu8.9"
+    },
+    {
+      "name": "libc6-dbg:arm64",
+      "version": "2.39-0ubuntu8.9"
+    },
+    {
+      "name": "libc6-dev:arm64",
+      "version": "2.39-0ubuntu8.9"
+    },
+    {
+      "name": "libgomp1:arm64",
+      "version": "14.2.0-4ubuntu2~24.04.1"
+    },
+    {
+      "name": "libnuma1:arm64",
+      "version": "2.0.18-1ubuntu0.24.04.1"
+    },
+    {
+      "name": "libssl3t64:arm64",
+      "version": "3.0.13-0ubuntu3.16"
+    },
+    {
+      "name": "libstdc++-13-dev:arm64",
+      "version": "13.3.0-6ubuntu2~24.04.1"
+    },
+    {
+      "name": "libstdc++6:arm64",
+      "version": "14.2.0-4ubuntu2~24.04.1"
+    },
+    {
+      "name": "nvidia-ai-workbench",
+      "version": "0.170.22~7-8076"
+    },
+    {
+      "name": "nvidia-compute-utils-580",
+      "version": "580.178.04-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "nvidia-conf-xconfig",
+      "version": "26.05-1"
+    },
+    {
+      "name": "nvidia-console-settings",
+      "version": "25.07-1"
+    },
+    {
+      "name": "nvidia-container-toolkit",
+      "version": "1.20.1-1"
+    },
+    {
+      "name": "nvidia-container-toolkit-base",
+      "version": "1.20.1-1"
+    },
+    {
+      "name": "nvidia-cppc-cpufreq-options",
+      "version": "25.06-1"
+    },
+    {
+      "name": "nvidia-crashdump",
+      "version": "25.08-1"
+    },
+    {
+      "name": "nvidia-desktop-default-remove-gnome-software-deb",
+      "version": "25.10-1"
+    },
+    {
+      "name": "nvidia-desktop-default-snaps",
+      "version": "25.10-2"
+    },
+    {
+      "name": "nvidia-dgx-telemetry",
+      "version": "7.3"
+    },
+    {
+      "name": "nvidia-disable-aqc-nic",
+      "version": "25.06-1"
+    },
+    {
+      "name": "nvidia-disable-init-on-alloc",
+      "version": "24.10-1"
+    },
+    {
+      "name": "nvidia-disable-numa-balancing",
+      "version": "24.10-2"
+    },
+    {
+      "name": "nvidia-driver-580-open",
+      "version": "580.178.04-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "nvidia-drm-options-modeset0",
+      "version": "25.07-1"
+    },
+    {
+      "name": "nvidia-earlycon",
+      "version": "25.06-1"
+    },
+    {
+      "name": "nvidia-enable-bt-profiles",
+      "version": "26.03-1"
+    },
+    {
+      "name": "nvidia-enable-power-meter-cap",
+      "version": "24.10-3"
+    },
+    {
+      "name": "nvidia-esm-hook-epilogue",
+      "version": "23.03-2"
+    },
+    {
+      "name": "nvidia-firmware-580-580.142",
+      "version": "580.142-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "nvidia-firmware-580-580.178.04",
+      "version": "580.178.04-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "nvidia-grub-params",
+      "version": "25.10-1"
+    },
+    {
+      "name": "nvidia-kernel-common-580",
+      "version": "580.178.04-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "nvidia-kernel-defaults",
+      "version": "21.05-1"
+    },
+    {
+      "name": "nvidia-kernel-source-580-open",
+      "version": "580.178.04-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "nvidia-logrotate",
+      "version": "21.11-1"
+    },
+    {
+      "name": "nvidia-lvfs-config",
+      "version": "25.09-1"
+    },
+    {
+      "name": "nvidia-mlnx-tools",
+      "version": "23.04"
+    },
+    {
+      "name": "nvidia-modprobe",
+      "version": "615.71.09-2ubuntu1"
+    },
+    {
+      "name": "nvidia-motd",
+      "version": "24.01-1"
+    },
+    {
+      "name": "nvidia-mstflint-loader",
+      "version": "23.03-1"
+    },
+    {
+      "name": "nvidia-no-systemd-suspend",
+      "version": "25.06-1"
+    },
+    {
+      "name": "nvidia-nvme-options",
+      "version": "26.02-1"
+    },
+    {
+      "name": "nvidia-pci-realloc",
+      "version": "25.02-1"
+    },
+    {
+      "name": "nvidia-plymouth",
+      "version": "20.06-2"
+    },
+    {
+      "name": "nvidia-raid-config",
+      "version": "25.10-1"
+    },
+    {
+      "name": "nvidia-redfish-config",
+      "version": "26.01-1"
+    },
+    {
+      "name": "nvidia-relaxed-ordering-gpu",
+      "version": "25.07-2"
+    },
+    {
+      "name": "nvidia-relaxed-ordering-nvme",
+      "version": "25.07-2"
+    },
+    {
+      "name": "nvidia-repo-keys",
+      "version": "26.07-1"
+    },
+    {
+      "name": "nvidia-sbsa-gwdt-options",
+      "version": "25.06-1"
+    },
+    {
+      "name": "nvidia-settings",
+      "version": "615.71.09-2ubuntu1"
+    },
+    {
+      "name": "nvidia-spark-avahi-conf",
+      "version": "1.0-1"
+    },
+    {
+      "name": "nvidia-spark-baud-rate",
+      "version": "25.09-1"
+    },
+    {
+      "name": "nvidia-spark-default-remove-nvidia-fs-pkg",
+      "version": "25.09-2"
+    },
+    {
+      "name": "nvidia-spark-desktop-edge-ppa",
+      "version": "1.1-1"
+    },
+    {
+      "name": "nvidia-spark-fstab-config",
+      "version": "1.0.0-1"
+    },
+    {
+      "name": "nvidia-spark-grub-kho",
+      "version": "1.0-1"
+    },
+    {
+      "name": "nvidia-spark-grub-pci",
+      "version": "1.0-1"
+    },
+    {
+      "name": "nvidia-spark-initcall-bl",
+      "version": "1.0-1"
+    },
+    {
+      "name": "nvidia-spark-limits",
+      "version": "1.0-1"
+    },
+    {
+      "name": "nvidia-spark-mlnx-firmware-manager",
+      "version": "5.0.8-1"
+    },
+    {
+      "name": "nvidia-spark-ota-check",
+      "version": "1.0.23-1"
+    },
+    {
+      "name": "nvidia-spark-realtek-mod-options",
+      "version": "1.1-1"
+    },
+    {
+      "name": "nvidia-spark-repo",
+      "version": "1.1-1"
+    },
+    {
+      "name": "nvidia-spark-run-apt-upgrade",
+      "version": "25.10-2"
+    },
+    {
+      "name": "nvidia-spark-wifi-fw-ppa",
+      "version": "1.2-1"
+    },
+    {
+      "name": "nvidia-system-core",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-extra",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station-apps",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station-common",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station-core",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station-games",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station-localization",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-station-utils",
+      "version": "2404.26.01-1"
+    },
+    {
+      "name": "nvidia-system-utils",
+      "version": "2404.25.09-2"
+    },
+    {
+      "name": "nvidia-update-manager",
+      "version": "20.06-1"
+    },
+    {
+      "name": "nvidia-utils-580",
+      "version": "580.178.04-0ubuntu0.24.04.1"
+    },
+    {
+      "name": "openssh-client",
+      "version": "1:9.6p1-3ubuntu13.19"
+    },
+    {
+      "name": "openssh-server",
+      "version": "1:9.6p1-3ubuntu13.19"
+    },
+    {
+      "name": "openssh-sftp-server",
+      "version": "1:9.6p1-3ubuntu13.19"
+    },
+    {
+      "name": "pkg-config:arm64",
+      "version": "1.8.1-2build1"
+    },
+    {
+      "name": "procps",
+      "version": "2:4.0.4-4ubuntu3.3"
+    },
+    {
+      "name": "python3",
+      "version": "3.12.3-0ubuntu2.1"
+    },
+    {
+      "name": "python3-apport",
+      "version": "2.28.3-0ubuntu0.1"
+    },
+    {
+      "name": "python3-apt",
+      "version": "2.7.7ubuntu5.3"
+    },
+    {
+      "name": "python3-aptdaemon",
+      "version": "1.1.1+bzr982-0ubuntu44"
+    },
+    {
+      "name": "python3-aptdaemon.gtk3widgets",
+      "version": "1.1.1+bzr982-0ubuntu44"
+    },
+    {
+      "name": "python3-attr",
+      "version": "23.2.0-2"
+    },
+    {
+      "name": "python3-automat",
+      "version": "22.10.0-2"
+    },
+    {
+      "name": "python3-babel",
+      "version": "2.10.3-3build1"
+    },
+    {
+      "name": "python3-bcrypt",
+      "version": "3.2.2-1build1"
+    },
+    {
+      "name": "python3-blinker",
+      "version": "1.7.0-1"
+    },
+    {
+      "name": "python3-boto3",
+      "version": "1.34.46+dfsg-1ubuntu1"
+    },
+    {
+      "name": "python3-botocore",
+      "version": "1.34.46+repack-1ubuntu1"
+    },
+    {
+      "name": "python3-bpfcc",
+      "version": "0.29.1+ds-1ubuntu7"
+    },
+    {
+      "name": "python3-brlapi:arm64",
+      "version": "6.6-4ubuntu5"
+    },
+    {
+      "name": "python3-cairo",
+      "version": "1.25.1-2build2"
+    },
+    {
+      "name": "python3-certifi",
+      "version": "2023.11.17-1"
+    },
+    {
+      "name": "python3-cffi-backend:arm64",
+      "version": "1.16.0-2build1"
+    },
+    {
+      "name": "python3-chardet",
+      "version": "5.2.0+dfsg-1"
+    },
+    {
+      "name": "python3-click",
+      "version": "8.1.6-2"
+    },
+    {
+      "name": "python3-colorama",
+      "version": "0.4.6-4"
+    },
+    {
+      "name": "python3-commandnotfound",
+      "version": "23.04.0"
+    },
+    {
+      "name": "python3-configobj",
+      "version": "5.0.8-3"
+    },
+    {
+      "name": "python3-constantly",
+      "version": "23.10.4-1"
+    },
+    {
+      "name": "python3-cryptography",
+      "version": "41.0.7-4ubuntu0.4"
+    },
+    {
+      "name": "python3-cups:arm64",
+      "version": "2.0.1-5build6"
+    },
+    {
+      "name": "python3-cupshelpers",
+      "version": "1.5.18-1ubuntu9"
+    },
+    {
+      "name": "python3-dateutil",
+      "version": "2.8.2-3ubuntu1"
+    },
+    {
+      "name": "python3-dbus",
+      "version": "1.3.2-5build3"
+    },
+    {
+      "name": "python3-debconf",
+      "version": "1.5.86ubuntu1"
+    },
+    {
+      "name": "python3-debian",
+      "version": "0.1.49ubuntu2"
+    },
+    {
+      "name": "python3-defer",
+      "version": "1.0.6-2.1ubuntu1"
+    },
+    {
+      "name": "python3-distro",
+      "version": "1.9.0-1"
+    },
+    {
+      "name": "python3-distro-info",
+      "version": "1.7build1"
+    },
+    {
+      "name": "python3-distupgrade",
+      "version": "1:24.04.29"
+    },
+    {
+      "name": "python3-dnspython",
+      "version": "2.6.1-1ubuntu1"
+    },
+    {
+      "name": "python3-fasteners",
+      "version": "0.18-2"
+    },
+    {
+      "name": "python3-freetype",
+      "version": "2.4.0-1"
+    },
+    {
+      "name": "python3-gdbm:arm64",
+      "version": "3.12.3-0ubuntu1"
+    },
+    {
+      "name": "python3-gi",
+      "version": "3.48.2-1"
+    },
+    {
+      "name": "python3-gi-cairo",
+      "version": "3.48.2-1"
+    },
+    {
+      "name": "python3-hamcrest",
+      "version": "2.1.0-1"
+    },
+    {
+      "name": "python3-httplib2",
+      "version": "0.20.4-3ubuntu0.1"
+    },
+    {
+      "name": "python3-hyperlink",
+      "version": "21.0.0-5"
+    },
+    {
+      "name": "python3-ibus-1.0",
+      "version": "1.5.29-2"
+    },
+    {
+      "name": "python3-idna",
+      "version": "3.6-2ubuntu0.2"
+    },
+    {
+      "name": "python3-incremental",
+      "version": "22.10.0-1"
+    },
+    {
+      "name": "python3-jinja2",
+      "version": "3.1.2-1ubuntu1.3"
+    },
+    {
+      "name": "python3-jmespath",
+      "version": "1.0.1-1"
+    },
+    {
+      "name": "python3-json-pointer",
+      "version": "2.0-0ubuntu1"
+    },
+    {
+      "name": "python3-jsonpatch",
+      "version": "1.32-3"
+    },
+    {
+      "name": "python3-jsonschema",
+      "version": "4.10.3-2ubuntu1"
+    },
+    {
+      "name": "python3-jwt",
+      "version": "2.7.0-1ubuntu0.2"
+    },
+    {
+      "name": "python3-launchpadlib",
+      "version": "1.11.0-6"
+    },
+    {
+      "name": "python3-lazr.restfulclient",
+      "version": "0.14.6-1"
+    },
+    {
+      "name": "python3-lazr.uri",
+      "version": "1.0.6-3"
+    },
+    {
+      "name": "python3-ldb",
+      "version": "2:2.8.0+samba4.19.5+dfsg-4ubuntu9.7"
+    },
+    {
+      "name": "python3-libevdev",
+      "version": "0.5-3"
+    },
+    {
+      "name": "python3-louis",
+      "version": "3.29.0-1build1"
+    },
+    {
+      "name": "python3-magic",
+      "version": "2:0.4.27-3"
+    },
+    {
+      "name": "python3-mako",
+      "version": "1.3.2-1ubuntu0.1"
+    },
+    {
+      "name": "python3-markdown",
+      "version": "3.5.2-1"
+    },
+    {
+      "name": "python3-markdown-it",
+      "version": "3.0.0-2"
+    },
+    {
+      "name": "python3-markupsafe",
+      "version": "2.1.5-1build2"
+    },
+    {
+      "name": "python3-mdurl",
+      "version": "0.1.2-1"
+    },
+    {
+      "name": "python3-minimal",
+      "version": "3.12.3-0ubuntu2.1"
+    },
+    {
+      "name": "python3-monotonic",
+      "version": "1.6-2"
+    },
+    {
+      "name": "python3-nacl",
+      "version": "1.5.0-4build1"
+    },
+    {
+      "name": "python3-netaddr",
+      "version": "0.8.0-2ubuntu1"
+    },
+    {
+      "name": "python3-netifaces:arm64",
+      "version": "0.11.0-2build3"
+    },
+    {
+      "name": "python3-netplan",
+      "version": "1.1.2-8ubuntu1~24.04.3"
+    },
+    {
+      "name": "python3-newt:arm64",
+      "version": "0.52.24-2ubuntu2"
+    },
+    {
+      "name": "python3-oauthlib",
+      "version": "3.2.2-1"
+    },
+    {
+      "name": "python3-olefile",
+      "version": "0.46-3"
+    },
+    {
+      "name": "python3-openssl",
+      "version": "23.2.0-1ubuntu0.1"
+    },
+    {
+      "name": "python3-packaging",
+      "version": "24.0-1"
+    },
+    {
+      "name": "python3-paramiko",
+      "version": "2.12.0-2ubuntu4.1"
+    },
+    {
+      "name": "python3-pexpect",
+      "version": "4.9-2"
+    },
+    {
+      "name": "python3-pil:arm64",
+      "version": "10.2.0-1ubuntu1.3"
+    },
+    {
+      "name": "python3-pip",
+      "version": "24.0+dfsg-1ubuntu1.3+esm3"
+    },
+    {
+      "name": "python3-pip-whl",
+      "version": "24.0+dfsg-1ubuntu1.3+esm3"
+    },
+    {
+      "name": "python3-pkg-resources",
+      "version": "68.1.2-2ubuntu1.2"
+    },
+    {
+      "name": "python3-problem-report",
+      "version": "2.28.3-0ubuntu0.1"
+    },
+    {
+      "name": "python3-psutil",
+      "version": "5.9.8-2build2"
+    },
+    {
+      "name": "python3-ptyprocess",
+      "version": "0.7.0-5"
+    },
+    {
+      "name": "python3-pyasn1",
+      "version": "0.4.8-4ubuntu0.3"
+    },
+    {
+      "name": "python3-pyasn1-modules",
+      "version": "0.2.8-1"
+    },
+    {
+      "name": "python3-pygments",
+      "version": "2.17.2+dfsg-1"
+    },
+    {
+      "name": "python3-pyparsing",
+      "version": "3.1.1-1"
+    },
+    {
+      "name": "python3-pyrsistent:arm64",
+      "version": "0.20.0-1build2"
+    },
+    {
+      "name": "python3-pyudev",
+      "version": "0.24.0-1"
+    },
+    {
+      "name": "python3-reportlab",
+      "version": "4.1.0-4"
+    },
+    {
+      "name": "python3-requests",
+      "version": "2.31.0+dfsg-1ubuntu1.2"
+    },
+    {
+      "name": "python3-rich",
+      "version": "13.7.1-1"
+    },
+    {
+      "name": "python3-rlpycairo",
+      "version": "0.3.0-3"
+    },
+    {
+      "name": "python3-s3transfer",
+      "version": "0.10.1-1ubuntu2"
+    },
+    {
+      "name": "python3-samba",
+      "version": "2:4.19.5+dfsg-4ubuntu9.7"
+    },
+    {
+      "name": "python3-serial",
+      "version": "3.5-2"
+    },
+    {
+      "name": "python3-service-identity",
+      "version": "24.1.0-1"
+    },
+    {
+      "name": "python3-setuptools",
+      "version": "68.1.2-2ubuntu1.2"
+    },
+    {
+      "name": "python3-setuptools-whl",
+      "version": "68.1.2-2ubuntu1.2"
+    },
+    {
+      "name": "python3-six",
+      "version": "1.16.0-4"
+    },
+    {
+      "name": "python3-software-properties",
+      "version": "0.99.49.4"
+    },
+    {
+      "name": "python3-speechd",
+      "version": "0.12.0~rc2-2build3"
+    },
+    {
+      "name": "python3-systemd",
+      "version": "235-1build4"
+    },
+    {
+      "name": "python3-talloc:arm64",
+      "version": "2.4.2-1build2"
+    },
+    {
+      "name": "python3-tdb",
+      "version": "1.4.10-1build1"
+    },
+    {
+      "name": "python3-twisted",
+      "version": "24.3.0-1ubuntu0.2"
+    },
+    {
+      "name": "python3-tz",
+      "version": "2024.1-2"
+    },
+    {
+      "name": "python3-uno",
+      "version": "4:24.2.7-0ubuntu0.24.04.7"
+    },
+    {
+      "name": "python3-update-manager",
+      "version": "1:24.04.12"
+    },
+    {
+      "name": "python3-urllib3",
+      "version": "2.0.7-1ubuntu0.7"
+    },
+    {
+      "name": "python3-venv",
+      "version": "3.12.3-0ubuntu2.1"
+    },
+    {
+      "name": "python3-wadllib",
+      "version": "1.3.6-5"
+    },
+    {
+      "name": "python3-wheel",
+      "version": "0.42.0-2ubuntu0.1~esm1"
+    },
+    {
+      "name": "python3-xdg",
+      "version": "0.28-2"
+    },
+    {
+      "name": "python3-xkit",
+      "version": "0.5.0ubuntu6"
+    },
+    {
+      "name": "python3-yaml",
+      "version": "6.0.1-2build2"
+    },
+    {
+      "name": "python3-zope.interface",
+      "version": "6.1-1build1"
+    },
+    {
+      "name": "python3.12",
+      "version": "3.12.3-1ubuntu0.17"
+    },
+    {
+      "name": "python3.12-minimal",
+      "version": "3.12.3-1ubuntu0.17"
+    },
+    {
+      "name": "python3.12-venv",
+      "version": "3.12.3-1ubuntu0.17"
+    },
+    {
+      "name": "rsync",
+      "version": "3.2.7-1ubuntu1.5"
+    },
+    {
+      "name": "systemd",
+      "version": "255.4-1ubuntu8.17"
+    },
+    {
+      "name": "systemd-dev",
+      "version": "255.4-1ubuntu8.17"
+    },
+    {
+      "name": "systemd-hwe-hwdb",
+      "version": "255.1.7"
+    },
+    {
+      "name": "systemd-resolved",
+      "version": "255.4-1ubuntu8.17"
+    },
+    {
+      "name": "systemd-sysv",
+      "version": "255.4-1ubuntu8.17"
+    },
+    {
+      "name": "systemd-timesyncd",
+      "version": "255.4-1ubuntu8.17"
+    },
+    {
+      "name": "tailscale",
+      "version": "1.104.5"
+    },
+    {
+      "name": "tailscale-archive-keyring",
+      "version": "1.35.181"
+    },
+    {
+      "name": "tmux",
+      "version": "3.4-1ubuntu0.1"
+    },
+    {
+      "name": "unzip",
+      "version": "6.0-28ubuntu4.1"
+    },
+    {
+      "name": "wget",
+      "version": "1.21.4-1ubuntu4.5"
+    },
+    {
+      "name": "zip",
+      "version": "3.0-13ubuntu0.2"
+    },
+    {
+      "name": "zlib1g:arm64",
+      "version": "1:1.3.dfsg-3.1ubuntu2.2"
+    },
+    {
+      "name": "zlib1g-dev:arm64",
+      "version": "1:1.3.dfsg-3.1ubuntu2.2"
+    }
+  ],
+  "selected_apt_history": [
+    {
+      "date": "2026-11-10  08:17:14",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "tailscale:arm64",
+          "versions": "1.102.5, 1.104.5"
+        }
+      ]
+    },
+    {
+      "date": "2026-02-10  00:31:15",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "libc6:arm64",
+          "versions": "2.39-0ubuntu8, 2.39-0ubuntu8.7"
+        },
+        {
+          "name": "procps:arm64",
+          "versions": "2:4.0.4-4ubuntu3, 2:4.0.4-4ubuntu3.2"
+        },
+        {
+          "name": "libssl3t64:arm64",
+          "versions": "3.0.13-0ubuntu3, 3.0.13-0ubuntu3.7"
+        },
+        {
+          "name": "zlib1g:arm64",
+          "versions": "1:1.3.dfsg-3.1ubuntu2, 1:1.3.dfsg-3.1ubuntu2.1"
+        },
+        {
+          "name": "libstdc++6:arm64",
+          "versions": "14-20240412-0ubuntu1, 14.2.0-4ubuntu2~24.04"
+        }
+      ]
+    },
+    {
+      "date": "2026-02-10  00:32:57",
+      "action": "Install",
+      "packages": [
+        {
+          "name": "python3-blinker:arm64",
+          "versions": "1.7.0-1"
+        },
+        {
+          "name": "python3.12:arm64",
+          "versions": "3.12.3-1ubuntu0.11"
+        },
+        {
+          "name": "python3-colorama:arm64",
+          "versions": "0.4.6-4"
+        },
+        {
+          "name": "python3-gi:arm64",
+          "versions": "3.48.2-1"
+        },
+        {
+          "name": "python3-tz:arm64",
+          "versions": "2024.1-2, automatic"
+        },
+        {
+          "name": "openssh-client:arm64",
+          "versions": "1:9.6p1-3ubuntu13.14"
+        },
+        {
+          "name": "python3-distupgrade:arm64",
+          "versions": "1:24.04.28"
+        },
+        {
+          "name": "systemd-timesyncd:arm64",
+          "versions": "255.4-1ubuntu8.12, automatic"
+        },
+        {
+          "name": "python3-cffi-backend:arm64",
+          "versions": "1.16.0-2build1"
+        },
+        {
+          "name": "python3-minimal:arm64",
+          "versions": "3.12.3-0ubuntu2.1"
+        },
+        {
+          "name": "python3-lazr.restfulclient:arm64",
+          "versions": "0.14.6-1"
+        },
+        {
+          "name": "python3-netplan:arm64",
+          "versions": "1.1.2-8ubuntu1~24.04.1"
+        },
+        {
+          "name": "python3-distro:arm64",
+          "versions": "1.9.0-1"
+        },
+        {
+          "name": "python3-requests:arm64",
+          "versions": "2.31.0+dfsg-1ubuntu1.1"
+        },
+        {
+          "name": "python3-httplib2:arm64",
+          "versions": "0.20.4-3"
+        },
+        {
+          "name": "python3:arm64",
+          "versions": "3.12.3-0ubuntu2.1"
+        },
+        {
+          "name": "python3-urllib3:arm64",
+          "versions": "2.0.7-1ubuntu0.6"
+        },
+        {
+          "name": "python3-software-properties:arm64",
+          "versions": "0.99.49.3, automatic"
+        },
+        {
+          "name": "python3-pyparsing:arm64",
+          "versions": "3.1.1-1"
+        },
+        {
+          "name": "python3-lazr.uri:arm64",
+          "versions": "1.0.6-3"
+        },
+        {
+          "name": "python3-jsonpatch:arm64",
+          "versions": "1.32-3"
+        },
+        {
+          "name": "systemd:arm64",
+          "versions": "255.4-1ubuntu8.12"
+        },
+        {
+          "name": "python3-attr:arm64",
+          "versions": "23.2.0-2"
+        },
+        {
+          "name": "python3-pkg-resources:arm64",
+          "versions": "68.1.2-2ubuntu1.2"
+        },
+        {
+          "name": "python3-wadllib:arm64",
+          "versions": "1.3.6-5"
+        },
+        {
+          "name": "systemd-dev:arm64",
+          "versions": "255.4-1ubuntu8.12"
+        },
+        {
+          "name": "python3-babel:arm64",
+          "versions": "2.10.3-3build1, automatic"
+        },
+        {
+          "name": "python3-mdurl:arm64",
+          "versions": "0.1.2-1, automatic"
+        },
+        {
+          "name": "python3-jsonschema:arm64",
+          "versions": "4.10.3-2ubuntu1"
+        },
+        {
+          "name": "python3-oauthlib:arm64",
+          "versions": "3.2.2-1"
+        },
+        {
+          "name": "python3-rich:arm64",
+          "versions": "13.7.1-1, automatic"
+        },
+        {
+          "name": "python3-click:arm64",
+          "versions": "8.1.6-2"
+        },
+        {
+          "name": "systemd-resolved:arm64",
+          "versions": "255.4-1ubuntu8.12"
+        },
+        {
+          "name": "python3-json-pointer:arm64",
+          "versions": "2.0-0ubuntu1"
+        },
+        {
+          "name": "python3-jinja2:arm64",
+          "versions": "3.1.2-1ubuntu1.3"
+        },
+        {
+          "name": "python3-xkit:arm64",
+          "versions": "0.5.0ubuntu6"
+        },
+        {
+          "name": "python3-apt:arm64",
+          "versions": "2.7.7ubuntu5.2"
+        },
+        {
+          "name": "python3-serial:arm64",
+          "versions": "3.5-2"
+        },
+        {
+          "name": "systemd-hwe-hwdb:arm64",
+          "versions": "255.1.6, automatic"
+        },
+        {
+          "name": "python3-certifi:arm64",
+          "versions": "2023.11.17-1"
+        },
+        {
+          "name": "python3-markdown-it:arm64",
+          "versions": "3.0.0-2, automatic"
+        },
+        {
+          "name": "python3-markupsafe:arm64",
+          "versions": "2.1.5-1build2"
+        },
+        {
+          "name": "python3-distro-info:arm64",
+          "versions": "1.7build1"
+        },
+        {
+          "name": "python3-jwt:arm64",
+          "versions": "2.7.0-1"
+        },
+        {
+          "name": "ca-certificates:arm64",
+          "versions": "20240203"
+        },
+        {
+          "name": "python3-six:arm64",
+          "versions": "1.16.0-4"
+        },
+        {
+          "name": "python3-yaml:arm64",
+          "versions": "6.0.1-2build2"
+        },
+        {
+          "name": "python3-update-manager:arm64",
+          "versions": "1:24.04.12"
+        },
+        {
+          "name": "python3-apport:arm64",
+          "versions": "2.28.1-0ubuntu3.8"
+        },
+        {
+          "name": "systemd-sysv:arm64",
+          "versions": "255.4-1ubuntu8.12"
+        },
+        {
+          "name": "python3-idna:arm64",
+          "versions": "3.6-2ubuntu0.1"
+        },
+        {
+          "name": "python3-pygments:arm64",
+          "versions": "2.17.2+dfsg-1, automatic"
+        },
+        {
+          "name": "python3-chardet:arm64",
+          "versions": "5.2.0+dfsg-1"
+        },
+        {
+          "name": "curl:arm64",
+          "versions": "8.5.0-2ubuntu10.6"
+        },
+        {
+          "name": "python3-debconf:arm64",
+          "versions": "1.5.86ubuntu1"
+        },
+        {
+          "name": "python3-configobj:arm64",
+          "versions": "5.0.8-3"
+        },
+        {
+          "name": "python3.12-minimal:arm64",
+          "versions": "3.12.3-1ubuntu0.11"
+        },
+        {
+          "name": "python3-cryptography:arm64",
+          "versions": "41.0.7-4ubuntu0.1"
+        },
+        {
+          "name": "python3-launchpadlib:arm64",
+          "versions": "1.11.0-6"
+        },
+        {
+          "name": "python3-pyrsistent:arm64",
+          "versions": "0.20.0-1build2"
+        },
+        {
+          "name": "python3-dbus:arm64",
+          "versions": "1.3.2-5build3"
+        },
+        {
+          "name": "python3-problem-report:arm64",
+          "versions": "2.28.1-0ubuntu3.8"
+        },
+        {
+          "name": "python3-systemd:arm64",
+          "versions": "235-1build4, automatic"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  15:17:51",
+      "action": "Install",
+      "packages": [
+        {
+          "name": "python3-bpfcc:arm64",
+          "versions": "0.29.1+ds-1ubuntu7, automatic"
+        },
+        {
+          "name": "python3-netaddr:arm64",
+          "versions": "0.8.0-2ubuntu1, automatic"
+        },
+        {
+          "name": "libc6-dev:arm64",
+          "versions": "2.39-0ubuntu8.7, automatic"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  15:21:17",
+      "action": "Install",
+      "packages": [
+        {
+          "name": "nvidia-system-station-common:arm64",
+          "versions": "2404.26.01-1, automatic"
+        },
+        {
+          "name": "containerd.io:arm64",
+          "versions": "2.2.1-1~ubuntu.24.04~noble, automatic"
+        },
+        {
+          "name": "nvidia-disable-numa-balancing:arm64",
+          "versions": "24.10-2, automatic"
+        },
+        {
+          "name": "libstdc++-13-dev:arm64",
+          "versions": "13.3.0-6ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "libgomp1:arm64",
+          "versions": "14.2.0-4ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "docker-compose-plugin:arm64",
+          "versions": "5.0.2-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "nvidia-crashdump:arm64",
+          "versions": "25.08-1, automatic"
+        },
+        {
+          "name": "cuda-cudart-dev-13-0:arm64",
+          "versions": "13.0.96-1, automatic"
+        },
+        {
+          "name": "python3-setuptools-whl:arm64",
+          "versions": "68.1.2-2ubuntu1.2, automatic"
+        },
+        {
+          "name": "docker-ce-cli:arm64",
+          "versions": "5:29.2.1-1~ubuntu.24.04~noble, automatic"
+        },
+        {
+          "name": "g++-13:arm64",
+          "versions": "13.3.0-6ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "python3-samba:arm64",
+          "versions": "2:4.19.5+dfsg-4ubuntu9.4, automatic"
+        },
+        {
+          "name": "cuda-compute-repo-lowpri:arm64",
+          "versions": "25.10-2"
+        },
+        {
+          "name": "gcc-13:arm64",
+          "versions": "13.3.0-6ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "gcc-13-aarch64-linux-gnu:arm64",
+          "versions": "13.3.0-6ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "build-essential:arm64",
+          "versions": "12.10ubuntu1, automatic"
+        },
+        {
+          "name": "python3-brlapi:arm64",
+          "versions": "6.6-4ubuntu5, automatic"
+        },
+        {
+          "name": "cuda-gdb-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "python3-dnspython:arm64",
+          "versions": "2.6.1-1ubuntu1, automatic"
+        },
+        {
+          "name": "nvidia-compute-utils-580:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "nvidia-system-station:arm64",
+          "versions": "2404.26.01-1"
+        },
+        {
+          "name": "nvidia-system-station-core:arm64",
+          "versions": "2404.26.01-1, automatic"
+        },
+        {
+          "name": "python3-monotonic:arm64",
+          "versions": "1.6-2, automatic"
+        },
+        {
+          "name": "nvidia-spark-run-apt-upgrade:arm64",
+          "versions": "25.10-2, automatic"
+        },
+        {
+          "name": "nvidia-earlycon:arm64",
+          "versions": "25.06-1, automatic"
+        },
+        {
+          "name": "nvidia-system-utils:arm64",
+          "versions": "2404.25.09-2"
+        },
+        {
+          "name": "nvidia-mstflint-loader:arm64",
+          "versions": "23.03-1"
+        },
+        {
+          "name": "python3-venv:arm64",
+          "versions": "3.12.3-0ubuntu2.1"
+        },
+        {
+          "name": "cuda-libraries-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "cuda-nsight-compute-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "python3-ibus-1.0:arm64",
+          "versions": "1.5.29-2, automatic"
+        },
+        {
+          "name": "nvidia-utils-580:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "zip:arm64",
+          "versions": "3.0-13ubuntu0.2, automatic"
+        },
+        {
+          "name": "cuda-tools-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "nvidia-spark-grub-pci:arm64",
+          "versions": "1.0-1, automatic"
+        },
+        {
+          "name": "nvidia-cppc-cpufreq-options:arm64",
+          "versions": "25.06-1"
+        },
+        {
+          "name": "nvidia-disable-init-on-alloc:arm64",
+          "versions": "24.10-1, automatic"
+        },
+        {
+          "name": "nvidia-mlnx-tools:arm64",
+          "versions": "23.04"
+        },
+        {
+          "name": "cuda-cuobjdump-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "cuda-libraries-dev-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "cuda-toolkit-13-0:arm64",
+          "versions": "13.0.2-1"
+        },
+        {
+          "name": "nvidia-relaxed-ordering-nvme:arm64",
+          "versions": "25.07-2, automatic"
+        },
+        {
+          "name": "nvidia-spark-fstab-config:arm64",
+          "versions": "1.0.0-1, automatic"
+        },
+        {
+          "name": "python3-pip-whl:arm64",
+          "versions": "24.0+dfsg-1ubuntu1.3, automatic"
+        },
+        {
+          "name": "nvidia-spark-wifi-fw-ppa:arm64",
+          "versions": "1.2-1"
+        },
+        {
+          "name": "python3-defer:arm64",
+          "versions": "1.0.6-2.1ubuntu1, automatic"
+        },
+        {
+          "name": "cuda-toolkit-config-common:arm64",
+          "versions": "13.2.51-1, automatic"
+        },
+        {
+          "name": "python3-reportlab:arm64",
+          "versions": "4.1.0-4, automatic"
+        },
+        {
+          "name": "cuda-driver-dev-13-0:arm64",
+          "versions": "13.0.96-1, automatic"
+        },
+        {
+          "name": "cuda-nsight-systems-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "nvidia-nvme-options:arm64",
+          "versions": "26.02-1, automatic"
+        },
+        {
+          "name": "python3-speechd:arm64",
+          "versions": "0.12.0~rc2-2build3, automatic"
+        },
+        {
+          "name": "cuda-nvrtc-13-0:arm64",
+          "versions": "13.0.88-1, automatic"
+        },
+        {
+          "name": "cuda-command-line-tools-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "openssh-server:arm64",
+          "versions": "1:9.6p1-3ubuntu13.15, automatic"
+        },
+        {
+          "name": "nvidia-plymouth:arm64",
+          "versions": "20.06-2, automatic"
+        },
+        {
+          "name": "python3-aptdaemon:arm64",
+          "versions": "1.1.1+bzr982-0ubuntu44, automatic"
+        },
+        {
+          "name": "cuda-nvdisasm-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "zlib1g-dev:arm64",
+          "versions": "1:1.3.dfsg-3.1ubuntu2.1, automatic"
+        },
+        {
+          "name": "python3.12-venv:arm64",
+          "versions": "3.12.3-1ubuntu0.12, automatic"
+        },
+        {
+          "name": "cuda-toolkit-13-0-config-common:arm64",
+          "versions": "13.0.96-1, automatic"
+        },
+        {
+          "name": "docker-buildx-plugin:arm64",
+          "versions": "0.31.1-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "nvidia-enable-bt-profiles:arm64",
+          "versions": "26.03-1"
+        },
+        {
+          "name": "python3-wheel:arm64",
+          "versions": "0.42.0-2, automatic"
+        },
+        {
+          "name": "cuda-sanitizer-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "docker-ce:arm64",
+          "versions": "5:29.2.1-1~ubuntu.24.04~noble, automatic"
+        },
+        {
+          "name": "python3-louis:arm64",
+          "versions": "3.29.0-1build1, automatic"
+        },
+        {
+          "name": "nvidia-system-station-utils:arm64",
+          "versions": "2404.26.01-1, automatic"
+        },
+        {
+          "name": "python3-talloc:arm64",
+          "versions": "2.4.2-1build2, automatic"
+        },
+        {
+          "name": "nvidia-system-extra:arm64",
+          "versions": "2404.26.01-1"
+        },
+        {
+          "name": "cuda-documentation-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "nvidia-kernel-common-580:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "nvidia-spark-initcall-bl:arm64",
+          "versions": "1.0-1, automatic"
+        },
+        {
+          "name": "cuda-cuxxfilt-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "nvidia-dgx-telemetry:arm64",
+          "versions": "4.11"
+        },
+        {
+          "name": "cuda-culibos-dev-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "python3-psutil:arm64",
+          "versions": "5.9.8-2build2, automatic"
+        },
+        {
+          "name": "python3-mako:arm64",
+          "versions": "1.3.2-1, automatic"
+        },
+        {
+          "name": "python3-cairo:arm64",
+          "versions": "1.25.1-2build2, automatic"
+        },
+        {
+          "name": "nvidia-desktop-default-snaps:arm64",
+          "versions": "25.10-2, automatic"
+        },
+        {
+          "name": "cuda-cccl-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "nvidia-desktop-default-remove-gnome-software-deb:arm64",
+          "versions": "25.10-1, automatic"
+        },
+        {
+          "name": "cuda-cupti-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "nvidia-system-station-games:arm64",
+          "versions": "2404.26.01-1"
+        },
+        {
+          "name": "ca-certificates-java:arm64",
+          "versions": "20240118, automatic"
+        },
+        {
+          "name": "nvidia-spark-baud-rate:arm64",
+          "versions": "25.09-1, automatic"
+        },
+        {
+          "name": "nvidia-kernel-source-580-open:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "nvidia-spark-desktop-edge-ppa:arm64",
+          "versions": "1.1-1"
+        },
+        {
+          "name": "cuda-visual-tools-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "python3-fasteners:arm64",
+          "versions": "0.18-2, automatic"
+        },
+        {
+          "name": "nvidia-firmware-580-580.142:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "nvidia-kernel-defaults:arm64",
+          "versions": "21.05-1, automatic"
+        },
+        {
+          "name": "nvidia-pci-realloc:arm64",
+          "versions": "25.02-1, automatic"
+        },
+        {
+          "name": "python3-pyudev:arm64",
+          "versions": "0.24.0-1, automatic"
+        },
+        {
+          "name": "nvidia-redfish-config:arm64",
+          "versions": "25.03-1, automatic"
+        },
+        {
+          "name": "binutils-aarch64-linux-gnu:arm64",
+          "versions": "2.42-4ubuntu2.10, automatic"
+        },
+        {
+          "name": "nvidia-settings:arm64",
+          "versions": "595.45.04-1ubuntu1"
+        },
+        {
+          "name": "g++-13-aarch64-linux-gnu:arm64",
+          "versions": "13.3.0-6ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "nvidia-update-manager:arm64",
+          "versions": "20.06-1, automatic"
+        },
+        {
+          "name": "python3-ldb:arm64",
+          "versions": "2:2.8.0+samba4.19.5+dfsg-4ubuntu9.4, automatic"
+        },
+        {
+          "name": "nvidia-esm-hook-epilogue:arm64",
+          "versions": "23.03-2, automatic"
+        },
+        {
+          "name": "pkg-config:arm64",
+          "versions": "1.8.1-2build1, automatic"
+        },
+        {
+          "name": "binutils-common:arm64",
+          "versions": "2.42-4ubuntu2.10, automatic"
+        },
+        {
+          "name": "nvidia-system-core:arm64",
+          "versions": "2404.26.01-1"
+        },
+        {
+          "name": "nvidia-ai-workbench:arm64",
+          "versions": "0.157.15~13-7383"
+        },
+        {
+          "name": "python3-pil:arm64",
+          "versions": "10.2.0-1ubuntu1, automatic"
+        },
+        {
+          "name": "python3-pip:arm64",
+          "versions": "24.0+dfsg-1ubuntu1.3"
+        },
+        {
+          "name": "nvidia-console-settings:arm64",
+          "versions": "25.07-1"
+        },
+        {
+          "name": "nvidia-spark-realtek-mod-options:arm64",
+          "versions": "1.1-1, automatic"
+        },
+        {
+          "name": "python3-tdb:arm64",
+          "versions": "1.4.10-1build1, automatic"
+        },
+        {
+          "name": "python3-markdown:arm64",
+          "versions": "3.5.2-1, automatic"
+        },
+        {
+          "name": "nvidia-drm-options-modeset0:arm64",
+          "versions": "25.07-1"
+        },
+        {
+          "name": "python3-uno:arm64",
+          "versions": "4:24.2.7-0ubuntu0.24.04.4, automatic"
+        },
+        {
+          "name": "cuda-nvprune-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "python3-nacl:arm64",
+          "versions": "1.5.0-4build1, automatic"
+        },
+        {
+          "name": "python3-xdg:arm64",
+          "versions": "0.28-2, automatic"
+        },
+        {
+          "name": "openssh-sftp-server:arm64",
+          "versions": "1:9.6p1-3ubuntu13.15, automatic"
+        },
+        {
+          "name": "nvidia-driver-580-open:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "nvidia-motd:arm64",
+          "versions": "24.01-1, automatic"
+        },
+        {
+          "name": "nvidia-repo-keys:arm64",
+          "versions": "26.02-1, automatic"
+        },
+        {
+          "name": "cmake-data:arm64",
+          "versions": "3.28.3-1build7, automatic"
+        },
+        {
+          "name": "nvidia-system-station-apps:arm64",
+          "versions": "2404.26.01-1"
+        },
+        {
+          "name": "nvidia-container-toolkit:arm64",
+          "versions": "1.19.0-1, automatic"
+        },
+        {
+          "name": "cuda-cudart-13-0:arm64",
+          "versions": "13.0.96-1, automatic"
+        },
+        {
+          "name": "cuda-nvrtc-dev-13-0:arm64",
+          "versions": "13.0.88-1, automatic"
+        },
+        {
+          "name": "libc6-dbg:arm64",
+          "versions": "2.39-0ubuntu8.7, automatic"
+        },
+        {
+          "name": "nvidia-grub-params:arm64",
+          "versions": "25.10-1"
+        },
+        {
+          "name": "python3-freetype:arm64",
+          "versions": "2.4.0-1, automatic"
+        },
+        {
+          "name": "python3-aptdaemon.gtk3widgets:arm64",
+          "versions": "1.1.1+bzr982-0ubuntu44, automatic"
+        },
+        {
+          "name": "nvidia-sbsa-gwdt-options:arm64",
+          "versions": "25.06-1"
+        },
+        {
+          "name": "nvidia-container-toolkit-base:arm64",
+          "versions": "1.19.0-1, automatic"
+        },
+        {
+          "name": "nvidia-no-systemd-suspend:arm64",
+          "versions": "25.06-1"
+        },
+        {
+          "name": "python3-cups:arm64",
+          "versions": "2.0.1-5build6, automatic"
+        },
+        {
+          "name": "unzip:arm64",
+          "versions": "6.0-28ubuntu4.1, automatic"
+        },
+        {
+          "name": "python3-olefile:arm64",
+          "versions": "0.46-3, automatic"
+        },
+        {
+          "name": "python3-rlpycairo:arm64",
+          "versions": "0.3.0-3, automatic"
+        },
+        {
+          "name": "nvidia-raid-config:arm64",
+          "versions": "25.10-1, automatic"
+        },
+        {
+          "name": "nvidia-relaxed-ordering-gpu:arm64",
+          "versions": "25.07-2, automatic"
+        },
+        {
+          "name": "cuda-profiler-api-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "cuda-crt-13-0:arm64",
+          "versions": "13.0.88-1, automatic"
+        },
+        {
+          "name": "nvidia-conf-xconfig:arm64",
+          "versions": "26.02-1"
+        },
+        {
+          "name": "cuda-nvtx-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "nvidia-enable-power-meter-cap:arm64",
+          "versions": "24.10-3, automatic"
+        },
+        {
+          "name": "nvidia-spark-mlnx-firmware-manager:arm64",
+          "versions": "5.0.8-1"
+        },
+        {
+          "name": "nvidia-logrotate:arm64",
+          "versions": "21.11-1, automatic"
+        },
+        {
+          "name": "nvidia-spark-repo:arm64",
+          "versions": "1.1-1, automatic"
+        },
+        {
+          "name": "cuda-nvcc-13-0:arm64",
+          "versions": "13.0.88-1, automatic"
+        },
+        {
+          "name": "nvidia-spark-default-remove-nvidia-fs-pkg:arm64",
+          "versions": "25.09-2, automatic"
+        },
+        {
+          "name": "cmake:arm64",
+          "versions": "3.28.3-1build7, automatic"
+        },
+        {
+          "name": "cuda-cupti-dev-13-0:arm64",
+          "versions": "13.0.85-1, automatic"
+        },
+        {
+          "name": "gcc-13-base:arm64",
+          "versions": "13.3.0-6ubuntu2~24.04.1, automatic"
+        },
+        {
+          "name": "python3-cupshelpers:arm64",
+          "versions": "1.5.18-1ubuntu9, automatic"
+        },
+        {
+          "name": "cuda-compiler-13-0:arm64",
+          "versions": "13.0.2-1, automatic"
+        },
+        {
+          "name": "nvidia-modprobe:arm64",
+          "versions": "580.126.20-1ubuntu1"
+        },
+        {
+          "name": "python3-gi-cairo:arm64",
+          "versions": "3.48.2-1, automatic"
+        },
+        {
+          "name": "binutils:arm64",
+          "versions": "2.42-4ubuntu2.10, automatic"
+        },
+        {
+          "name": "nvidia-lvfs-config:arm64",
+          "versions": "25.09-1, automatic"
+        },
+        {
+          "name": "python3-libevdev:arm64",
+          "versions": "0.5-3, automatic"
+        },
+        {
+          "name": "nvidia-disable-aqc-nic:arm64",
+          "versions": "25.06-1"
+        },
+        {
+          "name": "python3-paramiko:arm64",
+          "versions": "2.12.0-2ubuntu4.1, automatic"
+        },
+        {
+          "name": "cuda-toolkit-13-config-common:arm64",
+          "versions": "13.2.51-1, automatic"
+        },
+        {
+          "name": "nvidia-system-station-localization:arm64",
+          "versions": "2404.26.01-1"
+        },
+        {
+          "name": "cuda-nvml-dev-13-0:arm64",
+          "versions": "13.0.87-1"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  15:21:17",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "python3.12:arm64",
+          "versions": "3.12.3-1ubuntu0.11, 3.12.3-1ubuntu0.12"
+        },
+        {
+          "name": "openssh-client:arm64",
+          "versions": "1:9.6p1-3ubuntu13.14, 1:9.6p1-3ubuntu13.15"
+        },
+        {
+          "name": "python3-software-properties:arm64",
+          "versions": "0.99.49.3, 0.99.49.4"
+        },
+        {
+          "name": "python3.12-minimal:arm64",
+          "versions": "3.12.3-1ubuntu0.11, 3.12.3-1ubuntu0.12"
+        },
+        {
+          "name": "libstdc++6:arm64",
+          "versions": "14.2.0-4ubuntu2~24.04, 14.2.0-4ubuntu2~24.04.1"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  15:33:30",
+      "action": "Install",
+      "packages": [
+        {
+          "name": "nvidia-spark-ota-check:arm64",
+          "versions": "1.0.13-1"
+        },
+        {
+          "name": "nvidia-spark-limits:arm64",
+          "versions": "1.0-1"
+        },
+        {
+          "name": "nvidia-spark-avahi-conf:arm64",
+          "versions": "1.0-1"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  15:33:30",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "nvidia-dgx-telemetry:arm64",
+          "versions": "4.11, 5.22"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  11:41:58",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "nvidia-spark-ota-check:arm64",
+          "versions": "1.0.13-1, 1.0.16-1"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  11:49:30",
+      "action": "Install",
+      "packages": [
+        {
+          "name": "nvidia-spark-grub-kho:arm64",
+          "versions": "1.0-1, automatic"
+        },
+        {
+          "name": "nvidia-firmware-580-580.178.04:arm64",
+          "versions": "580.178.04-0ubuntu0.24.04.1, automatic"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-05  11:49:30",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "containerd.io:arm64",
+          "versions": "2.2.1-1~ubuntu.24.04~noble, 2.2.5-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "docker-compose-plugin:arm64",
+          "versions": "5.0.2-1~ubuntu.24.04~noble, 5.2.0-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "python3.12:arm64",
+          "versions": "3.12.3-1ubuntu0.12, 3.12.3-1ubuntu0.17"
+        },
+        {
+          "name": "docker-ce-cli:arm64",
+          "versions": "5:29.2.1-1~ubuntu.24.04~noble, 5:29.6.2-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "python3-pyasn1:arm64",
+          "versions": "0.4.8-4ubuntu0.1, 0.4.8-4ubuntu0.3"
+        },
+        {
+          "name": "openssh-client:arm64",
+          "versions": "1:9.6p1-3ubuntu13.15, 1:9.6p1-3ubuntu13.19"
+        },
+        {
+          "name": "python3-samba:arm64",
+          "versions": "2:4.19.5+dfsg-4ubuntu9.4, 2:4.19.5+dfsg-4ubuntu9.7"
+        },
+        {
+          "name": "python3-distupgrade:arm64",
+          "versions": "1:24.04.28, 1:24.04.29"
+        },
+        {
+          "name": "nvidia-compute-utils-580:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1, 580.178.04-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "systemd-timesyncd:arm64",
+          "versions": "255.4-1ubuntu8.12, 255.4-1ubuntu8.17"
+        },
+        {
+          "name": "cuda-libraries-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "cuda-nsight-compute-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "nvidia-utils-580:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1, 580.178.04-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "cuda-tools-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "python3-netplan:arm64",
+          "versions": "1.1.2-8ubuntu1~24.04.1, 1.1.2-8ubuntu1~24.04.3"
+        },
+        {
+          "name": "python3-twisted:arm64",
+          "versions": "24.3.0-1ubuntu0.1, 24.3.0-1ubuntu0.2"
+        },
+        {
+          "name": "cuda-libraries-dev-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "cuda-toolkit-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "python3-pip-whl:arm64",
+          "versions": "24.0+dfsg-1ubuntu1.3, 24.0+dfsg-1ubuntu1.3+esm3"
+        },
+        {
+          "name": "cuda-toolkit-config-common:arm64",
+          "versions": "13.2.51-1, 13.4.92-1"
+        },
+        {
+          "name": "cuda-nsight-systems-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "python3-requests:arm64",
+          "versions": "2.31.0+dfsg-1ubuntu1.1, 2.31.0+dfsg-1ubuntu1.2"
+        },
+        {
+          "name": "python3-httplib2:arm64",
+          "versions": "0.20.4-3, 0.20.4-3ubuntu0.1"
+        },
+        {
+          "name": "cuda-command-line-tools-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "openssh-server:arm64",
+          "versions": "1:9.6p1-3ubuntu13.15, 1:9.6p1-3ubuntu13.19"
+        },
+        {
+          "name": "python3-urllib3:arm64",
+          "versions": "2.0.7-1ubuntu0.6, 2.0.7-1ubuntu0.7"
+        },
+        {
+          "name": "zlib1g-dev:arm64",
+          "versions": "1:1.3.dfsg-3.1ubuntu2.1, 1:1.3.dfsg-3.1ubuntu2.2"
+        },
+        {
+          "name": "python3.12-venv:arm64",
+          "versions": "3.12.3-1ubuntu0.12, 3.12.3-1ubuntu0.17"
+        },
+        {
+          "name": "systemd:arm64",
+          "versions": "255.4-1ubuntu8.12, 255.4-1ubuntu8.17"
+        },
+        {
+          "name": "wget:arm64",
+          "versions": "1.21.4-1ubuntu4.1, 1.21.4-1ubuntu4.5"
+        },
+        {
+          "name": "docker-buildx-plugin:arm64",
+          "versions": "0.31.1-1~ubuntu.24.04~noble, 0.35.0-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "python3-wheel:arm64",
+          "versions": "0.42.0-2, 0.42.0-2ubuntu0.1~esm1"
+        },
+        {
+          "name": "docker-ce:arm64",
+          "versions": "5:29.2.1-1~ubuntu.24.04~noble, 5:29.6.2-1~ubuntu.24.04~noble"
+        },
+        {
+          "name": "systemd-dev:arm64",
+          "versions": "255.4-1ubuntu8.12, 255.4-1ubuntu8.17"
+        },
+        {
+          "name": "nvidia-kernel-common-580:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1, 580.178.04-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "libc6:arm64",
+          "versions": "2.39-0ubuntu8.7, 2.39-0ubuntu8.9"
+        },
+        {
+          "name": "nvidia-dgx-telemetry:arm64",
+          "versions": "5.22, 7.3"
+        },
+        {
+          "name": "python3-openssl:arm64",
+          "versions": "23.2.0-1, 23.2.0-1ubuntu0.1"
+        },
+        {
+          "name": "python3-mako:arm64",
+          "versions": "1.3.2-1, 1.3.2-1ubuntu0.1"
+        },
+        {
+          "name": "systemd-resolved:arm64",
+          "versions": "255.4-1ubuntu8.12, 255.4-1ubuntu8.17"
+        },
+        {
+          "name": "nvidia-kernel-source-580-open:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1, 580.178.04-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "cuda-visual-tools-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "python3-apt:arm64",
+          "versions": "2.7.7ubuntu5.2, 2.7.7ubuntu5.3"
+        },
+        {
+          "name": "systemd-hwe-hwdb:arm64",
+          "versions": "255.1.6, 255.1.7"
+        },
+        {
+          "name": "rsync:arm64",
+          "versions": "3.2.7-1ubuntu1.2, 3.2.7-1ubuntu1.5"
+        },
+        {
+          "name": "nvidia-redfish-config:arm64",
+          "versions": "25.03-1, 26.01-1"
+        },
+        {
+          "name": "python3-jwt:arm64",
+          "versions": "2.7.0-1, 2.7.0-1ubuntu0.2"
+        },
+        {
+          "name": "nvidia-settings:arm64",
+          "versions": "595.45.04-1ubuntu1, 615.71.09-2ubuntu1"
+        },
+        {
+          "name": "python3-ldb:arm64",
+          "versions": "2:2.8.0+samba4.19.5+dfsg-4ubuntu9.4, 2:2.8.0+samba4.19.5+dfsg-4ubuntu9.7"
+        },
+        {
+          "name": "ca-certificates:arm64",
+          "versions": "20240203, 20260601~24.04.1"
+        },
+        {
+          "name": "nvidia-ai-workbench:arm64",
+          "versions": "0.157.15~13-7383, 0.170.22~7-8076"
+        },
+        {
+          "name": "python3-pil:arm64",
+          "versions": "10.2.0-1ubuntu1, 10.2.0-1ubuntu1.3"
+        },
+        {
+          "name": "python3-pip:arm64",
+          "versions": "24.0+dfsg-1ubuntu1.3, 24.0+dfsg-1ubuntu1.3+esm3"
+        },
+        {
+          "name": "procps:arm64",
+          "versions": "2:4.0.4-4ubuntu3.2, 2:4.0.4-4ubuntu3.3"
+        },
+        {
+          "name": "python3-uno:arm64",
+          "versions": "4:24.2.7-0ubuntu0.24.04.4, 4:24.2.7-0ubuntu0.24.04.7"
+        },
+        {
+          "name": "openssh-sftp-server:arm64",
+          "versions": "1:9.6p1-3ubuntu13.15, 1:9.6p1-3ubuntu13.19"
+        },
+        {
+          "name": "nvidia-driver-580-open:arm64",
+          "versions": "580.142-0ubuntu0.24.04.1, 580.178.04-0ubuntu0.24.04.1"
+        },
+        {
+          "name": "nvidia-repo-keys:arm64",
+          "versions": "26.02-1, 26.07-1"
+        },
+        {
+          "name": "python3-apport:arm64",
+          "versions": "2.28.1-0ubuntu3.8, 2.28.3-0ubuntu0.1"
+        },
+        {
+          "name": "nvidia-container-toolkit:arm64",
+          "versions": "1.19.0-1, 1.20.1-1"
+        },
+        {
+          "name": "libssl3t64:arm64",
+          "versions": "3.0.13-0ubuntu3.7, 3.0.13-0ubuntu3.16"
+        },
+        {
+          "name": "libc6-dbg:arm64",
+          "versions": "2.39-0ubuntu8.7, 2.39-0ubuntu8.9"
+        },
+        {
+          "name": "libc6-dev:arm64",
+          "versions": "2.39-0ubuntu8.7, 2.39-0ubuntu8.9"
+        },
+        {
+          "name": "nvidia-container-toolkit-base:arm64",
+          "versions": "1.19.0-1, 1.20.1-1"
+        },
+        {
+          "name": "systemd-sysv:arm64",
+          "versions": "255.4-1ubuntu8.12, 255.4-1ubuntu8.17"
+        },
+        {
+          "name": "python3-idna:arm64",
+          "versions": "3.6-2ubuntu0.1, 3.6-2ubuntu0.2"
+        },
+        {
+          "name": "curl:arm64",
+          "versions": "8.5.0-2ubuntu10.6, 8.5.0-2ubuntu10.15"
+        },
+        {
+          "name": "python3.12-minimal:arm64",
+          "versions": "3.12.3-1ubuntu0.12, 3.12.3-1ubuntu0.17"
+        },
+        {
+          "name": "python3-cryptography:arm64",
+          "versions": "41.0.7-4ubuntu0.1, 41.0.7-4ubuntu0.4"
+        },
+        {
+          "name": "zlib1g:arm64",
+          "versions": "1:1.3.dfsg-3.1ubuntu2.1, 1:1.3.dfsg-3.1ubuntu2.2"
+        },
+        {
+          "name": "nvidia-conf-xconfig:arm64",
+          "versions": "26.02-1, 26.05-1"
+        },
+        {
+          "name": "python3-problem-report:arm64",
+          "versions": "2.28.1-0ubuntu3.8, 2.28.3-0ubuntu0.1"
+        },
+        {
+          "name": "cuda-compiler-13-0:arm64",
+          "versions": "13.0.2-1, 13.0.3-1"
+        },
+        {
+          "name": "nvidia-modprobe:arm64",
+          "versions": "580.126.20-1ubuntu1, 615.71.09-2ubuntu1"
+        },
+        {
+          "name": "cuda-toolkit-13-config-common:arm64",
+          "versions": "13.2.51-1, 13.4.92-1"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-06  10:23:19",
+      "action": "Install",
+      "packages": [
+        {
+          "name": "tailscale:arm64",
+          "versions": "1.102.5"
+        },
+        {
+          "name": "tailscale-archive-keyring:arm64",
+          "versions": "1.35.181"
+        }
+      ]
+    },
+    {
+      "date": "2026-10-20  20:02:04",
+      "action": "Upgrade",
+      "packages": [
+        {
+          "name": "nvidia-spark-ota-check:arm64",
+          "versions": "1.0.16-1, 1.0.23-1"
+        }
+      ]
+    }
+  ]
+}
