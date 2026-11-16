@@ -56,7 +56,7 @@ def describe_capabilities(host, releases):
                            'lab_ab_submit': ('lab_ab_status', 'lab_ab_result', 'lab_cancel')}
                 if name in aliases:
                     lifecycle = dict(zip(('status', 'result', 'cancel'), aliases[name]))
-            if declaration['id'] == 'factory.standard_benchmark' and name == 'submit':
+            if declaration['id'] in {'factory.standard_benchmark', 'factory.throughput_campaign'} and name == 'submit':
                 lifecycle = dict(status='status', result='result', cancel='cancel', envelope='result')
             if lifecycle and any(lifecycle[key] not in declaration['capabilities'] for key in ('status', 'result', 'cancel')):
                 raise ValueError('Incomplete factory lifecycle for ' + declaration['id'] + ':' + name)

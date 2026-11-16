@@ -229,7 +229,7 @@ def _dispatch(store, task_id, capability, packet):
     if inputs['type'] == 'observation':
         if 'expected_rev' in inputs:
             raise ValueError('expected_rev applies only to decisions')
-        if record.get('kind') in {'ab_result', 'scoped_prefill_result'}:
+        if record.get('kind') in {'ab_result', 'scoped_prefill_result', 'throughput_comparison'}:
             raise ScopeDenied('A/B acceptance is reserved for Manager evidence')
         return store.append_observation(task_id, record)
     if inputs['type'] == 'decision':
@@ -237,8 +237,12 @@ def _dispatch(store, task_id, capability, packet):
             raise ValueError('Conflicting expected_rev values')
         expected_rev = record.pop('expected_rev', inputs.get('expected_rev'))
         if record.get('action', {}).get('type') == 'accept':
-            from .acceptance import validate as validate_acceptance
-            accepted = validate_acceptance(store, task_id)
+            if store.get_task(task_id).get('constraints', {}).get('throughput_campaign'):
+                from .throughput_campaign import validate_acceptance
+                accepted = validate_acceptance(getattr(store, '_store', store), task_id, record.get('evidence_ids', []))
+            else:
+                from .acceptance import validate as validate_acceptance
+                accepted = validate_acceptance(store, task_id)
             if store.get_task(task_id).get('constraints',{}).get('factory_loop',{}).get('comparison_templates'):
                 if accepted['evidence_id'] not in record.get('evidence_ids',[]):
                     raise ValueError('Accept must cite the independently verified confirmation evidence')

@@ -67,10 +67,11 @@ class CCService:
                     **self.registry.export())
 
     def create(self, request):
-        allowed = {'workflow', 'inputs', 'objective', 'run_id'}
+        allowed = {'workflow', 'inputs', 'objective', 'run_id', 'definitions'}
         if set(request) - allowed:
             raise ValueError('Unknown workflow request fields')
-        return self.runtime.create(self.registry.expand(request['workflow']), request.get('inputs', {}),
+        registry = definitions(request['definitions'], list(self.runtime.capabilities.values())) if 'definitions' in request else self.registry
+        return self.runtime.create(registry.expand(request['workflow']), request.get('inputs', {}),
             objective=request['objective'], run_id=request.get('run_id'))
 
     def append(self, run_id, request):

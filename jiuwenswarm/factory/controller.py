@@ -121,7 +121,9 @@ def configure_agent(task, grants=(), home=None):
     for directory in (home, workspace, data, home / 'sessions', home / 'ccstore'):
         directory.mkdir(parents=True, exist_ok=True)
     effective = sorted(set(task.get('allowed_effects', [])) & set(grants))
-    args = ['-m', 'jiuwenswarm.ccv2.agent_mcp', '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs'),
+    native = task.get('resources', {}).get('native_workflow_config')
+    module = 'jiuwenswarm.software_factory.agent_mcp' if native else 'jiuwenswarm.ccv2.agent_mcp'
+    args = ['-m', module, '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs'),
             '--store', str(home / 'ccstore'), '--workspace', str(workspace)]
     for grant in effective:
         args += ['--grant', grant]
@@ -132,7 +134,7 @@ def configure_agent(task, grants=(), home=None):
            'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable,
            'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
     for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR',
-                'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE'):
+                'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE', 'SIMINFENG_ROOT'):
         if key in os.environ:
             env[key] = os.environ[key]
     # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.

@@ -1,0 +1,35 @@
+cc: '2'
+id: factory.throughput_campaign
+version: 1.0.0
+materials:
+  methodology:
+    path: METHOD.md
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  submit:
+    does: Submit a frozen-judge AA, screen or ABBA confirmation on the operator baseline. Candidate settings stay inside the task envelope; source candidates require a successful same-task native build.
+    takes: {request: json, idem_key: text}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec, gpu.use]
+  status:
+    does: Reconcile the owned comparison job and exact GPU container cleanup.
+    takes: {attempt_id: text}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  result:
+    does: Independently verify raw evidence, exact tokens, fixed expert placement and measured decode tokens per second. A positive screen is not confirmation.
+    takes: {attempt_id: text}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
+  cancel:
+    does: Cancel only the owned comparison and reconcile its exact containers.
+    takes: {attempt_id: text}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec]
