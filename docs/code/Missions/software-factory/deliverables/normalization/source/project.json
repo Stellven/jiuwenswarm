@@ -1,0 +1,147 @@
+{
+  "schema": "strata.core.project.v1",
+  "project_dir": "/workspace/factory-runs/02446be989844a3fb7e43dc9bd6a8e0a/stages/n7/1/workspace/strata_native",
+  "source_commit": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "selected": [
+    "rms_norm"
+  ],
+  "operations": [
+    {
+      "source_id": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+      "id": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+      "name": "rms_norm_weighted_kernel",
+      "operation": "rms_norm",
+      "category": "normalization",
+      "binding": "invoke_c9b0d6f190bcc119",
+      "validation_input": "tests/operations/c9b0d6f190bcc119-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/c9b0d6f190bcc119-input.txt",
+        "--operation",
+        "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+      "builtin_reference_available": true
+    }
+  ],
+  "generated_files": [
+    {
+      "path": "include/strata_core.h",
+      "sha256": "54d214e6a645f39337c7795fab3fc28e5e2d3270f00a6b49f908befea0380fcf",
+      "bytes": 315
+    },
+    {
+      "path": "include/cuda_cpu_runtime.h",
+      "sha256": "9f9768f242ce65c194dc2dd0d3796e5b1be04df6bca6be47a13f109e8938f017",
+      "bytes": 7244
+    },
+    {
+      "path": "src/strata_core.cpp",
+      "sha256": "b543eddf1f8eeab6f3d4704175fdad80873c68e2c9820e4d96e3ff6160f51bb5",
+      "bytes": 2415
+    },
+    {
+      "path": "src/main.cpp",
+      "sha256": "6caf823c245e4cd0b4f12c8595e4501de96c65a1ad8675179c94ee8f95d9bfa9",
+      "bytes": 2295
+    },
+    {
+      "path": "tests/numerical.cpp",
+      "sha256": "f67a2d6ac868bec2d09a052d613d15a2583da65a7dd35f6ee05f6bd2f3f01fef",
+      "bytes": 3396
+    },
+    {
+      "path": "tests/cli-input.txt",
+      "sha256": "bd9be28676bfab206399895a855ba7eb25412f817a2cbeb37e2fa9b9f3d776ae",
+      "bytes": 33
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "8536b9f2303c4b7f856c177facb7b254fbe3df4d727536a89e926d04f7f8c8ff",
+      "bytes": 1395
+    },
+    {
+      "path": "cmake/FindAscendCL.cmake",
+      "sha256": "03d6ba3ff185ac7ad41554ab81d1555a1c89b851a59ce0e0e053874db82dec51",
+      "bytes": 1029
+    },
+    {
+      "path": "tests/operations/c9b0d6f190bcc119-input.txt",
+      "sha256": "bd9be28676bfab206399895a855ba7eb25412f817a2cbeb37e2fa9b9f3d776ae",
+      "bytes": 33
+    },
+    {
+      "path": "reference/rms_norm.cu.txt",
+      "sha256": "b71f0fac7442c268f6acd21d5a35c9d64cac4b9d65cdb4773b09abf0f0f62593",
+      "bytes": 1695
+    },
+    {
+      "path": "reference/router_reference.cpp.txt",
+      "sha256": "99e7bbc233a614f14375770722d3a54d49b5de35bd741f327f067d68181ff931",
+      "bytes": 1060
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "949b9b0aada7476006469e58ee4ffb0e0f68c2d9137e90a356757b61a09d37f0",
+      "bytes": 1093
+    },
+    {
+      "path": "README.md",
+      "sha256": "7b995f8252cc83f4895e9ca67ea1016db592509ca0a6f82551aa4b8b6cfdd7ab",
+      "bytes": 2292
+    },
+    {
+      "path": "reference/provenance.json",
+      "sha256": "796855f79b423af47db1d966ba0ddd3bc5fac5487527ba5628f1e09b32e923f8",
+      "bytes": 973
+    },
+    {
+      "path": "code_diff.json",
+      "sha256": "5d25f3fc680e49e7726b7e65c7d78d30f69782da4a48d62442d578ef11db1972",
+      "bytes": 5587
+    }
+  ],
+  "code_diff": "code_diff.json",
+  "cli": {
+    "mode": "rms_norm",
+    "format": "whitespace: rows cols epsilon; rows*cols values; cols weights",
+    "argv": [
+      "strata_engine",
+      "--input",
+      "PATH"
+    ],
+    "operations": [
+      {
+        "source_id": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+        "id": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+        "name": "rms_norm_weighted_kernel",
+        "operation": "rms_norm",
+        "category": "normalization",
+        "binding": "invoke_c9b0d6f190bcc119",
+        "validation_input": "tests/operations/c9b0d6f190bcc119-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/c9b0d6f190bcc119-input.txt",
+          "--operation",
+          "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+        "builtin_reference_available": true
+      }
+    ],
+    "validation_input": "tests/cli-input.txt",
+    "validation_case": {
+      "kind": "isolated_external_numeric_input",
+      "semantic_oracle_available": true
+    }
+  },
+  "targets": [
+    "strata_engine",
+    "strata_core_test"
+  ],
+  "runtime": "cpu_cooperative_cuda_reference",
+  "scope": "Source-lowered production computational kernels; CPU cooperative CUDA reference execution. No model loader or full token-generation claim",
+  "native_activation_generated": false,
+  "native_device_validated": false,
+  "full_inference_validated": false
+}

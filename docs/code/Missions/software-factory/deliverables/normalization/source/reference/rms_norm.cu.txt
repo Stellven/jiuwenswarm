@@ -1,0 +1,24 @@
+__global__ void rms_norm_weighted_kernel(float* __restrict__ x, const float* __restrict__ w, int64_t rows,
+                                         int64_t cols, float eps) {
+
+    const int lane = threadIdx.x & 31;
+    const int64_t row = ((int64_t) blockIdx.x * (blockDim.x >> 5)) + (threadIdx.x >> 5);
+    // **THE ROW GUARD IS NOT DECORATION, AND ITS ABSENCE WAS THE QSA BUG.**  The launcher rounds the grid up to
+    // whole 4-warp blocks, so a call with `rows` = 2 - the QSA k-norm, the only non-multiple-of-4 row count in
+    // the engine - runs EIGHT warps: rows 0 and 1 are the data, and rows 2 and 3 write 2*cols floats PAST the
+    // end of `b.kcur`, which in the arena is exactly where `b.vcur` begins.  `b.vcur` was therefore silently
+    // replaced by two rows of `rms_norm(...) * attn_k_norm`: a normalized vector with l2 ~20.6 against V's
+    // ~5.7, which the attention then attended to.  `rope_neox_kernel` has had this guard all along.
+    if (row >= rows) return;
+    float* r = x + row * cols;
+    float acc = 0.0f;
+    for (int64_t c = lane; c < cols; c += 32) acc += r[c] * r[c];
+    for (int off = 16; off > 0; off >>= 1) acc += __shfl_down_sync(0xFFFFFFFFu, acc, off);
+    // The MEAN, not the sum: `ref/qsa.py::rms_norm` divides by `np.mean(np.square(x))`.  Broadcasting the
+    // reciprocal from lane 0 keeps all 32 lanes on the same value - computing `rsqrt` per lane would be the
+    // same number but a needless 32-way divergence in the last bit.
+    float inv = 0.0f;
+    if (lane == 0) inv = rsqrtf(acc / (float) cols + eps);
+    inv = __shfl_sync(0xFFFFFFFFu, inv, 0);
+    for (int64_t c = lane; c < cols; c += 32) r[c] = (w ? r[c] * w[c] : r[c]) * inv;
+}

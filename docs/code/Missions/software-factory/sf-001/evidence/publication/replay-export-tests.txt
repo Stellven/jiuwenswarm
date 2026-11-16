@@ -1,0 +1,13 @@
+test_changed_artifact_is_rejected (test_replay_export.ReplayExportTests.test_changed_artifact_is_rejected) ... ok
+test_exports_exact_evidence_and_preserves_original_recording (test_replay_export.ReplayExportTests.test_exports_exact_evidence_and_preserves_original_recording) ... ok
+test_lifecycle_cannot_publish_different_or_unrecorded_artifacts (test_replay_export.ReplayExportTests.test_lifecycle_cannot_publish_different_or_unrecorded_artifacts) ... ok
+test_noncontiguous_events_and_rewritten_graph_are_rejected (test_replay_export.ReplayExportTests.test_noncontiguous_events_and_rewritten_graph_are_rejected) ... ok
+test_original_run_cannot_be_export_destination (test_replay_export.ReplayExportTests.test_original_run_cannot_be_export_destination) ... ok
+test_outside_artifact_and_symlink_escape_are_rejected (test_replay_export.ReplayExportTests.test_outside_artifact_and_symlink_escape_are_rejected) ... ok
+test_source_script_closing_tags_are_safe_and_viewer_is_network_free (test_replay_export.ReplayExportTests.test_source_script_closing_tags_are_safe_and_viewer_is_network_free) ... ok
+test_tampered_recipe_source_is_rejected_without_working_source_dependency (test_replay_export.ReplayExportTests.test_tampered_recipe_source_is_rejected_without_working_source_dependency) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.021s
+
+OK

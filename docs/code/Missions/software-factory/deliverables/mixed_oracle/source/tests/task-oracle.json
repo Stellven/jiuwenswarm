@@ -1,0 +1,18 @@
+{
+  "cases": [
+    {
+      "input": "4 2 1 -2 0 3.5\n",
+      "expected": {
+        "output": [
+          2,
+          -4,
+          0,
+          7
+        ]
+      },
+      "operation": "scale_kernel",
+      "atol": 1e-06,
+      "rtol": 1e-06
+    }
+  ]
+}

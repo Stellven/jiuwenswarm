@@ -1,0 +1,74 @@
+{
+  "schema": "strata.source.provenance.v2",
+  "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "demands": [
+    "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+    "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+    "src/kernels/cuda/shared_expert.cu:moe_combine_kernel"
+  ],
+  "operations": [
+    {
+      "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "function_sha256": "6ad4e33231f928eedbfd8b924c520f4e3cd2796abb2f464697aa2ae1fbd80809",
+      "source_sha256": "4fa8260d101ba1d5c82e9ee1ee6260ca3f8a7d8020493254682dd0e597c5e94a",
+      "operation": "router",
+      "category": "routing",
+      "lowering_kind": "cooperative",
+      "features": {
+        "barrier": true,
+        "shuffle": true,
+        "shared": true,
+        "thread_index": true,
+        "block_index": true,
+        "collectives": [
+          "__shfl_down_sync",
+          "__syncthreads"
+        ],
+        "has_softmax": true,
+        "configurable_experts": true,
+        "configurable_k": true,
+        "stable_index_tie": true
+      }
+    },
+    {
+      "id": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+      "function_sha256": "88378a953090b2e2883a557aa03f23ed21d36b7dfba99f727320031c0aab4f58",
+      "source_sha256": "8168fc598e974c423e8c09ee632d2c9fc67321b3beddcd001b4408b932ebcc79",
+      "operation": "swiglu",
+      "category": "activation",
+      "lowering_kind": "scalar",
+      "features": {
+        "barrier": false,
+        "shuffle": false,
+        "shared": false,
+        "thread_index": true,
+        "block_index": true,
+        "collectives": [],
+        "has_softmax": true,
+        "configurable_experts": false,
+        "configurable_k": false,
+        "stable_index_tie": false
+      }
+    },
+    {
+      "id": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+      "function_sha256": "7d491edf290b701705a3ea3a8d6646e6d25197891c8caaca6c3944d88d2a6cd9",
+      "source_sha256": "8168fc598e974c423e8c09ee632d2c9fc67321b3beddcd001b4408b932ebcc79",
+      "operation": "moe_combine",
+      "category": "aggregation",
+      "lowering_kind": "scalar",
+      "features": {
+        "barrier": false,
+        "shuffle": false,
+        "shared": false,
+        "thread_index": true,
+        "block_index": true,
+        "collectives": [],
+        "has_softmax": false,
+        "configurable_experts": false,
+        "configurable_k": true,
+        "stable_index_tie": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,209 @@
+{
+  "schema": "strata.core.project.v1",
+  "project_dir": "/workspace/factory-runs/b152d434c8e14b01adc8c4aa40ad83f2/stages/n7/1/workspace/strata_native",
+  "source_commit": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "selected": [
+    "router",
+    "elementwise"
+  ],
+  "operations": [
+    {
+      "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "name": "router_top10_kernel",
+      "operation": "router",
+      "category": "routing",
+      "binding": "invoke_49ab87035bb021f7",
+      "validation_input": "tests/operations/49ab87035bb021f7-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/49ab87035bb021f7-input.txt",
+        "--operation",
+        "src/kernels/cuda/router_top10.cu:router_top10_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "builtin_reference_available": true
+    },
+    {
+      "source_id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+      "id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+      "name": "scale_kernel",
+      "operation": "elementwise",
+      "category": "elementwise",
+      "binding": "invoke_99a12ae78535eaee",
+      "validation_input": "tests/operations/99a12ae78535eaee-input.txt",
+      "validation_argv": [
+        "--input",
+        "tests/operations/99a12ae78535eaee-input.txt",
+        "--operation",
+        "src/kernels/cuda/elementwise.cu:scale_kernel"
+      ],
+      "operation_literal": "src/kernels/cuda/elementwise.cu:scale_kernel",
+      "builtin_reference_available": false
+    }
+  ],
+  "generated_files": [
+    {
+      "path": "include/strata_core.h",
+      "sha256": "11edb35f9d4b0f2ec458acf30e85afb2d49174b2a4cf30224a3e3b38df3b892c",
+      "bytes": 403
+    },
+    {
+      "path": "include/cuda_cpu_runtime.h",
+      "sha256": "9f9768f242ce65c194dc2dd0d3796e5b1be04df6bca6be47a13f109e8938f017",
+      "bytes": 7244
+    },
+    {
+      "path": "src/strata_core.cpp",
+      "sha256": "7b381f21f39c6327ed61a465ef1724472734f9845330429d1c7806e702098b22",
+      "bytes": 7474
+    },
+    {
+      "path": "src/main.cpp",
+      "sha256": "9284e1e5a4829b6248c1c0e92223fe08c29c70e9a79904ef8cf2f643fefd962e",
+      "bytes": 2595
+    },
+    {
+      "path": "tests/numerical.cpp",
+      "sha256": "abee3e233aec6b8bd3694dd3255728fcffb53790dee93db3abb75763736f7fc8",
+      "bytes": 4805
+    },
+    {
+      "path": "tests/cli-input.txt",
+      "sha256": "21a2b561464657d1d5ca92c6c0d37e70a0c1867017d39b6bf3b91595f1e28488",
+      "bytes": 13
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "f3cb8e0e6c886715837c72cf685f3c70db894351f23ca5b135521fb75c85fcb7",
+      "bytes": 1739
+    },
+    {
+      "path": "cmake/FindAscendCL.cmake",
+      "sha256": "03d6ba3ff185ac7ad41554ab81d1555a1c89b851a59ce0e0e053874db82dec51",
+      "bytes": 1029
+    },
+    {
+      "path": "tests/task-oracle.json",
+      "sha256": "677963d6cdbc05083d67c52cd5753356b42821cae5989a2ac582dbd070427707",
+      "bytes": 255
+    },
+    {
+      "path": "tests/verify_task_oracle.py",
+      "sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+      "bytes": 22275
+    },
+    {
+      "path": "tests/operations/49ab87035bb021f7-input.txt",
+      "sha256": "21a2b561464657d1d5ca92c6c0d37e70a0c1867017d39b6bf3b91595f1e28488",
+      "bytes": 13
+    },
+    {
+      "path": "tests/operations/99a12ae78535eaee-input.txt",
+      "sha256": "70ff44aa1de788c31076e83db52b87e40c20305aec169c4f5e444ec78f6271b7",
+      "bytes": 15
+    },
+    {
+      "path": "reference/router.cu.txt",
+      "sha256": "5920423a25efd6324885ee0c4a11439183783914f250c307b8b54acb65dbaa4a",
+      "bytes": 6143
+    },
+    {
+      "path": "reference/elementwise.cu.txt",
+      "sha256": "a3096e3231ce3c8295e3bbb152fcc57add1a6e58a4f4649c3890f4e186aa4e0e",
+      "bytes": 173
+    },
+    {
+      "path": "reference/router_reference.cpp.txt",
+      "sha256": "99e7bbc233a614f14375770722d3a54d49b5de35bd741f327f067d68181ff931",
+      "bytes": 1060
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "949b9b0aada7476006469e58ee4ffb0e0f68c2d9137e90a356757b61a09d37f0",
+      "bytes": 1093
+    },
+    {
+      "path": "README.md",
+      "sha256": "42cf4183279a73ecbe037967c408919d6bd247c76e2eabf0c163cfa7a644af03",
+      "bytes": 2323
+    },
+    {
+      "path": "reference/provenance.json",
+      "sha256": "0f1a6ce5f371b4296ecf8edfce6f3d199d16fd2b2a400032fa2c919b01b4d206",
+      "bytes": 1689
+    },
+    {
+      "path": "code_diff.json",
+      "sha256": "07e8c4d3e453d9fb942ff3d83c7b6ed6efc41ea3e7c65ff5db7824773738f879",
+      "bytes": 14874
+    }
+  ],
+  "code_diff": "code_diff.json",
+  "cli": {
+    "mode": "operations",
+    "format": "use --operation <discovered function name>; each capability declares its own tensor contract",
+    "argv": [
+      "strata_engine",
+      "--input",
+      "PATH"
+    ],
+    "operations": [
+      {
+        "source_id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "name": "router_top10_kernel",
+        "operation": "router",
+        "category": "routing",
+        "binding": "invoke_49ab87035bb021f7",
+        "validation_input": "tests/operations/49ab87035bb021f7-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/49ab87035bb021f7-input.txt",
+          "--operation",
+          "src/kernels/cuda/router_top10.cu:router_top10_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+        "builtin_reference_available": true
+      },
+      {
+        "source_id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+        "id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+        "name": "scale_kernel",
+        "operation": "elementwise",
+        "category": "elementwise",
+        "binding": "invoke_99a12ae78535eaee",
+        "validation_input": "tests/operations/99a12ae78535eaee-input.txt",
+        "validation_argv": [
+          "--input",
+          "tests/operations/99a12ae78535eaee-input.txt",
+          "--operation",
+          "src/kernels/cuda/elementwise.cu:scale_kernel"
+        ],
+        "operation_literal": "src/kernels/cuda/elementwise.cu:scale_kernel",
+        "builtin_reference_available": false
+      }
+    ],
+    "validation_input": "tests/cli-input.txt",
+    "validation_operation": "router_top10_kernel",
+    "validation_case": {
+      "kind": "isolated_external_numeric_input",
+      "semantic_oracle_available": true
+    }
+  },
+  "targets": [
+    "strata_engine",
+    "strata_core_test"
+  ],
+  "runtime": "cpu_cooperative_cuda_reference",
+  "scope": "Source-lowered production computational kernels; CPU cooperative CUDA reference execution. No model loader or full token-generation claim",
+  "native_activation_generated": false,
+  "native_device_validated": false,
+  "full_inference_validated": false,
+  "task_oracle": {
+    "oracle": "tests/task-oracle.json",
+    "runner": "tests/verify_task_oracle.py",
+    "cases": 1,
+    "scope": "Isolated CPU task acceptance; no native device or model correctness claim"
+  }
+}

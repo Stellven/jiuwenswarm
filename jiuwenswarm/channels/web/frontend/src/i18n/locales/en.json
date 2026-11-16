@@ -69,6 +69,7 @@
     "unsupportedProtocol": "Unsupported A2UI protocol version: {{version}}"
   },
   "nav": {
+    "workflow": "Workflow",
     "chat": "Chat",
     "work": "Tasks",
     "agent": "Experts",
@@ -4798,5 +4799,24 @@
     "error": "Could not save or load the model. Check your app connection and refresh the model list. If the problem persists, contact your administrator or check the selected provider's credentials.",
     "saved": "Saved. New research runs will use this model.",
     "ai4rReference": "ChatGPT 6.1 Sol · fixed worker in AI4R"
+  },
+  "ccWorkflow": {
+    "title": "DGX Spark software factory",
+    "ownership": "Workflows coordinate capabilities. Lab Manager owns execution resources and evaluation.",
+    "objective": "Engineering objective",
+    "workflow": "Workflow",
+    "choose": "Choose a workflow",
+    "inputs": "Workflow inputs (JSON)",
+    "create": "Prepare run",
+    "runId": "Run ID",
+    "load": "Load run",
+    "revision": "Revision",
+    "acceptance": "Workflow completion is separate from candidate acceptance. Inspect the lab evidence for the verdict.",
+    "advance": "Run or resume",
+    "stop": "Stop and reconcile children",
+    "replay": "Recorded event",
+    "live": "Latest state",
+    "graph": "Capability workflow graph",
+    "decisions": "Decisions and graph revisions"
   }
 }

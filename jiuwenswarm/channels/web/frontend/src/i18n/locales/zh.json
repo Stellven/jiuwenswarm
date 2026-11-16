@@ -69,6 +69,7 @@
     "unsupportedProtocol": "不支持的 A2UI 协议版本：{{version}}"
   },
   "nav": {
+    "workflow": "Workflow",
     "chat": "对话",
     "work": "任务",
     "agent": "专家",
@@ -4798,5 +4799,24 @@
     "error": "无法保存或加载模型。请检查应用连接并刷新模型列表。如果问题仍然存在，请联系管理员或检查所选提供商的凭据。",
     "saved": "已保存。新的研究请求将使用此模型。",
     "ai4rReference": "ChatGPT 6.1 Sol · AI4R 内固定执行模型"
+  },
+  "ccWorkflow": {
+    "title": "DGX Spark 软件工厂",
+    "ownership": "工作流协调能力调用，实验室管理器负责执行资源和评估。",
+    "objective": "工程目标",
+    "workflow": "工作流",
+    "choose": "选择工作流",
+    "inputs": "工作流输入（JSON）",
+    "create": "准备运行",
+    "runId": "运行 ID",
+    "load": "加载运行",
+    "revision": "修订",
+    "acceptance": "工作流完成不代表候选方案通过验收。请查看实验室证据中的评估结论。",
+    "advance": "运行或恢复",
+    "stop": "停止并核对子任务",
+    "replay": "已记录事件",
+    "live": "最新状态",
+    "graph": "能力工作流图",
+    "decisions": "决策和图修订"
   }
 }

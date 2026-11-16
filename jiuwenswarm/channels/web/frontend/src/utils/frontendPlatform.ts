@@ -2,6 +2,7 @@ export type FrontendPlatform = 'web' | 'harmony';
 
 export type SidebarNavKey =
   | 'chat'
+  | 'workflow'
   | 'skills'
   | 'agents'
   | 'sessions'

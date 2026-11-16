@@ -1,0 +1,4 @@
+__global__ void scale_kernel(float* __restrict__ x, int64_t n, float s) {
+    const int64_t i = (int64_t) blockIdx.x * blockDim.x + threadIdx.x;
+    if (i < n) x[i] *= s;
+}

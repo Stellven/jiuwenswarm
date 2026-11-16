@@ -1,0 +1,24 @@
+✔ zero cursor exposes no final execution graph, artifact, error or outcome (3.390072ms)
+✔ planning graph and dynamically selected lowerers appear only at recorded revisions (10.457669ms)
+✔ generated source and Code Diff stay hidden until actual publication (24.044865ms)
+✔ actual failed build, running retry and verified retry remain distinct (11.043509ms)
+✔ dynamic child input receipts follow the actual consumption event (4.232801ms)
+✔ static sealed receipts are lifecycle gated, with no future attempt enrichment (5.742318ms)
+✔ stdout and stderr chunks are not duplicated by command.finished or snapshots (3.807686ms)
+✔ all eight completed recordings retain actual statuses, attempts and publication identities (104.358751ms)
+✔ every visible artifact is backed by a publication observed within the prefix (398.91741ms)
+✔ seeking backwards removes later code, artifacts and terminal outcomes deterministically (9.924515ms)
+✔ recorded objects remain unchanged and a final-only fake artifact never enters playback (28.276244ms)
+✔ timing uses original order/timestamps and malformed or incomplete logs fail closed (1.534786ms)
+✔ edge state never derives blue, red or green from the source node alone (14.451647ms)
+✔ verified edge requires the exact immutable publication and actual target receipt (3.379607ms)
+✔ each artifact identity field mismatch fails closed instead of coloring the edge (13.616059ms)
+✔ latest matching attempt determines running and failed colors; blocked stays pending (3.597707ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 652.228574

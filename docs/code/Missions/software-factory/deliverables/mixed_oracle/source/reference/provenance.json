@@ -1,0 +1,53 @@
+{
+  "schema": "strata.source.provenance.v2",
+  "commit_sha": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+  "demands": [
+    "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+    "src/kernels/cuda/elementwise.cu:scale_kernel"
+  ],
+  "operations": [
+    {
+      "id": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+      "function_sha256": "6ad4e33231f928eedbfd8b924c520f4e3cd2796abb2f464697aa2ae1fbd80809",
+      "source_sha256": "4fa8260d101ba1d5c82e9ee1ee6260ca3f8a7d8020493254682dd0e597c5e94a",
+      "operation": "router",
+      "category": "routing",
+      "lowering_kind": "cooperative",
+      "features": {
+        "barrier": true,
+        "shuffle": true,
+        "shared": true,
+        "thread_index": true,
+        "block_index": true,
+        "collectives": [
+          "__shfl_down_sync",
+          "__syncthreads"
+        ],
+        "has_softmax": true,
+        "configurable_experts": true,
+        "configurable_k": true,
+        "stable_index_tie": true
+      }
+    },
+    {
+      "id": "src/kernels/cuda/elementwise.cu:scale_kernel",
+      "function_sha256": "34f3bb82105778a4df1eedfdb174ee376b780fb11883b9c91caa5f9885fe8b3e",
+      "source_sha256": "be4e764205523c261db967fc28ffd6afaf626f73573d8a22a5b82ab3c39f11de",
+      "operation": "elementwise",
+      "category": "elementwise",
+      "lowering_kind": "scalar",
+      "features": {
+        "barrier": false,
+        "shuffle": false,
+        "shared": false,
+        "thread_index": true,
+        "block_index": true,
+        "collectives": [],
+        "has_softmax": false,
+        "configurable_experts": false,
+        "configurable_k": false,
+        "stable_index_tie": false
+      }
+    }
+  ]
+}

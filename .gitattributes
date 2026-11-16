@@ -102,3 +102,9 @@ docs/architecture/source-archive/** -text whitespace=-trailing-space,-blank-at-e
 
 # Published RSI evidence retains exact source and measurement bytes.
 benchmarks/ccbench/rsi/evidence/** -text
+
+# Published factory recipes and generated source preserve their pinned bytes.
+jiuwenswarm/software_factory/** text eol=lf
+docs/code/Missions/software-factory/deliverables/** -text whitespace=-trailing-space,-blank-at-eof
+docs/code/Missions/software-factory/replay/*.html -text
+docs/code/Missions/software-factory/sf-001/evidence/** -text whitespace=-trailing-space,-blank-at-eof

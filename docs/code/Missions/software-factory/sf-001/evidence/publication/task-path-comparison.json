@@ -1,0 +1,223 @@
+{
+  "runs": [
+    {
+      "id": "e20cd5bb89a34dcba385a696596119e7",
+      "run_snapshot_sha256": "fec9735c793a9d4faabb0a026b2f11353ddc7df0518a4cd1e02b64f876f5a213",
+      "request": {
+        "goals": [
+          "value.report",
+          "construction.package",
+          "construction.portability"
+        ],
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "model_path": null,
+        "target_backend": "cpu",
+        "options": {
+          "jobs": 2,
+          "prompt_tokens": [
+            1
+          ],
+          "max_new": 1,
+          "max_context": 256,
+          "ple_gguf": null,
+          "logits_atol": 1e-05,
+          "logits_rtol": 0.0001,
+          "cuda_architectures": null,
+          "core_algorithms": null,
+          "reference_backend": "cuda"
+        },
+        "task": {
+          "description": "Construct the discovered STRATA routing, activation and expert aggregation source project.",
+          "source_scope": [
+            "src/kernels/cuda/*.cu"
+          ],
+          "capabilities": [
+            "routing",
+            "activation",
+            "aggregation"
+          ],
+          "acceptance": {
+            "source_project": true,
+            "cpu_validation": true
+          }
+        },
+        "workflow_path": null,
+        "workflow_parameters": {},
+        "owner_id": "local-operator"
+      },
+      "executed_stage_counts": {
+        "source.fetch": 1,
+        "source.cuda_ast": 1,
+        "source.discover": 1,
+        "task.compile": 1,
+        "metadata.compose_core": 1,
+        "construction.ascend_mapper": 1,
+        "construction.codegen": 1,
+        "construction.build": 1,
+        "construction.execute": 1,
+        "construction.package": 1,
+        "construction.rebuild_package": 1,
+        "value.assess": 1,
+        "source.bind_operation": 3,
+        "lower.cooperative": 1,
+        "lower.scalar": 2,
+        "toolchain.install": 1
+      },
+      "lowered_source_functions": [
+        {
+          "node": "n14",
+          "stage": "lower.cooperative",
+          "workflow": "implementation",
+          "subworkflow": "cooperative_lowering",
+          "source": "src/kernels/cuda/router_top10.cu:router_top10_kernel",
+          "source_function_sha256": "6ad4e33231f928eedbfd8b924c520f4e3cd2796abb2f464697aa2ae1fbd80809",
+          "bound_source_artifact": "a17",
+          "outputs": [
+            {
+              "id": "a18",
+              "kind": "core.lowered",
+              "sha256": "7eb818c4228432e18e161ec6de00ea882731c63f75424216193d7208d5ca22ab",
+              "size": 912921,
+              "producer": "n14"
+            }
+          ]
+        },
+        {
+          "node": "n16",
+          "stage": "lower.scalar",
+          "workflow": "implementation",
+          "subworkflow": "scalar_lowering",
+          "source": "src/kernels/cuda/shared_expert.cu:swiglu_kernel",
+          "source_function_sha256": "88378a953090b2e2883a557aa03f23ed21d36b7dfba99f727320031c0aab4f58",
+          "bound_source_artifact": "a19",
+          "outputs": [
+            {
+              "id": "a20",
+              "kind": "core.lowered",
+              "sha256": "efe6388a21c30bc9bdebd36c05efd582bb342dbd1fbd44f2d1af99b856aacb55",
+              "size": 888764,
+              "producer": "n16"
+            }
+          ]
+        },
+        {
+          "node": "n18",
+          "stage": "lower.scalar",
+          "workflow": "implementation",
+          "subworkflow": "scalar_lowering",
+          "source": "src/kernels/cuda/shared_expert.cu:moe_combine_kernel",
+          "source_function_sha256": "7d491edf290b701705a3ea3a8d6646e6d25197891c8caaca6c3944d88d2a6cd9",
+          "bound_source_artifact": "a21",
+          "outputs": [
+            {
+              "id": "a22",
+              "kind": "core.lowered",
+              "sha256": "4d21cf45e642814229f4d356b5b135998ba1638b5eaf975efb61892507f2285a",
+              "size": 892043,
+              "producer": "n18"
+            }
+          ]
+        }
+      ],
+      "graph_revision_count": 9
+    },
+    {
+      "id": "475135502cfe45d4972f8d6da1b1f4d5",
+      "run_snapshot_sha256": "836343bf89bab9a8900fa3aad2b97fdb4e75aed911dd18f85fe068dffaa333ff",
+      "request": {
+        "goals": [
+          "value.report",
+          "construction.package",
+          "construction.portability"
+        ],
+        "repository_url": "https://github.com/niko1221/strata",
+        "revision": "13eedf552417a6a791a7d13c6597e24300ee3a09",
+        "model_path": null,
+        "target_backend": "cpu",
+        "options": {
+          "jobs": 2,
+          "prompt_tokens": [
+            1
+          ],
+          "max_new": 1,
+          "max_context": 256,
+          "ple_gguf": null,
+          "logits_atol": 1e-05,
+          "logits_rtol": 0.0001,
+          "cuda_architectures": null,
+          "core_algorithms": null,
+          "reference_backend": "cuda"
+        },
+        "task": {
+          "description": "Construct the production normalization kernel as an independently executable source project.",
+          "source_scope": [
+            "src/kernels/cuda/elementwise.cu"
+          ],
+          "capabilities": [
+            "normalization"
+          ],
+          "acceptance": {
+            "source_project": true,
+            "cpu_validation": true
+          }
+        },
+        "workflow_path": null,
+        "workflow_parameters": {},
+        "owner_id": "local-operator"
+      },
+      "executed_stage_counts": {
+        "source.fetch": 1,
+        "source.cuda_ast": 1,
+        "source.discover": 1,
+        "task.compile": 1,
+        "metadata.compose_core": 1,
+        "construction.ascend_mapper": 1,
+        "construction.codegen": 1,
+        "construction.build": 1,
+        "construction.execute": 1,
+        "construction.package": 1,
+        "construction.rebuild_package": 1,
+        "value.assess": 1,
+        "source.bind_operation": 1,
+        "lower.cooperative": 1,
+        "toolchain.install": 1
+      },
+      "lowered_source_functions": [
+        {
+          "node": "n14",
+          "stage": "lower.cooperative",
+          "workflow": "implementation",
+          "subworkflow": "cooperative_lowering",
+          "source": "src/kernels/cuda/elementwise.cu:rms_norm_weighted_kernel",
+          "source_function_sha256": "b45cead8540ee15dc886f45eef5c4b6b0c517695289645bdb7f60880af96a7ae",
+          "bound_source_artifact": "a17",
+          "outputs": [
+            {
+              "id": "a18",
+              "kind": "core.lowered",
+              "sha256": "a4ca7e3eceae7e56492f42258dc5604d8288e90d35ed8b5ae6aa3ff1e8fc121d",
+              "size": 893786,
+              "producer": "n14"
+            }
+          ]
+        }
+      ],
+      "graph_revision_count": 5
+    }
+  ],
+  "checks": [
+    "Identical requested/compiled goals, backend, and acceptance criteria",
+    "Different formal task scope/capabilities select different actual source functions and stage instance counts",
+    "Lowering stages inserted after the initial graph",
+    "Every lowering input has an exact published producer identity and file SHA/size match",
+    "Selected function bytes match the actual acquired repository",
+    "Every lower-stage output SHA/size verified from actual files",
+    "Both real host browser graphs and engineering task inputs matched these snapshots"
+  ],
+  "not_claimed": [
+    "Native device or full-model inference verification",
+    "All parent aggregation delivery receipts: missing lower-to-compose receipts were separately reported for remediation",
+    "Value assessment semantic acceptance"
+  ]
+}

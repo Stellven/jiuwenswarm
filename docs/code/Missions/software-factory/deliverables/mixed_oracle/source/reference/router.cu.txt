@@ -1,0 +1,119 @@
+__global__ void router_top10_kernel(const float* __restrict__ logits, int n_tokens, int n_expert, int k,
+                                    int* __restrict__ ids, float* __restrict__ weights) {
+    // **`s_taken` IS FIRST SO THE OTHER TWO KEEP THEIR ALIGNMENT WITHOUT AN OFFSET PARAMETER**, and `s_p`'s
+    // existing `s_ex + n_expert` stays correct because it is relative to `s_ex`.  One byte per expert.
+    extern __shared__ unsigned char s_raw[];
+    const size_t taken_bytes = ((size_t) n_expert + 15u) & ~(size_t) 15u;
+    unsigned char* s_taken = s_raw;
+    double* s_ex = (double*) (s_raw + taken_bytes);
+    __shared__ float s_red[RT_MAX_THREADS / 32];
+    __shared__ int s_rid[RT_MAX_THREADS / 32];
+    __shared__ double s_sum;
+
+    const int t = blockIdx.x;
+    if (t >= n_tokens) return;
+    const int tid = threadIdx.x;
+    const int nt = blockDim.x;
+    const float* l = logits + (size_t) t * n_expert;
+
+    // ---- softmax over ALL experts, for stability: the max.  A tree of `fmaxf` is EXACT and order-independent,
+    // so this is bit-identical to the serial scan.
+    float mx = -INFINITY;
+    for (int e = tid; e < n_expert; e += nt) mx = fmaxf(mx, l[e]);
+    for (int off = 16; off > 0; off >>= 1) mx = fmaxf(mx, __shfl_down_sync(0xffffffffu, mx, off));
+    if ((tid & 31) == 0) s_red[tid >> 5] = mx;
+    __syncthreads();
+    if (tid < 32) {
+        const int nw = (nt + 31) >> 5;
+        float v = (tid < nw) ? s_red[tid] : -INFINITY;
+        for (int off = 16; off > 0; off >>= 1) v = fmaxf(v, __shfl_down_sync(0xffffffffu, v, off));
+        if (tid == 0) s_red[0] = v;
+    }
+    __syncthreads();
+    mx = s_red[0];
+
+    // ---- THE 512 EXPONENTIALS, ONCE EACH AND IN PARALLEL.  `exp` in double is software-emulated on this die
+    // and was 5,632 serial calls before; it is 512 parallel ones now.
+    for (int e = tid; e < n_expert; e += nt) s_ex[e] = exp((double) l[e] - (double) mx);
+    __syncthreads();
+
+    // ---- the sum, ascending, on one thread: see the note above on why this is NOT parallelised.
+    if (tid == 0) {
+        double sum = 0.0;
+        for (int e = 0; e < n_expert; ++e) sum += s_ex[e];
+        s_sum = sum;
+    }
+    __syncthreads();
+    const float inv = (float) (1.0 / s_sum);
+
+    // ---- the selection, by rank.  `p[e] = (float)(s_ex[e] * inv)` reproduces the old expression exactly:
+    // `(float)(exp((double) l[e] - (double) mx) * inv)` with `inv` a FLOAT.
+    // ---- p[] ONCE.  The rank loop below compares every expert against every other, so computing
+    // `(float) (s_ex[f] * inv)` INSIDE it did **512 x 512 = 262,144** double multiplies and float converts per
+    // token per layer instead of 512 - and a consumer die runs FP64 at a small fraction of FP32, which is why
+    // this was worth more than the branch.  The shared load stays either way; the ARITHMETIC is what goes.
+    //
+    // THIS IS BIT-IDENTICAL, not merely equivalent: `p[e]` is the same expression it was, computed once instead
+    // of 513 times, and the comparisons then see exactly the same floats.
+    float* s_p = (float*) (s_ex + n_expert);
+    for (int e = tid; e < n_expert; e += nt) s_p[e] = (float) (s_ex[e] * inv);
+    __syncthreads();
+
+    // ================================ THE SELECTION, IN k PASSES ================================
+    //
+    // **THE RANK-BY-COUNTING LOOP COMPARED EVERY EXPERT AGAINST EVERY OTHER**: 512 x 512 = 262,144 shared
+    // loads and compares per token per layer, to choose ten things out of 512 - measured at 34.35 us, 63% of
+    // `moe_route`'s accounted cost and the largest single item in the R3 plan.  The comment above records that
+    // the FP64 ARITHMETIC inside that loop was hoisted out once already ("262,144 double multiplies per token
+    // per layer instead of 512"); **the O(n^2) STRUCTURE was left, and it is the structure that costs.**
+    //
+    // `k` passes of a block-wide argmax is 10 x 512 = 5,120 compares - **51x less work** - and it produces the
+    // SAME ORDER.  That is the whole correctness argument: scanning `e` ascending with a strict `>` keeps the
+    // LOWEST index on a tie, which is exactly the rule the rank loop spelled out as
+    // `else if (f < e && pf == pe) ++rank`.  A stable descending top-k, ties by index.
+    for (int e = tid; e < n_expert; e += nt) s_taken[e] = 0;
+    __syncthreads();
+
+    for (int i = 0; i < k; ++i) {
+        float bv = -INFINITY;
+        int bi = n_expert;               // a sentinel that loses to every real index
+        for (int e = tid; e < n_expert; e += nt) {
+            if (s_taken[e]) continue;
+            const float pe = s_p[e];
+            if (pe > bv) { bv = pe; bi = e; }
+        }
+        for (int off = 16; off > 0; off >>= 1) {
+            const float ov = __shfl_down_sync(0xffffffffu, bv, off);
+            const int oi = __shfl_down_sync(0xffffffffu, bi, off);
+            if (ov > bv || (ov == bv && oi < bi)) { bv = ov; bi = oi; }
+        }
+        if ((tid & 31) == 0) { s_red[tid >> 5] = bv; s_rid[tid >> 5] = bi; }
+        __syncthreads();
+        if (tid < 32) {
+            const int nw = (nt + 31) >> 5;
+            float v = (tid < nw) ? s_red[tid] : -INFINITY;
+            int ix = (tid < nw) ? s_rid[tid] : n_expert;
+            for (int off = 16; off > 0; off >>= 1) {
+                const float ov = __shfl_down_sync(0xffffffffu, v, off);
+                const int oi = __shfl_down_sync(0xffffffffu, ix, off);
+                if (ov > v || (ov == v && oi < ix)) { v = ov; ix = oi; }
+            }
+            if (tid == 0 && ix < n_expert) {
+                ids[(size_t) t * k + i] = ix;
+                weights[(size_t) t * k + i] = v;
+                s_taken[ix] = 1;
+            }
+        }
+        __syncthreads();
+    }
+    __syncthreads();
+
+    // ---- renormalise, with ggml's lower clamp.  Order preserved.
+    if (tid == 0) {
+        double s = 0.0;
+        for (int i = 0; i < k; ++i) s += (double) weights[(size_t) t * k + i];
+        const double sc = fmax(s, 6.103515625e-05);       // 2**-14
+        for (int i = 0; i < k; ++i)
+            weights[(size_t) t * k + i] = (float) ((double) weights[(size_t) t * k + i] / sc);
+    }
+}

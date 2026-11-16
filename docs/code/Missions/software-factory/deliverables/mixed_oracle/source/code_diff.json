@@ -1,0 +1,118 @@
+{
+  "schema": "strata.code.diff.v1",
+  "files": [
+    {
+      "source_path": "src/kernels/cuda/router_top10.cu",
+      "generated_path": "src/strata_core.cpp",
+      "source_code": "__global__ void router_top10_kernel(const float* __restrict__ logits, int n_tokens, int n_expert, int k,\n                                    int* __restrict__ ids, float* __restrict__ weights) {\n    // **`s_taken` IS FIRST SO THE OTHER TWO KEEP THEIR ALIGNMENT WITHOUT AN OFFSET PARAMETER**, and `s_p`'s\n    // existing `s_ex + n_expert` stays correct because it is relative to `s_ex`.  One byte per expert.\n    extern __shared__ unsigned char s_raw[];\n    const size_t taken_bytes = ((size_t) n_expert + 15u) & ~(size_t) 15u;\n    unsigned char* s_taken = s_raw;\n    double* s_ex = (double*) (s_raw + taken_bytes);\n    __shared__ float s_red[RT_MAX_THREADS / 32];\n    __shared__ int s_rid[RT_MAX_THREADS / 32];\n    __shared__ double s_sum;\n\n    const int t = blockIdx.x;\n    if (t >= n_tokens) return;\n    const int tid = threadIdx.x;\n    const int nt = blockDim.x;\n    const float* l = logits + (size_t) t * n_expert;\n\n    // ---- softmax over ALL experts, for stability: the max.  A tree of `fmaxf` is EXACT and order-independent,\n    // so this is bit-identical to the serial scan.\n    float mx = -INFINITY;\n    for (int e = tid; e < n_expert; e += nt) mx = fmaxf(mx, l[e]);\n    for (int off = 16; off > 0; off >>= 1) mx = fmaxf(mx, __shfl_down_sync(0xffffffffu, mx, off));\n    if ((tid & 31) == 0) s_red[tid >> 5] = mx;\n    __syncthreads();\n    if (tid < 32) {\n        const int nw = (nt + 31) >> 5;\n        float v = (tid < nw) ? s_red[tid] : -INFINITY;\n        for (int off = 16; off > 0; off >>= 1) v = fmaxf(v, __shfl_down_sync(0xffffffffu, v, off));\n        if (tid == 0) s_red[0] = v;\n    }\n    __syncthreads();\n    mx = s_red[0];\n\n    // ---- THE 512 EXPONENTIALS, ONCE EACH AND IN PARALLEL.  `exp` in double is software-emulated on this die\n    // and was 5,632 serial calls before; it is 512 parallel ones now.\n    for (int e = tid; e < n_expert; e += nt) s_ex[e] = exp((double) l[e] - (double) mx);\n    __syncthreads();\n\n    // ---- the sum, ascending, on one thread: see the note above on why this is NOT parallelised.\n    if (tid == 0) {\n        double sum = 0.0;\n        for (int e = 0; e < n_expert; ++e) sum += s_ex[e];\n        s_sum = sum;\n    }\n    __syncthreads();\n    const float inv = (float) (1.0 / s_sum);\n\n    // ---- the selection, by rank.  `p[e] = (float)(s_ex[e] * inv)` reproduces the old expression exactly:\n    // `(float)(exp((double) l[e] - (double) mx) * inv)` with `inv` a FLOAT.\n    // ---- p[] ONCE.  The rank loop below compares every expert against every other, so computing\n    // `(float) (s_ex[f] * inv)` INSIDE it did **512 x 512 = 262,144** double multiplies and float converts per\n    // token per layer instead of 512 - and a consumer die runs FP64 at a small fraction of FP32, which is why\n    // this was worth more than the branch.  The shared load stays either way; the ARITHMETIC is what goes.\n    //\n    // THIS IS BIT-IDENTICAL, not merely equivalent: `p[e]` is the same expression it was, computed once instead\n    // of 513 times, and the comparisons then see exactly the same floats.\n    float* s_p = (float*) (s_ex + n_expert);\n    for (int e = tid; e < n_expert; e += nt) s_p[e] = (float) (s_ex[e] * inv);\n    __syncthreads();\n\n    // ================================ THE SELECTION, IN k PASSES ================================\n    //\n    // **THE RANK-BY-COUNTING LOOP COMPARED EVERY EXPERT AGAINST EVERY OTHER**: 512 x 512 = 262,144 shared\n    // loads and compares per token per layer, to choose ten things out of 512 - measured at 34.35 us, 63% of\n    // `moe_route`'s accounted cost and the largest single item in the R3 plan.  The comment above records that\n    // the FP64 ARITHMETIC inside that loop was hoisted out once already (\"262,144 double multiplies per token\n    // per layer instead of 512\"); **the O(n^2) STRUCTURE was left, and it is the structure that costs.**\n    //\n    // `k` passes of a block-wide argmax is 10 x 512 = 5,120 compares - **51x less work** - and it produces the\n    // SAME ORDER.  That is the whole correctness argument: scanning `e` ascending with a strict `>` keeps the\n    // LOWEST index on a tie, which is exactly the rule the rank loop spelled out as\n    // `else if (f < e && pf == pe) ++rank`.  A stable descending top-k, ties by index.\n    for (int e = tid; e < n_expert; e += nt) s_taken[e] = 0;\n    __syncthreads();\n\n    for (int i = 0; i < k; ++i) {\n        float bv = -INFINITY;\n        int bi = n_expert;               // a sentinel that loses to every real index\n        for (int e = tid; e < n_expert; e += nt) {\n            if (s_taken[e]) continue;\n            const float pe = s_p[e];\n            if (pe > bv) { bv = pe; bi = e; }\n        }\n        for (int off = 16; off > 0; off >>= 1) {\n            const float ov = __shfl_down_sync(0xffffffffu, bv, off);\n            const int oi = __shfl_down_sync(0xffffffffu, bi, off);\n            if (ov > bv || (ov == bv && oi < bi)) { bv = ov; bi = oi; }\n        }\n        if ((tid & 31) == 0) { s_red[tid >> 5] = bv; s_rid[tid >> 5] = bi; }\n        __syncthreads();\n        if (tid < 32) {\n            const int nw = (nt + 31) >> 5;\n            float v = (tid < nw) ? s_red[tid] : -INFINITY;\n            int ix = (tid < nw) ? s_rid[tid] : n_expert;\n            for (int off = 16; off > 0; off >>= 1) {\n                const float ov = __shfl_down_sync(0xffffffffu, v, off);\n                const int oi = __shfl_down_sync(0xffffffffu, ix, off);\n                if (ov > v || (ov == v && oi < ix)) { v = ov; ix = oi; }\n            }\n            if (tid == 0 && ix < n_expert) {\n                ids[(size_t) t * k + i] = ix;\n                weights[(size_t) t * k + i] = v;\n                s_taken[ix] = 1;\n            }\n        }\n        __syncthreads();\n    }\n    __syncthreads();\n\n    // ---- renormalise, with ggml's lower clamp.  Order preserved.\n    if (tid == 0) {\n        double s = 0.0;\n        for (int i = 0; i < k; ++i) s += (double) weights[(size_t) t * k + i];\n        const double sc = fmax(s, 6.103515625e-05);       // 2**-14\n        for (int i = 0; i < k; ++i)\n            weights[(size_t) t * k + i] = (float) ((double) weights[(size_t) t * k + i] / sc);\n    }\n}",
+      "generated_code": "namespace kernel_49ab87035bb021f7_scope {\nconstexpr int RT_MAX_THREADS = 512;\nstatic cuda_cpu::Task kernel_49ab87035bb021f7(cuda_cpu::Span<const float> logits, int n_tokens, int n_expert, int k, cuda_cpu::Span<int> ids, cuda_cpu::Span<float> weights, cuda_cpu::Block& block, cuda_cpu::Thread& thread) {\n    const auto threadIdx = thread.index(); const auto blockIdx = block.index();\n    const auto blockDim = block.dimensions(); const auto gridDim = block.grid(); const int warpSize = 32;\n\n    \n    \n    auto* s_raw = block.dynamic_shared<unsigned char>();\n    const size_t taken_bytes = ((size_t) n_expert + 15u) & ~(size_t) 15u;\n    unsigned char* s_taken = s_raw;\n    double* s_ex = (double*) (s_raw + taken_bytes);\n    auto* s_red = block.shared<float>(\"s_red\", RT_MAX_THREADS / 32);\n    auto* s_rid = block.shared<int>(\"s_rid\", RT_MAX_THREADS / 32);\n    auto& s_sum = *block.shared<double>(\"s_sum\", 1);\n\n    const int t = blockIdx.x;\n    if (t >= n_tokens) co_return;\n    const int tid = threadIdx.x;\n    const int nt = blockDim.x;\n    auto l = logits + (size_t) t * n_expert;\n\n    \n    \n    float mx = -INFINITY;\n    for (int e = tid; e < n_expert; e += nt) mx = fmaxf(mx, l[e]);\n    for (int off = 16; off > 0; off >>= 1) mx = fmaxf(mx, (co_await thread.shuffle_down(10,0xffffffffu, mx, off)));\n    if ((tid & 31) == 0) s_red[tid >> 5] = mx;\n    co_await thread.barrier(1);\n    if (tid < 32) {\n        const int nw = (nt + 31) >> 5;\n        float v = (tid < nw) ? s_red[tid] : -INFINITY;\n        for (int off = 16; off > 0; off >>= 1) v = fmaxf(v, (co_await thread.shuffle_down(11,0xffffffffu, v, off)));\n        if (tid == 0) s_red[0] = v;\n    }\n    co_await thread.barrier(2);\n    mx = s_red[0];\n\n    \n    \n    for (int e = tid; e < n_expert; e += nt) s_ex[e] = exp((double) l[e] - (double) mx);\n    co_await thread.barrier(3);\n\n    \n    if (tid == 0) {\n        double sum = 0.0;\n        for (int e = 0; e < n_expert; ++e) sum += s_ex[e];\n        s_sum = sum;\n    }\n    co_await thread.barrier(4);\n    const float inv = (float) (1.0 / s_sum);\n\n    \n    \n    \n    \n    \n    \n    \n    \n    \n    float* s_p = (float*) (s_ex + n_expert);\n    for (int e = tid; e < n_expert; e += nt) s_p[e] = (float) (s_ex[e] * inv);\n    co_await thread.barrier(5);\n\n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \n    for (int e = tid; e < n_expert; e += nt) s_taken[e] = 0;\n    co_await thread.barrier(6);\n\n    for (int i = 0; i < k; ++i) {\n        float bv = -INFINITY;\n        int bi = n_expert;               \n        for (int e = tid; e < n_expert; e += nt) {\n            if (s_taken[e]) continue;\n            const float pe = s_p[e];\n            if (pe > bv) { bv = pe; bi = e; }\n        }\n        for (int off = 16; off > 0; off >>= 1) {\n            const float ov = (co_await thread.shuffle_down(12,0xffffffffu, bv, off));\n            const int oi = (co_await thread.shuffle_down(13,0xffffffffu, bi, off));\n            if (ov > bv || (ov == bv && oi < bi)) { bv = ov; bi = oi; }\n        }\n        if ((tid & 31) == 0) { s_red[tid >> 5] = bv; s_rid[tid >> 5] = bi; }\n        co_await thread.barrier(7);\n        if (tid < 32) {\n            const int nw = (nt + 31) >> 5;\n            float v = (tid < nw) ? s_red[tid] : -INFINITY;\n            int ix = (tid < nw) ? s_rid[tid] : n_expert;\n            for (int off = 16; off > 0; off >>= 1) {\n                const float ov = (co_await thread.shuffle_down(14,0xffffffffu, v, off));\n                const int oi = (co_await thread.shuffle_down(15,0xffffffffu, ix, off));\n                if (ov > v || (ov == v && oi < ix)) { v = ov; ix = oi; }\n            }\n            if (tid == 0 && ix < n_expert) {\n                ids[(size_t) t * k + i] = ix;\n                weights[(size_t) t * k + i] = v;\n                s_taken[ix] = 1;\n            }\n        }\n        co_await thread.barrier(8);\n    }\n    co_await thread.barrier(9);\n\n    \n    if (tid == 0) {\n        double s = 0.0;\n        for (int i = 0; i < k; ++i) s += (double) weights[(size_t) t * k + i];\n        const double sc = fmax(s, 6.103515625e-05);       \n        for (int i = 0; i < k; ++i)\n            weights[(size_t) t * k + i] = (float) ((double) weights[(size_t) t * k + i] / sc);\n    }\n\n    co_return;\n}\n}\n"
+    },
+    {
+      "source_path": "src/kernels/cuda/elementwise.cu",
+      "generated_path": "src/strata_core.cpp",
+      "source_code": "__global__ void scale_kernel(float* __restrict__ x, int64_t n, float s) {\n    const int64_t i = (int64_t) blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) x[i] *= s;\n}",
+      "generated_code": "namespace kernel_99a12ae78535eaee_scope {\n\nstatic cuda_cpu::Task kernel_99a12ae78535eaee(cuda_cpu::Span<float> x, int64_t n, float s, cuda_cpu::Block& block, cuda_cpu::Thread& thread) {\n    const auto threadIdx = thread.index(); const auto blockIdx = block.index();\n    const auto blockDim = block.dimensions(); const auto gridDim = block.grid(); const int warpSize = 32;\n\n    const int64_t i = (int64_t) blockIdx.x * blockDim.x + threadIdx.x;\n    if (i < n) x[i] *= s;\n\n    co_return;\n}\n}\n"
+    }
+  ],
+  "selected": [
+    "router",
+    "elementwise"
+  ],
+  "transforms": [
+    "Discovered signatures and executable tensor contracts",
+    "Production kernel body retained; CUDA execution primitives lowered to C++20 cooperative CPU runtime",
+    "Source casts, local types, loop/control/selection operations retained"
+  ],
+  "generated_files": [
+    {
+      "path": "include/strata_core.h",
+      "sha256": "11edb35f9d4b0f2ec458acf30e85afb2d49174b2a4cf30224a3e3b38df3b892c",
+      "bytes": 403
+    },
+    {
+      "path": "include/cuda_cpu_runtime.h",
+      "sha256": "9f9768f242ce65c194dc2dd0d3796e5b1be04df6bca6be47a13f109e8938f017",
+      "bytes": 7244
+    },
+    {
+      "path": "src/strata_core.cpp",
+      "sha256": "7b381f21f39c6327ed61a465ef1724472734f9845330429d1c7806e702098b22",
+      "bytes": 7474
+    },
+    {
+      "path": "src/main.cpp",
+      "sha256": "9284e1e5a4829b6248c1c0e92223fe08c29c70e9a79904ef8cf2f643fefd962e",
+      "bytes": 2595
+    },
+    {
+      "path": "tests/numerical.cpp",
+      "sha256": "abee3e233aec6b8bd3694dd3255728fcffb53790dee93db3abb75763736f7fc8",
+      "bytes": 4805
+    },
+    {
+      "path": "tests/cli-input.txt",
+      "sha256": "21a2b561464657d1d5ca92c6c0d37e70a0c1867017d39b6bf3b91595f1e28488",
+      "bytes": 13
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha256": "f3cb8e0e6c886715837c72cf685f3c70db894351f23ca5b135521fb75c85fcb7",
+      "bytes": 1739
+    },
+    {
+      "path": "cmake/FindAscendCL.cmake",
+      "sha256": "03d6ba3ff185ac7ad41554ab81d1555a1c89b851a59ce0e0e053874db82dec51",
+      "bytes": 1029
+    },
+    {
+      "path": "tests/task-oracle.json",
+      "sha256": "677963d6cdbc05083d67c52cd5753356b42821cae5989a2ac582dbd070427707",
+      "bytes": 255
+    },
+    {
+      "path": "tests/verify_task_oracle.py",
+      "sha256": "b90b495cdc606484ac0393449239fce72bb91947497ff10f3943ba3d7c276b27",
+      "bytes": 22275
+    },
+    {
+      "path": "tests/operations/49ab87035bb021f7-input.txt",
+      "sha256": "21a2b561464657d1d5ca92c6c0d37e70a0c1867017d39b6bf3b91595f1e28488",
+      "bytes": 13
+    },
+    {
+      "path": "tests/operations/99a12ae78535eaee-input.txt",
+      "sha256": "70ff44aa1de788c31076e83db52b87e40c20305aec169c4f5e444ec78f6271b7",
+      "bytes": 15
+    },
+    {
+      "path": "reference/router.cu.txt",
+      "sha256": "5920423a25efd6324885ee0c4a11439183783914f250c307b8b54acb65dbaa4a",
+      "bytes": 6143
+    },
+    {
+      "path": "reference/elementwise.cu.txt",
+      "sha256": "a3096e3231ce3c8295e3bbb152fcc57add1a6e58a4f4649c3890f4e186aa4e0e",
+      "bytes": 173
+    },
+    {
+      "path": "reference/router_reference.cpp.txt",
+      "sha256": "99e7bbc233a614f14375770722d3a54d49b5de35bd741f327f067d68181ff931",
+      "bytes": 1060
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "949b9b0aada7476006469e58ee4ffb0e0f68c2d9137e90a356757b61a09d37f0",
+      "bytes": 1093
+    },
+    {
+      "path": "README.md",
+      "sha256": "42cf4183279a73ecbe037967c408919d6bd247c76e2eabf0c163cfa7a644af03",
+      "bytes": 2323
+    },
+    {
+      "path": "reference/provenance.json",
+      "sha256": "0f1a6ce5f371b4296ecf8edfce6f3d199d16fd2b2a400032fa2c919b01b4d206",
+      "bytes": 1689
+    }
+  ]
+}
