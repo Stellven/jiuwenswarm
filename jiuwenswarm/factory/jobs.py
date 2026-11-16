@@ -28,6 +28,25 @@ def fingerprint(kind, request, argv, job_class, timeout_s):
         ensure_ascii=False, allow_nan=False).encode()).hexdigest()
 
 
+def reconcile_container_cleanup(store, attempt, output):
+    """Observe one adapter-owned container after its process groups are gone."""
+    if attempt['state'] not in {'succeeded', 'failed', 'cancelled'}:
+        return attempt
+    if not attempt.get('cleanup_state', '').startswith('process_groups_reaped'):
+        return attempt
+    from .lab_lifecycle import inspect_owned, load_intent
+    try:
+        if (output / 'intent.json').exists():
+            if inspect_owned(load_intent(output)) is not None:
+                return attempt
+            state = 'reaped'
+        else:
+            state = 'no_container_created'
+    except (ValueError, OSError, RuntimeError):
+        return attempt  # Docker errors or ownership mismatch never prove absence.
+    return metadata(store, attempt, cleanup_state=state)
+
+
 def metadata(store, attempt, **changes):
     """Host-only metadata update; F02's transition API requires a state change."""
     if 'state' in changes:

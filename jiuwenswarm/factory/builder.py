@@ -163,10 +163,19 @@ class Builder:
         return self.jobs.submit(task_id, 'build', request, idem_key, 'build', argv, request['deadline_s'], env)
 
     def status(self, attempt_id):
-        return self.jobs.status(attempt_id)
+        attempt = self.jobs.status(attempt_id)
+        if (attempt['request'].get('target') == 'spark-gb10'
+                and not os.environ.get('FACTORY_BRIDGE_DIR')):
+            from .jobs import reconcile_container_cleanup
+            attempt = reconcile_container_cleanup(self.store, attempt,
+                self.store.home / 'builds' / attempt_id / 'engine' / 'native-owner')
+        return attempt
 
     def cancel(self, attempt_id):
-        return self.jobs.cancel(attempt_id)
+        self.jobs.cancel(attempt_id)
+        return self.status(attempt_id)
 
     def result(self, attempt_id):
-        return self.jobs.result(attempt_id)
+        result = self.jobs.result(attempt_id)
+        self.status(attempt_id)
+        return result
