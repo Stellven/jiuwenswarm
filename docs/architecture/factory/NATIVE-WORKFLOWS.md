@@ -1,5 +1,10 @@
 # Native CC workflows on DGX Spark
 
+The native service passed bounded GPU execution qualification and is active on
+Spark port 5175. See the [service runbook](SPARK-NATIVE-SERVICE.md) and
+[2026-11-16 qualification record](qualifications/20261116-spark-native.json)
+for scope, evidence, task limits and rollback.
+
 ## Application and ownership
 
 The application is an iterative inference-engine software factory on DGX Spark.

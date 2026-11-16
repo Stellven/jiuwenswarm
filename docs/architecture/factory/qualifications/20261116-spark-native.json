@@ -1,0 +1,79 @@
+{
+  "qualification": "passed",
+  "scope": "Native source build to full-model six-expert GPU inference, frozen 1471-token prompt and 16-token continuation repeated twice in each of two fresh processes; no accuracy or speedup claim",
+  "source_revision": "5d30d9a00643f6ec344bd7bc95881d4e5668838f",
+  "run_id": "spark-native-e2e",
+  "gpu_runs": [
+    {
+      "attempt_id": "2db1a95aba3a444bb54f09b9168471bc",
+      "execution_outcome": "ok",
+      "evidence_completeness": "complete",
+      "cleanup": "reaped",
+      "effective_experts": 6,
+      "manifest_sha256": "7e3c5b9bb5d1def4ef67a43ced4d82d0d962a0f39c7c9f8f13446e56b011155e"
+    },
+    {
+      "attempt_id": "363f4d5a486f4dcbbc24c7bb985d78af",
+      "execution_outcome": "ok",
+      "evidence_completeness": "complete",
+      "cleanup": "reaped",
+      "effective_experts": 6,
+      "manifest_sha256": "587d0061ada2497ecc30f937a3ab915602882120c79f4bd571c5f2c0a3b207d3"
+    }
+  ],
+  "canonical_output_sha256": "e308c077a130d2e01701a450f6158d0d22d94ee663019d8e65d829eee1f39404",
+  "negative_admission": "BAD_DIGEST before job creation",
+  "running_gpu_cancel": "cancelled; exact container absence verified",
+  "service_restart": "passed: identical run and event records after systemd restart",
+  "attempts": [
+    {
+      "attempt_id": "dad12a08c5fa4c8ebe5706a881dc4276",
+      "kind": "build",
+      "state": "succeeded",
+      "cleanup_state": "reaped"
+    },
+    {
+      "attempt_id": "2db1a95aba3a444bb54f09b9168471bc",
+      "kind": "lab",
+      "state": "succeeded",
+      "cleanup_state": "reaped"
+    },
+    {
+      "attempt_id": "2d0fe57edfde42a2911c054ae749f0bb",
+      "kind": "lab",
+      "state": "cancelled",
+      "cleanup_state": "reaped"
+    },
+    {
+      "attempt_id": "363f4d5a486f4dcbbc24c7bb985d78af",
+      "kind": "lab",
+      "state": "succeeded",
+      "cleanup_state": "reaped"
+    }
+  ],
+  "cutover": "active",
+  "cutover_utc": "2026-11-16T18:28:48.245229+00:00",
+  "service": "native-cc-factory.service",
+  "endpoint": "127.0.0.1:5175",
+  "rollback_container": "ai4r-spark-ai4r-1",
+  "browser": {
+    "live_console": "passed",
+    "recorded_replay": "read-only; event history unchanged",
+    "errors": 0,
+    "evidence_panel": "bounded scroll area"
+  },
+  "tests": {
+    "focused_factory_and_workflow": 55,
+    "service_restart_and_access_boundary": 1
+  },
+  "contract_sha256": "857e193302a9c4069e3c204e0832d7255f8b6caaf63b695ed25bcf48ae578c14",
+  "build_source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+  "build_dependency_revision": "3cf03257f219afbe7334045ff7c6a06ac68c627d",
+  "runtime_image": "sha256:762ef5528e553f39045f68bf23115c888f388c359c78a175a526b7a8dd019710",
+  "authority": {
+    "task": "native-gpu-qualification-001",
+    "max_build_attempts": 3,
+    "max_lab_attempts": 4,
+    "workflow_deadline_epoch": 1794867695.408717
+  }
+}
