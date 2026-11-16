@@ -94,3 +94,30 @@ def test_matched_declarations_still_have_unknown_provenance(baseline):
 def test_native_spec_discloses_declaration_only_format(baseline):
     result=baseline.native_experiment('probe',[],{},0,[1,4],1)
     assert 'does not verify tensor format' in result['interpretation']
+
+
+def test_native_helper_preserves_five_arguments_and_exposes_paired_measurements(baseline):
+    result=baseline.native_experiment('paired probe',['seed'],{'timeout_s':120},32,[24,20480],100)
+    assert result['recipe']==['/opt/strata/baseline_oracle','/model/weights','32','24','20480','100']
+    assert {'paired_samples.gpu_event_s','paired_samples.synchronized_host_s',
+            'paired_samples.reference_passed'} <= set(result['measurements'])
+    assert 'resident_matvec_s always uses legacy batch timing' in result['interpretation']
+    assert 'without retained output/reference vectors' in result['interpretation']
+
+
+def test_packaged_native_provenance_matches_sealed_source(tmp_path):
+    import hashlib
+    import json
+    from jiuwenswarm.ccv2.ccv2 import Host
+    from jiuwenswarm.ccv2.roles import read_roles
+    root=Path(__file__).resolve().parents[2]/'jiuwenswarm/factory/ccs/performance_baseline'
+    host=Host(tmp_path/'ccstore')
+    release=host.prepare(root)
+    declaration,bundle=host.release(release)
+    assert declaration['version']=='1.0.2'
+    assert read_roles(declaration,bundle)['materials']['native_provenance']=='reference'
+    provenance=json.loads((bundle/'NATIVE-PROVENANCE.json').read_text())
+    assert hashlib.sha256((bundle/provenance['source']['path']).read_bytes()).hexdigest()==provenance['source']['sha256']
+    assert provenance['source']['agent_commit']=='aa08fb790561bb6d6ea50774f7acd6c4ac90e13e'
+    assert provenance['scope']['promotion_authorized'] is False
+    assert provenance['scope']['whole_model_tokens_per_second'] is None

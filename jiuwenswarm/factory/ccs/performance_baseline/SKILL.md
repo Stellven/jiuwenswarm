@@ -9,3 +9,11 @@ owned worktree. Never silently substitute FP32 for a quantized engine ceiling.
 Compare engine results only with matched workload, identity and independent checks.
 Resident timings are never whole-model tokens/s. A report is not completion: record
 an explicit terminal decision after collecting every active attempt.
+
+For the native FP32 oracle, read METHOD.md's native argument and paired timing
+contract. The original five arguments default to nine paired samples with batch
+synchronization. To compare batch and per-operation synchronization, preserve source,
+tensor, repeats and sample count, and compare paired_samples fields. The legacy
+resident_matvec_s scalar remains batch timing in both modes. Retain all sample
+checks and report self-check versus independent validation separately. Use
+NATIVE-PROVENANCE.json to inspect the packaged source's construction lineage.

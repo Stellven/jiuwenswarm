@@ -13,6 +13,7 @@
     "component": "component",
     "method": "method",
     "native_oracle": "reference",
+    "native_provenance": "reference",
     "oracle": "reference",
     "roles": "reference",
     "skill": "skill",

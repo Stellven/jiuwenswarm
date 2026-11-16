@@ -1,6 +1,8 @@
 # Inference factory development
 
-Current implementation and acceptance limits: [construction review](CONSTRUCTION-REVIEW-2026-11-16.md), [construction API](CONSTRUCTION-LOOP.md), and [retained live acceptance](CONSTRUCTION-ACCEPTANCE.md).
+Latest: [successful source/build/GPU construction and recovery campaign](CONSTRUCTION-LIVE-2026-11-16.md).
+
+Implementation and historical acceptance limits: [construction review](CONSTRUCTION-REVIEW-2026-11-16.md), [construction API](CONSTRUCTION-LOOP.md), and [retained live acceptance](CONSTRUCTION-ACCEPTANCE.md).
 
 Latest context and plan reconciliation: [Muxite project alignment](MUXITE-CONTEXT-ALIGNMENT-2026-11-16.md), including the local CC schema extension and remaining construction-loop gaps.
 

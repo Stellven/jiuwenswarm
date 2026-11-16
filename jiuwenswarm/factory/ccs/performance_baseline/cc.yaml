@@ -1,6 +1,6 @@
 cc: '2'
 id: engine.performance_baseline
-version: 1.0.1
+version: 1.0.2
 materials:
   component:
     path: COMPONENT.json
@@ -20,6 +20,8 @@ materials:
     path: CMakeLists.txt
   layout_sources:
     path: LAYOUT-SOURCES.json
+  native_provenance:
+    path: NATIVE-PROVENANCE.json
 bindings:
   default:
     kind: native
