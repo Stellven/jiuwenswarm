@@ -18,10 +18,12 @@ SSH tunnel for remote access:
 ssh -N -L 5175:127.0.0.1:5175 user2@100.105.127.48
 ```
 
-Open `http://127.0.0.1:5175`. The subsequent goal-driven campaign scopes the live
-console to run `throughput-goal`; see the
+Open `http://127.0.0.1:5175`. The current continuation scopes the live
+console to run `throughput-round2`; see the
+[round 2 record](qualifications/20261116-round2-continuation.md) and the
 [agent campaign guide](NATIVE-THROUGHPUT-AGENT.md). The earlier `spark-native-e2e`
-qualification graph remains in its original configuration/store. Inspect
+qualification graph and round 1's `throughput-goal` remain in their original
+configurations/stores. Inspect
 collected CC receipts and recorded event replay in the selected task. Replay
 does not execute work. Health is a service readiness check, never scientific
 acceptance.
@@ -39,7 +41,8 @@ Spark deployment paths are under `/home/user2/software-factory-spark-20261113`:
 - Initial service configuration, static console, qualification record and rollback command:
   `native-workflow-live-20261116`.
 - Current service configuration and agent-driven throughput campaign:
-  `native-throughput-goal-20261116` (`workflow-config.json` and `service.env`).
+  `native-throughput-round2-20261116` (`workflow-config.json` and `service.env`).
+- Previous goal-driven campaign: `native-throughput-goal-20261116`.
 - Task, source build, raw GPU evidence and durable queue receipts:
   `native-workflow-qualification-20261116`.
 - User service: `native-cc-factory.service`.
@@ -49,8 +52,8 @@ second worker or move mutable experiment stores into Git. Configuration selects
 sealed releases and one task. The initial qualification task had a four-hour workflow deadline
 and an aggregate allowance of three build attempts and four lab attempts, including
 failures and cancellation. It is not an unlimited autonomous research campaign.
-The current throughput task has separate limits documented in the agent campaign
-guide: two hours, three builds, five comparisons and twelve GPU processes.
+The current throughput task has separate limits documented in the continuation
+record: two hours, four builds, eight comparisons and eighteen GPU processes.
 Future work requires a fresh bounded task/configuration; do not edit historical
 contracts or reuse exhausted authorization. Source editing, scored benchmark
 campaigns and other capabilities need their corresponding task inputs and grants.

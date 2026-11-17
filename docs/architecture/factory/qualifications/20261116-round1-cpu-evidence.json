@@ -1,0 +1,57 @@
+{
+  "source_task": "native-throughput-goal-001",
+  "attempt_id": "1f28df9ed3be4c1087c87c84e48ae7b0",
+  "source_root": "/home/user2/software-factory-spark-20261113/native-throughput-goal-20261116/factory/throughput-spool/1f28df9ed3be4c1087c87c84e48ae7b0",
+  "manifest_sha256": "23e2ca8a8864c39f7f5a137ea3fd9c7b15dfbf909b96eee9b3e9fd940b9651e6",
+  "raw_files_verified_against_manifest": true,
+  "method": "Read-only analysis of retained raw samples. Whole-process deltas are last minus first cgroup sample. Interior measured-decode window starts at first sample at/after first T event of second request, ends at last sample at/before second DONE event. Token/DONE byte offsets are mapped into stdout pipe-events offset/retained_bytes ranges. Pipe timestamps mark host receipt, not exact kernel boundaries; interior omits edge intervals. No new GPU execution.",
+  "interpretation": "Baseline quota throttling and CPU consumption are observable in the retained measured-decode interior. Candidate has zero recorded throttling and lower CPU usage rate. This supports the scheduling-contention hypothesis, but one AB pair, unequal interior windows and cache differences do not establish repeatable causal speedup. throttled_usec is a cgroup counter, not directly lost wall time; do not divide it by wall time to claim percent stall.",
+  "cells": [
+    {
+      "cell": "cell-0-A",
+      "raw_sha256": {
+        "samples.jsonl": "7436d74280307d5240005f4b56ae9877cf47187c7d9aaef56458078e126a9bb2",
+        "pipe-events.jsonl": "e0e9e9da8c5115becc504cb96e3d39876af9fda50b6ab27dac35377a0fa22719",
+        "stdout.log": "885345b0046eca1ac9f2f5de907ede32f2e6bb1c49630b207d3cc04b1c8bc432",
+        "stderr.log": "ff72bf62c011dcf84e8bf9b0565f7f285a2c83041fbc335a84457efb93de614c"
+      },
+      "whole_process": {
+        "sample_start_ns": 3634747127688618,
+        "sample_end_ns": 3634833882116008,
+        "wall_s": 86.75442739,
+        "cpu_stat_delta": {"usage_usec": 208486646, "user_usec": 121696636, "system_usec": 86790010, "nr_periods": 867, "nr_throttled": 84, "throttled_usec": 5690208}
+      },
+      "measured_decode_host_receipt": {"first_token_ns": 3634828494854531, "done_ns": 3634833076944824, "wall_s": 4.582090293},
+      "interior_sample_count": 5,
+      "interior_measured_decode": {
+        "sample_start_ns": 3634828582382457,
+        "sample_end_ns": 3634832818308044,
+        "wall_s": 4.235925587,
+        "cpu_stat_delta": {"usage_usec": 33842929, "user_usec": 33824371, "system_usec": 18559, "nr_periods": 43, "nr_throttled": 43, "throttled_usec": 4158950}
+      }
+    },
+    {
+      "cell": "cell-1-B",
+      "raw_sha256": {
+        "samples.jsonl": "14eb6936bf9dc9cf066ce16a082ccfc7522840a87f687a643aab3fa990e15dcd",
+        "pipe-events.jsonl": "188a1641b99315b144c80e6c90cc3023af69c1b6e8a1ba6685f24cd80ef187d6",
+        "stdout.log": "becc456335293c9eefa58f7a562e54644d50a1e351c498c2414b9a11461cb389",
+        "stderr.log": "56757ea399572e35c6389a22602993993abefab19e422c74c5152e33e16d0f21"
+      },
+      "whole_process": {
+        "sample_start_ns": 3634835553455029,
+        "sample_end_ns": 3634923190747782,
+        "wall_s": 87.637292753,
+        "cpu_stat_delta": {"usage_usec": 171003605, "user_usec": 80978202, "system_usec": 90025403, "nr_periods": 876, "nr_throttled": 0, "throttled_usec": 0}
+      },
+      "measured_decode_host_receipt": {"first_token_ns": 3634917777364893, "done_ns": 3634921952634400, "wall_s": 4.175269507},
+      "interior_sample_count": 4,
+      "interior_measured_decode": {
+        "sample_start_ns": 3634917865622580,
+        "sample_end_ns": 3634921072354845,
+        "wall_s": 3.206732265,
+        "cpu_stat_delta": {"usage_usec": 14894774, "user_usec": 14236557, "system_usec": 658218, "nr_periods": 32, "nr_throttled": 0, "throttled_usec": 0}
+      }
+    }
+  ]
+}

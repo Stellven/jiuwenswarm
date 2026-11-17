@@ -1,0 +1,171 @@
+From a9b7a7ad7560a6b30d4c76b093f8a878066e811d Mon Sep 17 00:00:00 2001
+From: Factory source workbench <factory@localhost>
+Date: Mon, 16 Nov 2026 15:24:23 -0500
+Subject: [PATCH 1/3] Bound ARM64 caller completion spin before sleeping
+
+---
+ src/dsv41/ds4_pool.hpp | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/src/dsv41/ds4_pool.hpp b/src/dsv41/ds4_pool.hpp
+index f2d0975b..fcd8d2c7 100644
+--- a/src/dsv41/ds4_pool.hpp
++++ b/src/dsv41/ds4_pool.hpp
+@@ -80,7 +80,20 @@ public:
+     }
+     void wait() {
+         if (n_ <= 0) return;
++#if defined(__aarch64__)
++        // Keep short completions cheap, then release CPU quota to active workers.
++        const auto spin_end = std::chrono::steady_clock::now() + std::chrono::microseconds(200);
++        while (done_.load(std::memory_order_acquire) < n_) {
++            if (std::chrono::steady_clock::now() >= spin_end) {
++                std::unique_lock<std::mutex> lk(completion_mu_);
++                completion_cv_.wait(lk, [&] { return done_.load(std::memory_order_acquire) >= n_; });
++                break;
++            }
++            cpu_relax();
++        }
++#else
+         while (done_.load(std::memory_order_acquire) < n_) cpu_relax();
++#endif
+         n_ = 0;
+     }
+ 
+@@ -93,7 +106,15 @@ private:
+             if ((int) (t & 0xffffffffu) >= n) return;
+             if (!ticket_.compare_exchange_weak(t, t + 1, std::memory_order_acq_rel)) continue;
+             (*fn_)((int) (t & 0xffffffffu));
++#if defined(__aarch64__)
++            if (done_.fetch_add(1, std::memory_order_acq_rel) + 1 == n) {
++                // Pair with the waiter's predicate check so a completion cannot lose its wake.
++                std::lock_guard<std::mutex> lk(completion_mu_);
++                completion_cv_.notify_one();
++            }
++#else
+             done_.fetch_add(1, std::memory_order_acq_rel);
++#endif
+         }
+     }
+     void loop() {
+@@ -130,6 +151,10 @@ private:
+     std::atomic<bool> quit_{false};
+     std::mutex mu_;
+     std::condition_variable cv_;
++#if defined(__aarch64__)
++    std::mutex completion_mu_;
++    std::condition_variable completion_cv_;
++#endif
+ };
+ 
+ /// File reads on threads of their own, in the order they were pushed, the pusher never waiting: the prompt path's
+-- 
+2.43.0
+
+
+From f3c793071dfa5b8599fa73abadfefa9835c0e8cd Mon Sep 17 00:00:00 2001
+From: Factory source workbench <factory@localhost>
+Date: Mon, 16 Nov 2026 15:33:38 -0500
+Subject: [PATCH 2/3] Park idle ARM64 Pool workers through existing generation
+ wake protocol
+
+---
+ src/dsv41/ds4_pool.hpp | 30 +++++-------------------------
+ 1 file changed, 5 insertions(+), 25 deletions(-)
+
+diff --git a/src/dsv41/ds4_pool.hpp b/src/dsv41/ds4_pool.hpp
+index fcd8d2c7..d76f7897 100644
+--- a/src/dsv41/ds4_pool.hpp
++++ b/src/dsv41/ds4_pool.hpp
+@@ -80,20 +80,7 @@ public:
+     }
+     void wait() {
+         if (n_ <= 0) return;
+-#if defined(__aarch64__)
+-        // Keep short completions cheap, then release CPU quota to active workers.
+-        const auto spin_end = std::chrono::steady_clock::now() + std::chrono::microseconds(200);
+-        while (done_.load(std::memory_order_acquire) < n_) {
+-            if (std::chrono::steady_clock::now() >= spin_end) {
+-                std::unique_lock<std::mutex> lk(completion_mu_);
+-                completion_cv_.wait(lk, [&] { return done_.load(std::memory_order_acquire) >= n_; });
+-                break;
+-            }
+-            cpu_relax();
+-        }
+-#else
+         while (done_.load(std::memory_order_acquire) < n_) cpu_relax();
+-#endif
+         n_ = 0;
+     }
+ 
+@@ -106,15 +93,7 @@ private:
+             if ((int) (t & 0xffffffffu) >= n) return;
+             if (!ticket_.compare_exchange_weak(t, t + 1, std::memory_order_acq_rel)) continue;
+             (*fn_)((int) (t & 0xffffffffu));
+-#if defined(__aarch64__)
+-            if (done_.fetch_add(1, std::memory_order_acq_rel) + 1 == n) {
+-                // Pair with the waiter's predicate check so a completion cannot lose its wake.
+-                std::lock_guard<std::mutex> lk(completion_mu_);
+-                completion_cv_.notify_one();
+-            }
+-#else
+             done_.fetch_add(1, std::memory_order_acq_rel);
+-#endif
+         }
+     }
+     void loop() {
+@@ -126,7 +105,12 @@ private:
+                 g = gen_.load(std::memory_order_acquire);
+                 if (g != seen || quit_.load(std::memory_order_relaxed)) break;
+                 cpu_relax();
++#if defined(__aarch64__)
++                // Park idle ARM workers immediately; keep the existing generation wake protocol.
++                {
++#else
+                 if (std::chrono::steady_clock::now() - t0 > std::chrono::microseconds(spin_us_)) {
++#endif
+                     std::unique_lock<std::mutex> lk(mu_);
+                     sleeping_.fetch_add(1);
+                     cv_.wait(lk, [&] { return gen_.load() != seen || quit_.load(); });
+@@ -151,10 +135,6 @@ private:
+     std::atomic<bool> quit_{false};
+     std::mutex mu_;
+     std::condition_variable cv_;
+-#if defined(__aarch64__)
+-    std::mutex completion_mu_;
+-    std::condition_variable completion_cv_;
+-#endif
+ };
+ 
+ /// File reads on threads of their own, in the order they were pushed, the pusher never waiting: the prompt path's
+-- 
+2.43.0
+
+
+From 231b10b9780c8fb678d130a5d23676660e798add Mon Sep 17 00:00:00 2001
+From: Factory source workbench <factory@localhost>
+Date: Mon, 16 Nov 2026 15:40:44 -0500
+Subject: [PATCH 3/3] Bound ARM64 Pool worker idle spin to one millisecond
+
+---
+ src/dsv41/ds4_pool.hpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/dsv41/ds4_pool.hpp b/src/dsv41/ds4_pool.hpp
+index d76f7897..b6c085fc 100644
+--- a/src/dsv41/ds4_pool.hpp
++++ b/src/dsv41/ds4_pool.hpp
+@@ -106,8 +106,8 @@ private:
+                 if (g != seen || quit_.load(std::memory_order_relaxed)) break;
+                 cpu_relax();
+ #if defined(__aarch64__)
+-                // Park idle ARM workers immediately; keep the existing generation wake protocol.
+-                {
++                // Bound idle polling while amortizing worker wakeups on ARM64.
++                if (std::chrono::steady_clock::now() - t0 > std::chrono::microseconds(1000)) {
+ #else
+                 if (std::chrono::steady_clock::now() - t0 > std::chrono::microseconds(spin_us_)) {
+ #endif
+-- 
+2.43.0
+

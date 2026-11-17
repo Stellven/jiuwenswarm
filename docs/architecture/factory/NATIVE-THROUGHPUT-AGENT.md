@@ -103,7 +103,8 @@ The persistent library now contains 578 snapshots across 15 stores, including
 the current decisions and negative measurements. The final report is retained
 as a verified artifact in the current store; raw evidence stays on Spark.
 
-- [Unedited agent report](qualifications/20261116-throughput-agent-report.md)
+- [Final agent report v2](qualifications/20261116-throughput-agent-report-v2.md), cited by terminal decision 8; adds the follow-up helper failures and rejected advisory fallback.
+- [Earlier unedited report v1](qualifications/20261116-throughput-agent-report.md), retained with its original provenance record.
 - [Independently reverified measurements and provenance](qualifications/20261116-throughput-agent.json)
 - [Unpromoted agent-authored STRATA patch](qualifications/20261116-strata-arm64-idle-spin.patch)
 
