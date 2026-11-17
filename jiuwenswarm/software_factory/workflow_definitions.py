@@ -11,12 +11,23 @@ import re
 from typing import Mapping, Sequence
 
 from .contracts import Stage, StageFailure
+from .interconnect import Ports, check_reference, check_assembly
 
 
 @dataclass(frozen=True)
 class Binding:
     source: str  # A preceding local alias, or "$input".
     port: str
+    channel: str = 'outputs'
+    pointer: str = ''
+    kind: str | None = None
+    assemble: dict | None = None
+
+    def __post_init__(self):
+        if not isinstance(self.source, str) or not self.source or not isinstance(self.port, str) or not self.port:
+            raise ValueError('A binding requires nonempty source and port names')
+        check_reference(self.channel, self.pointer, self.kind)
+        check_assembly(self.assemble)
 
 
 @dataclass(frozen=True)
@@ -56,9 +67,27 @@ class PortReference:
     node_id: str | None
     port: str
     kind: str
+    channel: str = 'outputs'
+    pointer: str = ''
+    assemble: dict | None = None
+
+    def __post_init__(self):
+        if (self.node_id is not None and (not isinstance(self.node_id, str) or not self.node_id)) or not isinstance(self.port, str) or not self.port or not isinstance(self.kind, str) or not self.kind:
+            raise ValueError('A reference requires a node identity, port and kind')
+        check_reference(self.channel, self.pointer, self.kind)
+        check_assembly(self.assemble)
+        if self.assemble is not None and self.kind != 'json':
+            raise ValueError('An assembled reference must have JSON kind')
 
     def serializable(self):
-        return asdict(self)
+        result = dict(node_id=self.node_id, port=self.port, kind=self.kind)
+        if self.channel != 'outputs':
+            result['channel'] = self.channel
+        if self.pointer:
+            result['pointer'] = self.pointer
+        if self.assemble is not None:
+            result['assemble'] = self.assemble
+        return result
 
 
 @dataclass(frozen=True)
@@ -84,7 +113,9 @@ class ExpandedGraph:
     @property
     def edges(self):
         return [{'from': ref.node_id, 'to': node.id, 'data': ref.kind,
-                 'source_port': ref.port, 'target_port': name}
+                 'source_port': ref.port, 'target_port': name,
+                **({'channel': ref.channel} if ref.channel != 'outputs' else {}),
+                **({'pointer': ref.pointer} if ref.pointer else {})}
                 for node in self.nodes for name, ref in node.input_bindings.items()
                 if ref.node_id is not None]
 
@@ -94,7 +125,13 @@ class ExpandedGraph:
             if not isinstance(ref, PortReference) or ref.node_id is None or name not in self.inputs or ref.kind != self.inputs[name]:
                 raise StageFailure('workflow_contract_mismatch', f'Invalid binding for {self.path}.{name}')
         def bound(ref):
-            return bindings.get(ref.port, ref) if ref.node_id is None else ref
+            if ref.node_id is not None or ref.port not in bindings:
+                return ref
+            source = bindings[ref.port]
+            if source.assemble is not None and (ref.pointer or ref.assemble is not None):
+                raise StageFailure('workflow_contract_mismatch', 'Chained assembly needs an explicit component')
+            return replace(source, pointer=source.pointer + ref.pointer, kind=ref.kind,
+                           assemble=ref.assemble if ref.assemble is not None else source.assemble)
         nodes = tuple(replace(node, input_bindings={name: bound(ref) for name, ref in node.input_bindings.items()})
                       for node in self.nodes)
         return replace(self, inputs={name: kind for name, kind in self.inputs.items() if name not in bindings},
@@ -148,9 +185,30 @@ class WorkflowRegistry:
 
     @staticmethod
     def _resolve(binding: Binding, available):
-        if not isinstance(binding, Binding) or binding.source not in available or binding.port not in available[binding.source]:
+        if not isinstance(binding, Binding) or binding.source not in available:
+            raise StageFailure('invalid_workflow_definition', f'Unknown binding {binding!r}')
+        ports = available[binding.source]
+        ports = getattr(ports, 'result', {}) if binding.channel == 'result' else ports
+        if binding.port not in ports:
             raise StageFailure('invalid_workflow_definition', f'Unknown or forward port binding {binding!r}')
-        return available[binding.source][binding.port]
+        ref = ports[binding.port]
+        if ref.assemble is not None and (binding.pointer or binding.assemble is not None):
+            raise StageFailure('workflow_contract_mismatch', 'Chained assembly needs an explicit component')
+        if binding.pointer and ref.kind != 'json':
+            raise StageFailure('workflow_contract_mismatch', 'Field selection requires a JSON source')
+        if binding.assemble is not None and binding.kind not in {None, 'json'}:
+            raise StageFailure('workflow_contract_mismatch', 'An assembled value is JSON')
+        if binding.kind is not None and not binding.pointer and binding.assemble is None and binding.kind != ref.kind:
+            raise StageFailure('workflow_contract_mismatch', 'A binding cannot relabel a value kind')
+        return replace(ref, pointer=ref.pointer + binding.pointer,
+                       kind='json' if binding.assemble is not None else binding.kind if binding.pointer else ref.kind,
+                       assemble=binding.assemble if binding.assemble is not None else ref.assemble)
+
+    @staticmethod
+    def _outputs(stage, node_id):
+        return Ports({name: PortReference(node_id, name, kind) for name, kind in stage.outputs.items()},
+                     {name: PortReference(node_id, name, spec['kind'], channel='result')
+                      for name, spec in getattr(stage, 'result_contracts', {}).items()})
 
     def _bindings(self, required, declarations, available, optional=()):
         if set(required) - set(optional) - set(declarations) or set(declarations) - set(required):
@@ -186,7 +244,7 @@ class WorkflowRegistry:
             bindings = self._bindings(stage.inputs, step.bindings, available, getattr(stage, 'optional_inputs', ()))
             instance = StageInstance(prefix + '/' + step.id, stage.id, bindings, prefix.split('/', 1)[-1] + '/' + step.id)
             nodes.append(instance)
-            available[step.id] = {name: PortReference(instance.id, name, kind) for name, kind in stage.outputs.items()}
+            available[step.id] = self._outputs(stage, instance.id)
         if not definition.outputs:
             raise StageFailure('invalid_workflow_definition', f'No outputs in {definition.id}')
         outputs = {name: self._resolve(binding, available) for name, binding in definition.outputs.items()}

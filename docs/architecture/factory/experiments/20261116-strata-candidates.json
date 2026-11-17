@@ -1,0 +1,156 @@
+{
+  "schema": "factory.reusable-candidates/1",
+  "task_id": "native-design-review-002",
+  "candidates": [
+    {
+      "candidate_id": "reusable-strata-f5075a16",
+      "reuse_status": "available_for_optional_followup",
+      "performance_status": "target_not_met",
+      "source": {
+        "repository": "https://github.com/Muxite/Strata.git",
+        "branch": "factory/review-20261116-arm64-idle",
+        "commit": "f5075a168adcdcf4289d45165bfbad00584e9eba",
+        "base_commit": "89ae0ee6123597636ef162dec826230186c00f3b",
+        "published_ref_verified": true
+      },
+      "spark_checkout": "/home/user2/software-factory-spark-20261113/native-design-review-balanced-20261117/factory/agent-workspace/strata",
+      "patch_artifact_id": "reusable-strata-f5075a16:patch",
+      "patch_sha256": "f2e383f57b4b9c7ac9bcc46a5a4636e9bec62111d4f4db86809e53a879b0c25a",
+      "build_attempt_id": "457dc1d08ff44572b303ce821cf65140",
+      "image_id": "sha256:f9bab49828fb291827a12faa2dfb1386058ab8aa6602213e657145b7877fce47",
+      "comparison_attempt_id": "7d89a882f13c407eab9cef9f9d67874f",
+      "comparison": {
+        "verdict": "target_not_met",
+        "execution_complete": true,
+        "stage": "screen",
+        "gates": {
+          "exact_tokens_and_finish": true,
+          "fixed_placement": true,
+          "baseline_timing_stable": true,
+          "suite_case_regression_bound": true
+        },
+        "baseline_tokens_s": 14.455871945067688,
+        "candidate_tokens_s": 15.655066697107072,
+        "relative_gain": 0.08295554613352452,
+        "conservative_relative_gain": 0.08295554613352452,
+        "target_relative_gain": 0.1,
+        "process_tokens_s": {
+          "A": [
+            14.455871945067688
+          ],
+          "B": [
+            15.655066697107072
+          ]
+        },
+        "per_case_process_tokens_s": {
+          "A": [
+            [
+              13.986013986013987,
+              14.513788098693757,
+              14.896885619850101
+            ]
+          ],
+          "B": [
+            [
+              15.028413093504906,
+              15.849430411094602,
+              16.12984525429709
+            ]
+          ]
+        },
+        "measured_cases": 3,
+        "warmup_requests": 3,
+        "promotion_authorized": false,
+        "limitations": [
+          "Fixed workload decode throughput only; no task accuracy or general model score.",
+          "Screen results are exploratory; target_met requires a separate ABBA confirmation.",
+          "Small process sample; no population confidence interval claimed."
+        ],
+        "verification": {
+          "raw_hashes": true,
+          "independent_parse": true,
+          "exact_boundary": true,
+          "manifest_sha256": "dc4147daea325b88d69a917afc502dab9123099f7bb55a9efd29af6810dfa4ca"
+        }
+      },
+      "accuracy_scope": "Exact canonical outputs and finish on the three frozen prompts and their paired warmups; unchanged arithmetic/model assets for the selected source scheduling intervention. No general accuracy or changed-quantization validation claim.",
+      "performance_scope": "Frozen-suite decode tokens per measured decode time; no end-to-end or population generalization claim.",
+      "reuse_policy": "Other sessions may choose this committed source as a starting point. Applicability, task admission and fresh evaluation are required. Target failure does not discard code; evidence never grants authority or automatic promotion."
+    },
+    {
+      "candidate_id": "reusable-strata-84864456",
+      "reuse_status": "available_for_optional_followup",
+      "performance_status": "target_not_met",
+      "source": {
+        "repository": "https://github.com/Muxite/Strata.git",
+        "branch": "factory/review-20261116-arm64-yield",
+        "commit": "84864456256b0e8fb4d933b7dcb67550daafaf85",
+        "base_commit": "89ae0ee6123597636ef162dec826230186c00f3b",
+        "published_ref_verified": true
+      },
+      "spark_checkout": "/home/user2/software-factory-spark-20261113/native-design-review-balanced-20261117/factory/agent-workspace/strata",
+      "patch_artifact_id": "reusable-strata-84864456:patch",
+      "patch_sha256": "0804c2d4b87f5ddac2c50cf9ab817159e4363089b80a5f541e99d124b77e9485",
+      "build_attempt_id": "e39288b3260d425a9818de59046b4484",
+      "image_id": "sha256:cdc4ec5544b0c4bcc4a24023734d9b57e9026330f3f680707280993478889502",
+      "comparison_attempt_id": "0b7f6d0e3ea64ba88614dc3965d8888d",
+      "comparison": {
+        "verdict": "target_not_met",
+        "execution_complete": true,
+        "stage": "screen",
+        "gates": {
+          "exact_tokens_and_finish": true,
+          "fixed_placement": true,
+          "baseline_timing_stable": true,
+          "suite_case_regression_bound": true
+        },
+        "baseline_tokens_s": 14.473416404712905,
+        "candidate_tokens_s": 15.816528272044287,
+        "relative_gain": 0.09279853697113505,
+        "conservative_relative_gain": 0.09279853697113505,
+        "target_relative_gain": 0.1,
+        "process_tokens_s": {
+          "A": [
+            14.473416404712905
+          ],
+          "B": [
+            15.816528272044287
+          ]
+        },
+        "per_case_process_tokens_s": {
+          "A": [
+            [
+              14.023401551338797,
+              14.465892138691741,
+              14.96131098487505
+            ]
+          ],
+          "B": [
+            [
+              15.446251870444565,
+              15.807543162002618,
+              16.214435914975553
+            ]
+          ]
+        },
+        "measured_cases": 3,
+        "warmup_requests": 3,
+        "promotion_authorized": false,
+        "limitations": [
+          "Fixed workload decode throughput only; no task accuracy or general model score.",
+          "Screen results are exploratory; target_met requires a separate ABBA confirmation.",
+          "Small process sample; no population confidence interval claimed."
+        ],
+        "verification": {
+          "raw_hashes": true,
+          "independent_parse": true,
+          "exact_boundary": true,
+          "manifest_sha256": "ace2680013c3356bd5bee57fd8dd1421891f49b23bc1515149ca2802223a549d"
+        }
+      },
+      "accuracy_scope": "Exact canonical outputs and finish on the three frozen prompts and their paired warmups; unchanged arithmetic/model assets for the selected source scheduling intervention. No general accuracy or changed-quantization validation claim.",
+      "performance_scope": "Frozen-suite decode tokens per measured decode time; no end-to-end or population generalization claim.",
+      "reuse_policy": "Other sessions may choose this committed source as a starting point. Applicability, task admission and fresh evaluation are required. Target failure does not discard code; evidence never grants authority or automatic promotion."
+    }
+  ]
+}

@@ -11,7 +11,7 @@ import json
 import math
 from statistics import median
 
-VERSION = '1.0.0'
+VERSION = '1.1.0'
 ONTOLOGY = {
     'decode': {'question': 'What is on the decode critical path?', 'signals': ['decode_ms', 'generated_tokens', 'critical_path_wait_ms']},
     'prefill': {'question': 'Does prompt processing dominate request latency?', 'signals': ['prompt_ms', 'prompt_tokens', 'ttft_ms']},
@@ -142,6 +142,14 @@ def diagnose(reports, evidence_ids, objective='Improve inference performance'):
                 rates.append(value)
     prefill_times = [r['prefill_ms'] for r in requests if number(r.get('prefill_ms'), True)]
     repeatability = _repeatability(episodes)
+    # Native comparisons retain verified-gate records instead of request rows.
+    # Describe their recorded result without claiming to reverify raw evidence.
+    native = [row for row in episodes if row.get('stage') in {'aa','screen','confirm'}
+              and row.get('verdict') in {'baseline_valid','screen_positive','target_met','target_not_met','inconclusive'}
+              and isinstance(row.get('gates'), dict)]
+    recorded_repeatability = bool(native) and all(row.get('execution_complete') is True and
+        all(row['gates'].get(key) is True for key in
+            ('exact_tokens_and_finish','fixed_placement','baseline_timing_stable')) for row in native)
     orphan = any(row.get('container_still_running_after_collector_death') is True or
                  (row.get('container_removed') is False) for row in episodes)
     incomplete = any(row.get('final_report_missing_after_collector_death') is True for row in episodes)
@@ -161,7 +169,7 @@ def diagnose(reports, evidence_ids, objective='Improve inference performance'):
         candidate('diagnose_failure', 'telemetry', 'The retained failure can be reproduced and classified without losing its evidence.',
                   ['bounded reproducer', 'host memory guard'], 'one failure reproducer',
                   'Failed attempts are retained and precede further optimization.')
-    if repeatability['status'] != 'observed_equal':
+    if repeatability['status'] != 'observed_equal' and not recorded_repeatability:
         candidate('establish_repeatability', 'quality', 'A fixed no-draft/static-cache baseline can establish comparable output and latency.',
                   ['fixed model/tokenizer/workload', 'full-expert policy', 'explicit cache protocol'],
                   'diagnostic A/A campaign', 'Repeatability is different or not established; a treatment gain cannot yet be scored.')
@@ -189,6 +197,9 @@ def diagnose(reports, evidence_ids, objective='Improve inference performance'):
     return dict(schema_version=1, methodology_version=VERSION, objective=objective,
                 evidence_ids=list(evidence_ids), episodes=len(episodes), failures=failures,
                 failure_count=len(failures), repeatability=repeatability,
+                recorded_throughput_comparisons=[{key:row.get(key) for key in ('stage','verdict','gates','execution_complete','baseline_tokens_s','candidate_tokens_s','conservative_relative_gain')} for row in native],
+                recorded_repeatability_gates_passed=recorded_repeatability,
+                comparison_verification='Recorded gates only; this read-only helper does not reparse or reverify raw comparison evidence.',
                 request_count=len(requests),
                 prefill_ms=dict(count=len(prefill_times), minimum=min(prefill_times) if prefill_times else None,
                     median=median(prefill_times) if prefill_times else None, maximum=max(prefill_times) if prefill_times else None,
@@ -250,9 +261,16 @@ def followup(analysis, task, hypothesis_id=None, remaining=None):
     candidate = design['candidate']
     available = dict(remaining or {})
     estimates = task.get('constraints', {}).get('followup_cost_estimates', {})
+    native_policy=task.get('constraints', {}).get('throughput_campaign')
     keys = ('max_turns', 'wall_clock_s', 'max_build_attempts', 'max_completed_gpu_cells')
+    if native_policy:
+        # Native process admission and legacy completed-cell budgets are distinct.
+        available.pop('max_completed_gpu_cells', None)
+        keys=keys[:-1]
     proposed = {key: max(0, min(available.get(key, 0), estimates.get(key, 0))) for key in keys}
     return dict(remaining_resources=available, cost_estimates=estimates, current_work_executable=False,
+                native_throughput_envelope=({key:native_policy.get(key) for key in ('max_gpu_processes','deadline')} if native_policy else None),
+                native_usage='Not calculated by this helper; existing campaign admission remains authoritative.' if native_policy else None,
                 missing_cost_estimates=[k for k in keys if k not in estimates],
                 schema_version=1, status='proposal_only', requires_operator_admission=True,
                 source_task_id=task['task_id'], source_contract_id=task.get('contract_id'),
@@ -262,7 +280,7 @@ def followup(analysis, task, hypothesis_id=None, remaining=None):
                     hypothesis_id=candidate['id'], uncertainty=candidate['reason'],
                     expected_evidence=candidate['prerequisites'], experiment=design,
                     budget=proposed),
-                contract_change='New contract revision requires operator freeze; this output does not amend or freeze any contract.',
+                contract_change=('Keep the existing frozen native contract for already admitted source candidates; altered protocols or effects need separate admission. This proposal grants no authority.' if native_policy else 'New contract revision requires operator freeze; this output does not amend or freeze any contract.'),
                 authority='Inherit no grants automatically. Operator task admission defines effects and source scope.',
                 discovered_cc_candidate=dict(kind='method_or_component_candidate', engine_slice=candidate['engine_slice'],
                     hypothesis=candidate['hypothesis'], evidence_ids=analysis['evidence_ids'],

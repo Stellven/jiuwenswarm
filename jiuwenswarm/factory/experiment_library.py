@@ -13,7 +13,7 @@ import time
 from .redact import sanitize
 
 TABLES = {'tasks': 'task_id', 'decisions': 'decision_id', 'observations': 'obs_id',
-          'evaluations': 'eval_id', 'attempts': 'attempt_id'}
+          'evaluations': 'eval_id', 'attempts': 'attempt_id', 'artifacts':'artifact_id'}
 
 
 def projection(value, depth=0):
@@ -64,10 +64,15 @@ class ExperimentLibrary:
                                         record[key] = json.loads(value)
                                     except ValueError:
                                         pass
+                            if table == 'artifacts':
+                                record = self._artifact(path, record)
                             raw = json.dumps(sanitize(record), sort_keys=True, ensure_ascii=False)
                             sha = hashlib.sha256(raw.encode()).hexdigest()
                             identity = hashlib.sha256(json.dumps([str(path), table, record['task_id'], record[primary], sha]).encode()).hexdigest()
-                            body = json.dumps(projection(sanitize(record)), ensure_ascii=False, sort_keys=True)
+                            projected = projection(sanitize(record))
+                            if table == 'artifacts' and 'text' in record:
+                                projected['text'] = sanitize(record['text'])
+                            body = json.dumps(projected, ensure_ascii=False, sort_keys=True)
                             cursor = index.execute('INSERT OR IGNORE INTO records VALUES (?,?,?,?,?,?,?,?)',
                                 (identity, str(path), table, record['task_id'], record[primary], sha, time.time(), body))
                             if cursor.rowcount:
@@ -76,6 +81,32 @@ class ExperimentLibrary:
             count = index.execute('SELECT count(*) FROM records').fetchone()[0]
         return {'added_snapshots': added, 'total_snapshots': count, 'source_databases': len(self.sources),
                 'authority': 'Historical evidence only. Preserve failures; do not infer current applicability or execution authority.'}
+
+    @staticmethod
+    def _artifact(database, record):
+        record = dict(record)
+        record['preview_status'] = 'metadata_only'
+        if (not str(record.get('media_type','')).startswith('text/') or
+                type(record.get('size')) is not int or not 0 <= record['size'] <= 128*1024):
+            return record
+        root = database.parent / 'artifacts'
+        try:
+            if root.is_symlink() or not re.fullmatch('[a-f0-9]{64}',str(record.get('sha256',''))):
+                raise ValueError('Invalid artifact storage identity')
+            path = (database.parent / record['location']).resolve(strict=True)
+            if not path.is_relative_to(root.resolve()) or path.is_symlink() or path.name != record['sha256']:
+                raise ValueError('Artifact locator is outside the source store')
+            if path.stat().st_size != record['size']:
+                raise ValueError('Artifact size differs from source identity')
+            with path.open('rb') as stream:
+                raw = stream.read(128*1024+1)
+            if len(raw) != record['size'] or hashlib.sha256(raw).hexdigest() != record['sha256']:
+                raise ValueError('Artifact bytes differ from source identity')
+            record.update(text=raw.decode('utf-8'), preview_status='verified_text', text_complete=True)
+        except (KeyError, OSError, ValueError, UnicodeError) as error:
+            record['preview_status'] = 'unavailable_or_changed'
+            record['preview_error'] = type(error).__name__
+        return record
 
     def search(self, query, limit=8):
         if not isinstance(query, str) or len(query) > 500 or type(limit) is not int or not 1 <= limit <= 20:

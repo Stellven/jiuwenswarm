@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:factory:interconnect:1",
+  "title": "factory.interconnect/1",
+  "description": "A binding is stored under its destination input/output port name. Definitions use local aliases; expanded graphs use node references. Enable with operator configuration interconnect=factory.interconnect/1.",
+  "$ref": "#/$defs/binding",
+  "$defs": {
+    "kind": {
+      "enum": [
+        "json",
+        "text",
+        "artifact",
+        "handle"
+      ]
+    },
+    "pointer": {
+      "type": "string",
+      "pattern": "^(?:/(?:[^~]|~[01])*)*$"
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "port"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "enum": [
+            "outputs",
+            "result"
+          ],
+          "default": "outputs"
+        },
+        "pointer": {
+          "$ref": "#/$defs/pointer",
+          "default": ""
+        },
+        "kind": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/kind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assemble": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/assembly"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "pointer"
+            ],
+            "properties": {
+              "pointer": {
+                "minLength": 1
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "$ref": "#/$defs/kind"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node_id",
+        "port",
+        "kind"
+      ],
+      "properties": {
+        "node_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "port": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "channel": {
+          "enum": [
+            "outputs",
+            "result"
+          ],
+          "default": "outputs"
+        },
+        "pointer": {
+          "$ref": "#/$defs/pointer",
+          "default": ""
+        },
+        "assemble": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/assembly"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "port": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "schema": {
+          "type": [
+            "object",
+            "boolean"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string"
+        }
+      }
+    },
+    "assembly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template",
+        "at"
+      ],
+      "properties": {
+        "template": {
+          "type": "object"
+        },
+        "at": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/pointer"
+            },
+            {
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    }
+  }
+}

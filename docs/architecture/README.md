@@ -1,11 +1,13 @@
-# Architecture: JiuwenSwarm software factory (`cc-siminfeng`)
+# Architecture: evolved M1 inference engine software factory
 
-Start with the [Jetson branch record](factory/20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md) for current scope, results and limitations. The CC v2 architecture below is the foundation; the factory extension is described at the end.
+Start with the [current CC workflow and RSI design](factory/20261117%20CC%20Workflow%20RSI%20Design%20Review%20prepresentation.md). The system evolves the relevant M1 research, decision, execution and evidence responsibilities; it does not require restoring the old POC workflow. CCv2 replaces the earlier capsule design and dynamic workflows supply reusable composition.
+
+Historical branch context: [Jetson branch record](factory/20261113%20Jetson%20Software%20Factory%20Branch%20Record%20postpresentation.md) for current scope, results and limitations. The CC v2 architecture below is the foundation; the factory extension is described at the end.
 
 See also the [full CC catalog and lab integration guide](factory/20261113%20CC%20Catalog%20and%20Lab%20Integration%20postpresentation.md).
 
 ## What this branch is for
-A reduced JiuwenSwarm in which a real agent discovers, reads and uses Capability Capsules (CCs) through a small runner. Base JiuwenSwarm and the Codex-as-model integration are kept. The earlier AI4Research M1 machinery (intent compiler, old capsule pipeline, RSI console, benchmarks, its design package) was removed on purpose and is not documented here. It remains in git history and on `AI4Research-Main`.
+The current application is an inference-engine software factory evolved from M1. It retains the relevant research objectives, bounded decisions, dependency checks, durable jobs and evidence responsibilities in the current factory modules. The obsolete POC workflow and old capsule execution path were removed. CCv2 provides functional packages, reusable subworkflows connect their capabilities, dynamic workflows compose procedures, and the RSI controller chooses evidence-led improvements. Base JiuwenSwarm and Codex model integration remain. Historical implementation files remain in Git; restoring them is not a prerequisite for this architecture.
 
 ## How the pieces fit
 ```
@@ -42,4 +44,4 @@ JiuwenSwarm agent  --MCP stdio-->   jiuwenswarm/ccv2/agent_mcp.py   (8 tools: cc
 See `AGENTS.md`. In short: do not restore the removed M1 packages, keep the protocol lightweight (no registry, planner or compiler), and keep live-agent evidence separate from tests.
 
 ## Iterative inference factory
-The factory is a substantial AI4Research runtime redesign using CC-v2; the old M1 control model does not remain. A real agent makes revisable, evidence-driven decisions while the host enforces authority, durable identity and job lifecycle. The feature-scoped [amendment](factory/AMENDMENT.md) permits this controller without restoring the removed compiler or pipeline. See [migration](factory/MIGRATION.md) for behavior and implementation status, and [lineage](factory/LINEAGE.md) for donor inventory and review limitations. The factory needs no web UI. The frontend code defaults to 5173 in `jiuwenswarm/channels/web/app_web.py`; the handoff and `AGENTS.md` require 5175 for local hosting, so configure `FRONTEND_PORT=5175` if using that frontend.
+The factory updates M1 responsibilities for inference engineering using CCv2 and dynamic workflow composition; the obsolete POC control path is not active. A real agent makes revisable, evidence-driven decisions while the host enforces authority, durable identity and job lifecycle. The feature-scoped [amendment](factory/AMENDMENT.md) permits this controller without restoring the removed compiler or pipeline. See [migration](factory/MIGRATION.md) for behavior and implementation status, and [lineage](factory/LINEAGE.md) for donor inventory and review limitations. The factory can execute through the CLI and native agent front door. Its operator console and read-only design review run on port 5175. The frontend code defaults to 5173 in `jiuwenswarm/channels/web/app_web.py`; the handoff and `AGENTS.md` require 5175 for local hosting, so configure `FRONTEND_PORT=5175` if using that frontend.

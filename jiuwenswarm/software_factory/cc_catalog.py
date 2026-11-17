@@ -20,12 +20,20 @@ class Capability:
     changes: tuple = ()
     lifecycle: dict = field(default_factory=dict)
 
-    def serializable(self):
-        return dict(id=self.id, name=self.name, release=self.release,
+    input_contracts: dict = field(default_factory=dict)
+    output_contracts: dict = field(default_factory=dict)
+    result_contracts: dict = field(default_factory=dict)
+
+    def serializable(self, include_contracts=False):
+        result = dict(id=self.id, name=self.name, release=self.release,
                     capability=self.capability, inputs=self.inputs, outputs=self.outputs,
                     optional_inputs=sorted(self.optional_inputs), changes=list(self.changes),
                     lifecycle=self.lifecycle,
                     entrypoint={'cc': '2', 'release': self.release, 'capability': self.capability})
+        if include_contracts:
+            result.update(input_contracts=self.input_contracts, output_contracts=self.output_contracts,
+                          result_contracts=self.result_contracts)
+        return result
 
 
 def describe_capabilities(host, releases):
@@ -66,7 +74,9 @@ def describe_capabilities(host, releases):
                 {key: value['kind'] for key, value in takes.items()},
                 {key: value['kind'] for key, value in gives.items()},
                 frozenset(key for key, value in takes.items() if value['optional'] or (lifecycle and key == 'idem_key')),
-                tuple(spec['changes']), lifecycle))
+                tuple(spec['changes']), lifecycle, takes, gives,
+                {key: port(value, declaration['defs']) for key, value in
+                 declaration['capabilities'][lifecycle['result']]['gives'].items()} if lifecycle else {}))
     if len({cap.id for cap in result}) != len(result):
         raise ValueError('Select exactly one release for each CC package')
     return result

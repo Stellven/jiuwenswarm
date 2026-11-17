@@ -23,7 +23,7 @@ def flag(argv, name):
 
 
 def validate_contract(contract):
-    if contract.get('adapter') != STRATA or contract.get('version') != 1:
+    if contract.get('adapter') != STRATA or contract.get('version') not in {1, 2}:
         raise ValueError('Unsupported Strata contract')
     if contract.get('tolerance') != 'canonical-token-ids-and-finish':
         raise ValueError('Strata requires canonical token identity contract')
@@ -44,11 +44,18 @@ def validate_contract(contract):
     if env.get('STRATA_DS4_REUSE')!='0':
         raise ValueError('Prefix reuse must be explicitly disabled')
     cases=work['requests']
-    if not isinstance(cases,list) or not 1<=len(cases)<=2:
-        raise ValueError('One or two requests per cell required')
+    maximum = 8 if contract['version'] == 2 else 2
+    if not isinstance(cases,list) or not 1 <= len(cases) <= maximum:
+        raise ValueError('Request count exceeds the versioned contract bound')
+    if 'warmup_requests' in contract:
+        warmups=contract['warmup_requests']
+        if contract['version'] != 2 or type(warmups) is not int or warmups < 1 or len(cases) != 2*warmups:
+            raise ValueError('Paired suite requires one unscored warmup for each measured request')
+        if cases[:warmups] != cases[warmups:]:
+            raise ValueError('Warmup and measurement requests must match in order')
     for case in cases:
         if (type(case.get('max_new_tokens')) is not int or not 1<=case['max_new_tokens']<=128
-            or not isinstance(case.get('ids'),list) or not case['ids']
+            or not isinstance(case.get('ids'),list) or not case['ids'] or len(case['ids']) > 7168
             or any(type(v) is not int or v<0 for v in case['ids'])):
             raise ValueError('Invalid tokenized workload')
     limits=contract['limits']

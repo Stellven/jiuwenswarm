@@ -9,8 +9,8 @@ from .cc_service import CCService
 
 
 def compact(run):
-    return {**{k: run.get(k) for k in ('id','task_id','status','revision','sequence','acceptance','cleanup_pending')},
-            'nodes': [{k: n.get(k) for k in ('id','capability','state','outputs','error')} |
+    return {**{k: run.get(k) for k in ('id','task_id','status','revision','sequence','acceptance','cleanup_pending','scopes')},
+            'nodes': [{k: n.get(k) for k in ('id','capability','state','outputs','completion_outputs','inputs','error')} |
                       {'attempt_id': (n.get('lab') or {}).get('attempt_id'),
                        'collected': (n.get('lab') or {}).get('collected'),
                        'result': (n.get('lab') or {}).get('result')} for n in run['nodes']]}
@@ -20,7 +20,11 @@ def attach(mcp, service, library):
     @mcp.tool()
     def workflow_catalog():
         """Operator-selected native CC leaves and reusable subworkflows; grants cannot be widened."""
-        return service.catalog()
+        catalog=service.catalog()
+        pool=catalog.pop('shared_pool')
+        catalog['shared_contract']={'schema_version':pool['schema_version'],'entries':len(pool['entries']),
+            'roles':{'CC':'functional packages','subworkflow':'reusable connected procedure','workflow':'adaptive composition','RSI':'evidence-driven improvement'}}
+        return catalog
 
     @mcp.tool()
     def workflow_create(request: dict):
@@ -35,17 +39,17 @@ def attach(mcp, service, library):
     @mcp.tool()
     def workflow_tick(run_id: str):
         """Execute/reconcile one native CC operation. Durable GPU/build submissions must be collected after completion. End the agent turn while jobs run."""
-        return compact(service.runtime.tick(run_id))
+        return compact(service.tick(run_id))
 
     @mcp.tool()
     def workflow_get(run_id: str):
         """Inspect the durable graph and collected results without executing anything."""
-        return compact(service.runtime.get(run_id))
+        return compact(service.get(run_id))
 
     @mcp.tool()
     def workflow_stop(run_id: str):
         """Stop new graph work; continue ticking until owned jobs and cleanup reconcile."""
-        return compact(service.runtime.stop(run_id))
+        return compact(service.stop(run_id))
 
     @mcp.tool()
     def experiment_search(query: str, limit: int = 8):

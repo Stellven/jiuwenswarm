@@ -34,6 +34,11 @@ acceptance. M1 services remain removed.
 
 ## Execution contract
 
+The small versioned [CC workflow interconnect](INTERCONNECT.md) preserves CC port
+contracts and records bindings across composition boundaries. New preparations
+select `factory.interconnect/1`; existing configurations keep legacy identities.
+
+
 - Workflow definitions reuse the incoming typed port composition model, extended
   to nested reusable subworkflows with cycle/depth checks. A selected internal
   workflow executes its dependency closure without replaying its siblings.
@@ -129,3 +134,7 @@ pinned input qualification. Historical results and the incoming Ascend replay do
 satisfy that gate. Keep archives, models, mutable stores and large run artifacts out
 of Git; retain small source changes, contracts, evidence references and qualification
 summaries.
+
+## Retained candidate reuse
+
+A missed performance gate does not discard code. See [reusing experiments](<20261116 Reusing Factory Experiments prepresentation.md>), the [portable candidate records](experiments/20261116-strata-candidates.json), and the [November 16 executive summary](<20261116 CC Workflow RSI Executive Summary prepresentation.md>). Source publication, optional reuse, scientific acceptance and serving promotion are separate facts.

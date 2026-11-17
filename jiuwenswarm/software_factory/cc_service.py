@@ -6,13 +6,22 @@ from pathlib import Path
 from jiuwenswarm.ccv2.ccv2 import Host
 from .cc_catalog import describe_capabilities
 from .cc_workflow import CCWorkflow
+from .interconnect import contract_schema
 from .workflow_definitions import (
     Binding, PortReference, StageRef, SubworkflowRef, SubworkflowDefinition, WorkflowDefinition, WorkflowRegistry,
 )
 
 
 def binding_map(value):
-    return {name: Binding(**ref) for name, ref in value.items()}
+    result={}
+    for name,ref in value.items():
+        ref=dict(ref)
+        if 'node' in ref:
+            if 'source' in ref and ref['source'] != ref['node']:
+                raise ValueError('Conflicting common and legacy binding aliases')
+            ref['source']=ref.pop('node')
+        result[name]=Binding(**ref)
+    return result
 
 
 def definitions(value, capabilities):
@@ -59,20 +68,58 @@ class CCService:
             with Store(context['FACTORY_HOME']) as store:
                 store.get_task(task_id)
         runtime = CCWorkflow(resolve(config['root']), host, caps, task_id=task_id, grants=grants,
-            max_nodes=config.get('max_nodes', 128), deadline=config.get('deadline'), context={'environment': context})
+            max_nodes=config.get('max_nodes', 128), deadline=config.get('deadline'), context={'environment':context},
+            interconnect=config.get('interconnect'))
         return cls(runtime, definitions(config, caps))
 
     def catalog(self):
-        return dict(task_id=self.runtime.task_id, capabilities=[c.serializable() for c in self.runtime.capabilities.values()],
-                    **self.registry.export())
+        return dict(task_id=self.runtime.task_id, capabilities=[c.serializable(include_contracts=self.runtime.interconnect is not None)
+                                                                     for c in self.runtime.capabilities.values()],
+                    interconnect=self.runtime.interconnect,
+                    **({'interconnect_schema': contract_schema()} if self.runtime.interconnect else {}),
+                    **self.registry.export(),
+                    shared_pool=self.shared_pool())
+
+    def shared_pool(self):
+        from .shared_catalog import export_pool
+        return export_pool(self)
+
+    def _capture(self, run):
+        result = dict(run)
+        result['scopes'] = self.scopes(run)
+        return result
+
+    @staticmethod
+    def scopes(run):
+        groups = {}
+        for node in run['nodes']:
+            segments = node['id'].split('/')
+            for depth in range(2,len(segments)):
+                groups.setdefault('/'.join(segments[:depth]),[]).append(node)
+        result=[]
+        for path,nodes in groups.items():
+            states={n['state'] for n in nodes}
+            status='completed' if states=={'completed'} else 'failed' if states & {'failed','blocked'} else 'cancelled' if states=={'cancelled'} else 'active'
+            result.append(dict(path=path,status=status,children=[n['id'] for n in nodes]))
+        return result
+
+    def get(self, run_id):
+        run=self.runtime.get(run_id)
+        return {**run,'scopes':self.scopes(run)}
+
+    def tick(self, run_id):
+        return self._capture(self.runtime.tick(run_id))
+
+    def stop(self, run_id):
+        return self._capture(self.runtime.stop(run_id))
 
     def create(self, request):
         allowed = {'workflow', 'inputs', 'objective', 'run_id', 'definitions'}
         if set(request) - allowed:
             raise ValueError('Unknown workflow request fields')
         registry = definitions(request['definitions'], list(self.runtime.capabilities.values())) if 'definitions' in request else self.registry
-        return self.runtime.create(registry.expand(request['workflow']), request.get('inputs', {}),
-            objective=request['objective'], run_id=request.get('run_id'))
+        return self._capture(self.runtime.create(registry.expand(request['workflow']), request.get('inputs', {}),
+            objective=request['objective'], run_id=request.get('run_id')))
 
     def append(self, run_id, request):
         # A new instance namespace prevents accidental overwrites. Registry
@@ -81,6 +128,7 @@ class CCService:
         registry = definitions(request['definitions'], list(self.runtime.capabilities.values())) if 'definitions' in request else self.registry
         graph = registry.expand(request['workflow'], instance_id=request['instance_id'])
         if request.get('bindings'):
-            graph = graph.bind_inputs({name: PortReference(**value) for name, value in request['bindings'].items()})
-        return self.runtime.append(run_id, graph, request.get('inputs', {}),
-            expected_revision=request['expected_revision'], decision=request['decision'])
+            graph = graph.bind_inputs({name: PortReference(**({**{k:v for k,v in value.items() if k != 'node'},
+                'node_id':value['node']} if 'node' in value else value)) for name, value in request['bindings'].items()})
+        return self._capture(self.runtime.append(run_id, graph, request.get('inputs', {}),
+            expected_revision=request['expected_revision'], decision=request['decision']))

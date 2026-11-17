@@ -15,6 +15,7 @@ import time
 import uuid
 
 from .cc_catalog import Capability
+from .interconnect import VERSION, select, assemble
 
 
 def encoded(value):
@@ -31,7 +32,10 @@ class WorkflowConflict(ValueError):
 
 class CCWorkflow:
     def __init__(self, root, host, capabilities, *, task_id, grants=(), max_nodes=128,
-                 deadline=None, context=None):
+                 deadline=None, context=None, interconnect=None):
+        if interconnect not in {None, VERSION}:
+            raise ValueError('Unsupported interconnect version')
+        self.interconnect = interconnect
         self.root = Path(root).resolve()
         self.root.mkdir(parents=True, exist_ok=True)
         self.host = host
@@ -45,9 +49,12 @@ class CCWorkflow:
         # Host-supplied task context is bound into every run. Callers must not
         # source grants, store paths or task context from a workflow request.
         self.context = deepcopy(context or {})
-        self.identity = digest(dict(task=task_id, grants=self.grants, context=self.context,
-            host=str(host.store), capabilities=[c.serializable() for c in capabilities],
-            max_nodes=max_nodes, deadline=deadline))
+        identity = dict(task=task_id, grants=self.grants, context=self.context,
+            host=str(host.store), capabilities=[c.serializable(include_contracts=interconnect is not None) for c in capabilities],
+            max_nodes=max_nodes, deadline=deadline)
+        if interconnect:
+            identity['interconnect'] = interconnect
+        self.identity = digest(identity)
         with self.db() as db:
             db.execute('CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, body TEXT NOT NULL)')
             db.execute('CREATE TABLE IF NOT EXISTS events (run TEXT, seq INTEGER, body TEXT, PRIMARY KEY(run,seq))')
@@ -92,10 +99,38 @@ class CCWorkflow:
         db.execute('INSERT INTO events VALUES (?,?,?)', (run['id'], run['sequence'], encoded(record)))
         db.execute('INSERT OR REPLACE INTO runs VALUES (?,?)', (run['id'], encoded(run)))
 
+    def _reference(self, ref, graph, available):
+        if (ref.channel != 'outputs' or ref.pointer or ref.assemble is not None) and self.interconnect != VERSION:
+            raise ValueError('Extended bindings require ' + VERSION)
+        if ref.node_id is None:
+            if ref.channel != 'outputs':
+                raise ValueError('External inputs have no completion channel')
+            kind = graph.inputs.get(ref.port)
+        else:
+            cap = available.get(ref.node_id)
+            ports = (cap.outputs if ref.channel == 'outputs' else
+                     {name: spec['kind'] for name, spec in cap.result_contracts.items()}) if cap else {}
+            kind = ports.get(ref.port)
+        if kind is None or (ref.pointer and kind != 'json') or (not ref.pointer and ref.assemble is None and kind != ref.kind):
+            raise ValueError('Invalid or forward workflow port binding')
+
+    @staticmethod
+    def _value(binding, by_id):
+        if 'value' in binding:
+            value = binding['value']
+        else:
+            node = by_id[binding['node']]
+            channel = 'completion_outputs' if binding.get('channel') == 'result' else 'outputs'
+            try:
+                value = node[channel][binding['port']]
+            except KeyError as error:
+                raise ValueError('Interconnect source port is unavailable') from error
+        return assemble(select(value, binding.get('pointer', '')), binding.get('assemble'))
+
     def _nodes(self, graph, inputs, existing=()):
         if set(inputs) != set(graph.inputs):
             raise ValueError('Workflow external input ports differ')
-        available = {n['id']: self.capabilities[n['capability']].outputs for n in existing}
+        available = {n['id']: self.capabilities[n['capability']] for n in existing}
         nodes = []
         for node in graph.nodes:
             if node.id in available or node.stage_id not in self.capabilities:
@@ -107,20 +142,27 @@ class CCWorkflow:
                 raise ValueError('Capability input ports differ')
             bindings = {}
             for name, ref in node.input_bindings.items():
-                kind = graph.inputs.get(ref.port) if ref.node_id is None else available.get(ref.node_id, {}).get(ref.port)
-                if kind != ref.kind or kind != cap.inputs[name]:
-                    raise ValueError('Invalid or forward workflow port binding')
-                bindings[name] = dict(value=inputs[ref.port]) if ref.node_id is None else dict(node=ref.node_id, port=ref.port)
+                self._reference(ref, graph, available)
+                if ref.kind != cap.inputs[name]:
+                    raise ValueError('Capability input kind differs')
+                value = dict(value=inputs[ref.port]) if ref.node_id is None else dict(node=ref.node_id, port=ref.port)
+                if ref.channel != 'outputs':
+                    value['channel'] = ref.channel
+                if ref.pointer:
+                    value['pointer'] = ref.pointer
+                if ref.assemble is not None:
+                    value['assemble'] = ref.assemble
+                if ref.node_id is None and self.interconnect:
+                    self.host.validate_value(cap.input_contracts.get(name, {'kind': cap.inputs[name]}), self._value(value, {}))
+                bindings[name] = value
             nodes.append(dict(id=node.id, path=node.workflow_path, capability=cap.id,
                 release=cap.release, inputs=bindings, state='pending', outputs={}, receipts=[], lab=None,
                 operation=None, polls=0, last_tick=0))
-            available[node.id] = cap.outputs
+            available[node.id] = cap
         if len(available) > self.max_nodes:
             raise ValueError('Workflow node budget exceeded')
         for ref in graph.outputs.values():
-            kind = graph.inputs.get(ref.port) if ref.node_id is None else available.get(ref.node_id, {}).get(ref.port)
-            if kind != ref.kind:
-                raise ValueError('Invalid workflow output')
+            self._reference(ref, graph, available)
         return nodes
 
     def create(self, graph, inputs, *, objective, run_id=None):
@@ -142,6 +184,8 @@ class CCWorkflow:
                 request_digest=digest(request), status='ready', revision=1, sequence=0,
                 created_at=time.time(), nodes=nodes, stopping=False, stop_reason=None,
                 acceptance='not_assessed', outputs={}, revisions=[dict(revision=1, graph=request['graph'], inputs=deepcopy(inputs))])
+            if self.interconnect:
+                run['interconnect'] = self.interconnect
             self._save(db, run, 'workflow.created', revision=1, nodes=deepcopy(nodes))
             return run
 
@@ -212,8 +256,15 @@ class CCWorkflow:
                         continue
                     if any(parent['state'] != 'completed' for parent in parents):
                         continue
-                    inputs = {name: value['value'] if 'value' in value else by_id[value['node']]['outputs'][value['port']]
-                              for name, value in node['inputs'].items()}
+                    try:
+                        inputs = {name: self._value(value, by_id) for name, value in node['inputs'].items()}
+                        if self.interconnect:
+                            for name, value in inputs.items():
+                                self.host.validate_value(cap.input_contracts.get(name, {'kind': cap.inputs[name]}), value)
+                    except ValueError:
+                        node.update(state='failed', error='interconnect_contract_mismatch')
+                        self._save(db, run, 'interconnect.rejected', node_id=node['id'])
+                        continue
                     if cap.lifecycle:
                         # One durable job key per graph leaf; caller-selected keys
                         # cannot make unrelated branches share an attempt.
@@ -230,11 +281,25 @@ class CCWorkflow:
             states = {n['state'] for n in run['nodes']}
             latest = run['revisions'][-1]
             run['outputs'] = {}
+            run.pop('output_error', None)
+            output_error = False
             for name, ref in latest['graph']['outputs'].items():
-                if ref['node_id'] is None:
-                    run['outputs'][name] = latest['inputs'][ref['port']]
-                elif by_id[ref['node_id']]['state'] == 'completed':
-                    run['outputs'][name] = by_id[ref['node_id']]['outputs'][ref['port']]
+                if ref['node_id'] is None or by_id[ref['node_id']]['state'] == 'completed':
+                    binding = (dict(value=latest['inputs'][ref['port']]) if ref['node_id'] is None else
+                               dict(node=ref['node_id'], port=ref['port'], channel=ref.get('channel', 'outputs')))
+                    binding['pointer'] = ref.get('pointer', '')
+                    if ref.get('assemble') is not None:
+                        binding['assemble'] = ref['assemble']
+                    try:
+                        value = self._value(binding, by_id)
+                        if self.interconnect:
+                            self.host.validate_value({'kind': ref['kind']}, value)
+                        run['outputs'][name] = value
+                    except ValueError:
+                        output_error = True
+            if output_error:
+                states.add('failed')
+                run['output_error'] = 'interconnect_contract_mismatch'
             pending = states - {'completed', 'failed', 'cancelled', 'blocked'}
             run['cleanup_pending'] = [n['lab']['attempt_id'] for n in run['nodes'] if n['lab'] and
                 n['lab'].get('status', {}).get('cleanup_state') not in {'reaped', 'no_container_created'}]
@@ -318,6 +383,8 @@ class CCWorkflow:
                                state=current['state'], lab=current['lab'], outputs=current['outputs'])
                     return run
                 current['lab'].update(result=output, collected=True)
+                if self.interconnect:
+                    current['completion_outputs'] = receipt['outputs']
                 status = current['lab']['status']
                 outcome = output.get('execution_outcome')
                 if outcome in {'upload_pending', 'pending', 'running', 'unknown'}:
@@ -330,5 +397,6 @@ class CCWorkflow:
                     current['state'] = 'completed' if status['state'] == 'succeeded' else (
                     'cancelled' if status['state'] == 'cancelled' else 'failed')
             self._save(db, run, 'cc.receipt', node_id=current['id'], receipt=receipt,
-                       state=current['state'], lab=current['lab'], outputs=current['outputs'])
+                       state=current['state'], lab=current['lab'], outputs=current['outputs'],
+                       **({'completion_outputs': current.get('completion_outputs', {})} if self.interconnect else {}))
         return self.get(run_id)

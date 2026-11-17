@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 from .cc_api import create_cc_router
 from .cc_service import CCService
@@ -18,10 +19,15 @@ def create_app(config, static):
     app.state.cc_workflow_service = service
     app.include_router(create_cc_router(service))
 
+    @app.get('/review')
+    def review():
+        return FileResponse(Path(__file__).with_name('review.html'))
+
     @app.get('/healthz')
     def health():
         return {'status': 'ok', 'task_id': service.runtime.task_id,
-                'execution': 'native-cc', 'acceptance': 'not_assessed'}
+                'execution': 'native-cc', 'acceptance': 'not_assessed',
+                'foundation':'evolved-m1-native','shared_schema':'0.2.0'}
 
     app.mount('/', StaticFiles(directory=static, html=True), name='console')
     return app

@@ -33,29 +33,39 @@ def placement(stderr, budget):
     return {'layers': layers, 'aggregate': total[0]}
 
 
-def judge(stage, cells, target, max_spread):
+def judge(stage, cells, target, max_spread, *, suite=False, warmup_requests=1):
     """Exact tokens/finish and placement before timing; no model-provided verdict."""
     if [v['arm'] for v in cells] != list(ORDERS[stage]):
         raise ValueError('Comparison order or process count differs')
     identity = cells[0]['placement']
     reference = [(r['ids'], r['finish']) for r in cells[0]['requests']]
-    exact = len(reference) == 2 and reference[0] == reference[1] and all([(r['ids'], r['finish']) for r in c['requests']] == reference for c in cells)
+    if type(warmup_requests) is not int or warmup_requests < 1 or (suite and len(reference) < warmup_requests+2):
+        raise ValueError('Invalid frozen warmup/measurement allocation')
+    paired = (not suite or warmup_requests == 1 or reference[:warmup_requests] == reference[warmup_requests:])
+    exact = ((len(reference) >= warmup_requests+2 if suite else len(reference) == 2 and reference[0] == reference[1])
+             and paired and all([(r['ids'], r['finish']) for r in c['requests']] == reference for c in cells))
     fixed = all(c['placement'] == identity for c in cells)
     # Each process has an unscored warmup followed by the fixed measurement.
-    rates = {arm: [c['requests'][1]['decode_tps'] for c in cells if c['arm'] == arm] for arm in 'AB'}
+    def rate(cell):
+        rows = cell['requests'][warmup_requests:] if suite else cell['requests'][1:]
+        return sum(r['generated_tokens'] for r in rows) * 1000 / sum(r['decode_ms'] for r in rows) if suite else rows[0]['decode_tps']
+    rates = {arm: [rate(c) for c in cells if c['arm'] == arm] for arm in 'AB'}
     a = rates['A']; b = rates['B']
     stable = max(a) / min(a) - 1 <= max_spread
     gain = statistics.mean(b) / statistics.mean(a) - 1 if b else None
     conservative = min(b) / max(a) - 1 if b else None
-    valid = exact and fixed and stable
+    case_rates = {arm: [[r['decode_tps'] for r in (c['requests'][warmup_requests:] if suite else c['requests'][1:])] for c in cells if c['arm'] == arm] for arm in 'AB'}
+    no_regression = (not b or not suite or all(min(row[i] for row in case_rates['B']) / max(row[i] for row in case_rates['A']) >= .95
+                                             for i in range(len(reference)-warmup_requests)))
+    valid = exact and fixed and stable and no_regression
     verdict = ('baseline_valid' if valid else 'inconclusive') if stage == 'aa' else (
         ('target_met' if stage == 'confirm' else 'screen_positive') if valid and conservative >= target
         else 'target_not_met' if valid else 'inconclusive')
     return dict(verdict=verdict, execution_complete=True, stage=stage,
-        gates={'exact_tokens_and_finish': exact, 'fixed_placement': fixed, 'baseline_timing_stable': stable},
+        gates={'exact_tokens_and_finish': exact, 'fixed_placement': fixed, 'baseline_timing_stable': stable, **({'suite_case_regression_bound': no_regression} if suite else {})},
         baseline_tokens_s=statistics.mean(a), candidate_tokens_s=statistics.mean(b) if b else None,
         relative_gain=gain, conservative_relative_gain=conservative, target_relative_gain=target,
-        process_tokens_s=rates, promotion_authorized=False,
+        process_tokens_s=rates, **({'per_case_process_tokens_s': case_rates, 'measured_cases':len(reference)-warmup_requests,'warmup_requests':warmup_requests} if suite else {}), promotion_authorized=False,
         limitations=['Fixed workload decode throughput only; no task accuracy or general model score.',
                      'Screen results are exploratory; target_met requires a separate ABBA confirmation.',
                      'Small process sample; no population confidence interval claimed.'])
@@ -204,7 +214,9 @@ class Campaign:
                 stderr=(cell/'stderr.log').read_text()
                 parsed=parse_protocol((cell/'stdout.log').read_text(),stderr,contract)
                 cells.append(dict(arm=arm, requests=parsed['requests'],placement=placement(stderr,contract['workload']['environment']['DS4_EXPERT_BUDGET_BYTES'])))
-            analysis=judge(recorded['stage'],cells,recorded['policy']['target_relative_gain'],recorded['policy']['max_baseline_spread'])
+            analysis=judge(recorded['stage'],cells,recorded['policy']['target_relative_gain'],recorded['policy']['max_baseline_spread'],
+                           suite=recorded['contracts']['A']['version'] == 2,
+                           warmup_requests=recorded['contracts']['A'].get('warmup_requests',1))
             analysis['verification']={'raw_hashes':True,'independent_parse':True,'exact_boundary':True,'manifest_sha256':sha(root/'manifest.json')}
         except (ValueError,KeyError,OSError,RuntimeError) as error:
             analysis=dict(verdict='inconclusive',execution_complete=False,error=str(error))

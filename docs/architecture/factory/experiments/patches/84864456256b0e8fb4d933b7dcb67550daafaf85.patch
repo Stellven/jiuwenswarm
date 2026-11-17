@@ -1,0 +1,36 @@
+diff --git a/src/dsv41/ds4_pool.hpp b/src/dsv41/ds4_pool.hpp
+index f2d0975b..599f0795 100644
+--- a/src/dsv41/ds4_pool.hpp
++++ b/src/dsv41/ds4_pool.hpp
+@@ -29,6 +29,9 @@ inline void cpu_relax() {
+     _mm_pause();
+ #elif defined(__x86_64__) || defined(_M_X64)
+     __builtin_ia32_pause();
++#elif defined(__aarch64__) && (defined(__GNUC__) || defined(__clang__))
++    // Hardware spin-loop hint; synchronization remains in the surrounding atomics.
++    __asm__ __volatile__("yield");
+ #endif
+ }
+ 
+@@ -97,6 +100,12 @@ private:
+         }
+     }
+     void loop() {
++#if defined(__aarch64__) || defined(_M_ARM64)
++        // Bound idle CPU use while retaining a short wake-up window on ARM64.
++        constexpr int idle_spin_us = 1000;
++#else
++        const int idle_spin_us = spin_us_;
++#endif
+         uint64_t seen = 0;   // (gen_ at construction: a batch start()ed before this thread first ran is still new)
+         for (;;) {
+             const auto t0 = std::chrono::steady_clock::now();
+@@ -105,7 +114,7 @@ private:
+                 g = gen_.load(std::memory_order_acquire);
+                 if (g != seen || quit_.load(std::memory_order_relaxed)) break;
+                 cpu_relax();
+-                if (std::chrono::steady_clock::now() - t0 > std::chrono::microseconds(spin_us_)) {
++                if (std::chrono::steady_clock::now() - t0 > std::chrono::microseconds(idle_spin_us)) {
+                     std::unique_lock<std::mutex> lk(mu_);
+                     sleeping_.fetch_add(1);
+                     cv_.wait(lk, [&] { return gen_.load() != seen || quit_.load(); });

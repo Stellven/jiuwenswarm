@@ -1,0 +1,27 @@
+{
+  "schema": "factory.reuse-verification/1",
+  "refresh": {
+    "added_snapshots": 45,
+    "total_snapshots": 3526,
+    "source_databases": 18,
+    "authority": "Historical evidence only. Preserve failures; do not infer current applicability or execution authority."
+  },
+  "checks": [
+    {
+      "candidate_id": "reusable-strata-f5075a16",
+      "snapshot_id": "6647ed1584c8b86c781df9f28dec57eb6c05c74719d33c5d26ab853212ad6161",
+      "patch_snapshot_id": "c70c808fcfc51766f2f6c90e6c9690b0b945f121160a469d145646b8dc1ec0be",
+      "source_commit": "f5075a168adcdcf4289d45165bfbad00584e9eba",
+      "cloud_ref_verified": true,
+      "fresh_reader_verified": true
+    },
+    {
+      "candidate_id": "reusable-strata-84864456",
+      "snapshot_id": "547c092efd8384c18b08523fe5e524d2307b77b2ca5a4ef35eaa8a513ae3a12b",
+      "patch_snapshot_id": "9bb349d02b9c8c5325ba014f0897ed026ae41a113aa23d3e51853f0e0995141f",
+      "source_commit": "84864456256b0e8fb4d933b7dcb67550daafaf85",
+      "cloud_ref_verified": true,
+      "fresh_reader_verified": true
+    }
+  ]
+}

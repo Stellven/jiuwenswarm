@@ -40,6 +40,13 @@ def create_cc_router(service):
         local(request)
         return service.catalog()
 
+    @router.get('/schema')
+    async def schema(request: Request):
+        local(request)
+        import json
+        from pathlib import Path
+        return json.loads(Path(__file__).with_name('shared-capability.schema.json').read_text())
+
     @router.post('/runs', status_code=202)
     async def create(request: Request, body: dict):
         local(request)
@@ -48,7 +55,7 @@ def create_cc_router(service):
     @router.get('/runs/{run_id}')
     async def get(request: Request, run_id: str):
         local(request)
-        return await invoke(request, service.runtime.get, run_id)
+        return await invoke(request, service.get, run_id)
 
     @router.get('/runs/{run_id}/events')
     async def events(request: Request, run_id: str, after: int = 0):
@@ -58,12 +65,12 @@ def create_cc_router(service):
     @router.post('/runs/{run_id}/tick')
     async def tick(request: Request, run_id: str):
         local(request)
-        return await invoke(request, service.runtime.tick, run_id)
+        return await invoke(request, service.tick, run_id)
 
     @router.post('/runs/{run_id}/stop')
     async def stop(request: Request, run_id: str):
         local(request)
-        return await invoke(request, service.runtime.stop, run_id)
+        return await invoke(request, service.stop, run_id)
 
     @router.post('/runs/{run_id}/revisions')
     async def append(request: Request, run_id: str, body: dict):

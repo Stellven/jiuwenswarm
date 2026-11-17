@@ -1,0 +1,856 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shared Capability Contract 0.2",
+  "description": "Declaration normalization only. Acceptance is not execution, authorization, algorithm equivalence, or backend compatibility.",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      },
+      "minItems": 1
+    }
+  },
+  "required": [
+    "schema_version",
+    "entries"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "reference": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "endpoint": {
+      "$ref": "#/$defs/binding"
+    },
+    "port": {
+      "type": "object",
+      "properties": {
+        "transport": {
+          "enum": [
+            "artifact",
+            "value",
+            "handle"
+          ]
+        },
+        "semantic_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "data_schema": {
+          "type": [
+            "object",
+            "boolean"
+          ]
+        },
+        "schema_known": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        },
+        "media_type": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value_kind": {
+          "enum": [
+            "json",
+            "text"
+          ]
+        }
+      },
+      "required": [
+        "transport",
+        "semantic_type",
+        "required",
+        "data_schema",
+        "schema_known"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transport": {
+                "const": "value"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "value_kind"
+            ]
+          },
+          "else": {
+            "not": {
+              "required": [
+                "value_kind"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "origin": {
+      "type": "object",
+      "properties": {
+        "system": {
+          "enum": [
+            "workflow",
+            "cc"
+          ]
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "revision": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{40}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "declaration_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "original": {
+          "type": "object"
+        },
+        "release": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "system",
+        "repository",
+        "revision",
+        "path",
+        "declaration_sha256",
+        "original"
+      ],
+      "additionalProperties": false
+    },
+    "implementation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "python"
+            },
+            "entrypoint": {
+              "type": "string",
+              "minLength": 1
+            },
+            "validators": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "required": [
+            "type",
+            "entrypoint"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": {
+              "const": "cc"
+            },
+            "bundle": {
+              "$ref": "#/$defs/reference"
+            },
+            "capability": {
+              "type": "string",
+              "minLength": 1
+            },
+            "binding": {
+              "$ref": "#/$defs/cc_binding"
+            },
+            "serves": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "type",
+            "bundle",
+            "capability",
+            "binding"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "composition": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "capability": {
+                "$ref": "#/$defs/reference"
+              },
+              "bindings": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/endpoint"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "capability",
+              "bindings"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/endpoint"
+          }
+        }
+      },
+      "required": [
+        "nodes",
+        "outputs"
+      ],
+      "additionalProperties": false
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "enum": [
+            "component",
+            "skill",
+            "method",
+            "reference",
+            "unspecified"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "path",
+        "role",
+        "sha256",
+        "size"
+      ],
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "operation",
+            "composite",
+            "collection",
+            "material"
+          ]
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        },
+        "inputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/port"
+          }
+        },
+        "outputs": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/port"
+          }
+        },
+        "requirements": {
+          "type": "object",
+          "properties": {
+            "resources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "category": {
+                    "enum": [
+                      "tool",
+                      "environment",
+                      "unspecified"
+                    ]
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "category",
+                  "name"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "effects": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "backends": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "constraints": {
+              "type": "object"
+            }
+          },
+          "required": [
+            "resources",
+            "effects",
+            "backends",
+            "constraints"
+          ],
+          "additionalProperties": false
+        },
+        "verification": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0
+        },
+        "implementation": {
+          "$ref": "#/$defs/implementation"
+        },
+        "composition": {
+          "$ref": "#/$defs/composition"
+        },
+        "members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/reference"
+          },
+          "minItems": 1
+        },
+        "material": {
+          "$ref": "#/$defs/material"
+        },
+        "execution_profile": {
+          "$ref": "#/$defs/execution_profile"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "name",
+        "kind",
+        "origin",
+        "inputs",
+        "outputs",
+        "requirements",
+        "verification"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "operation"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "implementation"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "composition"
+                  ]
+                },
+                {
+                  "required": [
+                    "members"
+                  ]
+                },
+                {
+                  "required": [
+                    "material"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "composite"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "composition"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "implementation"
+                  ]
+                },
+                {
+                  "required": [
+                    "members"
+                  ]
+                },
+                {
+                  "required": [
+                    "material"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "collection"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "members"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "implementation"
+                  ]
+                },
+                {
+                  "required": [
+                    "composition"
+                  ]
+                },
+                {
+                  "required": [
+                    "material"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "inputs": {
+                "maxProperties": 0
+              },
+              "outputs": {
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "material"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "material"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "implementation"
+                  ]
+                },
+                {
+                  "required": [
+                    "composition"
+                  ]
+                },
+                {
+                  "required": [
+                    "members"
+                  ]
+                }
+              ]
+            },
+            "properties": {
+              "inputs": {
+                "maxProperties": 0
+              },
+              "outputs": {
+                "maxProperties": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "execution_profile"
+            ]
+          },
+          "then": {
+            "required": [
+              "implementation"
+            ],
+            "properties": {
+              "kind": {
+                "const": "operation"
+              },
+              "implementation": {
+                "properties": {
+                  "type": {
+                    "const": "cc"
+                  }
+                },
+                "required": [
+                  "type"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "cc_binding": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "native"
+            },
+            "command": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "lock": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "command"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "image"
+            },
+            "command": {
+              "type": "array",
+              "minItems": 0,
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "default": []
+            },
+            "image": {
+              "type": "string",
+              "pattern": "^(?:[^\\s]+@)?sha256:[0-9a-f]{64}$"
+            },
+            "lock": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "image"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "const": "delegate"
+            },
+            "agent": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "kind",
+            "agent"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "pointer": {
+      "type": "string",
+      "pattern": "^(?:/(?:[^~]|~[01])*)*$"
+    },
+    "assembly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template",
+        "at"
+      ],
+      "properties": {
+        "template": {
+          "type": "object"
+        },
+        "at": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/pointer"
+            },
+            {
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    },
+    "cc_kind": {
+      "enum": [
+        "json",
+        "text",
+        "artifact",
+        "handle"
+      ]
+    },
+    "binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "node",
+        "port"
+      ],
+      "properties": {
+        "port": {
+          "type": "string",
+          "minLength": 1
+        },
+        "channel": {
+          "enum": [
+            "outputs",
+            "result"
+          ],
+          "default": "outputs"
+        },
+        "pointer": {
+          "$ref": "#/$defs/pointer",
+          "default": ""
+        },
+        "kind": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/cc_kind"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "assemble": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/assembly"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "node": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "pointer"
+            ],
+            "properties": {
+              "pointer": {
+                "minLength": 1
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "$ref": "#/$defs/cc_kind"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "execution_profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "release"
+      ],
+      "properties": {
+        "release": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "result",
+            "cancel"
+          ],
+          "properties": {
+            "status": {
+              "type": "string",
+              "minLength": 1
+            },
+            "result": {
+              "type": "string",
+              "minLength": 1
+            },
+            "cancel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "envelope": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "result_ports": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/port"
+          }
+        },
+        "managed_inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "$id": "urn:factory:shared-capability:0.2"
+}

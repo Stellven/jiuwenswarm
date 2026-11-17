@@ -375,6 +375,7 @@ class Controller:
 
     async def _bounded_turn(self, task_id, query, turn, session_id, timeout):
         """A persisted terminal decision can end a streaming transport promptly."""
+        decision_floor = self.store.get_task(task_id)['current_decision_rev']
         running = asyncio.create_task(self._turn(task_id, query, turn, session_id))
         deadline = asyncio.get_running_loop().time() + timeout
         try:
@@ -385,7 +386,8 @@ class Controller:
                 done, _ = await asyncio.wait({running}, timeout=min(.2, remaining))
                 if done:
                     return await running
-                if self._terminal_ready(task_id):
+                if (self.store.get_task(task_id)['current_decision_rev'] > decision_floor
+                        and self._terminal_ready(task_id)):
                     return
         finally:
             if not running.done():
@@ -515,6 +517,12 @@ class Controller:
             reopen = bool(state.get('operator_notes') or pending(self.home, task_id, state)) and state['outcome'] in {'report_inconclusive', 'partial', 'stop_missing_prerequisite'}
             if state['outcome'] in TERMINAL and not reopen:
                 return self.status(task_id)
+            if reopen:
+                # New operator information ends the old no-progress streak,
+                # while resource counters and the original deadline remain.
+                state['idle_turns'] = 0
+                state.pop('stop_reason', None)
+                state['pending_questions'] = []
             missing = sorted(set(task.get('allowed_effects', [])) - set(self.grants))
             if missing and not self.grants:
                 # No grants at all: every native capsule call would be denied. Fail before a model turn.
@@ -572,8 +580,9 @@ class Controller:
                             remaining['wall_clock_s'])
                     except asyncio.TimeoutError:
                         return self._finish(task_id, state, 'partial')
-                    state['operator_notes_delivered'] = sorted(set(state.get('operator_notes_delivered', [])) | set(state.pop('pending_operator_note_ids', [])))
                     state['missing_decision'] = self.store.get_task(task_id)['current_decision_rev'] == before
+                    if not state['missing_decision']:
+                        state['operator_notes_delivered'] = sorted(set(state.get('operator_notes_delivered', [])) | set(state.pop('pending_operator_note_ids', [])))
                     state.pop('pending_turn_rev', None)
                     # A turn that neither advanced the decision nor started a job made no progress.
                     started = any(a['state'] in ACTIVE for a in self._snapshot(task_id)['attempts'])

@@ -40,3 +40,7 @@ executable contract; do not introduce a permanent Stage-to-CC adapter or restore
 Existing factory packages remain authoritative. Ascend is an example, not the
 acceptance target. Source and small handoff records belong in Git; model files,
 machine-transfer archives and mutable experiment stores do not.
+
+## Current native design review scope authorized 2026-11-16
+
+The operator clarified that returning to M1 is not required. Continue on the current Spark native CC foundation. Implement the unified component and connection contract, reusable connected subworkflows, adaptive orchestration and evidence-led RSI. The operator authorized implementation, bounded GPU qualification and system deployment. Keep one Lab Manager and job authority, and preserve historical runs. Quantization changes are allowed by the objective; any such candidate still needs independently admitted accuracy evidence. An unchanged-quantization candidate is also valid.

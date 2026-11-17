@@ -108,3 +108,11 @@ jiuwenswarm/software_factory/** text eol=lf
 docs/code/Missions/software-factory/deliverables/** -text whitespace=-trailing-space,-blank-at-eof
 docs/code/Missions/software-factory/replay/*.html -text
 docs/code/Missions/software-factory/sf-001/evidence/** -text whitespace=-trailing-space,-blank-at-eof
+
+# Native factory code uses canonical LF in portable checkouts.
+jiuwenswarm/factory/**/*.py text eol=lf
+jiuwenswarm/factory/*.py text eol=lf
+tests/software_factory/*.py text eol=lf
+
+# Exact retained patch bytes include meaningful context-line whitespace.
+docs/architecture/factory/experiments/patches/*.patch -whitespace
