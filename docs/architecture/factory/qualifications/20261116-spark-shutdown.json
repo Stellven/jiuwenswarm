@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-16",
+  "console": {
+    "active": "inactive",
+    "enabled": "disabled"
+  },
+  "queue": {
+    "total": 144,
+    "states": {
+      "succeeded": 116,
+      "failed": 17,
+      "cancelled": 7,
+      "timeout": 4
+    },
+    "active_jobs": 0,
+    "worker_pids": []
+  },
+  "factory_processes": [],
+  "running_containers": [],
+  "gpu_compute_processes": [],
+  "builder_container_running": false,
+  "available_memory_gib": 117.22,
+  "preserved": [
+    "model and pack assets",
+    "all Docker images and builder caches",
+    "committed source and worktrees",
+    "experiment databases and library",
+    "raw logs and qualification evidence"
+  ],
+  "shared_services_left": [
+    "desktop graphics",
+    "SSH and Tailscale",
+    "Docker daemon",
+    "pre-existing model/auth services",
+    "pre-existing interactive Codex and managed remote daemon"
+  ]
+}

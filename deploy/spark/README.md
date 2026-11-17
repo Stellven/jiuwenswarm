@@ -1,3 +1,7 @@
+# Current operating handoff
+
+Use [the November 16 experiment handoff](<../../docs/architecture/factory/20261116 Spark Experiment Handoff prepresentation.md>) for current native CC operation. Services are deliberately stopped. The port commands below are historical; do not use their old task IDs/defaults for a fresh native experiment.
+
 # DGX Spark factory port
 
 **Recovery:** Strata now completes the bounded DeepSeek smoke with a conservative

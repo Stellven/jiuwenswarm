@@ -1,7 +1,7 @@
 # Native factory service on Spark
 
 The operator authorized GPU qualification and conditional live cutover on
-2026-11-16. Qualification passed and the native service is active; see the
+2026-11-16. Qualification passed historically. On 2026-11-16 the console, queue worker and idle build daemon were deliberately stopped for handoff; the console is disabled for automatic startup. See the [current experiment handoff](<20261116 Spark Experiment Handoff prepresentation.md>) for manual replay, fresh experiments and shutdown, and the
 [qualification record](qualifications/20261116-spark-native.json).
 Multiworkflow composition remains workflow-team owned. Native CC
 contracts and Lab Manager retain admission, job identity, resource cleanup and
@@ -18,8 +18,7 @@ SSH tunnel for remote access:
 ssh -N -L 5175:127.0.0.1:5175 user2@100.105.127.48
 ```
 
-Open `http://127.0.0.1:5175`. The current continuation scopes the live
-console to run `throughput-round2`; see the
+Open `http://127.0.0.1:5175/review?run=design-review-adaptation` after manually starting the retained service. Its current configuration is the completed three-prompt review in `native-design-review-balanced-20261117`. The earlier `throughput-round2` continuation is historical; see the
 [round 2 record](qualifications/20261116-round2-continuation.md) and the
 [agent campaign guide](NATIVE-THROUGHPUT-AGENT.md). The earlier `spark-native-e2e`
 qualification graph and round 1's `throughput-goal` remain in their original
@@ -40,20 +39,19 @@ Spark deployment paths are under `/home/user2/software-factory-spark-20261113`:
 - Permanent Python environment: `native-workflow-service-env`.
 - Initial service configuration, static console, qualification record and rollback command:
   `native-workflow-live-20261116`.
-- Current service configuration and agent-driven throughput campaign:
-  `native-throughput-round2-20261116` (`workflow-config.json` and `service.env`).
+- Current retained service configuration: `native-design-review-balanced-20261117` (`workflow-config.json` and `service.env`), task `native-design-review-002`. It is completed, with no pending cleanup.
+- Historical round 2 campaign: `native-throughput-round2-20261116`.
 - Previous goal-driven campaign: `native-throughput-goal-20261116`.
 - Task, source build, raw GPU evidence and durable queue receipts:
   `native-workflow-qualification-20261116`.
 - User service: `native-cc-factory.service`.
 
-The service uses the existing shared Spark job queue and worker. Do not launch a
+The service uses the shared Spark queue. Its worker is currently stopped; restart one worker only when the next operator needs execution, using the handoff guide. Do not launch a
 second worker or move mutable experiment stores into Git. Configuration selects
 sealed releases and one task. The initial qualification task had a four-hour workflow deadline
 and an aggregate allowance of three build attempts and four lab attempts, including
 failures and cancellation. It is not an unlimited autonomous research campaign.
-The current throughput task has separate limits documented in the continuation
-record: two hours, four builds, eight comparisons and eighteen GPU processes.
+The historical round 2 task had separate limits documented in its continuation record. The later three-prompt review has its own retained task and qualification records; none of these completed envelopes authorizes a new experiment.
 Future work requires a fresh bounded task/configuration; do not edit historical
 contracts or reuse exhausted authorization. Source editing, scored benchmark
 campaigns and other capabilities need their corresponding task inputs and grants.
