@@ -1,7 +1,7 @@
 """Admit original packed expert ranges, never synthesized compact layouts."""
 import re
 
-SUPPORTED={'f32':(1,4),'iq2_xxs':(256,66),'iq2_xs':(256,74),'iq1_m':(256,56)}
+SUPPORTED={'f32':(1,4),'iq2_xxs':(256,66),'iq2_xs':(256,74),'iq1_m':(256,56),'q4_k':(256,144),'q5_0':(32,22),'q8_0':(32,34)}
 PIN='9048bad8d6e3a0f9f1726e238e451181c7e02613'
 
 

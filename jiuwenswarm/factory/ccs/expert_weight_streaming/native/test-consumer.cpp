@@ -22,7 +22,7 @@ static void configure(size_t cap) {
 int main(int argc,char ** argv) {
     const bool quant=argc>1; const int k=quant?256:4, rows=quant?32:2, batch=quant?16:2;
     ggml_init_params p={16*1024*1024,nullptr,false}; auto * ctx=ggml_init(p); assert(ctx);
-    auto type = !quant ? GGML_TYPE_F32 : strcmp(argv[1],"iq1_m")==0 ? GGML_TYPE_IQ1_M : strcmp(argv[1],"iq2_xs")==0 ? GGML_TYPE_IQ2_XS : GGML_TYPE_IQ2_XXS;
+    auto type = !quant ? GGML_TYPE_F32 : strcmp(argv[1],"q4_k")==0 ? GGML_TYPE_Q4_K : strcmp(argv[1],"q5_0")==0 ? GGML_TYPE_Q5_0 : strcmp(argv[1],"q8_0")==0 ? GGML_TYPE_Q8_0 : strcmp(argv[1],"iq1_m")==0 ? GGML_TYPE_IQ1_M : strcmp(argv[1],"iq2_xs")==0 ? GGML_TYPE_IQ2_XS : GGML_TYPE_IQ2_XXS;
     auto * w=ggml_new_tensor_3d(ctx,type,k,rows,3);
     ggml_set_name(w,"blk.0.ffn_up_exps.weight");
     auto * x=ggml_new_tensor_3d(ctx,GGML_TYPE_F32,k,2,batch);

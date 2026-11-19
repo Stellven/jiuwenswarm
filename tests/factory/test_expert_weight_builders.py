@@ -63,10 +63,10 @@ def test_changed_semantic_identity_rejected(field,value):
     with pytest.raises((ValueError,TypeError)):module('expert_weight_residency').plan(x)
 
 
-@pytest.mark.parametrize('layout,width',[('f32',4),('iq1_m',56),('iq2_xxs',66),('iq2_xs',74)])
+@pytest.mark.parametrize('layout,width',[('f32',4),('iq1_m',56),('iq2_xxs',66),('iq2_xs',74),('q4_k',144),('q5_0',22),('q8_0',34)])
 def test_original_packed_ranges_preserve_repeats(layout,width):
     x=fixture('expert_weight_streaming');t=x['tensor'];t['layout']=layout
-    stride=(256 if layout=='f32' else 1)*width*32
+    stride=(256 if layout=='f32' else 8 if layout in ('q5_0','q8_0') else 1)*width*32
     t.update(expert_stride=stride,bytes=3*stride);t['shard']['size']=64+3*stride
     r=module('expert_weight_streaming').ranges(x)
     assert r['selected_ids']==[2,0,2,1]

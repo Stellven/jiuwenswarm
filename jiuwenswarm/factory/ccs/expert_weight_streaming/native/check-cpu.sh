@@ -13,7 +13,7 @@ c++ -std=c++17 -O1 -g -pthread -I"$source_root/ggml/src/ggml-cpu" "$source_root/
 c++ -std=c++17 -O1 -g -pthread -I"$source_root/ggml/include" "$source_root/tests/demo-expert-weights/test-consumer.cpp" -L"$out/bin" -Wl,-rpath,"$out/bin" -lggml-cpu -lggml-base -o "$out/test-consumer"
 timeout 60 "$out/test-residency" > "$out/residency.log" 2>&1
 timeout 60 "$out/test-consumer" > "$out/consumer-f32.log" 2>&1
-for format in iq1_m iq2_xxs iq2_xs; do
+for format in iq1_m iq2_xxs iq2_xs q4_k q5_0 q8_0; do
  GGML_CPU_TILED_MM_FORCE=1 timeout 60 "$out/test-consumer" "$format" > "$out/consumer-$format.log" 2>&1
 done
 python3 - "$out" <<'PY' > "$out/loader-syntax.log" 2>&1

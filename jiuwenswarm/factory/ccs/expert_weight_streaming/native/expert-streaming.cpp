@@ -99,7 +99,7 @@ struct ggml_cpu_expert_context * ggml_cpu_expert_create(void) {
 bool ggml_cpu_expert_register(struct ggml_cpu_expert_context * ctx, const struct ggml_tensor * t, int fd, uint64_t offset) {
 #ifndef _WIN32
     if (!ctx || !t || !t->data || !ggml_is_contiguous(t) || t->ne[2] < 1 || t->ne[3] != 1 ||
-        (t->type != GGML_TYPE_F32 && t->type != GGML_TYPE_IQ2_XXS && t->type != GGML_TYPE_IQ2_XS && t->type != GGML_TYPE_IQ1_M)) { return false; }
+        (t->type != GGML_TYPE_F32 && t->type != GGML_TYPE_IQ2_XXS && t->type != GGML_TYPE_IQ2_XS && t->type != GGML_TYPE_IQ1_M && t->type != GGML_TYPE_Q4_K && t->type != GGML_TYPE_Q5_0 && t->type != GGML_TYPE_Q8_0)) { return false; }
     const size_t stride = t->nb[2], total = ggml_nbytes(t);
     struct stat st;
     if (!stride || stride > SIZE_MAX/(size_t)t->ne[2] || stride*(size_t)t->ne[2] != total ||
