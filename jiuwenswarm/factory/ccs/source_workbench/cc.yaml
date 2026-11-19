@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.source_workbench
-version: 1.0.0
+version: 1.0.1
 materials:
   methodology:
     path: METHOD.md
@@ -35,6 +35,12 @@ capabilities:
   write:
     does: Atomically write bounded source text under an expected SHA256, null for a new file.
     takes: {path: text, text: text, expected_sha256: json}
+    gives: {result: json}
+    needs: [python]
+    changes: [process.exec, workspace.write]
+  edit:
+    does: Apply bounded unique literal replacements with before and result SHA256 checks; no shell or partial file update.
+    takes: {path: text, replacements: json, expected_sha256: text, result_sha256: text}
     gives: {result: json}
     needs: [python]
     changes: [process.exec, workspace.write]

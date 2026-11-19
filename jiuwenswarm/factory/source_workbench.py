@@ -171,6 +171,30 @@ class Workbench:
                     pass
         return dict(path=inputs['path'], before_sha256=actual, sha256=hashlib.sha256(data).hexdigest(), bytes=len(data))
 
+    def edit(self, inputs):
+        _fields(inputs, ('path', 'replacements', 'expected_sha256', 'result_sha256'))
+        replacements = inputs['replacements']
+        if not isinstance(replacements, list) or not 1 <= len(replacements) <= 64:
+            raise ValueError('Use 1..64 exact replacements')
+        data, _ = self.bytes(inputs['path'])
+        if hashlib.sha256(data).hexdigest() != inputs['expected_sha256']:
+            raise ValueError('Source changed; read current sha256 before editing')
+        text = data.decode('utf-8')
+        for replacement in replacements:
+            _fields(replacement, ('old', 'new'))
+            old, new = replacement['old'], replacement['new']
+            if not isinstance(old, str) or not old or not isinstance(new, str):
+                raise ValueError('Replacement requires nonempty old text and string new text')
+            if text.count(old) != 1:
+                raise ValueError('Replacement must match exactly once')
+            text = text.replace(old, new, 1)
+            if len(text.encode('utf-8')) > MAX_FILE_BYTES:
+                raise ValueError('Source file exceeds 1 MiB')
+        if hashlib.sha256(text.encode('utf-8')).hexdigest() != inputs['result_sha256']:
+            raise ValueError('Edited source does not match declared result sha256')
+        return self.write(dict(path=inputs['path'], text=text,
+                               expected_sha256=inputs['expected_sha256']))
+
     def localcommit(self, inputs):
         _fields(inputs, ('paths', 'message', 'expected_head'))
         paths, message = inputs['paths'], inputs['message']
@@ -210,7 +234,7 @@ class Workbench:
 
 
 def dispatch(store, task_id, operation, inputs):
-    if operation not in {'inspect', 'read', 'write', 'localcommit'}:
+    if operation not in {'inspect', 'read', 'write', 'edit', 'localcommit'}:
         raise ValueError('Unknown source workbench capability')
     workbench = Workbench(store, task_id)
     locks = workbench.store.home / 'source-workbench-locks'

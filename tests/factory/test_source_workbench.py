@@ -155,7 +155,42 @@ def test_actual_native_cc_transport_without_agent_shell(owned, tmp_path, monkeyp
     assert inspected['state'] == 'succeeded', inspected
     wrote = host.call(release, 'write', {'path':'probe.txt', 'text':'candidate\n', 'expected_sha256':None})
     assert wrote['state'] == 'succeeded', wrote
+    edited = host.call(release, 'edit', {'path':'probe.txt',
+        'replacements':[{'old':'candidate', 'new':'edited candidate'}],
+        'expected_sha256':wrote['outputs']['result']['sha256'],
+        'result_sha256':hashlib.sha256(b'edited candidate\n').hexdigest()})
+    assert edited['state'] == 'succeeded', edited
     committed = host.call(release, 'localcommit', {'paths':['probe.txt'], 'message':'native construction',
         'expected_head':inspected['outputs']['result']['head']})
     assert committed['state'] == 'succeeded', committed
-    assert git(root, 'show', 'HEAD:probe.txt') == 'candidate'
+    assert git(root, 'show', 'HEAD:probe.txt') == 'edited candidate'
+
+
+def test_exact_edits_validate_entire_result_before_write(owned):
+    store, root = owned
+    before = call(store, 'read', path='CMakeLists.txt')
+    args = dict(path='CMakeLists.txt', expected_sha256=before['sha256'],
+                result_sha256=hashlib.sha256(b'project(candidate)\n').hexdigest())
+    for replacements, message in [([{'old': 'missing', 'new': 'x'}], 'exactly once'),
+            ([{'old': 'original', 'new': 'wrong'}], 'result sha256'),
+            ([{'old': 'original', 'new': 'candidate'}, {'old': 'missing', 'new': 'x'}], 'exactly once'),
+            ([{'old': '', 'new': 'x'}], 'nonempty')]:
+        with pytest.raises(ValueError, match=message):
+            call(store, 'edit', replacements=replacements, **args)
+        assert (root / 'CMakeLists.txt').read_bytes() == b'project(original)\n'
+    result = call(store, 'edit', replacements=[{'old': 'original', 'new': 'candidate'}], **args)
+    assert result['sha256'] == args['result_sha256']
+    with pytest.raises(ValueError, match='Source changed'):
+        call(store, 'edit', replacements=[{'old': 'original', 'new': 'candidate'}], **args)
+
+
+def test_exact_edit_rejects_ambiguous_match_and_symlink(owned):
+    store, root = owned
+    before = call(store, 'read', path='CMakeLists.txt')
+    with pytest.raises(ValueError, match='exactly once'):
+        call(store, 'edit', path='CMakeLists.txt', expected_sha256=before['sha256'],
+             result_sha256='0'*64, replacements=[{'old': 'r', 'new': 'x'}])
+    (root / 'linked').symlink_to('CMakeLists.txt')
+    with pytest.raises(OSError):
+        call(store, 'edit', path='linked', expected_sha256=before['sha256'],
+             result_sha256='0'*64, replacements=[{'old': 'original', 'new': 'x'}])
