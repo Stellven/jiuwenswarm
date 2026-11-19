@@ -57,3 +57,13 @@ def test_raw_evidence_rejection(case):
   raw=json.loads(r[5]['raw']);raw['tokens_predicted' if case=='count' else 'truncated']=9;r[5]['raw']=json.dumps(raw)
  else:c['workload']['environment'].update(LLAMA_EXPERT_STREAMING='1',LLAMA_EXPERT_RESIDENCY='1')
  with pytest.raises(ValueError):a.parse_protocol('\n'.join(map(json.dumps,r)),'',c)
+
+
+def test_intake_never_aliases_legacy_metadata(monkeypatch):
+ from jiuwenswarm.factory.ccs.performance_baseline import model_layout
+ c=contract()
+ monkeypatch.setattr(a,'inspect_assets',lambda c:[{'header_sha256':'a'*64}])
+ monkeypatch.setattr(model_layout,'inspect_gguf',lambda p:{'metadata':{'general.architecture':'deepseek41','deepseek41.kv_source_layer_ids':{'count':4}}})
+ r=a.intake(c)
+ assert r['status']=='incompatible' and not r['execution_authorized'] and not r['live_qualified']
+ assert {'code':'MISSING_PINNED_METADATA','key':'deepseek41.attention.kv_source_layers'} in r['issues']

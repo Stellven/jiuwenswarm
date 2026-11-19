@@ -148,7 +148,7 @@ def _dispatch(store, task_id, capability, packet):
     if capability.startswith('lab.'):
         from .manager import Manager
         operation = capability.removeprefix('lab.')
-        if operation not in {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}:
+        if operation not in {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result', 'intake'}:
             raise ValueError('Unknown lab capability')
         if hasattr(store, '_check'):
             store._check(task_id, write=True)
@@ -156,6 +156,13 @@ def _dispatch(store, task_id, capability, packet):
         else:
             host = store
         manager = Manager(host, host.home / 'lab-spool')
+        if operation == 'intake':
+            fields(inputs, {'contract_id'}, {'contract_id'})
+            from .contract import load_for_task
+            from .llama_adapter import intake, sha
+            task=host.get_task(task_id);contract=load_for_task(task,inputs['contract_id'])
+            if sha(contract.path)!=task.get('constraints',{}).get('contract_sha256'):raise ValueError('Pinned intake contract changed')
+            return {'analysis':intake(contract)}
         if operation == 'ab_submit':
             required = {'base_image', 'candidate_image', 'base_env', 'candidate_env', 'rounds', 'idem_key', 'component'}
             fields(inputs, required | {'contract_id', 'node_id'}, required)

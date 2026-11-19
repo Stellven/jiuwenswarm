@@ -127,3 +127,24 @@ def verify_cell_evidence(content,request):
     samples=[json.loads(x) for x in content['cell/samples.jsonl'].splitlines()]
     if not samples or any(s['available_bytes']<limits['guard_gib']*2**30 or any(s['memory_events'].get(k,0) for k in ('oom','oom_kill','oom_group_kill')) for s in samples):raise ValueError('Memory guard violated')
     return dict(boundary_verified=True,replay_verified=True,telemetry_samples=len(samples))
+
+
+def intake(c):
+    """Necessary metadata checks only; never a replacement for live model acceptance."""
+    validate_contract(c)
+    assets=inspect_assets(c)
+    from .ccs.performance_baseline.model_layout import inspect_gguf
+    header=inspect_gguf(c['workload']['pack']);meta=header['metadata']
+    issues=[];arch=meta.get('general.architecture')
+    if arch=='deepseek41':
+        required={'deepseek41.attention.kv_source_layers','deepseek41.attention.indexer.source_layers'}
+        # A separately admitted Engram shard must not silently be omitted by old metadata names.
+        required.update({'deepseek41.ple.layers','deepseek41.ple.ngram_size','deepseek41.ple.heads_per_ngram',
+                         'deepseek41.ple.layer_multipliers','deepseek41.ple.head_offsets','deepseek41.ple.head_vocab_sizes',
+                         'deepseek41.engram.pad_token_id','deepseek41.engram.token_map'})
+        issues=[dict(code='MISSING_PINNED_METADATA',key=k) for k in sorted(required-set(meta))]
+    else:
+        issues.append(dict(code='ARCHITECTURE_REQUIRES_SOURCE_REVIEW',architecture=arch))
+    return dict(schema='factory.llama-intake/1',status='incompatible' if issues else 'necessary_metadata_present',
+                assets=assets,architecture=arch,issues=issues,execution_authorized=False,live_qualified=False,
+                limitation='Necessary named metadata only; values, all tensors, tokenizer and execution still require independent checks. No aliases synthesized.')

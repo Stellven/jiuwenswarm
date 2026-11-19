@@ -6,7 +6,8 @@
     "cancel": "tool",
     "result": "tool",
     "status": "tool",
-    "submit": "tool"
+    "submit": "tool",
+    "intake": "tool"
   },
   "format": "factory-roles/1",
   "materials": {

@@ -181,7 +181,7 @@ def test_catalog_factory_capsules(tmp_path):
     assert 'factory.source_workbench' in by_id
     assert set(by_id['factory.source_workbench']['capabilities']) == {'inspect', 'read', 'write', 'localcommit'}
     assert set(by_id['factory.builder']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
-    assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result'}
+    assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result', 'intake'}
     assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish', 'plan_get', 'plan_patch'}
     from jiuwenswarm.factory.job_packages import ROUTES
     assert set(by_id['engine.strata_prefill_workbench']['capabilities']) == set(ROUTES['engine.strata_prefill_workbench'])
