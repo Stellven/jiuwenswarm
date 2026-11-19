@@ -1,7 +1,7 @@
 {
   "cc": "2",
   "id": "engine.expert_weight_streaming_builder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "materials": {
     "method": {
       "path": "METHOD.md"
