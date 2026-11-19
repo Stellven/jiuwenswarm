@@ -61,3 +61,41 @@ def test_real_native_host_bundle_receipt(tmp_path,monkeypatch,mode):
  r=host.call(host.prepare(root/'jiuwenswarm/factory/ccs/methodology_followup'),'lab_guided',{'evidence_ids':['bundle:1']})
  assert r['state']=='succeeded',r
  assert r['outputs']['analysis']['recommendation']==('propose' if mode=='supported' else 'collect_more')
+
+
+def startup_bundle():
+ b=bundle();b['source_mapping']={'owner':'llama_server_startup','source_commit':'a'*40}
+ b['trace']={'schema':'startup-request-pairs/1','startup_warmup':False,'processes':[
+ {'process_id':'first','evidence_id':'trace:1','first_ttft_ms':7300,'warm_ttft_ms':48,'launch_to_ready_ms':8000},
+ {'process_id':'second','evidence_id':'trace:1','first_ttft_ms':7350,'warm_ttft_ms':49,'launch_to_ready_ms':8100}]}
+ return b
+
+
+def test_startup_proposal_never_calls_cost_shifting_engine_gain():
+ r=recommend(startup_bundle(),'bundle:1');assert r['recommendation']=='propose'
+ assert r['benefit_range'] is None and r['cost_range'] is None
+ assert 'launch-to-answer' in r['draft_child_contract']['acceptance']
+ assert r['draft_child_contract']['ontology_delta_sha256']==digest(r['ontology_delta'])
+ assert not r['execution_authorized']
+
+
+@pytest.mark.parametrize('case',['one','no_excess','noisy','unmapped','already_warm'])
+def test_startup_insufficient_evidence_does_not_propose(case):
+ b=startup_bundle()
+ if case=='one':b['trace']['processes'].pop()
+ elif case=='no_excess':b['trace']['processes'][0]['first_ttft_ms']=80
+ elif case=='noisy':b['trace']['processes'][0]['first_ttft_ms']=10000
+ elif case=='unmapped':b['source_mapping']['source_commit']='f'*40
+ else:b['trace']['startup_warmup']=True
+ assert recommend(b,'bundle:1')['recommendation']=='collect_more'
+
+
+@pytest.mark.parametrize('value',[float('nan'),-1,0,True])
+def test_startup_invalid_duration_rejected(value):
+ b=startup_bundle();b['trace']['processes'][0]['launch_to_ready_ms']=value
+ with pytest.raises(ValueError):recommend(b,'bundle:1')
+
+
+def test_startup_repeated_process_is_not_independent():
+ b=startup_bundle();b['trace']['processes'][1]['process_id']='first'
+ with pytest.raises(ValueError,match='Distinct process'):recommend(b,'bundle:1')

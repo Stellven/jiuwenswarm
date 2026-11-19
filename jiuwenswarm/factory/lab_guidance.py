@@ -50,6 +50,39 @@ def recommend(bundle,evidence_id):
     if type(variation) not in (int,float) or not math.isfinite(variation) or not 0<=variation<=.05:
         result['required_observations']=['Resolve A/A noise above the fixed 5% bound before selecting a speed treatment.'];return result
     trace=bundle.get('trace',{})
+    if trace.get('schema')=='startup-request-pairs/1':
+        rows=trace.get('processes',[])
+        if len(rows)<2 or trace.get('startup_warmup') is not False:
+            result['required_observations']=['Two independently started processes with declared startup warmup policy.'];return result
+        process_ids=[row.get('process_id') for row in rows]
+        if any(not isinstance(p,str) or not p for p in process_ids) or len(set(process_ids))!=len(rows):
+            raise ValueError('Distinct process identities required')
+        for row in rows:
+            if row.get('evidence_id') not in refs:raise ValueError('Startup trace is not linked to bundle evidence')
+            for name in ('first_ttft_ms','warm_ttft_ms','launch_to_ready_ms'):
+                value=row.get(name)
+                if type(value) not in (int,float) or not math.isfinite(value) or value<=0:
+                    raise ValueError('Finite positive observed startup/request durations required')
+        cold=[r['first_ttft_ms'] for r in rows];warm=[r['warm_ttft_ms'] for r in rows]
+        if (max(cold)-min(cold))/min(cold)>.1 or min(cold)<5*max(warm):
+            result['required_observations']=['Repeatable first-request excess above warm latency; do not infer its cause from timing alone.'];return result
+        mapping=bundle.get('source_mapping',{})
+        if mapping.get('owner')!='llama_server_startup' or mapping.get('source_commit')!=identities['source_commit']:
+            result['required_observations']=['Pinned server startup-policy source mapping.'];return result
+        delta=dict(schema='factory.ontology-delta/1',base=bundle.get('ontology_base','factory-inference/1'),version=1,
+            entities=['ProcessLaunch','EndpointReady','FirstRequest','WarmRequest'],
+            relations=[{'from':'EndpointReady','relation':'precedes_initialization_cost_visible_in','to':'FirstRequest','observed_by':'paired first/warm client TTFT in independent processes'}],
+            inferred_state='Repeatable excess first-request latency under disabled startup warmup; initialization cause remains unproven.',evidence_ids=[r['evidence_id'] for r in rows])
+        child=dict(schema='factory.draft-child-contract/1',version=1,base_contract_sha256=identities['contract_sha256'],ontology_delta_sha256=digest(delta),
+            treatment='Enable only the existing server startup warmup (remove --no-warmup); keep image, model, placement, prompts and all other settings fixed.',
+            falsifier='First-request TTFT does not improve reproducibly, outputs differ, or initialization is merely shifted when the objective is launch-to-answer time.',
+            guardrails=['Exact token IDs and stop reasons','Retain launch-to-ready and launch-to-first-completion costs','No artificial pressure or cache flush','Separate cold and warm requests','Fresh held-out prompt pair','At most one successor'],
+            acceptance='Report request-ready TTFT separately from launch-to-answer; cost shifting is not an engine speedup. Require independent repeats and unchanged warm throughput before retaining a readiness policy.',
+            draft_only=True,requires_operator_task_admission=True)
+        result.update(recommendation='propose',bottleneck=delta['inferred_state'],alternative_explanation='Kernel/graph initialization, page faults or other first-use work; this evidence does not identify expert wait.',
+            benefit_range=None,cost_range=None,source_owner=mapping,cc_candidates=['factory.lab_client'],ontology_delta=delta,draft_child_contract=child,
+            required_observations=['Independent repeat and held-out exact-output checks; measure startup plus first completion, not TTFT alone.'])
+        return result
     if trace.get('schema')!='expert-reader-timeline/1' or trace.get('critical_path_validated') is not True:
         result['required_observations']=['Phase-tagged demand/join/ready/release timing with validated critical-path attribution; byte/miss counters alone do not establish wait.'];return result
     if trace.get('evidence_id') not in refs:raise ValueError('Trace is not linked to bundle evidence')
