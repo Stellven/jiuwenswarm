@@ -373,6 +373,7 @@ class Controller:
 
     async def _bounded_turn(self, task_id, query, turn, session_id, timeout):
         """A persisted terminal decision can end a streaming transport promptly."""
+        initial_rev = self.store.get_task(task_id)['current_decision_rev']
         running = asyncio.create_task(self._turn(task_id, query, turn, session_id))
         deadline = asyncio.get_running_loop().time() + timeout
         try:
@@ -383,7 +384,7 @@ class Controller:
                 done, _ = await asyncio.wait({running}, timeout=min(.2, remaining))
                 if done:
                     return await running
-                if self._terminal_ready(task_id):
+                if self.store.get_task(task_id)['current_decision_rev'] > initial_rev and self._terminal_ready(task_id):
                     return
         finally:
             if not running.done():

@@ -494,3 +494,22 @@ def test_terminal_decision_does_not_hide_unknown_job(tmp_path, rig):
     rig.store.create_attempt('t',dict(attempt_id='uncertain',kind='lab',idem_key='lost',fingerprint='f',request={}))
     rig.store.transition_attempt('t','uncertain','unknown')
     assert rig._terminal_ready('t') is False
+
+
+def test_reopened_slow_turn_is_not_cancelled_by_old_terminal_decision(tmp_path,rig):
+    make_task(tmp_path,rig,max_turns=4)
+    async def first(request):
+        publish(rig,'report_inconclusive')
+        yield {'event_type':'chat.final'}
+    rig.facade=first
+    assert asyncio.run(rig.run('t'))['outcome']=='report_inconclusive'
+    completed=[]
+    async def resumed(request):
+        await asyncio.sleep(.35)  # crosses the host's terminal poll boundary
+        completed.append(True)
+        publish(rig,'accept')
+        yield {'event_type':'chat.final'}
+    rig.facade=resumed
+    rig.add_note('t','Advance to the next admitted phase.')
+    assert asyncio.run(rig.run('t'))['outcome']=='accept'
+    assert completed==[True]
