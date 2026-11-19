@@ -233,6 +233,13 @@ class Supervisor:
                         errors.append(dict(attempt_id=attempt['attempt_id'], error=type(exc).__name__ + ': ' + str(exc)))
         return errors
 
+    def remaining_control_budget(self, state):
+        # Use the controller's shared accounting; an inbox note cannot renew it.
+        from .controller import Controller
+        with Store(self.home) as store:
+            controller = Controller(self.home, store=store)
+            return controller._remaining(store.get_task(self.task), dict(turns=0) | state)
+
     def run(self):
         with (self.home.parent / 'factory-supervisor.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -292,6 +299,13 @@ class Supervisor:
                 reopen = bool(state.get('operator_notes') or pending(self.home, self.task, state)) and state.get('outcome') in {'partial','report_inconclusive','stop_missing_prerequisite'}
                 if state.get('outcome') in FINAL and not reopen:
                     result = dict(task_id=self.task, outcome=state['outcome'], generations=generation,
+                                  elapsed_s=time.monotonic() - started)
+                    atomic_json(self.root / 'supervisor-result.json', result)
+                    return result
+                remaining = self.remaining_control_budget(state)
+                if remaining['turns'] <= 0 or remaining['wall_clock_s'] <= 0:
+                    result = dict(task_id=self.task, outcome='partial', reason='control_budget_exhausted',
+                                  remaining=remaining, generations=generation,
                                   elapsed_s=time.monotonic() - started)
                     atomic_json(self.root / 'supervisor-result.json', result)
                     return result

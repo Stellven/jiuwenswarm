@@ -15,7 +15,9 @@ def control(running=False, nonce='nonce'):
 def supervisor(tmp_path):
     auth = tmp_path / 'operator-auth.json'
     auth.write_text('{"test":"not-a-real-credential"}')
-    return Supervisor(tmp_path / 'home', 'task', 'sha256:'+'b'*64, tmp_path, tmp_path, auth)
+    runner = Supervisor(tmp_path / 'home', 'task', 'sha256:'+'b'*64, tmp_path, tmp_path, auth)
+    runner.remaining_control_budget = lambda state: dict(turns=32, wall_clock_s=14400)
+    return runner
 
 
 @pytest.mark.parametrize('change', [{'Running': True}, {'Pid': 12}])
@@ -327,3 +329,36 @@ def test_parent_deadline_does_not_call_requested_cancellation_complete(tmp_path)
     assert result['pending_attempts'] == ['child-job']
     assert result['cleanup_errors'] == []
     assert result['cancellation_complete'] is False
+
+
+def test_pending_note_cannot_restart_exhausted_shared_turn_budget(tmp_path):
+    from jiuwenswarm.factory.store import Store
+    from jiuwenswarm.factory.operator_notes import publish, pending
+    runner=supervisor(tmp_path)
+    del runner.remaining_control_budget  # exercise actual Controller shared accounting
+    with Store(runner.home) as store:
+        store.create_task(dict(task_id='owner',objective='shared budget',budget={'max_turns':32,'wall_clock_s':14400}))
+        store.create_task(dict(task_id='task',objective='finish one admitted job',budget={'max_turns':8,'wall_clock_s':14400},constraints={'campaign_budget_owner':'owner'}))
+    sessions=runner.home/'sessions';sessions.mkdir(exist_ok=True)
+    owner=sessions/'owner.state.json';owner.write_text(json.dumps({'turns':32,'active_s':10}))
+    state=sessions/'task.state.json';state.write_text(json.dumps({'turns':0,'outcome':'partial','active_s':0}))
+    note=publish(runner.home,'task','Finish the existing task')
+    runner.reconcile=lambda:None;runner.recover_control=lambda:None;runner.attempts=lambda:[]
+    launches=[]
+    def launch(generation):
+        launches.append(generation)
+        state.write_text(json.dumps({'turns':1,'outcome':'report_inconclusive','active_s':1,'operator_notes_delivered':[note['note_id']]}))
+        return {'nonce':'nonce'}
+    runner.launch_control=launch;runner.inspect_control=lambda intent:control();runner.docker=lambda *args,**kwargs:None
+    result=runner.run()
+    assert result['reason']=='control_budget_exhausted' and result['remaining']['turns']==0
+    assert not launches and pending(runner.home,'task',json.loads(state.read_text()))
+    deadline=(runner.root/'deadline.json').read_bytes()
+    # Explicit operator amendment, not a note or restart, permits more planning.
+    with Store(runner.home) as store:
+        with store._transaction():
+            store._db.execute('UPDATE tasks SET budget=? WHERE task_id=?',(json.dumps({'max_turns':40,'wall_clock_s':14400}),'owner'))
+    assert runner.remaining_control_budget(json.loads(state.read_text()))['turns']==8
+    assert runner.run()['outcome']=='report_inconclusive'
+    assert launches==[0] and json.loads(owner.read_text())['turns']==32
+    assert (runner.root/'deadline.json').read_bytes()==deadline
