@@ -114,12 +114,14 @@ def run(home, task_id, attempt_id, request, spool):
             memory_bytes=limits['memory_bytes'],cpus=limits['cpus'],lease_root=home.parent/'lab-lease')
         result['collector']=collected
         result['assets_after']=inspect_assets(contract)
-        parsed=parse_protocol((root/'cell/stdout.log').read_text(),(root/'cell/stderr.log').read_text(),contract)
+        # Native diagnostic dumps can truncate UTF-8 tokens. Keep raw bytes sealed;
+        # escape only the diagnostic view, never structured stdout.
+        parsed=parse_protocol((root/'cell/stdout.log').read_text(),(root/'cell/stderr.log').read_text(errors='backslashreplace'),contract)
         result.update(parsed)
         if request.get('profile'):
             from .deep_profile import native_stages
             result.update(traced=True, scoring_eligible=False,
-                native_profile=native_stages((root/'cell/stderr.log').read_text()))
+                native_profile=native_stages((root/'cell/stderr.log').read_text(errors='backslashreplace')))
         if (collected['reason']=='completed' and collected['quiescent'] and collected['container_removed']
             and collected.get('container_exit_code')==0):
             result.update(execution_outcome='ok',evidence_completeness='complete')
@@ -180,7 +182,7 @@ def ingest(manager,task_id,attempt_id,root):
         current_assets = inspect_assets(request['contract'])
         if worker.get('assets_before') != current_assets or worker.get('assets_after') != current_assets:
             raise ValueError('Asset verification evidence differs')
-        parsed=parse_protocol(content['cell/stdout.log'].decode(),content['cell/stderr.log'].decode(),request['contract'])
+        parsed=parse_protocol(content['cell/stdout.log'].decode(),content['cell/stderr.log'].decode(errors='backslashreplace'),request['contract'])
         collector=json.loads(content['cell/report.json'])
         if not (collector['reason']=='completed' and collector['quiescent'] and collector['container_removed']
                 and collector['container_exit_code']==0):raise ValueError('Successful upload lacks cleanup/exit evidence')
@@ -208,7 +210,7 @@ def ingest(manager,task_id,attempt_id,root):
                 # Derive observer classification from the sealed host request,
                 # never trust worker-supplied scoring/trace fields.
                 values.update(traced=True, scoring_eligible=False,
-                    native_profile=native_stages(content.get('cell/stderr.log', b'').decode()))
+                    native_profile=native_stages(content.get('cell/stderr.log', b'').decode(errors='backslashreplace')))
             values['comparison_group'] = hashlib.sha256(encoded(identity).encode()).hexdigest()
             if outcome == 'ok': values['verification'] = verified
             with manager.store._transaction():

@@ -282,3 +282,25 @@ def test_resealed_boundary_or_telemetry_corruption_is_rejected(spark_lab,mode):
         path=root/'worker.json';value=json.loads(path.read_text());value['assets_after']['identity_sha256']='0'*64;atomic_json(path,value)
     reseal(handle,root)
     with pytest.raises((ValueError, RuntimeError)):manager.ingest_upload('spark',handle['attempt_id'],root)
+
+
+@pytest.mark.parametrize('stream',['stderr','stdout'])
+def test_native_diagnostic_bytes_do_not_weaken_structured_evidence(spark_lab,stream):
+    manager,*_=spark_lab;handle,root=bundle(spark_lab)
+    path=root/'cell'/f'{stream}.log'
+    raw=path.read_bytes()+b'native truncated vocabulary: "<\xef...\n'
+    path.write_bytes(raw)
+    events_path=root/'cell/pipe-events.jsonl'
+    events=[json.loads(line) for line in events_path.read_text().splitlines()]
+    event=next(e for e in events if e['stream']==stream)
+    event.update(retained_bytes=len(raw),observed_bytes=len(raw))
+    events_path.write_text(''.join(json.dumps(e)+'\n' for e in events))
+    reseal(handle,root)
+    if stream=='stdout':
+        with pytest.raises(UnicodeDecodeError):manager.ingest_upload('spark',handle['attempt_id'],root)
+    else:
+        manager.ingest_upload('spark',handle['attempt_id'],root)
+        obs=manager.store.read('spark',handle['attempt_id']+':observation')
+        assert obs['values']['execution_outcome']=='ok'
+        assert obs['values']['requests'][0]['decode_tps']==50.0
+        assert manager.store.artifact_bytes('spark',handle['attempt_id']+':cell/stderr.log')==raw
