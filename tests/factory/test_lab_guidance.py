@@ -28,7 +28,7 @@ def test_supported_single_change_links_delta_and_contract():
  assert r['execution_authorized'] is False and r['draft_child_contract']['draft_only']
 
 
-@pytest.mark.parametrize('boundary,cc',[('build','factory.builder'),('capture','factory.lab_client'),('material_application','engine.expert_weight_streaming_builder')])
+@pytest.mark.parametrize('boundary,cc',[('engine_activation','engine.expert_weight_streaming_builder'),('build','factory.builder'),('capture','factory.lab_client'),('material_application','engine.expert_weight_streaming_builder')])
 def test_failing_cc_can_be_the_subject(boundary,cc):
  b=bundle();b['failure']=dict(boundary=boundary,evidence_id='trace:1',source_commit='a'*40,reproducer='Repeat the retained bounded CPU fixture.')
  r=recommend(b,'bundle:1');assert r['cc_candidates']==[cc] and r['benefit_range'] is None

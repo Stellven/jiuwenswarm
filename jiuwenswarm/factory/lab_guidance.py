@@ -20,7 +20,8 @@ def recommend(bundle,evidence_id):
     if budget.get('successors',0)<1 or budget.get('lab_attempts',0)<1:
         result.update(recommendation='stop',required_observations=['No remaining admitted successor/lab allowance.']);return result
     failure=bundle.get('failure')
-    owners={'model_intake':('factory.lab_client','pinned model metadata intake'),
+    owners={'engine_activation':('engine.expert_weight_streaming_builder','pinned engine activation boundary'),
+            'model_intake':('factory.lab_client','pinned model metadata intake'),
             'material_application':('engine.expert_weight_streaming_builder','CC material application'),
             'build':('factory.builder','source-to-binary construction'),
             'capture':('factory.lab_client','independent observation capture')}
