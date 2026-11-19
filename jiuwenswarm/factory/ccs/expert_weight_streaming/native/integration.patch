@@ -1,0 +1,150 @@
+diff --git a/ggml/src/ggml-cpu/CMakeLists.txt b/ggml/src/ggml-cpu/CMakeLists.txt
+index 8327c52..4bc6520 100644
+--- a/ggml/src/ggml-cpu/CMakeLists.txt
++++ b/ggml/src/ggml-cpu/CMakeLists.txt
+@@ -29,6 +29,7 @@ function(ggml_add_cpu_backend_variant_impl tag_name)
+     list (APPEND GGML_CPU_SOURCES
+         ggml-cpu/ggml-cpu.c
+         ggml-cpu/ggml-cpu.cpp
++        ggml-cpu/expert-streaming.cpp
+         ggml-cpu/repack.cpp
+         ggml-cpu/repack.h
+         ggml-cpu/hbm.cpp
+diff --git a/ggml/src/ggml-cpu/ggml-cpu.c b/ggml/src/ggml-cpu/ggml-cpu.c
+index a76af84..e3e4a89 100644
+--- a/ggml/src/ggml-cpu/ggml-cpu.c
++++ b/ggml/src/ggml-cpu/ggml-cpu.c
+@@ -1,3 +1,4 @@
++#include "ggml-cpu-expert.h"
+ #define _CRT_SECURE_NO_DEPRECATE // Disables "unsafe" warnings on Windows
+ #define _USE_MATH_DEFINES // For M_PI on MSVC
+ 
+@@ -1695,12 +1696,24 @@ static void ggml_compute_forward_mul_mat_id(
+             continue;
+         }
+ 
+-        // tiled takes over if profitable for this expert (see tiled.h)
+-        if (ggml_compute_forward_mul_mat_id_tiled(params, dst, cur_a, cne1, (const int32_t *) &MMID_MATRIX_ROW(cur_a, 0), tiled_scratch)) {
++        struct ggml_cpu_expert_view expert_view = {0};
++        const int ready = ggml_cpu_expert_acquire(src0, cur_a, &expert_view);
++        if (ready < 0) { GGML_ABORT("expert weight demand failed"); }
++        struct ggml_tensor compact = *src0;
++        struct ggml_tensor compact_dst = *dst;
++        if (ready) {
++            compact.data = (void *) expert_view.data;
++            compact.ne[2] = 1;
++            compact_dst.src[0] = &compact;
++        }
++        // Keep the stock tiled kernel and original row mapping for compact weights.
++        if (ggml_compute_forward_mul_mat_id_tiled(params, ready ? &compact_dst : dst, ready ? 0 : cur_a,
++                cne1, (const int32_t *) &MMID_MATRIX_ROW(cur_a, 0), tiled_scratch)) {
++            ggml_cpu_expert_release(&expert_view);
+             continue;
+         }
+ 
+-        const char * src0_cur = (const char *) src0->data + cur_a * nb02;
++        const char * src0_cur = ready ? (const char *) expert_view.data : (const char *) src0->data + cur_a * nb02;
+         const void * wdata = (src1->type == vec_dot_type) ? src1->data : params->wdata;
+         const size_t row_size = ggml_row_size(vec_dot_type, ne10);
+ 
+@@ -1752,6 +1765,7 @@ static void ggml_compute_forward_mul_mat_id(
+ 
+             current_chunk = atomic_fetch_add_explicit(current_chunk_ctr, 1, memory_order_relaxed);
+         }
++        ggml_cpu_expert_release(&expert_view);
+     }
+ }
+ 
+diff --git a/ggml/src/ggml-cpu/ggml-cpu.cpp b/ggml/src/ggml-cpu/ggml-cpu.cpp
+index 2978340..ef80132 100644
+--- a/ggml/src/ggml-cpu/ggml-cpu.cpp
++++ b/ggml/src/ggml-cpu/ggml-cpu.cpp
+@@ -1,3 +1,4 @@
++#include "ggml-cpu-expert.h"
+ #include "ggml-backend.h"
+ #include "ggml-backend-impl.h"
+ #include "ggml-cpu.h"
+@@ -657,6 +658,11 @@ static ggml_backend_feature * ggml_backend_cpu_get_features(ggml_backend_reg_t r
+ }
+ 
+ static void * ggml_backend_cpu_get_proc_address(ggml_backend_reg_t reg, const char * name) {
++    if (strcmp(name, "ggml_cpu_expert_create") == 0) { return (void *)ggml_cpu_expert_create; }
++    if (strcmp(name, "ggml_cpu_expert_register") == 0) { return (void *)ggml_cpu_expert_register; }
++    if (strcmp(name, "ggml_cpu_expert_validate") == 0) { return (void *)ggml_cpu_expert_validate; }
++    if (strcmp(name, "ggml_cpu_expert_destroy") == 0) { return (void *)ggml_cpu_expert_destroy; }
++
+     if (strcmp(name, "ggml_backend_set_n_threads") == 0) {
+         ggml_backend_set_n_threads_t fct = ggml_backend_cpu_set_n_threads;
+         return (void *)fct;
+diff --git a/src/llama-model.cpp b/src/llama-model.cpp
+index 15ec054..777d2e8 100644
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -1,3 +1,4 @@
++#include "ggml-cpu-expert.h"
+ #include "llama-model.h"
+ 
+ #include "llama-arch.h"
+@@ -1356,7 +1357,8 @@ static buft_list_t make_gpu_buft_list(ggml_backend_dev_t dev, llama_split_mode s
+ 
+ struct llama_model::impl {
+     impl() = default;
+-    ~impl() = default;
++    ~impl() { if (expert_cleanup) { expert_cleanup(); } }
++    std::function<void()> expert_cleanup;
+ 
+     uint64_t n_elements = 0;
+ 
+@@ -2179,6 +2181,41 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
+         }
+     }
+ 
++    // Optional CPU/mapped demand path. Backend symbols keep non-CPU builds independent.
++    auto cpu_reg = cpu_dev ? ggml_backend_dev_backend_reg(cpu_dev) : nullptr;
++    auto create_experts = cpu_reg ? (decltype(&ggml_cpu_expert_create)) ggml_backend_reg_get_proc_address(cpu_reg,"ggml_cpu_expert_create") : nullptr;
++    const char * streaming = getenv("LLAMA_EXPERT_STREAMING");
++    const char * residency = getenv("LLAMA_EXPERT_RESIDENCY");
++    if (!create_experts && ((streaming && strcmp(streaming,"0")) || (residency && strcmp(residency,"0")))) {
++        throw std::runtime_error("expert weight CPU backend unavailable");
++    }
++    if (create_experts) {
++        auto * experts = create_experts();
++        if (experts) {
++            auto add = (decltype(&ggml_cpu_expert_register)) ggml_backend_reg_get_proc_address(cpu_reg,"ggml_cpu_expert_register");
++            auto validate = (decltype(&ggml_cpu_expert_validate)) ggml_backend_reg_get_proc_address(cpu_reg,"ggml_cpu_expert_validate");
++            auto destroy = (decltype(&ggml_cpu_expert_destroy)) ggml_backend_reg_get_proc_address(cpu_reg,"ggml_cpu_expert_destroy");
++            if (!add || !destroy || !validate) { throw std::runtime_error("incomplete expert backend interface"); }
++            pimpl->expert_cleanup = [=] { destroy(experts); };
++            if (!use_mmap_buffer || use_mlock || ml.use_direct_io) { throw std::runtime_error("expert v1 requires mmap without mlock/direct I/O"); }
++            size_t registered = 0;
++            for (const auto & pair : ctx_bufs) {
++                for (auto * t = ggml_get_first_tensor(pair.first); t; t = ggml_get_next_tensor(pair.first,t)) {
++                    if (!std::regex_match(t->name,std::regex("blk\\.[0-9]+\\.ffn_(gate|up|down)_exps\\.weight"))) { continue; }
++                    if (!t->buffer || ggml_backend_buffer_get_type(t->buffer) != ggml_backend_dev_buffer_type(cpu_dev)) {
++                        throw std::runtime_error("expert v1 requires ordinary CPU buffers; force expert tensor overrides");
++                    }
++                    const auto & w = ml.require_weight(t->name);
++                    if (!add(experts,t,ml.files.at(w.idx)->file_id(),w.offs)) { throw std::runtime_error("unsupported expert tensor layout or range"); }
++                    ++registered;
++                }
++            }
++            if (!validate(experts)) { throw std::runtime_error("warm set does not match admitted tensors"); }
++            if (!registered) { throw std::runtime_error("no expert tensors admitted"); }
++            LLAMA_LOG_INFO("expert_weights registered_tensors=%zu engram_path=stock_lazy\n",registered);
++        }
++    }
++
+     if (use_mmap_buffer) {
+         for (auto & mapping : ml.mappings) {
+             pimpl->mappings.emplace_back(std::move(mapping));
+diff --git a/tests/.gitignore b/tests/.gitignore
+index 6a63731..3cc7b7a 100644
+--- a/tests/.gitignore
++++ b/tests/.gitignore
+@@ -7,3 +7,6 @@
+ ggml-common.h
+ **/*.swp
+ !peg-parser
++
++!/demo-expert-weights/
++!/demo-expert-weights/**

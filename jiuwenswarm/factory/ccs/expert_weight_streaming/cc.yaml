@@ -1,0 +1,84 @@
+{
+  "cc": "2",
+  "id": "engine.expert_weight_streaming_builder",
+  "version": "1.0.0",
+  "materials": {
+    "method": {
+      "path": "METHOD.md"
+    },
+    "integration": {
+      "path": "SKILL.md"
+    },
+    "component": {
+      "path": "COMPONENT.json"
+    },
+    "sources": {
+      "path": "SOURCES.json"
+    },
+    "runtime": {
+      "path": "components.py"
+    },
+    "roles": {
+      "path": "roles.json"
+    },
+    "fixture": {
+      "path": "fixtures/example.json"
+    },
+    "streaming_source": {
+      "path": "native/expert-streaming.cpp"
+    },
+    "streaming_api": {
+      "path": "native/ggml-cpu-expert.h"
+    },
+    "integration_patch": {
+      "path": "native/integration.patch"
+    },
+    "cpu_fixture": {
+      "path": "native/test-consumer.cpp"
+    },
+    "cpu_runner": {
+      "path": "native/check-cpu.sh"
+    }
+  },
+  "bindings": {
+    "default": {
+      "kind": "native",
+      "command": [
+        "{python}",
+        "{bundle}/run.py"
+      ]
+    }
+  },
+  "capabilities": {
+    "ranges": {
+      "does": "Validate original packed expert byte ranges for authoritative IDs.",
+      "takes": {
+        "inputs": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    },
+    "integration": {
+      "does": "Describe pinned source materials and admission boundaries.",
+      "takes": {
+        "inputs": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    }
+  }
+}

@@ -17,6 +17,17 @@ FLAGS = ['-DCMAKE_BUILD_TYPE=Release', '-DSTRATA_BUILD_DSV41=ON', '-DSTRATA_ENAB
          '-DCMAKE_CUDA_ARCHITECTURES=121-real;121-virtual', '-DGGML_NATIVE=OFF',
          '-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16+i8mm', '-DGGML_OPENMP=OFF']
 
+LLAMA_FLAGS = ['-DCMAKE_BUILD_TYPE=Release', '-DGGML_CUDA=ON',
+    '-DCMAKE_CUDA_ARCHITECTURES=121-real;121-virtual', '-DGGML_NATIVE=OFF',
+    '-DGGML_CPU_ARM_ARCH=armv8.2-a+dotprod+fp16+i8mm', '-DGGML_OPENMP=OFF',
+    '-DLLAMA_BUILD_TESTS=OFF', '-DLLAMA_BUILD_EXAMPLES=OFF', '-DLLAMA_BUILD_TOOLS=ON',
+    '-DLLAMA_BUILD_SERVER=ON', '-DLLAMA_OPENSSL=OFF']
+
+
+def build_flags(target, dependency):
+    return list(LLAMA_FLAGS) if target == 'llama-server' else [*FLAGS, '-DSTRATA_GGML_DIR='+str(dependency)]
+
+
 NATIVE_COMPILE = r'''
 import hashlib,json,os,pathlib,shutil,subprocess,sys,time,platform
 if platform.machine() not in ("aarch64", "arm64"):raise ValueError("Native ARM64 compilation required")
@@ -30,7 +41,7 @@ configure_seconds=time.monotonic()-configure_started
 compile_started=time.monotonic()
 subprocess.run(['cmake','--build',build,'--parallel','8','--target',target],check=True)
 compile_seconds=time.monotonic()-compile_started
-executable=pathlib.Path(build)/target;shutil.copy2(executable,app/executable.name)
+executable=pathlib.Path(build)/('bin/'+target if target=='llama-server' else target);shutil.copy2(executable,app/executable.name)
 linked=subprocess.check_output(['ldd',str(executable)],text=True)
 for line in linked.splitlines():
  if '=>' in line:
@@ -104,7 +115,7 @@ def main():
         dependency = Path(a.dependency)
         if run('dependency-head',['git','-C',dependency,'rev-parse','HEAD']) != a.dependency_commit or run('dependency-clean',['git','-C',dependency,'status','--porcelain','--untracked-files=all']):
             raise ValueError('Dependency changed')
-        flags = [*FLAGS, '-DSTRATA_GGML_DIR='+str(dependency)]
+        flags = build_flags(a.build_target, dependency)
         record['flags'] = flags
         record['dependency'] = dict(path=str(dependency), commit=a.dependency_commit)
         record['source']['tree'] = run('tree',['git','-C',source,'rev-parse','HEAD^{tree}'])
@@ -124,7 +135,7 @@ def main():
             return destination
         source = snapshot(source,a.commit,'frozen-source')
         dependency = snapshot(dependency,a.dependency_commit,'frozen-dependency')
-        flags = [*FLAGS, '-DSTRATA_GGML_DIR='+str(dependency)]
+        flags = build_flags(a.build_target, dependency)
         record['flags'] = flags
         builder_image = os.environ.get('FACTORY_NATIVE_BUILDER_IMAGE')
         if builder_image:
@@ -166,7 +177,7 @@ def main():
             run('configure',['cmake','-G','Ninja','-S',source,'-B',build,*flags])
             run('compile',['cmake','--build',build,'--parallel','8','--target',a.build_target])
             app.mkdir(parents=True)
-            executable = build/a.build_target
+            executable = build/('bin/'+a.build_target if a.build_target=='llama-server' else a.build_target)
             shutil.copy2(executable,app/executable.name)
             # Include non-system shared dependencies resolved by the actual executable.
             ldd = run('ldd',['ldd',executable])
@@ -178,7 +189,10 @@ def main():
                         shutil.copy2(path,app/path.name)
             record['executable_sha256'] = hashlib.sha256(executable.read_bytes()).hexdigest()
         recipe = Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile'
-        shutil.copy2(recipe,out/'image/Dockerfile')
+        recipe_text = recipe.read_text()
+        if a.build_target == 'llama-server':
+            recipe_text = recipe_text.replace('/opt/strata','/opt/llamacpp').replace('strata-dsv41','llama-server')
+        (out/'image/Dockerfile').write_text(recipe_text)
         argv = ['docker','build','--network=none','--pull=false','-t',a.tag]
         from jiuwenswarm.factory.targets import labels
         for k,v in labels(a.target).items():
@@ -186,7 +200,7 @@ def main():
         argv += ['--label','factory.source='+a.commit,'--label','factory.owner=cc-dgx-spark',out/'image']
         run('package',argv)
         record['image'] = json.loads(run('image',['docker','image','inspect',a.tag]))[0]
-        immutable_tag='factory/strata:artifact-'+record['image']['Id'].split(':',1)[1]
+        immutable_tag=('factory/llamacpp:artifact-' if a.build_target=='llama-server' else 'factory/strata:artifact-')+record['image']['Id'].split(':',1)[1]
         run('retain-image',['docker','tag',record['image']['Id'],immutable_tag])
         record['retention_tag']=immutable_tag
         record['status'] = 'success'

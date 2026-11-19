@@ -14,3 +14,5 @@ Use this package to turn a pinned, clean engine revision into an inspectable run
 Measure time to a usable verified image, failure/retry rate, and bytes retained. Compare cold versus warm builds of the same source and toolchain separately from an incremental patch build. Keep runtime correctness and artifact identity checks fixed while optimizing build strategy. Do not spend GPU experiments measuring a CPU build-cache improvement.
 
 The current cache key includes source identity: safe exact-revision reuse is implemented; efficient cross-revision incremental compilation remains a lead, not an achieved speedup. This revision adds measurement and native-host enforcement, not a claimed compile-time improvement.
+
+Spark llama.cpp target: set build_target to llama-server, and dependency to the same pinned clean source checkout (embedded ggml). This selects LLAMA/ GGML CUDA13 flags and build/bin/llama-server; the runtime entrypoint is /opt/llamacpp/llama-server. No model access or network is permitted during compilation. Strata defaults remain unchanged.

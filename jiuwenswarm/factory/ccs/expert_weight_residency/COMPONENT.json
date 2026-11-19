@@ -1,0 +1,11 @@
+{
+  "id": "engine.expert_weight_residency_builder",
+  "entrypoint": "components.py",
+  "capabilities": [
+    "plan"
+  ],
+  "qualification_admission": false,
+  "gpu_execution": false,
+  "certification": "CPU fixture scope only",
+  "runtime_engagement": "synthetic CPU MUL_MAT_ID only; DeepSeek unverified"
+}

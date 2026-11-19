@@ -1,0 +1,13 @@
+{
+  "upstream": "https://github.com/ggml-org/llama.cpp",
+  "commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "seams": [
+    "src/models/deepseek41.cpp",
+    "src/llama-model-loader.cpp",
+    "src/llama-model.cpp",
+    "ggml/src/ggml-cpu/ggml-cpu.c",
+    "ggml/src/ggml-cpu/tiled/tiled.cpp"
+  ],
+  "handoff_tools_commit": "c96c6fd297c55b75a9415263f50e1e4e5a80b3bd",
+  "engine_runtime": "private fixture-proven prototype; not hardware qualified"
+}
