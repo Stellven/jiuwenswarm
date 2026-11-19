@@ -143,7 +143,7 @@ def handle(packet, workspace, queue, jobq):
             if row is None:
                 raise ValueError('Unknown attempt')
             attempt = store._decode('attempts', row)
-            if attempt['kind'] != 'lab' or attempt['state'] not in {'succeeded','failed','cancelled'} or attempt['request'].get('adapter') != 'strata-v1':
+            if attempt['kind'] != 'lab' or attempt['state'] not in {'succeeded','failed','cancelled'} or attempt['request'].get('adapter') not in {'strata-v1','llama-server-v1'}:
                 raise ValueError('Only terminal owned Strata attempts may be recovered')
             manager = Manager(store, store.home/'lab-spool')
             recover_upload(manager, attempt['task_id'], attempt_id, manager.spool_root/attempt_id)

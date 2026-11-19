@@ -9,5 +9,8 @@
     "submit": "tool"
   },
   "format": "factory-roles/1",
-  "materials": {}
+  "materials": {
+    "llama_spark": "method",
+    "roles": "reference"
+  }
 }

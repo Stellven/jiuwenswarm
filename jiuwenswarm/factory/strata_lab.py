@@ -13,6 +13,10 @@ from .store import encoded
 
 
 def submit(manager, task_id, admission, contract, run_config, idem_key, node_id=None):
+    if contract.get("adapter")=="llama-server-v1":
+        from .llama_adapter import validate_contract
+    else:
+        from .engine_adapters import validate_contract
     task=manager.store.get_task(task_id)
     if task['contract_id'] not in {contract['contract_id'], str(contract.path)}:
         raise ValueError('Lab contract must match the task')
@@ -24,14 +28,17 @@ def submit(manager, task_id, admission, contract, run_config, idem_key, node_id=
         raise ValueError('Adapter target differs from admitted image')
     profile = run_config.get('profile')
     plain_config = {k: v for k, v in run_config.items() if k != 'profile'}
-    if (profile not in (None, 'strata-native') or
+    if (profile not in ((None,) if contract['adapter']=='llama-server-v1' else (None,'strata-native')) or
         plain_config not in ({},{'env':{}}, {'env':contract['workload']['environment']})):
         raise ValueError('Repeatability workload is fixed; changes require a new contract/task')
     from .mission_supervisor import mission_root
-    request=dict(quiet_root=str(mission_root(manager.store.home, task_id)), adapter='strata-v1',admission=admission,contract=dict(contract),
+    request=dict(quiet_root=str(mission_root(manager.store.home, task_id)), adapter=contract['adapter'],admission=admission,contract=dict(contract),
         quiet_required=bool(task.get('constraints',{}).get('quiet_required',False)),
         worker_sha256=sha(__file__),adapter_sha256=sha(Path(__file__).with_name('engine_adapters.py')),
         execution_sha256={name:sha(Path(__file__).with_name(name)) for name in ('lab_recorder.py','lab_lifecycle.py')})
+    if contract['adapter']=='llama-server-v1':
+        request['adapter_sha256']=sha(Path(__file__).with_name('llama_adapter.py'))
+        request['execution_sha256']['llama_http_driver.py']=sha(Path(__file__).with_name('llama_http_driver.py'))
     if profile:
         request['profile'] = profile
     if node_id is not None:request['node_id']=node_id
@@ -60,6 +67,10 @@ def wait_quiet(home, attempt_id, timeout_s=120, quiet_root=None):
 
 
 def run(home, task_id, attempt_id, request, spool):
+    if request.get('adapter')=='llama-server-v1':
+        from .llama_adapter import validate_contract, inspect_assets, parse_protocol
+    else:
+        from .engine_adapters import validate_contract, inspect_assets, parse_protocol
     from .lab_recorder import run_container
     from .store import Store
     from .targets import validate_image
@@ -73,10 +84,10 @@ def run(home, task_id, attempt_id, request, spool):
         with Store(home) as store:
             if store.read(task_id,attempt_id)['request']!=request:
                 raise ValueError('Persisted worker request differs')
-        if sha(__file__)!=request['worker_sha256'] or sha(Path(__file__).with_name('engine_adapters.py'))!=request['adapter_sha256']:
+        if sha(__file__)!=request['worker_sha256'] or sha(Path(__file__).with_name('llama_adapter.py' if request['adapter']=='llama-server-v1' else 'engine_adapters.py'))!=request['adapter_sha256']:
             raise ValueError('Worker source changed')
         for name, want in request['execution_sha256'].items():
-            if name not in {'lab_recorder.py','lab_lifecycle.py'} or sha(Path(__file__).with_name(name)) != want:
+            if name not in {'lab_recorder.py','lab_lifecycle.py','llama_http_driver.py'} or sha(Path(__file__).with_name(name)) != want:
                 raise ValueError('Admitted execution source changed')
         if request['quiet_required']:result['quiet']=wait_quiet(home,attempt_id,quiet_root=request.get('quiet_root'))
         contract=validate_contract(request['contract'])
@@ -91,9 +102,14 @@ def run(home, task_id, attempt_id, request, spool):
         result['assets_before']=inspect_assets(contract)
         work=contract['workload'];limits=contract['limits']
         argv=['/opt/strata/strata-dsv41',*work['argv'],'--profile-readonly','--serve']
+        mounts=[(work['pack'],work['pack']),(work['model_root'],work['model_root'])]
+        wire=protocol(contract) if request['adapter']=='strata-v1' else None
+        if request['adapter']=='llama-server-v1':
+            from .llama_adapter import command
+            argv,mounts=command(root,contract)
         collected=run_container(argv,output=root/'cell',image=image,
-            mounts=[(work['pack'],work['pack']),(work['model_root'],work['model_root'])],
-            gpu=True,environment=execution_environment(request),protocol=protocol(contract),
+            mounts=mounts,
+            gpu=True,environment=execution_environment(request),protocol=wire,
             timeout_s=limits['timeout_s'],guard_gib=limits['guard_gib'],
             memory_bytes=limits['memory_bytes'],cpus=limits['cpus'],lease_root=home.parent/'lab-lease')
         result['collector']=collected
@@ -138,6 +154,10 @@ def recover_upload(manager, task_id, attempt_id, root):
 def ingest(manager,task_id,attempt_id,root):
     """Verify bytes before committing; parse metrics again instead of trusting worker summaries."""
     request=manager.store.read(task_id,attempt_id)['request']
+    if request.get('adapter')=='llama-server-v1':
+        from .llama_adapter import inspect_assets, parse_protocol, verify_cell_evidence
+    else:
+        from .engine_adapters import inspect_assets, parse_protocol, verify_cell_evidence
     raw=(root/'manifest.json').read_bytes();manifest=json.loads(raw)
     if (manifest['task_id']!=task_id or manifest['lab_run_id']!=attempt_id
         or manifest['admission_id']!=request['admission']['admission_id']
@@ -164,6 +184,9 @@ def ingest(manager,task_id,attempt_id,root):
         collector=json.loads(content['cell/report.json'])
         if not (collector['reason']=='completed' and collector['quiescent'] and collector['container_removed']
                 and collector['container_exit_code']==0):raise ValueError('Successful upload lacks cleanup/exit evidence')
+        if request['adapter']=='llama-server-v1':
+            build=json.loads(manager.store.artifact_bytes(task_id,request['admission']['build_attempt_id']+':build-record'))
+            if parsed['executable_sha256']!=build.get('executable_sha256'):raise ValueError('Executed binary differs from build receipt')
         if worker.get('requests')!=parsed['requests']:raise ValueError('Worker native metrics differ from raw records')
     digest=hashlib.sha256(raw).hexdigest()
     from .manager import UploadConflict

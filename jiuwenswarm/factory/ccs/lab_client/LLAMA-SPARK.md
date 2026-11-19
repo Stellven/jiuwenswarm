@@ -1,0 +1,9 @@
+# Pinned llama-server Spark intake
+
+Use the existing submit/status/result/cancel tools with a llama-server-v1 operator contract and an image admitted from the task's successful llama-server build. Source revision, executable hash, immutable image, asset manifest and raw endpoint response are distinct identities. The same durable worker, host memory guard, queue and owned-container guardian used by Strata manage this target. No extra service or listener is exposed on the host.
+
+The driver starts the fixed binary inside the owned container, waits on localhost /health, obtains input IDs through /tokenize, then retains raw streaming /completion responses and client monotonic times. Sampling is greedy, seed zero, return_tokens on and cache_prompt off. Engram stays on the stock lazy path; no drafting argument is admitted. Input must fit 2048 tokens, output at most64, context at most8192. The independent importer reparses raw IDs/stop reasons and clock ordering, validates the exact container boundary/cleanup, and matches the actual executable to its build receipt. Native timing is separate from client TTFT and completion. Missing or failed artifacts never become acceptance.
+
+Stock intake needs two matching requests; independent A/A across fresh owned processes precedes scoring. Candidate requires both explicit switches plus original source/material lineage and observed fills/retirement. Full model digests may be retained historical hashes: current checks authenticate bounded GGUF headers, sizes and before/after mtime only; report that limit. Do not call this semantic task accuracy. The original mapping/page cache remains, so owned slot capacity alone does not establish physical memory bounds.
+
+A fixed task contract cannot be edited to change treatment or workload. Use the existing planner's new task/contract revision with shared campaign budget attribution. Keep fresh holdout prompts out of tuning. No new workflow system is involved.

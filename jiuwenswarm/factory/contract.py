@@ -43,6 +43,10 @@ def load(contract_id):
         from .benchmark import validate_contract
         validate_contract(result)
         return result
+    if result.get('adapter') == 'llama-server-v1':
+        from .llama_adapter import validate_contract
+        validate_contract(result)
+        return result
     if result.get('adapter') == 'strata-v1':
         from .engine_adapters import validate_contract
         validate_contract(result)

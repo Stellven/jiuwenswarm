@@ -84,9 +84,9 @@ class Manager:
             raise ValueError('run_config.profile must be nsys or strata-native when given')
         admission = self._admission(task_id, admission_id)
         contract = contracts.load_for_task(self.store.get_task(task_id), contract_id)
-        if profile == 'strata-native' and contract.get('adapter') != 'strata-v1':
+        if profile == 'strata-native' and contract.get('adapter') not in {'strata-v1','llama-server-v1'}:
             raise ValueError('strata-native profiling requires a Strata contract')
-        if contract.get('adapter') == 'strata-v1':
+        if contract.get('adapter') in {'strata-v1','llama-server-v1'}:
             from .strata_lab import submit
             return submit(self, task_id, admission, contract, run_config, idem_key, node_id)
         from .components import environment
@@ -139,7 +139,7 @@ class Manager:
         result = self.jobs.status(attempt_id)
         attempt = self.jobs._get(attempt_id)
         root = self.spool_root / attempt_id
-        if (attempt['request'].get('adapter') == 'strata-v1' and result['state'] in {'succeeded','failed','cancelled'}
+        if (attempt['request'].get('adapter') in {'strata-v1','llama-server-v1'} and result['state'] in {'succeeded','failed','cancelled'}
                 and not (root/'manifest.json').exists()):
             if os.environ.get('FACTORY_BRIDGE_DIR'):
                 from .bridge import call
@@ -147,13 +147,13 @@ class Manager:
             else:
                 from .strata_lab import recover_upload
                 recover_upload(self, attempt['task_id'], attempt_id, root)
-        if attempt['request'].get('adapter') == 'strata-v1' and (root/'manifest.json').exists():
+        if attempt['request'].get('adapter') in {'strata-v1','llama-server-v1'} and (root/'manifest.json').exists():
             self.ingest_upload(attempt['task_id'], attempt_id, root)
         return result
 
     def cancel(self, attempt_id):
         attempt = self.jobs.cancel(attempt_id)
-        if attempt['request'].get('adapter') == 'strata-v1':
+        if attempt['request'].get('adapter') in {'strata-v1','llama-server-v1'}:
             self.status(attempt_id)
             return self.jobs._get(attempt_id)
         root = self.spool_root / attempt_id
@@ -188,7 +188,7 @@ class Manager:
         if root != self.spool_root / lab_run_id or not root.is_dir():
             raise ValueError('Bundle must be the lab run directory in the configured spool')
         attempt = self.store._get('attempts', task_id, lab_run_id)
-        if attempt['request'].get('adapter') == 'strata-v1':
+        if attempt['request'].get('adapter') in {'strata-v1','llama-server-v1'}:
             from .strata_lab import ingest
             return ingest(self, task_id, lab_run_id, root)
         if attempt['request'].get('mode') == 'ab':
