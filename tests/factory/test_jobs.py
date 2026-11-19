@@ -137,3 +137,31 @@ def test_external_cancel_from_running(jobs, worker):
     subprocess.run([sys.executable, str(jobs.jobq_bin), 'wait', attempt['jobq_id'], '--timeout', '5'],
                    env=dict(os.environ, JOBQ_DIR=str(jobs.jobq_dir)), capture_output=True)
     assert jobs.status(attempt['attempt_id'])['state'] == 'cancelled'
+
+
+@pytest.mark.parametrize('kind', ['build', 'lab'])
+def test_campaign_allowance_does_not_expand_source_only_child(jobs, kind):
+    jobs.store.create_task(dict(task_id='owner', objective='campaign',
+                                constraints={'attempt_limits': {kind: 4}}))
+    jobs.store.create_task(dict(task_id='child', objective='source only',
+        constraints={'campaign_budget_owner': 'owner', 'attempt_limits': {kind: 0}}))
+    with pytest.raises(ValueError, match='budget exhausted'):
+        jobs.submit('child', kind, {}, 'first', 'cpu', ['true'], 10, {})
+    assert jobs.store.dump('child')['attempts'] == []
+
+
+def test_child_local_and_shared_limits_both_apply_with_idempotency(jobs):
+    jobs.store.create_task(dict(task_id='owner', objective='campaign',
+                                constraints={'attempt_limits': {'test': 2}}))
+    for child in ('one', 'two', 'three'):
+        jobs.store.create_task(dict(task_id=child, objective='child',
+            constraints={'campaign_budget_owner': 'owner', 'attempt_limits': {'test': 1}}))
+    def launch(child, key='first'):
+        return jobs.submit(child, 'test', {}, key, 'cpu', ['true'], 10, {})
+    first = launch('one')
+    assert launch('one')['attempt_id'] == first['attempt_id']
+    with pytest.raises(ValueError, match='budget exhausted'):
+        launch('one', 'second')
+    launch('two')
+    with pytest.raises(ValueError, match='budget exhausted'):
+        launch('three')

@@ -123,6 +123,14 @@ class Jobs:
             limits = constraints.get('attempt_limits', {}) if isinstance(constraints, dict) else {}
             owner = constraints.get('campaign_budget_owner', constraints.get('factory_loop_parent', task_id))
             if owner != task_id:
+                # A shared campaign allowance never expands a child's local cap.
+                local_limit = limits.get(kind)
+                if local_limit is not None:
+                    local_count = self.store._db.execute(
+                        'SELECT COUNT(*) FROM attempts WHERE task_id=? AND kind=?',
+                        (task_id, kind)).fetchone()[0]
+                    if type(local_limit) is not int or local_limit < 0 or local_count >= local_limit:
+                        raise ValueError('Task attempt budget exhausted: ' + kind)
                 owner_task = self.store.get_task(owner)
                 limits = owner_task.get('constraints', {}).get('attempt_limits', {})
             if request.get('adapter') == 'strata-construction-v1':
