@@ -121,3 +121,26 @@ def test_scoped_ordinary_cpu_switches_and_bounded_diagnostics():
  with pytest.raises(ValueError,match='placement switch'):a.validate_contract(c)
  c['workload']['environment']['LLAMA_ARG_NO_HOST']='1';c['workload']['argv'][-2]='999'
  with pytest.raises(ValueError,match='verbosity'):a.validate_contract(c)
+
+
+@pytest.mark.parametrize('mutation',[None,'missing','number','count','filename','duplicate'])
+def test_auto_discovered_shards_require_manifest_admission(tmp_path,monkeypatch,mutation):
+ from jiuwenswarm.factory.ccs.performance_baseline import model_layout
+ c=contract();c['workload']['argv']=[]
+ paths=[tmp_path/f'model-{i+1:05d}-of-00002.gguf' for i in range(2)]
+ headers={}
+ for i,p in enumerate(paths):
+  p.write_bytes(b'fixture');headers[str(p)]={'metadata':{'split.no':i,'split.count':2}}
+ c['workload']['pack']=str(paths[0])
+ files=[dict(path=str(p),size=7,header_sha256='a'*64,retained_sha256='b'*64) for p in paths]
+ if mutation=='missing':files.pop()
+ elif mutation=='number':headers[str(paths[1])]['metadata']['split.no']=0
+ elif mutation=='count':headers[str(paths[1])]['metadata']['split.count']=3
+ elif mutation=='filename':headers[str(paths[0])]['metadata']['split.count']=3
+ elif mutation=='duplicate':files.append(files[0])
+ identity=tmp_path/'identity.json';identity.write_text(json.dumps({'files':files}))
+ c['assets']=dict(identity_path=str(identity),identity_sha256=a.sha(identity))
+ monkeypatch.setattr(model_layout,'inspect_gguf',lambda p,**kw:headers[str(p)])
+ if mutation:
+  with pytest.raises(ValueError):a.inspect_assets(c)
+ else:assert len(a.inspect_assets(c))==2

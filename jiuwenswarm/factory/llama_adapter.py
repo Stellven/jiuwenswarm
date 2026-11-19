@@ -46,15 +46,29 @@ def inspect_assets(c):
     from .ccs.performance_baseline.model_layout import inspect_gguf
     asset=c['assets'];p=Path(asset['identity_path'])
     if sha(p)!=asset['identity_sha256']:raise ValueError('Asset identity manifest changed')
-    manifest=json.loads(p.read_text());result=[]
+    manifest=json.loads(p.read_text());result=[];headers={}
     for f in manifest['files']:
         p=Path(f['path']);st=p.stat()
         if st.st_size!=f['size']:raise ValueError('Asset size changed')
         header=inspect_gguf(p,expected_header_sha256=f['header_sha256'])
+        if str(p) in headers:raise ValueError('Duplicate admitted model shard')
+        headers[str(p)]=header
         result.append(dict(path=str(p),size=st.st_size,mtime_ns=st.st_mtime_ns,header_sha256=f['header_sha256'],retained_sha256=f['retained_sha256'],full_hash_rechecked=False))
     paths={r['path'] for r in result}
     shard=flag(c['workload']['argv'],'--shard') if '--shard' in c['workload']['argv'] else None
     if c['workload']['pack'] not in paths or (shard is not None and shard not in paths):raise ValueError('Unadmitted model shard')
+    # llama.cpp auto-discovers split siblings: each must be explicitly admitted.
+    primary=Path(c['workload']['pack']);meta=headers[str(primary)].get('metadata',{})
+    count=meta.get('split.count',1)
+    if type(count) is not int or not 1<=count<=64:raise ValueError('Invalid model split count')
+    if count>1:
+        match=re.fullmatch(r'(.+)-00001-of-([0-9]{5})\.gguf',primary.name)
+        if not match or int(match[2])!=count:raise ValueError('Primary split filename differs')
+        for index in range(count):
+            sibling=str(primary.with_name(f'{match[1]}-{index+1:05d}-of-{count:05d}.gguf'))
+            if sibling not in headers:raise ValueError('Unadmitted automatic model shard')
+            sm=headers[sibling].get('metadata',{})
+            if sm.get('split.no')!=index or sm.get('split.count')!=count:raise ValueError('Model split identity differs')
     return result
 
 
