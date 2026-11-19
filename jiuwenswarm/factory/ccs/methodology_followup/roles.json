@@ -1,6 +1,7 @@
 {
   "capabilities": {
-    "followup": "tool"
+    "followup": "tool",
+    "lab_guided": "tool"
   },
   "format": "factory-roles/1",
   "materials": {

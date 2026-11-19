@@ -374,6 +374,17 @@ def dispatch(store, task_id, operation, inputs):
             return {'analysis': result}
     if not reports:
         raise ValueError('Supply measured report evidence or select an explicit proposed hypothesis for ablation')
+    if operation == 'lab_guided':
+        if len(reports)!=1 or len(refs)!=1:raise ValueError('Lab-guided method requires exactly one immutable bundle')
+        from .lab_guidance import recommend
+        bundle=reports[0]
+        for ref in bundle.get('evidence_ids',[]):
+            for owner in [task_id,*sorted(set(getattr(store,'readable',()))-{task_id})]:
+                try:store.read(owner,ref);break
+                except NotFound:continue
+            else:raise NotFound('Bundle cites unavailable scoped evidence')
+        result=recommend(bundle,refs[0]);result['evidence_sources']=sources
+        return {'analysis':result}
     analysis = diagnose(reports, refs, task['objective'])
     analysis['evidence_sources'] = sources
     if operation == 'diagnose':
