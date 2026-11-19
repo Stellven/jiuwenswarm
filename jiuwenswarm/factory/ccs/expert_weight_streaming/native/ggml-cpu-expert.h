@@ -6,6 +6,19 @@ extern "C" {
 #endif
 struct ggml_cpu_expert_context;
 struct ggml_cpu_expert_view { const void * data; void * lease; uint64_t generation; };
+// Admit exact ordinary CPU types, including the pinned borrowed mmap wrapper.
+// Do not accept arbitrary host buffers or names (e.g. CUDA_Host / CPU_REPACK).
+static inline bool ggml_cpu_expert_buffer_supported(ggml_backend_buffer_t buffer) {
+    if (!buffer) { return false; }
+    ggml_backend_buffer_type_t type = ggml_backend_buffer_get_type(buffer);
+    if (type == ggml_backend_cpu_buffer_type()) { return true; }
+    // The public factory yields the private CPU_Mapped type without owning data.
+    ggml_backend_buffer_t probe = ggml_backend_cpu_buffer_from_ptr(NULL, 0);
+    if (!probe) { return false; }
+    bool supported = type == ggml_backend_buffer_get_type(probe);
+    ggml_backend_buffer_free(probe);
+    return supported;
+}
 // Create from checked process configuration. NULL means both switches are off.
 GGML_BACKEND_API struct ggml_cpu_expert_context * ggml_cpu_expert_create(void);
 GGML_BACKEND_API void ggml_cpu_expert_destroy(struct ggml_cpu_expert_context * ctx);

@@ -1,0 +1,32 @@
+{
+  "schema": "expert-streaming.source-upgrade/1",
+  "expected_parent": "064ca7c10aa4b49d1a20f84d6ae703fe6e99186d",
+  "execution_authorized": false,
+  "loader_edit": {
+    "path": "src/llama-model.cpp",
+    "expected_sha256": "f076cb2375bda392035da56812c562a7fff266c773b3a529812c1eabf95573e7",
+    "old": "                    if (!t->buffer || ggml_backend_buffer_get_type(t->buffer) != ggml_backend_dev_buffer_type(cpu_dev)) {\n                        throw std::runtime_error(\"expert v1 requires ordinary CPU buffers; force expert tensor overrides\");",
+    "new": "                    if (!ggml_cpu_expert_buffer_supported(t->buffer)) {\n                        throw std::runtime_error(\"expert v1 requires CPU or CPU_Mapped buffers; disable host buffers and repacking\");",
+    "result_sha256": "75a184f95ca51a9b4e00c718a59f32ba5875e6ff25475afa74913106fcf6793c"
+  },
+  "material_writes": [
+    {
+      "path": "ggml/include/ggml-cpu-expert.h",
+      "material": "streaming_api",
+      "expected_sha256": "23e84290ead6e7d10949934063a24c968fe72304fcc4cdcbd6a5c6eab3b7243d",
+      "result_sha256": "77ca07d753e3f403d785989835bf5f8ad74d5abe9b2520629080a712a2d81ef7"
+    },
+    {
+      "path": "tests/demo-expert-weights/test-consumer.cpp",
+      "material": "cpu_fixture",
+      "expected_sha256": "6bed54aeefd2f3c92652fa6f24ef71381e8d7fcc33f6ed7cc2aec9ca5bb8732d",
+      "result_sha256": "3bf1a44e8fcb008909a3fe4b9851d9218229cc581da41aa82a55cfab44fdf797"
+    },
+    {
+      "path": "tests/demo-expert-weights/check-cpu.sh",
+      "material": "cpu_runner",
+      "expected_sha256": "748709a3f2f5d057df779b66b166d2859577bd2e31b6faec6a4868a30a908989",
+      "result_sha256": "8a15eab6053181cdf0289859c54929d9c62e47dd14fdf8766eb1d0f80135b5a4"
+    }
+  ]
+}

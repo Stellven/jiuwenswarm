@@ -10,7 +10,7 @@ unset LLAMA_EXPERT_RESIDENCY LLAMA_EXPERT_STREAMING LLAMA_EXPERT_WARM_SET
 cmake -S "$source_root" -B "$out" -DGGML_CUDA=OFF -DGGML_NATIVE=OFF -DGGML_CPU_ARM_ARCH=armv8-a -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DLLAMA_BUILD_COMMON=OFF -DLLAMA_BUILD_TOOLS=OFF -DLLAMA_BUILD_EXAMPLES=OFF -DLLAMA_BUILD_TESTS=OFF -DLLAMA_BUILD_MTMD=OFF -DLLAMA_OPENSSL=OFF > "$out/configure.log" 2>&1
 cmake --build "$out" --target ggml-cpu -j4 > "$out/build.log" 2>&1
 c++ -std=c++17 -O1 -g -pthread -I"$source_root/ggml/src/ggml-cpu" "$source_root/tests/demo-expert-weights/test-residency.cpp" -o "$out/test-residency"
-c++ -std=c++17 -O1 -g -pthread -I"$source_root/ggml/include" "$source_root/tests/demo-expert-weights/test-consumer.cpp" -L"$out/bin" -Wl,-rpath,"$out/bin" -lggml-cpu -lggml-base -o "$out/test-consumer"
+c++ -std=c++17 -O1 -g -pthread -I"$source_root/ggml/include" -I"$source_root/ggml/src" "$source_root/tests/demo-expert-weights/test-consumer.cpp" -L"$out/bin" -Wl,-rpath,"$out/bin" -lggml-cpu -lggml-base -o "$out/test-consumer"
 timeout 60 "$out/test-residency" > "$out/residency.log" 2>&1
 timeout 60 "$out/test-consumer" > "$out/consumer-f32.log" 2>&1
 for format in iq1_m iq2_xxs iq2_xs q4_k q5_0 q8_0; do

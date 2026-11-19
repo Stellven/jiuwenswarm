@@ -1,6 +1,7 @@
 #include "ggml.h"
 #include "ggml-alloc.h"
 #include "ggml-backend.h"
+#include "ggml-backend-impl.h"
 #include "ggml-cpu.h"
 #include "ggml-cpu-expert.h"
 #include <cassert>
@@ -20,6 +21,29 @@ static void configure(size_t cap) {
     setenv("LLAMA_EXPERT_CHECKPOINT",std::string(64,'a').c_str(),1);
 }
 int main(int argc,char ** argv) {
+    assert(!ggml_cpu_expert_buffer_supported(nullptr));
+    alignas(64) char mapped_data[64] = {};
+    auto mapped = ggml_backend_cpu_buffer_from_ptr(mapped_data,sizeof(mapped_data));
+    auto ordinary = ggml_backend_buft_alloc_buffer(ggml_backend_cpu_buffer_type(),64);
+    assert(ggml_backend_buffer_get_type(mapped) != ggml_backend_cpu_buffer_type());
+    assert(ggml_cpu_expert_buffer_supported(mapped));
+    assert(ggml_cpu_expert_buffer_supported(ordinary));
+    ggml_backend_buffer_free(mapped); ggml_backend_buffer_free(ordinary);
+    // A host buffer with a forged allowed name must still fail exact type identity.
+    ggml_backend_buffer_type fake = {};
+    fake.iface.get_name = [](ggml_backend_buffer_type_t) { return "CPU_Mapped"; };
+    fake.iface.is_host = [](ggml_backend_buffer_type_t) { return true; };
+    auto forged = ggml_backend_buffer_init(&fake,{},nullptr,0);
+    assert(!ggml_cpu_expert_buffer_supported(forged)); ggml_backend_buffer_free(forged);
+    auto reg = ggml_backend_cpu_reg(); auto dev = ggml_backend_reg_dev_get(reg,0);
+    auto extras = (ggml_backend_dev_get_extra_bufts_t)ggml_backend_reg_get_proc_address(reg,"ggml_backend_dev_get_extra_bufts");
+    size_t rejected = 0;
+    if (extras) { for (auto types=extras(dev); types && *types; ++types) {
+        auto extra=ggml_backend_buft_alloc_buffer(*types,64);
+        assert(extra && !ggml_cpu_expert_buffer_supported(extra));
+        ggml_backend_buffer_free(extra); ++rejected;
+    } }
+    printf("PASS exact CPU/CPU_Mapped types; forged host rejected; CPU extras rejected=%zu\n",rejected);
     const bool quant=argc>1; const int k=quant?256:4, rows=quant?32:2, batch=quant?16:2;
     ggml_init_params p={16*1024*1024,nullptr,false}; auto * ctx=ggml_init(p); assert(ctx);
     auto type = !quant ? GGML_TYPE_F32 : strcmp(argv[1],"q4_k")==0 ? GGML_TYPE_Q4_K : strcmp(argv[1],"q5_0")==0 ? GGML_TYPE_Q5_0 : strcmp(argv[1],"q8_0")==0 ? GGML_TYPE_Q8_0 : strcmp(argv[1],"iq1_m")==0 ? GGML_TYPE_IQ1_M : strcmp(argv[1],"iq2_xs")==0 ? GGML_TYPE_IQ2_XS : GGML_TYPE_IQ2_XXS;
