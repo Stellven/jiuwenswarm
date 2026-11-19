@@ -297,6 +297,14 @@ def import_baseline_build(manager, task_id, source_task='operator-bare-build', s
     receipt = json.loads(receipt_bytes)
     key = 'baseline-' + src['attempt_id'][:8]
     manager.store.put_artifact(task_id, key + ':receipt', receipt_bytes, 'application/json', key)
+    # Preserve the binary provenance used by independent llama HTTP ingestion.
+    try:
+        build_record = manager.store.artifact_bytes(source_task, src['attempt_id'] + ':build-record')
+    except NotFound:
+        build_record = None  # Historical receipts remain usable by their original adapters.
+    if build_record is not None:
+        manager.store.put_artifact(task_id, key + ':build-record', build_record, 'application/json', key)
+
     try:
         attempt = manager.store._get('attempts', task_id, key)
     except NotFound:

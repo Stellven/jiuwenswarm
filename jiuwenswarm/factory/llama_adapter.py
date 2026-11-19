@@ -50,7 +50,8 @@ def inspect_assets(c):
         header=inspect_gguf(p,expected_header_sha256=f['header_sha256'])
         result.append(dict(path=str(p),size=st.st_size,mtime_ns=st.st_mtime_ns,header_sha256=f['header_sha256'],retained_sha256=f['retained_sha256'],full_hash_rechecked=False))
     paths={r['path'] for r in result}
-    if c['workload']['pack'] not in paths or flag(c['workload']['argv'],'--shard') not in paths:raise ValueError('Unadmitted model shard')
+    shard=flag(c['workload']['argv'],'--shard') if '--shard' in c['workload']['argv'] else None
+    if c['workload']['pack'] not in paths or (shard is not None and shard not in paths):raise ValueError('Unadmitted model shard')
     return result
 
 
@@ -143,6 +144,15 @@ def intake(c):
                          'deepseek41.ple.layer_multipliers','deepseek41.ple.head_offsets','deepseek41.ple.head_vocab_sizes',
                          'deepseek41.engram.pad_token_id','deepseek41.engram.token_map'})
         issues=[dict(code='MISSING_PINNED_METADATA',key=k) for k in sorted(required-set(meta))]
+    elif arch=='deepseek2':
+        # src/models/deepseek2.cpp at 9048bad8: V2-Lite does not require Q LoRA.
+        required={'deepseek2.block_count','deepseek2.embedding_length','deepseek2.attention.head_count',
+                  'deepseek2.attention.layer_norm_rms_epsilon','deepseek2.attention.kv_lora_rank',
+                  'deepseek2.expert_feed_forward_length','deepseek2.expert_shared_count',
+                  'deepseek2.expert_count','deepseek2.expert_used_count','tokenizer.ggml.tokens'}
+        issues=[dict(code='MISSING_PINNED_METADATA',key=k) for k in sorted(required-set(meta))]
+        if meta.get('deepseek2.block_count')!=27:
+            issues.append(dict(code='UNREVIEWED_DEEPSEEK2_VARIANT'))
     else:
         issues.append(dict(code='ARCHITECTURE_REQUIRES_SOURCE_REVIEW',architecture=arch))
     return dict(schema='factory.llama-intake/1',status='incompatible' if issues else 'necessary_metadata_present',

@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.lab_client
-version: 1.2.0
+version: 1.2.1
 materials:
   llama_spark:
     path: LLAMA-SPARK.md
