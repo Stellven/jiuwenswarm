@@ -109,3 +109,15 @@ def test_imported_baseline_keeps_exact_binary_record(store):
  linked=import_baseline_build(SimpleNamespace(store=store),'fallback','t',aid)
  assert store.artifact_bytes('fallback',linked['build_attempt_id']+':build-record')==raw
  assert linked['imported_from']=='t:'+aid
+
+
+def test_scoped_ordinary_cpu_switches_and_bounded_diagnostics():
+ c=contract();c['workload']['environment'].update(LLAMA_ARG_REPACK='0',LLAMA_ARG_NO_HOST='1')
+ c['workload']['argv'][-1:-1]=['--verbosity','4']
+ assert a.validate_contract(c)==c
+ c['workload']['environment']['LLAMA_ARG_REPACK']='1'
+ with pytest.raises(ValueError,match='placement switch'):a.validate_contract(c)
+ c['workload']['environment']['LLAMA_ARG_REPACK']='0';c['workload']['environment']['LLAMA_ARG_NO_HOST']='0'
+ with pytest.raises(ValueError,match='placement switch'):a.validate_contract(c)
+ c['workload']['environment']['LLAMA_ARG_NO_HOST']='1';c['workload']['argv'][-2]='999'
+ with pytest.raises(ValueError,match='verbosity'):a.validate_contract(c)

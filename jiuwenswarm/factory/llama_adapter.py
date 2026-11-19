@@ -8,7 +8,7 @@ from .engine_adapters import sha, flag
 
 ADAPTER='llama-server-v1'
 DRIVER=Path(__file__).with_name('llama_http_driver.py')
-ENV={'LLAMA_EXPERT_RESIDENCY','LLAMA_EXPERT_STREAMING','LLAMA_EXPERT_CHECKPOINT','LLAMA_EXPERT_PHYSICAL_BYTES',
+ENV={'LLAMA_ARG_REPACK','LLAMA_ARG_NO_HOST','LLAMA_EXPERT_RESIDENCY','LLAMA_EXPERT_STREAMING','LLAMA_EXPERT_CHECKPOINT','LLAMA_EXPERT_PHYSICAL_BYTES',
      'LLAMA_EXPERT_FIXED_BYTES','LLAMA_EXPERT_SEQUENCE_BYTES','LLAMA_EXPERT_WORKSPACE_BYTES','LLAMA_EXPERT_HEADROOM_BYTES',
      'LLAMA_EXPERT_SLOT_BYTES','LLAMA_EXPERT_IO_BYTES','LLAMA_EXPERT_FALLBACK_BYTES','LLAMA_EXPERT_WARM_SET'}
 
@@ -19,7 +19,7 @@ def validate_contract(c):
     if not isinstance(args,list) or not all(isinstance(v,str) and v and '\0' not in v for v in args):raise ValueError('Invalid fixed llama arguments')
     args=args[:-1] if args[-1:]==['--no-warmup'] else args
     if len(args)%2:raise ValueError('Invalid argument pairs')
-    allowed={'-m','--shard','--load-mode','--lazy-mode','--override-tensor','--ctx-size','--gpu-layers','--threads','--threads-batch','--parallel','--batch-size','--ubatch-size'}
+    allowed={'-m','--shard','--load-mode','--lazy-mode','--override-tensor','--ctx-size','--gpu-layers','--threads','--threads-batch','--parallel','--batch-size','--ubatch-size','--verbosity'}
     if len(set(args[::2]))!=len(args[::2]) or set(args[::2])-allowed:raise ValueError('Unsupported llama arguments')
     for k,v in {'--load-mode':'mmap','--lazy-mode':'on','--parallel':'1'}.items():
         if flag(args,k)!=v:raise ValueError('Required llama argument differs: '+k)
@@ -28,6 +28,9 @@ def validate_contract(c):
     for k in ('--threads','--threads-batch'):
         if not 1<=int(flag(args,k))<=limits['cpus']:raise ValueError('Thread bound')
     if not isinstance(w['environment'],dict) or set(w['environment'])-ENV or any(not isinstance(v,str) or '\0' in v or '\n' in v for v in w['environment'].values()):raise ValueError('Invalid expert environment')
+    for key, expected in (('LLAMA_ARG_REPACK','0'),('LLAMA_ARG_NO_HOST','1')):
+        if key in w['environment'] and w['environment'][key]!=expected:raise ValueError('Invalid scoped placement switch')
+    if '--verbosity' in args and flag(args,'--verbosity') not in ('3','4'):raise ValueError('Bounded diagnostic verbosity required')
     if [w['environment'].get(k,'0') for k in ('LLAMA_EXPERT_RESIDENCY','LLAMA_EXPERT_STREAMING')] not in (['0','0'],['1','1']):raise ValueError('Mixed feature switches')
     cases=w['requests']
     if not isinstance(cases,list) or not 1<=len(cases)<=4:raise ValueError('Bounded requests required')
