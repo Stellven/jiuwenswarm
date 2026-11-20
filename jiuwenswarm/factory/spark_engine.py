@@ -108,6 +108,37 @@ def native_compile_argv(image, source, dependency, build, out, flags, *, name=No
     return [*argv, '--entrypoint', '/usr/bin/python3', image, '-c', NATIVE_COMPILE,
             str(source), str(build), str(out/'image/app'), str(out/'native-compile.json'), json.dumps(flags), build_target]
 
+def owner_native_overlap(a, gpu, available):
+    role = os.getenv('SPARK_OWNER_BUILD')
+    allowed = {
+        'placement-tier': ('spark-owner-c2-cpu.service', 'factory/llamacpp:star-placement-tier-'),
+        'combined-d': ('spark-owner-d-cpu.service', 'factory/llamacpp:star-combined-d-'),
+    }
+    if not role:
+        return None
+    if role not in allowed or a.delivery != 'native' or a.build_target != 'llama-server':
+        raise ValueError('Owner overlap is limited to the two approved native llama-server builds')
+    unit, tag = allowed[role]
+    group = Path('/proc/self/cgroup').read_text().strip().removeprefix('0::')
+    cpus = sorted(os.sched_getaffinity(0))
+    nice = os.getpriority(os.PRIO_PROCESS, 0)
+    io = subprocess.check_output(['/usr/bin/ionice', '-p', str(os.getpid())], text=True).strip()
+    limit = (Path('/sys/fs/cgroup') / group.lstrip('/') / 'memory.max').read_text().strip()
+    if (Path(group).name != unit or not a.tag.startswith(tag) or cpus != list(range(12, 20)) or nice != 19 or
+            io != 'idle' or not limit.isdigit() or int(limit) > 6 * 1024**3 or available < 21 * 1024**2):
+        raise ValueError('Owner overlap requires the exact build unit, CPU and I/O limits, and sufficient host headroom')
+    watched = Path.home() / 'predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01'
+    if gpu:
+        start = json.loads((watched / 'start.json').read_bytes())
+        scope = json.loads((watched / 'scope.json').read_bytes())
+        pids = {int(row.split(',', 1)[0]) for row in gpu.splitlines()}
+        if (start['arm'] != 'A+' or start['cpus'] != '0-7' or (watched / 'result.json').exists() or
+                pids != {scope['pid']}):
+            raise ValueError('Owner overlap permits only the capped A+60 control to hold a compute context')
+    return dict(role=role, unit=unit, cpu_affinity=cpus, nice=nice, io_priority=io,
+                memory_max_bytes=int(limit), compiler_jobs=4, observed_scope=str(watched) if gpu else None)
+
+
 def main():
     p = argparse.ArgumentParser()
     for name in ('target','source','commit','tag','out','dependency','dependency-commit'):
@@ -208,7 +239,10 @@ def main():
         gpu = run('gpu-admission',['nvidia-smi','--query-compute-apps=pid,process_name','--format=csv,noheader'])
         available = int(next(l.split()[1] for l in Path('/proc/meminfo').read_text().splitlines() if l.startswith('MemAvailable:')))
         record['admission'] = dict(gpu_processes=gpu, available_kib=available)
-        if gpu or available < 16*1024**2:
+        overlap = owner_native_overlap(a, gpu, available)
+        if overlap:
+            record['admission']['owner_overlap'] = overlap
+        elif gpu or available < 16*1024**2:
             raise ValueError('Unrelated compute or insufficient available memory')
         identity = dict(build_target=a.build_target, source=record['source'], toolchain=record['toolchain'], flags=flags, dependency=record['dependency'],
                         environment={k:os.environ.get(k) for k in ('PATH','CC','CXX','CUDAHOSTCXX','CUDACXX','CFLAGS','CXXFLAGS','LDFLAGS','LD_LIBRARY_PATH')},
@@ -234,7 +268,8 @@ def main():
             record['toolchain']['native_builder_image'] = builder_image
         else:
             run('configure',['cmake','-G',generator,'-S',source,'-B',build,*flags])
-            run('compile',['cmake','--build',build,'--parallel','8','--target',a.build_target])
+            jobs = str(overlap['compiler_jobs']) if overlap else '8'
+            run('compile',['cmake','--build',build,'--parallel',jobs,'--target',a.build_target])
             app.mkdir(parents=True)
             executable = build/('bin/'+a.build_target if a.build_target=='llama-server' else a.build_target)
             shutil.copy2(executable,app/executable.name)
