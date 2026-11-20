@@ -1,0 +1,155 @@
+#!/usr/bin/env python3
+"""Fail-closed single-GPU runner. Production limits are intentionally not configurable."""
+import argparse
+import datetime as dt
+import fcntl
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import signal
+import subprocess
+import sys
+import time
+
+ROOT = Path.home() / 'predemo-spark'
+GIB = 1024**3
+
+def utc():
+    return dt.datetime.now(dt.timezone.utc).isoformat()
+
+def write(path, value):
+    path.write_text(json.dumps(value, indent=2) + '\n')
+
+def available():
+    return int(next(x.split()[1] for x in Path('/proc/meminfo').read_text().splitlines() if x.startswith('MemAvailable:'))) * 1024
+
+def values(path):
+    return dict(line.split() for line in path.read_text().splitlines())
+
+def kill(unit):
+    subprocess.run(['systemctl', '--user', 'kill', '--signal=SIGKILL', '--kill-whom=all', unit], capture_output=True)
+
+# The scope member verifies actual kernel controls before executing any workload.
+if len(sys.argv) > 1 and sys.argv[1] == '--inside':
+    destination, expected, *command = sys.argv[2:]
+    cg = Path('/sys/fs/cgroup') / next(line.split('::', 1)[1] for line in Path('/proc/self/cgroup').read_text().splitlines() if line.startswith('0::')).lstrip('/')
+    (cg / 'memory.oom.group').write_text('1')
+    checks = {'memory.max': str(int(expected)), 'memory.swap.max': '0', 'memory.oom.group': '1', 'cpu.max': '800000 100000'}
+    actual = {name: (cg / name).read_text().strip() for name in checks}
+    if actual != checks:
+        sys.exit('REFUSED: kernel cgroup limits differ: ' + repr(actual))
+    os.sched_setaffinity(0, set(range(8)))
+    if os.sched_getaffinity(0) != set(range(8)):
+        sys.exit('REFUSED: eight-CPU affinity not enforced')
+    actual['sched_affinity'] = sorted(os.sched_getaffinity(0))
+    actual['cpuset_delegated'] = (cg / 'cpuset.cpus.effective').exists()
+    write(Path(destination) / 'scope.json', {'cgroup': str(cg), 'actual': actual, 'pid': os.getpid()})
+    # Keep the cgroup alive until the parent has observed it and begun monitoring.
+    deadline = time.monotonic() + 15
+    while not (Path(destination) / 'monitor.ready').exists():
+        if time.monotonic() > deadline:
+            sys.exit('REFUSED: watchdog handshake timed out')
+        time.sleep(.05)
+    os.execvp(command[0], command)
+
+p = argparse.ArgumentParser(description=__doc__)
+p.add_argument('--arm', required=True)
+p.add_argument('--result-dir', type=Path, required=True)
+p.add_argument('--enforcement-test', action='store_true', help='only runs the built-in 256 MiB allocator at a 128 MiB cap')
+p.add_argument('command', nargs=argparse.REMAINDER)
+a = p.parse_args()
+command = a.command[1:] if a.command[:1] == ['--'] else a.command
+limit = 128 * 1024**2 if a.enforcement_test else 100 * GIB
+if a.enforcement_test:
+    if command:
+        p.error('enforcement test cannot execute custom commands')
+    command = [sys.executable, '-c', 'import time; x=[]; [(x.append(bytearray(4*1024*1024)), time.sleep(.03)) for _ in range(64)]']
+if not command:
+    p.error('command required after --')
+a.result_dir = a.result_dir.resolve()
+a.result_dir.mkdir(parents=True, exist_ok=False)
+lock = (ROOT / 'gpu.lock').open('a')
+try:
+    fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    sys.exit('REFUSED: GPU lock already held')
+start_available = available()
+if start_available < 110 * GIB:
+    sys.exit(f'REFUSED: MemAvailable {start_available / GIB:.2f} GiB < 110 GiB')
+binary = Path(shutil.which(command[0]) or command[0]).resolve()
+unit = f'spark-capped-{os.getpid()}-{time.time_ns()}.scope'
+meta = {'arm': a.arm, 'command': command, 'binary': str(binary), 'binary_sha256': hashlib.file_digest(binary.open('rb'), 'sha256').hexdigest(), 'result_path': str(a.result_dir), 'start': utc(), 'start_mem_available': start_available, 'unit': unit, 'memory_max': limit, 'cpus': '0-7', 'enforcement_test': a.enforcement_test}
+write(a.result_dir / 'start.json', meta)
+ledger = ROOT / 'OPS/LEDGER.jsonl'
+def append(row):
+    with ledger.open('a') as out:
+        fcntl.flock(out, fcntl.LOCK_EX)
+        out.write(json.dumps(row) + '\n')
+append(dict(meta, event='start'))
+runner = ['systemd-run', '--user', '--scope', '--unit=' + unit, '-p', f'MemoryMax={limit}', '-p', 'MemorySwapMax=0', '-p', 'MemoryAccounting=yes', '-p', 'AllowedCPUs=0-7', '-p', 'CPUQuota=800%', sys.executable, str(Path(__file__).resolve()), '--inside', str(a.result_dir), str(limit), *command]
+stop = None
+def interrupted(sig, _frame):
+    global stop
+    stop = f'signal {sig}'
+    kill(unit)
+for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+    signal.signal(sig, interrupted)
+peak = 0
+peak_rss = 0
+events = {}
+cg = None
+with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr.log').open('wb') as stderr, (a.result_dir / 'memory.jsonl').open('a', buffering=1) as memory:
+    proc = subprocess.Popen(runner, stdout=stdout, stderr=stderr)
+    deadline = time.monotonic() + 20
+    while True:
+        try:
+            if cg is None and (a.result_dir / 'scope.json').exists():
+                cg = Path(json.loads((a.result_dir / 'scope.json').read_text())['cgroup'])
+            if cg is not None and cg.exists():
+                current = int((cg / 'memory.current').read_text())
+                peak = max(peak, int((cg / 'memory.peak').read_text()), current)
+                events = values(cg / 'memory.events')
+                rss = 0
+                for pid in (cg / 'cgroup.procs').read_text().split():
+                    try:
+                        rss += int(next(x.split()[1] for x in Path(f'/proc/{pid}/status').read_text().splitlines() if x.startswith('VmRSS:'))) * 1024
+                    except (FileNotFoundError, StopIteration, ProcessLookupError):
+                        pass
+                peak_rss = max(peak_rss, rss)
+                memory.write(json.dumps({'time': utc(), 'current': current, 'peak': peak, 'rss': rss, 'available': available(), 'events': events}) + '\n')
+                (a.result_dir / 'monitor.ready').touch()
+                if int(events.get('oom_kill', 0)) and not a.enforcement_test:
+                    stop = 'unexpected cgroup OOM kill'
+                    kill(unit)
+            if available() < 8 * GIB:
+                stop = 'watchdog: MemAvailable below 8 GiB'
+                kill(unit)
+            if cg is None and time.monotonic() > deadline:
+                stop = 'scope verification timeout'
+                kill(unit)
+            if proc.poll() is not None:
+                break
+        except FileNotFoundError:
+            if proc.poll() is not None:
+                break
+        time.sleep(.05)
+    rc = proc.wait()
+# The scope may vanish immediately on exit; memory.peak is sampled at 20 Hz.
+# systemd retains authoritative peak + OOM result on supported versions.
+properties = subprocess.run(['systemctl', '--user', 'show', unit, '-p', 'MemoryPeak', '-p', 'Result'], capture_output=True, text=True).stdout
+(a.result_dir / 'systemd-final.txt').write_text(properties)
+if 'Result=oom-kill' in properties and not a.enforcement_test:
+    stop = 'unexpected cgroup OOM kill'
+result = dict(meta, event='stop', stop=utc(), returncode=rc, reason=stop, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None)
+if a.enforcement_test:
+    result['test_passed'] = cg is not None and rc != 0 and (int(events.get('oom_kill', 0)) > 0 or 'oom-kill' in properties)
+write(a.result_dir / 'result.json', result)
+append(result)
+print(json.dumps(result, indent=2))
+if stop and not a.enforcement_test:
+    for name in ('STATUS.md', 'BLOCKERS.md'):
+        with (ROOT / 'OPS' / name).open('a') as out:
+            out.write(f'{utc()} STOP: {stop}; {a.result_dir}; await orchestrator review.\n')
+sys.exit((0 if result['test_passed'] else 1) if a.enforcement_test else (rc if rc else (1 if stop else 0)))
