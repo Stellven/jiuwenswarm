@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -124,6 +125,12 @@ def run_window(args):
     out.mkdir(exist_ok=False)
     status = out / 'window.json'
     (out / 'quiet-prelaunch.json').write_bytes(quiet_bytes)
+    if os.getenv('SPARK_EXPERT_SAMPLE_DETAIL') == '1':
+        # Capture file-backed expert state after load and before the first prompt changes it.
+        postload = snapshot(regions, args.view, args.pages_per_sample, args.seed, scope / 'scope.json')
+        postload['regions_sha256'] = record['regions_sha256']
+        json_write(out / 'load-ready-residency.json', postload)
+        record['load_ready_residency'] = 'load-ready-residency.json'
     json_write(status, record)
     plan = [(f'warmup-{round_number}-{size}', 0, size) for round_number in (1, 2, 3)
             for size in (PROMPTS[::-1] if round_number == 3 else PROMPTS)]
