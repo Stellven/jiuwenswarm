@@ -11,6 +11,8 @@ FIELDS = ('requested', 'already_resident', 'issued', 'issued_bytes', 'useful_rea
 OPTIONAL = ('opportunities', 'completed_transfers', 'completed_bytes', 'wasted_bytes', 'denied', 'duplicate', 'unknown', 'reused')
 PHASES = ('prefill', 'decode')
 OOM = ('oom', 'oom_kill', 'oom_group_kill')
+CAP = {'memory.max': str(100 * 1024**3), 'memory.swap.max': '0', 'memory.oom.group': '1',
+       'cpu.max': '800000 100000', 'sched_affinity': list(range(8))}
 
 
 def digest(raw):
@@ -87,8 +89,7 @@ def summarize(packet):
                 stop['returncode'] or stop['reason'] or stop['scope_verified'] is not True or
                 stop['min_mem_available_bytes'] < 8 * 1024**3 or
                 any(int(stop['memory_events'].get(k, 0)) for k in OOM) or
-                kernel['actual']['memory.max'] != str(100 * 1024**3) or kernel['actual']['memory.swap.max'] != '0' or
-                kernel['actual']['sched_affinity'] != list(range(8)) or
+                any(kernel['actual'].get(k) != value for k, value in CAP.items()) or
                 any(start[k] != stop[k] for k in ('command', 'binary_sha256', 'unit', 'launch_environment'))):
             raise ValueError('Native predictor scope admission, clean shutdown or log digest failed')
         gates = {k: v for k, v in start['launch_environment'].items() if k.startswith('LLAMA_')}
