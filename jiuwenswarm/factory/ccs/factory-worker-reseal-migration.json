@@ -1,0 +1,107 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "builder/cc.yaml",
+      "from_version": "1.1.1",
+      "from_release": "a6328b7ae7f6eab16d7f13889fde4bf5f6752439e8f555cb571c26f636bc5a1e",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "1.1.2",
+      "to_release": "a7a6149105d2cd3e5fab66fc91b8eac95b32d6aafb1e0110483a4c081ceaf81c",
+      "changed_files": [
+        "JOB.md",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Versioned content changes (cc.yaml version bumped with each change) were committed without a recorded release; this records the current content as the next release."
+    },
+    {
+      "path": "engine_factory_loop/cc.yaml",
+      "from_version": "1.2.1",
+      "from_release": "d5213b2bbf5f95935dd8782f5cbb3e11cfe77fcee364ea55dda58a4476cd3456",
+      "from_commit": "90d81e829dee08b06ae9f978c6247465d460d456",
+      "to_version": "1.3.0",
+      "to_release": "c1dd194d442eb4f6e24e06c987c3f17a9080e732d4c39972e3b92d6b62d84495",
+      "changed_files": [
+        "METHOD.md",
+        "SKILL.md",
+        "cc.yaml",
+        "roles.json"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Versioned content changes (cc.yaml version bumped with each change) were committed without a recorded release; this records the current content as the next release."
+    },
+    {
+      "path": "lab_client/cc.yaml",
+      "from_version": "1.1.1",
+      "from_release": "5b10a3650cea4e37f5d3f6767426637c7963e165dcef83e85ce918a65b19e29d",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "1.2.4",
+      "to_release": "4a2a5fbea39883c6909130e63d324de1971be250e2244da1b5eb10cddeb16199",
+      "changed_files": [
+        "LLAMA-SPARK.md",
+        "cc.yaml",
+        "roles.json"
+      ],
+      "unrecorded_versions": [
+        {
+          "commit": "e3e014fc389108eeb495eb9374fd9f3e0efa039a",
+          "version": "1.2.3",
+          "release": "584c43eee60c16a6d54dc0381fc406e1fc9d6d600ae17af87551cc09749d7e11"
+        },
+        {
+          "commit": "c3a4e7d1c62053da56f73020c8ec431e81ab0539",
+          "version": "1.2.2",
+          "release": "8b05f19c5f88f21c7b8c2f418380f14962d858810c8472e377fd460813f732d0"
+        },
+        {
+          "commit": "10b221191c178398f4380cc4a36df7ea41e32c10",
+          "version": "1.2.1",
+          "release": "73681a720188e9e5bb0b9f5ae442e09336b6aa2b32e2126484256cbd1c062a19"
+        },
+        {
+          "commit": "ee125d38f1236d065d6c591ff1c84f0659e2de6e",
+          "version": "1.2.0",
+          "release": "f7b01ff85842bef7a0d4a84c39dab815a3d9b65f74bbf52f4d85968b9600cb4d"
+        },
+        {
+          "commit": "4b1cf1fc8ddededcc2a18791f5045517639da44d",
+          "version": "1.1.2",
+          "release": "e371c8c8ad15192f7a14867abd63efd256c3f1153d0a2ad3b47634344db945e6"
+        }
+      ],
+      "reason": "Versioned content changes (cc.yaml version bumped with each change) were committed without a recorded release; this records the current content as the next release."
+    },
+    {
+      "path": "methodology_followup/cc.yaml",
+      "from_version": "1.0.1",
+      "from_release": "03f7788de60ee33ac521a5e72fef511ca27e97fbf46b53970ce58c012e94fc07",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "1.1.3",
+      "to_release": "992d1605016bc386c67cee93046f3f975d1b361c2c1f51bc2f26335437bc31ec",
+      "changed_files": [
+        "METHOD.md",
+        "cc.yaml",
+        "roles.json"
+      ],
+      "unrecorded_versions": [
+        {
+          "commit": "10fb2008d3a6adfe420d5d697b7e8bf1d647557e",
+          "version": "1.1.2",
+          "release": "fe6844a029b0cfedb5e00568a3af078051864d98dc304b5a8fd861b284682df1"
+        },
+        {
+          "commit": "ee125d38f1236d065d6c591ff1c84f0659e2de6e",
+          "version": "1.1.1",
+          "release": "6d3183352ad7597204d0e94b2884eb748c5d8ce5ac32a032030a02f60adf361d"
+        },
+        {
+          "commit": "80ecf5b4563bff3476f8628f38facefcddd857c4",
+          "version": "1.1.0",
+          "release": "9e4774b73e2613e0532e1ccde435f35d62a27860484f7908af999610b981ec67"
+        }
+      ],
+      "reason": "Versioned content changes (cc.yaml version bumped with each change) were committed without a recorded release; this records the current content as the next release."
+    }
+  ]
+}
