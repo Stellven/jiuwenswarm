@@ -1,0 +1,20 @@
+{
+  "objective": "Read-only launch rehearsal and capsule inspection. Read the star-deepseek-v1 raw/readable task contract and all five starred builder capsules through factory.evidence.query/read and cc_describe/cc_material: observability_event_recorder, weight_placement_planner, expert_weight_cache, expert_demand_predictor, batch_layout_mapper. Operator-prepared inspection_inputs artifacts contain their guides, methods, acceptance criteria, descriptors and ontology slices. Publish an observation with each capsule's methodology, intended code change, verifier/gate obligations and evidence artifact IDs you actually read. State the task contract, system ontology and the distinction between builder methodology and generated product. Then publish a terminal report_inconclusive decision explicitly labelled capsule inspection only, no implementation/build/parity/performance run. Never invoke builder, integration, source-workbench write, lab, benchmark, model, inference, GPU, shell build or source modification. Never copy or read auth files. No local commits, remote, push, network publication or model loads. The lead engineer handles all capped model work separately. Use at most three decision turns; do not wait or poll.",
+  "constraints": {
+    "inspection_only": true,
+    "external_model_execution_only": true,
+    "model_execution": "Forbidden: no model, inference or GPU processes. Capsule/contract evidence inspection only.",
+    "build_execution": "Forbidden",
+    "source_modification": "Forbidden",
+    "contract_immutable": true,
+    "push_or_publish": false
+  },
+  "allowed_effects": ["process.exec", "workspace.read"],
+  "target": "spark-gb10",
+  "budget": {"max_turns": 3, "wall_clock_s": 600},
+  "contract_id": "star-deepseek-v1",
+  "initial_run_config": {"env": {}},
+  "component_cc": "observability.build_runtime_event_recorder",
+  "source": {"subpath": "inspection-only-no-checkout", "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613"},
+  "operator_labels": {"inspection_only": true, "display_name": "All-five capsule inspection (CPU, no implementation or performance)"}
+}

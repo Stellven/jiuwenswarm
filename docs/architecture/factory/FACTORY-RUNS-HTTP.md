@@ -41,3 +41,16 @@ Launching does not provision credentials. The operator must prepare authenticati
 and review template resource/GPU policy before enabling launch. HTTP reads never
 launch jobs. Browser POST requests require same-origin Host/Origin. The gateway
 must remain on localhost behind the demo frontend proxy.
+
+The Spark demo's `star-capsule-inspection` launch template has a fixed preparation
+helper: copies the existing operator login into the new isolated home using the
+reviewed `copy_auth_for_home` helper, then attaches contract/capsule/ontology
+materials as native artifacts. It requires exactly the reviewed read grants and
+an explicit inspection-only label. It does not provision source checkouts or
+launch any builds/models. Other template IDs do not invoke this helper.
+
+`FACTORY_LAUNCH_SYSTEMD=1` (set by the Spark demo service) places detached runs in
+separate user systemd scopes, so gateway restarts do not kill their sessions.
+The generic backend default remains a detached local subprocess. Content-addressed
+artifact files include a human `display_path` from native artifact identities;
+HTTP reads still use the confined original `path`, never a display label.

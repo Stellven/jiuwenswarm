@@ -309,9 +309,20 @@ class FactoryHttpService:
         if init.returncode:
             (home / 'launch.log').write_bytes(scrub_bytes(init.stdout + init.stderr))
             raise HTTPException(422, 'Task initialization failed; preserved launch.log in the new home')
+        if template_id == 'star-capsule-inspection':
+            # One operator-reviewed CPU inspection template; never arbitrary
+            # provisioning, source paths or credential files from HTTP input.
+            from scripts.spark.prepare_inspection_home import prepare_inspection_home
+            try:
+                prepared = prepare_inspection_home(home, task)
+                (home / 'preparation.json').write_text(json.dumps(prepared) + '\n')
+            except (OSError, ValueError):
+                raise HTTPException(422, 'Inspection preparation failed; operator login/template review required') from None
         command = [*cli, 'run', tid, '--plain']
         for effect in task.get('allowed_effects', []):
             command.extend(('--grant', effect))
+        if os.environ.get('FACTORY_LAUNCH_SYSTEMD') == '1':
+            command = ['systemd-run', '--user', '--scope', '--unit=factory-' + tid, *command]
         with (home / 'launch.log').open('ab') as log:
             process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log, stderr=log,
                                        start_new_session=True, close_fds=True)
