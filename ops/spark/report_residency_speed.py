@@ -168,17 +168,7 @@ def report_text(result, release, residency_ref=None):
         summary, opening = screening_finding(result)
         heading = '# C3 60-GiB interim screening'
     else:
-        matched = next((row for row in result['comparisons'] if 'same-budget stock bank' in row['relation']), None)
-        if matched:
-            pair = matched['steady'][0]
-            delta = pair['ttft_saved_s']['median']
-            delta_text = f"{abs(delta):.2f} seconds {'faster' if delta >= 0 else 'slower'}"
-            scope = next(r for r in result['scopes'] if r['arm'] == matched['candidate'])
-            context = 'In exploratory screening across' if result.get('exploratory_cpu_overlap') else 'Across'
-            summary = (f"{context} five post-warmup pairs at {scope['budget_mib']//1024} GiB, "
-                       f"the seeded cache reached the first token a median {delta_text} for the 512-token prompt.")
-        else:
-            summary = 'The cache profile did not produce an active same-budget timing comparison.'
+        summary, opening = full_findings(result)
         heading = '# C3 native cache cold and post-warmup lab'
     lines = [heading, '', *(opening or [summary]), '', *format_cpu_exposure(result),
              *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
@@ -211,6 +201,49 @@ def report_text(result, release, residency_ref=None):
 
 def interval(row):
     return f"{row['median']:.3f} [{row['min']:.3f}, {row['max']:.3f}]"
+
+
+def full_findings(result):
+    by_arm = {r['arm']: r for r in result['scopes']}
+    screening = 'exploratory screening' if result.get('exploratory_cpu_overlap') else 'this screening'
+    benchmark = next(r for r in result['comparisons'] if 'A+ stock bank versus fair Strata' in r['relation'])
+    a_plus, strata = (by_arm[benchmark[key]] for key in ('candidate', 'control'))
+    absolute = [tuple(r['steady_trend'][size] for r in (a_plus, strata)) for size in ('512', '2048')]
+    favored = all(a['ttft_s']['median'] < s['ttft_s']['median'] and a['decode_tps']['median'] > s['decode_tps']['median']
+                  for a, s in absolute)
+    summary = (f'In {screening}, the 30-GiB stock A+ bank reached the first token sooner and decoded faster than fair Strata '
+               'at both prompt sizes based on the five-request medians.') if favored else (
+               f'In {screening}, the 30-GiB stock A+ bank and fair Strata showed different first-token and decode results across the two prompts.')
+    lines = [summary, '',
+             '| Prompt | A+ 30 TTFT s | S TTFT s | A+ 30 decode tok/s | S decode tok/s | Paired A+ minus S TTFT s | Paired A+ minus S decode tok/s |',
+             '|---|---:|---:|---:|---:|---:|---:|']
+    for (a, s), pair in zip(absolute, benchmark['steady']):
+        lines.append(f"| {pair['prompt_tokens']} | {interval(a['ttft_s'])} | {interval(s['ttft_s'])} | "
+                     f"{interval(a['decode_tps'])} | {interval(s['decode_tps'])} | "
+                     f"{interval(pair['ttft_delta_s'])} | {interval(pair['decode_gain_tps'])} |")
+    a_decode, s_decode = (r['decode_tps'] for r in absolute[1])
+    decode_gap = abs(a_decode['median'] - s_decode['median'])
+    overlap = max(a_decode['min'], s_decode['min']) <= min(a_decode['max'], s_decode['max'])
+    lines += ['', 'The absolute and paired columns are medians and observed ranges. '
+              f"The 2048-token decode medians were {decode_gap:.3f} tok/s apart"
+              f"{', with overlapping observed ranges' if overlap else ''}. "
+              'These two prompt lengths, generated outputs and launch settings define the scope of the comparison. '
+              'The best documented settings across workloads remain unmeasured.', '',
+              '## C3 contribution against the same-budget A+ bank', '',
+              '| Budget | Tokens | C3 minus A+ TTFT s | C3 minus A+ decode tok/s | Paired TTFT deltas by position | Paired decode deltas by position |',
+              '|---|---:|---:|---:|---|---|']
+    for matched in result['comparisons']:
+        if 'same-budget stock bank' not in matched['relation']:
+            continue
+        scope = by_arm[matched['candidate']]
+        for pair in matched['steady']:
+            ttft = ', '.join(f'{p["position"]}: {p["ttft_delta_s"]:+.3f}' for p in pair['pairs'])
+            decode = ', '.join(f'{p["position"]}: {p["decode_gain_tps"]:+.3f}' for p in pair['pairs'])
+            lines.append(f"| {scope['budget_mib']//1024} GiB | {pair['prompt_tokens']} | {interval(pair['ttft_delta_s'])} | "
+                         f"{interval(pair['decode_gain_tps'])} | {ttft} | {decode} |")
+    lines += ['', 'Use these same-allocated-bank rows to assess the profile contribution. A-matched and S comparisons give engine and configuration context. '
+              'A quiet mirrored ABBA protocol with ten measured repeats per prompt is planned without a co-running planner or build.', '']
+    return summary, lines
 
 
 def phase_counter_span(values):

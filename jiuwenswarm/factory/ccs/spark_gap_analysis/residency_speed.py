@@ -231,6 +231,7 @@ def paired_results(candidate, control):
                   a['prompt_tokens'] != b['prompt_tokens'], 'Comparisons require matching positions and prompt size')
         row = dict(position=a['position'], pair=a['pair'], prompt_tokens=a['prompt_tokens'],
                    greedy_parity=a['greedy_hashes'] == b['greedy_hashes'],
+                   ttft_delta_s=a['ttft_s'] - b['ttft_s'],
                    ttft_saved_s=b['ttft_s'] - a['ttft_s'], ttft_saved_pct=100 * (1 - a['ttft_s']/b['ttft_s']),
                    decode_gain_tps=a['decode_tps'] - b['decode_tps'], decode_gain_pct=100 * (a['decode_tps']/b['decode_tps'] - 1))
         row['observed_cpu_lane_overlap'] = bool(a.get('authorized_cpu_lane') or b.get('authorized_cpu_lane'))
@@ -251,7 +252,7 @@ def paired_results(candidate, control):
             prompt_tokens=size, n=len(pairs), greedy_parity=all(r['greedy_parity'] for r in pairs),
             observed_cpu_overlap_positions=[r['position'] for r in pairs if r['observed_cpu_lane_overlap']],
             pairs=pairs, **{metric: span([r[metric] for r in pairs]) for metric in (
-                'ttft_saved_s', 'ttft_saved_pct', 'decode_gain_tps', 'decode_gain_pct')},
+                'ttft_delta_s', 'ttft_saved_s', 'ttft_saved_pct', 'decode_gain_tps', 'decode_gain_pct')},
         ))
     return dict(cold_pairs=cold, steady=estimates)
 
@@ -358,6 +359,7 @@ def analyze_steady(evidence, eligible, reference, positive):
         )
     else:
         pairs = (
+            ((30720, 'equivalent-stock'), strata, '30-GiB A+ stock bank versus fair Strata engine and pack'),
             (on30, (30720, 'equivalent-stock'), '30-GiB profile versus the same-budget stock bank'),
             (on60, (61440, 'equivalent-stock'), '60-GiB profile versus the same-budget stock bank'),
             (on30, stock, '30-GiB profile and bank versus stock without a native bank'),
