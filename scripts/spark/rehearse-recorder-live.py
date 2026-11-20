@@ -41,6 +41,7 @@ async def run():
         status = page.get_by_test_id('factory-runs-session-status')
         await expect(status).to_have_attribute('data-variant', 'running', timeout=30_000)
         await expect(page.get_by_test_id('factory-runs-live')).to_be_checked()
+        await page.get_by_test_id('factory-runs-overview-activity').locator('summary').click()
         detected = []
         for checkpoint in CHECKPOINTS:
             await page.locator(f'[data-testid="factory-runs-event"][data-variant="{checkpoint}"]').wait_for(timeout=75_000)
