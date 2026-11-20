@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  factoryApi,
-  type EvidenceFile,
-  type FileContent,
-  type JsonRecord,
-  type RunDetail,
-  type RunList,
-  type StoryEvent,
-} from './api';
-import { MarkdownRenderer } from '../../components/MarkdownRenderer';
+import { factoryApi, type FileContent, type RunDetail, type RunList, type StoryEvent } from './api';
 import { Measurements } from './Measurements';
+import { DataViewer } from './views/DataViewer';
+import { evidenceKind } from './views/dataModel';
+import { EvidenceFileBrowser } from './views/EvidenceFiles';
+import { detectGraph } from './views/graphModel';
+import { TerminalViewer } from './views/TerminalViewer';
+import { useViewerLabels } from './views/viewerLabels';
 import './factoryRuns.css';
 
 const panels = [
@@ -19,6 +16,7 @@ const panels = [
   'ontology',
   'graph',
   'capsules',
+  'artifacts',
   'diffs',
   'tests',
   'measurements',
@@ -28,59 +26,21 @@ const panels = [
 type Panel = (typeof panels)[number];
 const patterns: Partial<Record<Panel, RegExp>> = {
   contract: /contract|task.*\.json/i,
-  ontology: /ontology|dictionary|alignment|example\.md/i,
+  ontology: /ontology|dictionary|alignment|example\.md|\.(mmd|mermaid)$/i,
   capsules: /cc\.yaml|capsule|verif|digest|sha256/i,
-  diffs: /\.diff$|\.patch$|scor/i,
+  diffs: /(?:diff|patch|scor)/i,
   tests: /test|scor|verif|parity/i,
   measurements: /bench|measur|result|ledger|metrics/i,
-  terminal: /session|\.log$|stdout|stderr|terminal/i,
+  terminal: /terminal/i,
   report: /report|summary.*\.md/i,
 };
-function JsonView({ value }: { value: unknown }) {
-  return (
-    <pre className="factory-json" data-testid="factory-runs-json">
-      {JSON.stringify(value, null, 2)}
-    </pre>
-  );
-}
-function Digest({ file }: { file: EvidenceFile }) {
-  const { t } = useTranslation();
-  return (
-    <span
-      className="factory-digest"
-      data-integrity={file.integrity}
-      data-testid="factory-runs-digest"
-      title={`${file.sha256}\n${file.expected_sha256 || ''}`}
-    >
-      {t(`factoryRuns.${file.integrity}`)} · {file.sha256?.slice(0, 12)}
-    </span>
-  );
-}
-function Graph({ value }: { value: JsonRecord }) {
-  const nodes = Array.isArray(value.nodes) ? (value.nodes as JsonRecord[]) : [];
-  return (
-    <div className="factory-graph" data-testid="factory-runs-graph">
-      {nodes.map((node, index) => (
-        <article
-          key={String(node.node_id || index)}
-          data-testid="factory-runs-graph-node"
-          data-variant={String(node.node_id || index)}
-        >
-          <strong>{String(node.title || node.label || node.node_id)}</strong>
-          <small>{String(node.status || node.kind || '')}</small>
-          <JsonView value={node} />
-        </article>
-      ))}
-      {nodes.length === 0 && <JsonView value={value} />}
-    </div>
-  );
-}
-
 export function FactoryRunsPage() {
   const { t } = useTranslation();
+  const { label } = useViewerLabels();
   const [listing, setListing] = useState<RunList>({ runs: [], launch_templates: [], launch_enabled: false });
   const [selected, setSelected] = useState('');
-  const [detail, setDetail] = useState<RunDetail | null>(null);
+  const [loadedDetail, setDetail] = useState<RunDetail | null>(null);
+  const detail = loadedDetail?.run.id === selected ? loadedDetail : null;
   const [panel, setPanel] = useState<Panel>('overview');
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const [position, setPosition] = useState(0);
@@ -91,6 +51,7 @@ export function FactoryRunsPage() {
   const [template, setTemplate] = useState('');
   const [file, setFile] = useState<FileContent | null>(null);
   const [filePath, setFilePath] = useState('');
+  const [fileError, setFileError] = useState('');
   const [launching, setLaunching] = useState(false);
   const refresh = useCallback(async () => {
     try {
@@ -167,33 +128,65 @@ export function FactoryRunsPage() {
     const timer = window.setTimeout(() => setPosition((old) => old + 1), 700);
     return () => window.clearTimeout(timer);
   }, [playing, position, events.length]);
+  const matchingFiles = useMemo(() => {
+    const files = detail?.files ?? [];
+    return files.filter((item) => {
+      if (panel === 'artifacts') return true;
+      const kind = evidenceKind(item.path, item.display_path);
+      if ((panel === 'diffs' && kind === 'diff') || (panel === 'terminal' && kind === 'log')) return true;
+      return [item.path, item.display_path || ''].some((name) => patterns[panel]?.test(name));
+    });
+  }, [detail, panel]);
+  const defaultFile =
+    matchingFiles.find((item) => {
+      const name = item.display_path || item.path;
+      if (item.integrity === 'missing') return false;
+      if (panel === 'contract') {
+        return [item.path, ...(item.display_path?.split(' · ') ?? [])].some(
+          (path) =>
+            /^contracts\/(?:[^/]+\.json|[a-f0-9]{64})$/i.test(path) ||
+            (/(?:^|[/:])[^/]*contract[^/]*\.json$/i.test(path) && path !== 'contract-origins.json'),
+        );
+      }
+      if (panel === 'ontology') return /\.(?:mmd|mermaid)$/i.test(name);
+      if (panel === 'diffs') return evidenceKind(item.path, item.display_path) === 'diff';
+      if (panel === 'report') return /(?:^|[/:-])report\.(md|json)$/i.test(name);
+      return false;
+    }) ??
+    (['ontology', 'report', 'diffs'].includes(panel)
+      ? matchingFiles.find((item) => item.integrity !== 'missing')
+      : undefined);
+  const selectedFile = filePath ? detail?.files.find((item) => item.path === filePath) : defaultFile;
+  const previewPath = selectedFile?.integrity !== 'missing' ? selectedFile?.path : undefined;
+  const previewDigest = selectedFile?.sha256;
+
   useEffect(() => {
     setFile(null);
-    if (!selected || !filePath) return;
+    setFileError('');
+    if (!selected || !previewPath) return;
     let active = true;
     factoryApi
-      .file(selected, filePath)
+      .file(selected, previewPath)
       .then((result) => {
         if (active) setFile(result);
       })
       .catch((err) => {
-        if (active) setError(String(err));
+        if (active) setFileError(String(err));
       });
     return () => {
       active = false;
     };
-  }, [selected, filePath]);
-  const matchingFiles = useMemo(
-    () => detail?.files.filter((item) => patterns[panel]?.test(item.display_path || item.path)) || [],
-    [detail, panel],
-  );
+  }, [selected, previewPath, previewDigest]);
   const visibleEvents = events.slice(0, position);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const records = detail?.records || {};
+  const graph = useMemo(
+    () => (detail ? detectGraph(detail.graph, { contract: detail.contract, tasks: detail.records.tasks }) : null),
+    [detail],
+  );
   const selectPanel = (value: Panel) => {
     setPanel(value);
     setFilePath('');
-    setFile(null);
   };
   async function launch() {
     setLaunching(true);
@@ -343,7 +336,7 @@ export function FactoryRunsPage() {
                   aria-pressed={panel === value}
                   onClick={() => selectPanel(value)}
                 >
-                  {t(`factoryRuns.${value}`)}
+                  {value === 'artifacts' ? label('artifacts') : t(`factoryRuns.${value}`)}
                 </button>
               ))}
             </nav>
@@ -377,25 +370,50 @@ export function FactoryRunsPage() {
                   </ol>
                 </>
               )}
-              {panel === 'graph' && <Graph value={detail.graph} />}
-              {panel === 'contract' && (
-                <>
-                  <h3 data-testid="factory-runs-contract-title">{t('factoryRuns.contract')}</h3>
-                  <dl className="factory-contract-summary" data-testid="factory-runs-contract-summary">
-                    {Object.entries(detail.contract)
-                      .filter(([, value]) => ['string', 'number', 'boolean'].includes(typeof value))
-                      .map(([key, value]) => (
-                        <div key={key}>
-                          <dt>{key.replaceAll('_', ' ')}</dt>
-                          <dd>{String(value)}</dd>
-                        </div>
-                      ))}
-                  </dl>
-                  <JsonView value={detail.contract} />
-                </>
+              {panel === 'graph' && (
+                <DataViewer
+                  key={selected}
+                  name={t('factoryRuns.graph')}
+                  value={detail.graph}
+                  graph={graph}
+                  replay={{ events, position }}
+                  initialMode="graph"
+                />
               )}
-              {panel === 'capsules' && <JsonView value={detail.stack} />}
-              {panel === 'tests' && <JsonView value={records.evaluations || []} />}
+              {panel === 'contract' && !selectedFile && (
+                <DataViewer
+                  key={selected}
+                  name={t('factoryRuns.contract')}
+                  value={detail.contract}
+                  initialMode="readable"
+                />
+              )}
+              {panel === 'capsules' && (
+                <DataViewer key={selected} name={t('factoryRuns.capsules')} value={detail.stack} />
+              )}
+              {panel === 'tests' && (
+                <DataViewer
+                  key={selected}
+                  name={t('factoryRuns.tests')}
+                  value={records.evaluations || []}
+                  initialMode="table"
+                />
+              )}
+              {panel === 'terminal' && (
+                <TerminalViewer
+                  key={selected}
+                  events={visibleEvents}
+                  activeCursor={cursor?.cursor}
+                  onSeek={
+                    live
+                      ? undefined
+                      : (next) => {
+                          setPlaying(false);
+                          setPosition(next);
+                        }
+                  }
+                />
+              )}
               {panel === 'measurements' && (
                 <Measurements
                   observations={records.observations || []}
@@ -406,39 +424,15 @@ export function FactoryRunsPage() {
                 />
               )}
               {panel !== 'overview' && panel !== 'graph' && (
-                <div className="factory-file-grid">
-                  <div className="factory-files" data-testid="factory-runs-files">
-                    {matchingFiles.map((item) => (
-                      <button
-                        key={item.path}
-                        data-testid="factory-runs-file"
-                        data-variant={item.path}
-                        aria-pressed={filePath === item.path}
-                        onClick={() => setFilePath(item.path)}
-                      >
-                        <span>{item.display_path || item.path}</span>
-                        <Digest file={item} />
-                      </button>
-                    ))}
-                    {!matchingFiles.length && (
-                      <p data-testid="factory-runs-no-evidence">{t('factoryRuns.noEvidence')}</p>
-                    )}
-                  </div>
-                  <div className="factory-file-content" data-testid="factory-runs-file-content">
-                    {file && (
-                      <>
-                        <h3>{file.display_path || file.path}</h3>
-                        <Digest file={file} />
-                        {file.truncated && <p data-testid="factory-runs-truncated">{t('factoryRuns.truncated')}</p>}
-                        {/\.md(?:$| ·)/i.test(file.display_path || file.path) && panel !== 'diffs' ? (
-                          <MarkdownRenderer content={file.content} testId="factory-runs-markdown" />
-                        ) : (
-                          <pre>{file.content}</pre>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </div>
+                <EvidenceFileBrowser
+                  key={`${selected}:${panel}`}
+                  files={matchingFiles}
+                  runFiles={detail.files}
+                  selectedFile={selectedFile}
+                  content={file}
+                  error={fileError}
+                  onSelect={setFilePath}
+                />
               )}
             </section>
           </>

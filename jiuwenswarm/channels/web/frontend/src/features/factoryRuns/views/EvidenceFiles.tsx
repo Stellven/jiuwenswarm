@@ -1,19 +1,21 @@
-import { useDeferredValue, useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeSlug from 'rehype-slug';
 import type { EvidenceFile, FileContent } from '../api';
 import { DataViewer } from './DataViewer';
 import { DiffViewer } from './DiffViewer';
 import { DigestBadge, EvidenceMetadata } from './EvidenceMetadata';
 import { RawDocument } from './RawDocument';
 import { TerminalViewer } from './TerminalViewer';
-import { documentFormat, evidenceKind } from './dataModel';
+import { documentFormat, evidenceKind, resolveEvidenceLink } from './dataModel';
 import { useViewerLabels } from './viewerLabels';
 
 type FileBrowserProps = {
   files: EvidenceFile[];
   selectedFile?: EvidenceFile;
+  runFiles?: EvidenceFile[];
   content: FileContent | null;
   error?: string;
   onSelect: (path: string) => void;
@@ -21,7 +23,14 @@ type FileBrowserProps = {
 
 const FILE_PAGE_SIZE = 100;
 
-export function EvidenceFileBrowser({ files, selectedFile, content, error, onSelect }: FileBrowserProps) {
+export function EvidenceFileBrowser({
+  files,
+  runFiles = files,
+  selectedFile,
+  content,
+  error,
+  onSelect,
+}: FileBrowserProps) {
   const { label } = useViewerLabels();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
@@ -91,7 +100,14 @@ export function EvidenceFileBrowser({ files, selectedFile, content, error, onSel
       </div>
       <div className="factory-file-content" data-testid="factory-runs-file-content">
         {selectedFile ? (
-          <EvidenceFilePreview key={selectedFile.path} file={selectedFile} content={content} error={error} />
+          <EvidenceFilePreview
+            key={selectedFile.path}
+            file={selectedFile}
+            content={content}
+            error={error}
+            resolveLink={(href) => resolveEvidenceLink(runFiles, selectedFile, href)}
+            onOpenFile={onSelect}
+          />
         ) : files.length > 0 ? (
           <p className="evidence-file-preview-status" data-testid="factory-runs-file-prompt">
             {label('chooseFile')}
@@ -102,9 +118,13 @@ export function EvidenceFileBrowser({ files, selectedFile, content, error, onSel
   );
 }
 
-function ReportDocument({ file, name }: { file: FileContent; name: string }) {
+type ReportLinks = { resolveLink?: (href: string) => string | undefined; onOpenFile?: (path: string) => void };
+const REPORT_HEADING_PREFIX = 'evidence-heading-';
+
+function ReportDocument({ file, name, resolveLink, onOpenFile }: { file: FileContent; name: string } & ReportLinks) {
   const { label } = useViewerLabels();
   const [raw, setRaw] = useState(false);
+  const article = useRef<HTMLElement>(null);
   return (
     <section className="evidence-inspector" data-testid="factory-runs-report-document">
       <header className="evidence-toolbar">
@@ -131,16 +151,44 @@ function ReportDocument({ file, name }: { file: FileContent; name: string }) {
       {raw ? (
         <RawDocument name={name} format="text" source={file.content} />
       ) : (
-        <article className="evidence-report" data-testid="factory-runs-markdown">
+        <article ref={article} className="evidence-report" data-testid="factory-runs-markdown">
           <ReactMarkdown
             skipHtml
             remarkPlugins={[remarkGfm]}
+            rehypePlugins={[[rehypeSlug, { prefix: REPORT_HEADING_PREFIX }]]}
             components={{
-              a: ({ href, children }) => (
-                <a href={href} target="_blank" rel="noopener noreferrer">
-                  {children}
-                </a>
-              ),
+              a: ({ href, children }) => {
+                if (!href) return <span>{children}</span>;
+                if (/^(https?:|mailto:)/i.test(href)) {
+                  return (
+                    <a href={href} target="_blank" rel="noopener noreferrer">
+                      {children}
+                    </a>
+                  );
+                }
+                const path = resolveLink?.(href);
+                const isAnchor = href.startsWith('#');
+                if ((path && onOpenFile) || isAnchor) {
+                  return (
+                    <button
+                      type="button"
+                      className="evidence-report-link"
+                      data-testid="factory-runs-report-link"
+                      data-variant={href}
+                      onClick={() => {
+                        if (path) onOpenFile?.(path);
+                        else
+                          article.current
+                            ?.querySelector('#' + CSS.escape(REPORT_HEADING_PREFIX + href.slice(1)))
+                            ?.scrollIntoView();
+                      }}
+                    >
+                      {children}
+                    </button>
+                  );
+                }
+                return <span>{children}</span>;
+              },
               img: ({ alt }) => <span>{alt}</span>,
               table: ({ children }) => (
                 <div className="evidence-table-scroll">
@@ -157,25 +205,22 @@ function ReportDocument({ file, name }: { file: FileContent; name: string }) {
   );
 }
 
-function fileName(file: EvidenceFile, source: string) {
+function fileName(file: EvidenceFile) {
   const names = [file.path, ...(file.display_path?.split(' · ') ?? [])];
-  return (
-    names.find((name) => documentFormat(name, '') !== 'text') ||
-    names.find((name) => documentFormat(name, source) === 'json') ||
-    file.display_path ||
-    file.path
-  );
+  return names.find((name) => documentFormat(name, '') !== 'text') || file.display_path || file.path;
 }
 
 export function EvidenceFilePreview({
   file,
   content,
   error,
+  resolveLink,
+  onOpenFile,
 }: {
   file: EvidenceFile;
   content: FileContent | null;
   error?: string;
-}) {
+} & ReportLinks) {
   const { label } = useViewerLabels();
   const { t } = useTranslation();
   const title = file.display_path || file.path;
@@ -217,9 +262,9 @@ export function EvidenceFilePreview({
             <p>{label('binaryFile')}</p>
           </div>
         ) : kind === 'data' ? (
-          <DataViewer name={fileName(current, current.content)} file={current} source={current.content} />
+          <DataViewer name={fileName(current)} file={current} source={current.content} />
         ) : kind === 'markdown' ? (
-          <ReportDocument name={title} file={current} />
+          <ReportDocument name={title} file={current} resolveLink={resolveLink} onOpenFile={onOpenFile} />
         ) : (
           <div className="evidence-specialized-viewer" data-testid="factory-runs-specialized-file" data-variant={kind}>
             <EvidenceMetadata file={current} size={current.size} />

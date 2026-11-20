@@ -35,13 +35,17 @@ function ChartBars({ source }: { source: ChartSource }) {
   const [page, setPage] = useState(0);
   const selectedMetric = source.metrics.includes(metric) ? metric : source.metrics[0];
   const rows = useMemo(() => chartRows(source, selectedMetric), [source, selectedMetric]);
-  const scale = rows.reduce((max, row) => Math.max(max, Math.abs(row.value)), 0) || 1;
+  const fractional = selectedMetric.startsWith('fraction_') && rows.every(({ value }) => value >= 0 && value <= 1);
+  const scale = fractional ? 1 : rows.reduce((max, row) => Math.max(max, Math.abs(row.value)), 0) || 1;
   const min = rows.reduce((value, row) => Math.min(value, row.value / scale), 0);
-  const max = rows.reduce((value, row) => Math.max(value, row.value / scale), 0);
+  const max = fractional ? 1 : rows.reduce((value, row) => Math.max(value, row.value / scale), 0);
   const range = max - min || 1;
   const baseline = (-min / range) * 100;
   const from = page * BAR_PAGE_SIZE;
-  const locale = new Intl.NumberFormat(lang, { maximumSignificantDigits: 8 });
+  const locale = new Intl.NumberFormat(
+    lang,
+    fractional ? { style: 'percent', maximumFractionDigits: 2 } : { maximumSignificantDigits: 8 },
+  );
   return (
     <>
       <label className="evidence-chart-metric">
@@ -61,7 +65,12 @@ function ChartBars({ source }: { source: ChartSource }) {
           ))}
         </select>
       </label>
-      <ul className="evidence-chart-rows" aria-label={formatKey(selectedMetric)} data-testid="factory-runs-chart-rows">
+      <div className="evidence-chart-category">{formatKey(source.label)}</div>
+      <ul
+        className="evidence-chart-rows"
+        aria-label={`${formatKey(selectedMetric)} · ${formatKey(source.label)}`}
+        data-testid="factory-runs-chart-rows"
+      >
         {rows.slice(from, from + BAR_PAGE_SIZE).map((row, index) => {
           const width = (Math.abs(row.value / scale) / range) * 100;
           return (

@@ -8,6 +8,7 @@ import {
   filterTree,
   formatKey,
   inspectDocument,
+  resolveEvidenceLink,
   sortRows,
   treeEntries,
 } from '../src/features/factoryRuns/views/dataModel.ts';
@@ -86,4 +87,36 @@ test('dispatches evidence by file path, artifact aliases and patch headers', () 
   assert.equal(evidenceKind('capsules/a.diff', 'aliased-output'), 'diff');
   assert.equal(evidenceKind('artifacts/sha', 'source:builder@abc', 'diff --git a/x b/x\n'), 'diff');
   assert.equal(evidenceKind('artifacts/sha', 'profile.json'), 'data');
+});
+
+test('report links resolve to inventoried source files and keep ambiguous aliases inert', () => {
+  const report = { path: 'artifacts/report', display_path: 'contracts/report.md' };
+  const ontology = { path: 'artifacts/ontology', display_path: 'ontology/overview.mmd', sha256: 'a' };
+  const duplicate = { path: 'ontology/overview.mmd', sha256: 'a' };
+  const files = [report, ontology, duplicate];
+  assert.equal(resolveEvidenceLink(files, report, '../../../../inputs/ontology/overview.mmd'), duplicate.path);
+  assert.equal(resolveEvidenceLink(files, report, 'https://example.test/ontology/overview.mmd'), undefined);
+  assert.equal(resolveEvidenceLink(files, report, '/api/factory/launch'), undefined);
+  assert.equal(
+    resolveEvidenceLink(
+      [report, { ...ontology, display_path: 'other/data.json' }, { path: 'alt/data.json', sha256: 'b' }],
+      report,
+      'data.json',
+    ),
+    undefined,
+  );
+});
+
+test('routing analysis coverage uses recorded k values as categories', () => {
+  const rows = [
+    { k_per_layer: 16, fraction_new_routes: 0.31 },
+    { k_per_layer: 32, fraction_new_routes: 0.44 },
+  ];
+  const [table] = collectTables(rows, treeEntries(rows));
+  const chart = chartableTable(table);
+  assert.equal(chart.label, 'k_per_layer');
+  assert.deepEqual(
+    chartRows(chart, 'fraction_new_routes').map((row) => row.label),
+    ['16', '32'],
+  );
 });

@@ -1,4 +1,5 @@
 import { CORE_SCHEMA, load } from 'js-yaml';
+import type { EvidenceFile } from '../api';
 
 export type StructuredValue = null | boolean | number | string | StructuredValue[] | { [key: string]: StructuredValue };
 export type StructuredRecord = { [key: string]: StructuredValue };
@@ -165,7 +166,7 @@ function isChartLabel(value: StructuredValue | undefined): value is string | num
 export function chartableTable(table: TableSource) {
   const label = table.columns.find(
     (column) =>
-      /^(?:phase|stage|layer|expert(?:_id)?|arm|component|metric|bucket)$/i.test(column) &&
+      /^(?:phase|stage|layer|expert(?:_id)?|arm|component|metric|bucket|k_per_layer)$/i.test(column) &&
       table.rows.filter((row) => isChartLabel(row[column])).length >= 2,
   );
   if (!label) return null;
@@ -194,4 +195,37 @@ export function chartRows(source: ChartSource, metric: string) {
       ? [{ label: String(label), value }]
       : [];
   });
+}
+
+export function resolveEvidenceLink(files: EvidenceFile[], from: EvidenceFile, href: string): string | undefined {
+  if (!href || /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) return undefined;
+  const names = (file: EvidenceFile) => [file.path, ...(file.display_path?.split(' · ') ?? [])];
+  let target: string;
+  try {
+    const base = 'https://evidence.invalid/' + (from.display_path || from.path).split(' · ')[0];
+    target = decodeURIComponent(new URL(href, base).pathname).replace(/^\/+/, '');
+  } catch {
+    return undefined;
+  }
+  const parts = target.split('/');
+  for (let offset = 0; offset < parts.length; offset += 1) {
+    const suffix = parts.slice(offset).join('/');
+    if (!suffix) return undefined;
+    const exact = files.filter((file) => names(file).includes(suffix));
+    const matches = exact.length
+      ? exact
+      : files.filter((file) => names(file).some((name) => name.endsWith('/' + suffix)));
+    if (matches.length) {
+      const available = matches.filter((file) => file.integrity !== 'missing');
+      const best = available.find((file) => file.path === suffix) ?? available[0] ?? matches[0];
+      if (
+        matches.length === 1 ||
+        (best.sha256 && available.length > 0 && available.every((file) => file.sha256 === best.sha256))
+      ) {
+        return best.path;
+      }
+      return undefined;
+    }
+  }
+  return undefined;
 }

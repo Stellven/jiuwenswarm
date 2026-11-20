@@ -23,7 +23,6 @@ const labels = {
   table: ['Table', '表格'],
   graph: ['Graph', '图谱'],
   raw: ['Raw', '原始文本'],
-  report: ['Report', '报告'],
   copy: ['Copy', '复制'],
   copied: ['Copied', '已复制'],
   copyError: ['Copy failed', '复制失败'],
@@ -36,11 +35,8 @@ const labels = {
   previous: ['Previous', '上一页'],
   next: ['Next', '下一页'],
   showMore: ['Show more', '显示更多'],
-  open: ['Open', '打开'],
   fields: ['fields', '字段'],
   items: ['items', '项'],
-  preview: ['Preview', '预览'],
-  recordedEvents: ['Replay events', '回放事件'],
 } as const;
 
 export function useViewerLabels() {
