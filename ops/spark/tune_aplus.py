@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Run the stock MoE tuner with capped shard warming and a first-run review stop."""
 import argparse
+from datetime import datetime, timezone
+import fcntl
 import hashlib
 import importlib.util
 import json
@@ -58,6 +60,38 @@ def main():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
     native.FMT['markdown'] = True
     native_run_server = native.run_server
+
+    native_http = native.http
+
+    def record_calibration_request(port, endpoint, body=None, timeout=3600):
+        if endpoint != '/completion' or body is None:
+            return native_http(port, endpoint, body, timeout)
+        index = Path(os.environ['SPARK_TUNE_SCOPE_INDEX'])
+        scope = Path(index.read_text().splitlines()[-1])
+        start = json.loads((scope / 'start.json').read_text())
+        directory = scope / f"native-request-{body['seed']}"
+        directory.mkdir()
+        (directory / 'request.json').write_text(json.dumps(body, indent=2) + '\n')
+
+        def ledger(event, **extra):
+            row = dict(event=event, utc=datetime.now(timezone.utc).isoformat(), kind='native-tuner-calibration',
+                       arm=start['arm'], command=start['command'], binary_sha256=start['binary_sha256'],
+                       result_path=str(directory), **extra)
+            with (ROOT / 'OPS/LEDGER.jsonl').open('a') as stream:
+                fcntl.flock(stream, fcntl.LOCK_EX)
+                stream.write(json.dumps(row) + '\n')
+
+        ledger('request-start', seed=body['seed'], n_predict=body['n_predict'])
+        try:
+            response = native_http(port, endpoint, body, timeout)
+        except BaseException as error:
+            ledger('request-stop', ok=False, error=repr(error))
+            raise
+        (directory / 'response.json').write_text(json.dumps(response, indent=2) + '\n')
+        ledger('request-stop', ok=True, timings=response['timings'])
+        return response
+
+    native.http = record_calibration_request
 
     def run_server(cmd, destination, mib, share, n_predict, seed, label, _native_warm):
         if not 0 < mib <= MAX_MIB:
