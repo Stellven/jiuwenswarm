@@ -19,6 +19,29 @@ NAMES = ['observability_event_recorder', 'weight_placement_planner', 'expert_wei
 ROOT = Path.home() / 'predemo-spark'
 
 
+
+def copy_auth_for_home(home):
+    """Copy existing login only into a fresh operator-owned factory-runs home."""
+    allowed = (ROOT / 'factory-runs').resolve()
+    home = Path(home).resolve()
+    if home == allowed or not home.is_relative_to(allowed):
+        raise ValueError('Auth destination must be an isolated home beneath factory-runs')
+    auth = Path.home() / '.codex/auth.json'
+    if not auth.is_file():
+        return False
+    destination = home / 'agent-data/subscription/codex-home'
+    destination.mkdir(parents=True, mode=0o700, exist_ok=True)
+    if not destination.resolve().is_relative_to(home):
+        raise ValueError('Auth destination escapes home')
+    target = destination / 'auth.json'
+    # Never overwrite an existing profile or follow a supplied symlink.
+    with target.open('xb') as stream:
+        os.fchmod(stream.fileno(), 0o600)
+        with auth.open('rb') as source:
+            shutil.copyfileobj(source, stream)
+    return True
+
+
 def prepare(name, *, copy_auth=True):
     home = ROOT / 'factory-runs' / ('star-' + name)
     if home.exists():
@@ -55,15 +78,7 @@ def prepare(name, *, copy_auth=True):
                     agent_started=False, models_loaded=False, capsule_source_version='1.1.1',
                     capsule_transport_version='1.1.2'), source_artifacts=refs,
         limitations='Preparation only; no verifier, native build or runtime acceptance yet.'))
-    auth_present = False
-    if copy_auth:
-        auth = Path.home() / '.codex/auth.json'
-        if auth.is_file():
-            destination = home / 'agent-data/subscription/codex-home'
-            destination.mkdir(parents=True, mode=0o700)
-            shutil.copyfile(auth, destination / 'auth.json')
-            (destination / 'auth.json').chmod(0o600)
-            auth_present = True
+    auth_present = copy_auth_for_home(home) if copy_auth else False
     result = dict(home=str(home), task_id=task_id, checkout=str(checkout), auth_copied=auth_present,
                   agent_started=False, models_loaded=False)
     (home / 'preparation.json').write_text(json.dumps(result, indent=2) + '\n')
