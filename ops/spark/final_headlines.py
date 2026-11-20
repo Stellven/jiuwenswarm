@@ -100,6 +100,8 @@ def build(root, allow_pending=False):
                     summary += ' Greedy output differed at both sizes.'
                 else:
                     summary += ' Greedy output matched only at ' + str(SIZES[parity.index(True)]) + ' tokens.'
+                if matched['cpu_overlap_observed']['stock_flags']:
+                    summary += ' CPU work overlapped the matched stock launch.'
                 add(key, name, cc, grade,
                     pair([c[field]['ttft_seconds_saved']['median'] for c in cells], 's saved', True),
                     pair([c[field]['decode_tps_gained']['median'] for c in cells], 'tok/s gained', True),
