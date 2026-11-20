@@ -278,6 +278,15 @@ def tree_files(root):
     return rows
 
 
+def release_manifest_bytes(declaration, rows):
+    files = [{key: row[key] for key in ('path', 'sha256', 'size')} for row in rows]
+    files.sort(key=lambda row: row['path'].encode('utf-8'))
+    try:
+        return rfc8785.dumps({'format': 'cc-release/2', 'declaration': declaration, 'files': files})
+    except rfc8785.CanonicalizationError as error:
+        raise CCError('INVALID_DECLARATION', str(error)) from error
+
+
 def snapshot(root):
     rows = tree_files(root)
     git = {}
@@ -434,12 +443,7 @@ class Host:
                                else str(Path(executable).resolve())) if executable else None
             executables[name] = ({'path': executable_path, 'sha256': file_sha(executable)}
                                  if executable else {'unavailable': command})
-        manifest = {'format': 'cc-release/2', 'declaration': decl, 'files': [{k: row[k] for k in ('path','sha256','size')} for row in rows]}
-        manifest['files'].sort(key=lambda row: row['path'].encode('utf-8'))
-        try:
-            canonical = rfc8785.dumps(manifest)
-        except rfc8785.CanonicalizationError as error:
-            raise CCError('INVALID_DECLARATION', str(error)) from error
+        canonical = release_manifest_bytes(decl, rows)
         release = sha(canonical)
         destination = self.store / 'releases' / release
         if not destination.exists():

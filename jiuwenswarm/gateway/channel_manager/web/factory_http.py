@@ -26,6 +26,7 @@ from jiuwenswarm.factory import monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
+from .capsule_catalog import CapsuleCatalog
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
@@ -58,7 +59,7 @@ def _json(path):
 
 
 class FactoryHttpService:
-    def __init__(self, roots=None, launch_root=None, launch_home_root=None):
+    def __init__(self, roots=None, launch_root=None, launch_home_root=None, *, capsule_catalog=None):
         default = os.pathsep.join((str(Path.home() / 'predemo-spark/factory-runs'),
                                   str(Path.home() / 'software-factory-spark-20261113/exports/factory-loop-v1')))
         self.roots = tuple(Path(p).expanduser().resolve() for p in
@@ -67,6 +68,7 @@ class FactoryHttpService:
         self.launch_root = Path(launch_root).expanduser().resolve() if launch_root else None
         launch_home_root = launch_home_root or os.environ.get('FACTORY_LAUNCH_HOME_ROOT')
         self.launch_home_root = Path(launch_home_root).expanduser().resolve() if launch_home_root else None
+        self.capsule_catalog = capsule_catalog or CapsuleCatalog()
         if self.launch_home_root and not any(self.launch_home_root.is_relative_to(r) for r in self.roots):
             raise ValueError('Launch homes must be beneath an allowed run root')
 
@@ -130,6 +132,9 @@ class FactoryHttpService:
     def listing(self):
         return sanitize(dict(runs=[item for item, _ in self.catalog()], launch_templates=self.templates(),
                              launch_enabled=bool(self.launch_root and self.launch_home_root)))
+
+    def capsule_detail(self, name):
+        return self.capsule_catalog.detail(name)
 
     def bundle_safe(self, path):
         # story.load_source reads records/contracts itself: validate those inputs
@@ -360,6 +365,18 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/runs/{run_id}/file')
     async def file(run_id: str, path: str = Query(..., max_length=1024)):
         return await call(service.file, run_id, path)
+
+    @app.get(PREFIX + '/capsules')
+    async def capsules():
+        return await call(service.capsule_catalog.listing)
+
+    @app.get(PREFIX + '/capsules/{name}')
+    async def capsule(name: str):
+        return await call(service.capsule_detail, name)
+
+    @app.get(PREFIX + '/capsules/{name}/file')
+    async def capsule_file(name: str, path: str = Query(..., max_length=1024)):
+        return await call(service.capsule_catalog.file, name, path)
 
     @app.post(PREFIX + '/launch', status_code=202)
     async def launch(request: Request):
