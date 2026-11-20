@@ -288,14 +288,19 @@ function ReportDocument({
   runId,
   selected,
   files,
+  expectedSha,
 }: {
   runId: string;
   selected: ReturnType<typeof reportFiles>[number];
   files: EvidenceFile[];
+  expectedSha?: string;
 }) {
   const { t } = useTranslation();
   const { file, loading, retry } = useRunFile(runId, selected.file);
   const [evidence, setEvidence] = useState<EvidenceFile>();
+  const source = file ?? selected.file;
+  const displayed = expectedSha && source.sha256 !== expectedSha && source.integrity !== 'missing'
+    ? { ...source, expected_sha256: expectedSha, integrity: 'mismatch' as const } : source;
   return (
     <>
       <div className="factory-report-source" data-testid="factory-runs-report-source">
@@ -304,7 +309,7 @@ function ReportDocument({
           <strong data-testid="factory-runs-report-source-path">{selected.label}</strong>
           <span>{t(`factoryRuns.reportView.${selected.format}`)}</span>
         </div>
-        <ReportDigest source={file ?? selected.file} />
+        <ReportDigest source={displayed} />
       </div>
       {file?.truncated && <TruncatedNotice />}
       {!file ? (
@@ -323,12 +328,13 @@ function ReportDocument({
   );
 }
 
-export function FactoryReport({ runId, files }: { runId: string; files: EvidenceFile[] }) {
+export function FactoryReport({ runId, files, initialPath, expectedSha }: { runId: string; files: EvidenceFile[]; initialPath?: string; expectedSha?: string }) {
   const { t } = useTranslation();
   const reports = useMemo(() => reportFiles(files), [files]);
   const [selection, setSelection] = useState({ runId, path: '' });
   const selected =
     (selection.runId === runId ? reports.find(({ file }) => file.path === selection.path) : undefined) ??
+    reports.find(({ file }) => file.path === initialPath) ??
     reports.find(({ file }) => file.integrity !== 'missing') ??
     reports[0];
   const otherIssues = reports.filter(
@@ -370,6 +376,7 @@ export function FactoryReport({ runId, files }: { runId: string; files: Evidence
             runId={runId}
             selected={selected}
             files={files}
+            expectedSha={selected.file.path === initialPath ? expectedSha : undefined}
           />
         </>
       ) : (
