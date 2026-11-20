@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from jiuwenswarm.ccv2.ccv2 import Host
+from jiuwenswarm.factory.deep_profile import stream_counters
 from jiuwenswarm.factory.store import NotFound, Store
 
 from import_evidence import append_once, digest, safe_bytes
@@ -34,6 +35,9 @@ FINAL = (
     (61440, 'equivalent-stock', 'residency-speed-61440-equivalent-stock-01'),
 )
 REFERENCE = (FINAL[0], FINAL[2])
+SCREENING = FINAL[:3]
+MODES = {'pilot': 'c3-warmup-pilot', 'reference': 'a-s-cold-steady',
+         'screening': 'c3-screening-60', 'full': 'c3-cold-steady'}
 PILOT_ORDER = ((0, 512), (0, 2048), (1, 512), (1, 2048), (2, 2048), (2, 512), (3, 512), (3, 2048))
 
 
@@ -119,9 +123,36 @@ def startup_rows(result):
     return lines
 
 
+def screening_finding(result):
+    stock, c3, _ = result['scopes']
+    by_size = [('512', stock['steady_trend']['512'], c3['steady_trend']['512']),
+               ('2048', stock['steady_trend']['2048'], c3['steady_trend']['2048'])]
+    decode = [b['decode_tps']['median'] / a['decode_tps']['median'] for _, a, b in by_size]
+    ttft = [b['ttft_s']['median'] / a['ttft_s']['median'] for _, a, b in by_size]
+    summary = (f"At 60 GiB, C3 decoded {decode[0]:.1f}× and {decode[1]:.1f}× as fast as A-matched "
+               f"at 512 and 2048 tokens, while median time to first token rose to {ttft[0]:.1f}× and {ttft[1]:.1f}×.")
+    lines = [summary, '']
+    for size, _, row in by_size:
+        counts = row['phase_counters']['start_to_first_token']
+        lines.append(f"- At {size} prompt tokens, C3 read a median {counts['process_read_bytes']['median']/1e9:.3f} GB "
+                     f"and recorded {counts['process_major_faults']['median']:,} engine major faults before the first token.")
+    profile = c3['profile']
+    lines += [
+        '', f"C3 took {c3['load_s']:.3f} s to become ready versus {stock['load_s']:.3f} s for A-matched, "
+        f"with {profile['init_us']/1e6:.3f} s in profile seeding and {profile['initial_h2d_bytes']/1e9:.3f} GB in initial upload.",
+        '', f"C3 logged {profile['large_prefill_d2d_bytes']/1e12:.3f} TB of aggregate large-prefill device-to-device copies across all 16 requests. "
+        'This counter measures device-local copies. The request-phase tables separately show process reads and faults.',
+        '', 'Host page pressure is one possible contributor to the first-token regression. '
+        'The paired A-matched comparison includes the standing native bank and the seeding policy. '
+        'The pending same-budget 60-GiB A+ arm is the control for separating the profile from the stock bank.',
+    ]
+    return summary, lines
+
+
 def report_text(result, release):
     pilot = result['mode'] == 'c3-warmup-pilot'
     reference = result['mode'] == 'a-s-cold-steady'
+    opening = None
     if pilot:
         on, aplus = result['scopes']
         startup_change = on['load_s'] - aplus['load_s']
@@ -133,6 +164,9 @@ def report_text(result, release):
         a_rate, s_rate = (r['steady_trend']['512']['decode_tps']['median'] for r in (a, s))
         summary = f'After three warmups per size, fair Strata decoded the 512-token workload at a median {s_rate:.2f} tokens per second and A-matched at {a_rate:.2f}.'
         heading = '# A-matched and fair Strata cold and post-warmup reference'
+    elif result['mode'] == 'c3-screening-60':
+        summary, opening = screening_finding(result)
+        heading = '# C3 60-GiB interim screening'
     else:
         matched = next((row for row in result['comparisons'] if 'same-budget stock bank' in row['relation']), None)
         if matched:
@@ -145,7 +179,7 @@ def report_text(result, release):
         else:
             summary = 'The cache profile did not produce an active same-budget timing comparison.'
         heading = '# C3 native cache cold and post-warmup lab'
-    lines = [heading, '', summary, '', *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
+    lines = [heading, '', *(opening or [summary]), '', *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
     lines += ['No sampled expert, Engram or dense pages were resident in either pack view immediately before each launch. Launch initialization can change residency before the first request.',
               'Process counters come from one unchanged engine PID per launch. Resource snapshots span client request start to first token and first token to stream completion. The raw analysis retains cgroup file refaults and separate host NVMe counters. Host disk activity includes any other activity on the device.', '']
     if pilot:
@@ -162,6 +196,7 @@ def report_text(result, release):
         lines.append('')
     else:
         lines += format_steady(result)
+        lines += format_strata_streaming(result)
         if reference:
             lines += ['The paired measurements compare the two complete engine and pack configurations. The experiment used the same request order and host caps, and sampled both source packs after each file-specific reset. The startup and load paths differ between engines.', '']
     lines += ['Source, cap, prompt, raw request phases, residency, model identities and build receipts are linked in the iteration record.',
@@ -220,6 +255,26 @@ def format_steady(result):
     return lines
 
 
+def format_strata_streaming(result):
+    strata = next((scope for scope in result['scopes'] if scope['mode'] == 'strata'), None)
+    if strata is None:
+        return []
+    streams = strata['prefill_streaming']
+    lines = ['## Strata engine prefill counters', '',
+             f"Native engine log `{streams['engine_log']['artifact_id']}` and parsed prefill counters "
+             f"`{streams['parsed']['artifact_id']}` are retained separately from request process and NVMe snapshots."]
+    if row := streams.get('last_2048'):
+        lines += ['', f"The final logged 2048-token CUDA0 prefill streamed {row['file_experts']:,} experts from files "
+                  f"and {row['layer_cache_experts'] or 0:,} from the layer cache. The engine reported "
+                  f"{row['reported_unbuffered_file_gb']:.1f} GB unbuffered and {row['reported_page_cache_file_gb']:.1f} GB "
+                  f"through page cache, with {row['compute_read_wait_ms']:.0f} ms of compute wait for reads."]
+        if row['io_worker_busy_ms'] is not None:
+            lines.append(f"I/O workers accumulated {row['io_worker_busy_ms']:.0f} ms of activity across threads.")
+    lines += ['', 'Worker times can overlap one another and other prefill work. '
+              'The engine counters have their own boundaries and remain separate from client TTFT, process reads and GPU copies.', '']
+    return lines
+
+
 def source_plan(store, task, builder, prefix, put):
     decision = store.read(PLAN_TASK, PLAN_ID)
     plan_ref = put(f'{prefix}/source-planner-decision.json', json_bytes(decision))
@@ -250,6 +305,7 @@ def publish(base, stage):
     ops = base / 'OPS/p3'
     pilot = stage == 'pilot'
     direct = stage == 'reference'
+    revision = {'pilot': 1, 'reference': 1, 'screening': 2, 'full': 3}[stage]
     source_path = ops / 'cache-native-profile-verified-native-request.json'
     elf_path = ops / 'revised-native-cache-elf-manifest.json'
     inventory_path = ops / 'revised-cache-speed-products.json'
@@ -276,7 +332,7 @@ def publish(base, stage):
         if digest(safe_bytes(profile_path)) != PROFILE_DIGEST:
             raise ValueError('Cache nomination input differs from the pinned profile')
     model_identity_path = Path(first['command'][2]).parent.parent / 'factory-intake/asset-identity.json'
-    obs = iteration + (':report-v2' if stage == 'full' else ':report')
+    obs = iteration + (f':report-v{revision}' if revision > 1 else ':report')
     prefix = f'{iteration}/{stage}'
     with Store(home) as store:
         try:
@@ -308,13 +364,14 @@ def publish(base, stage):
         prompts = attach(repo / 'ops/spark/prompts/MANIFEST.json')
         launcher_digest = digest(safe_bytes(inventory_path))
         expected, scopes = [], []
-        schedule = EARLY if pilot else REFERENCE if direct else FINAL
+        schedule = {'pilot': EARLY, 'reference': REFERENCE, 'screening': SCREENING, 'full': FINAL}[stage]
         for mib, role, folder in schedule:
             path = base / 'OPS/runs' / folder
             if not (path / 'result.json').is_file():
                 raise ValueError(f'Scope has no completed result receipt: {folder}')
             arm = expected_argv(base, first, product, launcher_digest, profile_path, mib, role, path)
             expected.append(arm)
+            streaming = None
             if role == 'strata':
                 instance = attach(Path(arm['config']))['value']
                 attach(base / 'OPS/configs/p4-s-pass-1.json')
@@ -327,7 +384,11 @@ def publish(base, stage):
                 if digest(frozen) != drift['before_sha256']:
                     raise ValueError('Strata fair profile differs from the frozen pre-run bytes')
                 put(f'{prefix}/strata-frozen-profile.bin', frozen, 'application/octet-stream')
-                put(f'{prefix}/scopes/{folder}/engine.log', safe_bytes(path / 'engine.log'), 'text/plain')
+                engine_log = safe_bytes(path / 'engine.log')
+                engine_ref = put(f'{prefix}/scopes/{folder}/engine.log', engine_log, 'text/plain')
+                rows = stream_counters(engine_log.decode(errors='replace'))
+                parsed = put(f'{prefix}/scopes/{folder}/prefill-streaming.json', json_bytes(rows))
+                streaming = dict(engine_log=engine_ref, parsed=parsed, value=rows)
             protocol = None
             if (path / 'protocol.json').is_file():
                 protocol_raw = safe_bytes(path / 'protocol.json')
@@ -344,6 +405,8 @@ def publish(base, stage):
                                  protocol=protocol['value']['ordered_requests'] if protocol else None)
             if protocol:
                 scope['protocol'] = protocol
+            if streaming:
+                scope['prefill_streaming'] = streaming
             if finished and not pilot and not protocol:
                 raise ValueError('A full lab scope completed without its protocol receipt')
             if role != 'strata' and scope['load']['value']['native_build_receipt'] != (
@@ -358,7 +421,7 @@ def publish(base, stage):
         for ref in existing:
             if store.read_artifact(task, ref['artifact_id'])['sha256'] != ref['sha256']:
                 raise ValueError(f"Changed DO or native build artifact {ref['artifact_id']}")
-        mode = 'c3-warmup-pilot' if pilot else 'a-s-cold-steady' if direct else 'c3-cold-steady'
+        mode = MODES[stage]
         evidence = dict(mode=mode, expected=expected,
                         prompts=prompts, model_identity=model_identity, profile=profile, regions=regions, scopes=scopes)
         analysis_input = json_bytes(evidence)
@@ -384,18 +447,22 @@ def publish(base, stage):
                            (host.store / 'releases' / release / 'manifest.json').read_bytes())['artifact_id'])
         summary, report_body = report_text(analysis, release)
         report = put(f'{prefix}/report.md', report_body, 'text/markdown')
-        report = dict(report, revision=2 if stage == 'full' else 1, summary=summary,
-                      status='warm-up pilot' if pilot else 'cold and steady lab')
+        status = {'pilot': 'warm-up pilot', 'screening': '60-GiB interim screening',
+                  'reference': 'cold and steady reference', 'full': 'cold and steady lab'}[stage]
+        report = dict(report, revision=revision, summary=summary, status=status)
         kind = 'factory_iteration_report'
-        if stage == 'full':
+        for older in range(revision - 1, 0, -1):
+            previous_obs = ITERATION + (f':report-v{older}' if older > 1 else ':report')
             try:
-                previous_obs = ITERATION + ':report'
                 previous = store.read(task, previous_obs)['values']['report']
-                report.update(supersedes_observation_id=previous_obs, supersedes_artifact_id=previous['artifact_id'])
-                kind = 'factory_iteration_report_revision'
-                evidence_ids.append(previous['artifact_id'])
             except NotFound:
-                pass
+                continue
+            if store.read_artifact(task, previous['artifact_id'])['sha256'] != previous['sha256']:
+                raise ValueError('Earlier cache report digest changed')
+            report.update(supersedes_observation_id=previous_obs, supersedes_artifact_id=previous['artifact_id'])
+            kind = 'factory_iteration_report_revision'
+            evidence_ids.append(previous['artifact_id'])
+            break
         predecessors, incoming = [], []
         if direct:
             baseline = store.read(task, P1_ITERATION + ':report')['values']['report']
@@ -429,7 +496,7 @@ def publish(base, stage):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('stage', choices=('pilot', 'reference', 'full'))
+    parser.add_argument('stage', choices=MODES)
     parser.add_argument('--base', type=Path, default=Path.home() / 'predemo-spark')
     args = parser.parse_args()
     print(json.dumps(publish(args.base.resolve(), args.stage), indent=2))

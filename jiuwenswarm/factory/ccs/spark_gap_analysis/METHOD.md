@@ -70,3 +70,9 @@ post-warmup admission for those two scopes. Resolve the unique Strata engine
 PID inside its capped service scope and retain its phase counters independently
 from the Python HTTP process. The direct iteration links back to the P1
 reconnaissance and contains no candidate DO attribution.
+
+The interim C3 60-GiB screening admits the completed A-matched, C3 and
+fair Strata launches. It retains the combined bank-and-profile comparison
+and defers same-budget stock attribution until that reference completes.
+Strata's native engine prefill log and parsed file, page-cache, layer reuse
+and worker-time counters remain separate from client-phase counters.

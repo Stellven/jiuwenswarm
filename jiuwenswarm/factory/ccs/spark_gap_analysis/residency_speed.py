@@ -12,6 +12,7 @@ WARMUP_PILOT = ((30720, 'on'), (30720, 'equivalent-stock'))
 REFERENCE = ((30720, 'stock'), (0, 'strata'))
 STEADY_LAB = ((30720, 'stock'), (61440, 'on'), (0, 'strata'), (30720, 'on'),
               (30720, 'equivalent-stock'), (61440, 'equivalent-stock'))
+SCREENING_60 = STEADY_LAB[:3]
 ORDER = ((0, 512), (0, 2048), (1, 512), (1, 2048), (2, 2048), (2, 512), (3, 512), (3, 2048))
 PROFILE_MARKER = 'expert_weight_cache_native_profile:'
 NATIVE_STATS = re.compile(r'llama_moe_cache: ubatch <= 8: hits = (\d+), misses = (\d+) \((\d+) on the CPU\), '
@@ -245,7 +246,8 @@ def paired_results(candidate, control):
 
 def analyze_steady(evidence, eligible, reference, positive):
     direct = evidence['mode'] == 'a-s-cold-steady'
-    scope_order = REFERENCE if direct else STEADY_LAB
+    screening = evidence['mode'] == 'c3-screening-60'
+    scope_order = REFERENCE if direct else SCREENING_60 if screening else STEADY_LAB
     reject_if(len(evidence['scopes']) != len(scope_order) or len(evidence['expected']) != len(scope_order),
               'Expected all declared cold and steady scopes for the comparison')
     schedule = steady_order()
@@ -303,17 +305,31 @@ def analyze_steady(evidence, eligible, reference, positive):
         reject_if(any(sample['process'] != samples[0]['process'] for sample in samples),
                   'The underlying engine process changed across one launch')
         record.update(samples=samples, steady_trend=trends(samples), greedy_hashes=hashes)
+        if is_strata:
+            streaming = scope['prefill_streaming']
+            rows = streaming['value']['records']
+            steady_2048 = next((row for row in reversed(rows) if row['device'] == 0 and row['tokens'] == 2048), None)
+            record['prefill_streaming'] = dict(engine_log=reference(streaming['engine_log']), parsed=reference(streaming['parsed']),
+                                               status=streaming['value']['status'], last_2048=steady_2048)
     comparisons = []
     stock, strata = (30720, 'stock'), (0, 'strata')
     on30, on60 = (30720, 'on'), (61440, 'on')
-    pairs = ((strata, stock, 'fair Strata engine and pack versus A-matched'),) if direct else (
-        (on30, (30720, 'equivalent-stock'), '30-GiB profile versus the same-budget stock bank'),
-        (on60, (61440, 'equivalent-stock'), '60-GiB profile versus the same-budget stock bank'),
-        (on30, stock, '30-GiB profile and bank versus stock without a native bank'),
-        (on60, stock, '60-GiB profile and bank versus stock without a native bank'),
-        (on30, strata, '30-GiB profile versus fair Strata engine and pack'),
-        (on60, strata, '60-GiB profile versus fair Strata engine and pack'),
-    )
+    if direct:
+        pairs = ((strata, stock, 'fair Strata engine and pack versus A-matched'),)
+    elif screening:
+        pairs = (
+            (on60, stock, '60-GiB profile and bank versus stock without a native bank'),
+            (on60, strata, '60-GiB profile versus fair Strata engine and pack'),
+        )
+    else:
+        pairs = (
+            (on30, (30720, 'equivalent-stock'), '30-GiB profile versus the same-budget stock bank'),
+            (on60, (61440, 'equivalent-stock'), '60-GiB profile versus the same-budget stock bank'),
+            (on30, stock, '30-GiB profile and bank versus stock without a native bank'),
+            (on60, stock, '60-GiB profile and bank versus stock without a native bank'),
+            (on30, strata, '30-GiB profile versus fair Strata engine and pack'),
+            (on60, strata, '60-GiB profile versus fair Strata engine and pack'),
+        )
     for candidate, control, relation in pairs:
         a, b = ordered[candidate], ordered[control]
         if a['status'] == b['status'] == 'completed':
