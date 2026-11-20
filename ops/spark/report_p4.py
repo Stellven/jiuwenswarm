@@ -352,7 +352,8 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     resid = cold['after']['views'][view]['total']
     startup = {name: bucket['estimated_resident_fraction'] for name, bucket in resid.items()}
     provenance.update({key: reference(val) for key, val in extra.items()})
-    record = dict(reference(stop), value=z, arm=arm, launch_pass=number, view=view, load=dict(reference(load), seconds=l['health_elapsed_s']),
+    record = dict(reference(stop), value=z, arm=arm, launch_pass=number, view=view, source_commit=l.get('source_commit'),
+                load=dict(reference(load), seconds=l['health_elapsed_s']),
                 quiet_preflight=dict(reference(quiet), quiet=True), start=reference(start), scope=reference(kernel),
                 profile=reference(profile), window=reference(report), probe=reference(probe), memory=reference(memory),
                 conditioning=reference(conditioning), prelaunch_source_fractions=startup, provenance=provenance)
@@ -402,16 +403,48 @@ def fmt(value):
     return 'unavailable' if value is None else f'{value:.3f}'
 
 
+def fmt_values(value):
+    if isinstance(value, dict):
+        return ', '.join(f'{key} {fmt(metric)}' for key, metric in value.items())
+    if isinstance(value, (list, tuple)):
+        return ', '.join(map(fmt, value))
+    return 'unavailable'
+
+
 def paired_comparisons(comparisons):
     for key, value in comparisons.items():
         if isinstance(value, dict) and 'estimate' in value:
-            bounds = value.get('conditional_ci95')
-            yield key.replace('_', ' '), fmt(value['estimate']), 'unavailable' if bounds is None else ' to '.join(map(fmt, bounds))
+            yield (key.replace('_', ' '), fmt(value['estimate']), fmt_values(value.get('observed_range')),
+                   fmt_values(value.get('pass_medians')), fmt_values(value.get('conditional_ci95')))
         elif isinstance(value, dict):
-            for suffix, estimate, interval in paired_comparisons(value):
-                yield f'{key.replace("_", " ")} {suffix}', estimate, interval
+            for suffix, *values in paired_comparisons(value):
+                yield f'{key.replace("_", " ")} {suffix}', *values
         elif isinstance(value, (int, float)):
-            yield key.replace('_', ' '), fmt(value), 'unavailable'
+            yield key.replace('_', ' '), fmt(value), 'unavailable', 'unavailable', 'unavailable'
+
+
+def effect_rows(analysis, evidence, verification):
+    if evidence['comparison_target'] != 'same-budget-cc':
+        return None
+    subject = evidence['subject_arm']
+    bank = evidence['scopes'][0]['matched_bank']
+    profiles = {scope['arm']: dict(profile_sha256=scope['profile']['sha256'],
+                                  binary_sha256=scope['value']['binary_sha256'], source_commit=scope['source_commit'])
+                for scope in evidence['scopes'] if scope['launch_pass'] == 1}
+    cells = {(row['arm'], row['prompt_tokens']): row for row in analysis['measurements']}
+    rows = []
+    for size in SIZES:
+        base, cc = (cells[(arm, size)] for arm in ('A+', subject))
+        effects = cc['comparisons']
+        metrics = {key: effects[key] for key in ('paired_ttft_seconds_saved_vs_Aplus',
+                   'paired_decode_tps_gained_vs_Aplus', 'inverse_ttft_vs_Aplus')}
+        demand(all({'estimate', 'observed_range', 'pass_medians', 'conditional_ci95'} <= set(v)
+                   for key, v in metrics.items() if key.startswith('paired_')),
+               'Focused native analysis did not retain the full paired estimates')
+        rows.append(dict(prompt_tokens=size, n=cc['n'], control={k: base[k] for k in ('ttft_s', 'decode_tps')},
+                         candidate={k: cc[k] for k in ('ttft_s', 'decode_tps')}, **metrics))
+    return dict(schema='spark-p4-focused/1', subject_arm=subject, budget_mib=bank['requested_mib'],
+                allocated_mib=bank['allocated_mib'], profiles=profiles, verification=verification, rows=rows)
 
 
 def render(analysis, evidence, capsule):
@@ -448,9 +481,22 @@ def render(analysis, evidence, capsule):
                          f'{fmt(cell.get("decode_tps"))} | {fmt(cell.get("engine_prefill_ms"))} | {share} |')
             comparisons.extend((arm, *row) for row in paired_comparisons(cell['comparisons']))
         if comparisons:
-            lines += ['', '| Arm | Comparison | Estimate | Conditional 95% interval |', '| --- | --- | ---: | ---: |']
-            lines.extend(f'| {arm} | {name} | {estimate} | {bounds} |' for arm, name, estimate, bounds in comparisons)
+            lines += ['', '| Arm | Comparison | Estimate | Observed pair range | Pass medians | Conditional 95% interval |',
+                      '| --- | --- | ---: | ---: | ---: | ---: |']
+            lines.extend(f'| {arm} | {name} | {estimate} | {observed} | {passes} | {bounds} |'
+                         for arm, name, estimate, observed, passes, bounds in comparisons)
         lines.append('')
+    lines += ['## Change within each measured launch', '',
+              'Last minus first measured position shows residual movement inside each launch. Exact request samples are retained.', '',
+              '| Arm | Pass | Prompt tokens | TTFT change (s) | Decode change (tokens/s) |',
+              '| --- | ---: | ---: | ---: | ---: |']
+    for scope in evidence['scopes']:
+        for size in SIZES:
+            results = [row['result'] for row in evidence['requests'] if row['scope_id'] == scope['artifact_id'] and
+                       row['result']['prompt_tokens'] == size and not row['result']['discard']]
+            ttft, decode = (results[-1][key] - results[0][key] for key in ('ttft_s', 'decode_tps'))
+            lines.append(f'| {scope["arm"]} | {scope["launch_pass"]} | {size} | {ttft:+.3f} | {decode:+.3f} |')
+    lines.append('')
     lines += ['## Load and memory by launch', '', '| Arm | Pass | Load to ready (s) | Scope peak (GiB) | Host minimum available (GiB) |',
               '| --- | ---: | ---: | ---: | ---: |']
     for scope in evidence['scopes']:
@@ -515,8 +561,8 @@ def publish(base, path, manifest_sha):
             summary, report_bytes = render(analysis, evidence, capsule)
             analysis_bytes = json_bytes(analysis)
             analysis_ref = put(iteration + '/analysis.json', analysis_bytes)
-            outputs = [analysis_ref, put(iteration + '/analyze-receipt.json', json_bytes(analyzed)),
-                       put(iteration + '/verify-receipt.json', json_bytes(checked)),
+            verification = put(iteration + '/verify-receipt.json', json_bytes(checked))
+            outputs = [analysis_ref, put(iteration + '/analyze-receipt.json', json_bytes(analyzed)), verification,
                        put(iteration + '/release-manifest.json', (host.store / 'releases' / release / 'manifest.json').read_bytes())]
             report = dict(put(iteration + '/report.md', report_bytes, 'text/markdown'), summary=summary, status='verified-p4')
             input_ids = list(dict.fromkeys([plan_ref['artifact_id'], evidence_ref['artifact_id'], *retained]))
@@ -528,6 +574,9 @@ def publish(base, path, manifest_sha):
                 lab=dict(status='complete', result_artifact_ids=input_ids),
                 analysis=dict(ccs=[capsule], output_artifact_ids=output_ids, result_artifact=analysis_ref),
                 report=report, next_plan=dict(decision_id=None))
+            focused = effect_rows(analysis, evidence, verification)
+            if focused:
+                envelope['analysis']['focused_comparison'] = focused
             append_once(store, TASK, dict(obs_id=observation, kind='factory_iteration_report', values=envelope,
                 source_artifacts=input_ids + output_ids + [report['artifact_id']]))
 
