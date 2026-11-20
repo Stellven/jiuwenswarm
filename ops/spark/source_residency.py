@@ -122,7 +122,7 @@ class Mincore:
         self.lib.mincore.argtypes = [C.c_void_p, C.c_size_t, C.POINTER(C.c_ubyte)]
         self.lib.munmap.argtypes = [C.c_void_p, C.c_size_t]
 
-    def inspect(self, source, stride, seed):
+    def inspect(self, source, stride, seed, expert_pages=None):
         fd = os.open(source['path'], os.O_RDONLY | os.O_CLOEXEC)
         address = None
         extent = source['identity']['size']
@@ -138,14 +138,15 @@ class Mincore:
             if address == C.c_void_p(-1).value:
                 address = None
                 raise OSError(C.get_errno(), 'mmap failed')
-            return {kind: self.sample_region(address, spans, stride, f'{seed}/{kind}')
+            return {kind: self.sample_region(address, spans, stride, f'{seed}/{kind}',
+                                             expert_pages if kind == 'expert' else None)
                     for kind, spans in source['regions'].items()}
         finally:
             if address is not None:
                 self.lib.munmap(address, extent)
             os.close(fd)
 
-    def sample_region(self, address, spans, stride, seed):
+    def sample_region(self, address, spans, stride, seed, page_observations=None):
         pages = merge((start // PAGE, (end + PAGE - 1) // PAGE) for start, end in spans)
         ends = []
         total_pages = 0
@@ -163,6 +164,8 @@ class Mincore:
             if self.lib.mincore(address + page * PAGE, PAGE, C.byref(flag)) != 0:
                 raise OSError(C.get_errno(), 'mincore failed')
             resident = flag.value & 1
+            if page_observations is not None:
+                page_observations.append((page, stop - begin, resident))
             hits += resident
             samples += 1
             estimated_pages += (stop - begin) * resident
@@ -193,8 +196,14 @@ def snapshot(geometry, view, stride, seed, scope):
         found = []
         total = defaultdict(Counter)
         for source in geometry['views'][name]['files']:
-            measured = reader.inspect(source, stride, seed)
-            found.append({k: source[k] for k in ('path', 'resolved_path', 'identity')} | {'regions': measured})
+            expert_pages = [] if name == 'llama' and os.getenv('SPARK_EXPERT_SAMPLE_DETAIL') == '1' else None
+            measured = reader.inspect(source, stride, seed, expert_pages)
+            file_result = {k: source[k] for k in ('path', 'resolved_path', 'identity')} | {'regions': measured}
+            if expert_pages is not None:
+                # Reuse the existing mincore observations; no additional page queries or payload reads.
+                file_result['expert_sample_columns'] = ['page_index', 'stratum_pages', 'resident']
+                file_result['expert_page_samples'] = expert_pages
+            found.append(file_result)
             for kind, values in measured.items():
                 total[kind].update(values)
         summary = {}
