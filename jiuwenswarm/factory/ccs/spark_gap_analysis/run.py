@@ -133,6 +133,9 @@ def analyze(evidence):
     if mode in ('c3-cold-steady', 'c3-screening-60', 'a-s-cold-steady'):
         from residency_speed import analyze_steady
         return analyze_steady(evidence, eligible, reference, positive)
+    if mode == 'c3-direct-seed-30g':
+        from direct_seed import analyze as analyze_direct_seed
+        return analyze_direct_seed(evidence, eligible, reference, positive)
     if mode not in ('p1-reconnaissance', 'p4-abba'):
         raise ValueError('Use the P1 reconnaissance or P4 ABBA evidence mode')
     manifest = evidence['prompt_manifest']

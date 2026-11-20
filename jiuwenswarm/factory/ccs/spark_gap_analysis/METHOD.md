@@ -95,3 +95,18 @@ the affected comparisons exploratory. Strict timed P4, the prior warm-up
 pilot, the direct A/S reference and the earlier 60-GiB screening retain
 their separate quiet rules. The final A+ 60-GiB cell also admits the owner-named
 predictor iteration-2 service on CPUs 12–19.
+
+Use `c3-direct-seed-30g` for three quiet launches in A+30, 02b mmap, and
+02b direct order. Keep the same deployment and actual native bank allocation.
+The 02b launches share one ELF and the frozen ranked profile. Their admitted
+expert IDs, slots and bytes must match. Validate direct-I/O completion, exact
+returned and uploaded bytes, and zero failures or fallbacks. Compare all
+six cold positions and the five post-warmup pairs per prompt. Require greedy
+parity across the three arms.
+
+Keep launch-to-ready, client TTFT and decode separate. Classify deterministic
+source-file page samples by the actual initial seed set, excluding boundary
+pages. Use the same classes for A+ as for both 02b arms. These report host page
+cache occupancy. Device bank membership can change during later requests.
+One launch per arm gives observed paired ranges and does not establish
+between-launch repeatability.

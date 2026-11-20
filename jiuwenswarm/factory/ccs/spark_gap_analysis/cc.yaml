@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.spark_gap_analysis
-version: 1.5.0
+version: 1.6.0
 materials:
   method:
     path: METHOD.md
