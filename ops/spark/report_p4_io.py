@@ -80,8 +80,9 @@ def summarize(store, iteration, manifest_sha, base=None, amendment_sha=None):
     observation = store.read(TASK, iteration + ':report')
     publication = observation['values']
     report = publication['report']
-    require(report['status'] == 'verified-p4', 'Expected the final native verified P4 report')
-    focus = publication['analysis']['focused_comparison']
+    screened = report['status'] == 'build-overlap-screening'
+    require(screened or report['status'] == 'verified-p4', 'Expected the final native verified P4 report')
+    focus = publication['analysis']['screening_comparison' if screened else 'focused_comparison']
     require(focus['schema'] == 'spark-p4-focused/1' and focus['subject_arm'] == 'C3', 'Expected original C3 and A+')
     manifest_ref = publication['plan']['manifest']
     require(manifest_ref['sha256'] == manifest_sha, 'Unexpected frozen manifest')
@@ -105,7 +106,8 @@ def summarize(store, iteration, manifest_sha, base=None, amendment_sha=None):
             [(s['arm'], s['launch_pass']) for s in evidence['scopes']] == [('A+', 1), ('C3', 1), ('C3', 2), ('A+', 2)],
             'Expected four admitted mirrored scopes at one common budget')
     launches, amendment = effective_launches(store, publication, evidence, manifest, manifest_sha, amendment_sha)
-    require(analysis['mode'] == 'p4-abba' and len(analysis['eligible']) == 40 and len(analysis['excluded']) == 24,
+    require(analysis['mode'] == ('p4-build-overlap' if screened else 'p4-abba') and
+            len(analysis['eligible']) == 40 and len(analysis['excluded']) == 24,
             'Native analysis did not admit all 40 measured requests and 24 warmups')
     eligible = {row['result']['artifact_id'] for row in analysis['eligible']}
     source_ids = [report['artifact_id'], analysis_ref['artifact_id'], verify_ref['artifact_id'],
@@ -194,6 +196,16 @@ def summarize(store, iteration, manifest_sha, base=None, amendment_sha=None):
                   native_verification=verify_ref, native_analysis=analysis_ref, input=input_ref, scopes=windows, measured=effects)
     if amendment:
         result['scope_replacement'] = amendment
+    if screened:
+        result['build_overlap'] = analysis['build_overlap']
+        for effect, quiet in zip(effects, result['build_overlap']['quiet_prefix']):
+            require(effect['tokens'] == quiet['prompt_tokens'], 'Quiet-prefix prompt identity differs')
+            pairs = [row for row in effect['requests'] if row['ordinal'] in quiet['labels']]
+            require(len(pairs) == quiet['n'], 'Request I/O is missing a quiet-prefix pair')
+            quiet['paired_process_io_avoided'] = {
+                phase: {key: span([row['stock']['counters'][phase][key] - row['c3']['counters'][phase][key]
+                                   for row in pairs]) for key in COUNTERS}
+                for phase in PHASES}
     if focus['budget_mib'] == 61440 and base:
         from p4_seed_mechanism import collect
         result['mechanism'] = collect(base, evidence['scopes'], evidence['requests'],
@@ -228,6 +240,8 @@ def render(data):
               '## Scope safety', '',
               '| Arm | Pass | Launch to ready (s) | Peak cap usage (GiB) | Minimum host available (GiB) | memory.events max | OOM events |',
               '|---|---:|---:|---:|---:|---:|---:|']
+    if 'build_overlap' in data:
+        lines[2] = 'The ten measured pairs include the final A+ control with authorized build exposure. The timing and I/O comparisons are screening.'
     for row in data['scopes']:
         events = row['memory_events']
         lines.append(f"| {row['arm']} | {row['launch_pass']} | {row['load_s']:.3f} | {row['peak_memory_bytes']/GIB:.3f} | "
@@ -255,6 +269,14 @@ def render(data):
             lines.append(f"| {scope['arm']} | {scope['launch_pass']} | {row['position']} | {row['tokens']} | {row['ttft_s']:.3f} | "
                          f"{row['decode_tps']:.3f} | {before['read_bytes']/1e9:.3f} / {after['read_bytes']/1e9:.3f} | "
                          f"{before['major_faults']:,} / {after['major_faults']:,} |")
+    if 'build_overlap' in data:
+        lines += ['', '## Process I/O in the quiet-only paired subset', '',
+                  '| Prompt | Pairs | Phase | Paired C3 reads avoided in GB [min, max] | Paired C3 major faults avoided [min, max] |',
+                  '|---:|---:|---|---:|---:|']
+        for row in data['build_overlap']['quiet_prefix']:
+            for phase, counts in row['paired_process_io_avoided'].items():
+                lines.append(f"| {row['prompt_tokens']} | {row['n']} | {phases[phase]} | "
+                             f"{interval(counts['read_bytes'], 1e9)} | {interval(counts['major_faults'], digits=1)} |")
     if 'mechanism' in data:
         from p4_seed_mechanism import render as render_mechanism
         lines += ['', *render_mechanism(data['mechanism'])]
