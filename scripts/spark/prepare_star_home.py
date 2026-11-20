@@ -29,8 +29,11 @@ def prepare(name, *, copy_auth=True):
     workspace.mkdir(parents=True)
     checkout = workspace / task['source']['subpath']
     source = ROOT / 'llama.cpp-stock'
-    subprocess.run(['git', '-C', str(source), 'worktree', 'add', '-b', task['source']['branch'],
-                    str(checkout), task['source']['pre_integration_commit']], check=True)
+    subprocess.run(['git', 'clone', '--shared', '--no-checkout', str(source), str(checkout)], check=True)
+    subprocess.run(['git', '-C', str(checkout), 'remote', 'remove', 'origin'], check=True)
+    subprocess.run(['git', '-C', str(checkout), 'checkout', '--detach', task['source']['pre_integration_commit']], check=True)
+    subprocess.run(['git', '-C', str(checkout), 'checkout', '-B', task['source']['branch'], task['source']['pre_integration_commit']], check=True)
+    # The source workbench requires its own Git metadata, not a linked worktree.
     # The factory initializes only the already-provisioned, clean owned checkout.
     # No agent, model, build or network call occurs here.
     controller = Controller(home=home, grants=task['allowed_effects'])

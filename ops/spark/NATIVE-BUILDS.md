@@ -15,7 +15,7 @@ agent, model or build:
 .venv/bin/python scripts/spark/prepare_star_home.py observability_event_recorder
 ```
 
-This creates a clean worktree at the stock pin, initializes the Spark task,
+This creates a clean isolated local clone at the stock pin, initializes the Spark task,
 attaches raw/readable contracts, owner ontology and capsule materials, and
 copies the existing Codex auth into that home's private profile. Auth content
 is never copied to evidence. `preparation.json` labels this as preparation.
