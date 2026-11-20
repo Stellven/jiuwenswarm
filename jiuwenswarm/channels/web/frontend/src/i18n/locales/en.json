@@ -4896,6 +4896,8 @@
       "observationsFile": "Report observation",
       "record": "View recorded JSON",
       "component": "Component in scope · {{id}}",
+      "fullRationale": "Full rationale",
+      "fullReport": "Full report and evidence",
       "analysisData": "Read analysis data",
       "doTitle": "DO · Capsules and changes",
       "labTitle": "LAB · Measurement",

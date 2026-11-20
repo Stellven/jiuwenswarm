@@ -17,6 +17,28 @@ const decisionTask = (value: unknown) =>
 const timestamp = (value: unknown) => (typeof value === 'number' && Number.isFinite(value) ? value : undefined);
 const revision = (value: unknown) => (typeof value === 'number' && Number.isSafeInteger(value) ? value : undefined);
 
+export function narrativeSummaries(observations: JsonRecord[]) {
+  const decisions = new Map<string, string>();
+  const reports = new Map<string, string>();
+  for (const observation of observations) {
+    const value = asRecord(observation.values);
+    if (observation.kind !== 'factory_iteration_summary' || value.schema !== 'factory-iteration-summary/1') continue;
+    const summary = text(value.summary).trim();
+    if (!summary) continue;
+    const decision = text(value.decision_id);
+    if (decision) decisions.set(decision, summary);
+    for (const id of [text(value.report_artifact_id), text(value.report_observation_id)]) {
+      if (id) reports.set(id, summary);
+    }
+  }
+  return { decisions, reports };
+}
+
+export function decisionSummary(decision: JsonRecord, summaries: Map<string, string>) {
+  return text(asRecord(decision.action).summary).trim() || text(decision.summary).trim() ||
+    summaries.get(decisionId(decision)) || '';
+}
+
 type ArtifactKind = 'diff' | 'report' | 'analysis' | 'lab' | 'prior' | 'other';
 export type IterationArtifact = { id: string; taskId: string; sha256: string; kind: ArtifactKind };
 const refId = (value: unknown) => text(value) || text(asRecord(value).artifact_id);
@@ -62,6 +84,7 @@ function fileKind(file: EvidenceFile): ArtifactKind {
 export function buildIterations(records: Record<string, JsonRecord[]>, files: EvidenceFile[]) {
   const decisions = [...(records.decisions || [])].sort((a, b) => (revision(a.rev) || 0) - (revision(b.rev) || 0));
   const observations = records.observations || [];
+  const summaries = narrativeSummaries(observations);
   const artifacts = records.artifacts || [];
   const attempts = records.attempts || [];
   const cycles = new Map<string, JsonRecord>();
@@ -205,7 +228,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         ]),
       );
       const successors = new Map<string, {
-        id: string; task: string; reason: string; decisionFile: EvidenceFile; reportFile: EvidenceFile;
+        id: string; task: string; reason: string; summary: string; decisionFile: EvidenceFile; reportFile: EvidenceFile;
       }>();
       for (const observation of scopedObservations) {
         if (observation.kind !== 'factory_iteration_successors') continue;
@@ -221,8 +244,11 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
           const file = linkedFiles.find(({ file }) => file.artifact_ids?.includes(artifact))?.file;
           if (!id || !task || !file || file.integrity !== 'verified' ||
             (edge.decision_sha256 && edge.decision_sha256 !== file.sha256)) continue;
-          successors.set(id, { id, task, reason: text(edge.reason_for_change) || successors.get(id)?.reason || '',
-            decisionFile: file, reportFile });
+          successors.set(id, {
+            id, task, reason: text(edge.reason_for_change) || successors.get(id)?.reason || '',
+            summary: text(edge.summary).trim() || summaries.decisions.get(id) || successors.get(id)?.summary || '',
+            decisionFile: file, reportFile,
+          });
         }
       }
       const nextPlan = asRecord(meta.next_plan);
@@ -242,6 +268,9 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         return [{ decision, cited }];
       });
       const reportId = reportRefs[0]?.id || resultId;
+      const reportSummary = text(asRecord(meta.report).summary).trim() || text(reportData.summary).trim() ||
+        summaries.reports.get(reportId) || summaries.reports.get(recordId(metadataObservation)) ||
+        summaries.reports.get(resultId) || '';
       const linkedNext = ordered.slice(index + 1).find((candidate) => {
         const candidateMeta = asRecord(candidate.meta);
         const candidatePlan = asRecord(candidateMeta.plan);
@@ -287,6 +316,9 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         remoteReferences,
         metadataObservation,
         recordedPlanId,
+        planSummary: text(metaPlan.summary).trim() || (plan ? decisionSummary(plan, summaries.decisions) : '') ||
+          summaries.decisions.get(recordedPlanId) || '',
+        reportSummary,
         rationale: text(metaPlan.rationale),
         sourceCommit: text(asRecord(meta.do).source_commit),
         analysisCapsules: unique(capsuleNames(asRecord(meta.analysis).ccs)),

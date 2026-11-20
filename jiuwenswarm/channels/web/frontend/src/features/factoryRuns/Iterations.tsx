@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo } from 'react';
+import { useEffect, useId, useMemo, type ReactNode } from 'react';
 import {
   ArrowDown,
   ArrowRight,
@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, Run } from './api';
-import { asRecord, buildIterations, text, type Iteration, type IterationArtifact } from './iterationModel';
+import { asRecord, buildIterations, decisionSummary, narrativeSummaries, text, type Iteration, type IterationArtifact } from './iterationModel';
 import { FactoryStructuredReport } from './FactoryStructuredReport';
 import './iterations.css';
 
@@ -55,24 +55,47 @@ function RawRecord({ value }: { value: JsonRecord }) {
   );
 }
 
+function SummaryDetail({ summary, label, children }: { summary: string; label: string; children?: ReactNode }) {
+  if (!summary) return <>{children}</>;
+  return (
+    <>
+      <p className="factory-iteration-reason" data-testid="factory-runs-iteration-summary">{summary}</p>
+      {children && (
+        <details className="factory-iteration-raw" data-testid="factory-runs-iteration-summary-details">
+          <summary>{label}</summary>
+          {children}
+        </details>
+      )}
+    </>
+  );
+}
+
 function RecordedDecision({
   decision,
   source,
   onOpen,
   operator,
+  summary = '',
 }: {
   decision: JsonRecord;
   source?: EvidenceFile;
   onOpen: OpenSource;
   operator?: boolean;
+  summary?: string;
 }) {
   const { t } = useTranslation();
   const action = asRecord(decision.action);
   const reason = operator ? '' : text(decision.reason_for_change);
+  const hypothesis = text(decision.hypothesis);
+  const rationale = (hypothesis || reason) && (
+    <>
+      {hypothesis && <p>{hypothesis}</p>}
+      {reason && <p className="factory-iteration-reason">{reason}</p>}
+    </>
+  );
   return (
     <>
-      {text(decision.hypothesis) && <p>{text(decision.hypothesis)}</p>}
-      {reason && <p className="factory-iteration-reason">{reason}</p>}
+      <SummaryDetail summary={summary} label={t('factoryRuns.iteration.fullRationale')}>{rationale}</SummaryDetail>
       {(action.type || action.template_id) && (
         <dl className="factory-iteration-properties">
           {text(action.type) && (
@@ -113,6 +136,7 @@ export function Iterations({
   const { t } = useTranslation();
   const prefix = useId();
   const iterations = useMemo(() => buildIterations(detail.records, detail.files), [detail.records, detail.files]);
+  const summaries = useMemo(() => narrativeSummaries(detail.records.observations || []), [detail.records.observations]);
   const source = (path: string) => detail.files.find((file) => file.path === path);
   const decisionSource = source('records/decisions.json');
   const observationSource = source('records/observations.json');
@@ -232,7 +256,8 @@ export function Iterations({
         >
           <h4>{t('factoryRuns.iteration.nextPlan')}</h4>
           {focusedDecision ? (
-            <RecordedDecision decision={focusedDecision} source={decisionSource} onOpen={onOpenSource} />
+            <RecordedDecision decision={focusedDecision} source={decisionSource} onOpen={onOpenSource}
+              summary={decisionSummary(focusedDecision, summaries.decisions)} />
           ) : (
             <p>{t('factoryRuns.iteration.unavailableDecision')}</p>
           )}
@@ -268,6 +293,9 @@ export function Iterations({
                 typeof decision.rev === 'number'
                   ? t('factoryRuns.iteration.decision', { rev: decision.rev })
                   : iteration.explicitNextId || t('factoryRuns.iteration.nextPlan');
+              const summary = next?.planSummary || decisionSummary(decision, summaries.decisions) ||
+                summaries.decisions.get(iteration.explicitNextId) || '';
+              const rationale = next?.rationale || (!iteration.operator ? text(decision.reason_for_change) : '');
               return (
                 <article
                   key={`${iteration.id}:${decision.rev ?? label}`}
@@ -308,8 +336,10 @@ export function Iterations({
                       <strong>{label}</strong>
                     )}
                   </div>
-                  {(next?.rationale || (!iteration.operator && text(decision.reason_for_change))) && (
-                    <p className="factory-iteration-reason">{next?.rationale || text(decision.reason_for_change)}</p>
+                  {(next || (targetRun && iteration.explicitNextId)) && (
+                    <SummaryDetail summary={summary} label={t('factoryRuns.iteration.fullRationale')}>
+                      {rationale && <p className="factory-iteration-reason">{rationale}</p>}
+                    </SummaryDetail>
                   )}
                   {iteration.template &&
                     text(asRecord(decision.action).template_id) &&
@@ -334,6 +364,7 @@ export function Iterations({
                         source={decisionSource}
                         onOpen={onOpenSource}
                         operator={iteration.operator}
+                        summary={summary}
                       />
                     ) : (
                       <p>{t('factoryRuns.iteration.unavailableDecision')}</p>
@@ -351,7 +382,9 @@ export function Iterations({
                   {run && <button className="factory-story-text-button" type="button"
                     onClick={() => onOpenDecision(run.id, edge.id)}>{edge.id} <ArrowUpRight aria-hidden size={14} /></button>}
                   <SourceLink file={edge.decisionFile} onOpen={onOpenSource} label={run ? undefined : edge.id} />
-                  {edge.reason && <p className="factory-iteration-reason">{edge.reason}</p>}
+                  <SummaryDetail summary={edge.summary} label={t('factoryRuns.iteration.fullRationale')}>
+                    {edge.reason && <p className="factory-iteration-reason">{edge.reason}</p>}
+                  </SummaryDetail>
                 </article>
               );
             }))}
@@ -416,9 +449,12 @@ export function Iterations({
                           source={decisionSource}
                           onOpen={onOpenSource}
                           operator={iteration.operator}
+                          summary={iteration.planSummary}
                         />
                       ) : (
-                        <p>{iteration.rationale || t('factoryRuns.iteration.noPlan')}</p>
+                        <SummaryDetail summary={iteration.planSummary} label={t('factoryRuns.iteration.fullRationale')}>
+                          {(iteration.rationale || !iteration.planSummary) && <p>{iteration.rationale || t('factoryRuns.iteration.noPlan')}</p>}
+                        </SummaryDetail>
                       )}
                       {iteration.recordedPlanId && !iteration.plan && (
                         <p className="factory-iteration-cites">{iteration.recordedPlanId}</p>
@@ -513,6 +549,9 @@ export function Iterations({
                           <NotebookText aria-hidden size={15} />
                           {t('factoryRuns.iteration.reportTitle')}
                         </h5>
+                        <SummaryDetail summary={iteration.reportSummary} label={t('factoryRuns.iteration.fullReport')}>
+                          {Array.isArray(analysisFiles) && !analysisFiles.length ? null : analysisFiles}
+                        </SummaryDetail>
                         {iteration.analysisCapsules.length > 0 && (
                           <ul className="factory-iteration-capsules">
                             {iteration.analysisCapsules.map((id) => (
@@ -544,7 +583,6 @@ export function Iterations({
                             </ul>
                           </details>
                         )}
-                        {analysisFiles}
                         {iteration.analysisObservations.map((item) => (
                           <details
                             className="factory-iteration-raw"
@@ -555,7 +593,8 @@ export function Iterations({
                             <FactoryStructuredReport content={JSON.stringify(item.values ?? item, null, 2)} />
                           </details>
                         ))}
-                        {!iteration.resultId &&
+                        {!iteration.reportSummary &&
+                          !iteration.resultId &&
                           Array.isArray(analysisFiles) &&
                           !analysisFiles.length &&
                           !iteration.analysisObservations.length && <p>{t('factoryRuns.iteration.noReport')}</p>}

@@ -128,8 +128,21 @@ def scope_inputs(path, base, put, tag, cc):
     return scope
 
 
+def bracket_summary(data):
+    if not data['candidate_activation']:
+        return 'The timing bracket did not establish that the candidate mechanism ran.'
+    if not all(row['attribution_eligible'] for row in data['measurements']):
+        return 'The candidate and control produced different greedy outputs in at least one comparison, which limits what the timings can establish.'
+    outcomes = [
+        f"time to first token at {row['prompt_tokens']} prompt tokens was {row['interpretation']}"
+        for row in data['measurements']
+    ]
+    return 'In this single timing bracket, ' + ' and '.join(outcomes) + '.'
+
+
 def render_report(data, analysis, source, release):
-    lines = [f"# {data['cc']} early timing bracket", '', f"Launch profile `{data['profile']}`. "
+    lines = [f"# {data['cc']} early timing bracket", '', bracket_summary(data), '',
+             f"Launch profile `{data['profile']}`. "
              f"Source `{source['source_commit']}`. Analysis `{analysis['artifact_id']}` SHA256 `{analysis['sha256']}`.", '',
              '| Prompt | Stock before TTFT | Candidate TTFT | Stock after TTFT | Stock drift | Decode tok/s, stock / candidate / stock |',
              '|---|---:|---:|---:|---:|---:|']
@@ -209,10 +222,26 @@ def functional_controls(cc, product, expected, scopes, put, iteration):
     return evidence, dict(receipt, value=summary)
 
 
+def source_product(path, cc):
+    data = content(path)
+    if ARMS[cc] in data:
+        return data[ARMS[cc]]
+    if cc != 'C5' or not data.get('planner_report_reads'):
+        raise ValueError('Source manifest is missing the commissioned component')
+    release = data['native_verifier_release']
+    manifest = Path(data['home']) / 'ccstore/releases' / release / 'manifest.json'
+    declaration = content(manifest)['declaration']
+    if declaration['id'] != BUILDER_IDS[cc]:
+        raise ValueError('Revised mapper verifier capsule does not match the component')
+    return dict(data, task=data['task_id'], verification_receipt_id=data['native_verifier_artifact_id'],
+                factory_initial_plan_decision_id=data['planner_decision'],
+                source_capsule_release=release, source_capsule_version=declaration['version'])
+
+
 def publish(base, cc, policy, directories, iteration, product_identity, source_identity, placement_file, functional):
     repo = Path(__file__).resolve().parents[2]
     ops = base / 'OPS/p3'
-    meta = content(source_identity)[ARMS[cc]]
+    meta = source_product(source_identity, cc)
     inventory = content(product_identity)
     if inventory['schema'] != 'spark-native-star-build-products/1':
         raise ValueError('Unrecognized candidate build inventory')
@@ -316,9 +345,16 @@ def publish(base, cc, policy, directories, iteration, product_identity, source_i
                     build_receipt_ids=[product['receipt_artifact_id'], product['record_artifact_id']]),
             lab=dict(result_artifact_ids=provenance, status='single quiet stock/candidate timing bracket'),
             analysis=dict(ccs=[dict(id=CAPSULE, version=host.describe(release)['version'], release=release)], output_artifact_ids=outputs),
-            report=dict(report, status='early descriptive timing'), next_plan=dict(decision_id=None))
+            report=dict(report, status='early descriptive timing', summary=bracket_summary(analysis)),
+            next_plan=dict(decision_id=None))
+        plan_summary = (decision.get('action') or {}).get('summary')
+        if isinstance(plan_summary, str) and plan_summary.strip():
+            envelope['plan']['summary'] = plan_summary
         artifact_ids = [*provenance, *outputs, report['artifact_id'], meta['diff_artifact_id'], meta['verification_receipt_id'],
                         product['receipt_artifact_id'], product['record_artifact_id']]
+        if meta.get('planner_report_reads'):
+            store.read_artifact(task, meta['planner_report_reads'])
+            artifact_ids.append(meta['planner_report_reads'])
         append_once(store, task, dict(obs_id=iteration+':analysis', kind='gap_attribution',
             values=dict(capsule_id=CAPSULE, release=release, analysis=analysis), source_artifacts=artifact_ids))
         append_once(store, task, dict(obs_id=iteration+':report', kind='factory_iteration_report',

@@ -4892,6 +4892,8 @@
       "observationsFile": "报告观测记录",
       "record": "查看原始 JSON",
       "component": "范围内的组件 · {{id}}",
+      "fullRationale": "完整决策依据",
+      "fullReport": "完整报告和证据",
       "analysisData": "阅读分析数据",
       "doTitle": "构建 · 胶囊与更改",
       "labTitle": "实验 · 测量",

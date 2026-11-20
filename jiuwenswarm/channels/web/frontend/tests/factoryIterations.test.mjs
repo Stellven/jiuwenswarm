@@ -179,12 +179,34 @@ test('binds cross-run planner decisions to the cited report and verified copy', 
     source_artifacts: ['report.md', 'cache.json'], values: {
       iteration_id: 'c1', report_artifact_id: 'report.md', report_sha256: 'digest', next_plans: edges,
     } });
+  const summary = (values) => ({ kind: 'factory_iteration_summary',
+    values: { schema: 'factory-iteration-summary/1', ...values } });
   const records = { observations: [report, observation([next]), observation([
     { ...next, reason_for_change: 'Use profile-ranked native bank seeding.' },
     { ...next, decision_id: 'other:decision:1', decision_sha256: 'wrong' },
-  ])] };
+  ]), summary({ report_artifact_id: 'report.md', summary: 'Routing exposed prefill uploads.' }),
+  summary({ decision_id: next.decision_id, summary: 'Seed the native cache with frequently used experts.' })] };
   const [iteration] = buildIterations(records, [file('report', ['report.md']), file('decision', ['cache.json'])]);
+  assert.equal(iteration.reportSummary, 'Routing exposed prefill uploads.');
+  assert.equal(iteration.planSummary, '');
+  assert.equal(iteration.successors[0].summary, 'Seed the native cache with frequently used experts.');
   assert.deepEqual(iteration.successors.map(({ id, reason }) => ({ id, reason })), [
     { id: 'cache:decision:2', reason: 'Use profile-ranked native bank seeding.' },
   ]);
+});
+
+test('uses an authored decision summary while retaining the complete rationale', () => {
+  const plan = { decision_id: 'campaign:decision:4', hypothesis: 'Inspect the full routing trace.',
+    action: { summary: 'Count prefill uploads by layer.' } };
+  const [iteration] = buildIterations({ decisions: [plan], observations: [
+    { kind: 'factory_iteration_report', obs_id: 'r:report', values: {
+      schema: 'spark-factory-iteration/1', iteration_id: 'r', plan: { decision_id: plan.decision_id },
+    } },
+    { kind: 'factory_iteration_summary', values: {
+      schema: 'factory-iteration-summary/1', decision_id: plan.decision_id, summary: 'An earlier summary.',
+    } },
+  ] }, []);
+  assert.equal(iteration.planSummary, plan.action.summary);
+  assert.equal(iteration.plan.hypothesis, plan.hypothesis);
+  assert.equal(iteration.reportSummary, '');
 });
