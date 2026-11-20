@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""llama-server stand-in for moe-cache-tune.py: cap and ledger every calibration load."""
+import os
+from pathlib import Path
+import sys
+import time
+
+root = Path.home()/'predemo-spark'
+argv = sys.argv[1:]
+for i, arg in enumerate(argv):
+    if arg == '--moe-cache-mib':
+        mib = int(argv[i+1])
+        if not 0 <= mib <= 61440:
+            sys.exit('REFUSED: tonight MoE GPU cache cannot exceed 61440 MiB (60 GiB)')
+if not any(arg in ('--cpu-moe','-cmoe') for arg in argv):
+    sys.exit('REFUSED: CPU MoE placement required')
+# The native tuner appends host/port, verbosity and cache parameters to this command.
+# It must be launched with -m and -lm mmap --cpu-moe just like A.
+if not any(argv[i:i+2] == ['-lm','mmap'] or argv[i:i+2] == ['--load-mode','mmap'] for i in range(len(argv)-1)):
+    sys.exit('REFUSED: explicit mmap mode required')
+run = root/'OPS/runs'/f'aplus-tune-{time.time_ns()}'
+command = [str(root/'bin/capped'), '--arm','A+-tune','--result-dir',str(run),'--echo-output','--',str(root/'build-stock-cuda121/bin/llama-server'),*argv]
+os.execv(command[0],command)

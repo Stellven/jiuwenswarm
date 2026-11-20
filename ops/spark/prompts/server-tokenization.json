@@ -1,0 +1,12 @@
+[
+  {
+    "target_tokens": 512,
+    "server_tokens": 512,
+    "token_ids_match": true
+  },
+  {
+    "target_tokens": 2048,
+    "server_tokens": 2048,
+    "token_ids_match": true
+  }
+]

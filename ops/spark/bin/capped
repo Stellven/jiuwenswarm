@@ -12,6 +12,7 @@ import signal
 import subprocess
 import sys
 import time
+import threading
 
 ROOT = Path.home() / 'predemo-spark'
 GIB = 1024**3
@@ -57,6 +58,7 @@ if len(sys.argv) > 1 and sys.argv[1] == '--inside':
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--arm', required=True)
 p.add_argument('--result-dir', type=Path, required=True)
+p.add_argument('--echo-output', action='store_true', help='also forward engine logs (for native tuner)')
 p.add_argument('--enforcement-test', action='store_true', help='only runs the built-in 256 MiB allocator at a 128 MiB cap')
 p.add_argument('command', nargs=argparse.REMAINDER)
 a = p.parse_args()
@@ -96,15 +98,27 @@ def interrupted(sig, _frame):
     kill(unit)
 for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
     signal.signal(sig, interrupted)
+min_available = start_available
 peak = 0
 peak_rss = 0
 events = {}
 cg = None
 with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr.log').open('wb') as stderr, (a.result_dir / 'memory.jsonl').open('a', buffering=1) as memory:
-    proc = subprocess.Popen(runner, stdout=stdout, stderr=stderr)
+    tees = []
+    if a.echo_output:
+        proc = subprocess.Popen(runner, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        def tee(source, target, console):
+            while data := source.read1(65536):
+                target.write(data); target.flush()
+                console.buffer.write(data); console.buffer.flush()
+        for source, target, console in ((proc.stdout, stdout, sys.stdout), (proc.stderr, stderr, sys.stderr)):
+            thread=threading.Thread(target=tee,args=(source,target,console)); thread.start(); tees.append(thread)
+    else:
+        proc = subprocess.Popen(runner, stdout=stdout, stderr=stderr)
     deadline = time.monotonic() + 20
     while True:
         try:
+            min_available = min(min_available, available())
             if cg is None and (a.result_dir / 'scope.json').exists():
                 cg = Path(json.loads((a.result_dir / 'scope.json').read_text())['cgroup'])
             if cg is not None and cg.exists():
@@ -120,7 +134,7 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
                 peak_rss = max(peak_rss, rss)
                 memory.write(json.dumps({'time': utc(), 'current': current, 'peak': peak, 'rss': rss, 'available': available(), 'events': events}) + '\n')
                 (a.result_dir / 'monitor.ready').touch()
-                if int(events.get('oom_kill', 0)) and not a.enforcement_test:
+                if (int(events.get('oom', 0)) or int(events.get('oom_kill', 0))) and not a.enforcement_test:
                     stop = 'unexpected cgroup OOM kill'
                     kill(unit)
             if available() < 8 * GIB:
@@ -136,13 +150,15 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
                 break
         time.sleep(.05)
     rc = proc.wait()
+    for thread in tees:
+        thread.join()
 # The scope may vanish immediately on exit; memory.peak is sampled at 20 Hz.
 # systemd retains authoritative peak + OOM result on supported versions.
 properties = subprocess.run(['systemctl', '--user', 'show', unit, '-p', 'MemoryPeak', '-p', 'Result'], capture_output=True, text=True).stdout
 (a.result_dir / 'systemd-final.txt').write_text(properties)
 if 'Result=oom-kill' in properties and not a.enforcement_test:
     stop = 'unexpected cgroup OOM kill'
-result = dict(meta, event='stop', stop=utc(), returncode=rc, reason=stop, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None)
+result = dict(meta, event='stop', stop=utc(), returncode=rc, reason=stop, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None, min_mem_available_bytes=min_available)
 if a.enforcement_test:
     result['test_passed'] = cg is not None and rc != 0 and (int(events.get('oom_kill', 0)) > 0 or 'oom-kill' in properties)
 write(a.result_dir / 'result.json', result)
