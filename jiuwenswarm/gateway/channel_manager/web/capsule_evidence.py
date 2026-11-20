@@ -1,0 +1,315 @@
+"""Project capsule evidence from the same run sources as the web replay."""
+
+from collections import defaultdict
+import hashlib
+import json
+import math
+from pathlib import Path
+import re
+from statistics import median
+
+from jiuwenswarm.factory.redact import sanitize
+
+
+# The campaign numbers single-capsule arms by their registered work orders.
+STAR_ARMS = {
+    'observability.build_runtime_event_recorder': 'C1',
+    'engine.build_expert_weight_cache': 'C2',
+    'placement.build_weight_placement_planner': 'C3',
+    'routing.build_expert_demand_predictor': 'C4',
+    'engine.build_batch_layout_mapper': 'C5',
+}
+BASELINES = {'A', 'A+', 'S'}
+VERIFY_OBSERVATIONS = {'verifier_receipt_preserved', 'verify_receipt', 'capsule_verify'}
+ANALYSIS_OBSERVATIONS = {'analysis', 'profile_result', 'phase_breakdown', 'gap_attribution', 'analysis_result',
+                         'hypothesis_proposal', 'unmeasured_ablation_design', 'deep_profile_analyze'}
+ANALYSIS_PRODUCERS = {
+    'deep_profile_analyze': 'factory.deep_profile',
+    'hypothesis_proposal': 'factory.methodology_hypothesis',
+    'unmeasured_ablation_design': 'factory.methodology_ablation',
+}
+
+
+def _records(value):
+    return (row for row in value if isinstance(row, dict)) if isinstance(value, list) else ()
+
+
+def _object(value):
+    return value if isinstance(value, dict) else {}
+
+
+def _number(value):
+    if (type(value) is int and abs(value) < 2**53) or (type(value) is float and math.isfinite(value)):
+        return value
+    return None
+
+
+def _strings(value):
+    return [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+
+
+def _capsules(row):
+    identities = [row.get(key) for key in ('component_cc', 'capability_cc', 'capsule_id', 'capsule', 'cc')]
+    identities.extend(_strings(row.get('capsules')))
+    return [value for identity in identities if isinstance(value := _object(identity).get('id', identity), str)]
+
+
+def _artifact_kind(row, verifier_refs, product_refs):
+    aid = row['artifact_id']
+    if aid in verifier_refs or re.search(r'verif(?:y|ier)[-_]receipts?(?:\.json)?$', aid):
+        return 'verify_receipt'
+    if aid.endswith(':build-record'):
+        return 'build_record'
+    if aid.endswith((':receipt', '-receipt.json')):
+        return 'receipt'
+    if row.get('media_type') in ('text/x-diff', 'text/x-patch') or aid.endswith(('.diff', '.patch')):
+        return 'diff'
+    return 'product' if aid in product_refs else None
+
+
+def _receipt_row(receipt, source, capsule_id, release, inferred=False):
+    row = _object(receipt)
+    if row.get('capability') != 'verify' or not isinstance(row.get('call'), str):
+        return None
+    if not (inferred or capsule_id in _capsules(row) or (release and row.get('release') == release)):
+        return None
+    outputs = _object(row.get('outputs'))
+    created = _number(_object(row.get('provenance')).get('finished'))
+    checks = [{key: v for key in ('name', 'stage', 'status', 'detail') if isinstance(v := check.get(key), str)}
+              for check in _records(outputs.get('checks'))]
+    return source | {key: row.get(key) if isinstance(row.get(key), str) else None
+                     for key in ('call', 'release', 'state', 'completeness', 'reason')} | dict(
+                         created=created if created is not None else source['created'],
+                         done=outputs.get('done') if isinstance(outputs.get('done'), bool) else None, checks=checks)
+
+
+def _transcript_receipts(target, capsule_id, release):
+    requests = {}
+    with target.open('rb') as stream:
+        for line in stream:
+            if b'cc_call' not in line:
+                continue
+            try:
+                event = _object(json.loads(line))
+                tool = _object(event.get('tool_call'))
+                if str(tool.get('name', '')).endswith('cc_call'):
+                    args = tool.get('arguments')
+                    args = _object(json.loads(args) if isinstance(args, str) else args)
+                    if args.get('cc') == capsule_id and isinstance(tool.get('tool_call_id'), str):
+                        requests[tool['tool_call_id']] = args.get('capability')
+                if event.get('event_type') != 'chat.tool_result' or not str(event.get('tool_name', '')).endswith('cc_call'):
+                    continue
+                payload = event.get('result')
+                result = _object(_object(json.loads(payload) if isinstance(payload, str) else payload).get('result'))
+                requested = requests.pop(event.get('tool_call_id'), None)
+                payloads = [result.get('structuredContent')]
+                for child in _records(result.get('content')):
+                    try:
+                        payloads.append(json.loads(child.get('text', '{}')))
+                    except (TypeError, ValueError):
+                        continue
+                for receipt in map(_object, payloads):
+                    inferred = isinstance(requested, str) and receipt.get('capability') == requested
+                    if isinstance(receipt.get('call'), str) and (inferred or capsule_id in _capsules(receipt)
+                            or (release and receipt.get('release') == release)):
+                        yield receipt, _number(event.get('t'))
+            except (TypeError, ValueError):
+                continue
+
+
+def _analysis_row(record, source, call=None):
+    history = _object(_object(record.get('values')).get('receipt_history'))
+    receipt_key = {'hypothesis_proposal': 'proposal_call', 'unmeasured_ablation_design': 'ablation_call'}.get(record['kind'])
+    return source | dict(observation_id=record.get('obs_id'), call=call or history.get(receipt_key), kind=record['kind'],
+                         created=_number(record.get('created')), limitations=record.get('limitations'),
+                         artifact_ids=_strings(record.get('source_artifacts')), values=record['values'])
+
+
+def _analysis_call(receipt, source, analysis):
+    outputs = _object(receipt.get('outputs'))
+    values = _object(outputs.get('analysis'))
+    if analysis and not values:
+        values = {key: value for key in ('profile', 'phase_breakdown', 'gap_attribution', 'proposal')
+                  if (value := outputs.get(key)) is not None}
+    capability = receipt.get('capability')
+    if not values or capability in ('plan', 'profile_plan') or not isinstance(capability, str):
+        return None
+    evidence = _object(outputs.get('evidence'))
+    record = dict(evidence, kind=evidence.get('kind', capability), values=values,
+                  obs_id=evidence.get('obs_id') or outputs.get('observation_id'),
+                  created=_number(_object(receipt.get('provenance')).get('finished')) or source['created'])
+    return _analysis_row(record, source, receipt['call'])
+
+
+def _measurements(task, observations, capsule_id, task_owns_capsule, starred, source):
+    groups = defaultdict(list)
+    star_contract = task.get('contract_id') == 'star-deepseek-v1'
+    for observation in observations:
+        values = _object(observation.get('values'))
+        arm, prompt, ttft = values.get('arm'), _number(values.get('prompt_tokens')), _number(values.get('ttft_s'))
+        if (observation.get('kind') != 'measurement' or values.get('measurement_eligible') is not True
+                or values.get('warm') is False or values.get('discarded') or values.get('discard')
+                or values.get('ok') is False or not isinstance(arm, str) or type(prompt) is not int or prompt <= 0
+                or ttft is None or ttft <= 0):
+            continue
+        explicitly_attributed = _capsules(values)
+        if arm not in BASELINES:
+            attributed = task_owns_capsule
+            if star_contract and (arm == 'D' or arm in STAR_ARMS.values()):
+                attributed = starred and arm in (STAR_ARMS.get(capsule_id), 'D')
+            if explicitly_attributed:
+                attributed = capsule_id in explicitly_attributed
+            if not attributed:
+                continue
+        # Keep deltas inside matching campaign inputs and avoid mixing binaries
+        # within an arm. Baseline comparisons require an unambiguous group.
+        inputs = tuple(str(values.get(key, '')) for key in ('contract_sha256', 'prompt_manifest_sha256', 'prompt_sha256'))
+        binary = str(values.get('binary_sha256', ''))
+        groups[(prompt, inputs, arm, binary)].append((observation, values))
+
+    controls = defaultdict(list)
+    for (prompt, inputs, arm, _), rows in groups.items():
+        if arm in BASELINES:
+            controls[(prompt, inputs, arm)].append(median(values['ttft_s'] for _, values in rows))
+
+    for (prompt, inputs, arm, binary), rows in sorted(groups.items()):
+        if arm in BASELINES:
+            continue
+        ttft = median(values['ttft_s'] for _, values in rows)
+        matched = [controls[(prompt, inputs, baseline)] for baseline in ('A', 'A+', 'S')]
+        stock, cache, strata = (values[0] if len(values) == 1 else None for values in matched)
+        stats = {key: summarize(sample) if (sample := [v for _, values in rows
+                                                      if (v := _number(values.get(key))) is not None]) else None
+                 for key, summarize in (('decode_tps', median), ('peak_memory_bytes', max), ('load_time_s', median))}
+        yield source | stats | dict(
+            arm=arm, scope='combined' if arm == 'D' else 'capsule', prompt_tokens=prompt, samples=len(rows), ttft_s=ttft,
+            binary_sha256=binary or None, delta_vs_stock_s=ttft - stock if stock else None,
+            inverse_vs_stock=stock / ttft if stock else None, inverse_vs_cache=cache / ttft if cache else None,
+            gap_closed=(stock - ttft) / (stock - strata) if stock and strata and stock > strata else None,
+            observation_ids=[r['obs_id'] for r, _ in rows if isinstance(r.get('obs_id'), str)],
+            limitations=list(dict.fromkeys(r['limitations'] for r, _ in rows if isinstance(r.get('limitations'), str) and r['limitations'])),
+        )
+
+
+def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False, analysis=False):
+    """Read native run sources, preserving replay links and integrity state."""
+    from .factory_http import MAX_FILE, _inside, _json
+
+    related_runs, artifacts, measurements, receipts, analyses = [], [], [], [], []
+    seen_artifacts, seen_measurements, seen_analyses = set(), set(), set()
+    catalog = sorted(service.catalog(), key=lambda entry: (entry[0]['kind'] != 'live', -entry[0]['updated']))
+    for run, root in catalog:
+        try:
+            data = service.load(run, root)
+            task_id = run['task_id']
+            task = next(t for t in _records(data.get('tasks')) if t.get('task_id') == task_id)
+            bundle = run['kind'] == 'bundle'
+            exported = _inside(root, 'artifacts.json') if bundle else None
+            inventory = _json(exported) if bundle and exported.is_file() else data.get('artifacts')
+            manifest = service.expected(run, root, data) if bundle else {}
+        except (OSError, ValueError, KeyError, StopIteration):
+            continue
+
+        source = dict(run_id=run['id'], run_name=run['name'])
+        owns_capsule = (task.get('component_cc') or task.get('capability_cc')) == capsule_id
+        observations = [row for row in _records(data.get('observations')) if row.get('task_id', task_id) == task_id]
+        relevant = [r for r in observations if capsule_id in _capsules(_object(r.get('values'))) or
+                    (owns_capsule and not _capsules(_object(r.get('values'))))]
+        run_analyses = []
+        for record in observations:
+            kind, values = record.get('kind'), _object(record.get('values'))
+            if not isinstance(kind, str) or not values:
+                continue
+            explicit = capsule_id in _capsules(record) or capsule_id in _capsules(values)
+            named = kind in ANALYSIS_OBSERVATIONS or kind.startswith(('analysis.', 'analysis_', 'profile_analysis'))
+            structured = any(key in values for key in ('analysis', 'phase_breakdown', 'gap_attribution'))
+            producer = ANALYSIS_PRODUCERS.get(kind)
+            associated = explicit or (producer == capsule_id if producer else analysis and owns_capsule)
+            if associated and (named or structured or analysis and explicit):
+                run_analyses.append(_analysis_row(record, source | dict(path=None, integrity=None)))
+        verifier_refs = {ref: r for r in relevant if r.get('kind') in VERIFY_OBSERVATIONS
+                         for ref in _strings(r.get('source_artifacts'))}
+        product_refs = {ref for r in relevant if r.get('kind') == 'capsule_product' for ref in _strings(r.get('source_artifacts'))}
+        run_artifacts, run_receipts = [], []
+        for entry in _records(inventory):
+            aid = entry.get('artifact_id')
+            if (entry.get('task_id', task_id) != task_id or not isinstance(aid, str)
+                    or re.match(r'input-\d+:', aid) or entry.get('complete') is False):
+                continue
+            if not (owns_capsule or aid in verifier_refs or aid in product_refs):
+                continue
+            kind = _artifact_kind(entry, verifier_refs, product_refs)
+            if not kind:
+                continue
+            relative = entry.get('exported_path' if bundle else 'location')
+            if (not isinstance(relative, str) or not Path(relative).parts or Path(relative).parts[0] != 'artifacts'):
+                continue
+            try:
+                target = _inside(root, relative)
+                expected = manifest.get(relative) if bundle else entry.get('sha256')
+                can_read_receipt = kind == 'verify_receipt' and target.is_file() and target.stat().st_size <= MAX_FILE
+                blob = target.read_bytes() if can_read_receipt else None
+                digest = (hashlib.sha256(blob).hexdigest() if blob is not None else service.file_hash(target)) if target.is_file() else None
+            except (OSError, ValueError):
+                continue
+            integrity = 'missing' if not digest else ('verified' if digest == expected else 'mismatch') if expected else 'untracked'
+            artifact = source | dict(path=relative, artifact_id=aid, kind=kind, integrity=integrity, sha256=digest,
+                                     media_type=entry.get('media_type'), created=_number(entry.get('created')))
+            key = (task_id, aid, entry.get('sha256'), integrity)
+            if key not in seen_artifacts:
+                run_artifacts.append(artifact)
+                seen_artifacts.add(key)
+            if blob is None or integrity != 'verified':
+                continue
+            try:
+                saved = json.loads(blob)
+            except (ValueError, UnicodeDecodeError):
+                continue
+            saved = saved if isinstance(saved, list) else [saved]
+            receipt_source = artifact | {'limitations': verifier_refs.get(aid, {}).get('limitations')}
+            for receipt in saved:
+                if row := _receipt_row(receipt, receipt_source, capsule_id, release, aid in verifier_refs):
+                    run_receipts.append(row)
+
+        session = 'session.jsonl' if bundle else f'sessions/{task_id}.jsonl'
+        try:
+            target = _inside(root, session)
+            if target.is_file() and target.stat().st_size <= MAX_FILE:
+                wanted = manifest.get(session)
+                integrity = 'verified' if wanted and service.file_hash(target) == wanted else 'untracked'
+                if not wanted or integrity == 'verified':
+                    session_source = source | dict(path=session, artifact_id=None, integrity=integrity, created=None)
+                    for receipt, created in _transcript_receipts(target, capsule_id, release):
+                        call_source = session_source | {'created': created}
+                        if row := _receipt_row(receipt, call_source, capsule_id, release, inferred=True):
+                            run_receipts.append(row)
+                        if row := _analysis_call(receipt, call_source, analysis):
+                            run_analyses.append(row)
+        except (OSError, ValueError):
+            pass
+
+        run_measurements = []
+        for row in _measurements(task, observations, capsule_id, owns_capsule, starred, source):
+            key = (task_id, row['arm'], row['prompt_tokens'], tuple(sorted(row['observation_ids'])))
+            if key not in seen_measurements:
+                run_measurements.append(row)
+                seen_measurements.add(key)
+        if capsule_id in _capsules(task) or run_artifacts or run_receipts or run_measurements or run_analyses:
+            related_runs.append({key: run[key] for key in ('id', 'name', 'kind')})
+        artifacts.extend(run_artifacts)
+        measurements.extend(run_measurements)
+        receipts.extend(run_receipts)
+        for row in run_analyses:
+            ids = {value for value in (row['observation_id'], row['call']) if isinstance(value, str)}
+            keys = {(task_id, value) for value in ids} or {(task_id, row['kind'], row['created'])}
+            if keys.isdisjoint(seen_analyses):
+                analyses.append(row)
+                seen_analyses.update(keys)
+
+    return sanitize(dict(
+        latest_verify_receipt=max(receipts, key=lambda row: (row['created'] or 0, row['integrity'] == 'verified',
+                                                           row['artifact_id'] is not None), default=None),
+        artifacts=sorted(artifacts, key=lambda row: row['created'] or 0, reverse=True),
+        measurements=measurements, analyses=sorted(analyses, key=lambda row: row['created'] or 0, reverse=True),
+        runs=related_runs,
+    ))
