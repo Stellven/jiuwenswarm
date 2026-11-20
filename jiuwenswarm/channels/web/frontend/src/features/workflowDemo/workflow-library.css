@@ -1,0 +1,625 @@
+.wd-workspace {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+}
+.wd-workspace-navigation {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px var(--shell-pad) 0;
+}
+.wd-workspace-navigation button[aria-pressed='true'] {
+  border-color: var(--color-action-primary);
+  color: var(--color-text-link);
+}
+.wl-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(340px, 1.6fr) minmax(310px, 1.1fr);
+  gap: var(--shell-gap);
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.wl-pane {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.wl-pane-heading {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-pane-heading h2 {
+  margin-right: auto;
+}
+.wl-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+}
+.wl-section,
+.wl-workflow {
+  margin-bottom: 16px;
+}
+.wl-import-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.wl-actions,
+.wl-run-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wl-workflow-name {
+  border: 0;
+  background: var(--color-surface-card);
+  padding: 4px 0;
+  margin-bottom: 6px;
+  text-align: left;
+  font-weight: 600;
+  cursor: pointer;
+}
+.wl-workflow-name[aria-pressed='true'] {
+  color: var(--color-text-link);
+}
+.wl-parts {
+  display: grid;
+  gap: 5px;
+  padding-left: 10px;
+  border-left: 1px solid var(--color-border-default);
+}
+.wl-parts .wd-pool-card {
+  width: 100%;
+  margin: 0;
+  padding: 7px 8px;
+  font-size: inherit;
+}
+.wl-parts .wd-pool-card[data-selection='selected'] {
+  border-width: 1px;
+  border-color: var(--color-action-primary);
+}
+.wl-composer {
+  flex: 0 1 46%;
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-tabs {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-tabs button {
+  padding: 5px 7px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface-card);
+  font: inherit;
+  cursor: pointer;
+}
+.wl-tabs button[aria-selected='true'] {
+  border-color: var(--color-action-primary);
+  color: var(--color-text-link);
+}
+.wl-editor {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 100px;
+  flex: 1 1 0%;
+  resize: none;
+  padding: 12px;
+  border: 0;
+  outline-offset: -2px;
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  font: var(--font-size-sm)/1.5 var(--font-mono);
+}
+.wl-policy {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.wl-policy > code {
+  padding: 4px 12px;
+  overflow-wrap: anywhere;
+}
+.wl-decisions {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wl-graph-scroll {
+  flex: 1 1 0%;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  background: var(--color-surface-card);
+}
+.wl-graph {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.wl-graph .wd-node {
+  font: inherit;
+  color: var(--color-text-primary);
+}
+.wl-inspector h4 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.wl-inspector pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wl-inspector code,
+.wl-inspector h3,
+.wl-inspector dd {
+  overflow-wrap: anywhere;
+}
+.wl-source-links {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0;
+}
+.wl-source-links button,
+.wl-artifact > button:first-child {
+  text-align: left;
+  padding: 4px 0;
+  border: 0;
+  background: var(--color-surface-card);
+  color: var(--color-text-link);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.wl-source-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.wl-source-form input {
+  flex: 1 1 0%;
+}
+.wl-inspector .wl-code {
+  white-space: pre;
+  overflow: auto;
+  overflow-wrap: normal;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+.wl-event,
+.wl-artifact {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-event-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px;
+}
+.wl-event-job,
+.wl-artifact > code {
+  display: block;
+  overflow-wrap: anywhere;
+  margin-top: 6px;
+}
+.wl-artifact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.wl-artifact > button:first-child {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.wl-artifact > code {
+  width: 100%;
+}
+.wl-code-diff {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.wl-error {
+  flex: 0 0 auto;
+  max-height: 100px;
+  overflow: auto;
+  margin: 0;
+}
+@media (max-width: 1200px) {
+  .wl-layout {
+    grid-template-columns: 210px minmax(280px, 1fr) 280px;
+    gap: 10px;
+  }
+}
+
+.wl-selection-path {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+.wl-selection-path li {
+  padding: 5px 0;
+}
+.wl-selection-path button {
+  padding: 0;
+  text-align: left;
+  border: 0;
+  color: var(--color-text-link);
+  background: var(--color-surface-card);
+  font: inherit;
+  cursor: pointer;
+}
+.wl-layout[data-inspector='diff'] {
+  grid-template-columns: 240px minmax(0, 1fr);
+}
+.wl-layout[data-inspector='diff'] > main {
+  display: none;
+}
+.wl-layout[data-inspector='diff'] .wl-code-diff {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.wl-code-diff > div {
+  min-width: 0;
+}
+
+.wl-decision {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-decision p {
+  margin: 8px 0;
+}
+.wl-decision h4 {
+  margin-top: 10px;
+}
+.wl-decision ul {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.wl-app .ui-button--primary {
+  color: var(--color-control-emphasis-text);
+}
+
+.wl-source-members {
+  display: grid;
+  gap: 4px;
+  max-height: 180px;
+  overflow: auto;
+  margin: 10px 0 14px;
+}
+.wl-source-members button {
+  padding: 4px 6px;
+  text-align: left;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-link);
+  font: inherit;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.wl-source-members button[aria-pressed='true'] {
+  border-color: var(--color-action-primary);
+}
+.wl-generated-code {
+  max-height: 44vh;
+}
+
+.wl-human-task {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+.wl-human-task > label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+.wl-request-input {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  padding: 8px;
+  font: inherit;
+  line-height: 1.5;
+}
+.wl-human-source {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: center;
+  margin: 10px 0;
+}
+.wl-task-requirement {
+  display: inline-block;
+  margin-right: 12px;
+}
+.wl-history-record {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  width: 100%;
+  padding: 10px 8px;
+  margin-top: 8px;
+  gap: 6px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface-card);
+  text-align: left;
+  cursor: pointer;
+}
+.wl-history-record > span:not(.wd-status) {
+  grid-column: 1 / -1;
+  overflow-wrap: anywhere;
+}
+.wl-history-record[aria-pressed='true'] {
+  border-color: var(--color-action-primary);
+}
+.wl-component-summary {
+  padding: 0 12px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-component-summary .wl-pane-heading {
+  padding-left: 0;
+  padding-right: 0;
+}
+.wl-component-summary > h3 {
+  margin: 12px 0;
+}
+.wl-component-summary .wl-actions {
+  margin-top: 12px;
+}
+.wl-parent-definition .wl-graph-scroll {
+  height: 210px;
+  min-height: 210px;
+  margin-top: 10px;
+}
+.wl-part-mapping {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-port-mapping {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+.wl-port-mapping ul {
+  margin-top: 6px;
+  padding-left: 18px;
+}
+.wl-file-handoff {
+  display: contents;
+}
+.wl-consumer-file {
+  display: block;
+  margin-top: 6px;
+}
+.wl-planner-blocked {
+  padding: 12px;
+  overflow: auto;
+}
+.wl-planner-blocked pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wl-inspector .wl-code[data-language='markdown'] {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.wl-event-narrative {
+  margin-top: 8px;
+}
+
+.wl-saved-import {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  min-height: 0;
+}
+.wl-saved-import h3 {
+  margin-top: 18px;
+}
+.wl-saved-import .wl-actions {
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.wl-import-pieces {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.wl-import-pieces button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+.wl-model-attempt {
+  display: grid;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-default);
+  color: var(--color-feedback-danger);
+}
+.wl-file-open {
+  display: block;
+  border: 0;
+  padding: 0;
+  margin-bottom: 4px;
+  background: var(--color-surface-card);
+  color: var(--color-text-link);
+  text-align: left;
+  cursor: pointer;
+}
+.wl-file-provenance {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.wl-outcome-summary {
+  margin: 12px 0;
+}
+.wl-outcome-summary > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+.wl-outcome-summary dd {
+  margin: 0;
+}
+.wl-parent-step-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wl-parent-step-list > li {
+  border-left: 1px solid var(--color-border-default);
+  padding-left: 0.75rem;
+}
+
+.wl-parent-step-list > li > button {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-border-default);
+  border-radius: 0.375rem;
+  text-align: left;
+}
+
+.wl-parent-step-list > li > button[aria-pressed='true'] {
+  border-color: var(--color-text-link);
+}
+
+.wl-parent-step-input {
+  margin: 0.2rem 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.wl-delivery-status {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.wl-layout[data-inspector='diff'] .wl-code-diff {
+  display: block;
+}
+.wl-code-diff-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.wl-code-diff-pair > div {
+  min-width: 0;
+}
+
+.wl-pool-step {
+  min-width: 0;
+}
+.wl-record-example {
+  display: block;
+  padding: 4px 0 6px;
+  border: 0;
+  background: var(--color-surface-card);
+  color: var(--color-text-link);
+  font: inherit;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.wl-import-replay {
+  padding: 12px;
+}
+.wl-import-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.wl-import-stages button {
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+}
+.wl-import-stages button[aria-current='step'] {
+  border-color: var(--color-text-link);
+  color: var(--color-text-link);
+}
+.wl-import-action {
+  margin-block: 12px;
+}
+.wl-import-action code {
+  overflow-wrap: anywhere;
+}
+.wl-import-action li {
+  margin-block: 4px;
+}
+.wl-import-source-step {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-block: 12px;
+}
+.wl-import-source-step > section {
+  padding: 10px;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+}
+.wl-import-source-step button {
+  overflow-wrap: anywhere;
+}

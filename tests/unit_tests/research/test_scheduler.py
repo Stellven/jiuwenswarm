@@ -44,8 +44,12 @@ async def test_partial_output_retains_source_null_reason_and_protected_stop_rece
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize('reason',['integrity_fault','security_fault','AUDIT_UNAVAILABLE','run_budget_exhausted','foreign_run','foreign_observation','unknown_reason',None])
-async def test_scheduler_stops_independent_dispatch_on_exact_protected_receipt(monkeypatch,reason):
+@pytest.mark.parametrize(('reason','requires_producer'), [
+    ('integrity_fault',False),('security_fault',False),('AUDIT_UNAVAILABLE',False),
+    ('run_budget_exhausted',False),('foreign_run',False),('foreign_observation',False),
+    ('unknown_reason',False),(None,False),(None,True),
+])
+async def test_scheduler_stops_independent_dispatch_on_exact_protected_receipt(monkeypatch,reason,requires_producer):
     # In-memory finite trusted-component seams isolate the actual Scheduler
     # causal decision; the preceding test exercises the real Runner capture.
     def ref(name):return {'id':name,'sha256':'a'*64}
@@ -53,6 +57,8 @@ async def test_scheduler_stops_independent_dispatch_on_exact_protected_receipt(m
     nodes=[{'node_id':name,'predecessors':[],'cc':cc,'inputs':[],'outputs':[],
         'objective':'Controlled scheduler stop','requirement_ids':['unit'],'deliverable_ids':[],
         'limits':{'time_s':30,'model_calls':0,'memory_mb':64},'check_pins':{}} for name in ('a','independent')]
+    if requires_producer:
+        nodes[1]['predecessors']=['a']
     plan={'frozen':True,'nodes':nodes,'topological_order':['a','independent'],'library_snapshot_ref':ref('snapshot'),
         'limits':{'time_s':60},'policy_ref':ref('policy'),'configuration_ref':ref('configuration'),'source_ref':ref('source')}
     records={'plan':plan,'snapshot':{'entries':[dict(cc,input_ports=[],output_ports=[])]}}
@@ -96,6 +102,10 @@ async def test_scheduler_stops_independent_dispatch_on_exact_protected_receipt(m
         with pytest.raises(ResearchError,match='protected_stop'):
             await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{'resource_reads':[]}})
         assert dispatched==['a'] and states==['halted']
+    elif requires_producer:
+        result=await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{'resource_reads':[]}})
+        assert dispatched==['a'] and result['status']=='partial'
+        assert result['node_states']=={'a':'rejected','independent':'skipped'}
     else:
         result=await scheduler.execute_plan('run',ref('plan'),{'authority_ceiling':{'resource_reads':[]}})
         assert dispatched==['a','independent'] and result['status']=='partial'

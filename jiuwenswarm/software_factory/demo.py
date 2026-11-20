@@ -120,6 +120,13 @@ def create_app(*, root: Path, recordings_directory: Path | None = None,
     from .recordings import RecordingsStore, default_recordings_directory
     check_frontend(frontend)
     app = FastAPI(title='JiuwenSwarm Software Factory')
+
+    @app.get('/api/v1/auth/status')
+    async def local_auth_status():
+        # This loopback launcher does not mount the host's account-login service.
+        # Do not claim a user or a model-provider authenticated session.
+        return {'islogin': False, 'enabled': False, 'state': 'off'}
+
     app.state.factory_service = FactoryService(root)
     app.state.factory_recordings = RecordingsStore(
         recordings_directory or default_recordings_directory())
@@ -148,7 +155,10 @@ def main(argv=None) -> int:
             return 0
         app = create_app(root=args.root, recordings_directory=args.recordings)
         identifier = report['recordings'][0]['id']
-        print(f'Workflow: http://127.0.0.1:{args.port}/?view=workflow&lng=en&recording={identifier}', flush=True)
+        print(f'Workflow Library: http://127.0.0.1:{args.port}/?view=workflow&lng=en', flush=True)
+        print(f'STRATA build: http://127.0.0.1:{args.port}/?view=workflow&lng=en&workflowMode=live', flush=True)
+        print(f'Guided example: http://127.0.0.1:{args.port}/?view=workflow&lng=en&workflowMode=guided', flush=True)
+        print(f'Recorded run: http://127.0.0.1:{args.port}/?view=workflow&lng=en&recording={identifier}', flush=True)
         import uvicorn
         uvicorn.run(app, host='127.0.0.1', port=args.port)
         return 0

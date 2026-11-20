@@ -8,7 +8,7 @@ FROM ${PYTHON_IMAGE} AS runtime-tools
 COPY --from=uv /uv /uvx /usr/local/bin/
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git ca-certificates bubblewrap tmux procps iproute2 util-linux \
-    libgomp1 libglib2.0-0 libgl1 gcc g++ \
+    libgomp1 libglib2.0-0 libgl1 gcc g++ cmake make \
     && dpkg-query -W > /usr/local/share/ai4r-os-packages.txt \
     && rm -rf /var/lib/apt/lists/*
 RUN groupadd --gid 10001 ai4r && useradd --uid 10001 --gid 10001 --create-home ai4r \

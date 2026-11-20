@@ -14,6 +14,7 @@ from .compiler import VerifierBindings,input_port
 from .contracts import ResearchError
 from .native import run_native_workflow
 from .planning import selected_plan_source
+from .scheduler_dependencies import unaccepted_predecessors
 
 
 def stamp():return datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -298,7 +299,7 @@ class Scheduler:
             if self.store.cancellation_requested(run_id):raise ResearchError('cancelled','No new dispatch after cancellation')
             if time.monotonic()-started>=plan['limits']['time_s']:raise ResearchError('budget_exhausted','Frozen run wall-clock limit exhausted')
             node=nodes[node_id]
-            failures=[p for p in node['predecessors'] if states.get(p)!='accepted']
+            failures=unaccepted_predecessors(node['predecessors'],states,'accepted')
             if failures:
                 states[node_id]='skipped';self.store.set_node_state(run_id,node_id,'skipped',reason=failures[0])
                 return {'node_id':node_id,'outcome':'skipped'}

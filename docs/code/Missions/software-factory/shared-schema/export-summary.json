@@ -1,0 +1,13 @@
+{
+  "workflow_revision": "9f1358d27f53f36d5359269b15700723e26edec3",
+  "cc_revision": "c7891472b399aecba42735df19b8c80451231355",
+  "cc_declarations": 16,
+  "entries": 150,
+  "kinds": {
+    "operation": 52,
+    "composite": 42,
+    "collection": 16,
+    "material": 40
+  },
+  "execution_performed": false
+}

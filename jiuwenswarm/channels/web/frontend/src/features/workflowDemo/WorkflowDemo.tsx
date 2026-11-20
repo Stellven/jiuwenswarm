@@ -31,6 +31,9 @@ import {
   nodePoolRef,
 } from './presentationModel';
 import { normalizeReplayEvents, projectReplay } from './replayProjection.js';
+import { WorkflowLibraryDemo } from './WorkflowLibraryDemo';
+import { GuidedFactoryReplay } from './GuidedFactoryReplay';
+import { LiveFactoryWorkflow } from './LiveFactoryWorkflow';
 import './workflow-demo.css';
 
 const repository = 'https://github.com/niko1221/strata';
@@ -362,12 +365,14 @@ function Graph({
   );
 }
 
-export function WorkflowDemo() {
+function RecordedWorkflowDemo() {
   const [catalog, setCatalog] = useState<FactoryCatalog | null>(null);
   const [recordedCatalog, setRecordedCatalog] = useState<FactoryCatalog | null>(null);
   const [recordedLibrary, setRecordedLibrary] = useState<WorkflowLibrary | null>(null);
   const [recordings, setRecordings] = useState<FactoryRecordingSummary[]>([]);
+  const [loadingRecordingList, setLoadingRecordingList] = useState(true);
   const [recordingId, setRecordingId] = useState(requestedRecording);
+  const [showEngineeringTask, setShowEngineeringTask] = useState(() => Boolean(storedRunId()));
   const navigationChosen = useRef(false);
   const [loadingRecording, setLoadingRecording] = useState(false);
   const [runId, setRunId] = useState(storedRunId);
@@ -449,6 +454,9 @@ export function WorkflowDemo() {
       })
       .catch((failure) => {
         if (!controller.signal.aborted) setError(String(failure));
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingRecordingList(false);
       });
     return () => controller.abort();
   }, []);
@@ -712,6 +720,7 @@ export function WorkflowDemo() {
   };
   const newTask = () => {
     navigationChosen.current = true;
+    setShowEngineeringTask(true);
     pauseReplay();
     setRecordingId('');
     setRunId('');
@@ -750,6 +759,7 @@ export function WorkflowDemo() {
     setInspectedRevision(null);
     setReplayCursor(0);
     setReplay(true);
+    setShowEngineeringTask(false);
     setRecordingId(id);
     const url = new URL(window.location.href);
     url.searchParams.set('view', 'workflow');
@@ -813,7 +823,7 @@ export function WorkflowDemo() {
         <section className="wd-panel wd-canvas-panel" aria-label={copy.canvas} data-testid="workflow-demo-canvas-panel">
           <div className="wd-recording-navigation" data-testid="workflow-demo-recording-navigation">
             <label htmlFor="factory-recording" data-testid="workflow-demo-recording-label">
-              Task recording
+              Saved run
             </label>
             <select
               id="factory-recording"
@@ -821,7 +831,9 @@ export function WorkflowDemo() {
               onChange={(event) => (event.target.value ? openRecording(event.target.value) : newTask())}
               data-testid="workflow-demo-recording-selector"
             >
-              <option value="">New task</option>
+              <option value="" disabled={!showEngineeringTask}>
+                {showEngineeringTask ? 'New engineering task' : 'Choose a saved run'}
+              </option>
               {recordings.map((item) => (
                 <option
                   key={item.id}
@@ -838,7 +850,7 @@ export function WorkflowDemo() {
               ))}
             </select>
             <Button size="sm" onClick={newTask} data-testid="workflow-demo-new-task">
-              New task
+              Open new engineering task
             </Button>
           </div>
           {replay && run ? (
@@ -848,6 +860,16 @@ export function WorkflowDemo() {
                 {run.request.task?.description || run.request.goals.join(', ')}
               </p>
               <dl className="wd-request-fields">
+                {recordingId && (
+                  <div>
+                    <dt>Recorded run</dt>
+                    <dd data-testid="workflow-demo-recorded-run-identity">
+                      <code>{run.id}</code>
+                      {' · '}
+                      {new Date(run.created_at).toLocaleString()}
+                    </dd>
+                  </div>
+                )}
                 <div>
                   <dt>Input source</dt>
                   <dd data-testid="workflow-demo-recorded-source-role">
@@ -912,7 +934,7 @@ export function WorkflowDemo() {
                 </div>
               </dl>
             </section>
-          ) : !recordingId && !replay ? (
+          ) : showEngineeringTask && !recordingId && !replay ? (
             <form className="wd-composer" onSubmit={(event) => void start(event)} data-testid="workflow-demo-task-form">
               <label
                 className="wd-task-label"
@@ -1007,6 +1029,11 @@ export function WorkflowDemo() {
               Loading recording
             </p>
           )}
+          {!showEngineeringTask && !run && !loadingRecording && !recordings.length && !error && (
+            <p className="wd-loading" role="status" data-testid="workflow-demo-opening-recordings">
+              {loadingRecordingList ? 'Opening saved factory records' : 'No saved factory runs available'}
+            </p>
+          )}
           {replay && run && (
             <ReplayControls
               key={recordingId || run.id}
@@ -1033,10 +1060,12 @@ export function WorkflowDemo() {
           )}
           <div className="wd-graph-heading" data-testid="workflow-demo-graph-heading">
             <h2 data-testid="workflow-demo-canvas-title">{copy.canvas}</h2>
-            <span data-testid="workflow-demo-composition-counts">
-              {counts.workflows} workflows · {counts.subworkflows} sub-workflows · {counts.stages} stages ·{' '}
-              {counts.implementations} lowering instances
-            </span>
+            {(run || showEngineeringTask) && (
+              <span data-testid="workflow-demo-composition-counts">
+                {counts.workflows} workflows · {counts.subworkflows} sub-workflows · {counts.stages} stages ·{' '}
+                {counts.implementations} lowering instances
+              </span>
+            )}
             {displayRun && (
               <span className="wd-run-status" data-testid="workflow-demo-run-status">
                 <StatusDot status={displayRun.status} />
@@ -1070,19 +1099,21 @@ export function WorkflowDemo() {
               setPoolRef('');
             }}
           />
-          <EvidencePanel
-            run={displayRun}
-            events={graphEvents}
-            recordingId={recordingId || undefined}
-            catalog={displayCatalog}
-            library={workflowLibrary}
-            selected={selectedNode?.id ?? ''}
-            onSelectNode={(id) => {
-              setSelected(id);
-              setStageId('');
-              setPoolRef('');
-            }}
-          />
+          {(run || showEngineeringTask) && (
+            <EvidencePanel
+              run={displayRun}
+              events={graphEvents}
+              recordingId={recordingId || undefined}
+              catalog={displayCatalog}
+              library={workflowLibrary}
+              selected={selectedNode?.id ?? ''}
+              onSelectNode={(id) => {
+                setSelected(id);
+                setStageId('');
+                setPoolRef('');
+              }}
+            />
+          )}
         </section>
         <aside className="wd-panel wd-detail" aria-label={copy.details} data-testid="workflow-demo-detail">
           <h2 data-testid="workflow-demo-detail-title">{copy.details}</h2>
@@ -1125,6 +1156,77 @@ export function WorkflowDemo() {
           {selectedStage && <ContractDetails stage={selectedStage} />}
         </aside>
       </div>
+    </div>
+  );
+}
+
+export function WorkflowDemo() {
+  const libraryParameters = ['libraryExecution', 'libraryPlan', 'libraryCheck', 'libraryImport'];
+  const recordingParameters = ['recording', 'factoryRecording', 'replay', 'factoryRun'];
+  type WorkspaceView = 'live' | 'guided' | 'library' | 'recording';
+  const [view, setView] = useState<WorkspaceView>(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.has('workflowBuild')) return 'live';
+    if (libraryParameters.some((parameter) => query.has(parameter))) return 'library';
+    if (requestedRecording() || requestedReplay() || query.has('factoryRun')) return 'recording';
+    const selected = query.get('workflowMode');
+    return selected === 'live' || selected === 'recording' || selected === 'guided' ? selected : 'library';
+  });
+  const openView = (target: WorkspaceView) => {
+    if (target === view) return;
+    const url = new URL(window.location.href);
+    if (target !== 'library') libraryParameters.forEach((parameter) => url.searchParams.delete(parameter));
+    if (target !== 'recording') recordingParameters.forEach((parameter) => url.searchParams.delete(parameter));
+    if (target !== 'live') url.searchParams.delete('workflowBuild');
+    if (target === 'library') url.searchParams.delete('workflowMode');
+    else url.searchParams.set('workflowMode', target);
+    window.history.replaceState(window.history.state, '', url);
+    setView(target);
+  };
+  return (
+    <div className="wd-workspace" data-testid="workflow-demo-workspace">
+      <nav
+        className="wd-workspace-navigation"
+        aria-label="Factory workspace"
+        data-testid="workflow-demo-workspace-navigation"
+      >
+        <Button
+          size="sm"
+          aria-pressed={view === 'live'}
+          onClick={() => openView('live')}
+          data-testid="workflow-demo-workspace-live"
+        >
+          STRATA build
+        </Button>
+        <Button
+          size="sm"
+          aria-pressed={view === 'guided'}
+          onClick={() => openView('guided')}
+          data-testid="workflow-demo-workspace-guided"
+        >
+          Guided example
+        </Button>
+        <Button
+          size="sm"
+          aria-pressed={view === 'library'}
+          onClick={() => openView('library')}
+          data-testid="workflow-demo-workspace-library"
+        >
+          Workflow Library
+        </Button>
+        <Button
+          size="sm"
+          aria-pressed={view === 'recording'}
+          onClick={() => openView('recording')}
+          data-testid="workflow-demo-workspace-recording"
+        >
+          Previous factory recordings
+        </Button>
+      </nav>
+      {view === 'live' && <LiveFactoryWorkflow />}
+      {view === 'guided' && <GuidedFactoryReplay />}
+      {view === 'library' && <WorkflowLibraryDemo />}
+      {view === 'recording' && <RecordedWorkflowDemo />}
     </div>
   );
 }

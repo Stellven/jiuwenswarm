@@ -181,13 +181,16 @@ class SessionAuthority:
         return {'token': token, 'ws_token': ws_token, 'set_cookie': cookie}
 
     @_serialized
-    def _lookup(self, token: str, kind: str, operation: str, workspace_id: str | None, audience: str | None) -> Principal:
+    def _lookup(self, token: str, kind: str, operation: str, workspace_id: str | None,
+                audience: str | None, *, native_only: bool = False) -> Principal:
         if not isinstance(token, str) or not 20 <= len(token) <= 256:
             raise ResearchError('auth', 'Authentication required')
         kinds = ('http', 'evaluation_http', 'runner_http') if kind == 'http' else (kind,)
         row = self.db.execute('SELECT principal,kind FROM grants WHERE digest=? AND kind IN (' + ','.join('?' for _ in kinds) + ') AND revoked=0', (_digest(token), *kinds)).fetchone()
         if row is None:
             raise ResearchError('auth', 'Authentication required')
+        if native_only and row[1] != 'http':
+            raise ResearchError('auth', 'A native host session is required', {'http_status': 403})
         if row[1] == 'evaluation_http':
             self._evaluation_scope(token)
         if row[1] == 'runner_http':
@@ -205,11 +208,19 @@ class SessionAuthority:
             raise ResearchError('auth', 'Audience is outside the authenticated grant', {'http_status': 403})
         return principal
 
-    def authenticate(self, authorization: str | None, operation: str, workspace_id: str | None = None,
-                     audience: str | None = None) -> Principal:
+    @staticmethod
+    def _bearer_token(authorization: str | None) -> str:
         if not authorization or not authorization.startswith('Bearer ') or authorization.count(' ') != 1:
             raise ResearchError('auth', 'Bearer authentication required')
-        return self._lookup(authorization[7:], 'http', operation, workspace_id, audience)
+        return authorization[7:]
+
+    def authenticate(self, authorization: str | None, operation: str, workspace_id: str | None = None,
+                     audience: str | None = None) -> Principal:
+        return self._lookup(self._bearer_token(authorization), 'http', operation, workspace_id, audience)
+
+    def authenticate_native_http(self, authorization: str | None, operation: str) -> Principal:
+        """Authenticate a native session for a host surface outside delegated Research."""
+        return self._lookup(self._bearer_token(authorization), 'http', operation, None, None, native_only=True)
 
     def authenticate_ws(self, headers: Mapping[str, str], operation: str, workspace_id: str | None = None) -> Principal:
         headers = {key.lower(): value for key, value in headers.items()}

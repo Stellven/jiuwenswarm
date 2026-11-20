@@ -384,6 +384,7 @@ export async function readEventStream(response: Response, receive: (frame: Facto
 
 export const factoryClient = {
   catalog: (signal?: AbortSignal) => request<FactoryCatalog>('/catalog', { signal }),
+  guidedReplay: (signal?: AbortSignal) => request<unknown>('/guided-replay', { signal }),
   recordings: (signal?: AbortSignal) => request<{ recordings: FactoryRecordingSummary[] }>('/recordings', { signal }),
   recording: (id: string, signal?: AbortSignal) =>
     request<FactoryRecording>(`/recordings/${encodeURIComponent(id)}`, { signal }),

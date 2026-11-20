@@ -4,7 +4,7 @@ Source authority: current user request and supplementary execution requirements.
 
 | Task | Scope | Sources / acceptance | State authority |
 | --- | --- | --- | --- |
-| [sf-001](sf-001/TASK.md) | Real stage factory + STRATA engineering/inference + integrated execution UI | All six requested acceptance items and five supplementary clauses | [native progress](sf-001/tasks.md) |
+| [sf-001](sf-001/TASK.md) | Real stage factory + STRATA engineering/inference + host task submission, Scheduler/Builder dispatch and Product | All six requested acceptance items, five supplementary clauses, the accepted live workflow and explicit Task Graph handoff to Builders | [native progress](sf-001/tasks.md) |
 
 System task: sf-001, including backend contracts, actual processes, source acquisition, implementation, compilation, real inference and comparison. This register does not claim completion. Existing protected M1 ResearchService runs keep their original freeze/authority; dynamic graph changes are implemented in the explicitly authorized factory service.
 STRATA sole upstream: https://github.com/niko1221/strata; fixed revision recorded in acquisition evidence, not guessed from README. No other repository substitutes for STRATA.

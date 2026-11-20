@@ -1,0 +1,386 @@
+{
+  "note": "Selected entries from pool.json; references resolve in the complete pool.",
+  "entries": [
+    {
+      "id": "workflow:stage/source.bind_operation",
+      "version": "sha256:b94d0298d69557e1822fb11385833827ea8ed5c6c99224b31e73f574d09ce467",
+      "name": "Extract a discovered source function",
+      "kind": "operation",
+      "inputs": {
+        "discovery": {
+          "transport": "artifact",
+          "semantic_type": "source.operations",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        }
+      },
+      "outputs": {
+        "operator": {
+          "transport": "artifact",
+          "semantic_type": "source.operator",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        }
+      },
+      "requirements": {
+        "resources": [],
+        "effects": null,
+        "backends": null,
+        "constraints": {}
+      },
+      "verification": [
+        "File existence, content contract, SHA-256, and downstream preconditions"
+      ],
+      "origin": {
+        "system": "workflow",
+        "repository": "https://github.com/Stellven/jiuwenswarm",
+        "revision": "9f1358d27f53f36d5359269b15700723e26edec3",
+        "path": "jiuwenswarm/software_factory/catalog.py",
+        "declaration_sha256": "b94d0298d69557e1822fb11385833827ea8ed5c6c99224b31e73f574d09ce467",
+        "original": {
+          "id": "source.bind_operation",
+          "name": "Extract a discovered source function",
+          "workflow_id": "source_acquisition",
+          "subworkflow_id": "function_extraction",
+          "entrypoint": "jiuwenswarm.software_factory.source_planning:bind_operation",
+          "inputs": [
+            {
+              "name": "discovery",
+              "kind": "source.operations",
+              "required": true
+            }
+          ],
+          "outputs": [
+            {
+              "name": "operator",
+              "kind": "source.operator"
+            }
+          ],
+          "tools": [],
+          "environment": [],
+          "verifier": "File existence, content contract, SHA-256, and downstream preconditions",
+          "repairs": [],
+          "backends": [],
+          "defer_until_goals_settle": false,
+          "accepts": {},
+          "selection_only": true,
+          "dynamic_inputs": [],
+          "validation_bindings": {}
+        }
+      },
+      "implementation": {
+        "type": "python",
+        "entrypoint": "jiuwenswarm.software_factory.source_planning:bind_operation"
+      }
+    },
+    {
+      "id": "workflow:subworkflow/function_extraction-function_extraction",
+      "version": "sha256:55f639bf9cc1afb41ebeda3d47ae40358cce7dd4d6bc2955208a3babd95f4d8f",
+      "name": "Extract a discovered source function",
+      "kind": "composite",
+      "inputs": {
+        "inventory": {
+          "transport": "artifact",
+          "semantic_type": "operator.inventory",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        }
+      },
+      "outputs": {
+        "discovery": {
+          "transport": "artifact",
+          "semantic_type": "source.operations",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        },
+        "operator": {
+          "transport": "artifact",
+          "semantic_type": "source.operator",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        }
+      },
+      "requirements": {
+        "resources": [],
+        "effects": null,
+        "backends": null,
+        "constraints": {}
+      },
+      "verification": [],
+      "origin": {
+        "system": "workflow",
+        "repository": "https://github.com/Stellven/jiuwenswarm",
+        "revision": "9f1358d27f53f36d5359269b15700723e26edec3",
+        "path": "jiuwenswarm/software_factory/workflow_definitions.py",
+        "declaration_sha256": "55f639bf9cc1afb41ebeda3d47ae40358cce7dd4d6bc2955208a3babd95f4d8f",
+        "original": {
+          "id": "function_extraction-function_extraction",
+          "name": "Extract a discovered source function",
+          "inputs": {
+            "inventory": "operator.inventory"
+          },
+          "stages": [
+            {
+              "id": "discover",
+              "stage_id": "source.discover",
+              "bindings": {
+                "inventory": {
+                  "source": "$input",
+                  "port": "inventory"
+                }
+              }
+            },
+            {
+              "id": "extract",
+              "stage_id": "source.bind_operation",
+              "bindings": {
+                "discovery": {
+                  "source": "discover",
+                  "port": "discovery"
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "discovery": {
+              "source": "discover",
+              "port": "discovery"
+            },
+            "operator": {
+              "source": "extract",
+              "port": "operator"
+            }
+          }
+        }
+      },
+      "composition": {
+        "nodes": [
+          {
+            "id": "discover",
+            "capability": {
+              "id": "workflow:stage/source.discover",
+              "version": "sha256:7a4bf35453852a7432ba07c7280ae26b58de08c664ea988b846747fb63b412a2"
+            },
+            "bindings": {
+              "inventory": {
+                "node": "$input",
+                "port": "inventory"
+              }
+            }
+          },
+          {
+            "id": "extract",
+            "capability": {
+              "id": "workflow:stage/source.bind_operation",
+              "version": "sha256:b94d0298d69557e1822fb11385833827ea8ed5c6c99224b31e73f574d09ce467"
+            },
+            "bindings": {
+              "discovery": {
+                "node": "discover",
+                "port": "discovery"
+              }
+            }
+          }
+        ],
+        "outputs": {
+          "discovery": {
+            "node": "discover",
+            "port": "discovery"
+          },
+          "operator": {
+            "node": "extract",
+            "port": "operator"
+          }
+        }
+      }
+    },
+    {
+      "id": "cc:factory.builder/tool/submit",
+      "version": "1.0.0",
+      "name": "submit",
+      "kind": "operation",
+      "inputs": {
+        "request": {
+          "transport": "value",
+          "semantic_type": "cc:json",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        },
+        "idem_key": {
+          "transport": "value",
+          "semantic_type": "cc:text",
+          "required": true,
+          "data_schema": {
+            "type": "string"
+          },
+          "schema_known": true
+        },
+        "node_id": {
+          "transport": "value",
+          "semantic_type": "cc:text",
+          "required": false,
+          "data_schema": {
+            "type": "string"
+          },
+          "schema_known": true
+        }
+      },
+      "outputs": {
+        "attempt_id": {
+          "transport": "value",
+          "semantic_type": "cc:text",
+          "required": true,
+          "data_schema": {
+            "type": "string"
+          },
+          "schema_known": true
+        },
+        "state": {
+          "transport": "value",
+          "semantic_type": "cc:text",
+          "required": true,
+          "data_schema": {
+            "type": "string"
+          },
+          "schema_known": true
+        },
+        "jobq_id": {
+          "transport": "value",
+          "semantic_type": "cc:json",
+          "required": true,
+          "data_schema": {},
+          "schema_known": false
+        }
+      },
+      "requirements": {
+        "resources": [
+          {
+            "category": "unspecified",
+            "name": "python"
+          }
+        ],
+        "effects": [
+          "process.exec"
+        ],
+        "backends": null,
+        "constraints": {}
+      },
+      "verification": [],
+      "origin": {
+        "system": "cc",
+        "repository": "https://github.com/Stellven/jiuwenswarm",
+        "revision": "c7891472b399aecba42735df19b8c80451231355",
+        "path": "jiuwenswarm/factory/ccs/builder/cc.yaml",
+        "declaration_sha256": "1a9090f65b124b9725ce26e8b5b4391b7a582e2a6078a076070c198aa08e485a",
+        "original": {
+          "kind": "tool",
+          "does": "Submit a durable build job. This acknowledges submission, not success; inspect status and result separately.",
+          "takes": {
+            "request": "json",
+            "idem_key": "text",
+            "node_id": {
+              "kind": "text",
+              "optional": true
+            }
+          },
+          "gives": {
+            "attempt_id": "text",
+            "state": "text",
+            "jobq_id": "json"
+          },
+          "needs": [
+            "python"
+          ],
+          "changes": [
+            "process.exec"
+          ]
+        }
+      },
+      "description": "Submit a durable build job. This acknowledges submission, not success; inspect status and result separately.",
+      "implementation": {
+        "type": "cc",
+        "bundle": {
+          "id": "cc:factory.builder",
+          "version": "1.0.0"
+        },
+        "capability": "submit",
+        "binding": {
+          "kind": "native",
+          "command": [
+            "{python}",
+            "{bundle}/run.py"
+          ]
+        }
+      }
+    },
+    {
+      "id": "cc:factory.components.expert_fill",
+      "version": "1.1.0",
+      "name": "factory.components.expert_fill",
+      "kind": "collection",
+      "inputs": {},
+      "outputs": {},
+      "requirements": {
+        "resources": [],
+        "effects": null,
+        "backends": null,
+        "constraints": {}
+      },
+      "verification": [],
+      "origin": {
+        "system": "cc",
+        "repository": "https://github.com/Stellven/jiuwenswarm",
+        "revision": "c7891472b399aecba42735df19b8c80451231355",
+        "path": "jiuwenswarm/factory/ccs/expert_streaming/components/expert_fill/cc.yaml",
+        "declaration_sha256": "a75092f52f88766deba5cc505127f8cafaac7575616e991f726cbf1b40f8efd7",
+        "original": {
+          "cc": "2",
+          "id": "factory.components.expert_fill",
+          "version": "1.1.0",
+          "materials": {
+            "component": {
+              "kind": "component",
+              "path": "component.yaml"
+            },
+            "patch_03": {
+              "kind": "component",
+              "path": "03-expert-fill.patch"
+            },
+            "patch_04": {
+              "kind": "component",
+              "path": "04-fill-phase.patch"
+            },
+            "patch_05": {
+              "kind": "component",
+              "path": "05-fill-diag.patch"
+            }
+          }
+        }
+      },
+      "members": [
+        {
+          "id": "cc:factory.components.expert_fill/material/component",
+          "version": "1.1.0"
+        },
+        {
+          "id": "cc:factory.components.expert_fill/material/patch_03",
+          "version": "1.1.0"
+        },
+        {
+          "id": "cc:factory.components.expert_fill/material/patch_04",
+          "version": "1.1.0"
+        },
+        {
+          "id": "cc:factory.components.expert_fill/material/patch_05",
+          "version": "1.1.0"
+        }
+      ]
+    }
+  ]
+}

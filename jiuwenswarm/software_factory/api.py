@@ -126,6 +126,18 @@ def create_router(service: FactoryService, authorize: Callable[[Request, str], A
         identity = await owner(request)
         return {'recordings': recorded(recordings.list, identity)}
 
+    @router.get('/guided-replay')
+    async def get_guided_replay(request: Request):
+        await owner(request)
+        from .guided_replay import PACKAGED_REPLAY
+
+        if not PACKAGED_REPLAY.is_file():
+            raise HTTPException(404, 'The guided factory replay is not installed')
+        return FileResponse(PACKAGED_REPLAY, media_type='application/json',
+                            headers={'Content-Encoding': 'gzip',
+                                     'Cache-Control': 'private, no-store',
+                                     'X-Content-Type-Options': 'nosniff'})
+
     @router.get('/recordings/{run_id}')
     async def get_recording(request: Request, run_id: str):
         identity = await owner(request)
@@ -276,4 +288,6 @@ def create_router(service: FactoryService, authorize: Callable[[Request, str], A
         return FileResponse(path, filename=path.name, media_type=media_type,
                             headers={'X-Content-Type-Options': 'nosniff'})
 
+    from .library_api import create_library_router
+    router.include_router(create_library_router(service.root / 'workflow-library', owner))
     return router

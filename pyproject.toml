@@ -194,6 +194,9 @@ jiuwenswarm = [
     "research_assets/**/*",
     "research/resources/**/*",
     "research/capsule_extensions/**/*.json",
+    "software_factory/schemas/*.json",
+    "software_factory/data/guided-replay.json.gz",
+    "software_factory/workflow_prompts/*.md",
 ]
 jiuwenbox = [
     "configs/**/*",

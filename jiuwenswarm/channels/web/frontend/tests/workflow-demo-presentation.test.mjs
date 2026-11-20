@@ -481,6 +481,9 @@ test('recording viewer uses only read-only archive transport, exact source bytes
       root.render(React.createElement(WorkflowDemo));
       await settle();
     });
+    await click(find('workspace-recording'));
+    assert.equal(find('task-form'), null);
+    assert.ok(find('opening-recordings').textContent.includes('Opening saved factory records'));
     await click(find('new-task'));
     await act(async () => {
       resolveListing(Response.json({ recordings: [summary(core), summary(mixed), summary(native)] }));

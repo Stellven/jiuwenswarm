@@ -34,8 +34,10 @@ def mount_factory_routes(app, channel) -> None:
         def authorize(request: Request, operation: str):
             from jiuwenswarm.research.contracts.types import ResearchError
             try:
-                return authority.authenticate(request.headers.get("authorization"), operation)
+                return authority.authenticate_native_http(request.headers.get("authorization"), operation)
             except ResearchError as error:
+                if error.details.get("http_status") == 403:
+                    raise HTTPException(status_code=403, detail="Factory operation is outside the host session grant") from error
                 raise HTTPException(status_code=401, detail="Factory access requires an authorized host session") from error
 
     recordings = RecordingsStore(os.environ.get('JIUWENSWARM_FACTORY_RECORDINGS',

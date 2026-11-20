@@ -90,6 +90,8 @@ class DemoTests(unittest.IsolatedAsyncioTestCase):
                 async with httpx.AsyncClient(transport=transport, base_url='http://localhost:5175') as client:
                     page = await client.get('/?view=workflow')
                     self.assertEqual(page.content, (frontend / 'dist/index.html').read_bytes())
+                    status = (await client.get('/api/v1/auth/status')).json()
+                    self.assertEqual(status, {'islogin': False, 'enabled': False, 'state': 'off'})
                     summaries = (await client.get('/api/v1/factory/recordings')).json()
                     records = summaries.get('recordings', summaries) if isinstance(summaries, dict) else summaries
                     self.assertGreaterEqual(len(records), 2)
