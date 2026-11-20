@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+base=${SPARK_DEMO_ROOT:-$HOME/predemo-spark}
+state="$base/demo-runtime"
+mkdir -p "$state"
+exec 9>"$state/control.lock"
+flock 9
+for name in frontend gateway agentserver; do
+  file="$state/$name.pid"
+  [[ -f "$file" ]] || continue
+  pid=$(cat "$file")
+  # Only stop the process that still matches this service; never kill by port.
+  if [[ "$pid" =~ ^[0-9]+$ ]] && [[ -r "/proc/$pid/cmdline" ]]; then
+    cmd=$(tr '\0' ' ' < "/proc/$pid/cmdline")
+    case "$name:$cmd" in
+      frontend:*jiuwenswarm.channels.web.app_web*|gateway:*jiuwenswarm.gateway.app_gateway*|agentserver:*jiuwenswarm.server.app_agentserver*) systemctl --user stop "spark-demo-$name.service"; ;;
+      *) echo "Refusing stale PID for $name" >&2; continue ;;
+    esac
+  fi
+  rm -f -- "$file"
+done

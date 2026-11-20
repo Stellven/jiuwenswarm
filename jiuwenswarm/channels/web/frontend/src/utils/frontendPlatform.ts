@@ -10,7 +10,8 @@ export type SidebarNavKey =
   | 'personalContextSettings'
   | 'settings'
   | 'updatepanel'
-  | 'experiments';
+  | 'experiments'
+  | 'factoryRuns';
 
 export const DEFAULT_FRONTEND_PLATFORM: FrontendPlatform = 'web';
 

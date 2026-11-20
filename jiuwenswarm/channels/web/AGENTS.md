@@ -150,3 +150,5 @@
 | `components/marketplace` | `marketplace` | 公共市场布局与目录缓存状态 |
 | `App.tsx` | `app` | 应用外壳;全局布局与 toast |
 | `components/ui/Select` | `ui-select` | 通用下拉选择控件 |
+
+| `features/factoryRuns` | `factory-runs` | Factory native evidence replay, live sessions and launch |

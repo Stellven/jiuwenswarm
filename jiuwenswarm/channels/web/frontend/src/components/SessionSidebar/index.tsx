@@ -83,6 +83,7 @@ const mainNavItems: NavItem[] = [
   { key: 'agents', labelKey: 'nav.agent', icon: <AgentDesignIcon aria-hidden /> },
   { key: 'skills', labelKey: 'nav.skills', icon: <SkillDesignIcon aria-hidden /> },
   { key: 'connectorMarket', labelKey: 'nav.connectorMarket', icon: connectorMarketNavIcon },
+  { key: 'factoryRuns', labelKey: 'nav.factoryRuns', icon: <WorkIcon aria-hidden /> },
   { key: 'experiments', labelKey: 'nav.experiments', icon: experimentsNavIcon },
   { key: 'personalContext', labelKey: 'nav.personalContext', icon: personalContextNavIcon },
   { key: 'settings', labelKey: 'nav.settings', icon: <SettingsIcon aria-hidden /> },

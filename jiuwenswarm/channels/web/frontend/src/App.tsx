@@ -16,6 +16,7 @@ import { DesktopTextEditContextMenu } from './components/DesktopTextEditContextM
 import { SessionSidebar } from './components/SessionSidebar';
 import { SkillPanel } from './components/SkillPanel';
 import { AgentManagementPanel } from './components/AgentManagementPanel';
+import { FactoryRunsPage } from './features/factoryRuns/FactoryRunsPage';
 import { RsiPage } from './features/rsi/RsiPage';
 import {
   normalizeRSIEnabled,
@@ -3862,6 +3863,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
             </div>
           </>
         )}
+        {activeNav === 'factoryRuns' && <div className="app-section min-h-0" data-testid="app-factory-runs"><FactoryRunsPage /></div>}
         {activeNav === 'experiments' && (
           <div className="app-section">
             <RsiPage />
