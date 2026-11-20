@@ -50,3 +50,9 @@ The Spark profile derives from the pinned llama.cpp stock CLI and model loaders,
 selected Satay round-1/2 implementation evidence, and observed Spark strict-A
 startup settings. Its acceptance counters and comparison flags are specified in
 [SPARK-PROFILE.md](SPARK-PROFILE.md).
+
+Version 1.1.4 aligns the static path check with the frozen Satay WO4. Its optional
+server-context handoff supplies authoritative slot and prefill identity. WO4
+protects model source. The rejected native verification of the selected round-2
+candidate is retained in its factory session. The verifier change does not
+change predictor behavior.

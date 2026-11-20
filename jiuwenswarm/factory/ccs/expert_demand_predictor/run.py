@@ -17,6 +17,7 @@ from helpers.verify_gate import gate_silence
 GATE = "LLAMA_EXPERT_PREDICT"
 LOG_NAME = "expert_demand_predictor"
 MARKERS = tuple(f"{LOG_NAME}: {event}" for event in ("active ", "inactive (", "stats"))
+SERVER_CONTEXT = "tools/server/server-context.cpp"
 ALLOWED = {
     "src/CMakeLists.txt",
     "src/llama-context.cpp",
@@ -24,8 +25,7 @@ ALLOWED = {
     "src/llama-expert-fill.h",  # Only on an existing Fill integration.
     "src/llama-expert-predict.cpp",
     "src/llama-expert-predict.h",
-    "src/llama-model.cpp",
-    "src/llama-model.h",
+    SERVER_CONTEXT,
 }
 CXX_SUFFIXES = {".cpp", ".h"}
 UNSUPPORTED_OPERATIONS = re.compile(
@@ -133,6 +133,10 @@ def syntax_checks(checkout, scratch, paths, record):
                 checkout / "ggml/include", checkout / "ggml/src"]
     flags = ["-std=c++17", "-fsyntax-only", *(f"-I{path}" for path in includes)]
     for path in paths:
+        if path == SERVER_CONTEXT:
+            record(f"cxx_syntax:{path}", "skipped",
+                   "Server translation unit requires its configured target include paths.", "compile")
+            continue
         unit = scratch / path
         args = ["-x", "c++", "-include", str(unit), "-"] if unit.suffix == ".h" else [str(unit)]
         result = subprocess.run([compiler, *flags, *args], cwd=scratch, input=b"",
@@ -189,6 +193,7 @@ def verify(inputs):
             record("allowed_paths", "pass", ", ".join(paths))
         protected = [path for path in forbidden if (
             path.startswith("src/models/") or
+            path.startswith("src/llama-model") or
             re.search(r"graph|rout|sampl|ggml", path, re.IGNORECASE)
         )]
         record("router_sampling_untouched", "fail" if protected else "pass",

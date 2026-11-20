@@ -40,7 +40,11 @@ For a candidate, replace the checkout and diff arguments with absolute paths to 
 | runtime acceptance | Live logs, matched greedy and routing evidence, failure and cap cases, and held-out captured trace results earn this stage. The verifier cannot establish these results, callback control flow, INFO visibility, the effective load mode or readiness at consumption. |
 | hardware measurement | Collect matched repetitions on the target under the frozen contract. |
 
-The existing verifier uses a fixed path allowlist. It excludes the work order's optional server context file and allows two model source filenames that the work order protects. Review the full diff against the work order and keep model source untouched. A candidate that requires a server-side edit will receive a scope failure with this verifier. Confirm the source pin separately.
+The verifier allows the work order's optional `tools/server/server-context.cpp`
+and protects model source. Review server changes for a bounded slot and prefill
+phase handoff with an unchanged stock decode dispatch. The server translation
+unit needs the configured target include paths and is skipped by the standalone
+syntax probe. Confirm the source pin separately.
 
 ## Version 1.1.0 revision results on Satay
 

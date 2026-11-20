@@ -22,7 +22,7 @@
     },
     "capsule_transport": {
       "source_version": "1.1.1",
-      "installed_version": "1.1.3",
+      "installed_version": "1.1.4",
       "methodology_changed": false,
       "spark_validation_guidance_added": true
     }
@@ -55,7 +55,7 @@
       "upstream": "https://github.com/ggml-org/llama.cpp"
     },
     "capsules": [
-      "routing.build_expert_demand_predictor@1.1.3",
+      "routing.build_expert_demand_predictor@1.1.4",
       "factory.integration_skill",
       "factory.builder",
       "factory.engine_inspector",

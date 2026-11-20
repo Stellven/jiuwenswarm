@@ -102,6 +102,21 @@ class VerifyTests(unittest.TestCase):
         self.assertEqual(checks["allowed_paths"]["status"], "fail")
         self.assertEqual(checks["router_sampling_untouched"]["status"], "fail")
 
+    def test_server_handoff_is_in_scope_and_model_source_is_protected(self):
+        self.git("apply", str(FIXTURES / "good.diff"))
+        server = self.checkout / "tools/server/server-context.cpp"
+        server.parent.mkdir(parents=True)
+        server.write_text("int prefill_request_id = -1;\n")
+        done, checks = self.check_fixture()
+        self.assertTrue(done, checks)
+        if shutil.which("g++"):
+            self.assertEqual(checks["cxx_syntax:tools/server/server-context.cpp"]["status"], "skipped")
+
+        (self.checkout / "src/llama-model.cpp").write_text("int protected_model_source = 1;\n")
+        done, checks = self.check_fixture()
+        self.assertFalse(done, checks)
+        self.assertEqual(checks["router_sampling_untouched"]["status"], "fail")
+
     def test_non_applying_diff(self):
         done, checks = self.check_fixture("non-applying.diff")
         self.assertFalse(done)
