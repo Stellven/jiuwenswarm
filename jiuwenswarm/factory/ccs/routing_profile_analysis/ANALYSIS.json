@@ -1,0 +1,13 @@
+{
+  "kind": "analysis",
+  "title": "Expert routing coverage and payload cost",
+  "report_schema": "routing-profile-analysis/1",
+  "table": {
+    "rows": "rows",
+    "columns": ["k_per_layer", "fraction_slots", "counter_delta_in_selected", "fraction_new_routes", "indexed_payload_bytes", "indexed_payload_gib"]
+  },
+  "inform_builder_capsules": [
+    "weight_placement_planner",
+    "expert_weight_cache"
+  ]
+}
