@@ -38,8 +38,9 @@ def admitted(scope, rows, expected, eligible, positive, reference, is_candidate)
     demand(scope['matched_bank']['requested_mib'] == 30720 and 0 < scope['matched_bank']['allocated_mib'] <= 30720,
            'Pooled comparison needs an observed 30 GiB native-cache request and allocation')
     demand(len(rows) == (12 if is_candidate else 16), 'Pooled source lacks its full ordered workload')
-    demand(tuple(row['result']['prompt_tokens'] for row in rows[:12]) == ORDER,
-           'Pooled candidate and controls differ in the first twelve request positions')
+    expected_order = ORDER if is_candidate else (*ORDER, 2048, 512, 512, 2048)
+    demand(tuple(row['result']['prompt_tokens'] for row in rows) == expected_order,
+           'Pooled candidate or control differs from its fixed request order')
     demand([r['result']['discard'] for r in rows] == [True] * (4 if is_candidate else 6) +
            [False] * (8 if is_candidate else 10), 'Pooled source discarded flags differ from their actual protocol')
     for row in rows:
@@ -59,6 +60,8 @@ def analyze(evidence, eligible, reference, positive):
     package = subject in ('C2', 'D')
     demand(set(expected) == set(PROMPTS) and len(controls) == 4 and len({c['id'] for c in controls}) == 4,
            'Pooled screening uses both fixed prompt sizes and four distinct immutable controls')
+    demand(len({c['scope']['sha256'] for c in controls}) == 4,
+           'Pooled screening cannot count the same retained control scope multiple times')
     observed = admitted(candidate['scope'], candidate['requests'], expected, eligible, positive, reference, True)
     bank = candidate['scope']['matched_bank']
     matches = []
