@@ -6,7 +6,7 @@ import { DataViewer } from './views/DataViewer';
 import { evidenceKind } from './views/dataModel';
 import { EvidenceFileBrowser } from './views/EvidenceFiles';
 import { detectGraph } from './views/graphModel';
-import { RunList } from './views/RunList';
+import { FactoryRunList } from './views/RunList';
 import { TerminalViewer } from './views/TerminalViewer';
 import { useViewerLabels } from './views/viewerLabels';
 import './factoryRuns.css';
@@ -215,7 +215,7 @@ export function FactoryRunsPage() {
         <p className="factory-muted" data-testid="factory-runs-description">
           {t('factoryRuns.description')}
         </p>
-        <RunList runs={listing.runs} selected={selected} onSelect={setSelected} />
+        <FactoryRunList runs={listing.runs} selected={selected} onSelect={setSelected} />
         <form
           className="factory-launch"
           data-testid="factory-runs-launch"

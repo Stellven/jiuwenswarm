@@ -4,7 +4,7 @@ import type { Run } from '../api';
 import { runListEntries } from './runListModel';
 import { useViewerLabels } from './viewerLabels';
 
-export function RunList({
+export function FactoryRunList({
   runs,
   selected,
   onSelect,
