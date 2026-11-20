@@ -11,16 +11,20 @@ Use `p1-reconnaissance` for exploratory batches with unknown or unmatched
 conditions. Preserve exclusions and show medians, ranges and output hashes.
 Use `p4-abba` only with two mirrored launch passes under the lab's quiet
 preflight. Independent scopes have verified cgroup controls, sequential
-nonoverlapping lifetimes and a normal stop. Each launch discards two matched
-512/2048 warmup rounds. The first pass measures repeats 1 and 2 and the second 3–5.
+nonoverlapping lifetimes and a normal stop. Current launches discard three warmups per size. Each pass measures five pairs,
+numbered 1–5 and 6–10 respectively. A historical two-warmup protocol used
+two measured pairs in the first pass and three in the second.
 Both arms use the same alternating prompt order by repeat. The CC validates
 order and matched requests, including actual prompt and output token counts,
 prompt SHA256, seed, temperature and zero prompt cache reuse.
 
 An arm's inverse-TTFT ratio is the control median divided by the arm median.
 Gap closure is `(A − arm) / (A − S)`. It is undefined when A matches or beats S.
-For P4, the 95% percentile interval enumerates all 108 paired bootstrap draws,
-resampling repeat labels within the two launch passes. Arms share each draw.
+For P4, the 95% percentile interval uses 10,000 paired bootstrap draws with fixed
+seed 20261120. Each draw samples five repeat labels with replacement within
+each launch pass. The historical 2+3 protocol enumerates all 108 draws. Arms
+share each draw. Report same-budget A+ paired TTFT seconds saved and decode
+tokens/s gained with observed ranges, pass medians, and conditional intervals.
 It is conditional on those launch windows and excludes between-launch
 uncertainty. If any draw lacks a positive A–S gap, omit the gap interval.
 

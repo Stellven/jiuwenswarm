@@ -4,6 +4,7 @@ import hashlib
 from itertools import product
 import json
 import math
+import random
 import re
 from statistics import median, quantiles
 import sys
@@ -62,11 +63,24 @@ def compare(cell, controls, paired=None):
     return comparisons
 
 
-def paired_samples(index):
-    # Ordered bootstrap draws within each launch window preserve all pairings and the 2/3 split.
-    draws = product(product((1, 2), repeat=2), product((3, 4, 5), repeat=3))
-    return [{arm: median(repeats[i] for i in before + after) for arm, repeats in index.items()}
-            for before, after in draws]
+def paired_draws(blocks):
+    if blocks == ((1, 2), (3, 4, 5)):
+        return [before + after for before, after in product(
+            product(blocks[0], repeat=2), product(blocks[1], repeat=3))]
+    # Sample within each launch pass and apply the same labels to every arm and endpoint.
+    rng = random.Random(20261120)
+    return [tuple(i for block in blocks for i in rng.choices(block, k=len(block))) for _ in range(10000)]
+
+
+def paired_samples(index, draws):
+    return [{arm: median(repeats[i] for i in labels) for arm, repeats in index.items()} for labels in draws]
+
+
+def paired_changes(index, arm, control, draws, blocks, direction):
+    values = {key: direction * (index[arm][key] - index[control][key]) for block in blocks for key in block}
+    return dict(estimate=median(values.values()), observed_range=[min(values.values()), max(values.values())],
+                pass_medians=[median(values[i] for i in block) for block in blocks],
+                conditional_ci95=interval([median(values[i] for i in labels) for labels in draws]))
 
 
 def p4_design(scopes, rows):
@@ -75,6 +89,7 @@ def p4_design(scopes, rows):
     first = arm_order[:half]
     if len(first) < 2 or len(set(first)) != half or arm_order[half:] != first[::-1]:
         raise ValueError('P4 requires two mirrored launch passes with distinct arms')
+    blocks = None
     previous_stop = None
     for number, scope in enumerate(scopes):
         start = datetime.fromisoformat(scope['value']['start'])
@@ -88,13 +103,20 @@ def p4_design(scopes, rows):
         local = sorted((r for r in rows if r['scope_id'] == scope['artifact_id']),
                        key=lambda r: datetime.fromisoformat(r['result']['started']))
         seen = [(r['result']['repeat'], r['result']['prompt_tokens']) for r in local]
+        if blocks is None:
+            blocks = ((tuple(range(1, 6)), tuple(range(6, 11))) if len(local) == 16 else ((1, 2), (3, 4, 5)))
         expected = [(0, 512), (0, 2048)] * 2
-        for i in ((1, 2) if number < half else (3, 4, 5)):
-            expected.extend((i, n) for n in (PROMPTS if i % 2 else PROMPTS[::-1]))
+        modern = len(blocks[0]) == 5
+        if modern:
+            expected.extend(((0, 2048), (0, 512)))
+        for j, i in enumerate(blocks[0 if number < half else 1]):
+            forward = (j % 2 == 0) if modern else (i % 2 == 1)
+            expected.extend((i, n) for n in (PROMPTS if forward else PROMPTS[::-1]))
         if seen != expected or any(not r['valid'] or bool(r['result']['discard']) != (r['result']['repeat'] == 0) for r in local):
             raise ValueError('P4 scope is missing matched warmups or measured repeats in protocol order')
         if any(not start <= datetime.fromisoformat(r['result']['started']) < stop for r in local):
             raise ValueError('P4 request timestamps must belong to their launch window')
+    return blocks
 
 
 def analyze(evidence):
@@ -153,8 +175,8 @@ def analyze(evidence):
                                  engine_prefill_ms=result['timings'].get('prompt_ms')))
     if not accepted:
         raise ValueError('No requests satisfy the fixed workload')
-    if mode == 'p4-abba':
-        p4_design(scopes, validated)
+    blocks = p4_design(scopes, validated) if mode == 'p4-abba' else None
+    draws = paired_draws(blocks) if blocks else None
     summaries = []
     for n in PROMPTS:
         arms = {}
@@ -171,8 +193,16 @@ def analyze(evidence):
                 arms[arm][metric] = median(values) if values else None
         index = {arm: {row['repeat']: row['ttft_s'] for row in accepted
                        if row['arm'] == arm and row['prompt_tokens'] == n} for arm in arms}
-        samples = paired_samples(index) if mode == 'p4-abba' else None
-        summaries.extend(dict(cell, comparisons=compare(cell, arms, samples)) for cell in arms.values())
+        samples = paired_samples(index, draws) if draws else None
+        decode = {arm: {row['repeat']: row['decode_tps'] for row in accepted
+                        if row['arm'] == arm and row['prompt_tokens'] == n} for arm in arms}
+        for arm, cell in arms.items():
+            comparisons = compare(cell, arms, samples)
+            if draws and 'A+' in arms:
+                comparisons['paired_ttft_seconds_saved_vs_Aplus'] = paired_changes(index, arm, 'A+', draws, blocks, -1)
+                if all(positive(x) for label in (arm, 'A+') for x in decode[label].values()):
+                    comparisons['paired_decode_tps_gained_vs_Aplus'] = paired_changes(decode, arm, 'A+', draws, blocks, 1)
+            summaries.append(dict(cell, comparisons=comparisons))
     return dict(schema='spark-gap-analysis/1', mode=mode, prompt_manifest=reference(manifest),
                 scopes=scope_metrics, measurements=summaries, eligible=accepted, excluded=excluded,
                 limitations=[

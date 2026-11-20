@@ -60,3 +60,33 @@ def test_reconnaissance_suppresses_intervals_and_rejects_cache_use():
     analysis = GAP.analyze(evidence)
     assert len(analysis['eligible']) == 19
     assert 'conditional_ci95' not in analysis['measurements'][0]['comparisons']['gap_closed']
+
+def test_five_pairs_in_each_pass_against_same_budget_control():
+    from copy import deepcopy
+    data = tiny_abba()
+    requests = []
+    for index, scope in enumerate(data['scopes']):
+        templates = {row['result']['prompt_tokens']: row for row in data['requests']
+                     if row['scope_id'] == scope['artifact_id']}
+        scope['arm'] = 'A+' if index in (0, 3) else 'C3'
+        order = [((512, 2048), 0), ((512, 2048), 0), ((2048, 512), 0)]
+        for pair in range(5):
+            repeat = (1 if index < 2 else 6) + pair
+            order.append(((512, 2048) if pair % 2 == 0 else (2048, 512), repeat))
+        for position, (n, repeat) in enumerate((n, repeat) for sizes, repeat in order for n in sizes):
+            row = deepcopy(templates[n])
+            row.update(ref(f'{index}-{position}-result'))
+            row['result'].update(arm=scope['arm'], repeat=repeat, discard=repeat == 0,
+                                 started=f'2026-11-20T09:{index:02}:{position + 1:02}+00:00',
+                                 ttft_s=4 if scope['arm'] == 'C3' else 6,
+                                 decode_tps=20 if scope['arm'] == 'C3' else 19)
+            requests.append(row)
+    data['requests'] = requests
+    analysis = GAP.analyze(data)
+    cell = next(row for row in analysis['measurements'] if row['arm'] == 'C3')
+    assert cell['n'] == 10
+    assert len(analysis['excluded']) == 24
+    assert cell['comparisons']['inverse_ttft_vs_Aplus']['estimate'] == 1.5
+    for key, estimate in [('paired_ttft_seconds_saved_vs_Aplus', 2), ('paired_decode_tps_gained_vs_Aplus', 1)]:
+        assert cell['comparisons'][key] == dict(estimate=estimate, observed_range=[estimate, estimate],
+                                                pass_medians=[estimate, estimate], conditional_ci95=[estimate, estimate])
