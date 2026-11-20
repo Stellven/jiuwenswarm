@@ -26,6 +26,7 @@ from jiuwenswarm.factory import monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
+from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
@@ -124,8 +125,30 @@ class FactoryHttpService:
     def templates(self):
         if not self.launch_root or not self.launch_root.is_dir():
             return []
-        return [dict(id=p.stem, name=p.stem) for p in sorted(self.launch_root.glob('*.json'))
-                if not p.is_symlink() and SAFE_ID.fullmatch(p.stem)]
+        templates = []
+        for path in sorted(self.launch_root.glob('*.json')):
+            if path.is_symlink() or not SAFE_ID.fullmatch(path.stem):
+                continue
+            try:
+                task = _json(_inside(self.launch_root, path.name))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(task, dict):
+                continue
+            labels = task.get('operator_labels')
+            name = labels.get('display_name') if isinstance(labels, dict) else None
+            name = name if isinstance(name, str) and name else path.stem
+            component = task.get('component_cc')
+            capsules = [component] if isinstance(component, str) and component else []
+            if path.stem == 'star-capsule-inspection':
+                from scripts.spark.prepare_inspection_home import NAMES
+                capsules = list(NAMES)
+            template = dict(id=path.stem, name=name, capsules=capsules)
+            for field in ('contract_id', 'objective'):
+                if isinstance(task.get(field), str):
+                    template[field] = task[field]
+            templates.append(template)
+        return templates
 
     def listing(self):
         return sanitize(dict(runs=[item for item, _ in self.catalog()], launch_templates=self.templates(),
@@ -261,7 +284,26 @@ class FactoryHttpService:
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
                              graph=taskgraph.from_records(data), stack=monitor.engine_stack(data),
                              telemetry=trace, files=self.files(item, path, data), events=events,
-                             summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace))))
+                             summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
+                             session=self._session(item, path, data) if item['kind'] == 'live' else None))
+
+    def _session(self, item, path, data):
+        state = data['_meta']['controller_state']
+        # The native lock is scoped to the home. It identifies a task only
+        # when the home has a single task; stale state may survive a crash.
+        running = (state.get('tick') is not None and not state.get('outcome')
+                   and not state.get('finished') and controller_is_locked(_inside(path, 'controller.lock'))
+                   and len(monitor.tasks(path)) == 1)
+        transcript = _inside(path, f"sessions/{item['task_id']}.jsonl")
+        if transcript.is_file() and transcript.stat().st_size > MAX_FILE:
+            raise ValueError('Session evidence exceeds view limit')
+        return session_snapshot(data, transcript, running, time.time())
+
+    def session(self, run_id):
+        item, path = self.resolve(run_id)
+        if item['kind'] != 'live':
+            raise HTTPException(404, 'This run is an exported bundle')
+        return sanitize(self._session(item, path, self.load(item, path)))
 
     @staticmethod
     def events(data):
@@ -352,6 +394,10 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/runs/{run_id}')
     async def detail(run_id: str):
         return await call(service.detail, run_id)
+
+    @app.get(PREFIX + '/runs/{run_id}/session')
+    async def session(run_id: str):
+        return await call(service.session, run_id)
 
     @app.get(PREFIX + '/runs/{run_id}/story')
     async def events(run_id: str, since: int = Query(0, ge=0)):

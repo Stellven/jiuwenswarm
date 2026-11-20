@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import time
 from types import SimpleNamespace
 
 from fastapi import FastAPI
@@ -130,3 +131,59 @@ def test_artifact_display_name_preserves_confined_content_path(bundle):
     assert file['path'] == 'artifacts/hash-only-path'
     assert file['content'] == 'Retained report'
     assert client(service).get(f'/api/factory/runs/{rid}/file', params={'path': 'attached/report.md'}).status_code == 404
+
+
+def test_session_status_requires_controller_evidence(tmp_path):
+    fcntl = pytest.importorskip('fcntl')
+    if not Path('/proc/locks').is_file():
+        pytest.skip('Controller lock observation requires Linux')
+    home = tmp_path / 'home'
+    with Store(home) as store:
+        store.create_task(dict(task_id='synthetic', objective='Synthetic session test', budget={}, source={}))
+    now = time.time()
+    directory = home / 'sessions'
+    directory.mkdir(exist_ok=True)
+    state = dict(started=now - 20, tick=now - 2, turns=1, active_s=12)
+    state_path = directory / 'synthetic.state.json'
+    state_path.write_text(json.dumps(state))
+    transcript = [
+        dict(event='turn.start', turn=1),
+        dict(event_type='chat.delta', content='Checking', t=now - 2),
+        dict(event_type='chat.delta', content=' retained evidence.', t=now - 1),
+        dict(event_type='chat.tool_call', tool_call=dict(name='evidence.read', tool_call_id='read-1')),
+        dict(event_type='chat.tool_result', tool_call_id='read-1'),
+        dict(event_type='chat.tool_call', tool_call=dict(name='evidence.query', tool_call_id='query-1')),
+    ]
+    (directory / 'synthetic.jsonl').write_text(''.join(json.dumps(row) + '\n' for row in transcript))
+    service = FactoryHttpService(roots=[home])
+    run_id = service.listing()['runs'][0]['id']
+    api = client(service)
+    url = f'/api/factory/runs/{run_id}/session'
+    with (home / 'controller.lock').open('w') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        active = api.get(url).json()
+        assert active['status'] == 'running'
+        assert active['elapsed_s'] >= 14
+        assert active['step'] == dict(kind='tool', label='evidence.query')
+        assert active['latest_message'] == dict(text='Checking retained evidence.', created=now - 1)
+    stale = api.get(url).json()
+    assert stale['status'] == 'unknown'
+    assert stale['elapsed_s'] == 12
+    assert stale['step'] is None
+    state_path.write_text(json.dumps(dict(state, finished=now, outcome='partial', tick=None)))
+    assert api.get(url).json()['status'] == 'finished'
+
+
+def test_reviewed_template_metadata_lists_contract_and_capsules(tmp_path):
+    templates = tmp_path / 'templates'
+    templates.mkdir()
+    (templates / 'reviewed.json').write_text(json.dumps(dict(
+        contract_id='example-contract', component_cc='example.builder', objective='A reviewed objective',
+        operator_labels=dict(display_name='Reviewed session'), source=dict(private_key='never expose'),
+    )))
+    (templates / 'invalid.json').write_text('not valid JSON')
+    service = FactoryHttpService(roots=[], launch_root=templates)
+    assert service.listing()['launch_templates'] == [
+        dict(id='reviewed', name='Reviewed session', contract_id='example-contract',
+             objective='A reviewed objective', capsules=['example.builder']),
+    ]
