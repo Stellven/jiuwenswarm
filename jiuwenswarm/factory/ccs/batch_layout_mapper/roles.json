@@ -4,6 +4,7 @@
   },
   "format": "factory-roles/1",
   "materials": {
+    "alora_state": "method",
     "component": "reference",
     "gate_verifier": "reference",
     "guide": "skill",

@@ -22,3 +22,7 @@ python helpers/check_markers.py candidate-unset.server.log --name batch_layout_m
 ```
 
 Require all component marker lines to come from gate-set arms.
+
+## Stock adapter-transition admission
+
+Follow [ALORA-STATE.md](ALORA-STATE.md) and prove an ordinary no-adapter request reaches a changed layout. Retain separate positive transition fallback evidence.

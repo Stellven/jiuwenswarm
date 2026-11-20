@@ -1,0 +1,7 @@
+# Admission during an aLoRA transition
+
+The pinned server batch initializes and resets `alora_scale` to `-1.0f`. The stock prompt loop uses a positive scale to stop at the activation boundary and restore the adapter. A no-adapter request therefore reaches the mapper with the ordinary negative sentinel. Equality with zero is an incorrect no-adapter test.
+
+Use the stock transition condition as the boundary. Admit ordinary negative sentinel and zero scales when the existing plain single-slot prefill guards qualify. Bypass genuinely positive transition states and preserve their cut, timing and restoration. Keep all other stock fallbacks and the gate-unset path unchanged. Use a shared predicate or inspectable existing condition so admission cannot drift from the stock transition. Handle unsupported unexpected states conservatively.
+
+Before any timing claim, require the configured active marker and actual changed-cut records. A configuration can be eligible at startup and still bypass every request. Check the edge-case fixture for the no-adapter sentinel, explicit zero and positive transition. Use the frozen 2048-token no-adapter test at 2047/512 logical and physical limits. Compare corresponding stock, candidate gate-unset and candidate gate-set bytes and actual span boundaries. Keep the targeted regression as capsule or factory evidence if its path exceeds the frozen WO5 scorer scope.

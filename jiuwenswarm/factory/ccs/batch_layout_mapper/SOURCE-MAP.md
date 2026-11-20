@@ -28,3 +28,7 @@ The Spark profile derives from the pinned llama.cpp stock CLI and model loaders,
 selected Satay round-1/2 implementation evidence, and observed Spark strict-A
 startup settings. Its acceptance counters and comparison flags are specified in
 [SPARK-PROFILE.md](SPARK-PROFILE.md).
+
+## aLoRA transition provenance
+
+At the pinned llama.cpp source `9048bad8d6e3a0f9f1726e238e451181c7e02613`, `tools/server/server-context.cpp` initializes and resets `server_batch.alora_scale` to `-1.0f` and uses `> 0.0f` to restore an adapter and preserve the activation cut. The initial C5 Spark LAB retained no changed-cut records despite the configured active marker. [ALORA-STATE.md](ALORA-STATE.md) describes the state-correct admission.
