@@ -6,6 +6,7 @@ import sqlite3
 import pytest
 
 from jiuwenswarm.factory import export
+from jiuwenswarm.factory.redact import sanitize
 from jiuwenswarm.factory.store import Store
 
 
@@ -53,6 +54,17 @@ def test_verify_fails_closed_for_secrets(tmp_path, payload):
     (tmp_path / 'MANIFEST.json').write_text(json.dumps({'leak': hashlib.sha256(payload).hexdigest()}))
     with pytest.raises(ValueError, match='Secrets scan failed'):
         export.verify(tmp_path)
+
+
+def test_redaction_refreshes_environment_secrets_per_response(monkeypatch):
+    key = 'FACTORY_TEST_PASSWORD'
+    text = 'a retained note with a test secret'
+    monkeypatch.delenv(key, raising=False)
+    assert sanitize([text, text]) == [text, text]
+    monkeypatch.setenv(key, 'a test secret')
+    assert sanitize([text, text]) == ['a retained note with <redacted>'] * 2
+    monkeypatch.delenv(key)
+    assert sanitize([text, text]) == [text, text]
 
 
 def test_digest_failure_never_publishes_bundle(store, tmp_path):

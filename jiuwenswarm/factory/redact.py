@@ -1,4 +1,5 @@
 """Sanitize credential fields and embedded secrets without hiding engine metrics."""
+from functools import lru_cache
 import os
 import re
 
@@ -19,21 +20,38 @@ def sensitive(key, value):
                  and re.fullmatch(r'[A-Za-z0-9_./+\-=]{20,}', value)))
 
 
-def scrub_bytes(data):
+def _environment_secrets():
+    return tuple(value.encode() for key, value in os.environ.items() if value and sensitive(key, value))
+
+
+def _scrub_bytes(data, secrets):
     for pattern in SECRET_PATTERNS:
         data = pattern.sub(b'<redacted>', data)
-    for key, value in os.environ.items():
-        if value and sensitive(key, value):
-            data = data.replace(value.encode(), b'<redacted>')
+    for secret in secrets:
+        data = data.replace(secret, b'<redacted>')
     return data
 
 
+def scrub_bytes(data):
+    return _scrub_bytes(data, _environment_secrets())
+
+
 def sanitize(value):
-    if isinstance(value, dict):
-        return {scrub_bytes(str(k).encode()).decode(): '<redacted>' if sensitive(str(k), v)
-                else sanitize(v) for k, v in value.items()}
-    if isinstance(value, (list, tuple)):
-        return [sanitize(v) for v in value]
-    if isinstance(value, str):
-        return scrub_bytes(value.encode()).decode()
-    return value
+    secrets = _environment_secrets()
+
+    @lru_cache(maxsize=4096)
+    def short_text(text):
+        return _scrub_bytes(text.encode(), secrets).decode()
+
+    def clean(item):
+        if isinstance(item, dict):
+            return {short_text(str(k)): '<redacted>' if sensitive(str(k), v)
+                    else clean(v) for k, v in item.items()}
+        if isinstance(item, (list, tuple)):
+            return [clean(v) for v in item]
+        if isinstance(item, str):
+            return (short_text(item) if len(item) <= 1024 else
+                    _scrub_bytes(item.encode(), secrets).decode())
+        return item
+
+    return clean(value)
