@@ -396,7 +396,15 @@ export function FactoryRunsPage() {
               )}
               {panel === 'capsules' && <JsonView value={detail.stack} />}
               {panel === 'tests' && <JsonView value={records.evaluations || []} />}
-              {panel === 'measurements' && <Measurements observations={records.observations || []} />}
+              {panel === 'measurements' && (
+                <Measurements
+                  observations={records.observations || []}
+                  onOpenEvidence={(artifact) => {
+                    const source = detail.files.find((item) => item.artifact_ids?.includes(artifact));
+                    if (source) setFilePath(source.path);
+                  }}
+                />
+              )}
               {panel !== 'overview' && panel !== 'graph' && (
                 <div className="factory-file-grid">
                   <div className="factory-files" data-testid="factory-runs-files">

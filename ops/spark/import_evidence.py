@@ -109,8 +109,10 @@ def measurement(result, request, server, load, memory, prompt_manifest):
     discarded = bool(result.get('discard', result.get('discarded', False)))
     if discarded:
         reasons.append('discarded first/cold request')
-    if not result.get('ok'):
+    if not result.get('ok') or not isinstance(result.get('ttft_s'), (int, float)) or result.get('ttft_s', 0) <= 0:
         reasons.append('request failed or incomplete')
+    if result.get('timings', {}).get('cache_n', 0):
+        reasons.append('prompt cache reuse')
     if target not in (512, 2048) or actual != target:
         reasons.append('actual prompt tokens do not match approved target')
     if not pinned or result.get('prompt_sha256') != pinned.get('prompt_sha256'):
@@ -122,7 +124,7 @@ def measurement(result, request, server, load, memory, prompt_manifest):
                 measurement_eligible=not reasons, exclusion_reasons=reasons,
                 command=server.get('command'), command_sha256=digest(json.dumps(server.get('command'), sort_keys=True).encode()),
                 binary_sha256=server.get('binary_sha256'),
-                load_time_s=load.get('load_time_s_from_engine_log', load.get('load_time_s')),
+                load_time_s=load.get('load_time_s_from_engine_log', load.get('engine_reported_load_time_s', load.get('load_time_s'))),
                 **memory)
 
 

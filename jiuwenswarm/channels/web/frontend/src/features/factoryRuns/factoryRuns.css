@@ -327,3 +327,21 @@
 .factory-file-content .markdown-body {
   overflow-wrap: anywhere;
 }
+
+.factory-gap-track {
+  position: relative;
+}
+.factory-gap-track span {
+  position: absolute;
+}
+.factory-gap-track i {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-text-secondary);
+  z-index: 1;
+}
+.factory-gap-chart > div {
+  grid-template-columns: 120px 1fr 95px;
+}

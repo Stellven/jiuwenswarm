@@ -215,6 +215,7 @@ class FactoryHttpService:
                 if (path / rel).is_file():
                     names.add(rel)
         labels = {}
+        identities = {}
         artifacts = data.get('artifacts', [])
         if item['kind'] == 'bundle' and (path / 'artifacts.json').is_file():
             artifacts = _json(_inside(path, 'artifacts.json'))
@@ -225,16 +226,17 @@ class FactoryHttpService:
                 label = label.removeprefix('source:').rsplit('@sha256:', 1)[0]
             if relative and label:
                 labels.setdefault(relative, []).append(label)
+                identities.setdefault(relative, []).append(artifact['artifact_id'])
         rows = []
         for name in sorted(names):
             target = _inside(path, name)
             wanted = expected.get(name)
             if not target.is_file():
-                rows.append(dict(path=name, display_path=' · '.join(labels.get(name, [name])), size=0, sha256=None, expected_sha256=wanted, integrity='missing'))
+                rows.append(dict(path=name, display_path=' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=0, sha256=None, expected_sha256=wanted, integrity='missing'))
                 continue
             size = target.stat().st_size
             digest = self.file_hash(target)
-            rows.append(dict(path=name, display_path=' · '.join(labels.get(name, [name])), size=size, sha256=digest, expected_sha256=wanted,
+            rows.append(dict(path=name, display_path=' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=size, sha256=digest, expected_sha256=wanted,
                              integrity=('verified' if digest == wanted else 'mismatch') if wanted else 'untracked'))
         return rows
 
@@ -317,6 +319,7 @@ class FactoryHttpService:
                 prepared = prepare_inspection_home(home, task)
                 (home / 'preparation.json').write_text(json.dumps(prepared) + '\n')
             except (OSError, ValueError):
+                (home / 'launch.log').write_text('Inspection preparation failed; operator login/template review required. No agent started.\n')
                 raise HTTPException(422, 'Inspection preparation failed; operator login/template review required') from None
         command = [*cli, 'run', tid, '--plain']
         for effect in task.get('allowed_effects', []):
