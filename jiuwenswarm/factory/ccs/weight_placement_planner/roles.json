@@ -13,6 +13,7 @@
     "helpers": "reference",
     "method": "method",
     "ontology": "reference",
+    "profile_placement": "method",
     "sample_budget": "reference",
     "sample_gate": "reference",
     "sample_json": "reference",

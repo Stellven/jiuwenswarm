@@ -18,6 +18,7 @@
     "method": "method",
     "ontology": "reference",
     "parity_runner": "reference",
+    "profile_residency": "method",
     "source_map": "reference",
     "spark_profile": "method",
     "task": "reference",

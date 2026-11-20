@@ -1,7 +1,9 @@
 cc: '2'
 id: engine.build_expert_weight_cache
-version: 1.1.3
+version: 1.2.0
 materials:
+  profile_residency:
+    path: PROFILE-RESIDENCY.md
   spark_profile:
     path: SPARK-PROFILE.md
   guide:

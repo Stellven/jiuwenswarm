@@ -38,3 +38,7 @@ Require all component marker lines to come from gate-set arms.
 
 Review informational `high_churn_signatures` findings against the additive
 alternatives in [SOURCE-MAP.md](SOURCE-MAP.md).
+
+## Profile-driven Spark treatment
+
+Follow [PROFILE-PLACEMENT.md](PROFILE-PLACEMENT.md) for a separately admitted residency comparison with reproducible controls. Retain the native verifier result and fixture acceptance before interpreting runtime timing.
