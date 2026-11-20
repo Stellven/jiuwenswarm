@@ -18,6 +18,7 @@
     "sample_lifecycle_markers": "reference",
     "sample_ring_drain": "reference",
     "source_map": "reference",
+    "spark_profile": "method",
     "task": "reference",
     "validation": "reference"
   }

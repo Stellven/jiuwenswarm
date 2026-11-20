@@ -21,3 +21,10 @@ Stock anchors verified in `~/predemo/llama.cpp-stock` at
 | `src/llama-batch-layout.h` | New header. Gate read and integer cap calculation. No stock line anchor. |
 
 The earlier `engine.prompt_batch_layout` 1.0.1 targets a different pin. Its mixed-slot divergence informs the single-configured-slot guard.
+
+## Spark activation profile provenance
+
+The Spark profile derives from the pinned llama.cpp stock CLI and model loaders,
+selected Satay round-1/2 implementation evidence, and observed Spark strict-A
+startup settings. Its acceptance counters and comparison flags are specified in
+[SPARK-PROFILE.md](SPARK-PROFILE.md).

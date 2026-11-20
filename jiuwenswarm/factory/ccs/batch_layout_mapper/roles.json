@@ -18,6 +18,7 @@
     "sample_logging": "reference",
     "sample_sweep": "reference",
     "source_map": "reference",
+    "spark_profile": "method",
     "task": "reference",
     "validation": "method"
   }

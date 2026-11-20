@@ -18,6 +18,7 @@
     "sample_json": "reference",
     "sample_markers": "reference",
     "source_map": "reference",
+    "spark_profile": "method",
     "task": "reference",
     "validation": "reference",
     "weight_placement_planner": "component"

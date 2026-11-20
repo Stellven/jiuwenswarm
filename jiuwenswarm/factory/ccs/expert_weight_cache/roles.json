@@ -19,6 +19,7 @@
     "ontology": "reference",
     "parity_runner": "reference",
     "source_map": "reference",
+    "spark_profile": "method",
     "task": "reference",
     "validation": "reference",
     "verifier": "reference"

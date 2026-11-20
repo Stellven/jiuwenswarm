@@ -43,3 +43,10 @@ existing signature, or add a new file. When none of these approaches works,
 stay within the work order's source authority, make the smallest additive diff,
 and name the file and explain the reason in the final report. The verifier
 reports likely existing signature replacements as informational findings.
+
+## Spark activation profile provenance
+
+The Spark profile derives from the pinned llama.cpp stock CLI and model loaders,
+selected Satay round-1/2 implementation evidence, and observed Spark strict-A
+startup settings. Its acceptance counters and comparison flags are specified in
+[SPARK-PROFILE.md](SPARK-PROFILE.md).

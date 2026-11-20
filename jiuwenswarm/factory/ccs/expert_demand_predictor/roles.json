@@ -19,6 +19,7 @@
     "sample_info_markers": "reference",
     "sample_outcome_counts": "reference",
     "source_map": "reference",
+    "spark_profile": "method",
     "synthetic_trace": "reference",
     "task": "reference",
     "validation": "reference"
