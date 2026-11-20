@@ -1,6 +1,6 @@
 cc: '2'
 id: analysis.expert_routing_profile
-version: 1.1.0
+version: 1.2.0
 materials:
   method:
     path: METHOD.md
@@ -10,10 +10,14 @@ materials:
     path: routing_profile.py
   transfer_helper:
     path: routing_transfer.py
+  copy_timing_helper:
+    path: copy_timing.py
   tests:
     path: test_routing_profile.py
   transfer_tests:
     path: test_routing_transfer.py
+  copy_timing_tests:
+    path: test_copy_timing.py
   checksums:
     path: SHA256SUMS
     media_type: text/plain
@@ -86,6 +90,32 @@ capabilities:
     takes:
       trace: artifact
       ranks: artifact
+      report: json
+    gives:
+      verified: json
+    needs: [python]
+    changes: [process.exec]
+  time_copies:
+    does: Compare the isolated expert-copy replay equivalent with its exact C1
+      first-token latency, preserving the memory path and coverage limitations.
+    takes:
+      transfer: artifact
+      replay: artifact
+      request: artifact
+      activation: artifact
+      baseline: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify_copy_timing:
+    does: Recompute and verify the copy timing report with the same input artifacts.
+    takes:
+      transfer: artifact
+      replay: artifact
+      request: artifact
+      activation: artifact
+      baseline: artifact
       report: json
     gives:
       verified: json

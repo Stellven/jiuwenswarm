@@ -2,6 +2,7 @@
 import json
 import sys
 
+from copy_timing import timing_artifacts
 from routing_profile import analyze, verify
 from routing_transfer import compare_artifacts
 
@@ -9,9 +10,12 @@ from routing_transfer import compare_artifacts
 def dispatch(packet):
     inputs = packet['inputs']
     capability = packet['capability']
-    if capability in {'compare', 'verify_transfer'}:
-        report = compare_artifacts({name: inputs[name] for name in ('trace', 'ranks')})
-        if capability == 'compare':
+    if capability in {'compare', 'verify_transfer', 'time_copies', 'verify_copy_timing'}:
+        if capability in {'compare', 'verify_transfer'}:
+            report = compare_artifacts({name: inputs[name] for name in ('trace', 'ranks')})
+        else:
+            report = timing_artifacts({name: inputs[name] for name in ('transfer', 'replay', 'request', 'activation', 'baseline')})
+        if capability in {'compare', 'time_copies'}:
             return {'report': report}
         saved = json.dumps(inputs['report'], sort_keys=True, allow_nan=False)
         return {'verified': saved == json.dumps(report, sort_keys=True)}

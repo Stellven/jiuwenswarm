@@ -21,3 +21,9 @@ Use a trace retained after shutdown and the verified rank report as separate pin
 5. Call `verify_transfer` with the same artifacts and saved report. The synthetic tests cover mixed and unknown phases, repeat selections, missing summaries, loss and inconsistent receipts.
 
 The report summarizes observed recorder events. A loss-free recorder summary does not substitute for an independent dispatch manifest. Use a matched workload to measure latency and controller activation before attributing speedup to the rank set.
+
+## Relate measured copy replay to C1 latency
+
+Bind the transfer report, measured replay receipt, request result, activation profile and historical A baseline as artifacts. Require the trace hash and exact known prefill byte count to match the replay. The receipt must identify the same source path and payload layout. Keep measured rates in bytes per second. Recompute each sample from bytes and elapsed seconds and retain all passes, including an initial uncontrolled-residency pass and slow later passes.
+
+Compare bytes divided by replay bandwidth with the functional C1 request's client TTFT. Report the isolated equivalent in seconds and as a fraction of C1 TTFT. Retain the earlier warm A median as context. It reflects a different run condition and is excluded from the equivalence ratio. The replay has no model execution and synchronizes per layer/microbatch group. The real CUDA graph enqueues uploads before their consuming split on the same stream. Recorder events do not measure completion times or how much unrelated work overlapped. Treat this result as a copy-path scale estimate.

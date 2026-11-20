@@ -18,3 +18,12 @@ The DeepSeek V4.1 Flash pack metadata used for the historical Spark analysis dec
 | Retained `convert_ds41_upstream.py` 346–393, 451–499 | This campaign maps layer/expert IDs directly. Ordinary quantized tensors retain their names, shape and byte order through conversion. | `183614c38666af34174d71b5e593f2d12d1b25f5a02d9c0c7184f1f2cc0274f5` |
 
 The historical C1 trace was produced with the recorder gate active, the converted DeepSeek text model and the strict stock placement profile. It demonstrates coverage on that functional probe. It is not a timed comparison or a held-out corpus.
+
+## Copy timing sources
+
+| Source and anchor | Method dependency | SHA-256 |
+| --- | --- | --- |
+| Recorder commit `9d0733cba12c164827b646ea86af618ce7b5ca47`, `src/llama-context.cpp` 3170–3281 | Cache-disabled host-weight copy path, grouping consecutive expert IDs with tail padding, submitted bytes | `cb0feb3baaba4351d8106b333ae7983371d1bf921988b915e4f0e1314ea2c99c` |
+| Stock commit `9048bad8d6e3`, `ggml/src/ggml-cuda/ggml-cuda.cu` 3106–3113 | Backend upload issues `cudaMemcpyHostToDevice` on the backend stream | `713eff6e26d4590903be9b0ed7b4b8a8dfd51e1a1af8c85c20e59add514a0ac2` |
+| Stock `ggml/src/ggml-backend.cpp` 2089–2147, 2213–2292 | Host weight inputs are copied before their dependent CUDA split. Other input prefetch activity has its own scheduling and is absent from the retained replay. | `4ea348d41d6fc5747906d9d3784ff3e15886ad40bce09c9cc9d6da6f2247314f` |
+| `ops/spark/replay_expert_copies.py` in JiuwenSwarm commit `2cb7c5718` | Layer-by-layer reconstruction of the exact timed copy ranges and replay receipt | See bundled copy replay source evidence |

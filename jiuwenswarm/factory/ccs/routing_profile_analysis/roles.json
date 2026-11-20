@@ -1,13 +1,18 @@
 {
   "format": "factory-roles/1",
-  "capabilities": {"analyze": "tool", "verify": "tool", "compare": "tool", "verify_transfer": "tool"},
+  "capabilities": {
+    "analyze": "tool", "verify": "tool", "compare": "tool", "verify_transfer": "tool",
+    "time_copies": "tool", "verify_copy_timing": "tool"
+  },
   "materials": {
     "method": "method",
     "source_map": "reference",
     "helper": "reference",
     "transfer_helper": "reference",
+    "copy_timing_helper": "reference",
     "tests": "reference",
     "transfer_tests": "reference",
+    "copy_timing_tests": "reference",
     "checksums": "reference",
     "analysis": "reference"
   }

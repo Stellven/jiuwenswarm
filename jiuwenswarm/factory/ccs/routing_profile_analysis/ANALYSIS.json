@@ -11,6 +11,11 @@
     "rows": "rows",
     "columns": ["phase", "k_per_layer", "route_selections", "route_fraction", "dispatch_expert_unions", "dispatch_expert_union_fraction"]
   },
+  "copy_timing_table": {
+    "schema": "routing-copy-timing/1",
+    "rows": "rows",
+    "columns": ["pass_index", "residency", "measured_bandwidth_bytes_per_second", "serial_copy_equivalent_seconds", "serial_copy_equivalent_fraction_of_c1_ttft"]
+  },
   "inform_builder_capsules": [
     "weight_placement_planner",
     "expert_weight_cache"
