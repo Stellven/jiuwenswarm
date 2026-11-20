@@ -1,3 +1,4 @@
+import { collapseEvents, presentEvent } from './storyModel.ts';
 import type { JsonRecord, StoryEvent } from '../api';
 
 export const logLevels = ['plain', 'debug', 'info', 'success', 'warning', 'error'] as const;
@@ -12,6 +13,10 @@ export type LogRow = {
   message: string;
   raw?: string;
   cursor?: number;
+  /** First cursor of a collapsed run of identical events. */
+  firstCursor?: number;
+  count?: number;
+  kind?: string;
 };
 
 const levelPattern = 'TRACE|DEBUG|INFO|NOTICE|SUCCESS|WARN(?:ING)?|ERR(?:OR)?|CRITICAL|FATAL';
@@ -133,19 +138,23 @@ export function parseLog(content: string): LogRow[] {
 }
 
 export function projectStoryLog(events: readonly StoryEvent[]): LogRow[] {
-  return events.map((event) => {
+  return collapseEvents(events).map(({ event, count, first }) => {
     let level: LogLevel = 'info';
     if (event.mark === '✗') level = 'error';
     else if (event.mark === '✓' || event.kind === 'accept') level = 'success';
     else if (/^(?:replan\/|reject$|revert_component$|report_inconclusive$|partial$)/.test(event.kind))
       level = 'warning';
+    const { title } = presentEvent(event);
     return {
       id: `${event.id}:${event.cursor}`,
       ...timeFields(event.created),
       level,
-      source: event.kind,
-      message: event.summary,
+      source: title,
+      kind: event.kind,
+      message: count > 1 ? `${event.summary} (×${count})` : event.summary,
       cursor: event.cursor,
+      firstCursor: count > 1 ? first : undefined,
+      count,
     };
   });
 }

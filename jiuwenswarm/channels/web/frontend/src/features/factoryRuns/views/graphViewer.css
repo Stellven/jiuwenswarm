@@ -374,3 +374,10 @@
     max-height: 46%;
   }
 }
+
+.factory-graph-node-toggle { position: absolute; right: 6px; bottom: 4px; padding: 0 5px; border-radius: 999px; font-size: 0.68rem; font-weight: 600; background: var(--color-surface-muted); color: var(--color-text-primary); }
+.factory-graph-node-button { position: relative; }
+.factory-graph-summary-fields p { margin: 0 0 6px; }
+.factory-graph-summary-fields small { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
+.factory-graph-file-link { padding: 0; border: 0; background: none; color: var(--color-text-link); text-align: left; cursor: pointer; font: inherit; }
+.factory-graph-file-link:hover { text-decoration: underline; }

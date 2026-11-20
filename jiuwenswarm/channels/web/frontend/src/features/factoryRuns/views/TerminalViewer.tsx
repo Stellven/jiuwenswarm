@@ -69,7 +69,9 @@ export function TerminalViewer({ content, events, activeCursor, onSeek }: Termin
         virtualizer.scrollToOffset(0);
         return;
       }
-      const index = visibleRows.findIndex((row) => row.cursor === activeCursor);
+      const index = visibleRows.findIndex(
+        (row) => row.cursor === activeCursor || (row.firstCursor !== undefined && row.cursor !== undefined && row.firstCursor <= activeCursor && activeCursor <= row.cursor),
+      );
       if (index !== -1) virtualizer.scrollToIndex(index, { align: 'auto' });
     });
     return () => cancelAnimationFrame(frame);
@@ -136,11 +138,12 @@ export function TerminalViewer({ content, events, activeCursor, onSeek }: Termin
               {virtualizer.getVirtualItems().map((item) => {
                 const row = visibleRows[item.index];
                 const cursor = row.cursor;
-                const current = cursor !== undefined && cursor === activeCursor;
+                const current = cursor !== undefined && activeCursor !== undefined && (cursor === activeCursor || (row.firstCursor !== undefined && row.firstCursor <= activeCursor && activeCursor <= cursor));
                 const expanded = row.id === expandedRecord;
                 const message = (
                   <>
                     {row.source && <span className="factory-terminal-source">{row.source}</span>}
+                    {row.kind && row.kind !== row.source && <small className="factory-original-kind factory-inline-kind" data-testid="factory-runs-terminal-kind">{row.kind}</small>}
                     {row.source && row.message && ' '}
                     <span>{row.message}</span>
                   </>

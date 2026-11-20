@@ -1,8 +1,8 @@
-import { Fragment, useMemo } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CapsuleChips } from '../cc/CapsuleChips';
 import type { Run } from '../api';
-import { runListEntries } from './runListModel';
+import { groupRunEntries, runListEntries } from './runListModel';
 import { useViewerLabels } from './viewerLabels';
 
 export function FactoryRunList({
@@ -17,6 +17,8 @@ export function FactoryRunList({
   const { t } = useTranslation();
   const { label, lang } = useViewerLabels();
   const entries = useMemo(() => runListEntries(runs), [runs]);
+  const [showEverything, setShowEverything] = useState(false);
+  const groups = useMemo(() => groupRunEntries(entries, showEverything), [entries, showEverything]);
   const date = useMemo(
     () =>
       new Intl.DateTimeFormat(lang, {
@@ -32,7 +34,8 @@ export function FactoryRunList({
 
   return (
     <div className="factory-run-list" data-testid="factory-runs-list">
-      {entries.map(({ run, source, shortId }) => {
+      {(() => {
+        const render = (items: typeof entries): ReactNode => items.map(({ run, source, shortId }) => {
         const updated = Number.isFinite(run.updated) && run.updated > 0 ? new Date(run.updated * 1000) : null;
         const status =
           run.status === 'replay'
@@ -51,6 +54,7 @@ export function FactoryRunList({
             onClick={() => onSelect(run.id)}
           >
             <strong title={run.name} data-testid="factory-runs-run-name">
+              {run.demo && <span className="factory-run-demo-badge" data-testid="factory-runs-run-demo">Demo</span>}
               {run.name}
             </strong>
             <span className="factory-run-meta">
@@ -83,7 +87,34 @@ export function FactoryRunList({
           <CapsuleChips value={[run.task_id,run.objective]} />
           </Fragment>
         );
-      })}
+      });
+        if (!groups.demo.length) return render(entries);
+        const selectedInRest = groups.rest.some(({ run }) => run.id === selected);
+        return (
+          <>
+            <section className="factory-run-group" data-testid="factory-runs-demo-group" aria-label="Demo">
+              <h2 className="factory-run-group-title">Demo</h2>
+              {render(groups.demo)}
+            </section>
+            {groups.rest.length + groups.hidden > 0 && (
+              <details className="factory-run-group" data-testid="factory-runs-all-group" open={selectedInRest || undefined}>
+                <summary className="factory-run-group-title" data-testid="factory-runs-all-group-toggle">
+                  All runs ({groups.rest.length})
+                </summary>
+                <label className="factory-run-show-all" data-testid="factory-runs-show-everything">
+                  <input
+                    type="checkbox"
+                    checked={showEverything}
+                    onChange={(event) => setShowEverything(event.target.checked)}
+                  />
+                  Show everything{groups.hidden ? ` (+${groups.hidden} scratch homes and older exports)` : ''}
+                </label>
+                {render(groups.rest)}
+              </details>
+            )}
+          </>
+        );
+      })()}
       {!entries.length && <p data-testid="factory-runs-empty">{t('factoryRuns.empty')}</p>}
     </div>
   );

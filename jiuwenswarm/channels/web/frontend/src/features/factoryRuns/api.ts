@@ -1,4 +1,5 @@
 import { getApiBase } from '../../utils/env';
+import type { CuratedReplay } from './views/storyModel.ts';
 
 export type JsonRecord = Record<string, unknown>;
 export type Run = {
@@ -10,6 +11,13 @@ export type Run = {
   objective?: string;
   status: string;
   updated: number;
+  /** Curated demo replays are pinned first in the run list. */
+  demo?: boolean;
+  demo_order?: number;
+  /** web-* launch scratch homes and synthetic smoke homes. */
+  scratch?: boolean;
+  /** An older export snapshot of a task that has a newer export. */
+  duplicate?: boolean;
 };
 export type EvidenceFile = {
   path: string;
@@ -39,6 +47,7 @@ export type RunDetail = {
   events: StoryEvent[];
   summary: unknown;
   session?: SessionSnapshot | null;
+  curated?: CuratedReplay | null;
 };
 export type SessionSnapshot = {
   status: 'running' | 'waiting' | 'finished' | 'idle' | 'unknown';

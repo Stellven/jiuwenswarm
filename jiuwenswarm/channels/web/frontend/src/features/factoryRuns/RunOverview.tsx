@@ -3,6 +3,7 @@ import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3 } f
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
 import { atlasTitle } from './cc/atlasNames.ts';
+import { collapseEvents, presentEvent } from './views/storyModel.ts';
 import './story.css';
 
 const capsuleFolders = {
@@ -38,6 +39,9 @@ export function RunOverview({
   onOpen,
   measurements,
   headline,
+  onOpenFile,
+  onSeek,
+  currentStep,
 }: {
   detail: RunDetail;
   events: StoryEvent[];
@@ -45,6 +49,9 @@ export function RunOverview({
   onOpen: (panel: OverviewPanel, path?: string) => void;
   measurements?: ReactNode;
   headline?: ReactNode;
+  onOpenFile?: (path: string) => void;
+  onSeek?: (cursor: number) => void;
+  currentStep?: number;
 }) {
   const { t, i18n } = useTranslation();
   const task = detail.records.tasks?.[0] || {};
@@ -75,6 +82,127 @@ export function RunOverview({
   const referenceManifest = detail.run.kind === 'bundle' && detail.files.some((file) => file.path === 'MANIFEST.json' && file.integrity === 'untracked');
   const verified = detail.files.filter((file) => file.integrity === 'verified').length;
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, { timeStyle: 'medium' });
+  const curated = detail.curated;
+  const fileByPath = new Map(detail.files.map((file) => [file.path, file]));
+  const groups = collapseEvents(events);
+
+  if (curated) {
+    const focus = curated.steps.find((step) => step.step === currentStep) ?? curated.steps[0];
+    const lead = focus?.key_files[0];
+    return (
+      <div className="factory-story" data-testid="factory-runs-overview">
+        <header className="factory-story-hero" data-testid="factory-runs-overview-brief">
+          <span className="factory-story-kicker">{curated.title}</span>
+          <p className="factory-curated-label" data-testid="factory-runs-curated-summary">{curated.summary}</p>
+        </header>
+        {focus && (
+          <section
+            className="factory-story-card factory-curated-focus"
+            data-testid="factory-runs-curated-focus"
+            data-variant={String(focus.step)}
+          >
+            <p className="factory-curated-count">
+              Step {focus.step} of {curated.steps.length}
+              <small className="factory-original-kind" title="Original record kind">
+                {focus.original_kind} · {focus.created_utc?.slice(0, 19).replace('T', ' ')} UTC
+              </small>
+            </p>
+            <h3 title="Presentation title" data-testid="factory-runs-curated-focus-title">
+              {focus.presentation_title}
+            </h3>
+            {focus.say && (
+              <p className="factory-curated-say" data-testid="factory-runs-curated-focus-say">
+                {focus.say}
+              </p>
+            )}
+            {lead && (
+              <button
+                type="button"
+                className="factory-curated-lead"
+                data-testid="factory-runs-curated-focus-key-file"
+                data-variant={lead.path}
+                disabled={!fileByPath.get(lead.path)}
+                onClick={() => onOpenFile?.(lead.path)}
+              >
+                ★ {lead.label}
+                {lead.why && <small>{lead.why}</small>}
+              </button>
+            )}
+            {(focus.quotes?.length ?? 0) > 0 && (
+              <ul className="factory-curated-quotes" data-testid="factory-runs-curated-quotes">
+                {focus.quotes?.map((quote) => (
+                  <li key={`${quote.path}:${quote.line}`}>
+                    <q>{quote.text}</q>
+                    <small>
+                      {quote.path.replace(/^evidence\//, '')} · line {quote.line} (verbatim)
+                    </small>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <details className="factory-curated-more">
+              <summary>Recorded summary and other key files</summary>
+              <p className="factory-muted">{focus.original_summary}</p>
+              <ul className="factory-curated-key-files">
+                {focus.key_files.slice(1).map((key) => (
+                  <li key={key.path}>
+                    <button
+                      type="button"
+                      data-testid="factory-runs-curated-key-file"
+                      data-variant={key.path}
+                      disabled={!fileByPath.get(key.path)}
+                      title={key.why}
+                      onClick={() => onOpenFile?.(key.path)}
+                    >
+                      ★ {key.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </section>
+        )}
+        <section className="factory-story-card factory-curated" data-testid="factory-runs-curated-steps">
+          <ol className="factory-curated-steps">
+            {curated.steps.map((step) => (
+              <li
+                key={step.step}
+                data-testid="factory-runs-curated-step"
+                data-variant={String(step.step)}
+                aria-current={step.step === focus?.step ? 'step' : undefined}
+              >
+                <button
+                  type="button"
+                  className="factory-curated-step-title"
+                  data-testid="factory-runs-curated-step-seek"
+                  onClick={() => step.event_cursor && onSeek?.(step.event_cursor)}
+                >
+                  <span className="factory-curated-step-number">{step.step}</span>
+                  <span>
+                    <strong title="Presentation title">{step.presentation_title}</strong>
+                    <small className="factory-original-kind" title="Original record kind">
+                      {step.original_kind}
+                    </small>
+                  </span>
+                </button>
+                {step.key_files[0] && (
+                  <button
+                    type="button"
+                    className="factory-curated-step-key"
+                    data-testid="factory-runs-curated-step-key-file"
+                    data-variant={step.key_files[0].path}
+                    onClick={() => onOpenFile?.(step.key_files[0].path)}
+                  >
+                    ★ {step.key_files[0].label}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
+    );
+  }
 
   return (
     <div className="factory-story" data-testid="factory-runs-overview">
@@ -218,15 +346,22 @@ export function RunOverview({
         <details className="factory-story-card factory-story-activity" data-testid="factory-runs-overview-activity">
           <summary>{t('factoryRuns.story.timeline', { count: events.length })}</summary>
           <ol className="factory-timeline" data-testid="factory-runs-timeline">
-            {events.map((event, index) => (
-              <li key={`${event.id}-${index}`} data-testid="factory-runs-event" data-variant={event.id}>
-                <time dateTime={new Date(event.created * 1000).toISOString()}>
-                  {dateFormat.format(event.created * 1000)}
-                </time>
-                <strong>{event.kind}</strong>
-                <span>{event.summary} {eventCapsules?.(event)}</span>
-              </li>
-            ))}
+            {groups.map(({ event, count }, index) => {
+              const shown = presentEvent(event);
+              return (
+                <li key={`${event.id}-${index}`} data-testid="factory-runs-event" data-variant={event.id}>
+                  <time dateTime={new Date(event.created * 1000).toISOString()}>
+                    {dateFormat.format(event.created * 1000)}
+                  </time>
+                  <strong data-testid="factory-runs-event-title">
+                    {shown.title}
+                    {count > 1 && <span className="factory-event-count" data-testid="factory-runs-event-count"> ×{count}</span>}
+                    <small className="factory-original-kind" data-testid="factory-runs-event-kind">{shown.kind}</small>
+                  </strong>
+                  <span>{event.summary} {eventCapsules?.(event)}</span>
+                </li>
+              );
+            })}
           </ol>
         </details>
       )}

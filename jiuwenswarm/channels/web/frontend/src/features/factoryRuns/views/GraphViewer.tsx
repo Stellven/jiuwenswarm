@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   Handle,
@@ -12,10 +12,11 @@ import {
   type NodeProps,
 } from '@xyflow/react';
 import dagre from '@dagrejs/dagre';
-import { Box, ClipboardList, FileText, GitBranch, Layers3, Maximize, Minus, Plus, Workflow, X } from 'lucide-react';
+import { Box, ChevronsDownUp, ChevronsUpDown, ClipboardList, FileText, GitBranch, Layers3, Maximize, Minus, Plus, Workflow, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { GraphLink, GraphModel, GraphNode, GraphReplay } from './graphModel';
-import { graphProgress } from './graphModel';
+import { collapsibleNodes, graphChildren, graphProgress, hiddenUnder, visibleGraphNodes } from './graphModel';
+import type { KeyFile } from './storyModel.ts';
 import { MembershipEdge } from './MembershipEdge';
 import { layoutOntologyGroups, type GraphPlacement } from './ontologyLayout';
 import '@xyflow/react/dist/style.css';
@@ -56,6 +57,17 @@ const labels = {
     zoomIn: 'Zoom in',
     zoomOut: 'Zoom out',
     fit: 'Fit graph',
+    expandAll: 'Expand all',
+    collapseAll: 'Collapse all',
+    expand: 'Expand children',
+    collapse: 'Collapse children',
+    purpose: 'Purpose',
+    status: 'Status',
+    records: 'Linked records',
+    files: 'Linked files',
+    keyFiles: 'Key files',
+    steps: 'Replay steps',
+    allFields: 'All recorded fields',
     close: 'Close node details',
     current: 'Current event',
     seen: 'Reached',
@@ -92,6 +104,17 @@ const labels = {
     zoomIn: '放大',
     zoomOut: '缩小',
     fit: '适应视图',
+    expandAll: '全部展开',
+    collapseAll: '全部折叠',
+    expand: '展开子节点',
+    collapse: '折叠子节点',
+    purpose: '目的',
+    status: '状态',
+    records: '关联记录',
+    files: '关联文件',
+    keyFiles: '关键文件',
+    steps: '回放步骤',
+    allFields: '全部字段',
     close: '关闭节点详情',
     current: '当前事件',
     seen: '已到达',
@@ -127,7 +150,11 @@ type FlowNode = Node<
     state?: string;
     grouped?: boolean;
     member?: boolean;
+    childCount: number;
+    hiddenCount: number;
+    collapsed: boolean;
     select: (id: string) => void;
+    toggle: (id: string) => void;
   },
   'factoryNode'
 >;
@@ -145,7 +172,7 @@ function linkText(link: GraphLink, text: ReturnType<typeof useLabels>) {
 
 function GraphCard({ data, selected }: NodeProps<FlowNode>) {
   const text = useLabels();
-  const { node, state, phase, grouped, member, select } = data;
+  const { node, state, phase, grouped, member, select, toggle, childCount, hiddenCount, collapsed } = data;
   const Icon = icons[node.kind];
   const status = statusText(state, phase, text);
   return (
@@ -160,7 +187,11 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
         data-phase={phase}
         data-node-state={state}
         aria-pressed={selected}
-        onClick={() => select(node.id)}
+        aria-expanded={childCount ? !collapsed : undefined}
+        onClick={() => {
+          select(node.id);
+          if (childCount) toggle(node.id);
+        }}
         title={node.label}
       >
         <Icon size={17} aria-hidden="true" />
@@ -171,6 +202,16 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
         {status && (
           <span className="factory-graph-node-state" data-testid="factory-runs-graph-node-status">
             {status}
+          </span>
+        )}
+        {childCount > 0 && (
+          <span
+            className="factory-graph-node-toggle"
+            data-testid="factory-runs-graph-node-toggle"
+            data-variant={collapsed ? 'collapsed' : 'expanded'}
+            title={collapsed ? text.expand : text.collapse}
+          >
+            {collapsed ? `▸ +${hiddenCount}` : `▾ ${childCount}`}
           </span>
         )}
       </button>
@@ -203,7 +244,15 @@ function layout(graph: GraphModel): { placement: GraphPlacement[]; links: GraphL
   };
 }
 
-function ZoomControls({ grouped }: { grouped: boolean }) {
+function ZoomControls({
+  grouped,
+  onExpandAll,
+  onCollapseAll,
+}: {
+  grouped: boolean;
+  onExpandAll?: () => void;
+  onCollapseAll?: () => void;
+}) {
   const { fitView, setViewport, zoomIn, zoomOut } = useReactFlow();
   const text = useLabels();
   return (
@@ -238,6 +287,28 @@ function ZoomControls({ grouped }: { grouped: boolean }) {
       >
         <Maximize size={15} aria-hidden="true" />
       </button>
+      {onExpandAll && (
+        <button
+          type="button"
+          aria-label={text.expandAll}
+          title={text.expandAll}
+          data-testid="factory-runs-graph-expand-all"
+          onClick={onExpandAll}
+        >
+          <ChevronsUpDown size={16} aria-hidden="true" />
+        </button>
+      )}
+      {onCollapseAll && (
+        <button
+          type="button"
+          aria-label={text.collapseAll}
+          title={text.collapseAll}
+          data-testid="factory-runs-graph-collapse-all"
+          onClick={onCollapseAll}
+        >
+          <ChevronsDownUp size={16} aria-hidden="true" />
+        </button>
+      )}
     </Panel>
   );
 }
@@ -249,6 +320,7 @@ function NodeDetails({
   links,
   nodeLabels,
   onClose,
+  replay,
 }: {
   node: GraphNode;
   details: GraphNode['details'];
@@ -256,8 +328,23 @@ function NodeDetails({
   links: GraphLink[];
   nodeLabels: Map<string, string>;
   onClose: () => void;
+  replay?: GraphReplay;
 }) {
   const text = useLabels();
+  const linked = nodeRecords(details);
+  const steps = (replay?.curated?.steps ?? []).filter((step) =>
+    (step.graph_nodes ?? []).some((id) => id === node.id || id === node.planId),
+  );
+  const stepRecordIds = steps.flatMap((step) => (step.records ?? []).map((row) => row.id));
+  const recordIds = [...linked, ...stepRecordIds];
+  const files = (replay?.files ?? []).filter((file) =>
+    (file.artifact_ids ?? []).some((id) => recordIds.some((record) => id === record || id.startsWith(record + ':'))),
+  );
+  const keys: KeyFile[] = steps.flatMap((step) => step.key_files.map((key) => ({ ...key, step: step.step })));
+  const purpose = [details.title, details.objective, details.reason, details.kind]
+    .filter((value): value is string => typeof value === 'string' && value.trim() !== '')
+    .filter((value, index, all) => all.indexOf(value) === index);
+  const state = typeof details.state === 'string' ? details.state : node.state;
   const incoming = links.filter((link) => link.target === node.id);
   const outgoing = links.filter((link) => link.source === node.id);
   return (
@@ -275,6 +362,75 @@ function NodeDetails({
         <p data-testid="factory-runs-graph-upcoming">{text.upcomingDetail}</p>
       ) : (
         <>
+          <section className="factory-graph-summary-fields" data-testid="factory-runs-graph-node-summary">
+            {purpose.length > 0 && (
+              <p data-testid="factory-runs-graph-purpose">
+                <small>{text.purpose}</small> {purpose.join(' · ')}
+              </p>
+            )}
+            <p data-testid="factory-runs-graph-status">
+              <small>{text.status}</small> {statusText(state, phase, text) || '—'}
+            </p>
+            {steps.length > 0 && (
+              <p data-testid="factory-runs-graph-steps">
+                <small>{text.steps}</small> {steps.map((step) => `${step.step}. ${step.presentation_title}`).join(' · ')}
+              </p>
+            )}
+          </section>
+          {keys.length > 0 && (
+            <section data-testid="factory-runs-graph-key-files">
+              <h5>★ {text.keyFiles}</h5>
+              <ul>
+                {keys.map((key) => (
+                  <li key={`${key.step}:${key.path}`}>
+                    <button
+                      type="button"
+                      className="factory-graph-file-link"
+                      data-testid="factory-runs-graph-key-file"
+                      data-variant={key.path}
+                      title={key.why}
+                      onClick={() => replay?.onOpenFile?.(key.path)}
+                    >
+                      ★ {key.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {linked.length > 0 && (
+            <section data-testid="factory-runs-graph-records">
+              <h5>{text.records}</h5>
+              <ul>
+                {linked.map((id) => (
+                  <li key={id}>
+                    <code>{id}</code>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {files.length > 0 && (
+            <section data-testid="factory-runs-graph-files">
+              <h5>{text.files}</h5>
+              <ul>
+                {files.slice(0, 12).map((file) => (
+                  <li key={file.path}>
+                    <button
+                      type="button"
+                      className="factory-graph-file-link"
+                      data-testid="factory-runs-graph-file"
+                      onClick={() => replay?.onOpenFile?.(file.path)}
+                    >
+                      {file.display_path || file.path}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <details>
+            <summary>{text.allFields}</summary>
           <dl data-testid="factory-runs-graph-node-details">
             {Object.entries(details)
               .filter(([, value]) => value !== undefined && value !== '')
@@ -293,6 +449,7 @@ function NodeDetails({
                 </div>
               ))}
           </dl>
+          </details>
           {(
             [
               ['incoming', incoming],
@@ -327,9 +484,38 @@ function NodeDetails({
   );
 }
 
-export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: GraphReplay }) {
+function nodeRecords(details: GraphNode['details']) {
+  return [
+    ...(Array.isArray(details.evidence_ids) ? details.evidence_ids : []),
+    ...(Array.isArray(details.attempt_ids) ? details.attempt_ids : []),
+  ].filter((id): id is string => typeof id === 'string');
+}
+
+export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; replay?: GraphReplay }) {
   const text = useLabels();
   const [selectedId, setSelectedId] = useState('');
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const collapsible = fullGraph.kind !== 'ontology';
+  const children = useMemo(() => graphChildren(fullGraph), [fullGraph]);
+  const visibleIds = useMemo(() => visibleGraphNodes(fullGraph, collapsed), [fullGraph, collapsed]);
+  const graph = useMemo<GraphModel>(
+    () => ({
+      ...fullGraph,
+      nodes: fullGraph.nodes.filter((node) => visibleIds.has(node.id)),
+      links: fullGraph.links.filter((link) => visibleIds.has(link.source) && visibleIds.has(link.target)),
+    }),
+    [fullGraph, visibleIds],
+  );
+  const toggle = useCallback(
+    (id: string) =>
+      setCollapsed((old) => {
+        const next = new Set(old);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      }),
+    [],
+  );
   const view = useRef<HTMLElement>(null);
   const [width, setWidth] = useState(760);
   useLayoutEffect(() => {
@@ -343,8 +529,8 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
   }, [graph]);
   const grouped = useMemo(() => layoutOntologyGroups(graph, width), [graph, width]);
   const geometry = useMemo(() => grouped ?? layout(graph), [graph, grouped]);
-  const nodeLabels = useMemo(() => new Map(graph.nodes.map((node) => [node.id, node.label])), [graph.nodes]);
-  const progress = useMemo(() => (replay ? graphProgress(graph, replay) : undefined), [graph, replay]);
+  const nodeLabels = useMemo(() => new Map(fullGraph.nodes.map((node) => [node.id, node.label])), [fullGraph.nodes]);
+  const progress = useMemo(() => (replay ? graphProgress(fullGraph, replay) : undefined), [fullGraph, replay]);
   const nodes = useMemo<FlowNode[]>(
     () =>
       geometry.placement.map(({ node, position, width, height, parentId, grouped }) => {
@@ -359,10 +545,21 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
           height,
           parentId,
           selected: selectedId === node.id,
-          data: { node, state, grouped, member: Boolean(parentId), phase: mark?.phase, select: setSelectedId },
+          data: {
+            node,
+            state,
+            grouped,
+            member: Boolean(parentId),
+            phase: mark?.phase,
+            select: setSelectedId,
+            toggle,
+            childCount: collapsible ? (children.get(node.id)?.length ?? 0) : 0,
+            hiddenCount: collapsed.has(node.id) ? hiddenUnder(fullGraph, node.id, visibleIds) : 0,
+            collapsed: collapsed.has(node.id),
+          },
         };
       }),
-    [geometry, progress, selectedId],
+    [geometry, progress, selectedId, toggle, collapsible, children, collapsed, fullGraph, visibleIds],
   );
   const visibleLinks = useMemo(
     () =>
@@ -406,7 +603,7 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
       }),
     [geometry.links, grouped, progress, text, visibleLinks],
   );
-  const selected = graph.nodes.find((node) => node.id === selectedId);
+  const selected = fullGraph.nodes.find((node) => node.id === selectedId);
   const selectedProgress = selected ? progress?.get(selected.id) : undefined;
   const showReplayLegend = Boolean(replay && graph.kind !== 'ontology');
   if (!nodes.length)
@@ -426,7 +623,9 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
       <div className="factory-graph-summary">
         <strong data-testid="factory-runs-graph-title">{text.title[graph.kind]}</strong>
         <span data-testid="factory-runs-graph-count">
-          {graph.nodes.length} {text.nodeCount} · {graph.links.length} {text.linkCount}
+          {graph.nodes.length}
+          {graph.nodes.length !== fullGraph.nodes.length ? ` / ${fullGraph.nodes.length}` : ''} {text.nodeCount} ·{' '}
+          {graph.links.length} {text.linkCount}
         </span>
         {showReplayLegend && (
           <div className="factory-graph-replay-key" data-testid="factory-runs-graph-replay-key">
@@ -469,7 +668,11 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
           data-testid="factory-runs-graph-canvas"
         >
           <Background gap={19} size={1.2} color="var(--color-border-default)" />
-          <ZoomControls grouped={Boolean(grouped)} />
+          <ZoomControls
+            grouped={Boolean(grouped)}
+            onExpandAll={collapsible ? () => setCollapsed(new Set()) : undefined}
+            onCollapseAll={collapsible ? () => setCollapsed(collapsibleNodes(fullGraph)) : undefined}
+          />
         </ReactFlow>
         {selected && (
           <NodeDetails
@@ -479,6 +682,7 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
             links={[...visibleLinks]}
             nodeLabels={nodeLabels}
             onClose={() => setSelectedId('')}
+            replay={replay}
           />
         )}
       </div>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useDeferredValue, useMemo, useState } from 'react';
-import type { EvidenceFile, StoryEvent } from '../api';
+import type { EvidenceFile } from '../api';
 import {
   chartableTable,
   collectTables,
@@ -17,7 +17,7 @@ import {
 import { ArtifactChart } from './ArtifactChart';
 import { EvidenceMetadata } from './EvidenceMetadata';
 import { RawDocument } from './RawDocument';
-import { detectGraph, type GraphModel } from './graphModel';
+import { detectGraph, type GraphModel, type GraphReplay } from './graphModel';
 import { GraphViewer } from './GraphViewer';
 import { useViewerLabels } from './viewerLabels';
 import './dataViewer.css';
@@ -27,7 +27,7 @@ type Props = {
   name: string;
   file?: EvidenceFile;
   graph?: GraphModel | null;
-  replay?: { events: readonly StoryEvent[]; position: number };
+  replay?: GraphReplay;
   initialMode?: Mode;
 } & ({ value: unknown; source?: never } | { value?: never; source: string });
 

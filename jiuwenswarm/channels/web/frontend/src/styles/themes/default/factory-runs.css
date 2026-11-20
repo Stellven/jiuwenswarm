@@ -1,4 +1,14 @@
 /* Scoped dark tokens leave the surrounding application theme intact. */
+/* Demo build is light only. The app's secondary grey (#777 on white, 4.48:1)
+   fails WCAG AA for body text, so these pages use darker greys (>= 7:1). */
+.factory-runs-page,
+.cc-page {
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #4b5563;
+  --color-text-placeholder: #5f6670;
+  color-scheme: light;
+}
+
 .factory-runs-page {
   --color-bg-primary: var(--color-surface-card);
   --color-bg-secondary: var(--color-surface-page);

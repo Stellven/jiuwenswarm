@@ -84,5 +84,6 @@ test('story rows use source marks and preserve replay cursor and event order', (
   assert.equal(new Set(rows.map((row) => row.id)).size, rows.length);
   assert.equal(rows[0].timestamp, undefined);
   assert.equal(rows[1].timestamp, '2026-11-20 07:20:41Z');
-  assert.equal(rows[2].source, 'replan/build');
+  assert.equal(rows[2].kind, 'replan/build');
+  assert.equal(rows[2].source, 'Replan: native build');
 });

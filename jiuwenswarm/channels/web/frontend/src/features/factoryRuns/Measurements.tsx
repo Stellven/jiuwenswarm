@@ -605,9 +605,10 @@ export function MeasurementSummary({ onOpenMeasurements }: { onOpenMeasurements?
   const phase = ledger?.samples.some((sample) => sample.phase === 'final') ? 'final' : 'reconnaissance';
   const prompt = ledger ? promptOptions(ledger, phase)[0] : undefined;
   const rows = ledger && prompt ? aggregateMeasurements(ledger, phase, prompt) : [];
-  const combined = rows.find((row) => row.arm === 'D')?.metrics.gap;
-  const metric = combined ? 'gap' : 'ttft_s';
-  const overviewArms: MeasurementArm[] = combined ? ['D'] : ['A', 'S'];
+  // A ratio such as "Strata gap closed" means nothing without the times it
+  // compares, so the overview shows the median seconds for each engine.
+  const metric = 'ttft_s';
+  const overviewArms: MeasurementArm[] = ['A', 'S', 'D'];
   const outcomes = rows.filter((row) => overviewArms.includes(row.arm) && row.metrics[metric]);
   return (
     <section className="factory-measurement-summary" data-testid="factory-runs-measurement-summary">
@@ -626,6 +627,11 @@ export function MeasurementSummary({ onOpenMeasurements }: { onOpenMeasurements?
           </button>
         )}
       </header>
+      {prompt && outcomes.length > 0 && (
+        <p className="factory-measurement-summary-note" data-testid="factory-runs-measurement-summary-note">
+          {copy.summaryNote}
+        </p>
+      )}
       {!ledger && <p role="status">{error ? copy.error : copy.loading}</p>}
       {ledger && !prompt && <p>{copy.finalEmpty}</p>}
       {prompt && !outcomes.length && <p>{copy.noComparison}</p>}

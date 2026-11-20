@@ -11,6 +11,7 @@ import { RawDocument } from './RawDocument';
 import { TerminalViewer } from './TerminalViewer';
 import { documentFormat, evidenceKind, resolveEvidenceLink } from './dataModel';
 import { useViewerLabels } from './viewerLabels';
+import type { KeyFile } from './storyModel';
 
 type FileBrowserProps = {
   files: EvidenceFile[];
@@ -19,7 +20,25 @@ type FileBrowserProps = {
   content: FileContent | null;
   error?: string;
   onSelect: (path: string) => void;
+  /** Key files of the current replay step, pinned above the list. */
+  keyFiles?: { key: KeyFile; file: EvidenceFile }[];
+  /** Every flagged key file in the run, by path. */
+  keyFlags?: Map<string, KeyFile[]>;
 };
+
+export function KeyFileBadge({ flags }: { flags?: KeyFile[] }) {
+  if (!flags?.length) return null;
+  const steps = [...new Set(flags.map((flag) => flag.step).filter((step) => step !== undefined))];
+  return (
+    <span
+      className="factory-key-badge"
+      data-testid="factory-runs-key-badge"
+      title={flags.map((flag) => `${flag.label}${flag.why ? ' - ' + flag.why : ''}`).join(' | ')}
+    >
+      ★ Key file{steps.length ? ` · step ${steps.join(', ')}` : ''}
+    </span>
+  );
+}
 
 const FILE_PAGE_SIZE = 100;
 
@@ -30,6 +49,8 @@ export function EvidenceFileBrowser({
   content,
   error,
   onSelect,
+  keyFiles = [],
+  keyFlags,
 }: FileBrowserProps) {
   const { label } = useViewerLabels();
   const { t } = useTranslation();
@@ -64,6 +85,28 @@ export function EvidenceFileBrowser({
             }}
           />
         )}
+        {keyFiles.length > 0 && (
+          <section className="factory-key-files" data-testid="factory-runs-key-files" aria-label="Key files">
+            <h4>★ Key files for this step</h4>
+            {keyFiles.map(({ key, file }) => (
+              <button
+                key={file.path}
+                type="button"
+                data-testid="factory-runs-key-file"
+                data-variant={file.path}
+                aria-pressed={selectedFile?.path === file.path}
+                onClick={() => onSelect(file.path)}
+                title={key.why}
+              >
+                <span>
+                  <strong>{key.label}</strong>
+                  {key.why && <small>{key.why}</small>}
+                </span>
+                <DigestBadge file={file} />
+              </button>
+            ))}
+          </section>
+        )}
         <div
           className="factory-files evidence-files-list"
           aria-label={label('browseFiles')}
@@ -79,6 +122,7 @@ export function EvidenceFileBrowser({
               onClick={() => onSelect(file.path)}
             >
               <span>{file.display_path || file.path}</span>
+              <KeyFileBadge flags={keyFlags?.get(file.path)} />
               <DigestBadge file={file} />
             </button>
           ))}

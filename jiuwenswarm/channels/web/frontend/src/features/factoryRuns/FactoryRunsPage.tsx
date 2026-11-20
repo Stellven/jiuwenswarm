@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Moon, Plus, RefreshCw, Sun } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   factoryApi,
@@ -26,6 +26,7 @@ import { detectGraph } from './views/graphModel';
 import { FactoryRunList } from './views/RunList';
 import { TerminalViewer } from './views/TerminalViewer';
 import { useViewerLabels } from './views/viewerLabels';
+import { curatedStepFor, keyFilesFor, keyFlags as curatedKeyFlags, presentEvent } from './views/storyModel.ts';
 import { CapsuleChips, CapsuleLinksContext } from './cc/CapsuleChips';
 import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
 import { useCapsuleCopy } from './cc/copy';
@@ -104,16 +105,17 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [launchOpen, setLaunchOpen] = useState(false);
   const [session, setSession] = useState<SessionSnapshot | null>(null);
   const [sessionStale, setSessionStale] = useState(false);
-  const [appearance, setAppearance] = useState<'light' | 'dark'>(() =>
-    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-  );
+  // Demo build: light theme only. The scoped dark palette had unreadable
+  // text on several surfaces, so the page no longer follows the OS setting.
+  const appearance = 'light';
   const refresh = useCallback(async () => {
     setCatalogLoading(true);
     try {
       const result = await factoryApi.list();
       const runs = [...result.runs].sort((a, b) => b.updated - a.updated);
       setListing({ ...result, runs });
-      setSelected((old) => old || runs[0]?.id || '');
+      const firstDemo = runs.filter((run) => run.demo).sort((a, b) => (a.demo_order ?? 0) - (b.demo_order ?? 0))[0];
+      setSelected((old) => old || firstDemo?.id || runs[0]?.id || '');
     } catch (err) {
       setError(String(err));
     } finally {
@@ -140,7 +142,8 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
           setDetail(result);
           observedStory.current = storyVersion(result.events);
           setEvents(result.events);
-          setPosition(result.events.length);
+          // A curated replay is a stepper: open on step 1, not on the end.
+          setPosition(result.curated ? Math.min(1, result.events.length) : result.events.length);
           if (result.session) setSession(result.session);
         }
       })
@@ -282,6 +285,10 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   }, [panel, selected]);
   const visibleEvents = events.slice(0, position);
   const cursor = visibleEvents[visibleEvents.length - 1];
+  const curatedStep = curatedStepFor(detail?.curated, cursor);
+  const stepKeyFiles = useMemo(() => keyFilesFor(curatedStep, detail?.files ?? []), [curatedStep, detail]);
+  const keyFlagMap = useMemo(() => curatedKeyFlags(detail?.curated), [detail]);
+  const shownCursor = cursor ? presentEvent(cursor) : undefined;
   const records = detail?.records || {};
   const graph = useMemo(
     () => (detail ? detectGraph(detail.graph, { contract: detail.contract, tasks: detail.records.tasks }) : null),
@@ -337,7 +344,6 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     setLive(true);
     void refresh();
   };
-  const changeAppearance = () => setAppearance((mode) => (mode === 'dark' ? 'light' : 'dark'));
   const headline = finalHeadlines &&
     <FinalHeadlines publication={finalHeadlines} onOpen={openIterationChild} />;
   let measurementSummary: ReactNode;
@@ -390,16 +396,6 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
             <p className="factory-muted">{t('factoryRuns.story.loadingCatalog')}</p>
           )}
         </div>
-        <button
-          type="button"
-          className="factory-story-appearance-button"
-          onClick={changeAppearance}
-          data-testid="factory-runs-appearance"
-        >
-          <Moon className="factory-story-moon" aria-hidden size={15} />
-          <Sun className="factory-story-sun" aria-hidden size={15} />
-          {t(appearance === 'dark' ? 'factoryRuns.story.lightMode' : 'factoryRuns.story.darkMode')}
-        </button>
       </aside>
       {launchOpen && (
         <LaunchSessionDialog
@@ -469,12 +465,46 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                     setPosition(Number(event.target.value));
                   }}
                 />
+                <button
+                  type="button"
+                  data-testid="factory-runs-step-prev"
+                  disabled={live || position <= (detail.curated ? 1 : 0)}
+                  onClick={() => {
+                    setPlaying(false);
+                    setPosition((old) => Math.max(detail.curated ? 1 : 0, old - 1));
+                  }}
+                >
+                  ← Prev
+                </button>
+                <button
+                  type="button"
+                  data-testid="factory-runs-step-next"
+                  disabled={live || position >= events.length}
+                  onClick={() => {
+                    setPlaying(false);
+                    setPosition((old) => Math.min(events.length, old + 1));
+                  }}
+                >
+                  Next →
+                </button>
                 <output data-testid="factory-runs-position">
-                  {position} / {events.length}
+                  {detail.curated ? `Step ${position} of ${events.length}` : `${position} / ${events.length}`}
                 </output>
               </div>
               <p data-testid="factory-runs-current-event">
-                {cursor ? `${cursor.kind} · ${cursor.summary}` : t('factoryRuns.start')}
+                {cursor && shownCursor ? (
+                  <>
+                    <strong className="factory-current-title" data-testid="factory-runs-current-title" title={shownCursor.curated ? 'Presentation title' : undefined}>
+                      {curatedStep ? `Step ${curatedStep.step} · ` : ''}{shownCursor.title}
+                    </strong>{' '}
+                    <small className="factory-original-kind factory-inline-kind" data-testid="factory-runs-current-kind" title="Original record kind">
+                      {cursor.kind}
+                    </small>
+                    <span className="factory-current-summary"> · {cursor.summary}</span>
+                  </>
+                ) : (
+                  t('factoryRuns.start')
+                )}
                 {cursor && <CapsuleChips value={capsuleEvent(cursor)} />}
               </p>
             </section>
@@ -500,6 +530,12 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   measurements={measurementSummary}
                   headline={measurementSummary || finalHeadlines?.run_id === selected ? headline : undefined}
                   eventCapsules={(event) => <CapsuleChips value={capsuleEvent(event)} />}
+                  currentStep={curatedStep?.step}
+                  onSeek={(next) => {
+                    setPlaying(false);
+                    setPosition(next);
+                  }}
+                  onOpenFile={(path) => selectPanel('artifacts', path)}
                 />
               )}
               {panel === 'iterations' && (
@@ -530,7 +566,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   name={t('factoryRuns.graph')}
                   value={detail.graph}
                   graph={graph}
-                  replay={{ events, position }}
+                  replay={{ events, position, files: detail.files, curated: detail.curated, onOpenFile: (path: string) => selectPanel('artifacts', path) }}
                   initialMode="graph"
                 />
               )}
@@ -592,6 +628,8 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   content={file && expectedSha && file.sha256 !== expectedSha ? { ...file, expected_sha256: expectedSha, integrity: 'mismatch' } : file}
                   error={fileError}
                   onSelect={(path) => { setExpectedSha(''); setFilePath(path); }}
+                  keyFiles={stepKeyFiles}
+                  keyFlags={keyFlagMap}
                 />
               )}
             </section>

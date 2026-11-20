@@ -207,7 +207,9 @@ def replay(task_id, history, rev=None, *, component_cc=None):
 def from_records(data, rev=None):
     """Works with Store dumps, read-only story snapshots and exported bundles."""
     task = data['tasks'][0]
-    history = [r['values'] for r in data.get('observations', []) if r['kind'] == KIND]
+    # Curated bundles may hold rows from several tasks; the plan belongs to the primary task.
+    history = [r['values'] for r in data.get('observations', [])
+               if r['kind'] == KIND and r.get('task_id', task['task_id']) == task['task_id']]
     return replay(task['task_id'], history, rev, component_cc=task.get('component_cc'))
 
 

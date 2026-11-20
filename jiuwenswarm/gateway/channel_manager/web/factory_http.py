@@ -60,6 +60,34 @@ def _inside(root, relative):
     return resolved
 
 
+CURATED_SCHEMA = 'factory.curated-replay/1'
+SCRATCH_HOME = re.compile(r'^(?:web-\d{8}T\d{6}Z-[0-9a-f]{8}|synthetic-.*)$')
+
+
+def curated_replay(path):
+    """Step order of a curated replay bundle (scripts/spark/build_demo_replays.py), else None."""
+    replay = path / 'replay.json'
+    if not replay.is_file() or replay.is_symlink():
+        return None
+    value = _json(replay)
+    if not isinstance(value, dict) or value.get('schema') != CURATED_SCHEMA or not isinstance(value.get('steps'), list):
+        return None
+    for cursor, step in enumerate(value['steps'], 1):
+        step['event_cursor'] = cursor
+    return value
+
+
+def curated_events(replay):
+    """One story event per curated step, carrying the original record kind and summary."""
+    events = []
+    for cursor, step in enumerate(replay['steps'], 1):
+        events.append(dict(
+            cursor=cursor, id=step['primary_record'], kind=step['original_kind'], summary=step['original_summary'],
+            created=step['created'], step=step['step'], presentation_title=step['presentation_title'],
+            say=step.get('say', ''), graph_nodes=step.get('graph_nodes', []), mark='·', rev=None))
+    return events
+
+
 def _json(path):
     if path.stat().st_size > MAX_FILE:
         raise ValueError('JSON evidence exceeds view limit')
@@ -106,10 +134,12 @@ class FactoryHttpService:
         result = []
         for path in self.directories():
             try:
+                replay = None
                 if (path / 'MANIFEST.json').is_file():
                     self.bundle_safe(path)
                     tasks = _json(_inside(path, 'records/tasks.json'))
                     kind = 'bundle'
+                    replay = curated_replay(path)
                 else:
                     for rel in ('factory.sqlite', 'factory.sqlite-wal'):
                         _inside(path, rel)
@@ -122,9 +152,24 @@ class FactoryHttpService:
                     item = dict(id=self.run_id(path, tid), name=tid, task_id=tid, kind=kind, source_name=path.name,
                                 status='replay' if kind == 'bundle' else 'live',
                                 updated=path.stat().st_mtime, objective=task.get('objective', ''))
+                    if replay:
+                        item.update(name=replay['title'], demo=True, demo_order=replay.get('order', 0),
+                                    objective=replay.get('summary', ''))
+                    elif kind == 'live' and SCRATCH_HOME.match(path.name):
+                        item['scratch'] = True
                     result.append((item, path))
             except (OSError, ValueError, KeyError):
                 continue
+        # Older export snapshots of the same task are duplicates of the newest.
+        newest = {}
+        for item, _ in result:
+            if item['kind'] == 'bundle' and not item.get('demo'):
+                key = item['task_id']
+                if key not in newest or item['updated'] > newest[key]['updated']:
+                    newest[key] = item
+        for item, _ in result:
+            if item['kind'] == 'bundle' and not item.get('demo') and newest[item['task_id']] is not item:
+                item['duplicate'] = True
         return result
 
     def resolve(self, run_id):
@@ -266,6 +311,11 @@ class FactoryHttpService:
                     names.add(rel)
         labels = {}
         identities = {}
+        display_names = {}
+        if item['kind'] == 'bundle' and (path / 'provenance.json').is_file():
+            provenance = _json(_inside(path, 'provenance.json'))
+            display_names = {k: v['display_name'] for k, v in (provenance.get('files') or {}).items()
+                     if isinstance(v, dict) and v.get('display_name')}
         artifacts = data.get('artifacts', [])
         if item['kind'] == 'bundle' and (path / 'artifacts.json').is_file():
             artifacts = _json(_inside(path, 'artifacts.json'))
@@ -282,11 +332,11 @@ class FactoryHttpService:
             target = _inside(path, name)
             wanted = expected.get(name)
             if not target.is_file():
-                rows.append(dict(path=name, display_path=' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=0, sha256=None, expected_sha256=wanted, integrity='missing'))
+                rows.append(dict(path=name, display_path=display_names.get(name) or ' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=0, sha256=None, expected_sha256=wanted, integrity='missing'))
                 continue
             size = target.stat().st_size
             digest = self.file_hash(target)
-            rows.append(dict(path=name, display_path=' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=size, sha256=digest, expected_sha256=wanted,
+            rows.append(dict(path=name, display_path=display_names.get(name) or ' · '.join(labels.get(name, [name])), artifact_ids=identities.get(name, []), size=size, sha256=digest, expected_sha256=wanted,
                              integrity=('verified' if digest == wanted else 'mismatch') if wanted else 'untracked'))
         return rows
 
@@ -301,7 +351,8 @@ class FactoryHttpService:
     def detail(self, run_id):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
-        events = self.events(data)
+        replay = curated_replay(path) if item['kind'] == 'bundle' else None
+        events = curated_events(replay) if replay else self.events(data)
         if item['kind'] == 'live':
             _inside(path, 'telemetry/events.jsonl')
             trace = telemetry.read_events(path, item['task_id'])
@@ -312,7 +363,8 @@ class FactoryHttpService:
                              graph=taskgraph.from_records(data), stack=monitor.engine_stack(data),
                              telemetry=trace, files=self.files(item, path, data), events=events,
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
-                             session=self._session(item, path, data) if item['kind'] == 'live' else None))
+                             session=self._session(item, path, data) if item['kind'] == 'live' else None,
+                             curated=replay))
 
     def _session(self, item, path, data):
         state = data['_meta']['controller_state']
@@ -341,7 +393,8 @@ class FactoryHttpService:
     def event_page(self, run_id, since):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
-        events = self.events(data)
+        replay = curated_replay(path) if item['kind'] == 'bundle' else None
+        events = curated_events(replay) if replay else self.events(data)
         return sanitize(dict(events=events, cursor=len(events), total=len(events),
                              reset=bool(since)))
 

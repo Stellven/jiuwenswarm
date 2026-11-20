@@ -1,4 +1,5 @@
-import type { StoryEvent } from '../api';
+import type { EvidenceFile, StoryEvent } from '../api';
+import type { CuratedReplay } from './storyModel.ts';
 import { atlasTitle } from '../cc/atlasNames.ts';
 
 type Fields = Record<string, unknown>;
@@ -27,7 +28,13 @@ export type GraphModel = {
   taskId?: string;
 };
 type GraphContext = { contract?: unknown; tasks?: readonly unknown[] };
-export type GraphReplay = { events: readonly StoryEvent[]; position: number };
+export type GraphReplay = {
+  events: readonly StoryEvent[];
+  position: number;
+  files?: readonly EvidenceFile[];
+  curated?: CuratedReplay | null;
+  onOpenFile?: (path: string) => void;
+};
 type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields };
 
 function record(value: unknown): Fields | undefined {
@@ -276,7 +283,33 @@ function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev
   }
 }
 
+function graphNodesOf(event: StoryEvent | undefined) {
+  return Array.isArray(event?.graph_nodes) ? event.graph_nodes.filter((id): id is string => typeof id === 'string') : [];
+}
+
+function nodeMatches(node: GraphNode, ids: readonly string[]) {
+  return ids.some((id) => id === node.id || (node.planId !== undefined && id === node.planId));
+}
+
+/**
+ * Curated replays name the graph nodes each step touches. A node lights up
+ * once a visible step names it; the current step's nodes are highlighted.
+ */
+function curatedProgress(graph: GraphModel, replay: GraphReplay) {
+  const visible = replay.events.slice(0, Math.max(0, replay.position));
+  const current = graphNodesOf(visible[visible.length - 1]);
+  const seen = new Set(visible.flatMap(graphNodesOf));
+  const result = new Map<string, NodeProgress>();
+  for (const node of graph.nodes) {
+    if (nodeMatches(node, current)) result.set(node.id, { phase: 'current' });
+    else if (nodeMatches(node, [...seen])) result.set(node.id, { phase: 'seen' });
+    else if (node.kind === 'step' || node.kind === 'task') result.set(node.id, { phase: 'upcoming' });
+  }
+  return result;
+}
+
 export function graphProgress(graph: GraphModel, replay: GraphReplay): Map<string, NodeProgress> {
+  if (replay.events.some((event) => graphNodesOf(event).length)) return curatedProgress(graph, replay);
   const visible = replay.events.slice(0, Math.max(0, replay.position));
   const current = visible[visible.length - 1];
   const snapshots = new Map<string, Fields>();
@@ -317,4 +350,62 @@ export function graphProgress(graph: GraphModel, replay: GraphReplay): Map<strin
     }
   }
   return result;
+}
+
+/** Direct children: targets of a node's outgoing links. */
+export function graphChildren(graph: GraphModel) {
+  const children = new Map<string, string[]>();
+  for (const link of graph.links) {
+    if (link.source === link.target) continue;
+    const list = children.get(link.source) ?? [];
+    if (!list.includes(link.target)) list.push(link.target);
+    children.set(link.source, list);
+  }
+  return children;
+}
+
+function reach(graph: GraphModel, collapsed: ReadonlySet<string>) {
+  const children = graphChildren(graph);
+  const incoming = new Set(graph.links.filter((link) => link.source !== link.target).map((link) => link.target));
+  const roots = graph.nodes.filter((node) => !incoming.has(node.id)).map((node) => node.id);
+  const seen = new Set<string>();
+  const queue = [...roots];
+  while (queue.length) {
+    const id = queue.shift() as string;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    if (collapsed.has(id)) continue;
+    for (const child of children.get(id) ?? []) if (!seen.has(child)) queue.push(child);
+  }
+  return seen;
+}
+
+/**
+ * Nodes left visible when the given nodes are collapsed. A node stays visible
+ * while any expanded path from a root reaches it; nodes that no root reaches
+ * (cycles) are always shown.
+ */
+export function visibleGraphNodes(graph: GraphModel, collapsed: ReadonlySet<string>) {
+  const full = reach(graph, new Set());
+  const partial = reach(graph, collapsed);
+  return new Set(graph.nodes.filter((node) => partial.has(node.id) || !full.has(node.id)).map((node) => node.id));
+}
+
+/** Count of descendants hidden under a collapsed node. */
+export function hiddenUnder(graph: GraphModel, id: string, visible: ReadonlySet<string>) {
+  const children = graphChildren(graph);
+  const seen = new Set<string>();
+  const queue = [...(children.get(id) ?? [])];
+  while (queue.length) {
+    const next = queue.shift() as string;
+    if (seen.has(next) || visible.has(next)) continue;
+    seen.add(next);
+    queue.push(...(children.get(next) ?? []));
+  }
+  return seen.size;
+}
+
+/** Nodes that have children; "collapse all" collapses each of them. */
+export function collapsibleNodes(graph: GraphModel) {
+  return new Set(graphChildren(graph).keys());
 }

@@ -388,3 +388,10 @@
 .factory-gap-chart > div {
   grid-template-columns: 120px 1fr 95px;
 }
+
+.factory-run-group { display: grid; gap: 6px; margin: 0 0 10px; }
+.factory-run-group-title { margin: 4px 0; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text-secondary); cursor: default; }
+details.factory-run-group > summary.factory-run-group-title { cursor: pointer; }
+.factory-run-demo-badge { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 999px; font-size: 0.7rem; font-weight: 600; background: var(--color-action-primary); color: var(--color-action-primary-text); vertical-align: 1px; }
+.factory-inline-kind { display: inline; margin-left: 4px; }
+.factory-run-show-all { display: flex; gap: 6px; align-items: center; margin: 2px 0 6px; font-size: 0.8rem; color: var(--color-text-primary); }
