@@ -105,6 +105,12 @@ def analyze(evidence):
     if mode == 'c2-placement-functional':
         from placement_functional import analyze as analyze_placement
         return analyze_placement(evidence, eligible, reference, positive)
+    if mode == 'c3-warmup-pilot':
+        from residency_speed import analyze as analyze_warmup
+        return analyze_warmup(evidence, eligible, reference, positive)
+    if mode == 'c3-cold-steady':
+        from residency_speed import analyze_steady
+        return analyze_steady(evidence, eligible, reference, positive)
     if mode not in ('p1-reconnaissance', 'p4-abba'):
         raise ValueError('Use the P1 reconnaissance or P4 ABBA evidence mode')
     manifest = evidence['prompt_manifest']

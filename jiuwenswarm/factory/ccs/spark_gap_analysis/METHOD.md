@@ -54,3 +54,13 @@ receipts in equivalent-stock, gate-unset, gate-enabled order. Check the pinned
 plan and flags, exact named tensor readback, all other expert placements, gate
 silence, aggregate CUDA0 model allocation and both greedy output hashes. Keep
 one discarded request per prompt and arm for phase diagnosis only.
+
+The native cache pilot compares all eight matched request positions of the two
+30 GiB warm-up launches. Keep launch-to-ready and seed upload separate, and
+keep the request positions descriptive. The full cache lab requires all six
+ordered scopes, zero sampled residency in both external pack views before each
+launch, three warmups per size, then five matched positions per size. Sum phase
+counter deltas only within a single stable engine PID. Preserve host NVMe
+counter deltas separately from process reads. Report range and residual trend
+within each launch. A same-budget native-bank control isolates the treatment
+more closely than either a plain stock engine or a different quantized pack.

@@ -77,7 +77,7 @@ def expected_profiles(cc, first, product, policy, placement, inventory_sha):
             'functional_off_argv': functional_off or enabled}
 
 
-def scope_inputs(path, base, put, tag, cc):
+def scope_inputs(path, base, put, tag, cc, request_order=None, protocol=None):
     prefix = f'{tag}/scopes/{path.name}'
 
     def read(relative, source=None, media='application/json'):
@@ -89,7 +89,7 @@ def scope_inputs(path, base, put, tag, cc):
         return entry
 
     layout = dict(start='start.json', stop='result.json', scope='scope.json', load='load-ready.json', probe='probe.json')
-    scope = {key: read(name) for key, name in layout.items()}
+    scope = {key: read(name) for key, name in layout.items() if name != 'probe.json' or (path / name).is_file()}
     preflight = base / 'OPS/p3/early-preflights'
     quiet = preflight / (path.name + '-quiet.json')
     scope['quiet'] = dict(read('quiet-prelaunch.json', quiet),
@@ -100,12 +100,12 @@ def scope_inputs(path, base, put, tag, cc):
     scope['log'] = read('stderr.log', media='text/plain')
     scope['log']['effective_settings'] = {key: int(match.group(1)) for key, pattern in EFFECTIVE_SETTINGS.items()
                                            if (match := re.search(pattern, log_text))}
-    marker = ARMS[cc] + ': '
+    marker = ARMS.get(cc, cc) + ': '
     instruments = [line.split(marker, 1)[-1].strip() for line in log_text.splitlines() if marker in line]
     scope['log']['markers'] = {key: [line for line in instruments if line.startswith(key)]
                               for key in ('active', 'inactive', 'stats', 'layout', 'tensor', 'assign')}
     event_path = path / 'events.jsonl'
-    if cc == 'C1' and scope['probe']['value']['mode'] == 'on' and event_path.is_file():
+    if cc == 'C1' and scope.get('probe', {}).get('value', {}).get('mode') == 'on' and event_path.is_file():
         with event_path.open('rb') as events:
             events.seek(max(0, event_path.stat().st_size - 8192))
             summary = json.loads(events.read().splitlines()[-1])
@@ -113,8 +113,11 @@ def scope_inputs(path, base, put, tag, cc):
         raw_events = put(f'{prefix}/events.jsonl', event_path, 'application/jsonl')
         scope['recorder'] = dict(raw=raw_events, summary=dict(receipt, value=summary))
     scope['requests'] = []
-    for repeat, size in ((0, 512), (0, 2048), (1, 512), (1, 2048)):
-        name = f'rep-{repeat}-{size}'
+    if request_order is None:
+        request_order = ((0, 512), (0, 2048), (1, 512), (1, 2048))
+    requests = [(row['path'], True) for row in protocol] if protocol is not None else [
+        (f'rep-{repeat}-{size}', bool(repeat)) for repeat, size in request_order]
+    for name, need_residency in requests:
         files = {'result': f'{name}/result.json', 'request': f'{name}/request.json',
                  'request_resources': f'{name}/resource-windows.json', 'before': f'{name}-before.json',
                  'after': f'{name}-after.json'}
@@ -122,7 +125,7 @@ def scope_inputs(path, base, put, tag, cc):
         row['output'] = read(f'{name}/output.txt', media='text/plain')
         row['reasoning'] = read(f'{name}/reasoning.txt', media='text/plain')
         row['response'] = read(f'{name}/response.sse', media='text/event-stream')
-        if repeat:
+        if need_residency:
             row['residency'] = read(f'{name}-residency.json')
         scope['requests'].append(row)
     return scope

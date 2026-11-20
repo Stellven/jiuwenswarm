@@ -34,23 +34,37 @@ def timestamp(value):
 
 def check_server(scope, mode, cc, expected, reference, window='early'):
     start, stop, kernel = (scope[name]['value'] for name in ('start', 'stop', 'scope'))
-    probe = scope['probe']['value']
+    probe = scope.get('probe', {}).get('value')
     label = expected.get('label', f'{cc}-{mode}-early')
-    reject_if(probe['cc'] != cc or probe['window'] != window or probe['mode'] != expected.get('probe_mode', mode),
-              'Wrong probe arm or order')
-    reject_if(start['arm'] != label or stop['arm'] != label or probe['result_dir'] != start['result_path'], 'Scope arm or result path mismatch')
+    if probe is None:
+        reject_if(window != 'speed' or mode != 'on', 'Completed probe receipt is missing')
+    elif cc == 'S':
+        reject_if(probe['arm'] != label or probe['window'] != window, 'Wrong Strata probe arm')
+    else:
+        reject_if(probe['cc'] != cc or probe['window'] != window or probe['mode'] != expected.get('probe_mode', mode),
+                  'Wrong probe arm or order')
+        reject_if(probe['result_dir'] != start['result_path'], 'Scope result path mismatch')
+    reject_if(start['arm'] != label or stop['arm'] != label, 'Scope arm mismatch')
     reject_if(stop['binary_sha256'] != start['binary_sha256'] or stop['command'] != start['command'] or
               stop['start'] != start['start'] or stop['unit'] != start['unit'], 'Scope start/stop disagree')
-    reject_if(start['command'] != expected['command'] or start['binary_sha256'] != expected['binary_sha256'] or
-              scope['load']['value']['source_commit'] != expected['source_commit'], 'Launch disagrees with the pinned build or matched flags')
-    reject_if(scope['load']['value'].get('products_manifest_sha256') != expected['products_manifest_sha256'],
-              'Launch receipt differs from the selected build inventory')
+    reject_if(start['command'] != expected['command'] or start['binary_sha256'] != expected['binary_sha256'],
+              'Launch disagrees with the pinned build or matched flags')
     environment = start['launch_environment']
-    gates = {key: val for key, val in environment.items() if key.startswith('LLAMA_')}
-    expected_gates = dict(expected['gates'])
-    if cc == 'C1' and mode == 'on':
-        expected_gates[GATES[cc]] = start['result_path'].rstrip('/') + '/events.jsonl'
-    reject_if(gates != expected_gates or environment.get('LD_LIBRARY_PATH') != expected['library_path'], 'Gate or library setting differs from the profile')
+    load = scope['load']['value']
+    if cc == 'S':
+        reject_if(load['config'] != expected['config'] or
+                  any(environment.get(key) != value for key, value in expected['config_env'].items()),
+                  'Strata scope differs from the frozen config or headroom policy')
+    else:
+        reject_if(load['source_commit'] != expected['source_commit'] or
+                  load.get('products_manifest_sha256') != expected['products_manifest_sha256'],
+                  'Launch receipt differs from the selected build inventory')
+        gates = {key: val for key, val in environment.items() if key.startswith('LLAMA_')}
+        expected_gates = dict(expected['gates'])
+        if cc == 'C1' and mode == 'on':
+            expected_gates[GATES[cc]] = start['result_path'].rstrip('/') + '/events.jsonl'
+        reject_if(gates != expected_gates or environment.get('LD_LIBRARY_PATH') != expected['library_path'],
+                  'Gate or library setting differs from the profile')
     reject_if(stop['returncode'] or stop['reason'] or stop['scope_verified'] is not True or unsafe_memory(stop['memory_events']) or
               'Result=oom-kill' in stop.get('systemd_properties', '') or stop['min_mem_available_bytes'] < 8 * GIB,
               'Scope ended on a safety event or abnormal exit')
@@ -60,7 +74,7 @@ def check_server(scope, mode, cc, expected, reference, window='early'):
               any(kernel['actual'].get(k) != v for k, v in controls.items()), 'Scope does not prove the 100 GiB/eight-CPU controls')
     ready = timestamp(scope['load']['value']['ready_at'])
     began, ended = timestamp(start['start']), timestamp(stop['stop'])
-    summary = {key: reference(scope[key]) for key in ('start', 'stop', 'scope', 'load', 'probe', 'log')}
+    summary = {key: reference(scope[key]) for key in ('start', 'stop', 'scope', 'load', 'probe', 'log') if key in scope}
     summary.update(arm=label, peak_memory_bytes=stop['peak_memory_bytes'],
                    min_mem_available_bytes=stop['min_mem_available_bytes'],
                    reclaim_max=int(stop['memory_events'].get('max', 0)), load_s=scope['load']['value']['health_elapsed_s'])
@@ -78,35 +92,45 @@ def check_server(scope, mode, cc, expected, reference, window='early'):
     summary['runtime_environment'] = {k: v for k, v in environment.items() if not k.startswith('LLAMA_') and k != 'LD_LIBRARY_PATH'}
     runtime_settings = scope['log']['effective_settings']
     required = {'n_ctx', 'n_ctx_seq', 'n_batch', 'n_ubatch', 'n_slots', 'n_threads', 'n_threads_batch'}
-    reject_if(set(runtime_settings) != required or any(type(v) is not int or v < 1 for v in runtime_settings.values()),
+    reject_if(cc != 'S' and (set(runtime_settings) != required or any(type(v) is not int or v < 1 for v in runtime_settings.values())),
               'Engine log did not establish the effective runtime settings')
     summary['effective_settings'] = runtime_settings
-    residency = conditioned['after']['views']['llama']['total']
+    residency = conditioned['after']['views'][expected.get('view', 'llama')]['total']
     summary['prelaunch_source_fractions'] = {k: v['estimated_resident_fraction'] for k, v in residency.items()}
     return label, began, ready, ended, summary
 
 
-def residency_identity(sample):
+def residency_identity(sample, view='llama'):
     return (sample['page_size'], sample['pages_per_sample'], sample['seed'],
-            [(item['resolved_path'], item['identity']) for item in sample['views']['llama']['files']])
+            [(item['resolved_path'], item['identity']) for item in sample['views'][view]['files']])
 
 
-def check_requests(scope, label, ready, ended, prompt_hashes, source_identity, eligible, reference, positive):
-    orders = [(0, 512), (0, 2048), (1, 512), (1, 2048)]
-    reject_if(len(scope['requests']) != len(orders), 'Early scope needs two warmups followed by two measured requests')
+def check_requests(scope, label, ready, ended, prompt_hashes, source_identity, eligible, reference, positive,
+                   orders=None, view='llama', protocol=None):
+    if protocol is None:
+        orders = orders or [(0, 512), (0, 2048), (1, 512), (1, 2048)]
+        protocol = [dict(repeat=repeat, size=size, discard=repeat == 0, residency=bool(repeat)) for repeat, size in orders]
+        check_probe_hashes = True
+    else:
+        check_probe_hashes = False
+    reject_if(len(scope['requests']) != len(protocol), 'Scope does not contain the declared warmups and measured requests')
     checked, previous, greedy = [], ready, {}
-    for row, (repeat, size) in zip(scope['requests'], orders):
+    for row, schedule in zip(scope['requests'], protocol):
+        repeat, size, discard = (schedule[k] for k in ('repeat', 'size', 'discard'))
         result, request = row['result']['value'], row['request']['value']
         now = timestamp(result['started'])
         reject_if(result['arm'] != label or (result['repeat'], result['prompt_tokens']) != (repeat, size) or
-                  result['discard'] is not (repeat == 0) or not previous <= now < ended,
+                  result['discard'] is not discard or not previous <= now < ended,
                   'Early request order, scope, or timestamp mismatch')
         reject_if(not eligible(dict(request=request, result=result), prompt_hashes) or
                   not positive(result['decode_tps']) or request.get('chat_template_kwargs') != {'enable_thinking': False},
                   'Fixed prompt, output length, cache, template or client timing requirement failed')
         hashes = [row[name]['sha256'] for name in ('output', 'reasoning')]
-        reject_if(hashes != [result['output_sha256'], result['reasoning_sha256']] or hashes != greedy.setdefault(size, hashes),
-                  'Greedy outputs drifted or artifact bytes differ')
+        reject_if(hashes != [result['output_sha256'], result['reasoning_sha256']], 'Greedy output artifact differs')
+        if check_probe_hashes:
+            reject_if(hashes != greedy.setdefault(size, hashes), 'Greedy outputs drifted within the scope')
+        else:
+            greedy.setdefault(size, []).append(hashes)
         for state in ('before', 'after'):
             check_resources(row[state]['value'])
         before, after = (timestamp(row[x]['value']['observed_utc']) for x in ('before', 'after'))
@@ -116,19 +140,20 @@ def check_requests(scope, label, ready, ended, prompt_hashes, source_identity, e
                   set(resources['value']['snapshots']) != {'start', 'first_token', 'end'} or
                   resources['value']['cgroup'] != scope['scope']['value']['cgroup'], 'Request phase counters do not match their source scope/result')
         fields = ('result', 'request', 'before', 'after', 'request_resources', 'output', 'reasoning', 'response')
-        record = dict(repeat=repeat, prompt_tokens=size, discard=repeat == 0, ttft_s=result['ttft_s'],
+        record = dict(repeat=repeat, prompt_tokens=size, discard=discard, ttft_s=result['ttft_s'],
                       decode_tps=result['decode_tps'], evidence={name: reference(row[name]) for name in fields})
-        if repeat:
+        if schedule['residency']:
             residency = row['residency']['value']
             reject_if(residency['schema'] != 'spark-source-residency/1' or not before <= timestamp(residency['completed']) <= now or
                       residency.get('scope_accounting', {}).get('path') != scope['scope']['value']['cgroup'] or
-                      residency_identity(residency) != source_identity,
+                      residency_identity(residency, view) != source_identity,
                       'Page residency has a mismatched inode/sampling profile, timestamp or scope')
             record['evidence']['residency'] = reference(row['residency'])
-            record['source_fractions'] = {k: v['estimated_resident_fraction'] for k, v in residency['views']['llama']['total'].items()}
+            record['source_fractions'] = {k: v['estimated_resident_fraction'] for k, v in residency['views'][view]['total'].items()}
         checked.append(record)
         previous = after
-    reject_if(scope['probe']['value']['greedy_hashes'] != {str(size): greedy[size] for size in PROMPTS}, 'Greedy proof differs from probe receipt')
+    if check_probe_hashes:
+        reject_if(scope['probe']['value']['greedy_hashes'] != {str(size): greedy[size] for size in PROMPTS}, 'Greedy proof differs from probe receipt')
     return checked, {str(size): hashes for size, hashes in greedy.items()}
 
 
