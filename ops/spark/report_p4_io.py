@@ -2,11 +2,12 @@
 """Publish process I/O evidence from a completed native verified P4 comparison."""
 import argparse
 from collections import defaultdict
+from copy import deepcopy
 import json
 from pathlib import Path
 from statistics import median
 
-from jiuwenswarm.factory.store import Store
+from jiuwenswarm.factory.store import NotFound, Store
 
 from import_evidence import append_once, digest
 from report_p1 import TASK, json_bytes
@@ -17,6 +18,8 @@ SIZES = (512, 2048)
 PHASES = ('to_first_token', 'after_first_token')
 COUNTERS = ('read_bytes', 'major_faults')
 SCHEMA = 'spark-p4-process-io/1'
+SOURCE_HOME = 'factory-runs/star-expert_weight_cache-residency-01'
+SOURCE_TASK = 'spark-cache-residency-do-01'
 
 
 def require(ok, why):
@@ -50,7 +53,7 @@ def process_deltas(snapshots, pid):
             for pos, phase in enumerate(PHASES)}
 
 
-def summarize(store, iteration, manifest_sha):
+def summarize(store, iteration, manifest_sha, base=None):
     observation = store.read(TASK, iteration + ':report')
     publication = observation['values']
     report = publication['report']
@@ -83,6 +86,11 @@ def summarize(store, iteration, manifest_sha):
     eligible = {row['result']['artifact_id'] for row in analysis['eligible']}
     source_ids = [report['artifact_id'], analysis_ref['artifact_id'], verify_ref['artifact_id'],
                   input_id, manifest_ref['artifact_id']]
+
+    def retained(ref):
+        source_ids.append(ref['artifact_id'])
+        return read_ref(store, ref)
+
     windows, measurements = [], defaultdict(dict)
     for spec, scope in zip(manifest['launches'], evidence['scopes']):
         outcome = json.loads(read_ref(store, scope))
@@ -98,6 +106,9 @@ def summarize(store, iteration, manifest_sha):
                 not prelaunch.get('authorized_cpu_lane'),
                 'Scope did not close cleanly under the quiet 100 GiB/no swap/eight CPU conditions')
         arm, number = scope['arm'], scope['launch_pass']
+        launch_profile = json.loads(retained(scope['profile']))
+        require(scope['profile']['sha256'] == spec['profile_sha256'] and
+                launch_profile['binary_sha256'] == outcome['binary_sha256'], 'Profile identity changed')
         source_ids.extend([scope['artifact_id'], scope['scope']['artifact_id'], scope['quiet_preflight']['artifact_id']])
         startup, measured = [], []
         for row in evidence['requests']:
@@ -128,7 +139,8 @@ def summarize(store, iteration, manifest_sha):
         windows.append(dict(arm=arm, launch_pass=number, load_s=scope['load']['seconds'],
                             peak_memory_bytes=outcome['peak_memory_bytes'], min_mem_available_bytes=outcome['min_mem_available_bytes'],
                             memory_events=outcome['memory_events'], scope=spec['scope'], process_pid=kernel['pid'],
-                            startup=startup))
+                            startup=startup, source_commit=scope.get('source_commit'),
+                            binary_sha256=outcome['binary_sha256'], build_receipt=launch_profile['build_receipt']))
     effects = []
     for size in SIZES:
         stock, c3 = (measurements[(arm, size)] for arm in ('A+', 'C3'))
@@ -146,9 +158,12 @@ def summarize(store, iteration, manifest_sha):
         effects.append(dict(tokens=size, n_pairs=10, timing=timing, process_io=counts,
                             requests=[dict(ordinal=i, stock=stock[i], c3=c3[i]) for i in range(1, 11)]))
     result = dict(schema=SCHEMA, iteration=iteration, budget_mib=focus['budget_mib'], report=report, manifest=manifest_ref,
-                  native_verification=verify_ref, native_analysis=analysis_ref, input=input_ref,
-                  source_artifacts=list(dict.fromkeys(source_ids)), scopes=windows, measured=effects)
-    return result
+                  native_verification=verify_ref, native_analysis=analysis_ref, input=input_ref, scopes=windows, measured=effects)
+    if focus['budget_mib'] == 61440 and base:
+        from p4_seed_mechanism import collect
+        result['mechanism'] = collect(base, evidence['scopes'], evidence['requests'],
+                                      lambda ref: json.loads(retained(ref)), retained, span)
+    return dict(result, source_artifacts=list(dict.fromkeys(source_ids)))
 
 
 def interval(values, scale=1, digits=3):
@@ -205,18 +220,116 @@ def render(data):
             lines.append(f"| {scope['arm']} | {scope['launch_pass']} | {row['position']} | {row['tokens']} | {row['ttft_s']:.3f} | "
                          f"{row['decode_tps']:.3f} | {before['read_bytes']/1e9:.3f} / {after['read_bytes']/1e9:.3f} | "
                          f"{before['major_faults']:,} / {after['major_faults']:,} |")
+    if 'mechanism' in data:
+        from p4_seed_mechanism import render as render_mechanism
+        lines += ['', *render_mechanism(data['mechanism'])]
+    if lineage := data.get('do_lineage'):
+        lines += ['', '## Original native DO and build', '',
+                  f"Factory source task `{SOURCE_TASK}` used original commit `{lineage['source_commit']}`, "
+                  f"source verifier call `{lineage['verifier_call']}` and build attempt `{lineage['attempt']}`.",
+                  'The revision links the exact source decision, diff, verifier receipt, ELF manifest, and build receipts.', '']
     lines += ['', f"Native report `{data['report']['artifact_id']}` SHA256 `{data['report']['sha256']}`.",
               f"Native verifier `{data['native_verification']['artifact_id']}` SHA256 `{data['native_verification']['sha256']}`.", '']
     return '\n'.join(lines).encode()
 
 
+def copy_original_do(base, target, iteration, scopes):
+    home = base / SOURCE_HOME
+    if not (home / 'factory.sqlite').is_file():
+        return None
+    with Store(home) as native:
+        report = native.read(SOURCE_TASK, 'spark-c3-native-cache:report-v3')['values']
+        plan, do = report['plan'], report['do']
+        captured = {}
+
+        def mirror(identifier):
+            artifact = native.read_artifact(SOURCE_TASK, identifier)
+            raw = native.artifact_bytes(SOURCE_TASK, identifier)
+            local = target.put_artifact(TASK, f'{iteration}/original-do/{identifier}', raw, artifact['media_type'], None)
+            require(local['sha256'] == artifact['sha256'], 'Copied original source artifact changed')
+            captured[identifier] = {key: local[key] for key in ('artifact_id', 'sha256')}
+            return raw
+
+        built = json.loads(mirror('revised-native-cache-elf-manifest.json'))
+        source_manifest = json.loads(mirror('cache-native-profile-verified-native-request.json'))
+        static = json.loads(mirror('cache-native-profile-static-receipt.json'))
+        decision = json.loads(mirror(plan['decision_artifact_id']))
+        mirror(do['diff_artifact_id'])
+        for key in ('build_receipt', 'build_record'):
+            ref = built[key]
+            mirror(ref['artifact_id'])
+            require(captured[ref['artifact_id']]['sha256'] == ref['sha256'], 'Original native build receipt changed')
+        subject = [scope for scope in scopes if scope['arm'] == 'C3']
+        require(len(subject) == 2 and all(o['binary_sha256'] == built['executable']['sha256'] and
+                o['source_commit'] == built['source']['commit'] == source_manifest['observed_head'] == do['source_commit'] and
+                o['build_receipt'] == built['build_receipt']['artifact_id'] for o in subject),
+                'Original native source or build was not the launched 60 GiB subject')
+        require(static['outputs']['done'] is True and static['release'] == plan['builder_ccs'][0]['release'] and
+                static['call'] == source_manifest['native_verifier_call'] and
+                decision['decision_id'] == plan['decision_id']['decision_id'], 'Original native plan or static verifier changed')
+        return dict(home=str(home), task_id=SOURCE_TASK, source_commit=do['source_commit'],
+                    attempt=built['build_attempt_id'], verifier_call=static['call'], decision_id=decision['decision_id'],
+                    decision_artifact_id=captured[plan['decision_artifact_id']]['artifact_id'],
+                    builder_ccs=plan['builder_ccs'],
+                    diff_artifact_id=captured[do['diff_artifact_id']]['artifact_id'],
+                    verification_receipt_ids=[captured['cache-native-profile-static-receipt.json']['artifact_id']],
+                    build_receipt_ids=[captured[ref]['artifact_id'] for ref in do['build_receipt_ids']],
+                    artifacts=list(captured.values()))
+
+
+def publish_sixty_revision(store, out, data, appendix, refs, extent):
+    iteration = data['iteration']
+    original = store.read(TASK, iteration + ':report')
+    envelope = deepcopy(original['values'])
+    old_report = envelope['report']
+    raw = read_ref(store, old_report).rstrip() + b'\n\n' + appendix
+    artifact = store.put_artifact(TASK, iteration + '/report-v2.md', raw, 'text/markdown', None)
+    report = dict(artifact_id=artifact['artifact_id'], sha256=artifact['sha256'], status=old_report['status'],
+                  summary=old_report['summary'], revision=2, supersedes_observation_id=iteration + ':report',
+                  supersedes_artifact_id=old_report['artifact_id'])
+    envelope['report'] = report
+    envelope['analysis']['request_io_and_residency'] = dict(report=refs[0], structured=refs[1], extent_manifest=extent)
+    extras = [report['artifact_id'], refs[0]['artifact_id'], refs[1]['artifact_id'], extent['artifact_id']]
+    envelope['analysis']['output_artifact_ids'] += extras[1:]
+    if lineage := data.get('do_lineage'):
+        keys = ('home', 'task_id', 'source_commit', 'diff_artifact_id', 'verification_receipt_ids', 'build_receipt_ids')
+        envelope['do'].update({key: lineage[key] for key in keys})
+        envelope['plan']['source_decision'] = {key: lineage[key] for key in ('home', 'task_id', 'decision_id', 'decision_artifact_id')}
+        envelope['plan']['builder_ccs'] = lineage['builder_ccs']
+        extras.extend(ref['artifact_id'] for ref in lineage['artifacts'])
+    observation = iteration + ':report-v2'
+    append_once(store, TASK, dict(obs_id=observation, kind='factory_iteration_report_revision', values=envelope,
+        source_artifacts=list(dict.fromkeys(original['source_artifacts'] + data['source_artifacts'] + extras))))
+    (out / 'report-v2.md').write_bytes(raw)
+    (out / 'iteration-v2.json').write_bytes(json_bytes(envelope))
+    return dict(observation_id=observation, **report)
+
+
 def run(base, iteration, sha, publish):
     with Store(base / 'factory-runs/spark-direct-benchmarks') as store:
-        data = summarize(store, iteration, sha)
+        data = summarize(store, iteration, sha, base)
         if not publish:
             return dict(iteration=iteration, scopes=len(data['scopes']),
                         pairs={row['tokens']: row['n_pairs'] for row in data['measured']})
         prefix = iteration + '/process-io'
+        extent = None
+        if data['budget_mib'] == 61440:
+            info = data['mechanism']['extents']
+            raw = Path(info['path']).read_bytes()
+            require(digest(raw) == info['sha256'], 'Frozen extents changed before publication')
+            artifact = store.put_artifact(TASK, iteration + '/expert-extents.json', raw, 'application/json', None)
+            extent = {key: artifact[key] for key in ('artifact_id', 'sha256')}
+            data['mechanism']['extents'] = extent
+            data['source_artifacts'].append(extent['artifact_id'])
+            try:
+                lineage = copy_original_do(base, store, iteration, data['scopes'])
+            except NotFound:
+                lineage = None
+            if lineage:
+                data['do_lineage'] = lineage
+                data['source_artifacts'].extend(item['artifact_id'] for item in lineage['artifacts'])
+            else:
+                data['mechanism']['warnings'].append('Original source DO or build evidence was unavailable in the native store.')
         report_bytes = render(data)
         report = store.put_artifact(TASK, prefix + '.md', report_bytes, 'text/markdown', None)
         payload = json_bytes(data)
@@ -230,7 +343,10 @@ def run(base, iteration, sha, publish):
         out = base / 'OPS/iterations' / iteration
         (out / 'process-io.md').write_bytes(report_bytes)
         (out / 'process-io.json').write_bytes(payload)
-        return dict(iteration=iteration, observation_id=observation, artifacts=refs)
+        result = dict(iteration=iteration, observation_id=observation, artifacts=refs)
+        if extent:
+            result['revision'] = publish_sixty_revision(store, out, data, report_bytes, refs, extent)
+        return result
 
 
 if __name__ == '__main__':
