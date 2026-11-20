@@ -8,7 +8,7 @@ MARKER = 'expert_demand_predictor:'
 GATE = 'LLAMA_EXPERT_PREDICT'
 FIELDS = ('requested', 'already_resident', 'issued', 'issued_bytes', 'useful_ready', 'useful_bytes',
           'miss', 'late', 'unused', 'pending')
-OPTIONAL = ('opportunities', 'completed_transfers', 'completed_bytes', 'wasted_bytes', 'denied', 'duplicate', 'unknown')
+OPTIONAL = ('opportunities', 'completed_transfers', 'completed_bytes', 'wasted_bytes', 'denied', 'duplicate', 'unknown', 'reused')
 PHASES = ('prefill', 'decode')
 OOM = ('oom', 'oom_kill', 'oom_group_kill')
 
@@ -34,9 +34,15 @@ def counters(log):
         if len(fields) != len(pairs):
             raise ValueError('Duplicate native predictor counter')
         phase = fields.pop('phase')
-        request = fields.pop('request_id', fields.pop('request', None))
+        if 'request_id' in fields and 'request' in fields:
+            raise ValueError('Duplicate native predictor request identity')
+        request = fields.pop('request_id', None) if 'request_id' in fields else fields.pop('request', None)
         sequence, graph = fields.pop('sequence', None), fields.pop('graph', None)
-        completed = fields.pop('completed', None) if graph is not None else None
+        if 'success' in fields:
+            completed = fields.pop('success')
+            fields['completed_transfers'] = fields.pop('completed')
+        else:
+            completed = fields.pop('completed', None) if graph is not None else None
         identity = (phase, request, sequence, graph)
         if (phase not in PHASES or identity in seen or any(not x.isdecimal() for x in identity[1:] if x is not None) or
                 (graph is not None and (request is None or sequence is None or completed not in ('0', '1')))):

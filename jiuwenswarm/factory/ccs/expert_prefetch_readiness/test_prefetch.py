@@ -19,3 +19,9 @@ class PrefetchTests(unittest.TestCase):
             counters(GOOD + '\n' + GOOD)
         with self.assertRaisesRegex(ValueError, 'conserve'):
             counters(GOOD.replace('late=1', 'late=9'))
+
+    def test_decode_graph_separates_completions_from_graph_success(self):
+        log = GOOD.replace('phase=prefill', 'phase=decode request=1 sequence=0 graph=9')
+        result = counters(log + ' completed=5 completed_bytes=80 success=1')
+        self.assertEqual(result['decode']['totals']['completed_transfers'], 5)
+        self.assertTrue(result['decode']['rows'][0]['graph_completed'])
