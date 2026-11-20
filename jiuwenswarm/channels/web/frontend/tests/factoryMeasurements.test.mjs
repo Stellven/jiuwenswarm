@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { aggregateMeasurements, chartScale, promptOptions } from '../src/features/factoryRuns/measurementModel.ts';
+import { aggregateMeasurements, chartScale, focusedP4Reports, promptOptions } from '../src/features/factoryRuns/measurementModel.ts';
 
 const phase = 'reconnaissance';
 const prompt = { tokens: 512, hash: 'pinned-test-prompt' };
@@ -15,6 +15,69 @@ const sample = (line, arm, ttft_s, extra = {}) => ({
 });
 const ledger = (samples, summaries = []) => ({ samples, summaries, issues: [] });
 const find = (rows, arm) => rows.find((row) => row.arm === arm).metrics;
+
+function focused(name, budget, byte) {
+  const ref = (suffix) => ({ artifact_id: `${name}/${suffix}`, sha256: byte.repeat(64) });
+  const manifest = ref('launch.json');
+  const analysis = ref('analysis.json');
+  const verifier = ref('verify-receipt.json');
+  const report = ref('report.md');
+  const refs = [manifest, analysis, verifier, report];
+  const effect = { estimate: 1.2, observed_range: [-1, 2], conditional_ci95: [-0.2, 1.9] };
+  const observation = {
+    kind: 'factory_iteration_report',
+    source_artifacts: refs.map(({ artifact_id }) => artifact_id),
+    values: {
+      schema: 'spark-factory-iteration/1',
+      plan: { manifest },
+      report: { ...report, status: 'verified-p4' },
+      lab: { status: 'complete' },
+      analysis: {
+        ccs: [{ id: 'factory.spark_gap_analysis', release: 'a'.repeat(64) }],
+        result_artifact: analysis,
+        output_artifact_ids: [analysis.artifact_id, verifier.artifact_id],
+        focused_comparison: {
+          schema: 'spark-p4-focused/1',
+          subject_arm: 'C3',
+          budget_mib: budget,
+          allocated_mib: budget - 10,
+          profiles: {
+            'A+': { profile_sha256: 'a'.repeat(64), binary_sha256: 'b'.repeat(64) },
+            C3: { profile_sha256: byte.repeat(64), binary_sha256: byte.repeat(64) },
+          },
+          verification: verifier,
+          rows: [512, 2048].map((prompt_tokens) => ({
+            prompt_tokens, n: 10,
+            control: { ttft_s: 5, decode_tps: 18 },
+            candidate: { ttft_s: 4, decode_tps: 20 },
+            paired_ttft_seconds_saved_vs_Aplus: effect,
+            paired_decode_tps_gained_vs_Aplus: effect,
+          })),
+        },
+      },
+    },
+  };
+  const files = refs.map(({ artifact_id, sha256 }) => ({
+    path: artifact_id, artifact_ids: [artifact_id], sha256, integrity: 'verified', size: 12,
+  }));
+  return { observation, files };
+}
+
+test('verified P4 cards retain exact launch, budget and candidate version identities', () => {
+  const fixtures = [focused('cache-30', 30720, 'c'), focused('cache-60', 61440, 'd'),
+    focused('cache-30-new', 30720, 'e')];
+  const inputs = fixtures.map(({ observation }) => observation);
+  const files = fixtures.flatMap((item) => item.files);
+  const cards = focusedP4Reports(inputs, files);
+  assert.deepEqual(cards.map(({ budgetMib }) => budgetMib), [30720, 61440, 30720]);
+  assert.equal(new Set(cards.map(({ key }) => key)).size, 3);
+  assert.equal(cards[2].candidateProfile.binarySha256, 'e'.repeat(64));
+  assert.deepEqual(cards[0].rows[0].ttftSaved.ci, [-0.2, 1.9]);
+  assert.equal(cards[1].rows[1].n, 10);
+  const mismatch = files.map((file) => file.path === 'cache-60/verify-receipt.json' ?
+    { ...file, sha256: '0'.repeat(64) } : file);
+  assert.deepEqual(focusedP4Reports(inputs, mismatch).map(({ budgetMib }) => budgetMib), [30720, 30720]);
+});
 
 test('preserves warm-sample median, observed range and independent scope counts', () => {
   const data = ledger(

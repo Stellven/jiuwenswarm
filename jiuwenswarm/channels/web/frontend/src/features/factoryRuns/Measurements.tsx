@@ -1,14 +1,16 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getApiBase } from '../../utils/env';
-import { request } from './api';
+import { request, type RunDetail } from './api';
 import { measurementCopy } from './measurementCopy';
 import {
   aggregateMeasurements,
   chartScale,
+  focusedP4Reports,
   promptKey,
   promptOptions,
   type MeasurementArm,
+  type FocusedP4,
   type MeasurementLedger,
   type MeasurementMetric,
   type MeasurementPhase,
@@ -33,6 +35,7 @@ const arms = {
 } as const;
 type Labels = ReturnType<typeof measurementCopy>;
 type SourceSelection = { title: string; sources: MeasurementSource[] };
+type OpenReport = (runId: string, reportId: string, sha256: string) => void;
 
 function useLedger() {
   const [ledger, setLedger] = useState<MeasurementLedger>();
@@ -47,6 +50,113 @@ function useLedger() {
     return () => controller.abort();
   }, []);
   return { ledger, error };
+}
+
+function useVerifiedP4(detail: RunDetail, benchmarkRunId?: string) {
+  const [benchmarks, setBenchmarks] = useState<RunDetail>();
+  useEffect(() => {
+    if (!benchmarkRunId || benchmarkRunId === detail.run.id) return;
+    const controller = new AbortController();
+    request<RunDetail>(`/runs/${encodeURIComponent(benchmarkRunId)}`, { signal: controller.signal })
+      .then(setBenchmarks)
+      .catch(() => {});
+    return () => controller.abort();
+  }, [benchmarkRunId, detail.run.id]);
+  return useMemo(() => {
+    const sources = benchmarks && benchmarks.run.id === benchmarkRunId && benchmarkRunId !== detail.run.id
+      ? [detail, benchmarks] : [detail];
+    const reports = new Map<string, { focus: FocusedP4; runId: string }>();
+    for (const source of sources) {
+      for (const focus of focusedP4Reports(source.records.observations || [], source.files)) {
+        reports.set(focus.key, { focus, runId: source.run.id });
+      }
+    }
+    return [...reports.values()];
+  }, [benchmarks, benchmarkRunId, detail]);
+}
+
+function VerifiedP4Card({ focus, runId, onOpenReport, language, copy }: {
+  focus: FocusedP4;
+  runId: string;
+  onOpenReport: OpenReport;
+  language: string;
+  copy: Labels;
+}) {
+  const format = new Intl.NumberFormat(language, { maximumFractionDigits: 3 });
+  const number = (value: number) => format.format(value);
+  const delta = (effect: FocusedP4['rows'][number]['ttftSaved']) => (
+    <>
+      <strong>{number(effect.estimate)}</strong>
+      <small>{copy.conditionalCI} [{effect.ci.map(number).join(', ')}]</small>
+      <small>{copy.range} [{effect.range.map(number).join(', ')}]</small>
+    </>
+  );
+  const titleId = useId();
+  const profiles = [
+    { arm: 'A+', identity: focus.controlProfile },
+    { arm: focus.subject, identity: focus.candidateProfile },
+  ];
+  const candidateVersion = focus.candidateProfile.sourceCommit || focus.candidateProfile.binarySha256;
+  return (
+    <section className="factory-measurement-focus factory-measurement-summary" aria-labelledby={titleId}
+      data-testid="factory-runs-focused-p4" data-variant={focus.manifest.sha256}>
+      <header>
+        <div>
+          <h3 id={titleId}>{copy.focusedP4} · {focus.subject} / A+</h3>
+          <p>
+            {number(focus.budgetMib / 1024)} {copy.gib} · {copy.matchedPairs} ·{' '}
+            <code title={candidateVersion}>{candidateVersion.slice(0, 12)}</code>
+          </p>
+        </div>
+        <button type="button" onClick={() => onOpenReport(runId, focus.report.artifact_id, focus.report.sha256)}>
+          {copy.openVerifiedReport}
+        </button>
+      </header>
+      <div className="factory-measurement-table-container">
+        <table className="factory-measurement-table">
+          <thead>
+            <tr>
+              <th scope="col">{copy.prompt}</th>
+              <th scope="col">{copy.ttft_s} (A+ / {focus.subject})</th>
+              <th scope="col">{copy.pairedTtft}</th>
+              <th scope="col">{copy.decode_tps} (A+ / {focus.subject})</th>
+              <th scope="col">{copy.pairedDecode}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {focus.rows.map((row) => (
+              <tr key={row.tokens}>
+                <th scope="row">{number(row.tokens)}</th>
+                <td>{number(row.control.ttft)} / {number(row.candidate.ttft)} {copy.seconds}</td>
+                <td>{delta(row.ttftSaved)}</td>
+                <td>{number(row.control.decode)} / {number(row.candidate.decode)} {copy.tokenRate}</td>
+                <td>{delta(row.decodeGained)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>{copy.p4IntervalScope}</p>
+      <details>
+        <summary>{copy.launchIdentity}</summary>
+        <dl>
+          <dt>{copy.manifest}</dt><dd><code>{focus.manifest.sha256}</code></dd>
+          <dt>{copy.nativeAnalysis}</dt><dd><code>{focus.analysis.sha256}</code></dd>
+          <dt>{copy.nativeVerification}</dt><dd><code>{focus.verification.sha256}</code></dd>
+          <dt>{copy.allocatedBank}</dt><dd>{number(focus.allocatedMib)} MiB</dd>
+          {profiles.map(({ arm, identity }) => (
+            <Fragment key={arm}>
+              <dt>{arm} · {copy.profileIdentity}</dt>
+              <dd><code>{identity.profileSha256}</code></dd>
+              <dt>{arm} · {copy.binaryIdentity}</dt>
+              <dd><code>{identity.binarySha256}</code></dd>
+              {identity.sourceCommit && <><dt>{arm} · {copy.sourceCommit}</dt><dd><code>{identity.sourceCommit}</code></dd></>}
+            </Fragment>
+          ))}
+        </dl>
+      </details>
+    </section>
+  );
 }
 
 function formatValue(value: number, metric: MeasurementMetric, language: string, copy: Labels) {
@@ -275,11 +385,16 @@ function MetricChart({
   );
 }
 
-export function Measurements() {
+export function Measurements({ detail, benchmarkRunId, onOpenReport }: {
+  detail: RunDetail;
+  benchmarkRunId?: string;
+  onOpenReport: OpenReport;
+}) {
   const { i18n } = useTranslation();
   const language = i18n.resolvedLanguage ?? 'en';
   const copy = measurementCopy(language);
   const { ledger, error } = useLedger();
+  const focused = useVerifiedP4(detail, benchmarkRunId);
   const [chosenPhase, setPhase] = useState<MeasurementPhase>();
   const [chosenPrompt, setPrompt] = useState('');
   const [comparison, setComparison] = useState<MeasurementMetric>('decode_tps');
@@ -294,11 +409,14 @@ export function Measurements() {
   );
   return (
     <section className="factory-measurement-panel" data-testid="factory-runs-measurements">
+      {focused.map(({ focus, runId }) => (
+        <VerifiedP4Card key={focus.key} {...{ focus, runId, onOpenReport, language, copy }} />
+      ))}
       <header className="factory-measurement-heading">
         <div>
           <p>{copy.campaign}</p>
           <h2 data-testid="factory-runs-measurement-heading">{copy.title}</h2>
-          <p>{copy.subtitle}</p>
+          <p>{focused.length ? copy.historicalContext : copy.subtitle}</p>
         </div>
         <section className="factory-measurement-controls">
           <div

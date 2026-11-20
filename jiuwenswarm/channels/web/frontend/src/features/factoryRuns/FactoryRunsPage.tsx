@@ -569,7 +569,14 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   <a href={capsuleHref()} data-testid="factory-runs-capsule-browse">{copy('catalog')} →</a>
                 </div>
               )}
-              {panel === 'measurements' && <Measurements />}
+              {panel === 'measurements' && (
+                <Measurements
+                  detail={detail}
+                  benchmarkRunId={listing.runs.find((run) =>
+                    run.kind === 'live' && run.task_id === 'spark-direct-benchmarks-20261120')?.id}
+                  onOpenReport={(runId, reportId, sha256) => openIterationChild(runId, 'report', reportId, sha256)}
+                />
+              )}
               {!['overview','graph','report','iterations','measurements'].includes(panel) && (
                 <EvidenceFileBrowser
                   key={`${selected}:${panel}`}

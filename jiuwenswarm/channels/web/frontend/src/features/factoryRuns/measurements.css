@@ -115,6 +115,22 @@
   color: var(--color-text-secondary);
 }
 
+.factory-measurement-focus {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.factory-measurement-focus small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-secondary);
+}
+
+.factory-measurement-focus code {
+  overflow-wrap: anywhere;
+}
+
 .factory-measurement-charts {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -1,3 +1,5 @@
+import type { EvidenceFile, JsonRecord } from './api';
+
 export const MEASUREMENT_ARMS = ['A', 'A+', 'C1', 'C2', 'C3', 'C4', 'C5', 'D', 'S'] as const;
 export type MeasurementArm = (typeof MEASUREMENT_ARMS)[number];
 export type MeasurementPhase = 'final' | 'reconnaissance';
@@ -49,6 +51,132 @@ export type MeasurementRow = {
 };
 
 export type MeasurementPrompt = { tokens: number; hash: string };
+
+type VerifiedArtifact = { artifact_id: string; sha256: string };
+type FocusedProfile = { profileSha256: string; binarySha256: string; sourceCommit?: string };
+type FocusedEffect = { estimate: number; ci: [number, number]; range: [number, number] };
+type FocusedTiming = { ttft: number; decode: number };
+
+type FocusedP4Row = {
+  tokens: number;
+  n: number;
+  control: FocusedTiming;
+  candidate: FocusedTiming;
+  ttftSaved: FocusedEffect;
+  decodeGained: FocusedEffect;
+};
+
+export type FocusedP4 = {
+  key: string;
+  subject: MeasurementArm;
+  budgetMib: number;
+  allocatedMib: number;
+  manifest: VerifiedArtifact;
+  analysis: VerifiedArtifact;
+  verification: VerifiedArtifact;
+  report: VerifiedArtifact;
+  controlProfile: FocusedProfile;
+  candidateProfile: FocusedProfile;
+  rows: FocusedP4Row[];
+};
+
+const obj = (value: unknown): JsonRecord =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as JsonRecord) : {};
+const finite = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value);
+const hash = (value: unknown): value is string => typeof value === 'string' && /^[0-9a-f]{64}$/.test(value);
+
+function verifiedArtifact(raw: unknown, files: EvidenceFile[], sourceIds: unknown[]) {
+  const { artifact_id, sha256 } = obj(raw);
+  if (typeof artifact_id !== 'string' || !hash(sha256) || !sourceIds.includes(artifact_id)) return;
+  if (files.some((file) => file.integrity === 'verified' && file.sha256 === sha256 &&
+    file.artifact_ids?.includes(artifact_id))) {
+    return { artifact_id, sha256 };
+  }
+}
+
+function profile(raw: unknown): FocusedProfile | undefined {
+  const { profile_sha256, binary_sha256, source_commit } = obj(raw);
+  if (!hash(profile_sha256) || !hash(binary_sha256)) return;
+  return {
+    profileSha256: profile_sha256,
+    binarySha256: binary_sha256,
+    sourceCommit: typeof source_commit === 'string' ? source_commit : undefined,
+  };
+}
+
+function bounds(value: unknown): [number, number] | undefined {
+  if (Array.isArray(value) && value.length === 2 && finite(value[0]) && finite(value[1]) && value[0] <= value[1]) {
+    return [value[0], value[1]];
+  }
+}
+
+function effect(raw: unknown): FocusedEffect | undefined {
+  const { estimate, conditional_ci95, observed_range } = obj(raw);
+  const ci = bounds(conditional_ci95);
+  const range = bounds(observed_range);
+  if (finite(estimate) && ci && range) return { estimate, ci, range };
+}
+
+function timing(raw: unknown): FocusedTiming | undefined {
+  const { ttft_s, decode_tps } = obj(raw);
+  if (finite(ttft_s) && ttft_s > 0 && finite(decode_tps) && decode_tps > 0) {
+    return { ttft: ttft_s, decode: decode_tps };
+  }
+}
+
+function focusedRow(raw: unknown): FocusedP4Row | undefined {
+  const row = obj(raw);
+  const tokens = row.prompt_tokens;
+  const control = timing(row.control);
+  const candidate = timing(row.candidate);
+  const ttftSaved = effect(row.paired_ttft_seconds_saved_vs_Aplus);
+  const decodeGained = effect(row.paired_decode_tps_gained_vs_Aplus);
+  if ((tokens === 512 || tokens === 2048) && row.n === 10 && control && candidate && ttftSaved && decodeGained) {
+    return { tokens, n: row.n, control, candidate, ttftSaved, decodeGained };
+  }
+}
+
+export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile[]): FocusedP4[] {
+  const views = new Map<string, FocusedP4>();
+  for (const observation of observations) {
+    if (observation.kind !== 'factory_iteration_report' && observation.kind !== 'factory_iteration_report_revision') continue;
+    const iteration = obj(observation.values);
+    const analysisRecord = obj(iteration.analysis);
+    const focus = obj(analysisRecord.focused_comparison);
+    const reportRecord = obj(iteration.report);
+    const analysisCapsules = Array.isArray(analysisRecord.ccs) ? analysisRecord.ccs : [];
+    const gapRelease = analysisCapsules.some((raw) => {
+      const capsule = obj(raw);
+      return capsule.id === 'factory.spark_gap_analysis' && hash(capsule.release);
+    });
+    if (iteration.schema !== 'spark-factory-iteration/1' || reportRecord.status !== 'verified-p4' ||
+      focus.schema !== 'spark-p4-focused/1' || obj(iteration.lab).status !== 'complete' || !gapRelease) continue;
+    const subject = MEASUREMENT_ARMS.find((arm) => arm === focus.subject_arm);
+    const { budget_mib: budgetMib, allocated_mib: allocatedMib } = focus;
+    if (!subject || subject === 'A' || subject === 'A+' || subject === 'S' ||
+      !finite(budgetMib) || !Number.isInteger(budgetMib) || !finite(allocatedMib) ||
+      allocatedMib <= 0 || allocatedMib > budgetMib || !Array.isArray(focus.rows)) continue;
+    const sourceIds = Array.isArray(observation.source_artifacts) ? observation.source_artifacts : [];
+    const manifest = verifiedArtifact(obj(iteration.plan).manifest, files, sourceIds);
+    const analysis = verifiedArtifact(analysisRecord.result_artifact, files, sourceIds);
+    const verification = verifiedArtifact(focus.verification, files, sourceIds);
+    const report = verifiedArtifact(reportRecord, files, sourceIds);
+    const profiles = obj(focus.profiles);
+    const controlProfile = profile(profiles['A+']);
+    const candidateProfile = profile(profiles[subject]);
+    if (!manifest || !analysis || !verification || !report || !controlProfile || !candidateProfile ||
+      !Array.isArray(analysisRecord.output_artifact_ids) ||
+      !analysisRecord.output_artifact_ids.includes(verification.artifact_id)) continue;
+    const rows = focus.rows.map(focusedRow).filter((row): row is FocusedP4Row => Boolean(row));
+    if (focus.rows.length !== 2 || rows.length !== 2 || rows[0].tokens === rows[1].tokens) continue;
+    const key = `${report.artifact_id}:${report.sha256}:${manifest.sha256}`;
+    views.set(key, {
+      key, subject, budgetMib, allocatedMib, manifest, analysis, verification, report, controlProfile,
+      candidateProfile, rows: rows.sort((a, b) => a.tokens - b.tokens),
+    });
+  }
+  return [...views.values()];
+}
 
 export function promptOptions(data: MeasurementLedger, phase: MeasurementPhase): MeasurementPrompt[] {
   const prompts = new Map<string, MeasurementPrompt>();
