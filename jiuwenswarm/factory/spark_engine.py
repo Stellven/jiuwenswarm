@@ -53,6 +53,11 @@ def native_recipe(cache):
     return generator, flags
 
 
+def native_ui_archive(cache):
+    archive = Path(cache).parent / 'ui/apps/chat/dist.tar.gz'
+    return archive if archive.is_file() else None
+
+
 NATIVE_COMPILE = r'''
 import hashlib,json,os,pathlib,shutil,subprocess,sys,time,platform
 if platform.machine() not in ("aarch64", "arm64"):raise ValueError("Native ARM64 compilation required")
@@ -111,6 +116,7 @@ def main():
     p.add_argument('--delivery', choices=['image', 'native'], default='image')
     p.add_argument('--native-cmake-cache')
     p.add_argument('--native-cmake-cache-sha256')
+    p.add_argument('--native-ui-archive-sha256')
     a = p.parse_args()
     if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',a.build_target):
         raise ValueError('Invalid build target')
@@ -173,6 +179,16 @@ def main():
             return destination
         source = snapshot(source,a.commit,'frozen-source')
         dependency = snapshot(dependency,a.dependency_commit,'frozen-dependency')
+        if a.delivery == 'native' and a.native_ui_archive_sha256:
+            archive = native_ui_archive(cache)
+            if archive is None or hashlib.sha256(archive.read_bytes()).hexdigest() != a.native_ui_archive_sha256:
+                raise ValueError('Retained stock UI archive changed')
+            # git archive omits build-number metadata that selects the stock UI release.
+            dist = source / 'ui/apps/chat/dist'
+            dist.mkdir()
+            with tarfile.open(archive) as assets:
+                assets.extractall(dist, filter='data')
+            record['native_ui_archive'] = dict(path=str(archive), sha256=a.native_ui_archive_sha256)
         if a.delivery != 'native':
             flags = build_flags(a.build_target, dependency)
         record['flags'] = flags
@@ -198,6 +214,8 @@ def main():
                         environment={k:os.environ.get(k) for k in ('PATH','CC','CXX','CUDAHOSTCXX','CUDACXX','CFLAGS','CXXFLAGS','LDFLAGS','LD_LIBRARY_PATH')},
                         recipe_sha256=hashlib.sha256((Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile').read_bytes()).hexdigest(),
                         builder_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest())
+        if a.native_ui_archive_sha256:
+            identity['native_ui_archive_sha256'] = a.native_ui_archive_sha256
         key = hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
         build = Path(os.environ['FACTORY_HOME']).parent/'cache'/('deepseek-'+key[:24])
         record['cache_path'], record['configuration_sha256'] = str(build), key

@@ -154,6 +154,8 @@ def run(store, task_id, attempt_id, request):
             if request.get('delivery') == 'native':
                 argv += ['--delivery', 'native', '--native-cmake-cache', request['native_cmake_cache'],
                          '--native-cmake-cache-sha256', request['native_cmake_cache_sha256']]
+                if archive_sha256 := request.get('native_ui_archive_sha256'):
+                    argv += ['--native-ui-archive-sha256', archive_sha256]
         if request.get('patch'):
             argv += ['--patch', request['patch']]
         with stdout.open('wb') as output, stderr.open('wb') as errors:

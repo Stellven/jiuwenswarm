@@ -83,10 +83,12 @@ class Builder:
             if delivery == 'native':
                 normalized['delivery'] = delivery
                 cache = Path(request.get('native_cmake_cache', '')).resolve()
-                from .spark_engine import native_recipe
+                from .spark_engine import native_recipe, native_ui_archive
                 native_recipe(cache)
                 normalized['native_cmake_cache'] = str(cache)
                 normalized['native_cmake_cache_sha256'] = hashlib.sha256(cache.read_bytes()).hexdigest()
+                if archive := native_ui_archive(cache):
+                    normalized['native_ui_archive_sha256'] = hashlib.sha256(archive.read_bytes()).hexdigest()
             normalized['worker_sha256'] = hashlib.sha256(Path(__file__).with_name('build_job.py').read_bytes()).hexdigest()
             normalized['lifecycle_sha256'] = hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest()
             if deadline > 5400:
