@@ -17,6 +17,7 @@ import urllib.request
 
 from run_p4_window import accepted_result, boundary_resources
 from source_residency import snapshot
+from steady_requests import run as steady_requests
 
 ROOT = Path.home() / 'predemo-spark'
 HERE = Path(__file__).resolve().parent
@@ -175,10 +176,11 @@ def main():
         prompts = HERE / 'prompts'
         manifest = read(prompts / 'MANIFEST.json')
         approved = {p['target_tokens_including_template']: p['prompt_sha256'] for p in manifest['prompts']}
-        repeats = [0, 1, 2, 3] if speed else ([0, 1] if early else [0])
+        if speed:
+            hashes = steady_requests(scope, label, PORT, 'llama')
+        repeats = [] if speed else ([0, 1] if early else [0])
         for repeat in repeats:
-            sizes = (2048, 512) if speed and repeat == 2 else (512, 2048)
-            for size in sizes:
+            for size in (512, 2048):
                 target = scope / f'rep-{repeat}-{size}'
                 if early:
                     boundary_resources(scope / f'{target.name}-before.json', Path(receipt['cgroup']), receipt['pid'])
