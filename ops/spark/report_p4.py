@@ -283,6 +283,15 @@ def request_evidence(capture, directory, name, repeat, size, phase, item, arm, b
         demand('residency' not in item, 'Unexpected P4 source sample role')
     row = dict(reference(result), result=data, request=request['value'], request_ref=reference(request), scope_id=scope_id,
                evidence={key: reference(value) for key, value in refs.items()})
+    beginning, first_token = (snapshots[key]['processes'] for key in ('start', 'first_token'))
+    engine_name = 'llama-server' if window['view'] == 'llama' else 'strata-dsv41'
+    engine_pids = [pid for pid, process in beginning.items() if process['comm'] == engine_name]
+    demand(len(engine_pids) == 1, 'P4 resource window must identify one inference engine')
+    pid = engine_pids[0]
+    demand(pid in first_token and beginning[pid]['starttime_ticks'] == first_token[pid]['starttime_ticks'],
+           'P4 engine process identity changed before first token')
+    row['first_token_io'] = dict(read_bytes=first_token[pid]['io']['read_bytes'] - beginning[pid]['io']['read_bytes'],
+                                 major_faults=first_token[pid]['majflt'] - beginning[pid]['majflt'])
     if phase == 'before':
         row['source_resident_fraction'] = {kind: value['estimated_resident_fraction']
             for kind, value in sample['value']['views'][window['view']]['total'].items()}
@@ -516,6 +525,14 @@ def render(analysis, evidence, capsule):
            'The native release did not produce ten eligible requests per size and arm')
     summary = (f'P4 measured {len(by_arm)} arms in two mirrored launches with ten timed requests per arm at each prompt size. '
                'First-token latency and decode throughput are reported separately.')
+    if evidence['comparison_target'] == 'same-budget-cc':
+        subject = evidence['subject_arm']
+        phrases = []
+        for size in SIZES:
+            saved = actual[(subject, size)]['comparisons']['paired_ttft_seconds_saved_vs_Aplus']['estimate']
+            direction = 'sooner' if saved > 0 else 'later'
+            phrases.append(f'{abs(saved):.2f} seconds {direction} at {size} tokens')
+        summary = f'Across ten pairs per size, {subject} returned the first token ' + ' and '.join(phrases) + ' than same-budget stock A+ by the paired medians.'
     lines = ['# Spark P4 matched benchmark', '', summary, '',
              'All admitted scopes passed the strict quiet preflight and every retained request boundary. '
              'The boundary process checks cannot observe activity that begins and ends between snapshots.', '',
@@ -561,6 +578,23 @@ def render(analysis, evidence, capsule):
             lines.extend(f'| {arm} | {name} | {estimate} | {observed} | {passes} | {bounds} |'
                          for arm, name, estimate, observed, passes, bounds in comparisons)
         lines.append('')
+    lines += ['## Startup requests by position', '',
+              'Each pass began with the common file-specific source conditioning. Read and fault counts cover the engine process through the first token.', '',
+              '| Arm | Pass | Request position | Prompt tokens | Load to ready (s) | TTFT (s) | Decode (tokens/s) | Reads (GB) | Major faults |',
+              '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+    for scope in evidence['scopes']:
+        warmups = [r for r in evidence['requests'] if r['scope_id'] == scope['artifact_id'] and r['result']['discard']]
+        for position, row in enumerate(warmups, 1):
+            result, io = row['result'], row['first_token_io']
+            lines.append(f'| {scope["arm"]} | {scope["launch_pass"]} | {position} | {result["prompt_tokens"]} | '
+                         f'{scope["load"]["seconds"]:.2f} | {result["ttft_s"]:.3f} | {result["decode_tps"]:.2f} | '
+                         f'{io["read_bytes"] / 1e9:.3f} | {io["major_faults"]:,} |')
+    for scope in evidence['scopes']:
+        if 'direct_seed' in scope:
+            io = scope['direct_seed']['direct_io']
+            lines += ['', f'Direct-seed pass {scope["launch_pass"]} uploaded {io["uploaded_payload_bytes"]:,} bytes '
+                      f'in {io["elapsed_us"] / 1e6:.3f} s, with {io["failures"]} failures and {io["fallback_count"]} fallbacks.']
+    lines.append('')
     lines += ['## Change within each measured launch', '',
               'Last minus first measured position shows residual movement inside each launch. Exact request samples are retained.', '',
               '| Arm | Pass | Prompt tokens | TTFT change (s) | Decode change (tokens/s) |',
