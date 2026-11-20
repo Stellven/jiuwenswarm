@@ -4,7 +4,10 @@ import { CapsuleHeadlineResults, useFinalHeadlines, type HeadlineRow } from '../
 import { capsuleApi, type CapsuleCard, type CapsuleCatalog, type CapsuleDetail } from './capsuleApi';
 import { BuilderRunEvidence, CapsuleEvidenceView, Receipt } from './CapsuleEvidence';
 import { Integrity, Loading, MaterialDialog, MaterialList, SafeMarkdown, StructuredData } from './CapsuleMaterial';
-import { displayName, isRecord, markdownSections, plainDescription, readableName } from './capsuleModel';
+import {
+  capsuleHeadlineRows, displayName, headlineArmForCapsule, isRecord,
+  markdownSections, plainDescription, readableName,
+} from './capsuleModel';
 import { type CopyKey, useCapsuleCopy } from './copy';
 import { capsuleHref } from './navigation';
 import { useCapsuleResource } from './useCapsuleResource';
@@ -27,6 +30,7 @@ function CapsuleKind({ kind }: { kind: string }) {
 
 function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRow[] }) {
   const copy = useCapsuleCopy();
+  const arm = headlineArmForCapsule(capsule.name) || capsule.arm;
   return (
     <a
       className="cc-card"
@@ -54,7 +58,7 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
       )}
       <div className="cc-card-footer">
         <code>{capsule.version ? `v${capsule.version}` : capsule.binding}</code>
-        <span>{capsule.arm ? `${copy('arm')} ${capsule.arm}` : capsule.binding}</span>
+        <span>{arm ? `${copy('arm')} ${arm}` : capsule.binding}</span>
         <span className="cc-card-arrow" aria-hidden>
           ↗
         </span>
@@ -140,7 +144,7 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
             <div className={title === 'builders' ? 'cc-grid cc-grid-stars' : 'cc-grid'}>
               {rows.map((capsule) => (
                 <Card key={capsule.name} capsule={capsule} results={capsule.starred
-                  ? headlines.filter((row) => row.cc === capsule.arm)
+                  ? capsuleHeadlineRows(capsule.name, headlines)
                   : undefined} />
               ))}
             </div>
@@ -187,6 +191,7 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
 
 function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
   const copy = useCapsuleCopy();
+  const arm = headlineArmForCapsule(capsule.name) || capsule.arm;
   return (
     <header className="cc-hero" data-testid="factory-runs-capsule-header">
       <div className="cc-hero-text">
@@ -197,9 +202,9 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
             </span>
           )}
           <CapsuleKind kind={capsule.kind} />
-          {capsule.arm && (
+          {arm && (
             <span className="cc-kind">
-              {copy('arm')} {capsule.arm}
+              {copy('arm')} {arm}
             </span>
           )}
         </div>

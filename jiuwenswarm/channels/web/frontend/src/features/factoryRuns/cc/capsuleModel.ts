@@ -1,5 +1,22 @@
 import type { CapsuleCard } from './capsuleApi';
 
+const headlineArms = new Map([
+  ['observability_event_recorder', 'C1'],
+  ['weight_placement_planner', 'C2'],
+  ['expert_weight_cache', 'C3'],
+  ['expert_demand_predictor', 'C4'],
+  ['batch_layout_mapper', 'C5'],
+]);
+
+export function headlineArmForCapsule(name: string) {
+  return headlineArms.get(name);
+}
+
+export function capsuleHeadlineRows<T extends { cc: string | null }>(name: string, rows: T[]) {
+  const arm = headlineArmForCapsule(name);
+  return rows.filter((row) => row.cc === arm);
+}
+
 export function readableName(value: string): string {
   return value
     .replaceAll('_', ' ')

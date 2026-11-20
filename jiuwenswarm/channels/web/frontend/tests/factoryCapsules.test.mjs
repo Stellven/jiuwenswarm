@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
+  capsuleHeadlineRows,
   findCapsules,
   localMaterial,
   markdownSections,
@@ -37,6 +38,28 @@ test('capsule chips resolve qualified tools and explicit aliases without matchin
     [builder],
   );
   assert.deepEqual(findCapsules({ component: 'builder' }, catalog), [builder]);
+});
+
+test('headline results follow capsule identity independently of historical arm numbering', () => {
+  const rows = [
+    { cc: null, id: 's' },
+    { cc: 'C1', id: 'c1' },
+    { cc: 'C2', id: 'c2' },
+    { cc: 'C3', id: 'c3-original30' },
+    { cc: 'C3', id: 'c3-direct30' },
+    { cc: 'C3', id: 'c3-60' },
+    { cc: 'C4', id: 'c4' },
+    { cc: 'C5', id: 'c5' },
+    { cc: 'C5', id: 'c5-mapper-matched' },
+    { cc: 'C5', id: 'c5-stock-flags' },
+  ];
+  const results = (name) => capsuleHeadlineRows(name, rows).map(({ id }) => id);
+  assert.deepEqual(results('observability_event_recorder'), ['c1']);
+  assert.deepEqual(results('weight_placement_planner'), ['c2']);
+  assert.deepEqual(results('expert_weight_cache'), ['c3-original30', 'c3-direct30', 'c3-60']);
+  assert.deepEqual(results('expert_demand_predictor'), ['c4']);
+  assert.deepEqual(results('batch_layout_mapper'), ['c5', 'c5-mapper-matched', 'c5-stock-flags']);
+  assert.deepEqual(results('builder'), []);
 });
 
 test('markdown excerpts ignore headings inside code fences and resolve only known capsule files', () => {
