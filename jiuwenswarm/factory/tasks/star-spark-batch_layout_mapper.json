@@ -17,7 +17,8 @@
       "dependency": {
         "path": "/home/user2/predemo-spark/llama.cpp-stock",
         "commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
-      }
+      },
+      "native_cmake_cache": "/home/user2/predemo-spark/build-stock-cuda121/CMakeCache.txt"
     },
     "capsule_transport": {
       "source_version": "1.1.1",

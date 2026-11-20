@@ -28,6 +28,31 @@ def build_flags(target, dependency):
     return list(LLAMA_FLAGS) if target == 'llama-server' else [*FLAGS, '-DSTRATA_GGML_DIR='+str(dependency)]
 
 
+def native_recipe(cache):
+    """Use the retained stock generator/toolchain/options, without its source/build paths."""
+    values = {}
+    for line in Path(cache).read_text().splitlines():
+        if not line or line.startswith(('#', '//')) or '=' not in line or ':' not in line.split('=', 1)[0]:
+            continue
+        key_type, value = line.split('=', 1)
+        key, kind = key_type.split(':', 1)
+        values[key] = (kind, value)
+    generator = values.get('CMAKE_GENERATOR', ('', ''))[1]
+    if generator not in {'Unix Makefiles', 'Ninja'}:
+        raise ValueError('Unsupported retained stock build generator')
+    selected = {'CMAKE_BUILD_TYPE', 'CMAKE_CUDA_ARCHITECTURES', 'CMAKE_C_COMPILER', 'CMAKE_CXX_COMPILER', 'CMAKE_CUDA_COMPILER',
+                'CMAKE_C_FLAGS', 'CMAKE_CXX_FLAGS', 'CMAKE_CUDA_FLAGS', 'CMAKE_C_FLAGS_RELEASE', 'CMAKE_CXX_FLAGS_RELEASE',
+                'CMAKE_CUDA_FLAGS_RELEASE', 'CMAKE_EXE_LINKER_FLAGS', 'CMAKE_SHARED_LINKER_FLAGS'}
+    flags = [f'-D{key}={value}' for key, (kind, value) in sorted(values.items())
+             if kind != 'INTERNAL' and (key in selected or key.startswith(('GGML_', 'LLAMA_')))]
+    for key, expected in {'CMAKE_BUILD_TYPE': 'Release', 'GGML_CUDA': 'ON'}.items():
+        if values.get(key, ('', ''))[1] != expected:
+            raise ValueError('Retained stock cache differs: ' + key)
+    if '121' not in values.get('CMAKE_CUDA_ARCHITECTURES', ('', ''))[1]:
+        raise ValueError('Retained stock cache must target SM121')
+    return generator, flags
+
+
 NATIVE_COMPILE = r'''
 import hashlib,json,os,pathlib,shutil,subprocess,sys,time,platform
 if platform.machine() not in ("aarch64", "arm64"):raise ValueError("Native ARM64 compilation required")
@@ -84,6 +109,8 @@ def main():
         p.add_argument('--'+name, required=True)
     p.add_argument('--build-target', default='strata-dsv41')
     p.add_argument('--delivery', choices=['image', 'native'], default='image')
+    p.add_argument('--native-cmake-cache')
+    p.add_argument('--native-cmake-cache-sha256')
     a = p.parse_args()
     if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',a.build_target):
         raise ValueError('Invalid build target')
@@ -118,7 +145,15 @@ def main():
         dependency = Path(a.dependency)
         if run('dependency-head',['git','-C',dependency,'rev-parse','HEAD']) != a.dependency_commit or run('dependency-clean',['git','-C',dependency,'status','--porcelain','--untracked-files=all']):
             raise ValueError('Dependency changed')
+        generator = 'Ninja'
         flags = build_flags(a.build_target, dependency)
+        if a.delivery == 'native':
+            cache = Path(a.native_cmake_cache or '')
+            if hashlib.sha256(cache.read_bytes()).hexdigest() != a.native_cmake_cache_sha256:
+                raise ValueError('Retained stock CMake cache changed')
+            generator, flags = native_recipe(cache)
+            record['native_cmake_cache'] = dict(path=str(cache), sha256=a.native_cmake_cache_sha256)
+            record['generator'] = generator
         record['flags'] = flags
         record['dependency'] = dict(path=str(dependency), commit=a.dependency_commit)
         record['source']['tree'] = run('tree',['git','-C',source,'rev-parse','HEAD^{tree}'])
@@ -138,16 +173,19 @@ def main():
             return destination
         source = snapshot(source,a.commit,'frozen-source')
         dependency = snapshot(dependency,a.dependency_commit,'frozen-dependency')
-        flags = build_flags(a.build_target, dependency)
+        if a.delivery != 'native':
+            flags = build_flags(a.build_target, dependency)
         record['flags'] = flags
         builder_image = os.environ.get('FACTORY_NATIVE_BUILDER_IMAGE')
+        if a.delivery == 'native' and builder_image:
+            raise ValueError('Stock-matched native delivery requires the host toolchain')
         if builder_image:
             builder_info = json.loads(run('builder-image', ['docker','image','inspect',builder_image]))[0]
             if builder_info['Id'] != builder_image or builder_info['Architecture'] != 'arm64':
                 raise ValueError('Native ARM64 builder identity mismatch')
             record['toolchain'] = dict(native_builder_image=builder_image)
         else:
-            record['toolchain'] = {t:run(t,[t,'--version']) for t in ('nvcc','gcc','cmake','ninja')}
+            record['toolchain'] = {t:run(t,[t,'--version']) for t in ('nvcc','gcc','cmake', 'make' if generator == 'Unix Makefiles' else 'ninja')}
             if 'release 13.' not in record['toolchain']['nvcc']:
                 raise ValueError('CUDA 13 compiler required')
         # Host compute admission supplements shared queue exclusivity.
@@ -177,7 +215,7 @@ def main():
             record.update(json.loads((out/'native-compile.json').read_text()), native_builder_image=builder_image)
             record['toolchain']['native_builder_image'] = builder_image
         else:
-            run('configure',['cmake','-G','Ninja','-S',source,'-B',build,*flags])
+            run('configure',['cmake','-G',generator,'-S',source,'-B',build,*flags])
             run('compile',['cmake','--build',build,'--parallel','8','--target',a.build_target])
             app.mkdir(parents=True)
             executable = build/('bin/'+a.build_target if a.build_target=='llama-server' else a.build_target)

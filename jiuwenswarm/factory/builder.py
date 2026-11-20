@@ -32,7 +32,7 @@ class Builder:
         if not isinstance(request, dict):
             raise ValueError('Build request must be an object')
         target = profile(request.get('target'))
-        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target', 'delivery'}:
+        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target', 'delivery', 'native_cmake_cache'}:
             raise ValueError('Unknown build request fields')
         build_target = request.get('build_target', 'strata-dsv41')
         if not isinstance(build_target,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',build_target):
@@ -82,6 +82,11 @@ class Builder:
             normalized['build_target'] = build_target
             if delivery == 'native':
                 normalized['delivery'] = delivery
+                cache = Path(request.get('native_cmake_cache', '')).resolve()
+                from .spark_engine import native_recipe
+                native_recipe(cache)
+                normalized['native_cmake_cache'] = str(cache)
+                normalized['native_cmake_cache_sha256'] = hashlib.sha256(cache.read_bytes()).hexdigest()
             normalized['worker_sha256'] = hashlib.sha256(Path(__file__).with_name('build_job.py').read_bytes()).hexdigest()
             normalized['lifecycle_sha256'] = hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest()
             if deadline > 5400:

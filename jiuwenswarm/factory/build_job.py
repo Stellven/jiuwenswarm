@@ -152,7 +152,8 @@ def run(store, task_id, attempt_id, request):
             argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit'],
                      '--build-target', request.get('build_target','strata-dsv41')]
             if request.get('delivery') == 'native':
-                argv += ['--delivery', 'native']
+                argv += ['--delivery', 'native', '--native-cmake-cache', request['native_cmake_cache'],
+                         '--native-cmake-cache-sha256', request['native_cmake_cache_sha256']]
         if request.get('patch'):
             argv += ['--patch', request['patch']]
         with stdout.open('wb') as output, stderr.open('wb') as errors:

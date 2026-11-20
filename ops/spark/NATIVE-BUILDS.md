@@ -27,6 +27,7 @@ A native Builder request uses the existing durable build API with:
   "target": "spark-gb10",
   "build_target": "llama-server",
   "delivery": "native",
+  "native_cmake_cache": "/home/user2/predemo-spark/build-stock-cuda121/CMakeCache.txt",
   "source": {"path": "<owned checkout>", "commit": "<clean committed revision>"},
   "dependency": {"path": "/home/user2/predemo-spark/llama.cpp-stock", "commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613"},
   "tag": "factory/llamacpp:star-recorder",
@@ -34,8 +35,8 @@ A native Builder request uses the existing durable build API with:
 }
 ```
 
-The existing Spark worker snapshots committed source, compiles with native
-CUDA13/SM121 flags and at most eight parallel build jobs, retains linked local
+The existing Spark worker snapshots committed source, compiles with the pinned stock CMake cache generator, compiler paths and
+GGML/LLAMA options (including native CPU kernels and SM121), at most eight parallel build jobs, retains linked local
 libraries, and returns a digest-verified native executable receipt. No runtime
 image is created for `delivery=native`. The existing default image delivery
 and image-admission checks remain available and unchanged. A native receipt

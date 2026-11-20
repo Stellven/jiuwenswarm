@@ -9,6 +9,7 @@ import yaml
 from jiuwenswarm.ccv2.ccv2 import Host
 from jiuwenswarm.factory import ab, components, contract, taskgraph
 from jiuwenswarm.factory.builder import Builder
+from jiuwenswarm.factory.controller import Controller  # registers additive task input columns
 from jiuwenswarm.factory.manager import Manager
 
 CCS = Path(__file__).resolve().parents[2] / 'jiuwenswarm/factory/ccs'
@@ -99,7 +100,7 @@ def test_native_worker_retains_executable_receipt_and_rejects_drift(store, monke
     request = dict(target='spark-gb10', delivery='native', build_target='llama-server',
                    source={'path': str(tmp_path / 'source'), 'commit': 'a' * 40},
                    dependency={'path': str(tmp_path / 'dependency'), 'commit': 'b' * 40},
-                   tag='factory/llamacpp:fixture',
+                   tag='factory/llamacpp:fixture', native_cmake_cache=str(tmp_path / 'CMakeCache.txt'), native_cmake_cache_sha256='c' * 64,
                    engine_sha256=hashlib.sha256((worker_root / 'spark_engine.py').read_bytes()).hexdigest(),
                    recipe_sha256=hashlib.sha256((worker_root.parents[1] / 'deploy/spark/Runtime.Dockerfile').read_bytes()).hexdigest(),
                    worker_sha256=hashlib.sha256(Path(build_job.__file__).read_bytes()).hexdigest(),
@@ -107,7 +108,7 @@ def test_native_worker_retains_executable_receipt_and_rejects_drift(store, monke
     attempt = store.create_attempt('t', dict(kind='build', request=request, idem_key='native', fingerprint='native'))
     monkeypatch.setattr('jiuwenswarm.factory.execution_binding.verify_task', lambda *args: None)
     def fake_compile(argv, **kwargs):
-        assert argv[-2:] == ['--delivery', 'native']
+        assert argv[argv.index('--delivery') + 1] == 'native'
         out = Path(argv[argv.index('--out') + 1]); out.mkdir(parents=True)
         executable = (tmp_path if invalid == 'outside' else out) / 'llama-server'
         executable.write_bytes(b'executable-fixture')
@@ -126,3 +127,13 @@ def test_native_worker_retains_executable_receipt_and_rejects_drift(store, monke
     else:
         assert result == 0 and observation['values']['status'] == 'success'
         assert receipt['executable']['sha256'] == observation['values']['executable']['sha256']
+
+
+def test_native_recipe_retains_stock_cpu_gpu_and_generator(tmp_path):
+    from jiuwenswarm.factory.spark_engine import native_recipe
+    cache = tmp_path / 'CMakeCache.txt'
+    cache.write_text('CMAKE_GENERATOR:INTERNAL=Unix Makefiles\nCMAKE_BUILD_TYPE:STRING=Release\nCMAKE_CUDA_ARCHITECTURES:STRING=121\nGGML_CUDA:BOOL=ON\nGGML_NATIVE:BOOL=ON\nGGML_OPENMP:BOOL=ON\nGGML_CPU_ARM_ARCH:STRING=\nGGML_CUDA_FA_ALL_QUANTS:BOOL=OFF\nCMAKE_HOME_DIRECTORY:INTERNAL=/reference/source\n')
+    generator, flags = native_recipe(cache)
+    assert generator == 'Unix Makefiles'
+    assert set(['-DGGML_NATIVE=ON', '-DGGML_OPENMP=ON', '-DGGML_CPU_ARM_ARCH=', '-DGGML_CUDA_FA_ALL_QUANTS=OFF']) <= set(flags)
+    assert not any('CMAKE_HOME_DIRECTORY' in flag for flag in flags)
