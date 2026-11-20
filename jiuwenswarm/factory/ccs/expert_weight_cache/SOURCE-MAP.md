@@ -69,3 +69,5 @@ records their exact artifact and release identities in its own decision.
 ## Iteration-2 prefill evidence
 
 Pinned stock `9048bad8d6e3a0f9f1726e238e451181c7e02613` implements contiguous large-prefill native D2D in `src/llama-moe-cache.cpp` and host misses and MMQ tail source handling in `src/llama-context.cpp`. The native profile candidate `ad2130b0126ad0c8f7ac33d966f828fc17f4528c` adds seed and phase counters. [PREFILL-HITS.md](PREFILL-HITS.md) uses actual C3/S/A and mincore evidence to bound the next source choices.
+
+- [DIRECT-SEED.md](DIRECT-SEED.md) binds the native profile-bank source mapping and startup transfer experiment to an independent gate.

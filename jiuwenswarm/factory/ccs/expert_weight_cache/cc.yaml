@@ -1,7 +1,9 @@
 cc: '2'
 id: engine.build_expert_weight_cache
-version: 1.4.0
+version: 1.4.1
 materials:
+  direct_seed:
+    path: DIRECT-SEED.md
   prefill_hits:
     path: PREFILL-HITS.md
   native_profile:

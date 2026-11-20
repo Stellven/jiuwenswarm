@@ -56,3 +56,5 @@ Follow [PROFILE-RESIDENCY.md](PROFILE-RESIDENCY.md) for a separately admitted re
 ## Report-led prefill hit admission
 
 Follow [PREFILL-HITS.md](PREFILL-HITS.md) to verify GPU hits avoid original host payload reads and compare refill/copy amplification under matched admission.
+
+Use [DIRECT-SEED.md](DIRECT-SEED.md) for the independent, report-driven native profile startup I/O treatment.
