@@ -78,12 +78,20 @@ const personalContextNavIcon = (
   </svg>
 );
 
+const capsuleNavIcon = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+    <rect x="3" y="7" width="18" height="10" rx="5" />
+    <path d="M12 7v10" />
+  </svg>
+);
+
 const mainNavItems: NavItem[] = [
   { key: 'chat', labelKey: 'nav.work', icon: <WorkIcon aria-hidden /> },
   { key: 'agents', labelKey: 'nav.agent', icon: <AgentDesignIcon aria-hidden /> },
   { key: 'skills', labelKey: 'nav.skills', icon: <SkillDesignIcon aria-hidden /> },
   { key: 'connectorMarket', labelKey: 'nav.connectorMarket', icon: connectorMarketNavIcon },
   { key: 'factoryRuns', labelKey: 'nav.factoryRuns', icon: <WorkIcon aria-hidden /> },
+  { key: 'capabilityCapsules', labelKey: 'nav.capabilityCapsules', icon: capsuleNavIcon },
   { key: 'experiments', labelKey: 'nav.experiments', icon: experimentsNavIcon },
   { key: 'personalContext', labelKey: 'nav.personalContext', icon: personalContextNavIcon },
   { key: 'settings', labelKey: 'nav.settings', icon: <SettingsIcon aria-hidden /> },
@@ -154,11 +162,13 @@ export function SessionSidebar({
           className={`icon-rail-nav-item${isNavItemActive(item) ? ' icon-rail-nav-item--active' : ''}`}
           onClick={() => handleNavClick(item.key)}
           data-testid="session-sidebar-nav-item"
+          aria-label={getNavItemLabel(item)}
+          title={getNavItemLabel(item)}
           data-variant={item.key}
           data-model-setup-guide-target={item.key === 'settings' ? 'settings' : undefined}
         >
           <span className="icon-rail-nav-item__icon">{item.icon}</span>
-          <span className={`icon-rail-nav-item__label${item.key === 'personalContext' ? ' icon-rail-nav-item__label--multiline' : ''}`}>
+          <span className={`icon-rail-nav-item__label${item.key === 'personalContext' || item.key === 'capabilityCapsules' ? ' icon-rail-nav-item__label--multiline' : ''}`}>
             {getNavItemLabel(item)}
           </span>
         </button>

@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { Fragment, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CapsuleChips } from '../cc/CapsuleChips';
 import type { Run } from '../api';
 import { runListEntries } from './runListModel';
 import { useViewerLabels } from './viewerLabels';
@@ -40,8 +41,8 @@ export function FactoryRunList({
               ? label('runLive')
               : run.status || t('factoryRuns.recorded');
         return (
+          <Fragment key={run.id}>
           <button
-            key={run.id}
             type="button"
             className="factory-run"
             data-testid="factory-runs-run"
@@ -79,6 +80,8 @@ export function FactoryRunList({
               </small>
             )}
           </button>
+          <CapsuleChips value={[run.task_id,run.objective]} />
+          </Fragment>
         );
       })}
       {!entries.length && <p data-testid="factory-runs-empty">{t('factoryRuns.empty')}</p>}

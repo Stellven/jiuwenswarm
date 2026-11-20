@@ -173,6 +173,7 @@ jiuwenswarm = [
     "factory/schemas/*.json",
     "factory/tasks/*.json",
     "factory/contracts/*.json",
+    "factory/contracts/*.md",
     "factory/monitor.html",
     "factory/demo.html",
     "channels/web/frontend/dist/**/*",
