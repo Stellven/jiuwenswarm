@@ -3,7 +3,7 @@ import type { CapsuleAnalysis, CapsuleDetail, CapsuleMeasurement } from './capsu
 import { AnalysisData } from './AnalysisData';
 import { Integrity, StructuredData } from './CapsuleMaterial';
 import { isRecord, numericColumns, readableName, tableData } from './capsuleModel';
-import { useCapsuleCopy } from './copy';
+import { type CopyKey, useCapsuleCopy } from './copy';
 import { runHref } from './navigation';
 
 function number(value: number | null | undefined, unit = '', digits = 2): string {
@@ -313,5 +313,92 @@ function AnalysisOutput({
       )}
       {(mode === 'table' || mode === 'chart') && <AnalysisData datasets={datasets} chart={mode === 'chart'} />}
     </details>
+  );
+}
+
+function verdict(value: boolean | null | undefined, pass: CopyKey, fail: CopyKey): CopyKey {
+  return value == null ? 'notRecorded' : value ? pass : fail;
+}
+
+export function BuilderRunEvidence({
+  capsule,
+  onArtifact,
+}: {
+  capsule: CapsuleDetail;
+  onArtifact: (run: string, path: string, title: string) => void;
+}) {
+  const copy = useCapsuleCopy();
+  const run = capsule.evidence?.latest_builder_run;
+  const build = run?.build;
+  const lab = run?.lab;
+  const report = run?.report;
+  const digest = build?.binary_sha256 || lab?.binary_sha256;
+  const measurements = capsule.evidence?.measurements.filter((row) =>
+    row.scope !== 'combined' && (digest ? row.binary_sha256 === digest : row.run_id === run?.run_id),
+  ) || [];
+  const hasLabNumbers = Object.keys(lab?.metrics || {}).length > 0 || measurements.length > 0;
+  const metricText = (key: string, value: number) => {
+    const label = ({
+      written: 'eventsWritten', lost: 'eventsLost', bytes_transferred: 'copiedBytes', peak_memory_bytes: 'peakMemory',
+    } as Record<string, CopyKey | undefined>)[key];
+    const formatted = key.endsWith('_bytes') ? number(value / 1024 ** 3, ' GiB') : value.toLocaleString();
+    return `${formatted} ${label ? copy(label) : readableName(key)}`;
+  };
+
+  return (
+    <section className="cc-section cc-builder-run" data-testid="factory-runs-capsule-builder-evidence">
+      <div className="cc-split-row">
+        <h2>{copy('artifacts')}</h2>
+        {run && (
+          <div className="cc-actions">
+            {report && <button className="cc-control" type="button" onClick={() => onArtifact(run.run_id, report.path, report.artifact_id)}
+              data-testid="factory-runs-capsule-iteration-report">{copy('iterationReport')}</button>}
+            <a href={runHref(run.run_id, report?.path)} data-testid="factory-runs-capsule-builder-replay">{copy('run')} →</a>
+          </div>
+        )}
+      </div>
+      {!run && <p className="cc-muted">{copy(capsule.evidence ? 'builderPending' : 'evidenceUnavailable')}</p>}
+      {run && (
+        <dl className="cc-builder-grid">
+          <div>
+            <dt>{copy('buildDigest')}</dt>
+            <dd data-testid="factory-runs-capsule-binary-digest">
+              {digest ? <code title={digest}>{digest}</code> : <span className="cc-muted">{copy('notRecorded')}</span>}
+              {build?.artifact && <Integrity state={build.artifact.integrity} />}
+            </dd>
+          </div>
+          <div>
+            <dt>{copy('parity')}</dt>
+            <dd data-testid="factory-runs-capsule-parity" data-verdict={lab?.parity ?? undefined}>
+              {copy(verdict(lab?.parity, 'parityMatch', 'parityMismatch'))}
+            </dd>
+          </div>
+          <div>
+            <dt>{copy('activation')}</dt>
+            <dd data-testid="factory-runs-capsule-activation" data-verdict={lab?.activation ?? undefined}>
+              {copy(verdict(lab?.activation, 'active', 'inactive'))}
+            </dd>
+          </div>
+          <div>
+            <dt>{copy('labNumbers')}</dt>
+            <dd data-testid="factory-runs-capsule-latest-lab">
+              {!hasLabNumbers && <span className="cc-muted">{copy('notRecorded')}</span>}
+              {measurements.length > 0 && <ul>
+                {measurements.slice(0, 2).map((row) => (
+                  <li key={`${row.arm}:${row.observation_ids.join(',')}`}>{row.prompt_tokens} · {copy('ttft')} {number(row.ttft_s, ' s')} · {number(row.decode_tps)} {copy('decode')}</li>
+                ))}
+              </ul>}
+              {Object.keys(lab?.metrics || {}).length > 0 && <ul>
+                {Object.entries(lab?.metrics || {}).slice(0, 4).map(([key, value]) => <li key={key}>{metricText(key, value)}</li>)}
+              </ul>}
+            </dd>
+          </div>
+        </dl>
+      )}
+      {lab?.scope && <p className="cc-muted">{lab.scope}</p>}
+      {lab?.binary_sha256 && build?.binary_sha256 && lab.binary_sha256 !== build.binary_sha256 && (
+        <p className="cc-alert">{copy('labReleaseMismatch')} <code>{lab.binary_sha256}</code></p>
+      )}
+    </section>
   );
 }

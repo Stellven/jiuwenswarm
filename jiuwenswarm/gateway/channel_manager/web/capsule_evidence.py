@@ -1,6 +1,7 @@
 """Project capsule evidence from the same run sources as the web replay."""
 
 from collections import defaultdict
+from datetime import UTC, datetime
 import hashlib
 import json
 import math
@@ -53,6 +54,104 @@ def _capsules(row):
     identities.extend(_strings(row.get('capsules')))
     return [value for identity in identities if isinstance(value := _object(identity).get('id', identity), str)]
 
+
+
+def _member_ids(value):
+    return [identity for row in value if isinstance(identity := _object(row).get('id', row), str)] if isinstance(value, list) else []
+
+
+def _iteration(values):
+    return values if values.get('schema') == 'spark-factory-iteration/1' else {}
+
+
+def capsule_usage(service, capsule_ids):
+    """Count unique native tasks and flag capsules with analysis recorded today (UTC)."""
+    task_ids = defaultdict(set)
+    latest_analyses = {}
+    now = datetime.now(UTC)
+    today = now.replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    for run, root in service.catalog():
+        try:
+            data = service.load(run, root)
+        except (OSError, ValueError, KeyError):
+            continue
+        task_id = run['task_id']
+        used = {cc for task in _records(data.get('tasks')) if task.get('task_id') == task_id for cc in _capsules(task)}
+        for decision in _records(data.get('decisions')):
+            action = _object(decision.get('action'))
+            used.update(_capsules(action))
+            capability = action.get('capability')
+            if isinstance(capability, str):
+                used.add(capability)
+                used.add(capability.rsplit('.', 1)[0])
+        for record in _records(data.get('observations')):
+            if record.get('task_id', task_id) != task_id:
+                continue
+            kind, values = record.get('kind'), _object(record.get('values'))
+            iteration = _iteration(values)
+            identity = set(_capsules(record) + _capsules(values))
+            producers = set(_member_ids(_object(iteration.get('analysis')).get('ccs')))
+            used.update(identity | producers | set(_member_ids(_object(iteration.get('plan')).get('builder_ccs'))))
+            if isinstance(kind, str) and kind in ANALYSIS_PRODUCERS:
+                producers.add(ANALYSIS_PRODUCERS[kind])
+                used.update(producers)
+            if (not isinstance(kind, str) or not values or values.get('analysis_obs_id')
+                    or not (kind in ANALYSIS_OBSERVATIONS or kind.startswith(('analysis.', 'analysis_', 'profile_analysis')))):
+                identity = set()
+            created = _number(record.get('created'))
+            if created is not None and today <= created <= now.timestamp():
+                for capsule_id in (identity | producers) & capsule_ids:
+                    latest_analyses[capsule_id] = max(created, latest_analyses.get(capsule_id, 0))
+        for capsule_id in used & capsule_ids:
+            task_ids[capsule_id].add(task_id)
+    return {cc: dict(used_in_runs=len(task_ids[cc]), featured_analysis_at=latest_analyses.get(cc)) for cc in capsule_ids}
+
+
+def _build_rollup(record, artifacts):
+    values = _object(record.get('values'))
+    executable = _object(values.get('executable'))
+    digest = values.get('executable_sha256') or executable.get('sha256')
+    if values.get('status') not in ('success', 'succeeded') or not isinstance(digest, str) or not re.fullmatch('[0-9a-f]{64}', digest):
+        return None
+    refs = _strings(record.get('source_artifacts'))
+    artifact = next((artifacts[aid] for aid in refs if aid in artifacts and artifacts[aid]['kind'] == 'build_record'), None)
+    return dict(binary_sha256=digest, artifact=artifact, created=_number(record.get('created')))
+
+
+def _lab_rollup(record, artifacts):
+    values = _object(record.get('values'))
+    if record.get('kind') != 'functional_lab':
+        return None
+    arms = list(_records(values.get('arms')))
+    parity = []
+    for row in arms:
+        checks = _object(row.get('stock_match'))
+        if isinstance(row.get('parity'), bool):
+            parity.append(row['parity'])
+        elif checks and all(isinstance(flag, bool) for flag in checks.values()):
+            parity.append(all(checks.values()))
+    summary = _object(values.get('session_summary'))
+    activation = values.get('activation')
+    if not isinstance(activation, bool):
+        written = _number(summary.get('written'))
+        activation = written > 0 if values.get('schema') == 'spark-functional-lab/1' and written is not None else None
+    metrics = dict(_object(values.get('metrics')))
+    for key in ('written', 'lost', 'bytes_transferred'):
+        if (value := _number(summary.get(key))) is not None:
+            metrics[key] = value
+    peak = next((_number(arm.get('peak_memory_bytes')) for arm in arms if '-on-' in str(arm.get('arm'))), None)
+    if peak is not None:
+        metrics['peak_memory_bytes'] = peak
+    refs = _strings(record.get('source_artifacts'))
+    artifact = next((artifacts[aid] for aid in refs if aid in artifacts and artifacts[aid]['kind'] == 'lab'), None)
+    overall_parity = False if False in parity else True if parity and len(parity) == len(arms) else None
+    if isinstance(values.get('parity'), bool):
+        overall_parity = values['parity']
+    return dict(binary_sha256=values.get('binary_sha256'), parity=overall_parity, activation=activation,
+                metrics={key: value for key, value in metrics.items() if _number(value) is not None},
+                scope=values.get('scope') if isinstance(values.get('scope'), str) else record.get('limitations'),
+                limitations=record.get('limitations'), artifact=artifact,
+                created=_number(record.get('created')))
 
 def _artifact_kind(row, verifier_refs, product_refs):
     aid = row['artifact_id']
@@ -198,7 +297,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
     """Read native run sources, preserving replay links and integrity state."""
     from .factory_http import MAX_FILE, _inside, _json
 
-    related_runs, artifacts, measurements, receipts, analyses = [], [], [], [], []
+    related_runs, artifacts, measurements, receipts, analyses, builder_summaries = [], [], [], [], [], []
     seen_artifacts, seen_measurements, seen_analyses = set(), set(), set()
     catalog = sorted(service.catalog(), key=lambda entry: (entry[0]['kind'] != 'live', -entry[0]['updated']))
     for run, root in catalog:
@@ -222,19 +321,28 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         analysis_reports = defaultdict(list)
         iteration_outputs = set()
         iteration_reports = {}
+        builder_reports = []
+        lab_refs = set()
         consumes_analysis = False
         for record in observations:
             kind, values = record.get('kind'), _object(record.get('values'))
             if not isinstance(kind, str) or not values:
                 continue
-            if kind == 'factory_iteration_report' and values.get('schema') == 'spark-factory-iteration/1':
-                results = _object(values.get('analysis'))
-                producers = [_object(row).get('id', row) for row in results.get('ccs', [])] if isinstance(results.get('ccs'), list) else []
-                if capsule_id in producers:
+            if iteration := _iteration(values):
+                results = _object(iteration.get('analysis'))
+                plan = _object(iteration.get('plan'))
+                contributed_analysis = capsule_id in _member_ids(results.get('ccs'))
+                contributed_build = capsule_id in _member_ids(plan.get('builder_ccs'))
+                if contributed_analysis:
                     iteration_outputs.update(_strings(results.get('output_artifact_ids')))
-                    report = _object(values.get('report'))
+                if contributed_analysis or contributed_build:
+                    report = _object(iteration.get('report'))
                     if isinstance(report.get('artifact_id'), str) and isinstance(report.get('sha256'), str):
                         iteration_reports[report['artifact_id']] = report['sha256']
+                        if contributed_build:
+                            builder_reports.append(dict(report, created=_number(record.get('created'))))
+            if kind == 'functional_lab' and record in relevant:
+                lab_refs.update(aid for aid in _strings(record.get('source_artifacts')) if aid.rsplit('/', 1)[-1] == 'lab.json')
             explicit = capsule_id in _capsules(record) or capsule_id in _capsules(values)
             named = kind in ANALYSIS_OBSERVATIONS or kind.startswith(('analysis.', 'analysis_', 'profile_analysis'))
             structured = any(key in values for key in ('analysis', 'phase_breakdown', 'gap_attribution'))
@@ -254,6 +362,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
                          for ref in _strings(r.get('source_artifacts'))}
         product_refs = {ref for r in relevant if r.get('kind') == 'capsule_product' for ref in _strings(r.get('source_artifacts'))}
         run_artifacts, run_receipts = [], []
+        artifact_index = {}
         for entry in _records(inventory):
             aid = entry.get('artifact_id')
             if (entry.get('task_id', task_id) != task_id or not isinstance(aid, str)
@@ -263,11 +372,13 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             report_refs = analysis_reports.get((aid, report_sha), ()) if isinstance(report_sha, str) else ()
             published_report = aid in iteration_reports and iteration_reports[aid] == report_sha
             if not (owns_capsule or aid in verifier_refs or aid in product_refs or report_refs
-                    or aid in iteration_outputs or published_report):
+                    or aid in iteration_outputs or aid in lab_refs or published_report):
                 continue
             kind = _artifact_kind(entry, verifier_refs, product_refs)
             if published_report:
                 kind = 'report'
+            elif aid in lab_refs:
+                kind = 'lab'
             elif report_refs or (aid in iteration_outputs and not kind):
                 kind = 'analysis_report'
             if not kind:
@@ -286,6 +397,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             integrity = 'missing' if not digest else ('verified' if digest == expected else 'mismatch') if expected else 'untracked'
             artifact = source | dict(path=relative, artifact_id=aid, kind=kind, integrity=integrity, sha256=digest,
                                      media_type=entry.get('media_type'), created=_number(entry.get('created')))
+            artifact_index[aid] = artifact
             for analysis_row in report_refs:
                 analysis_row.update(path=relative, integrity=integrity, report_artifact_id=aid)
             key = (task_id, aid, entry.get('sha256'), integrity)
@@ -327,6 +439,18 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             if key not in seen_measurements:
                 run_measurements.append(row)
                 seen_measurements.add(key)
+        if not analysis and (owns_capsule or builder_reports):
+            build = max((item for row in relevant if row.get('kind') == 'build_result'
+                         if (item := _build_rollup(row, artifact_index))), key=lambda item: item['created'] or 0, default=None)
+            lab = max((item for row in relevant if (item := _lab_rollup(row, artifact_index))),
+                      key=lambda item: item['created'] or 0, default=None)
+            report = max((row for row in builder_reports if row['artifact_id'] in artifact_index),
+                         key=lambda row: (row['created'] or 0, _number(row.get('revision')) or 0), default=None)
+            if build or lab or report or run_measurements:
+                builder_summaries.append(source | dict(
+                    build=build, lab=lab, report=artifact_index[report['artifact_id']] if report else None,
+                    updated=max((item['created'] or 0 for item in (build, lab, report) if item), default=0),
+                ))
         if (capsule_id in _capsules(task) or consumes_analysis or run_artifacts
                 or run_receipts or run_measurements or run_analyses):
             related_runs.append({key: run[key] for key in ('id', 'name', 'kind')})
@@ -346,4 +470,5 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         artifacts=sorted(artifacts, key=lambda row: row['created'] or 0, reverse=True),
         measurements=measurements, analyses=sorted(analyses, key=lambda row: row['created'] or 0, reverse=True),
         runs=related_runs,
+        latest_builder_run=max(builder_summaries, key=lambda row: row['updated'], default=None),
     ))

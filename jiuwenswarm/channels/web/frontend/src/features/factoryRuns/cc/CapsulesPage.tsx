@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { EvidenceFile } from '../api';
 import { capsuleApi, type CapsuleCard, type CapsuleCatalog, type CapsuleDetail } from './capsuleApi';
-import { CapsuleEvidenceView, Receipt } from './CapsuleEvidence';
+import { BuilderRunEvidence, CapsuleEvidenceView, Receipt } from './CapsuleEvidence';
 import { Integrity, Loading, MaterialDialog, MaterialList, SafeMarkdown, StructuredData } from './CapsuleMaterial';
 import { displayName, isRecord, markdownSections, plainDescription, readableName } from './capsuleModel';
 import { type CopyKey, useCapsuleCopy } from './copy';
@@ -9,7 +9,7 @@ import { capsuleHref } from './navigation';
 import { useCapsuleResource } from './useCapsuleResource';
 import './capsules.css';
 
-const catalogRequest = (_key: string, signal: AbortSignal) => capsuleApi.catalog(signal);
+const catalogRequest = (mode: string, signal: AbortSignal) => capsuleApi.catalog(signal, mode === 'with-usage');
 const tabs = ['method', 'ontology', 'acceptance', 'source', 'files', 'artifacts', 'contract'] as const;
 type Tab = (typeof tabs)[number];
 
@@ -45,6 +45,9 @@ function Card({ capsule }: { capsule: CapsuleCard }) {
       </div>
       <h3>{displayName(capsule)}</h3>
       <p>{plainDescription(capsule.description || capsule.component || capsule.id)}</p>
+      {!!capsule.used_in_runs && (
+        <small className="cc-run-count" data-testid="factory-runs-capsule-used">{copy('usedInRuns')} · {capsule.used_in_runs}</small>
+      )}
       <div className="cc-card-footer">
         <code>{capsule.version ? `v${capsule.version}` : capsule.binding}</code>
         <span>{capsule.arm ? `${copy('arm')} ${capsule.arm}` : capsule.binding}</span>
@@ -79,12 +82,14 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
       rows: shown.filter((capsule) => capsule.starred).sort((a, b) => (a.arm || '').localeCompare(b.arm || '')),
     },
     { title: 'builder', rows: shown.filter((capsule) => !capsule.starred && capsule.kind === 'builder') },
-    { title: 'analysis', rows: shown.filter((capsule) => !capsule.starred && capsule.kind === 'analysis') },
     {
-      title: 'support',
-      rows: shown.filter((capsule) => !capsule.starred && capsule.kind !== 'analysis' && capsule.kind !== 'builder'),
+      title: 'featuredAnalysis',
+      rows: shown.filter((capsule) => capsule.kind === 'analysis' && capsule.featured_analysis_at)
+        .sort((a, b) => (b.featured_analysis_at || 0) - (a.featured_analysis_at || 0)),
     },
   ] as const;
+  const support = shown.filter((capsule) => !capsule.starred && capsule.kind !== 'analysis' && capsule.kind !== 'builder');
+  const library = shown.filter((capsule) => capsule.kind === 'analysis' && !capsule.featured_analysis_at);
   return (
     <>
       <header className="cc-catalog-header">
@@ -132,6 +137,21 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
             </div>
           </section>
         ))}
+      {library.length > 0 && (
+        <details className="cc-catalog-group cc-library" open={!!needle}
+          data-testid="factory-runs-capsule-analysis-library">
+          <summary className="cc-catalog-group-title">
+            <h2>{copy('analysisLibrary')}</h2><span>{library.length}</span>
+          </summary>
+          <div className="cc-grid">{library.map((capsule) => <Card key={capsule.name} capsule={capsule} />)}</div>
+        </details>
+      )}
+      {support.length > 0 && (
+        <section className="cc-catalog-group" data-testid="factory-runs-capsule-catalog-group" data-variant="support">
+          <div className="cc-catalog-group-title"><h2>{copy('support')}</h2><span>{support.length}</span></div>
+          <div className="cc-grid">{support.map((capsule) => <Card key={capsule.name} capsule={capsule} />)}</div>
+        </section>
+      )}
       {!shown.length && (
         <p className="cc-muted" role="status">
           {copy('noMatches')}
@@ -341,6 +361,7 @@ function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: Ca
         ← {copy('back')}
       </a>
       <CapsuleHeader capsule={capsule} />
+      {capsule.kind === 'builder' && <BuilderRunEvidence capsule={capsule} onArtifact={onArtifact} />}
       <nav className="cc-tabs" aria-label={copy('title')} data-testid="factory-runs-capsule-tabs">
         {visibleTabs.map((item) => (
           <button
@@ -485,12 +506,12 @@ function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: Ca
 }
 
 export function CapsulesPage({ name }: { name?: string }) {
-  const catalog = useCapsuleResource('catalog', catalogRequest);
+  const catalog = useCapsuleResource(name ? 'manifests-only' : 'with-usage', catalogRequest);
   const detail = useCapsuleResource(name, capsuleApi.detail);
   const copy = useCapsuleCopy();
   return (
     <div className="cc-page" data-testid="factory-runs-capsule-page" data-variant={name ? 'detail' : 'catalog'}>
-      <main className="cc-shell">
+      <div className="cc-shell">
         {name ? (
           detail.data ? (
             <DetailView key={detail.data.name} capsule={detail.data} catalog={catalog.data} />
@@ -507,7 +528,7 @@ export function CapsulesPage({ name }: { name?: string }) {
         ) : (
           <Loading {...catalog} />
         )}
-      </main>
+      </div>
     </div>
   );
 }

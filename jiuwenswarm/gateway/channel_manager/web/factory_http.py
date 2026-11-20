@@ -27,7 +27,7 @@ from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from .capsule_catalog import CapsuleCatalog
-from .capsule_evidence import collect_capsule_evidence
+from .capsule_evidence import capsule_usage, collect_capsule_evidence
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
@@ -133,6 +133,14 @@ class FactoryHttpService:
     def listing(self):
         return sanitize(dict(runs=[item for item, _ in self.catalog()], launch_templates=self.templates(),
                              launch_enabled=bool(self.launch_root and self.launch_home_root)))
+
+    def capsules(self, usage):
+        catalog = self.capsule_catalog.listing()
+        if usage:
+            summary = capsule_usage(self, {row['id'] for row in catalog['capsules']})
+            for capsule in catalog['capsules']:
+                capsule.update(summary[capsule['id']])
+        return catalog
 
     def capsule_detail(self, name):
         detail = self.capsule_catalog.detail(name)
@@ -373,8 +381,8 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
         return await call(service.file, run_id, path)
 
     @app.get(PREFIX + '/capsules')
-    async def capsules():
-        return await call(service.capsule_catalog.listing)
+    async def capsules(usage: bool = True):
+        return await call(service.capsules, usage)
 
     @app.get(PREFIX + '/capsules/{name}')
     async def capsule(name: str):

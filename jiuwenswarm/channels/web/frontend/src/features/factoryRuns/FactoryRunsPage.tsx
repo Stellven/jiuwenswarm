@@ -18,7 +18,7 @@ import { capsuleHref, runHref, type FactoryEntry } from './cc/navigation';
 import { useCapsuleResource } from './cc/useCapsuleResource';
 import './factoryRuns.css';
 
-const catalogRequest = (_key: string, signal: AbortSignal) => capsuleApi.catalog(signal);
+const catalogRequest = (_key: string, signal: AbortSignal) => capsuleApi.catalog(signal, false);
 const emptyCapsules: CapsuleCard[] = [];
 
 const panels = [

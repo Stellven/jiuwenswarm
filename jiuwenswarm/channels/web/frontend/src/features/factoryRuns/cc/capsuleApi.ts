@@ -3,7 +3,9 @@ import type { EvidenceFile } from '../api';
 
 export type CapsuleCard = {
   name: string;
-  title?: string;
+  title?: string | null;
+  used_in_runs?: number;
+  featured_analysis_at?: number | null;
   id: string;
   version: string;
   starred: boolean;
@@ -60,6 +62,7 @@ export type CapsuleMeasurement = {
   inverse_vs_cache: number | null;
   gap_closed: number | null;
   observation_ids: string[];
+  binary_sha256?: string | null;
 };
 
 export type CapsuleAnalysis = {
@@ -77,8 +80,25 @@ export type CapsuleAnalysis = {
   values: unknown;
 };
 
+export type BuilderRun = {
+  run_id: string;
+  run_name: string;
+  build: { binary_sha256: string; artifact: CapsuleArtifact | null } | null;
+  lab: {
+    binary_sha256: string | null;
+    artifact: CapsuleArtifact | null;
+    parity: boolean | null;
+    activation: boolean | null;
+    metrics: Record<string, number>;
+    scope: string | null;
+    limitations: string | null;
+  } | null;
+  report: CapsuleArtifact | null;
+};
+
 export type CapsuleEvidence = {
   latest_verify_receipt: VerifyReceipt | null;
+  latest_builder_run?: BuilderRun | null;
   artifacts: CapsuleArtifact[];
   analyses?: CapsuleAnalysis[];
   measurements: CapsuleMeasurement[];
@@ -125,7 +145,7 @@ async function request<T>(path: string, signal?: AbortSignal): Promise<T> {
 }
 
 export const capsuleApi = {
-  catalog: (signal?: AbortSignal) => request<CapsuleCatalog>('', signal),
+  catalog: (signal?: AbortSignal, usage = true) => request<CapsuleCatalog>(usage ? '' : '?usage=false', signal),
   detail: (name: string, signal?: AbortSignal) => request<CapsuleDetail>(`/${encodeURIComponent(name)}`, signal),
   file: (name: string, path: string, signal?: AbortSignal) =>
     request<CapsuleFile>(`/${encodeURIComponent(name)}/file?path=${encodeURIComponent(path)}`, signal),

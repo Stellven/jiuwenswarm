@@ -1,10 +1,11 @@
 """Synthetic evidence fixtures exercise read-only capsule replay projection."""
 
 import hashlib
+import time
 import json
 
 from jiuwenswarm.factory.store import Store
-from jiuwenswarm.gateway.channel_manager.web.capsule_evidence import collect_capsule_evidence
+from jiuwenswarm.gateway.channel_manager.web.capsule_evidence import capsule_usage, collect_capsule_evidence
 from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService
 
 
@@ -162,3 +163,59 @@ def test_analysis_links_only_its_retained_report_and_iteration_outputs(tmp_path)
     assert {(item['artifact_id'], item['kind']) for item in result['artifacts']} == {
         ('applicable.json', 'analysis_report'), ('report.md', 'report'),
     }
+
+
+def test_catalog_fresh_analysis_comes_from_native_results_and_deduplicated_usage(tmp_path):
+    historical = 'analysis.older'
+    imported = 'analysis.imported'
+    now = time.time()
+    task = dict(task_id='review')
+    obs = [
+        dict(kind='analysis', created=now, values=dict(capsule_id=ANALYZER, rows=[{'elapsed_ms': 42}])),
+        dict(kind='analysis', created=now - 172800, values=dict(capsule_id=historical, rows=[{'elapsed_ms': 9}])),
+        dict(kind='analysis', created=now, values=dict(capsule_id=imported, analysis_obs_id='foreign-result')),
+    ]
+    _export(tmp_path / 'review', task, observations=obs)
+    _export(tmp_path / 'review-replay', task, observations=obs)
+    usage = capsule_usage(FactoryHttpService(roots=[tmp_path]), {ANALYZER, historical, imported, RECORDER})
+
+    assert usage[ANALYZER] == {'used_in_runs': 1, 'featured_analysis_at': now}
+    assert usage[historical] == {'used_in_runs': 1, 'featured_analysis_at': None}
+    assert usage[imported] == {'used_in_runs': 1, 'featured_analysis_at': None}
+    assert usage[RECORDER] == {'used_in_runs': 0, 'featured_analysis_at': None}
+
+
+def test_builder_summary_links_latest_iteration_revision_and_verified_functional_evidence(tmp_path):
+    binary = 'd' * 64
+    crossed = 'e' * 64
+    build = {'status': 'success', 'executable': {'sha256': binary}}
+    lab = {
+        'schema': 'spark-functional-lab/1', 'binary_sha256': binary,
+        'arms': [{'arm': 'feature-off-functional', 'stock_match': {'output_sha256': True}},
+                 {'arm': 'feature-on-functional', 'stock_match': {'output_sha256': True}, 'peak_memory_bytes': 120}],
+        'session_summary': {'written': 3, 'lost': 0, 'bytes_transferred': 900},
+        'scope': 'Functional probe; timing ineligible',
+    }
+    report = {'formatted': 'report'}
+    report_hash = hashlib.sha256(json.dumps(report).encode()).hexdigest()
+    envelope = {'schema': 'spark-factory-iteration/1', 'plan': {'builder_ccs': [{'id': RECORDER}]},
+                'report': {'artifact_id': 'iteration/report-v2.md', 'sha256': report_hash, 'revision': 2}}
+    files = _export(
+        tmp_path / 'builder', dict(task_id='recorder', component_cc=RECORDER),
+        artifacts=[('build-a:build-record', build), ('fixture/lab.json', lab), ('iteration/report-v2.md', report)],
+        observations=[
+            dict(kind='build_result', created=1, values=build, source_artifacts=['build-a:build-record']),
+            dict(kind='build_result', created=2, values={'status': 'failed', 'executable': {'sha256': crossed}}),
+            dict(kind='functional_lab', created=3, values=lab, source_artifacts=['fixture/lab.json']),
+            dict(kind='factory_iteration_report_revision', created=4, values=envelope),
+        ],
+    )
+    service = FactoryHttpService(roots=[tmp_path])
+    summary = collect_capsule_evidence(service, RECORDER, starred=True)['latest_builder_run']
+    assert summary['build']['binary_sha256'] == binary
+    assert summary['build']['artifact']['path'] == files[0]['exported_path']
+    assert summary['lab']['parity'] is True
+    assert summary['lab']['activation'] is True
+    assert summary['lab']['metrics'] == {'written': 3, 'lost': 0, 'bytes_transferred': 900, 'peak_memory_bytes': 120}
+    assert summary['report']['path'] == files[2]['exported_path']
+    assert summary['report']['integrity'] == 'verified'
