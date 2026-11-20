@@ -52,3 +52,31 @@ lifetime peak, not a per-request peak. Each observation cites original artifacts
 import does not create a performance claim from logs alone.
 
 Tuner calibration servers use `--graceful-interrupt`: SIGINT is forwarded for orderly shutdown statistics and forced after 30 seconds. Memory/OOM watchdog stops always kill immediately. Engine logs are retained and forwarded so the unmodified native tuner can parse its cache counters. A synthetic process smoke verified this signal/log path before tuning.
+
+## Publish a portable report snapshot
+
+Run only in an orchestrator-approved CPU gap, outside quiet measurements:
+
+```bash
+.venv/bin/python ops/spark/publish_report.py --report "$HOME/predemo-spark/report.md" --status draft
+# Only after the lead has finalized the report and its numbers:
+.venv/bin/python ops/spark/publish_report.py --report "$HOME/predemo-spark/report.md" --status final
+```
+
+The default is explicitly a draft. Each invocation appends immutable report and
+direct-citation snapshots to the existing `spark-direct-benchmarks-20261120` task
+in `factory-runs/spark-direct-benchmarks`, then creates a new native export under
+`factory-runs/exports`. The full recorded benchmark task, iterations and their
+underlying receipts remain available offline in that same export. The publisher
+does not create a disconnected report-only production task, scan/import all raw
+runs, or start an agent/model. Existing exports are never overwritten. Absolute/file URIs
+and relative paths must resolve inside `predemo-spark`; credential paths,
+symlinks, missing files, remote URLs and files over the native export limit fail.
+
+Native `export_task(...extra_files=[report.md, citation-map.json])` puts the
+readable portable report at the bundle root. Citation URLs are rewritten to
+native sanitized artifact paths; original source SHA256 identities and exported
+SHA256 mappings remain in `citation-map.json` and native `artifacts.json`.
+Every rewritten root-report target, actual mapping and the native manifest is
+verified before success is printed. Cited documents retain their source bytes
+under the native sanitization policy; their own internal links are not traversed.
