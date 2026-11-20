@@ -13,7 +13,7 @@ import time
 import urllib.error
 import urllib.request
 
-from p4_launch import (add_window_arguments, condition_source_and_check_quiet, request_window,
+from p4_launch import (add_window_arguments, condition_source_and_check_quiet, profile_bytes, request_window,
                        validate_window_arguments, verify_prior_profile)
 from steady_requests import run
 
@@ -24,7 +24,7 @@ def main():
     parser.add_argument('scope', type=Path)
     add_window_arguments(parser)
     args = parser.parse_args()
-    p4 = any((args.arm, args.launch_pass, args.first_window))
+    p4 = any((args.arm, args.launch_pass, args.first_window, args.describe_profile))
     validate_window_arguments(parser, args, p4, 'strata')
     scope = args.scope.resolve()
     if scope.parent != ROOT / 'OPS/runs' or scope.exists():
@@ -39,6 +39,9 @@ def main():
             raise RuntimeError('Fair Strata engine digest differs from the measured reference')
         launch_profile = dict(engine_binary=config['exe'], binary_sha256=engine_sha, command=start['command'],
                               fair_config_sha256=hashlib.sha256(config_bytes).hexdigest())
+        if args.describe_profile:
+            sys.stdout.buffer.write(profile_bytes(launch_profile))
+            return
         verify_prior_profile(args, launch_profile)
     config['log'] = str(scope / 'engine.log')
     config['env']['STRATA_DS4_SLOT_DIR'] = str(scope / 'ds4-slots')
@@ -71,7 +74,7 @@ def main():
         (scope / 'load-ready.json').write_text(json.dumps({'ready_at':datetime.now(timezone.utc).isoformat(),
                     'health_elapsed_s':time.monotonic()-now, 'config':str(config_path)})+'\n')
         if p4:
-            (scope / 'p4-launch-profile.json').write_text(json.dumps(launch_profile, indent=2) + '\n')
+            (scope / 'p4-launch-profile.json').write_bytes(profile_bytes(launch_profile))
         hashes = (request_window(args, scope, port, 'strata', quiet_preflight) if p4 else
                   run(scope, arm, port, 'strata'))
     finally:

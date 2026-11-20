@@ -19,15 +19,18 @@ def add_window_arguments(parser):
     parser.add_argument('--arm', help='Stable P4 arm label shared by the two launches')
     parser.add_argument('--launch-pass', type=int, choices=(1, 2))
     parser.add_argument('--first-window', type=Path, help='Completed pass-1 p4-window/window.json for this arm')
+    parser.add_argument('--describe-profile', action='store_true', help='Write the exact frozen P4 profile to stdout and exit')
 
 
 def validate_window_arguments(parser, args, enabled, view):
     if not enabled:
-        if any((args.arm, args.launch_pass, args.first_window)):
+        if any((args.arm, args.launch_pass, args.first_window, args.describe_profile)):
             parser.error('Arm, pass and first-window receipt are P4 launch options')
         return
     if not args.arm or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._+-]*', args.arm) or not args.launch_pass:
         parser.error('P4 requires a stable --arm label and --launch-pass')
+    if args.describe_profile:
+        return
     if (args.launch_pass == 2) != bool(args.first_window):
         parser.error('Supply --first-window exactly when launching pass 2')
     if args.first_window:
@@ -64,6 +67,10 @@ def verify_prior_profile(args, profile):
         prior_profile = args.first_window.parents[1] / 'p4-launch-profile.json'
         if json.loads(prior_profile.read_bytes()) != profile:
             raise ValueError('Pass 2 must use the same engine build and runtime profile as pass 1')
+
+
+def profile_bytes(profile):
+    return (json.dumps(profile, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
 
 
 def request_window(args, scope, port, view, quiet_preflight):

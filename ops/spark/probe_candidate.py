@@ -15,7 +15,7 @@ import time
 import urllib.error
 import urllib.request
 
-from p4_launch import (REGIONS, add_window_arguments, condition_source_and_check_quiet, request_window,
+from p4_launch import (REGIONS, add_window_arguments, condition_source_and_check_quiet, profile_bytes, request_window,
                        validate_window_arguments, verify_prior_profile)
 from run_p4_window import accepted_result, boundary_resources
 from source_residency import snapshot
@@ -170,6 +170,9 @@ def main():
         launch_profile = dict(command=[str(binary), *flags], binary_sha256=sha,
                               build_receipt=None if stock else product['receipt_artifact_id'],
                               environment=settings, products_manifest_sha256=products_sha)
+        if args.describe_profile:
+            sys.stdout.buffer.write(profile_bytes(launch_profile))
+            return
         verify_prior_profile(args, launch_profile)
     with socket.socket() as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -225,7 +228,7 @@ def main():
         if speed:
             hashes = steady_requests(scope, label, PORT, 'llama')
         if p4:
-            save(scope / 'p4-launch-profile.json', launch_profile)
+            (scope / 'p4-launch-profile.json').write_bytes(profile_bytes(launch_profile))
             hashes = request_window(args, scope, PORT, 'llama', quiet_preflight)
         repeats = [] if speed or p4 else ([0, 1] if early else [0])
         sizes = (512,) if combined else (512, 2048)

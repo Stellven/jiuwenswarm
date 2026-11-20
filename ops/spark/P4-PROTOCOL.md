@@ -49,6 +49,31 @@ Boundary process checks do not prove the absence of transient work between
 checks. Model load contributes to the in-window load average, which is retained
 as context. The prelaunch receipt enforces the idle load threshold.
 
+## Frozen admission and native publication
+
+Use the same probe command planned for each arm with `--describe-profile` to
+write the canonical launch profile to stdout without starting a server. For
+example, append it to a `probe_candidate.py C5 strict-stock p4 SCOPE --arm A
+--launch-pass 1` command. The fair Strata probe accepts the same switch. Both
+passes of an arm produce the same profile digest. The C1 recorder's output
+filename binds its runtime role while the launch consumes a fresh scope path.
+
+Freeze a `spark-p4-admitted-launches/1` manifest with `iteration_id`, `frozen_at`
+(timestamp with offset), `prompt_manifest_sha256`, `regions_sha256`, and the
+ordered `launches` list. Each row names `arm`, `scope`, `view`, `launch_pass`,
+and the SHA-256 of the described bytes in `profile_sha256`. Include A and S.
+Use the same SHA-256 values for the corresponding rows in the reverse pass.
+Retain the original manifest digest as the publication pin.
+
+```sh
+python3 ops/spark/report_p4.py "$ADMISSION" --manifest-sha256 "$ADMISSION_SHA256"
+```
+
+Publication requires every scope to have shut down safely. It validates cap,
+quiet, source, profile, mirror and request lineage, runs native analysis and
+exact replay verification, and exports the direct benchmark task with its
+verified artifact manifest. Output is under `OPS/iterations/<iteration_id>`.
+
 ## External source-page cache
 
 Build the region manifest once before the timed window from the retained GGUF
