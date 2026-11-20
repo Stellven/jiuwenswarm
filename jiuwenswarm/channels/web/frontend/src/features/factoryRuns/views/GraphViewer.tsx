@@ -196,7 +196,9 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
       >
         <Icon size={17} aria-hidden="true" />
         <span className="factory-graph-node-copy">
-          <span className="factory-graph-node-kind">{text.kind[node.kind]}</span>
+          <span className="factory-graph-node-kind">
+            {typeof node.details.label_kind === 'string' ? node.details.label_kind : text.kind[node.kind]}
+          </span>
           <strong>{node.label}</strong>
         </span>
         {status && (
@@ -351,7 +353,7 @@ function NodeDetails({
     <aside className="factory-graph-inspector" aria-label={node.label} data-testid="factory-runs-graph-inspector">
       <div className="factory-graph-inspector-heading">
         <div>
-          <small>{text.kind[node.kind]}</small>
+          <small>{typeof node.details.label_kind === 'string' ? node.details.label_kind : text.kind[node.kind]}</small>
           <h4>{node.label}</h4>
         </div>
         <button type="button" aria-label={text.close} onClick={onClose} data-testid="factory-runs-graph-close-details">

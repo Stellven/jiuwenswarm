@@ -74,7 +74,46 @@ def curated_replay(path):
         return None
     for cursor, step in enumerate(value['steps'], 1):
         step['event_cursor'] = cursor
+        step['recorded_plan_nodes'] = step.get('graph_nodes', [])
+        step['graph_nodes'] = curated_graph_nodes(step)
     return value
+
+
+def _record_title(ref):
+    if ref.get('table') == 'file':
+        return ref.get('source', ref['id']).removeprefix('OPS/') + (f" line {ref['line']}" if ref.get('line') else '')
+    return f"{ref['table'].rstrip('s')} · {ref['id']}"
+
+
+def curated_graph(replay, task_id):
+    """The replay as a task graph: one node per step, chained in order, each with
+    a child node per record it shows. Every node points at real record ids; the
+    graph itself is a projection of the curated step order, labelled as such."""
+    nodes = []
+    previous = None
+    for step in replay['steps']:
+        key = f"step-{step['step']}"
+        records = step.get('records') or []
+        nodes.append(dict(
+            node_id=key, title=f"{step['step']}. {step['presentation_title']}", kind=step['original_kind'],
+            label_kind='Replay step', state='done', depends_on=[previous] if previous else [],
+            evidence_ids=[r['id'] for r in records], attempt_ids=[], reason=step.get('say', ''),
+            recorded=step.get('created_utc'), capability=None))
+        for index, ref in enumerate(records, 1):
+            nodes.append(dict(
+                node_id=f'{key}-record-{index}', title=_record_title(ref), kind=ref['table'],
+                label_kind='Record' if ref['table'] != 'file' else 'OPS record line', state='done',
+                depends_on=[key], evidence_ids=[ref['id']], attempt_ids=[], reason='',
+                source_home=ref.get('source_home') or 'OPS', task_id=ref.get('task_id'), capability=None))
+        previous = key
+    return dict(schema='factory.taskgraph/1', task_id=task_id, rev=len(replay['steps']), nodes=nodes, history=[],
+                projection='curated replay steps; every node cites real record ids',
+                ready_frontier=[], blocked_reasons={})
+
+
+def curated_graph_nodes(step):
+    key = f"step-{step['step']}"
+    return [key] + [f'{key}-record-{i}' for i in range(1, len(step.get('records') or []) + 1)]
 
 
 def curated_events(replay):
@@ -84,7 +123,7 @@ def curated_events(replay):
         events.append(dict(
             cursor=cursor, id=step['primary_record'], kind=step['original_kind'], summary=step['original_summary'],
             created=step['created'], step=step['step'], presentation_title=step['presentation_title'],
-            say=step.get('say', ''), graph_nodes=step.get('graph_nodes', []), mark='·', rev=None))
+            say=step.get('say', ''), graph_nodes=curated_graph_nodes(step), mark='·', rev=None))
     return events
 
 
@@ -360,7 +399,9 @@ class FactoryHttpService:
             trace_path = _inside(path, 'telemetry.jsonl')
             trace = [json.loads(line) for line in trace_path.read_text().splitlines() if line.strip()] if trace_path.is_file() else []
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
-                             graph=taskgraph.from_records(data), stack=monitor.engine_stack(data),
+                             graph=curated_graph(replay, item['task_id']) if replay else taskgraph.from_records(data),
+                             recorded_plan=taskgraph.from_records(data) if replay else None,
+                             stack=monitor.engine_stack(data),
                              telemetry=trace, files=self.files(item, path, data), events=events,
                              summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
                              session=self._session(item, path, data) if item['kind'] == 'live' else None,

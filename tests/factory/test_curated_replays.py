@@ -178,6 +178,13 @@ def test_web_service_lists_the_bundle_as_a_pinned_demo_with_step_events(bundle):
     names = {row['path']: row['display_path'] for row in detail['files']}
     assert names[detail['curated']['steps'][1]['key_files'][0]['path']] == 'Diff · seeding'
     assert all(row['integrity'] == 'verified' for row in detail['files'] if row['path'] != 'MANIFEST.json')
+    graph = detail['graph']
+    steps = [n for n in graph['nodes'] if n.get('label_kind') == 'Replay step']
+    assert [n['node_id'] for n in steps] == ['step-1', 'step-2', 'step-3']
+    assert [n['depends_on'] for n in steps] == [[], ['step-1'], ['step-2']]
+    records = [n for n in graph['nodes'] if n['depends_on'] == ['step-2']]
+    assert {tuple(n['evidence_ids']) for n in records} >= {(f'{TASK}:decision:1',), ('build-handoff',)}
+    assert detail['events'][1]['graph_nodes'][0] == 'step-2'
 
 
 @pytest.mark.skipif(not os.environ.get('CURATED_REPLAY_BASE'), reason='set CURATED_REPLAY_BASE to a Spark data copy')

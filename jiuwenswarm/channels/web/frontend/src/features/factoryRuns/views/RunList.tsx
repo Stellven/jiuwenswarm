@@ -18,6 +18,7 @@ export function FactoryRunList({
   const { label, lang } = useViewerLabels();
   const entries = useMemo(() => runListEntries(runs), [runs]);
   const [showEverything, setShowEverything] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const groups = useMemo(() => groupRunEntries(entries, showEverything), [entries, showEverything]);
   const date = useMemo(
     () =>
@@ -96,8 +97,18 @@ export function FactoryRunList({
               <h2 className="factory-run-group-title">Demo</h2>
               {render(groups.demo)}
             </section>
-            {groups.rest.length + groups.hidden > 0 && (
-              <details className="factory-run-group" data-testid="factory-runs-all-group" open={selectedInRest || undefined}>
+            {groups.rest.length + groups.hidden > 0 && !(showHidden || selectedInRest) && (
+              <button
+                type="button"
+                className="factory-run-hidden-toggle"
+                data-testid="factory-runs-show-hidden"
+                onClick={() => setShowHidden(true)}
+              >
+                {groups.rest.length + groups.hidden} other runs hidden · show
+              </button>
+            )}
+            {groups.rest.length + groups.hidden > 0 && (showHidden || selectedInRest) && (
+              <details className="factory-run-group" data-testid="factory-runs-all-group" open>
                 <summary className="factory-run-group-title" data-testid="factory-runs-all-group-toggle">
                   All runs ({groups.rest.length})
                 </summary>

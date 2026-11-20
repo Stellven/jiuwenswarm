@@ -52,6 +52,8 @@ const panels = [
   'report',
 ] as const;
 type Panel = (typeof panels)[number];
+// A curated replay tells one story: the stepper, its graph, its files and the report.
+const curatedPanels: readonly Panel[] = ['overview', 'graph', 'artifacts', 'report'];
 const storyVersion = (events: StoryEvent[]) => {
   const last = events[events.length - 1];
   return `${events.length}:${last?.id ?? ''}:${last?.summary ?? ''}`;
@@ -509,7 +511,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               </p>
             </section>
             <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
-              {panels.map((value) => (
+              {(detail.curated ? curatedPanels : panels).map((value) => (
                 <button
                   key={value}
                   data-testid="factory-runs-panel-tab"
