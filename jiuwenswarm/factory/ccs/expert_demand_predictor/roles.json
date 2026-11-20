@@ -12,6 +12,7 @@
     "helpers": "reference",
     "method": "method",
     "native_bank_prefetch": "method",
+    "decode_bank_prefetch": "method",
     "ontology": "reference",
     "parity_template": "reference",
     "replay_score": "reference",
