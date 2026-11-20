@@ -16,6 +16,7 @@ PROFILE_MARKER = 'expert_weight_cache_native_profile:'
 NATIVE_STATS = re.compile(r'llama_moe_cache: ubatch <= 8: hits = (\d+), misses = (\d+) \((\d+) on the CPU\), '
                           r'hit rate = ([\d.]+)%, uploaded = ([\d.]+) MiB')
 D2D_STATS = re.compile(r'llama_moe_cache: large batches: (\d+) experts copied from the cache, ([\d.]+) MiB')
+BANK = re.compile(r'CUDA0 MoE cache size = ([\d.]+) MiB for ([\d.]+) MiB of host experts, ([\d.]+)% of the misses on the CPU')
 LOG_LIMIT = 8 * 1024**2
 
 
@@ -70,6 +71,7 @@ def server_counters(log, mode, budget, scope, expected, reference):
     stats = re.findall(r'expert_weight_cache_native_profile: stats (.+)', log)
     reasons = re.findall(r'expert_weight_cache_native_profile: inactive \((.+)\)', log)
     native, d2d = NATIVE_STATS.findall(log), D2D_STATS.findall(log)
+    bank = BANK.findall(log)
     if mode != 'on':
         reject_if(PROFILE_MARKER in log, 'Profile log markers appeared in a control')
     if not ran:
@@ -78,11 +80,15 @@ def server_counters(log, mode, budget, scope, expected, reference):
         return dict(status='declined', reasons=reasons)
     counters = dict(status='completed')
     if mode in ('stock', 'strata'):
-        reject_if(native or d2d, 'The plain stock reference unexpectedly logged a native cache')
+        reject_if(native or d2d or bank, 'The reference unexpectedly logged a llama.cpp native cache')
     else:
-        reject_if(len(native) != 1 or len(d2d) != 1, 'Expected native-bank shutdown counters')
+        reject_if(len(native) != 1 or len(d2d) != 1 or len(bank) != 1, 'Expected native-bank allocation and shutdown counters')
+        allocated, host_experts, cpu_share = map(float, bank[0])
+        reject_if(not 0 < allocated <= budget or host_experts <= 0 or cpu_share != 0,
+                  'Actual native bank exceeds the admitted budget or changes the CPU miss policy')
         hits, misses, cpu, rate, mib = native[0]
-        counters['native_bank'] = dict(hits=int(hits), misses=int(misses), cpu_misses=int(cpu),
+        counters['native_bank'] = dict(allocated_mib=allocated, host_experts_mib=host_experts,
+                                      hits=int(hits), misses=int(misses), cpu_misses=int(cpu),
                                       hit_rate_pct=float(rate), uploaded_mib=float(mib),
                                       large_batch_d2d_experts=int(d2d[0][0]), large_batch_d2d_mib=float(d2d[0][1]))
     if mode == 'on':
@@ -159,6 +165,9 @@ def analyze(evidence, eligible, reference, positive):
             record.update(samples=checked, greedy_hashes=hashes)
         results.append(record)
     candidate, control = results
+    if candidate['status'] == 'completed':
+        reject_if(candidate['native_bank']['allocated_mib'] != control['native_bank']['allocated_mib'],
+                  'Pilot arms did not allocate the same native bank within log precision')
     paired = comparison(candidate, control) if candidate['status'] == 'completed' else []
     positions = []
     for i, (a, b) in enumerate(zip(candidate.get('samples', []), control['samples']), 1):
@@ -297,6 +306,9 @@ def analyze_steady(evidence, eligible, reference, positive):
         (1, 3, '60-GiB profile versus fair Strata engine and pack'),
     ):
         if scopes[a]['status'] == scopes[b]['status'] == 'completed':
+            if scopes[a]['budget_mib'] == scopes[b]['budget_mib']:
+                reject_if(scopes[a]['native_bank']['allocated_mib'] != scopes[b]['native_bank']['allocated_mib'],
+                          'Matched arms do not have the same native bank allocation within log precision')
             comparisons.append(dict(candidate=scopes[a]['arm'], control=scopes[b]['arm'], relation=relation,
                                     **paired_results(scopes[a], scopes[b])))
     return dict(mode='c3-cold-steady', scopes=scopes, comparisons=comparisons,

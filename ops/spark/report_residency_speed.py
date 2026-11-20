@@ -99,14 +99,14 @@ def startup_rows(result):
         if scope['status'] == 'declined':
             declines.append(f"- {scope['arm']} declined before requests. {'; '.join(scope['reasons'])}.")
     lines.extend(['', *declines, 'The profile seeds the existing stock bank during startup. Initial seed upload is separate from demand refill traffic.', '',
-                  '| Arm | Seed time | Demand upload | Native lookup hits / misses | Large-prefill D2D experts | Evictions |',
-                  '|---|---:|---:|---:|---:|---:|'])
+                  '| Arm | Actual bank | Seed time | Demand upload | Native lookup hits / misses | Large-prefill D2D experts | Evictions |',
+                  '|---|---:|---:|---:|---:|---:|---:|'])
     for scope in result['scopes']:
         bank = scope.get('native_bank')
         if bank:
             stats = scope.get('profile', {})
             seed_time = f"{stats['init_us']/1e6:.3f} s" if stats else '—'
-            lines.append(f"| {scope['arm']} | {seed_time} | {bank['uploaded_mib']:.2f} MiB | "
+            lines.append(f"| {scope['arm']} | {bank['allocated_mib']:.2f} MiB | {seed_time} | {bank['uploaded_mib']:.2f} MiB | "
                          f"{bank['hits']:,} / {bank['misses']:,} | {bank['large_batch_d2d_experts']:,} | {stats.get('evictions', '—')} |")
     return lines
 
@@ -123,7 +123,8 @@ def report_text(result, release):
         summary = 'The cache experiment separates startup and cold request positions from five post-warmup pairs in each completed arm.'
         heading = '# C3 native cache cold and post-warmup lab'
     lines = [heading, '', summary, '', *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
-    lines += ['Process counters come from one unchanged engine PID per launch. Resource snapshots span client request start to first token and first token to stream completion. The raw analysis retains cgroup file refaults and separate host NVMe counters. Host disk activity includes any other activity on the device.', '']
+    lines += ['No sampled expert, Engram or dense pages were resident in either pack view immediately before each launch. Launch initialization can change residency before the first request.',
+              'Process counters come from one unchanged engine PID per launch. Resource snapshots span client request start to first token and first token to stream completion. The raw analysis retains cgroup file refaults and separate host NVMe counters. Host disk activity includes any other activity on the device.', '']
     if pilot:
         a, b = result['scopes']
         lines += [f"The cache profile changed launch-to-ready by {a['load_s']-b['load_s']:+.3f} s. "
