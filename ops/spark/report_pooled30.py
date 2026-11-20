@@ -9,6 +9,7 @@ from jiuwenswarm.ccv2.ccv2 import Host
 from jiuwenswarm.factory.store import NotFound, Store
 
 from import_evidence import append_once, digest, safe_bytes
+from combined_gate_evidence import readback as combined_readback
 from report_p1 import CAPSULE, TASK, json_bytes
 from report_p4 import HERE, REPO, demand, read_launch, reference, timepoint
 
@@ -99,6 +100,26 @@ def render(report):
                   '| Tensor | Actual buffer | Payload bytes |', '| --- | --- | ---: |']
         lines.extend(f"| {row['name']} | {row['buffer']} | {row['bytes']:,} |" for row in placement['selected'])
         lines.append('')
+    if gates := report['activation_readbacks'].get('combined_runtime'):
+        trace = gates['recorder']['trace']
+        lines.extend(['## Runtime gate readbacks', ''])
+        if terminal := trace['summary']:
+            lines.extend([f'The recorder wrote {terminal["written"]:,} of {terminal["expected"]:,} events with '
+                          f'{terminal["lost"]:,} losses, {terminal["transfer_incomplete"]:,} incomplete transfer records, '
+                          f'and {terminal["bytes_transferred"]:,} submitted bytes. '
+                          f'Trace status is `{trace["status"]}`.', ''])
+        else:
+            lines.extend([f'The recorder trace has status `{trace["status"]}` without a terminal summary.', ''])
+        placement = gates['placement']
+        lines.extend([f'Placement emitted {placement["expert_assignment_rows"]} expert tensor readbacks among '
+                      f'{placement["all_assignment_rows"]:,} assignments. CPU-equivalent placement verified '
+                      f'for all 120 experts is {str(placement["cpu_equivalent"]).lower()}.', ''])
+        for label, key in (('Legacy expert cache', 'legacy_cache'), ('Legacy demand predictor', 'legacy_predictor'),
+                           ('Batch layout mapper', 'mapper')):
+            gate = gates[key]
+            detail = ', '.join(gate['declined']) or 'No decline marker observed'
+            lines.append(f'- {label} reported {len(gate["active"])} activation markers and {len(gate["declined"])} decline markers. {detail}.')
+        lines.extend([f'- The mapper emitted {len(gates["mapper"]["observed_cuts"])} changed cuts.', ''])
     for row in report['rows']:
         lines += [f'## {row["prompt_tokens"]}-token prompts', '',
                   '| Arm | TTFT median, range (s) | Decode median, range (tok/s) |', '| --- | ---: | ---: |']
@@ -287,6 +308,15 @@ def publish(path, pin):
             readbacks[marker] = dict(count=len(statements), first=statements[:8], last=statements[-8:])
         if launch.get('placement'):
             readbacks['verified_placement'] = launch['placement']
+        if launch['arm'] == 'D':
+            gates = combined_readback(scope)
+            demand(gates['stderr_sha256'] == launch['provenance']['engine_log']['sha256'] and
+                   gates['recorder']['trace'].get('sha256') == launch['provenance']['event_trace']['sha256'],
+                   'Combined gate evidence differs from retained log or recorder stream')
+            readbacks['combined_runtime'] = gates
+            value = json_bytes(gates)
+            put(iteration + '/runtime-gates.json', value)
+            (BASE / 'OPS/p3/combined-d-pooled30-gates.json').write_bytes(value)
         payload = dict(mode='pooled-30-screen', prompt_manifest=prompts, candidate=dict(scope=launch, requests=rows),
                        controls=historical, activation_readbacks=readbacks)
         if launch['arm'] == 'C5':
