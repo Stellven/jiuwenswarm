@@ -151,7 +151,7 @@ def test_declarative_analysis_metadata_and_follow_up_release_pin(catalog_inputs)
     initial = CapsuleCatalog(root=root, owner_ontology=owner).detail(NAME)
     manifest.write_text(manifest.read_text().replace(f"version: {initial['version']}", 'version: 8.2.0', 1))
     updated = hashlib.sha256(release_manifest_bytes(load(manifest), tree_files(capsule))).hexdigest()
-    (root / 'star-example-migration.json').write_text(json.dumps({'releases': [{
+    (root / 'capability-verifier-migration.json').write_text(json.dumps({'releases': [{
         'path': f'{NAME}/cc.yaml', 'from_release': initial['digest'], 'to_release': updated,
     }]}))
 

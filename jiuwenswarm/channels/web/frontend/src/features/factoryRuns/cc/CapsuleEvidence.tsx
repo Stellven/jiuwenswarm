@@ -347,7 +347,10 @@ export function BuilderRunEvidence({
         peak_memory_bytes: 'peakMemory',
       } as Record<string, CopyKey | undefined>
     )[key];
-    const formatted = key.endsWith('_bytes') ? number(value / 1024 ** 3, ' GiB') : value.toLocaleString();
+    const formatted =
+      key.endsWith('_bytes') || key === 'bytes_transferred'
+        ? number(value / 1024 ** 3, ' GiB')
+        : value.toLocaleString();
     return `${formatted} ${label ? copy(label) : readableName(key)}`;
   };
 

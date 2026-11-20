@@ -165,7 +165,7 @@ class CapsuleCatalog:
 
     def release_pins(self):
         pins = self.pins('migration.json') | self.pins('star-transport-migration.json')
-        migrations = [row for path in sorted(self.root.glob('star-*-migration.json'))
+        migrations = [row for path in sorted(self.root.glob('*-migration.json'))
                       for row in self.pins(path.name, release_key='to_release').values()]
         # Advance only through releases whose previous digest is already pinned.
         remaining = migrations[:]
