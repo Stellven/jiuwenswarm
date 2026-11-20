@@ -1,0 +1,37 @@
+{
+  "schema": "spark-c5-matched-stock-admission/1",
+  "iteration_id": "spark-pooled30-c5-01",
+  "subject_arm": "C5",
+  "comparison_target": "same-budget-cc",
+  "frozen_at": "2026-11-20T14:37:59.704968+00:00",
+  "products_manifest_sha256": "a313faaf062aab0a990e37bac8906fceb2980d376bf2ec7d3e28a85846fe653a",
+  "prompt_manifest_sha256": "eaba043a72be89ae59b2d71cd7cd38a62b6d85547434e03abdac4790899c451a",
+  "regions_sha256": "9ea8774da2921aeccd9c2951f2f0e916480b7a7f2d93bfea369e03ce99351f7c",
+  "command": [
+    "/home/user2/predemo-spark/jiuwenswarm/.venv/bin/python",
+    "/home/user2/predemo-spark/jiuwenswarm/ops/spark/probe_candidate.py",
+    "C5",
+    "equivalent-stock",
+    "pooled",
+    "/home/user2/predemo-spark/OPS/runs/pooled30-c5-matched-stock-01",
+    "--native-mib",
+    "30720",
+    "--products",
+    "/home/user2/predemo-spark/OPS/p3/mapper-alora-native-products.json",
+    "--arm",
+    "A+",
+    "--launch-pass",
+    "1"
+  ],
+  "launches": [
+    {
+      "arm": "A+",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "/home/user2/predemo-spark/OPS/runs/pooled30-c5-matched-stock-01",
+      "profile_sha256": "9c978e5bfcbc3d84f764cd827bccccad6a519be079b9e879228a9449ae4452de"
+    }
+  ],
+  "candidate_manifest": "/home/user2/predemo-spark/OPS/p4/c5-pooled30.json",
+  "candidate_manifest_sha256": "8656acf8b1eecfc3eecda7d1f20e2a846e6adb2a7017b442f1bbd840ac6add58"
+}

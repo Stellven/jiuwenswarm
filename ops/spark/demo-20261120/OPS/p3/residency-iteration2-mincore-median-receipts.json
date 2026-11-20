@@ -1,0 +1,429 @@
+{
+  "scope": "post-request Linux inode mincore sampled estimated fractions, not device residency or causal attribution",
+  "records": [
+    {
+      "cell": "residency-speed-30720-equivalent-stock-01",
+      "prompt_tokens": 512,
+      "inode_pack": "llama",
+      "n": 3,
+      "median_estimated_fraction": {
+        "expert": 0.42828045626244393,
+        "engram": 0.00015140288299772978,
+        "dense": 0.008256364208960922
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-equivalent-stock-01/rep-1-512-residency.json",
+          "sha256": "0084f4c659d958fe4b8d349d776de7d714c10a39f8b10d8eab8169edc94007f5",
+          "expert": 0.42294523734206657,
+          "engram": 0.00015140288299772978,
+          "dense": 0.005645282998064258
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-equivalent-stock-01/rep-2-512-residency.json",
+          "sha256": "8b8ce012e5badaedf950659ef42fb4d6fe865f78f9c2c475de51c4e73ad2eb83",
+          "expert": 0.42828045626244393,
+          "engram": 0.00015140288299772978,
+          "dense": 0.008256364208960922
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-equivalent-stock-01/rep-3-512-residency.json",
+          "sha256": "24f34292775604fb917f78a10a0afdba5fa6fdbb099ba8467d8ebf2f6d4c34e9",
+          "expert": 0.43018589159115017,
+          "engram": 0.0,
+          "dense": 0.008256364208960922
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-30720-equivalent-stock-01",
+      "prompt_tokens": 2048,
+      "inode_pack": "llama",
+      "n": 3,
+      "median_estimated_fraction": {
+        "expert": 0.4278993691967027,
+        "engram": 0.0,
+        "dense": 0.008256364208960922
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-equivalent-stock-01/rep-1-2048-residency.json",
+          "sha256": "b0171dff8a2247139cc3a75aaa6419bc817983d57286335bacb70eb0e110b60c",
+          "expert": 0.42777234017478893,
+          "engram": 0.0,
+          "dense": 0.005645282998064258
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-equivalent-stock-01/rep-2-2048-residency.json",
+          "sha256": "51d50c6dcbeef3e82a296026f19ad9a73faf0aec5efbbbb821b9efe16850c8e4",
+          "expert": 0.4278993691967027,
+          "engram": 0.0,
+          "dense": 0.008256364208960922
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-equivalent-stock-01/rep-3-2048-residency.json",
+          "sha256": "5867550e307016207dda713158b11dfdc545bafdd78bfcda61685811ac2ce2ea",
+          "expert": 0.4299318335473227,
+          "engram": 0.00030280576599545957,
+          "dense": 0.008256364208960922
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-30720-on-01",
+      "prompt_tokens": 512,
+      "inode_pack": "llama",
+      "n": 3,
+      "median_estimated_fraction": {
+        "expert": 0.42586690484608275,
+        "engram": 0.00015140288299772978,
+        "dense": 0.008256364208960922
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-on-01/rep-1-512-residency.json",
+          "sha256": "8ff5d82d5a908b8620d7cf76415f8e8c920d0290a5a9eda58effdebe6507bebe",
+          "expert": 0.42421552756120406,
+          "engram": 0.0,
+          "dense": 0.008467924497096387
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-on-01/rep-2-512-residency.json",
+          "sha256": "817808ffad4baf567c107bc13e8d3e41bb767b6ced887eb8871342a2a47dbee7",
+          "expert": 0.4259939338679965,
+          "engram": 0.00015140288299772978,
+          "dense": 0.008256364208960922
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-on-01/rep-3-512-residency.json",
+          "sha256": "c3f7278670a1c17d5a6d0cbc8f01552fcf6699d5a590994b84a34df74ffcc28f",
+          "expert": 0.42586690484608275,
+          "engram": 0.00030280576599545957,
+          "dense": 0.008256364208960922
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-30720-on-01",
+      "prompt_tokens": 2048,
+      "inode_pack": "llama",
+      "n": 3,
+      "median_estimated_fraction": {
+        "expert": 0.42637502093373775,
+        "engram": 0.00015140288299772978,
+        "dense": 0.005645282998064258
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-on-01/rep-1-2048-residency.json",
+          "sha256": "677b0d9bb548e2a69c74ef0f0ff3c7b595c67cb9a8e28a2cba5bac474f5284bd",
+          "expert": 0.42637502093373775,
+          "engram": 0.0,
+          "dense": 0.005645282998064258
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-on-01/rep-2-2048-residency.json",
+          "sha256": "5a37749bcce0e30ca961a2c4f57fdb5d685df7433ce74b35ff3adf6cd9ef0a77",
+          "expert": 0.42510473071460025,
+          "engram": 0.00015140288299772978,
+          "dense": 0.005645282998064258
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-on-01/rep-3-2048-residency.json",
+          "sha256": "0f6694854ba3ce57e27514d0ef839b7caad954a1debd7218698c36047f86ea90",
+          "expert": 0.42751828213096144,
+          "engram": 0.00030280576599545957,
+          "dense": 0.008256364208960922
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-30720-stock-01",
+      "prompt_tokens": 512,
+      "inode_pack": "llama",
+      "n": 5,
+      "median_estimated_fraction": {
+        "expert": 0.6487537138001401,
+        "engram": 0.001801827376613119,
+        "dense": 0.5106865510366798
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-1-512-residency.json",
+          "sha256": "78e858e2d8bb7f05a732c46a4052c3f55f043c1e64f445dc0a5ba1f84d6a9927",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-2-512-residency.json",
+          "sha256": "2a2ee8a7c1856a38ab46004c9b0a30bf417d04b02c746a0d65513dab84f4ad5f",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-3-512-residency.json",
+          "sha256": "312af9f9bdd1d3e962f99fb3839400d8d67d4e34fa7c4e14c8ccb076e61659b6",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-4-512-residency.json",
+          "sha256": "12351f779e314eabae530b9ae6d199cf8dc21b9685e7327d317fa9914c048861",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-5-512-residency.json",
+          "sha256": "55dcd0c1498ce134cf75c4961868c714b0f446a4d88828ffa093f8a5ab802cef",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-30720-stock-01",
+      "prompt_tokens": 2048,
+      "inode_pack": "llama",
+      "n": 5,
+      "median_estimated_fraction": {
+        "expert": 0.6487537138001401,
+        "engram": 0.001801827376613119,
+        "dense": 0.5106865510366798
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-1-2048-residency.json",
+          "sha256": "16acb806d94d469a86011c626ab3200483cc7a3ff5c322344461cba316f88faa",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-2-2048-residency.json",
+          "sha256": "0b457090d084a5a5f1df8ae9fe310036f56d7df9848b364cd4cd0db513ce731e",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-3-2048-residency.json",
+          "sha256": "ef66067515bc2d95c14313cb493379219cae8bc594bd45b6d2dd0d79e0a77c5d",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-4-2048-residency.json",
+          "sha256": "df5d5bbe39571e41c340939894d2361cefc8b62433563ddcc9569559266b4494",
+          "expert": 0.6487537138001401,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-30720-stock-01/rep-5-2048-residency.json",
+          "sha256": "c07c9c899ce3e8db86a25c1c5c04ba598420d6e0893350e1d834d85321c8ce3c",
+          "expert": 0.648372626734399,
+          "engram": 0.001801827376613119,
+          "dense": 0.5106865510366798
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-61440-on-01",
+      "prompt_tokens": 512,
+      "inode_pack": "llama",
+      "n": 5,
+      "median_estimated_fraction": {
+        "expert": 0.17993871842106895,
+        "engram": 0.0,
+        "dense": 0.005433722709928793
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-1-512-residency.json",
+          "sha256": "e82f5a151fc7c69d26d04737d472c3a570a8eb4d780cb7e901b7f135f794c3cc",
+          "expert": 0.17727110896088027,
+          "engram": 0.0,
+          "dense": 0.005433722709928793
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-2-512-residency.json",
+          "sha256": "967309cfd444cb2a57506c2e542ce8d0f98d624e78b5ee8c4cedd4fad0ba6b11",
+          "expert": 0.18044683450872395,
+          "engram": 0.0,
+          "dense": 0.005433722709928793
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-3-512-residency.json",
+          "sha256": "e73056fc1c8797dc495f8ba44229093d3c80ae2abd0c8405458fd37ec75d5996",
+          "expert": 0.17828734113619024,
+          "engram": 0.0,
+          "dense": 0.002822641499032129
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-4-512-residency.json",
+          "sha256": "a9d39a695b94c41c7bd7020f6c2fdb258343e8c3a6afd73759a2dd1a30063fd6",
+          "expert": 0.18044683450872395,
+          "engram": 0.00015140288299772978,
+          "dense": 0.005433722709928793
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-5-512-residency.json",
+          "sha256": "cf15535ff1ce7017864b7f6a07f4ced51c7979ebbc2c92669fbc9dbedbcd805c",
+          "expert": 0.17993871842106895,
+          "engram": 0.0,
+          "dense": 0.005433722709928793
+        }
+      ]
+    },
+    {
+      "cell": "residency-speed-61440-on-01",
+      "prompt_tokens": 2048,
+      "inode_pack": "llama",
+      "n": 5,
+      "median_estimated_fraction": {
+        "expert": 0.18019277646489645,
+        "engram": 0.0,
+        "dense": 0.005433722709928793
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-1-2048-residency.json",
+          "sha256": "07b4ff1635dc8d33251add3904965d42bc1b35aaf1e89b4ad2feac54f4338ec7",
+          "expert": 0.17968466037724146,
+          "engram": 0.0,
+          "dense": 0.005433722709928793
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-2-2048-residency.json",
+          "sha256": "a4e034904e2cbb63f1238a74e6a0dd4f6f238c951ea807a11a1bebceba5713df",
+          "expert": 0.18120900864020642,
+          "engram": 0.0,
+          "dense": 0.008256364208960922
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-3-2048-residency.json",
+          "sha256": "4c941cc15f4362f4168999165480864458a6a03d2afeb2de0b3521eb0dcfd980",
+          "expert": 0.1795576313553277,
+          "engram": 0.0,
+          "dense": 0.002822641499032129
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-4-2048-residency.json",
+          "sha256": "e143d3642783232fadf26d87cae649bd17402cebda3aead0e6d0a2807d2cf735",
+          "expert": 0.18019277646489645,
+          "engram": 0.0,
+          "dense": 0.002611081210896664
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/residency-speed-61440-on-01/rep-5-2048-residency.json",
+          "sha256": "9bcbe1a63592794a6cafa05b12fb14f24e35655d1ecd7f6f3b392293b26b229a",
+          "expert": 0.18070089255255142,
+          "engram": 0.0,
+          "dense": 0.005433722709928793
+        }
+      ]
+    },
+    {
+      "cell": "strata-steady-fair-01",
+      "prompt_tokens": 512,
+      "inode_pack": "strata",
+      "n": 5,
+      "median_estimated_fraction": {
+        "expert": 0.09146122480980003,
+        "engram": 0.00030280435571054565,
+        "dense": 0.0
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-1-512-residency.json",
+          "sha256": "3c40795fa72b93dc5a845b2896bd96126ab01851c71c97fbddf40f73ab1f6720",
+          "expert": 0.11280217726542004,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-2-512-residency.json",
+          "sha256": "1246c3180811bf55fa80f0459790987ab0cada7f46778ccf297b50767f4c2b23",
+          "expert": 0.09641537448699752,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-3-512-residency.json",
+          "sha256": "acf7c507953194241e6c7630658535caf1bd671e38054ae34bd04ad2c8da633a",
+          "expert": 0.09146122480980003,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-4-512-residency.json",
+          "sha256": "130f64c129ef41e3875d6e0bb53ca98e6007c3d107ee994da17a851738cb6dec",
+          "expert": 0.08117183701869753,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-5-512-residency.json",
+          "sha256": "853cbb189fdfc3c3300014401f6df67c04c82ea89dd0579e54e9f3c92658d4a2",
+          "expert": 0.07786907056723252,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        }
+      ]
+    },
+    {
+      "cell": "strata-steady-fair-01",
+      "prompt_tokens": 2048,
+      "inode_pack": "strata",
+      "n": 5,
+      "median_estimated_fraction": {
+        "expert": 0.08853954679504253,
+        "engram": 0.00030280435571054565,
+        "dense": 0.0
+      },
+      "raw_receipts": [
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-1-2048-residency.json",
+          "sha256": "89e525e76ef9bde264d714f2c0b7b3b1ff984abf5c32c055f8de2c92919c3a48",
+          "expert": 0.10962644029285754,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-2-2048-residency.json",
+          "sha256": "831a14a30a58eac30d1e7d2cc36e72dc4880582a97e3c453d8f43adf7db8b7c9",
+          "expert": 0.10187764207980503,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-3-2048-residency.json",
+          "sha256": "5c711dc12ec15cd73cf0e9299286a923bfddddf7abef483ee83bc55cb0e775d1",
+          "expert": 0.08853954679504253,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-4-2048-residency.json",
+          "sha256": "a5ad87b5bb916814fe7f2555a0fddc74184869f7bf75b1d85a3fe9741ca9af9d",
+          "expert": 0.08510975086467502,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        },
+        {
+          "path": "/home/user2/predemo-spark/OPS/runs/strata-steady-fair-01/rep-5-2048-residency.json",
+          "sha256": "d66cb33edc7ad938a1a1e81b8b3c80c9488beb6593a79ca5fae6b33ba2dfb1f9",
+          "expert": 0.07469333359467002,
+          "engram": 0.00030280435571054565,
+          "dense": 0.0
+        }
+      ]
+    }
+  ]
+}

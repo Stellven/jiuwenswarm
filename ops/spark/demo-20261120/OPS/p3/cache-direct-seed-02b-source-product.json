@@ -1,0 +1,68 @@
+{
+  "summary": "The direct-seed arm uses bounded aligned file reads to seed the same expert bank, and the next matched startup test will check whether it reduces file-cache population without changing the model output.",
+  "task_id": "spark-cache-direct-seed-do-02b",
+  "home": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache-direct-seed-02b",
+  "checkout": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache-direct-seed-02b/agent-workspace/llama.cpp-expert-weight-cache-residency",
+  "source_base": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "source_commit": "8e7044906a614c42656c703dbdb375023bc9cdeb",
+  "predecessor_source_commit": "ad2130b0126ad0c8f7ac33d966f828fc17f4528c",
+  "planner_decision": "spark-cache-direct-seed-do-02b:decision:2",
+  "verifier_call": "52fc8c82-442b-4d1d-a71a-d1894bfc7f4d",
+  "verifier_release": "c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0",
+  "source_diff": {
+    "artifact_id": "direct-seed-stock-to-8e7044.diff",
+    "sha256": "4b6ebb4bcc5d9f2715f76c575d8e8854bdbafe8c34856852c892da5c85ebcb16"
+  },
+  "predecessor_diff": {
+    "artifact_id": "direct-seed-ad2130b-to-8e7044.diff",
+    "sha256": "acc1978a1e2e0c7007707fc0b61bfa5623235975751db7eda6fceffcaf7f96e5"
+  },
+  "static_verification": {
+    "artifact_id": "direct-seed-8e7044-native-verifier.json",
+    "sha256": "60e529a0f9d000ddbf244016c564e6160ec688601ef45789cd9388ec1e3d8bf2"
+  },
+  "compiled_regression_and_syntax": {
+    "artifact_id": "direct-seed-final-source-check.log",
+    "sha256": "c52c8215a92765720bb4ebf1e97d3e386a4a39ae7cf0d0bb781a04a3e0954385"
+  },
+  "runtime_contract": {
+    "gate_off_env": {
+      "LLAMA_EXPERT_CACHE_NATIVE_PROFILE": "1",
+      "LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH": "/home/user2/predemo-spark/OPS/p3/frozen-strata-top192-ranked-pool.json"
+    },
+    "gate_off_unset_env": [
+      "LLAMA_EXPERT_CACHE_DIRECT_SEED"
+    ],
+    "gate_on_env": {
+      "LLAMA_EXPERT_CACHE_NATIVE_PROFILE": "1",
+      "LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH": "/home/user2/predemo-spark/OPS/p3/frozen-strata-top192-ranked-pool.json",
+      "LLAMA_EXPERT_CACHE_DIRECT_SEED": "1"
+    },
+    "profile_sha256": "dd4861349970a46e9e23ebe58c39b5afb91bd1d9e4c28e960026fc375b1034da",
+    "first_matched_budget_mib": 30720,
+    "optional_same_budget_repeat_mib": 61440,
+    "common_flags": [
+      "-lm",
+      "mmap",
+      "--cpu-moe",
+      "--moe-cache-cpu-share",
+      "0"
+    ],
+    "expected_gate_on": [
+      "expert_weight_cache_direct_seed: stats state=complete scope=startup_seed_payload",
+      "seed_source=direct"
+    ],
+    "expected_gate_off": [
+      "seed_source=mmap",
+      "no expert_weight_cache_direct_seed line"
+    ],
+    "required_attribution": [
+      "Compare exact seed slot identities and projected bytes, greedy parity, same deployment and physical admission.",
+      "Require requested/returned/alignment/uploaded counters and pre-launch to ready hot/cold source-page residency and I/O.",
+      "Separate load-to-ready, cold TTFT, repeated TTFT, decode and peak allocation. Demand and scheduler fallback remain mmap.",
+      "Direct failure logs no publication and ordinary stock demand; classify failed direct activation as failed arm.",
+      "Startup retains initial_h2d_bytes; downstream shutdown log field is now planned_seed_payload_bytes."
+    ]
+  },
+  "status": "native-source-verified; configured build and target parity/timing pending"
+}

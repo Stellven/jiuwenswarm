@@ -1,0 +1,13 @@
+{
+  "status": "final",
+  "task_id": "spark-direct-benchmarks-20261120",
+  "publication_id": "spark-report-final-20261120T144513736615Z",
+  "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+  "export": "/home/user2/predemo-spark/factory-runs/exports/spark-final-snapshot-20261120",
+  "source_report_sha256": "299447a0c7d62541c377a7dcdfd113957fbd1543d78043e461dd01e198bcff4b",
+  "report_sha256": "be30dcb1de57353c202e6efe3e02ffb1e9b7a4c6018ced230031726ae835d7e8",
+  "citation_count": 51,
+  "verified_link_targets": 71,
+  "verified_manifest_files": 2924,
+  "manifest_sha256": "6861f3e8688b89af2b8aa7091a3d66b0df968feef9434aa0915afdb8d3ca2072"
+}

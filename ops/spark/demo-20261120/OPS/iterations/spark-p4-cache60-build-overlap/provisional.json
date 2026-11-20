@@ -1,0 +1,1159 @@
+{
+  "amendment": {
+    "artifact_id": "/home/user2/predemo-spark/OPS/p4/cache-abba-60g-amendment.json",
+    "sha256": "cb072674e5927e56b9a503a96ff4cef7b76b0f17ebe1002ed8297e09af6ed248"
+  },
+  "base_manifest_sha256": "ea63132ffa5a5ee05767d43ed807e6cfa81ddc3b56d1dc58ea67819ac45112b9",
+  "effects": [
+    {
+      "pairs": [
+        {
+          "build_overlap": false,
+          "decode_gained": 0.1273880278450612,
+          "repeat": 1,
+          "seconds_saved": 32.315653334371746
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -2.40654728886161,
+          "repeat": 2,
+          "seconds_saved": 23.889908104669303
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -0.39483420715814077,
+          "repeat": 3,
+          "seconds_saved": 27.651900239754468
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -0.46989161416927416,
+          "repeat": 4,
+          "seconds_saved": 25.940402541309595
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -0.4267517109172587,
+          "repeat": 5,
+          "seconds_saved": 30.377399694174528
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -2.4872908015385384,
+          "repeat": 6,
+          "seconds_saved": 23.160351898055524
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": -2.140828993450981,
+          "repeat": 7,
+          "seconds_saved": 22.347959536593407
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": 1.2874502796125569,
+          "repeat": 8,
+          "seconds_saved": 28.668471592478454
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": 0.817686455271275,
+          "repeat": 9,
+          "seconds_saved": 18.35393324494362
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": 1.5450273679360293,
+          "repeat": 10,
+          "seconds_saved": 18.061975243967026
+        }
+      ],
+      "prompt_tokens": 512,
+      "quiet_decode_gained": -0.44832166254326644,
+      "quiet_prefix_n": 6,
+      "quiet_seconds_saved": 26.79615139053203,
+      "ten_pair_decode_gained": -0.41079295903769975,
+      "ten_pair_seconds_saved": 24.91515532298945
+    },
+    {
+      "pairs": [
+        {
+          "build_overlap": false,
+          "decode_gained": -0.13034488449004655,
+          "repeat": 1,
+          "seconds_saved": 125.92075634002686
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -0.1670772761889765,
+          "repeat": 2,
+          "seconds_saved": 73.96682676998898
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -1.270289569935393,
+          "repeat": 3,
+          "seconds_saved": 103.19611925818026
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": -0.3544949719712811,
+          "repeat": 4,
+          "seconds_saved": 79.94614162808284
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": 0.6049727807875094,
+          "repeat": 5,
+          "seconds_saved": 101.49784894706681
+        },
+        {
+          "build_overlap": false,
+          "decode_gained": 0.04887744426681451,
+          "repeat": 6,
+          "seconds_saved": 98.97179720643908
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": -2.270443571190878,
+          "repeat": 7,
+          "seconds_saved": 95.21525933872908
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": -1.4911241544763918,
+          "repeat": 8,
+          "seconds_saved": 73.62644070526585
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": 0.3343109767613157,
+          "repeat": 9,
+          "seconds_saved": 86.38588394224644
+        },
+        {
+          "build_overlap": true,
+          "decode_gained": 1.9186089729689506,
+          "repeat": 10,
+          "seconds_saved": 71.07914766483009
+        }
+      ],
+      "prompt_tokens": 2048,
+      "quiet_decode_gained": -0.14871108033951153,
+      "quiet_prefix_n": 6,
+      "quiet_seconds_saved": 100.23482307675295,
+      "ten_pair_decode_gained": -0.14871108033951153,
+      "ten_pair_seconds_saved": 90.80057164048776
+    }
+  ],
+  "journals": [
+    {
+      "artifact_id": "/home/user2/predemo-spark/OPS/iterations/spark-p4-cache60-build-overlap/build-activity/spark-owner-d-cpu.service.log",
+      "raw": "2026-11-20T13:45:31.550698+00:00 gx10-004d systemd[2440764]: Started spark-owner-d-cpu.service - /bin/bash -ec \"source jiuwenswarm/ops/spark/env.sh; export PYTHONPATH=\\\"\\$PWD/jiuwenswarm\\\"; exec jiuwenswarm/.venv/bin/python OPS/p3/start-mapper-combined-build-window.py --after OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json --product combined-d --build-deadline-s 900\".\n2026-11-20T13:45:31.635338+00:00 gx10-004d bash[2998321]: Traceback (most recent call last):\n2026-11-20T13:45:31.635338+00:00 gx10-004d bash[2998321]:   File \"/home/user2/predemo-spark/OPS/p3/start-mapper-combined-build-window.py\", line 29, in <module>\n2026-11-20T13:45:31.637857+00:00 gx10-004d bash[2998321]:     main()\n2026-11-20T13:45:31.637857+00:00 gx10-004d bash[2998321]:   File \"/home/user2/predemo-spark/OPS/p3/start-mapper-combined-build-window.py\", line 25, in main\n2026-11-20T13:45:31.637857+00:00 gx10-004d bash[2998321]:     build(*entry, after, args.build_deadline_s)\n2026-11-20T13:45:31.637857+00:00 gx10-004d bash[2998321]:   File \"/home/user2/predemo-spark/OPS/p3/native_build_window.py\", line 33, in build\n2026-11-20T13:45:31.637857+00:00 gx10-004d bash[2998321]:     raise RuntimeError('An active compute context precludes native build admission')\n2026-11-20T13:45:31.637857+00:00 gx10-004d bash[2998321]: RuntimeError: An active compute context precludes native build admission\n2026-11-20T13:45:31.640578+00:00 gx10-004d systemd[2440764]: spark-owner-d-cpu.service: Main process exited, code=exited, status=1/FAILURE\n2026-11-20T13:45:31.640674+00:00 gx10-004d systemd[2440764]: spark-owner-d-cpu.service: Failed with result 'exit-code'.\n2026-11-20T13:46:26.681790+00:00 gx10-004d systemd[2440764]: Started spark-owner-d-cpu.service - /bin/bash -ec \"source ops/spark/env.sh; export PYTHONPATH=\\\"\\$PWD\\\"; exec .venv/bin/python -u ../OPS/p3/owner-d-build.py\".\n2026-11-20T13:46:27.018778+00:00 gx10-004d bash[2998656]: combined-d attempt 51b98e442f1b4ba69cc7e879eb5b95c6\n2026-11-20T13:46:30.536251+00:00 gx10-004d bash[2998656]: Traceback (most recent call last):\n2026-11-20T13:46:30.536251+00:00 gx10-004d bash[2998656]:   File \"/home/user2/predemo-spark/jiuwenswarm/../OPS/p3/owner-d-build.py\", line 7, in <module>\n2026-11-20T13:46:30.538202+00:00 gx10-004d bash[2998656]:     build('combined-d','combined_d','59493673e75a9b4153733a862fd09951d3705616',after,900,\n2026-11-20T13:46:30.538202+00:00 gx10-004d bash[2998656]:   File \"/home/user2/predemo-spark/OPS/p3/native_build_window.py\", line 73, in build\n2026-11-20T13:46:30.538202+00:00 gx10-004d bash[2998656]:     raise RuntimeError(f'{name} build ended in state {attempt[\"state\"]}')\n2026-11-20T13:46:30.539092+00:00 gx10-004d bash[2998656]: RuntimeError: combined-d build ended in state failed\n2026-11-20T13:46:30.621806+00:00 gx10-004d systemd[2440764]: spark-owner-d-cpu.service: Main process exited, code=exited, status=1/FAILURE\n2026-11-20T13:46:30.621939+00:00 gx10-004d systemd[2440764]: spark-owner-d-cpu.service: Failed with result 'exit-code'.\n2026-11-20T13:46:30.622184+00:00 gx10-004d systemd[2440764]: spark-owner-d-cpu.service: Consumed 2.904s CPU time, 1.1M memory peak, 0B memory swap peak.\n2026-11-20T13:48:29.851831+00:00 gx10-004d systemd[2440764]: Started spark-owner-d-cpu.service - /bin/bash -ec \"source ops/spark/env.sh; export PYTHONPATH=\\\"\\$PWD\\\"; exec .venv/bin/python -u ../OPS/p3/owner-d-build.py\".\n2026-11-20T13:48:30.197881+00:00 gx10-004d bash[3000072]: combined-d attempt 87ecc8bf665f43729dd3a375a88699e3\n",
+      "sha256": "3130d6e340fdafa64e72517bf3edf5d6fe96df083423aaf4dd1f049a970ebad6",
+      "unit": "spark-owner-d-cpu.service"
+    },
+    {
+      "artifact_id": "/home/user2/predemo-spark/OPS/iterations/spark-p4-cache60-build-overlap/build-activity/spark-owner-c2-cpu.service.log",
+      "raw": "2026-11-20T13:46:07.028118+00:00 gx10-004d systemd[2440764]: Started spark-owner-c2-cpu.service - /usr/bin/taskset -c 12-19 /usr/bin/ionice -c 3 /bin/bash -c \"source ops/spark/env.sh; exec \\\"\\$@\\\"\" bash .venv/bin/python -u -c \"import sys; sys.path.insert(0, \\\"../OPS/p3\\\"); from native_build_window import ROOT,build,closed_scope,digest; active=ROOT/\\\"OPS/runs/p4-cache60-aplus-pass-2-01/start.json\\\"; previous=closed_scope(ROOT/\\\"OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json\\\"); build(\\\"placement-tier\\\",\\\"weight_placement_planner\\\",\\\"24dbb8309e604de8d8c97e623b78d49d0f14a736\\\",previous,900,owner_overlap={\\\"scope\\\":str(active.parent),\\\"start_sha256\\\":digest(active),\\\"controller_unit\\\":\\\"spark-owner-c2-cpu.service\\\",\\\"compiler_cpus\\\":[12,13,14,15,16,17,18,19],\\\"nice\\\":19,\\\"io\\\":\\\"idle\\\",\\\"authority\\\":\\\"Owner authorized independent C2 native build during A+60 pass 2\\\"})\".\n2026-11-20T13:46:07.392870+00:00 gx10-004d taskset[2998430]: placement-tier attempt 6e73a022cdac4b2ebd505b40c4a1acfb\n2026-11-20T13:46:11.272075+00:00 gx10-004d taskset[2998430]: Traceback (most recent call last):\n2026-11-20T13:46:11.275603+00:00 gx10-004d taskset[2998430]:   File \"<string>\", line 1, in <module>\n2026-11-20T13:46:11.275603+00:00 gx10-004d taskset[2998430]:   File \"/home/user2/predemo-spark/jiuwenswarm/../OPS/p3/native_build_window.py\", line 73, in build\n2026-11-20T13:46:11.275603+00:00 gx10-004d taskset[2998430]:     raise RuntimeError(f'{name} build ended in state {attempt[\"state\"]}')\n2026-11-20T13:46:11.275603+00:00 gx10-004d taskset[2998430]: RuntimeError: placement-tier build ended in state failed\n2026-11-20T13:46:11.413119+00:00 gx10-004d systemd[2440764]: spark-owner-c2-cpu.service: Main process exited, code=exited, status=1/FAILURE\n2026-11-20T13:46:11.413249+00:00 gx10-004d systemd[2440764]: spark-owner-c2-cpu.service: Failed with result 'exit-code'.\n2026-11-20T13:46:11.413930+00:00 gx10-004d systemd[2440764]: spark-owner-c2-cpu.service: Consumed 3.016s CPU time, 1.1M memory peak, 0B memory swap peak.\n2026-11-20T13:48:08.957594+00:00 gx10-004d systemd[2440764]: Started spark-owner-c2-cpu.service - /usr/bin/taskset -c 12-19 /usr/bin/ionice -c 3 /bin/bash -c \"source ops/spark/env.sh; exec \\\"\\$@\\\"\" bash .venv/bin/python -u -c \"import sys; sys.path.insert(0, \\\"../OPS/p3\\\"); from native_build_window import ROOT,build,closed_scope,digest; active=ROOT/\\\"OPS/runs/p4-cache60-aplus-pass-2-01/start.json\\\"; previous=closed_scope(ROOT/\\\"OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json\\\"); build(\\\"placement-tier\\\",\\\"weight_placement_planner\\\",\\\"24dbb8309e604de8d8c97e623b78d49d0f14a736\\\",previous,901,owner_overlap={\\\"scope\\\":str(active.parent),\\\"start_sha256\\\":digest(active),\\\"controller_unit\\\":\\\"spark-owner-c2-cpu.service\\\",\\\"compiler_cpus\\\":[12,13,14,15,16,17,18,19],\\\"nice\\\":19,\\\"io\\\":\\\"idle\\\",\\\"authority\\\":\\\"Owner authorized independent C2 native build during A+60 pass 2\\\"})\".\n2026-11-20T13:48:09.332748+00:00 gx10-004d taskset[2999077]: placement-tier attempt ce1eef65da2341f59846b0c6bb7711a7\n",
+      "sha256": "15ef525a60bad931222c983e19a131d7340b8b1c4e921204ec64c72179f8afbe",
+      "unit": "spark-owner-c2-cpu.service"
+    },
+    {
+      "artifact_id": "/home/user2/predemo-spark/OPS/iterations/spark-p4-cache60-build-overlap/build-activity/spark-c2-placement-tier-build.service.log",
+      "raw": "2026-11-20T13:45:29.860678+00:00 gx10-004d systemd[2440764]: Started spark-c2-placement-tier-build.service - /usr/bin/taskset -c 12-19 /usr/bin/ionice -c 3 /bin/bash -c \"source ops/spark/env.sh; exec \\\"\\$@\\\"\" bash .venv/bin/python -u -c \"import sys; from pathlib import Path; sys.path.insert(0, \\\"../OPS/p3\\\"); from native_build_window import ROOT,build,closed_scope,digest; active=ROOT/\\\"OPS/runs/p4-cache60-aplus-pass-2-01/start.json\\\"; previous=closed_scope(ROOT/\\\"OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json\\\"); build(\\\"placement-tier\\\",\\\"weight_placement_planner\\\",\\\"24dbb8309e604de8d8c97e623b78d49d0f14a736\\\",previous,1800,owner_overlap={\\\"scope\\\":str(active.parent),\\\"start_sha256\\\":digest(active),\\\"controller_unit\\\":\\\"spark-c2-placement-tier-build.service\\\",\\\"compiler_cpus\\\":[12,13,14,15,16,17,18,19],\\\"nice\\\":19,\\\"io\\\":\\\"idle\\\",\\\"authority\\\":\\\"Owner authorized C2 native build during A+60 pass 2\\\"})\".\n2026-11-20T13:45:30.195637+00:00 gx10-004d taskset[2998238]: placement-tier attempt 9f533251884a4a2eb9088d235398af91\n2026-11-20T13:45:33.960223+00:00 gx10-004d taskset[2998238]: Traceback (most recent call last):\n2026-11-20T13:45:33.960223+00:00 gx10-004d taskset[2998238]:   File \"<string>\", line 1, in <module>\n2026-11-20T13:45:33.960223+00:00 gx10-004d taskset[2998238]:   File \"/home/user2/predemo-spark/jiuwenswarm/../OPS/p3/native_build_window.py\", line 73, in build\n2026-11-20T13:45:33.962356+00:00 gx10-004d taskset[2998238]:     raise RuntimeError(f'{name} build ended in state {attempt[\"state\"]}')\n2026-11-20T13:45:33.962443+00:00 gx10-004d taskset[2998238]: RuntimeError: placement-tier build ended in state failed\n2026-11-20T13:45:34.025936+00:00 gx10-004d systemd[2440764]: spark-c2-placement-tier-build.service: Main process exited, code=exited, status=1/FAILURE\n2026-11-20T13:45:34.026018+00:00 gx10-004d systemd[2440764]: spark-c2-placement-tier-build.service: Failed with result 'exit-code'.\n2026-11-20T13:45:34.026164+00:00 gx10-004d systemd[2440764]: spark-c2-placement-tier-build.service: Consumed 3.109s CPU time, 948.0K memory peak, 0B memory swap peak.\n",
+      "sha256": "2e2313866efd8fa0ee89a10a49b407ca0d29977ef10802dfa19bc27e8a369193",
+      "unit": "spark-c2-placement-tier-build.service"
+    }
+  ],
+  "schema": "spark-p4-build-overlap-provisional/1",
+  "scopes": [
+    {
+      "arm": "A+",
+      "launch_pass": 1,
+      "profile_sha256": "6b0f64b10c34ffac4f9cd19f11174ba2f1587f39e977c478619ada8b67ba95b8",
+      "requests": [
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-512-after-resources.json",
+            "sha256": "4cc8ace18939357e21e083c43a0c28a4595ffbd327fa35edba5b982f201e8493"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-512/result.json",
+            "sha256": "dbf1bb50ad6cbd416e1a793ceddefe1befd72d74f6c1512390bca63b460ae81e"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-2048-after-resources.json",
+            "sha256": "dd7571951cadbed4f48db679dcb30daf63881535dc0065dcfd3815af5e8a2f7f"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-2048/result.json",
+            "sha256": "4ffbf22f92f8b9a516bc2e52fded024c263a5fed6ea2f470a66bb8d90abed9fe"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-512-after-resources.json",
+            "sha256": "233d331f6f8a38264388f7397c0eaba6c1eb95efda2c91bb5b746e8721ac02a7"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-512/result.json",
+            "sha256": "a2b40ea7ec15ec16ff0914d6f144b28c4fc9ec403e8c7bfe8392660e4fb1cf0e"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-2048-after-resources.json",
+            "sha256": "f43d0951cd131cba8cd25de85e4a71997da9195a602d80ba6622d8eb97fc70ff"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-2048/result.json",
+            "sha256": "bff2bff86c210f5dfdd8798fcf8fae9cd7aab22cb998e053b99b27045d6e1d08"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-2048-after-resources.json",
+            "sha256": "b320b146c701c441c81ca80dc1f9d129d876dccffce4adb89835ee760d06c65d"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-2048/result.json",
+            "sha256": "bfab8e590ba21a8a1a35fd8b9668cde0a829472f82b7ddf61a51b877e3d85e37"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-512-after-resources.json",
+            "sha256": "74972ec9620aa2f6e8bac4bfef7078f3b8a7672adf433bf4600f9f525aa7a73c"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-512/result.json",
+            "sha256": "37331dc0a4948767b479b3f1ef4dad613b0c9acc851abc767fcf8f23a2c93795"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-512-after-resources.json",
+            "sha256": "fea31e036971193c0eb16bb5ab2ffa87198d1a9a555924fc7bca38640cf32802"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 1,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-512/result.json",
+            "sha256": "05ddcad22ef7fb1b6f370c96713071ec0c1459d433ec9a693b40fa883b8b16c5"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-2048-after-resources.json",
+            "sha256": "ae5f38a2c2565f3a281788f61aafeb8773498ba8bd8369c1efc372d3e66330f3"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 1,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-2048/result.json",
+            "sha256": "c2b2b72021506a0f92ad5d8576803bcb8e855f7865f6e96141aab79d7fac01d9"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-2048-after-resources.json",
+            "sha256": "01954bb04849c0c92885b1011d6f626e81e0905c712de831188881b4d92bd6be"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 2,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-2048/result.json",
+            "sha256": "a935d676e6adf7d292a370f18fa8b5560c4fe1a49c6f60980c67b75a8c225646"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-512-after-resources.json",
+            "sha256": "0dda4d20481c8d004e0383c8d0300e35164a61dbacb12561b8f27c28d4f6adda"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 2,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-512/result.json",
+            "sha256": "177db9af7841242d448330eab90fd32767db5087ff717eb062abb6fe153fb8fa"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-512-after-resources.json",
+            "sha256": "33ab54c6968404e7a08e587c928d1bad74ccd1bae95705469b20247fcaa311d9"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 3,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-512/result.json",
+            "sha256": "d590a47f4366c329ae945460620373e141f0c23063607e0a4527eb6119bee16d"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-2048-after-resources.json",
+            "sha256": "a79b858ede4205a08efca06a71781aad22463504a3f368bbbbd968f5186b66d0"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 3,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-2048/result.json",
+            "sha256": "3335a1ad353d1e95d79c0160e27b6d3ee4b7cb73b7bb869fe61df5aa2af8683b"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-2048-after-resources.json",
+            "sha256": "5437050c91ca265b296d8706297078257395067488caf3c134f0c07080847ea7"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 4,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-2048/result.json",
+            "sha256": "2f8ed8fb8e0047b1c419a252afbbbbc8224f2b9d489c4b14e532e8965ef66678"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-512-after-resources.json",
+            "sha256": "b5b68cc5c0f63d9dc2bd07d61d7b7e7248aff397c1c0678fe50b11d67fa26d22"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 4,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-512/result.json",
+            "sha256": "f5fe34e70d024f7fc2ba24ffe92e026ec76cec6416608808d478e967afd7fb6d"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-512-after-resources.json",
+            "sha256": "fbdb6382d09708d183014809ba10e3cc9125c8bde16a1b2a124187e0854a61d1"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 5,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-512/result.json",
+            "sha256": "da1e594011c94ecadd713817510946725eac20a9500bea02a922cb122c470fbd"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-2048-after-resources.json",
+            "sha256": "63e6df4cf96d54b2762913e6798335645867a1dea3017ee3c8390e9c710c37e7"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 5,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-2048/result.json",
+            "sha256": "d859d8124ed634188cdf2e30e4b4c6390202f063c6c6a4830014457392e08cff"
+          }
+        }
+      ],
+      "scope": "OPS/runs/p4-cache60-aplus-pass-1-01",
+      "stop": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/result.json",
+        "sha256": "1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+      },
+      "view": "llama",
+      "window": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/window.json",
+        "sha256": "2ebb7824082063e4379c5e2a9173af8469bab122deaa693b5a18270e33111525"
+      }
+    },
+    {
+      "arm": "C3",
+      "launch_pass": 1,
+      "profile_sha256": "e31d2d2c9d0c212641da47db825d1b3476a9f70ff1fff06518c69a6813d36388",
+      "requests": [
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-512-after-resources.json",
+            "sha256": "6b9c7b23ed632f2eccc01fc9157dcb73851db1e3a7d195739a985c65e7acf3d0"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-512/result.json",
+            "sha256": "36b288980fda9bfa37aa688b9fdd4e6895898b82cfac791b612a43e86f52dcf4"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-2048-after-resources.json",
+            "sha256": "37b6006cfde8fd476b590e69bf472936774a9372236c8c911c966d84391491d1"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-2048/result.json",
+            "sha256": "7447acdfbb6a05d0bfdf2c1834cb2a53a0f01484fde29c3d91b21d16eb9fb1f1"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-512-after-resources.json",
+            "sha256": "c56e64f5956e686e16c2a7f51cbcf89c998dba162cf8279316276b25f61e5657"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-512/result.json",
+            "sha256": "09b39cc222ff76f59a776180604361d61c0dc4f2f3a58bbcba786faf15406358"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-2048-after-resources.json",
+            "sha256": "b38dc8bf4550e59b638985f9359884267898326a4cc8fd3f1c7407280f2db68a"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-2048/result.json",
+            "sha256": "87334d90e9b6c27425e3ddcdb552cc4bcbdfed1fc4376424bff23539057e05aa"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-2048-after-resources.json",
+            "sha256": "80dfbfdcaac1144a9e7b38acd0e2a6a845404a51c99852a5f6a5768e4eed8dcb"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-2048/result.json",
+            "sha256": "cea4345c1109ddb3aa1b904c1ed02c41a7a700feed059d0a73cb2cdeaf8fd98f"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-512-after-resources.json",
+            "sha256": "c92e556d87ce966a9bbcf147c41c75d9d16a653b126cd190ff6f1257f6ecb4b7"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-512/result.json",
+            "sha256": "0ac744960e5fe3b419dcb1a2a96d2d06d2d42ee85b8eba5c329c4dd6fb98dc35"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-512-after-resources.json",
+            "sha256": "dd8b6a88a6ced46f8d1e574a04dd81979b51714eb112311388af5e8879a083c9"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 1,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-512/result.json",
+            "sha256": "27393f59f4f0c8e37b8c9abf95e3457ae35af91f789a50aa6b15715d08394694"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-2048-after-resources.json",
+            "sha256": "9f1d36cd7e8e19f62d7ff338df5e26b4f515ab04262147c0f14f6b13f55999b9"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 1,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-2048/result.json",
+            "sha256": "b51dee0fc47c574ce52b17aa6b06582ad6318c247ebc86a06fad8cbda57355cf"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-2048-after-resources.json",
+            "sha256": "d9e8aa141b49e835accbce3651881f8299de708d4a600ae8f559e3add457b11a"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 2,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-2048/result.json",
+            "sha256": "86f163794c44c5dddcc4439e014e42d1fccc42169bac5d6197f6a4378f4cff7b"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-512-after-resources.json",
+            "sha256": "9486138f3fa69c303531eb14a8d381f386a2a361e1f857f23403461d058d448c"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 2,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-512/result.json",
+            "sha256": "750a973b822ffc51102a123e2d9678523454449f7263b3c727dc0c356c55950b"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-512-after-resources.json",
+            "sha256": "b7e5afc5fbdb9a7cf6111c54dc1b88f2a00853751a681ea89be77eca0e2e1634"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 3,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-512/result.json",
+            "sha256": "c1b9978fe239bb8f4d7b234ef1e68713900a69b9da6737a41d5ebda9d19b8b8c"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-2048-after-resources.json",
+            "sha256": "0f26aa9976cc0f268bdb9d34c7b4cd6585305031869ba8846368f623e68da753"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 3,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-2048/result.json",
+            "sha256": "effd6cee15c0bd6df278c5188cc6a9f0f56d008f5048ca1eb5d24fe1681971a4"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-2048-after-resources.json",
+            "sha256": "b79e5517caea82243a7fd2967660ecdfb759af158f385cbaf68934a8ef50fd76"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 4,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-2048/result.json",
+            "sha256": "5e5501de0c2b973af26cb1d4984477ab3a30d040cdb9af1c3d9497295b8d7d5f"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-512-after-resources.json",
+            "sha256": "8422fe7c2dc8b1b871ec78337706c00d1b8def52948b0dda364e6c1baf64693b"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 4,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-512/result.json",
+            "sha256": "a301f2d536bae5c908bffcf39bc66319b259de4aac69a7de9593f33a9077386d"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-512-after-resources.json",
+            "sha256": "4805f77173ed1e238e2dc4ee9fae03847e77c7b3a26442d3a16507fe1266d9b9"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 5,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-512/result.json",
+            "sha256": "3e1348a5d25e21e6379b0e98e0d46067e0722baaa56af05fc4093879e3f48900"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-2048-after-resources.json",
+            "sha256": "811f7913bf8bcdc06f3342c0c84448c07544dcefa4090857c7416be41da50ee6"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 5,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-2048/result.json",
+            "sha256": "6b79528c0f07244460272c71bc8bdefd4385bc92498398e381436817434a1e5f"
+          }
+        }
+      ],
+      "scope": "OPS/runs/p4-cache60-c3-pass-1-01",
+      "stop": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/result.json",
+        "sha256": "902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+      },
+      "view": "llama",
+      "window": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/window.json",
+        "sha256": "0aec315c79619ce02523b13eadca9e0e50b8a8e55ee95fb45ef26c5d030e5719"
+      }
+    },
+    {
+      "arm": "C3",
+      "launch_pass": 2,
+      "profile_sha256": "e31d2d2c9d0c212641da47db825d1b3476a9f70ff1fff06518c69a6813d36388",
+      "requests": [
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-512-after-resources.json",
+            "sha256": "82cd98522af2605955647ec5ffad5626f5b2a360ff3f90aecdff361160eb946e"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-512/result.json",
+            "sha256": "788328e40fe2aed1fed2b849fb130064d4d618069f6859224a8f339481e41787"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-2048-after-resources.json",
+            "sha256": "48a2436719fcd1871d53d083c3d864eb46187932d29291a9e41d5f23d57a983b"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-2048/result.json",
+            "sha256": "f9b8a1b66f8abb79029a6829f399f0d15b57bde41943c4ba97d45ad1c67bb33f"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-512-after-resources.json",
+            "sha256": "54f90581506ff88248efffbae8b75fda2a9fa2e9c5acbe23d4f392131ccbea02"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-512/result.json",
+            "sha256": "733b73a2a2d01930b257627682bc455ccc1dbc98625bf4c43a6a22e38faadeaa"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-2048-after-resources.json",
+            "sha256": "eaf8112b834e6e31fcd5bf2b4a6cd6b125f801c17abcf75013b2fe6f8d913637"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-2048/result.json",
+            "sha256": "9ff0b1d670cb570de13b6833f6eb08ff1ecf23142f613724ab1bc2191403ba16"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-2048-after-resources.json",
+            "sha256": "620053bc07d51628b3857f4e3ba591629d822a10e290adb76fefaf2d1d82ff76"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-2048/result.json",
+            "sha256": "7864ae02bcc508378c7cab56f877c2761228f4fe341dd7398173db95045ea087"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-512-after-resources.json",
+            "sha256": "103307b380084942142feb179bd2eaf1f419a960e8c0e4b85f77dde74173c20f"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-512/result.json",
+            "sha256": "9d26b93d3aac2873a942c086583cffdf935b5aa64a190857257677c6c8d03fea"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-512-after-resources.json",
+            "sha256": "f3c6335818d09a006284693223420f916fed3541892ff7394f41daea69eeddfe"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 6,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-512/result.json",
+            "sha256": "7b8969d6a142351a947f4ab5d5f0ffc71bece368a5d879ec9acec2a1085c1213"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-2048-after-resources.json",
+            "sha256": "d7b1d84d6fe0fc1da884826a5b42e4f738fa14fda0a5be34a92d7733616567bc"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 6,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-2048/result.json",
+            "sha256": "c5de63c2431319c70232a6cacfee509cbde2691f333c19a543a68eba02ef884f"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-2048-after-resources.json",
+            "sha256": "a457728f0a89da52af2d424e8f330cd4d636164a6b54d501a816881811fecc0d"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 7,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-2048/result.json",
+            "sha256": "a997018ce7612dd2c5e6342f9bff37f7a8bdbf1e530cd24627e6122f7ddad809"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-512-after-resources.json",
+            "sha256": "5b4e81c1e30cbec187decdc10c937513cfe5e878847394f71b565f1fd2083c72"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 7,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-512/result.json",
+            "sha256": "6b5df29eddc4d1dbcebb507c7df2a4df14a975c9f4208e97858608c8e24dff6e"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-512-after-resources.json",
+            "sha256": "da0613675818b9928e178bd44901215d7bab0fb2f0704866ea015807a49e7a7e"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 8,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-512/result.json",
+            "sha256": "167e0f6a786dad3dbdf76cb7d20de1451c555bdf4f304a14e2c6b44b7cde05cf"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-2048-after-resources.json",
+            "sha256": "ee8f98039971ecdd6922d1ba053b9499ccf4629729fe66eb67b48355d4d5933b"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 8,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-2048/result.json",
+            "sha256": "c0196195ca6ea7d1acb2ae2d82203c24ae9092f7ee4a5653cdd03c0cc7048864"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-2048-after-resources.json",
+            "sha256": "96a974874cb1d911600500599ddf348141641fcb16242fe99c7a27406fd244bd"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 9,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-2048/result.json",
+            "sha256": "26aab5392917a4f2e0faa491f0e60ff60570071cce0a9a31a3197534856785e8"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-512-after-resources.json",
+            "sha256": "ac240cb478175e48f562148228cb94cdc6c9270abbef44d9533420140095d619"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 9,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-512/result.json",
+            "sha256": "a854b28a72b55f33760a838d0dd9f1dd9ff8937a98b398e64aed4c656d8c3c26"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-512-after-resources.json",
+            "sha256": "5406ab3f9e353f0a519fdc2bc7d822c16ae70ca1549e20e4584899e62ee8f6d4"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 10,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-512/result.json",
+            "sha256": "92a557ebe2301e5e60339b36bd742aef7c17f4c5c7fae36c6534da775a51dcb5"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-2048-after-resources.json",
+            "sha256": "cd1a0b70140e8982d94223bbb46ab8973323a575f62c02fbe5c09242a6d98f38"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 10,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-2048/result.json",
+            "sha256": "a0e23c33f3d2b4593f2d783de7c5413f833fc325c490ac9a999b455eb114b28b"
+          }
+        }
+      ],
+      "scope": "OPS/runs/p4-cache60-c3-pass-2-retry-01",
+      "stop": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json",
+        "sha256": "48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+      },
+      "view": "llama",
+      "window": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/window.json",
+        "sha256": "b73e71f1250ca772c99e23ee726f1af25717d6102652f39c77e3438afc060755"
+      }
+    },
+    {
+      "arm": "A+",
+      "launch_pass": 2,
+      "profile_sha256": "6b0f64b10c34ffac4f9cd19f11174ba2f1587f39e977c478619ada8b67ba95b8",
+      "requests": [
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-1-512-after-resources.json",
+            "sha256": "9101871a0adbdf99fcf907bc0d581872f5359c91455d1d70602c13b87b53c8c7"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-1-512/result.json",
+            "sha256": "29228a968bb4d8e5255c8f4c07bc61624850efc740ce2a18ebe3892e2bf260b2"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-1-2048-after-resources.json",
+            "sha256": "c46a96a1fea0f483eac06e7f0d6be4e3409aeec586f63c3cc1ffb123dc242fd6"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-1-2048/result.json",
+            "sha256": "945499130904a06db9f27f2e06b7236c3b2d8dbefc7138eec0c221519bd9f031"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-2-512-after-resources.json",
+            "sha256": "1f16641b4b5a4bcc108a4cfcf3b7d81a4f07d7ed2ad2a98b6bac81faaa5d2052"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-2-512/result.json",
+            "sha256": "393dd6e6dfd180cf9f622bafd21adad139dd67cc792f90911a077a3844c34161"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-2-2048-after-resources.json",
+            "sha256": "025c64b59e343e9c50adc36ed064cba14579ebb44fff056a54b88060c814eca6"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-2-2048/result.json",
+            "sha256": "7acae630e3a8a73db25760ad54e89fa2959ff8805306e67ff43a3ef77175f7b6"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-3-2048-after-resources.json",
+            "sha256": "0625c936f4531bff0ed33ab48660b6c185971789b5493152b1592c4054c5babe"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 2048,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-3-2048/result.json",
+            "sha256": "7e9ffc003b2f65bec26ddcd3fa8a09853856fd104422847c7fdf2e2e7caf3092"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-3-512-after-resources.json",
+            "sha256": "758056ebe16ff0f2496ea357f20f1d989e726d19ee10c8bfaeaa39d1c35c1e66"
+          },
+          "build_overlap": false,
+          "discard": true,
+          "prompt_tokens": 512,
+          "repeat": 0,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/warmup-3-512/result.json",
+            "sha256": "17500b9f7f887a530fb18e0289800f9e91054b62b621fb80e5ca7dd3e14006dd"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-6-512-after-resources.json",
+            "sha256": "e88bd8fb896fefc43de2c50b087e5637550f05dd2c9290876aef203dea665b35"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 6,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-6-512/result.json",
+            "sha256": "ba59348bbf1707d6fa66d18f5eec5b77975c3d077b43ab0cb937c82fe9460d60"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-6-2048-after-resources.json",
+            "sha256": "779b68a2a00afb662646344bb5178d90860cf0d503632c4a2861a15836c77968"
+          },
+          "build_overlap": false,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 6,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-6-2048/result.json",
+            "sha256": "1325f0b4bd3169dae5b641a28954a76a7e46f50e192743f505320da887cf1f36"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-7-2048-after-resources.json",
+            "sha256": "31f9757486c87c3fc7e2f8f506ec50d7ed46f30030049ba3a9308422a5bb57d8"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 7,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-7-2048/result.json",
+            "sha256": "4291a82d139601d82fcd67b75ddbe5cf8e10004c611750f182484927637f7e9c"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-7-512-after-resources.json",
+            "sha256": "ee5cadb0e0e452e830e829e291b4d9f9070f6d609486ffd3466542bd5804e9d9"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 7,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-7-512/result.json",
+            "sha256": "d650fd1b5a00b05f2f295fe4daddc38826208e5dfd05b32ef3cf4c8640a5126e"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-8-512-after-resources.json",
+            "sha256": "c36d94088fbd82efb9688f8736e07ef6ed140a0648383f125f041f65b8145e1d"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 8,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-8-512/result.json",
+            "sha256": "4f1ea759d2c1109c1379ca6dece76654884a91689993b275e2ba507557478dc6"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-8-2048-after-resources.json",
+            "sha256": "d55193a895dbd86f55549839bd017a158b007402439fd0feab708abc8c04b237"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 8,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-8-2048/result.json",
+            "sha256": "e77778c1fa43a438ebf42b46a1c52bda6a4475bdcfd680df2f8d2954c1454cd9"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-9-2048-after-resources.json",
+            "sha256": "8bc5fbf6a06a36b13da80614ba857d4614de66750e126705b92e9435a32c90a9"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 9,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-9-2048/result.json",
+            "sha256": "7eb08128d4ee2f3bff2230daf571a611acd50a473024a8ddc4b2fbe8b48d1467"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-9-512-after-resources.json",
+            "sha256": "3a52605274521c7bacddbd76c988f671a9e775cb14ecd21931abbb6c1f2dc24e"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 9,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-9-512/result.json",
+            "sha256": "16008246a8aa7b797dabf725dfd18b382a73224033b1d468b1afb4c71683bd38"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-10-512-after-resources.json",
+            "sha256": "dc80990f9fe53fa6595cf222a5f9660f951486561a37ef68af25bb8eb3caa12e"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 512,
+          "repeat": 10,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-10-512/result.json",
+            "sha256": "42bbb71472c541eecd3ade626ee81243ee95f355405adde6d7efb867ddefac21"
+          }
+        },
+        {
+          "after": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-10-2048-after-resources.json",
+            "sha256": "378331fc26955b5c929e95a9a860c9a41e49bc3e1871230371271e2268130ba9"
+          },
+          "build_overlap": true,
+          "discard": false,
+          "prompt_tokens": 2048,
+          "repeat": 10,
+          "result": {
+            "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/repeat-10-2048/result.json",
+            "sha256": "e4874b2a1d2027e34f7d1f3b2e1900e976da35da71aef473baedc878b46ff4c3"
+          }
+        }
+      ],
+      "scope": "OPS/runs/p4-cache60-aplus-pass-2-01",
+      "stop": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/result.json",
+        "sha256": "3c91fcb41843b4ac7c5db5ff0d7312843bf9ce91fa1ea0964daeb706e0290797"
+      },
+      "view": "llama",
+      "window": {
+        "artifact_id": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-2-01/p4-window/window.json",
+        "sha256": "31138ddc53532c6c0bbced0c8ecc2959506b7654b68d5a271831f1e462379f76"
+      }
+    }
+  ],
+  "services": [
+    {
+      "artifact_id": "/home/user2/predemo-spark/OPS/p3/owner-d-cpu-service.txt",
+      "raw": "MainPID=2998321\nNice=19\nIOSchedulingClass=3\nCPUAffinity=12-19\nActiveState=active\nActiveEnterTimestamp=Fri 2026-11-20 08:45:31 EST\nMainPID=2998656\nNice=19\nIOSchedulingClass=3\nCPUAffinity=12-19\nActiveState=active\nActiveEnterTimestamp=Fri 2026-11-20 08:46:26 EST\nMainPID=3000072\nMemoryMax=6442450944\nNice=19\nIOSchedulingClass=3\nCPUAffinity=12-19\nActiveState=active\nActiveEnterTimestamp=Fri 2026-11-20 08:48:29 EST\n",
+      "sha256": "a3dade7f5197f59116b8f0e24e19dd6fd184d3243e147f3200b475f58e9df014",
+      "unit": "spark-owner-d-cpu.service",
+      "value": {
+        "main_pid": 3000072,
+        "start": "2026-11-20T13:48:29+00:00"
+      }
+    },
+    {
+      "artifact_id": "/home/user2/predemo-spark/OPS/p3/owner-c2-cpu-service.txt",
+      "raw": "MainPID=2999077\nControlGroup=/user.slice/user-1002.slice/user@1002.service/app.slice/spark-owner-c2-cpu.service\nAllowedCPUs=12-19\nMemoryMax=6442450944\nNice=19\nIOSchedulingClass=3\nCPUAffinity=12-19\nActiveState=active\nActiveEnterTimestamp=Fri 2026-11-20 08:48:08 EST\nInvocationID=3f74beea201a40858fbb48bd628ef245\n",
+      "sha256": "f02eed1aaaefe4788ce26cd510001a9279a8ff4a56453b3191bc3e2f78bc2809",
+      "unit": "spark-owner-c2-cpu.service",
+      "value": {
+        "main_pid": 2999077,
+        "start": "2026-11-20T13:48:08+00:00"
+      }
+    }
+  ],
+  "status": "raw-provisional"
+}

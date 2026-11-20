@@ -1,0 +1,16 @@
+{
+  "cc": "C3",
+  "mode": "equivalent-stock",
+  "window": "p4",
+  "greedy_hashes": {
+    "512": [
+      "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ],
+    "2048": [
+      "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    ]
+  },
+  "result_dir": "/home/user2/predemo-spark/OPS/runs/p4-cache60-aplus-pass-1-01"
+}

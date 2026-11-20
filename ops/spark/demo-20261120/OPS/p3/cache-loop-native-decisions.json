@@ -1,0 +1,1003 @@
+{
+  "schema": "spark-cache-loop-decisions/1",
+  "decisions": {
+    "original_profile_plan": {
+      "home": "factory-runs/star-expert_weight_cache-residency-01",
+      "task": "spark-cache-residency-plan-01",
+      "decision_id": "spark-cache-residency-plan-01:decision:2",
+      "record": {
+        "decision_id": "spark-cache-residency-plan-01:decision:2",
+        "task_id": "spark-cache-residency-plan-01",
+        "rev": 2,
+        "parent_rev": 1,
+        "evidence_ids": [
+          "spark-cache-residency-plan-01",
+          "spark-cache-residency-plan-01:decision:1",
+          "previous-cache-decision-8.json",
+          "incoming-p1-reference-report.md",
+          "incoming-c1-functional-report.md",
+          "incoming-c1-functional-report-v2.md",
+          "routing-profile-analysis-report.json",
+          "routing-transfer-analysis-report.json",
+          "routing-copy-timing-analysis-report.json",
+          "routing-residency-counterfactual-report.json",
+          "operator-hot-residency-plan.md",
+          "operator-profile-method.md",
+          "operator-native-bank-hypothesis.md",
+          "operator-cache-source-options.md",
+          "next-do-planner-boundary.md",
+          "frozen-strata-top96-nominations.json",
+          "frozen-strata-top192-ranked-pool.json",
+          "stock-native-replay-three-sizes.json",
+          "aplus-calibration-fault-io-report.json",
+          "aplus-calibration-fault-io-origin.json",
+          "cache-plan-measured-fault-steering",
+          "cache-operator-byte-bounded-candidate-pool",
+          "cache-plan-source-window-reopen",
+          "input-0:star-deepseek-v1.json",
+          "input-1:star-deepseek-v1.md"
+        ],
+        "observations": [
+          {
+            "limitations": "This is a selected unimplemented hypothesis, not a performance acceptance or implementation grant. Ordinary eviction can erase the initial prior; a null warm result must be retained.",
+            "values": {
+              "alternative_not_selected": "Independent fixed hot prefill cache under strict A adds a separate resident pool and cannot address decode through the C1 zero-byte hook. Keep it separate; do not combine.",
+              "change_from_rev1": "Replace literal top96-only nomination ceiling and prefill-led motivation with a byte-bounded subset of the frozen top192 pool, decode-led evaluation, and explicit cold/warm refault+decode+TTFT controls. Keep ordinary evictable seeding, six paths, gate and 1.3.0 verifier.",
+              "code_to_build": "New bounded profile parser/admission code and native-bank initialization hook. Seed complete expert projection groups into existing native backing once before inference; fill in reverse admitted rank order so highest-ranked entries begin most recent under ordinary stock LRU. Thereafter every entry follows unchanged dynamic demand/refill/victim rules, with no hard pins, repeated profile refresh or continuing priority boosts.",
+              "legacy": "Existing default-off independent-cache product acc87866b7a461f4fd4ad70b91e71eea90329622 stays in its independently owned task/build. Do not import it into this first pure-native DO change.",
+              "selection": "One native-only same-budget A+ frozen-rank preseed treatment, evaluated first for decode residency and refault/read reduction, with prefill reuse as a separate measured outcome.",
+              "why_new_code": "Stock dynamic bank lacks this explicit frozen-prior initialization and complete bounded nomination validation. Calibration decode faults motivate testing whether initial native residency can reduce subsequent refill/read pressure. Merely increasing cache size is not the selected source intervention."
+            },
+            "what": "Replanned selection and new code requirement"
+          },
+          {
+            "limitations": "Keep both C1 revisions immutable. No scored treatment comparison, 2048 extrapolation or supported decode speed claim follows.",
+            "values": {
+              "incoming-c1-functional-report-v2.md": {
+                "learned": "Adds 10674 replay H2D calls across 40 positive 507-row layer groups; 1/4-row prefill and decode groups have zero hook bytes. Replay passes 21.347,42.993,1.001,1.000 s show residency uncertainty. Later 52.621 GB/s implies 1.001 s serial equivalent, not inference latency attribution or recorder overhead.",
+                "read_in_full": true,
+                "sha256": "a08c95234ee30a48ebb1c5498ce00938f797985ec0dc90b89e2b5888723f25a1"
+              },
+              "incoming-c1-functional-report.md": {
+                "learned": "Single capped gate pair has greedy parity, 1360/1360 records and no reported losses. All 52689716736 submitted expert-copy bytes are prefill; 1240 decode events have zero at this hook. Independent Granite missing-event issue remains unresolved.",
+                "read_in_full": true,
+                "sha256": "3c841404c65bbb4146039bf625a042ccecd5b64eb7bea5ea7324969c5327214b"
+              },
+              "incoming-p1-reference-report.md": {
+                "learned": "A/S median TTFT 9.679/5.582 s at 512, 31.562/19.184 s at 2048. Concurrent reconnaissance, stock warm-up drift and differing A/S output hashes rule out quiet attribution; no A+ timing. Strata reuse motivates testing, not a gain prediction.",
+                "read_in_full": true,
+                "sha256": "71c3a2f25cfb217efaf4614101163a5c52aa5bab14a3add8ff8e8a6ba15ea115"
+              }
+            },
+            "what": "Full native incoming reports considered separately"
+          },
+          {
+            "limitations": "Periodic snapshots of stochastic A+ calibration decode, outside first-token timing. Logged n_gen is an asynchronous progress marker and can lag the counter boundary. Process, cgroup and host-device counters have distinct scopes. Hardware prefill timing, tensor-page attribution, I/O critical path and causal cache benefit remain unmeasured. No tensor-page attribution, causal cache win, native fitted recommendation, cold-start comparison, 512/2048 TTFT or calibrated MiB/share is established by these snapshots. No cgroup io.stat was present; process, cgroup and host NVMe totals must remain separate. Asynchronous n_gen deltas are not exact per-token attribution.",
+            "values": {
+              "artifact_id": "aplus-calibration-fault-io-report.json",
+              "excluded_intervals": 3,
+              "interpretation": "Across two advancing decode windows, process backing reads total 26908884992 bytes and cgroup file refaults total 5083081. Early-to-later progress rates rise while reads/faults generally decline; this supports testing native decode residency rather than extrapolating prefill-copy percentages.",
+              "intervals": 20,
+              "request_summaries": [
+                {
+                  "cgroup_file_refault": 1962601,
+                  "cgroup_pages_reclaimed": 4033714,
+                  "cgroup_pages_scanned": 9025116,
+                  "cgroup_pgfault": 119413360,
+                  "cgroup_pgmajfault": 18057,
+                  "elapsed_s": 270.018813699,
+                  "host_nvme_read_bytes": 22372290560,
+                  "intervals": 9,
+                  "logged_token_delta": 1665,
+                  "process_majflt": 5878,
+                  "process_minflt": 6123392,
+                  "process_read_bytes": 10737221632,
+                  "task_id": 0
+                },
+                {
+                  "cgroup_file_refault": 3120480,
+                  "cgroup_pages_reclaimed": 4452744,
+                  "cgroup_pages_scanned": 12253491,
+                  "cgroup_pgfault": 163690290,
+                  "cgroup_pgmajfault": 33192,
+                  "elapsed_s": 330.028676229,
+                  "host_nvme_read_bytes": 33475166208,
+                  "intervals": 11,
+                  "logged_token_delta": 1823,
+                  "process_majflt": 10025,
+                  "process_minflt": 9693317,
+                  "process_read_bytes": 16171663360,
+                  "task_id": 2050
+                }
+              ],
+              "sha256": "0ae388f26b2b6f52f49d6838c9297ed09a28ee1ec2cafac5fb7ebda28a7e6ece",
+              "ttft_s": null
+            },
+            "what": "Actual calibration decode evidence"
+          },
+          {
+            "limitations": "stock-native-replay-three-sizes.json is native simulation only, not measured throughput, latency or upstream six-point fitted recommendation; its capacities do not choose the DO launch size. Counterfactual assumes hits and omits eviction, admission and induced copies. Coverage is not hit rate. C1 strict-A decode has zero copies at that observed hook. Replay serial equivalents cannot be transferred to decode, A+ or 2048 TTFT. routing-profile-analysis-report.json aggregate/provenance preview was read; its long ranked array is truncated, so exact nominations come from the two complete frozen artifacts.",
+            "values": {
+              "copy_timing": {
+                "all_prefill_submitted_bytes": 52689716736,
+                "id": "routing-copy-timing-analysis-report.json",
+                "later_bandwidth_bytes_per_s": 52621068445.87099,
+                "passes_s": [
+                  21.346951502375305,
+                  42.992624395992614,
+                  1.0013045780360699,
+                  0.9995741820894182
+                ],
+                "serial_copy_equivalent_s": 1.0013045780360699
+              },
+              "counterfactual": {
+                "id": "routing-residency-counterfactual-report.json",
+                "top192_modeled_avoided_bytes": 33377293824,
+                "top192_raw_bytes": 66036695040,
+                "top192_serial_equivalent_s": 0.6342952511185472,
+                "top96_modeled_avoided_bytes": 19018771968,
+                "top96_raw_bytes": 33018347520,
+                "top96_serial_equivalent_s": 0.36142884456182767
+              },
+              "native_replay": {
+                "cpu_share": 0,
+                "rows": [
+                  {
+                    "mib": 12544,
+                    "projected_cpu_gib_per_token": 0,
+                    "projected_upload_gib_per_token": 0.4820617698078555
+                  },
+                  {
+                    "mib": 30720,
+                    "projected_cpu_gib_per_token": 0,
+                    "projected_upload_gib_per_token": 0.1709739789112684
+                  },
+                  {
+                    "mib": 61440,
+                    "projected_cpu_gib_per_token": 0,
+                    "projected_upload_gib_per_token": 0.020065693174753315
+                  }
+                ],
+                "scope": "Native cache simulator on the same calibration trace. This is not measured throughput or the upstream six-point fitted recommendation.",
+                "skip_initial_trace_tokens": 2053,
+                "source": "stock moe-cache-tune.py::replay",
+                "trace_sha256": "c7067ad58763398063714280032d9341a86bcd24c9f2425cbae817c3d97a78a9",
+                "tuner_sha256": "c3baf2d21ba7119cdd78a941f4f587caee2b376bad1c83bb44d194231ae6998b",
+                "units": "projected GiB of expert upload and CPU compute payload per token"
+              },
+              "profiles": {
+                "ceiling_gib_including_overhead": 60,
+                "full_pool_raw_gib": 61.50146484375,
+                "pool_id": "frozen-strata-top192-ranked-pool.json",
+                "pool_sha256": "dd4861349970a46e9e23ebe58c39b5afb91bd1d9e4c28e960026fc375b1034da",
+                "source_prior_sha256": "03ae608e20f52d98f784e87544a86fbc1266521c191cd95a974ea81d3232e46b",
+                "top96_id": "frozen-strata-top96-nominations.json",
+                "top96_sha256": "048f93ed053bf43d145bb249f61b87ff7f60fae01818154ec90dc9e3e8c5e7af",
+                "validation": "Both complete artifacts read. Pool has 40 ordered layers, 192 unique integer IDs 0..383 per layer; first96 matches every pinned top96 row exactly."
+              },
+              "route_coverage": {
+                "C1_decode_pick_top192": 0.8443548387096774,
+                "C1_decode_pick_top96": 0.5709677419354838,
+                "historical_pooled_top192": 0.8124353011548133,
+                "historical_pooled_top96": 0.6470845845845846
+              }
+            },
+            "what": "Simulation, counterfactual and exact candidate identities"
+          },
+          {
+            "limitations": "No checkout inspection, product edit, verifier run or compilation was performed. 1.3.0 static scope/gate checks are not runtime or scientific acceptance. New DO task must pin this exact release and explicit six-file source authority; 1.2.0 cannot certify this native scope.",
+            "values": {
+              "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+              "capsule": {
+                "capability": "verify",
+                "inputs": {
+                  "checkout": "<owned isolated stock checkout>",
+                  "diff_path": "<retained scoped candidate diff>",
+                  "env_gate": "LLAMA_EXPERT_CACHE_NATIVE_PROFILE"
+                },
+                "release": "b298c33c52aa0bedf8925c74a36eed0d8b5dca7baaf18d91b79bed1c90f5b9a1",
+                "selected": "engine.build_expert_weight_cache@1.3.0",
+                "status": "Available and passive native_profile/verifier materials read in this session; not executed. Revision1's claim that 1.3.0 was not installed is superseded by current cc_list."
+              },
+              "invariants": "Keep <=32 graph lookup cutoff, graph tags, original expert IDs, native allocation/group geometry, all gate/up/down layouts and bytes, padding, CUDA stream ordering, stock large-batch copy_experts D2D and host-copy fallback, ordinary refill/victims and last-reader safety.",
+              "owned_checkout": "llama.cpp-expert-weight-cache-residency",
+              "read_only": "Model/loader, router, sampler, graph/kernels, GGML backend, CLI placement and tuning script. No placement, batch-layout or threshold changes.",
+              "source_scope": [
+                {
+                  "file": "src/llama-moe-cache.cpp",
+                  "purpose": "Add opt-in setup seeding using existing per-group slot maps and backing, initialize every projection before publication, keep ordinary LRU eviction and copy ordering; add phase-separated native telemetry."
+                },
+                {
+                  "file": "src/llama-moe-cache.h",
+                  "purpose": "Add narrow profile-seed setup/result interface without replacing stock signatures."
+                },
+                {
+                  "file": "src/llama-context.cpp",
+                  "purpose": "Invoke validated seeding after stock native-bank construction and before graph use; provide model/tensor geometry and effective mapped provenance; retain existing scheduler copy callback."
+                },
+                {
+                  "file": "src/CMakeLists.txt",
+                  "purpose": "Register bounded profile parser unit."
+                },
+                {
+                  "file": "src/llama-expert-cache-profile.cpp",
+                  "purpose": "New bounded complete-profile parser and admission selection; no device bank."
+                },
+                {
+                  "file": "src/llama-expert-cache-profile.h",
+                  "purpose": "New immutable validated profile/result types."
+                }
+              ]
+            },
+            "what": "Six pinned scope paths and selected verifier"
+          },
+          {
+            "limitations": "60 GiB is a ceiling, not a grant. Actual A+ MiB/share/grants remain unknown here. Fixed-hot non-eviction instructions belong to the unselected independent path; this native-only choice explicitly follows operator-native-bank-hypothesis.md and native_profile material's evictable policy.",
+            "values": {
+              "admission": "Use actual existing per-group/per-device native grants and complete aligned projection charges, not packed Strata payload. Visit rank first then layer deterministically; retain all stock reserved/workspace slots and leave at least one decode demand set (min(group usable slots, model experts_per_token)) initially unseeded in each admitted group. Every seeded entry is also eligible for normal stock eviction. Admit as many ranked entries as fit; >96 is supported when actual grants permit, never required. Log requested/admitted/skipped IDs, reasons, slots and exact bytes by group.",
+              "gate": {
+                "budget": "Existing --moe-cache-mib and CPU share from independently admitted A+ receipt, identical for every matched arm. LLAMA_EXPERT_CACHE and LLAMA_EXPERT_CACHE_MIB remain unset.",
+                "enable": "LLAMA_EXPERT_CACHE_NATIVE_PROFILE=1",
+                "fallback": "Nonliteral gate or requested missing/malformed/unsupported profile, non-mmap input, missing native bank, incompatible model/group, zero admission or setup failure: requested-only explicit inactive reason and stock native policy. Never enable independent cache.",
+                "off": "Unset gate: cached presence check, no profile I/O, allocation, seeding, added synchronization or native-profile markers; unchanged stock native behavior/logs.",
+                "selector": "LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH=<private read-only exact frozen profile>"
+              },
+              "identity": "Launch receipt binds pool digest dd4861349970a46e9e23ebe58c39b5afb91bd1d9e4c28e960026fc375b1034da, model identity receipt 4104a0bfcbf9a32e7ca26151d052d1f8059189ce6f2f0f36441cd4b15979fb76 and its six pinned shard digests. Runtime architecture/tensor signature validates structure, not a full weight hash. Preserve raw contract null hash/reference fields.",
+              "no_double_budget": "One existing native bank only, no extra device bank, expert-sized duplicate staging or persistent device profile copy. Total charged native treatment bank, alignment, fixed buffers, bounded metadata and setup temporaries must fit min(admitted A+ budget,61440 MiB=64424509440 bytes) and shared pool remaining headroom after model/KV/compute/concurrent reservations. Charge backing once and metadata/temporaries once; do not sum seed payload on top of already charged bank. Full top192 raw 66036695040 bytes already exceeds ceiling and is forbidden as a full allocation.",
+              "parser": "Read a regular private read-only file of at most 64 KiB. Bound 40 layers x up to 192 nominations, validate entire schema/target, complete ordered layer set, unique original IDs in 0..383, integers, exact per-expert projection layout/backend/group compatibility and externally pinned profile/model identities before touching slot maps. Accept the exact top96 input as a smaller nominated pool; choose top192 pool for this revised treatment. Reject malformed input atomically.",
+              "publication": "Seed once after actual native allocation before inference. Initialize every projection and establish completion before publishing a ready slot. Failed setup drains outstanding copies and restores a valid stock state with no partial profile visibility; if that cannot be proved, abort setup before inference.",
+              "size_selection": "Do not enlarge a calibrated A+ bank to fit nominations. Import actual selected MiB/share and grant receipt before admission. If a larger capacity is separately admitted later, it needs its own identical-size stock control and separate experiment; this decision selects one treatment, not a capacity sweep."
+            },
+            "what": "Bounded admission, gate and one budget"
+          },
+          {
+            "limitations": "No native fixture, build, runtime acceptance, fault reduction, decode gain or TTFT gain exists for this design. Raw reference/image/stdout remain unfrozen. DO implementation and later external measurement require their own authority and receipts.",
+            "values": {
+              "cold_warm": "Record process load, preseed time/bytes, first request and first-fill separately. Retain first request as cold/first-use evidence but exclude it from warm TTFT. OS-cold status must be evidenced; a fresh process is not proof of cold file pages. Compare matched cold/first-use conditions and two warmed mirrored launch windows, five warm repeats per fixed 512/2048 prompt in ABBA. Do not warm one arm more than the other.",
+              "control": "External owner first imports calibrated/admitted stock A+ capacity, CPU share and effective group allocation. Compare stock A+, candidate native gate unset and candidate gate on at exactly identical MiB/share and effective model/mmap/placement/context/batch/threads/ports/workload/warmup. Freeze stock reference output within each configuration. Strict A and S remain separate owner reference arms.",
+              "explicit_pure_native_acceptance": "Require separately admitted native-mode fixture and target checks: stock/candidate-unset/candidate-enabled byte-identical greedy output, gate-unset silence, active/inactive/stats markers from requested mode, positive ready native decode reuse and separately large-batch D2D if claimed. Exercise <=32 lookup and >32 copy, missing/invalid/duplicate/oversize profiles, top96 and >96 nominations, deterministic truncation, tiny/zero grants, full dynamic demand eviction, partial setup/failure cleanup, native-disabled/non-mmap fallback and no reader seeing recycled/uninitialized slots. 1.3.0 verify plus configured compile and header consumers/link required in DO, never here.",
+              "falsification": "Retain null/negative if steady-state seed survival/reuse disappears, refaults/reads/refills do not improve, decode regresses, setup cost dominates, or quiet matched TTFT fails to improve. Reduced faults or uploads alone are not a speed win. A decode improvement does not override owner TTFT acceptance; no overall or contract acceptance without frozen reference, correctness and complete comparable evidence.",
+              "owner_protocol": "Preserve star-deepseek-v1 primary client TTFT at rendered 512/2048 tokens, 32 generated tokens, greedy temperature0 seed1, no thinking/prompt caching; 100GiB/eight CPUs,110GiB start admission,8GiB watchdog. Quiet load<1 and no builds. Only lead engineer via bin/capped; factory lab disabled. Instrumented counters explain separately from uninstrumented scored timing. No altered workload or thresholds.",
+              "per_phase_metrics": "Report startup/preseed, first-request prefill, warm prefill and decode separately: refaults/reclaim/scan, process minor/major faults and read_bytes, cgroup fault scope, host NVMe reads as separately scoped context; native hits/misses, ordinary demand refills/evictions, seed survival, H2D fills, large-prefill D2D bytes/calls, actual ready reuse, wait at first demand, payload/actual charged peak, UMA headroom. Report client TTFT and engine prefill for each request, decode tokens/s and durations, load/init costs and confidence intervals. TTFT ends at first token; decode intervals are a separate phase.",
+              "rollback": "Unset LLAMA_EXPERT_CACHE_NATIVE_PROFILE and remove selector to recover stock A+ at identical MiB/share. On parity/cap/off-path failure restore admitted stock A+ binary/environment. Revert only six task changes in isolated DO checkout, preserving unrelated work and independent legacy product.",
+              "scorer_boundary": "Frozen no-native Granite scorer using LLAMA_EXPERT_CACHE=1 stays unchanged and independently owned. It cannot activate or accept this pure native gate. Preserve historical Granite missing-event failure and legacy silence uncertainty; no relabeling from Spark recorder parity or a native pass."
+            },
+            "what": "Measured controls, phase attribution and separate acceptance"
+          }
+        ],
+        "hypothesis": "A byte-bounded frozen ranked preseed in the unchanged native A+ bank can improve initial and subsequent decode residency and reduce demand refill/file refault/read pressure while ordinary LRU and victims remain intact. Larger feasible nomination subsets are allowed within actual grants and the 60GiB inclusive ceiling. Test this one source policy at the same A+ budget/share; use native decode counters and cold/warm phase-separated measurements, not prefill-copy extrapolation.",
+        "uncertainty": "Fault-heavy calibration is real decode evidence but lacks exact tensor attribution or causal latency proof. Strata prior is pooled prefill/decode and may not transfer; native LRU can erase seeds. Actual A+ capacity/share/group grants, admitted subset, initialization cost, parity, steady-state reuse/refaults, native gate acceptance and quiet TTFT/decode benefit remain unknown.",
+        "action": {
+          "next_bounded_operation": "Publish revised evidence-backed native-only plan and yield immediately to a separate fresh stock DO task. That task implements new parser/admission and ordinary-evictable native seed hooks in exactly six paths using pinned 1.3.0 verifier; imports A+ capacity/grants before admission and later obtains explicit pure-native acceptance/external matched measurements. No product edits, tests, builds, jobs or models in this plan task.",
+          "type": "report_inconclusive"
+        },
+        "expected_evidence": "Separate DO source grant and clean stock provenance, pinned 1.3.0 release, retained six-file diff and static/compile receipts; explicit pure-native fixture/lifetime/fallback/parity acceptance; actual calibrated A+ MiB/share/group ledger; then external stock/unset/on same-budget cold/warm measurements with exact model/profile identities, admission, refaults/reads/refills/decode and request TTFT by phase. Missing prerequisites and negative outcomes remain visible.",
+        "budget": {
+          "builds": 0,
+          "experiments_selected": 1,
+          "future_inclusive_ceiling_bytes": 64424509440,
+          "gpu_work": 0,
+          "incremental_native_bank_bytes": 0,
+          "job_submissions": 0,
+          "model_loads": 0,
+          "services_started": 0,
+          "source_writes": 0,
+          "tests": 0
+        },
+        "stop_condition": "Stop immediately after successful durable decision publication and yield implementation to the separate DO task. No source or workload execution, no polling or disturbance of independent legacy build.",
+        "reason_for_change": "Required new aplus-calibration-fault-io-report.json reports substantial advancing decode-window refault/read pressure and no TTFT. It changes revision1's prefill-led emphasis. stock-native-replay-three-sizes.json supports capacity sensitivity only as simulation; routing-residency-counterfactual-report.json supports modeled sizing/byte opportunity only. frozen-strata-top192-ranked-pool.json and cache-operator-byte-bounded-candidate-pool replace the literal top96-only restriction with deterministic admission inside actual grants and 60GiB including overhead; full top192 exceeds the ceiling. incoming-p1-reference-report.md, incoming-c1-functional-report.md and incoming-c1-functional-report-v2.md were read in full: retain reconnaissance limitations, prefill-only hook scope and replay variability without deriving decode speedup. operator-native-bank-hypothesis.md and operator-cache-source-options.md justify using existing native backing and ordinary victims instead of an independent strict-A pool. Owner contract input-0:star-deepseek-v1.json/input-1:star-deepseek-v1.md, previous-cache-decision-8.json and next-do-planner-boundary.md preserve independent legacy/scorer scope, measured controls and separate DO handoff; current reopen steering supersedes the former hold. Current cc_list and passive native_profile/verifier materials show 1.3.0 is now available, superseding revision1's unavailable-verifier assumption.",
+        "created": 1795162709.139606,
+        "plan_patch": null,
+        "expected_graph_rev": null
+      }
+    },
+    "direct_seed_do_plan": {
+      "home": "factory-runs/star-expert_weight_cache-direct-seed-02b",
+      "task": "spark-cache-direct-seed-do-02b",
+      "decision_id": "spark-cache-direct-seed-do-02b:decision:2",
+      "record": {
+        "decision_id": "spark-cache-direct-seed-do-02b:decision:2",
+        "task_id": "spark-cache-direct-seed-do-02b",
+        "rev": 2,
+        "parent_rev": 1,
+        "evidence_ids": [
+          "spark-cache-direct-seed-do-02b:decision:1",
+          "direct-seed-native-test.cpp",
+          "direct-seed-native-test-receipt.json",
+          "direct-seed-dioalign-metadata-receipt.json",
+          "spark-cache-direct-seed-do-02b:cpu-helper-regression",
+          "direct-seed-followon-30g-matched-observation.json",
+          "spark-cache-direct-seed-do-02b:postdecision-history",
+          "successor-p1-reference.md",
+          "successor-c1-report-v1.md",
+          "successor-c1-report-v2.md",
+          "successor-c2-layer27.md",
+          "successor-c5-functional.md",
+          "caa15f5e01bb4d4daea7cdf02391767a"
+        ],
+        "observations": [
+          {
+            "limitations": "Helper fixture uses mocked GPU upload and generated bytes, not model/native-target execution. Exact final-source regression receipt pending after completion-boundary tightening. Fresh timing is concurrent exploratory two-launch screening with residual drift, no quiet ABBA and no direct-seed data.",
+            "summary": "Imported operator CPU regression passes actual O_DIRECT helper on generated data; six-shard metadata supplies real alignment. Follow-on 30GiB exploration does not establish a direct-seed effect.",
+            "values": {
+              "followon30": {
+                "control_decode_median": [
+                  19.29478,
+                  17.26286
+                ],
+                "control_ttft_median": [
+                  6.60001,
+                  14.11111
+                ],
+                "paired_decode_delta_median": [
+                  -0.5917,
+                  0.45287
+                ],
+                "parity": true,
+                "profile_decode_median": [
+                  20.87885,
+                  18.76862
+                ],
+                "profile_ttft_median": [
+                  5.89156,
+                  13.34057
+                ]
+              },
+              "helper": {
+                "exit_status": 0,
+                "post_test_changes": "Native gate alias rename and noexcept drain wrapper prevents exceptional completion from unwinding into unknown-reader staging free; final-hash recheck remains needed.",
+                "source_cpp_current": "892880b9c8c9410c832f648ff1acf104c9e1f3b0d0b0d236d404901f980cfaa2",
+                "source_cpp_tested": "84b915e1a524dbdeb1248a877b99d0d32e2dffca98d451f9778bc4a2e0b752e5",
+                "source_header": "1aa8082a1011699812f62296e9abe8e5cbef642ce69470027641e024ffa2154e"
+              },
+              "history": {
+                "C1": "52.690GB prefill capture and warm replay; no observed decode hook savings",
+                "C2": "equivalent policy placement plus parity is functional evidence",
+                "C5": "zero applied decisions, no composition",
+                "P1": "reconnaissance only; superseded by A/S references"
+              },
+              "metadata": {
+                "filesystem": "ext4",
+                "mem_alignment": 4,
+                "payload_bytes_read": 0,
+                "read_alignment": 512,
+                "shards": 6
+              }
+            }
+          }
+        ],
+        "hypothesis": "Retain the same independent direct-seed hypothesis; metadata and generated-file tests reduce applicability/byte-staging uncertainty, while the 30GiB results reinforce matching bank budget and serving phase rather than attributing all C3 regression to seeding.",
+        "uncertainty": "No configured engine compile/link, actual GPU completion/failure, model parity, hot/cold pre/post-seed residency or performance evidence for direct mode exists. Delta verifier skips existing source compilation and local lexical gate trace is inconclusive; source review confirms wrapper returns before any direct work when native gate is absent.",
+        "action": {
+          "followup_plan": {
+            "control": "Same final binary, weights, native bank bytes, nominations, reserve, slots, CPU placement, context, batch, request order and all other env; direct gate absent versus literal 1 only.",
+            "correctness": "Greedy output identity and unchanged nomination/slot hashes; unsupported filesystem, invalid geometry, short read/I/O and upload partial failure must never publish slots.",
+            "limits": "Source-only now. No reclaim advice, inference no-host assertion, model/native target build, GPU job, default promotion or composition.",
+            "measurements": "Retain seed identities and exact payload, I/O requested/returned, staging, alignment overhead, failure/fallback, metadata/demand paths, startup elapsed/cgroup memory, TTFT and decode, process reads/major faults and host NVMe separately.",
+            "residency": "For both hot and approved cold preparations, capture inode/device-verified mincore samples before loader/startup, immediately pre-seed after loader, post-seed after upload completion, ready, first request and repeat requests. Use matched instrumented boundary runs separately from uninstrumented performance runs."
+          },
+          "next_operation": "Final native verifier, source review and optimistic workbench localcommit; record complete stock patch export as requiring later read-only-stock applicability and new-file syntax checks.",
+          "summary": "Finish the independent direct-seed source arm, retain the native and generated-file checks with their exact source identities, and seal only the three reviewed files in a local commit.",
+          "type": "integrate"
+        },
+        "expected_evidence": "Final workbench file identities, verifier done with individual limitations, clean exact-parent local source commit. Later complete stock patch checked against read-only 9048bad8 and final helper/source receipt; external runtime remains separate.",
+        "budget": {
+          "gpu_jobs": 0,
+          "local_commits": 1,
+          "model_jobs": 0,
+          "target_builds": 0
+        },
+        "stop_condition": "Do not claim any missing build/runtime/performance obligation as passed. Preserve failures and final-hash gaps explicitly.",
+        "reason_for_change": "New direct-seed-native-test-receipt.json and dioalign metadata establish bounded local mechanism evidence. direct-seed-followon-30g-matched-observation.json is exploratory and changes no implementation scope; C1/C2/C5 history rules out composing unrelated mechanisms.",
+        "created": 1795169555.6308122,
+        "plan_patch": null,
+        "expected_graph_rev": null
+      }
+    },
+    "direct_seed_postlab_plan": {
+      "home": "factory-runs/star-expert_weight_cache-direct-seed-postlab-plan-03",
+      "task": "spark-cache-direct-seed-postlab-plan-03",
+      "decision_id": "spark-cache-direct-seed-postlab-plan-03:decision:1",
+      "record": {
+        "decision_id": "spark-cache-direct-seed-postlab-plan-03:decision:1",
+        "task_id": "spark-cache-direct-seed-postlab-plan-03",
+        "rev": 1,
+        "parent_rev": 0,
+        "evidence_ids": [
+          "spark-cache-direct-seed-postlab-plan-03",
+          "direct-abba.md",
+          "quiet-original30.md",
+          "a-s-reference.md",
+          "previous-cache-full.md",
+          "next-plan-input.json",
+          "compact-direct-mechanism.json",
+          "predecessor-report-index.json",
+          "spark-cache-direct-seed-postlab-plan-03:history"
+        ],
+        "observations": [
+          {
+            "evidence_ids": [
+              "direct-abba.md",
+              "next-plan-input.json"
+            ],
+            "limitations": "Ten pairs per size are request repeats within two fixed launch windows, with residual warming; intervals exclude between-launch variation. Quiet boundary checks cannot observe all activity between snapshots.",
+            "values": {
+              "allocation_mib": 30682.35,
+              "budget_mib": 30720,
+              "conclusion": "No demonstrated inference gain; do not promote or invent a source optimization.",
+              "paired_decode_tps_gain": {
+                "2048": {
+                  "conditional_95_interval": [
+                    -1.414,
+                    0.965
+                  ],
+                  "median": -0.201
+                },
+                "512": {
+                  "conditional_95_interval": [
+                    -0.534,
+                    1.459
+                  ],
+                  "median": 0.744
+                }
+              },
+              "paired_ttft_seconds_saved": {
+                "2048": {
+                  "conditional_95_interval": [
+                    -1.719,
+                    3.261
+                  ],
+                  "median": 0.199
+                },
+                "512": {
+                  "conditional_95_interval": [
+                    -1.348,
+                    2.423
+                  ],
+                  "median": -0.024
+                }
+              },
+              "scope": "02b direct profile seeding versus same-budget stock A+, not read-path-only attribution"
+            }
+          },
+          {
+            "evidence_ids": [
+              "quiet-original30.md",
+              "previous-cache-full.md"
+            ],
+            "limitations": "Historical original-C3 versus the current direct run is not a randomized same-ELF read-source comparison; the exploratory 60 GiB improvement over same-budget A+ cannot establish a quiet causal benefit or optimal capacity.",
+            "values": {
+              "actual_quiet_60_gib_mirror": "not published to this task",
+              "historical_screening": "30/60 GiB exploratory observations include concurrent CPU-lane services, substantial drift, reclaim and memory pressure; retain null/adverse evidence.",
+              "quiet_original_C3": {
+                "load_ready_seconds": {
+                  "Aplus": [
+                    82.201,
+                    85.197
+                  ],
+                  "C3": [
+                    107.211,
+                    105.458
+                  ]
+                },
+                "paired_ttft_seconds_saved": {
+                  "2048": -2.844,
+                  "512": -1.184
+                },
+                "ttft_2048_conditional_95_interval": [
+                  -8.446,
+                  -1.077
+                ]
+              }
+            }
+          },
+          {
+            "evidence_ids": [
+              "direct-abba.md",
+              "compact-direct-mechanism.json"
+            ],
+            "limitations": "Startup direct payload completion is established, not startup acceleration or inference read elimination. Post-ready comparison exists only on pass 2. Deterministic stratified mincore draws estimate source-inode page-cache occupancy; they are not independent random samples, device bank occupancy, live device-hit IDs or eviction history. Seed-class labels use actual startup admissions and can outlive device membership. Process I/O, cgroup refaults and host NVMe activity have distinct scopes; host NVMe includes unrelated traffic.",
+            "values": {
+              "post_ready_pass2_seeded_inode_resident_percent": {
+                "Aplus": 38.47,
+                "direct": 38.36
+              },
+              "sample": {
+                "deterministic_seed": 20261120,
+                "excluded_boundary_draws": 11,
+                "other_draws": 6020,
+                "page_size_bytes": 4096,
+                "pages_per_stratum": 4096,
+                "seeded_draws": 1844
+              },
+              "serving_phase_evidence": {
+                "direct2048_max_major_faults": 175,
+                "direct512_median_major_faults": 6,
+                "start_to_first_token_median_process_read_mib": {
+                  "Aplus2048": 2.006,
+                  "Aplus512": 0.154,
+                  "direct2048": 1.004,
+                  "direct512": 4.451
+                }
+              },
+              "startup": {
+                "Aplus_load_ready_seconds": [
+                  82.243,
+                  76.147
+                ],
+                "direct_elapsed_seconds": [
+                  12.416,
+                  12.517
+                ],
+                "direct_load_ready_seconds": [
+                  86.142,
+                  87.145
+                ],
+                "direct_requested_returned_bytes": 31669441536,
+                "failures": 0,
+                "fallbacks": 0,
+                "uploaded_payload_bytes": 31663779840
+              }
+            }
+          },
+          {
+            "evidence_ids": [
+              "a-s-reference.md",
+              "previous-cache-full.md"
+            ],
+            "limitations": "Reference configuration timing is contextual, not C3 attribution, quality acceptance or overall engine superiority. Worker times overlap and cannot be added to client TTFT; generated sequences differ across engines.",
+            "values": {
+              "Strata_final_2048_prefill": {
+                "compute_wait_reads_ms": 20365,
+                "file_experts": 1530,
+                "layer_cache_experts": 4547,
+                "page_cache_GB": 4.4,
+                "unbuffered_GB": 8.9,
+                "worker_activity_ms": 119645
+              },
+              "quality": "Within-arm stable; cross-engine greedy outputs diverged; accuracy unmeasured.",
+              "reference": "A-matched without the native bank and fair Strata are complete engine/pack configurations; A-matched is not same-budget A+.",
+              "warm_512_decode_tps": {
+                "A_matched": 3.002,
+                "Strata": 17.2
+              },
+              "warm_512_ttft_seconds": {
+                "A_matched": 4.557,
+                "Strata": 12.313
+              }
+            }
+          }
+        ],
+        "hypothesis": "The highest-value unresolved mechanism is whether startup O_DIRECT versus mmap seed reads changes load cost and subsequent source-page/fault behavior when the same 02b ELF, profile admission and native bank are held fixed; current 02b versus A+ changes both seeding and read source and cannot identify that effect.",
+        "uncertainty": "No inference benefit is established, no actual quiet 60 GiB mirror is available, and no live device-bank membership or verified unnecessary resident-hit host-read evidence is present. Capacity/workload optima and a native prefill policy benefit remain unmeasured.",
+        "action": {
+          "handoff": "LAB planning input only; no source edits, builds, model runs, jobs or tests are authorized or executed in this task.",
+          "ranked_next_steps": [
+            {
+              "comparison": {
+                "A_env": {
+                  "LLAMA_EXPERT_CACHE_DIRECT_SEED": "unset",
+                  "LLAMA_EXPERT_CACHE_NATIVE_PROFILE": "1",
+                  "LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH": "same frozen report-linked private profile path in both arms"
+                },
+                "B_env": {
+                  "LLAMA_EXPERT_CACHE_DIRECT_SEED": "1",
+                  "LLAMA_EXPERT_CACHE_NATIVE_PROFILE": "1",
+                  "LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH": "same frozen report-linked private profile path in both arms"
+                },
+                "ELF_rule": "Use the identical existing 02b ELF in every arm; resolve and freeze its receipt-linked ELF digest before admission, without rebuilding.",
+                "admission": {
+                  "correctness": "Compare canonical generated token IDs and finish reasons for every matched request using the frozen contract; retain content/reasoning evidence and any mismatch. Existing cross-engine divergence cannot count as correctness.",
+                  "engagement": "B must report complete direct ledger with planned=uploaded=31663779840 payload bytes, returned=requested direct bytes and zero failures/fallbacks; A must report mmap seed source and the same complete admissions. Preserve inode/device identity and read-alignment checks; reject partial seeds or silent fallback.",
+                  "required": "Operator/LAB must freeze a separate admitted comparison under contract star-deepseek-v1, bind existing ELF/model/profile and full P4 workload/runtime/cap manifest digests, verify both paths are available in that ELF and matching actual allocations/admitted-slot digests, and preserve current correctness and acceptance rules; missing identities or controls block execution rather than trigger a rebuild or guessed values.",
+                  "status": "Proposed executable LAB input, not admitted execution in this planning-only task."
+                },
+                "decision_rule": "Mechanism-only attribution first; no default promotion. Use the existing frozen performance/correctness gate, report launch-level replication limits, and keep null/adverse outcomes. A positive read-path result still requires a separate direct-profile versus same-budget A+ product comparison.",
+                "existing_build_attempt_id": "13ce73a8df0f452291b7a7e8aee81a5b",
+                "existing_source_verifier": "52fc8c82-442b-4d1d-a71a-d1894bfc7f4d",
+                "fixed_controls": {
+                  "bank": "one existing native bank; identical demand reserve, slot IDs, projections, CUDA padding, nomination order, refill, eviction and large-prefill behavior",
+                  "expected_admitted_slots_sha256": "1616cc47e4fd1a9dc673e94460b500332a0969e721d8d754ce4649df8cb97b10",
+                  "expected_logged_allocation_mib": 30682.35,
+                  "expected_seed_count": 3686,
+                  "expected_seed_payload_bytes": 31663779840,
+                  "host": "Use matched P4 100 GiB cgroup cap and CPUs 0\u20137 with the exact retained CPU-share and memory controls; no co-running planner, build or other workload.",
+                  "native_cache_mib": 30720,
+                  "policy": "stock_evictable",
+                  "reverse_rank": 1,
+                  "runtime": "Freeze and reuse exact P4 model/pack/profile digests, argv, effective settings, prompt bytes, sampler, output limit and request manifest from retained launch receipts; no substitutions."
+                },
+                "measurements": "Report load-to-ready, seed ledger time/bytes and cold request positions separately from warmed TTFT, native prefill, decode and combined request time; retain per-phase process read/fault deltas, cgroup file/refault and reclaim/headroom, host NVMe separately, H2D/D2D, hits/misses and evictions. Do not call inode samples device occupancy.",
+                "protocol": {
+                  "captures": "Identical deterministic page strata immediately after conditioning, after ready in EVERY scope before any prompt, after each warmup pair, and before each timed request; record seed classes and excluded boundaries.",
+                  "launch_order": [
+                    "mmap-1",
+                    "direct-1",
+                    "direct-2",
+                    "mmap-2"
+                  ],
+                  "per_launch": "Fresh process and identical file-specific source conditioning before each launch; three warmups per size followed by five timed repeats per size in the frozen P4 order, totaling ten timed requests per arm per size at 512 and 2048 tokens.",
+                  "quiet": "Strict quiet preflight plus retained conditioning, launch and before/after-request boundaries; invalidate affected comparison on foreign-workload exposure, retaining its evidence."
+                },
+                "single_changed_variable": "LLAMA_EXPERT_CACHE_DIRECT_SEED unset versus 1; unset selects original mmap startup seed path; all demand reads remain stock mmap.",
+                "source_commit": "8e7044906a614c42656c703dbdb375023bc9cdeb"
+              },
+              "name": "Same-ELF 02b mmap/direct mechanism A/B",
+              "rank": 1,
+              "reason": "Isolate the startup read source, as required by direct-abba.md and next-plan-input.json."
+            },
+            {
+              "budgets_mib": [
+                15360,
+                30720,
+                46080
+              ],
+              "design": "Admit separate workload cells with frozen 512/2048 inputs and deployment-relevant request lengths/concurrency only when explicitly admitted, equal host caps, quiet mirrored replication, and same-budget stock A+ versus profile treatment within each capacity; hold seed read source fixed. Derive complete projection admission and demand reserve from actual allocation for each budget, freeze per-cell admitted IDs/digests, and retain startup amortization, TTFT, decode, I/O, correctness and headroom. Do not reuse the 30 GiB slot list at other capacities or infer a 15/45 GiB result. Keep the absent quiet 60 GiB original-C3 mirror as a separate evidence request.",
+              "name": "Matched 15/30/45 GiB workload admissions",
+              "rank": 2,
+              "reason": "Find the workload-specific latency/decode/memory tradeoff before proposing source work; 60 GiB screening shows possible file-cache pressure but is not quiet confirmation."
+            },
+            {
+              "condition": "Only after verified per-phase selected expert IDs, device hits/misses, host payload reads, padding transfers and refill/eviction establish that a resident hit unnecessarily reads host backing or that a narrower prefill admission/refill policy addresses the warmed TTFT gap.",
+              "limits": "No source optimization or predicted speedup follows from current null/adverse results; no page-advice cleanup or bank-occupancy claim follows from mincore samples.",
+              "name": "Conditional native prefill policy change",
+              "proposal": "If that condition holds, scope one separately authorized default-off source intervention preserving selected IDs, grouped device hits, miss fallback, MMQ tail/padding correctness, asynchronous lifetimes and decode demand behavior; compare with stock large-batch read-only bank. Otherwise keep current behavior and investigate the measured bottleneck.",
+              "rank": 3
+            }
+          ],
+          "summary": "The measured direct seed result does not establish an inference gain, so hand off a same-ELF buffered versus direct startup comparison before matched capacity admissions and any evidence-backed native prefill policy change.",
+          "type": "report_inconclusive"
+        },
+        "expected_evidence": "A separately admitted same-ELF comparison will distinguish startup read-source engagement and load cost from inference effects with identical nominations, bank and correctness; matched capacity cells can then inform workload admission, and only verified unnecessary prefill traffic can justify a source proposal.",
+        "budget": {
+          "builds": 0,
+          "decision_turns": 1,
+          "execution_authorized": false,
+          "jobs": 0,
+          "model_runs": 0,
+          "source_edits": 0,
+          "tests": 0
+        },
+        "stop_condition": "Terminal evidence-only handoff now; do not execute source or LAB work. Future work stops or reports inconclusive on missing frozen manifests/admission, engagement failure, correctness failure, quiet-control violations or insufficient launch replication.",
+        "reason_for_change": "direct-abba.md and compact-direct-mechanism.json establish direct startup engagement but no resolved inference gain or read-path-only attribution; quiet-original30.md retains adverse quiet C3 evidence; previous-cache-full.md supplies exploratory capacity context with concurrency limitations; a-s-reference.md separates engine/pack and quality context; next-plan-input.json explicitly prioritizes same-ELF isolation and separate capacity inputs.",
+        "created": 1795175873.2445846,
+        "plan_patch": null,
+        "expected_graph_rev": null
+      }
+    },
+    "post_c4_plan": {
+      "home": "factory-runs/star-expert_weight_cache-direct-seed-postlab-plan-03",
+      "task": "spark-cache-predictor-postlab-plan-05",
+      "decision_id": "spark-cache-predictor-postlab-plan-05:decision:1",
+      "record": {
+        "decision_id": "spark-cache-predictor-postlab-plan-05:decision:1",
+        "task_id": "spark-cache-predictor-postlab-plan-05",
+        "rev": 1,
+        "parent_rev": 0,
+        "evidence_ids": [
+          "spark-cache-predictor-postlab-plan-05",
+          "direct-abba.md",
+          "quiet-original30.md",
+          "a-s-reference.md",
+          "previous-cache-full.md",
+          "verified-cache60-screening.md",
+          "cache60-io-supplement.md",
+          "prior-native-decision.json",
+          "predictor-pooled30.md",
+          "post60-bounded-plan-checkpoint.json"
+        ],
+        "observations": [
+          {
+            "evidence_ids": [
+              "direct-abba.md",
+              "quiet-original30.md",
+              "prior-native-decision.json"
+            ],
+            "limitations": "Ten matched request repeats per size within fixed launches are not ten independent launches. Bootstrap intervals are conditional on those launch windows and exclude between-launch variability; residual warming remains. Direct versus stock A+ changes profile admission and read source together; historical original versus direct is not same-ELF attribution.",
+            "values": {
+              "interpretation": "Strict 30 GiB evidence supports neither original profile seeding nor direct seeding as an inference improvement; retain these null/adverse results independently of the 60 GiB screen.",
+              "strict_30GiB": {
+                "budget_MiB": 30720,
+                "direct_vs_Aplus": {
+                  "Aplus_load_ready_s": [
+                    82.243,
+                    76.147
+                  ],
+                  "conditional_95_TTFT_intervals_s": {
+                    "2048": [
+                      -1.719,
+                      3.261
+                    ],
+                    "512": [
+                      -1.348,
+                      2.423
+                    ]
+                  },
+                  "conditional_95_decode_intervals": {
+                    "2048": [
+                      -1.414,
+                      0.965
+                    ],
+                    "512": [
+                      -0.534,
+                      1.459
+                    ]
+                  },
+                  "direct_failures": 0,
+                  "direct_fallbacks": 0,
+                  "direct_load_ready_s": [
+                    86.142,
+                    87.145
+                  ],
+                  "direct_payload_bytes": 31663779840,
+                  "paired_TTFT_saved_s": {
+                    "2048": 0.199,
+                    "512": -0.024
+                  },
+                  "paired_decode_gain_tps": {
+                    "2048": -0.201,
+                    "512": 0.744
+                  }
+                },
+                "logged_allocation_MiB": 30682.35,
+                "original_C3_vs_Aplus": {
+                  "Aplus_load_ready_s": [
+                    82.201,
+                    85.197
+                  ],
+                  "C3_load_ready_s": [
+                    107.211,
+                    105.458
+                  ],
+                  "conditional_95_TTFT_interval_2048_s": [
+                    -8.446,
+                    -1.077
+                  ],
+                  "paired_TTFT_saved_s": {
+                    "2048": -2.844,
+                    "512": -1.184
+                  }
+                }
+              }
+            }
+          },
+          {
+            "evidence_ids": [
+              "verified-cache60-screening.md",
+              "cache60-io-supplement.md"
+            ],
+            "limitations": "Quiet-only values are observed medians/ranges, not quiet-only confidence intervals or an independent replicated experiment. Full ten-pair conditional bootstrap includes exposed reverse control; CPU pinning, nice 19 and idle I/O do not prove no shared interference. Boundary checks miss transient work. Process read_bytes/faults are not host-wide NVMe, GPU transfer bytes, or causal device-hit evidence; launch-wide small-ubatch counters include warmups and may include prefill and decode. Host inode mincore samples do not identify live bank membership. 60 versus 30 GiB is a cross-capacity tradeoff under the same 100 GiB scope cap, not a randomized capacity gain or optimum.",
+            "values": {
+              "exposed_or_post_cutoff_subset": {
+                "pairs_per_size": 4,
+                "repeat_labels": [
+                  7,
+                  8,
+                  9,
+                  10
+                ],
+                "rule": "Keep final A+ requests crossing the first build/preflight cutoff and all later requests in screening, including 512 repeat 7 with no intersecting service interval; a quiet boundary does not undo prior exposure."
+              },
+              "quiet_subset": {
+                "TTFT_saved_median_s": {
+                  "2048": 100.235,
+                  "512": 26.796
+                },
+                "TTFT_saved_observed_ranges_s": {
+                  "2048": [
+                    73.967,
+                    125.921
+                  ],
+                  "512": [
+                    23.16,
+                    32.316
+                  ]
+                },
+                "cutoff_UTC": "2026-11-20T13:45:29.860678+00:00",
+                "decode_gain_median_tps": {
+                  "2048": -0.149,
+                  "512": -0.448
+                },
+                "decode_gain_observed_ranges": {
+                  "2048": [
+                    -1.27,
+                    0.605
+                  ],
+                  "512": [
+                    -2.487,
+                    0.127
+                  ]
+                },
+                "pairs_per_size": 6,
+                "process_reads_avoided_before_first_GB": {
+                  "2048": 27.531,
+                  "512": 10.547
+                },
+                "process_reads_avoided_observed_ranges_GB": {
+                  "2048": [
+                    22.927,
+                    35.797
+                  ],
+                  "512": [
+                    9.454,
+                    12.853
+                  ]
+                },
+                "repeat_labels": [
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6
+                ]
+              },
+              "report_identity": {
+                "alias": "verified-cache60-screening.md",
+                "amended_sha256": "c483dee24ee544de39af9c9a80b7481888bdc31f8d26d9b66a21dd3734b2c074",
+                "classification": "partially build-overlapped screening, amended report-v2"
+              },
+              "same_capacity": {
+                "CPUs": "0-7",
+                "budget_MiB": 61440,
+                "cap_GiB": 100,
+                "logged_allocation_MiB": 61401.18,
+                "swap": "disabled"
+              },
+              "scope_replacement": "Original reverse C3 window excluded wholesale for missing process-exit receipt after cap monitor ENODEV; prospectively named fresh retry supplies the admitted reverse position.",
+              "startup": {
+                "Aplus_load_ready_s": [
+                  81.174,
+                  83.164
+                ],
+                "C3_load_ready_s": [
+                  170.284,
+                  176.302
+                ],
+                "C3_seed_count": 7432,
+                "C3_uploaded_GB": 63.875,
+                "OOM_events": 0,
+                "peak_cap_usage_GiB": 100
+              },
+              "ten_pair_screen": {
+                "conditional_95_TTFT_intervals_s": {
+                  "2048": [
+                    73.967,
+                    100.235
+                  ],
+                  "512": [
+                    23.119,
+                    28.668
+                  ]
+                },
+                "conditional_95_decode_intervals": {
+                  "2048": [
+                    -1.27,
+                    0.334
+                  ],
+                  "512": [
+                    -2.141,
+                    0.473
+                  ]
+                },
+                "paired_TTFT_saved_s": {
+                  "2048": 90.801,
+                  "512": 24.915
+                },
+                "paired_decode_gain_tps": {
+                  "2048": -0.149,
+                  "512": -0.411
+                }
+              }
+            }
+          },
+          {
+            "evidence_ids": [
+              "predictor-pooled30.md"
+            ],
+            "limitations": "Candidate-only historical pooling and ordinal/warmup sensitivity are descriptive screening, not concurrent matched causal A/B or quality certification. An enabled marker is weaker than these actual issue/completion/useful counters; reused=47 does not establish useful demand consumption.",
+            "values": {
+              "choice": "Do not promote C4 or propose predictor tuning from this screen; issued and completed traffic is demonstrated, useful prefetch is absent in the observed coverage.",
+              "correctness": "Reported greedy output and reasoning matched.",
+              "design": "One candidate C4 scope against four historical quiet A+30 controls, competing CPU activity observed; candidate ordinal 3 includes the controls' third discarded warmup.",
+              "engagement": {
+                "completed_bytes": 759767040,
+                "completed_transfers": 96,
+                "coverage": "observed-issue",
+                "denied": 12778,
+                "graph_rows": 372,
+                "issued": 96,
+                "issued_bytes": 759767040,
+                "pending": 0,
+                "request_ids": 12,
+                "request_ids_with_completed_prefetch_consumed": 0,
+                "reused": 47,
+                "unused": 96,
+                "useful_bytes": 0,
+                "useful_ready": 0,
+                "wasted_bytes": 759767040
+              },
+              "exclude_third_warmup_TTFT_saved_s": {
+                "2048": -2.749,
+                "512": -3.458
+              },
+              "paired_pooled_TTFT_saved_s": {
+                "2048": -2.779,
+                "512": -1.908
+              },
+              "paired_pooled_decode_gain_tps": {
+                "2048": -0.867,
+                "512": -0.688
+              }
+            }
+          },
+          {
+            "evidence_ids": [
+              "a-s-reference.md",
+              "previous-cache-full.md",
+              "prior-native-decision.json",
+              "post60-bounded-plan-checkpoint.json"
+            ],
+            "limitations": "Worker activity overlaps and cannot be summed into client TTFT. Native prefill, decode, end-to-end response, process I/O and host I/O have distinct boundaries. The checkpoint predates the amended 60 GiB alias and does not supersede report-v2.",
+            "values": {
+              "Strata_2048_prefill": {
+                "IO_worker_activity_ms": 119645,
+                "compute_wait_reads_ms": 20365,
+                "file_experts": 1530,
+                "layer_cache_experts": 4547
+              },
+              "checkpoint": "spark-cache-post60-plan-04 was partial, decision_id null; its reads and elapsed time are not a published decision or acceptance.",
+              "historical_capacity": "Previous 30/60 GiB exploration includes concurrency, drift and memory pressure; retain context without scoring a quiet capacity benefit.",
+              "prior_decision_id": "spark-cache-direct-seed-postlab-plan-03:decision:1",
+              "reference_512_warm": {
+                "A_matched_TTFT_s": 4.557,
+                "A_matched_decode_tps": 3.002,
+                "Strata_TTFT_s": 12.313,
+                "Strata_decode_tps": 17.2
+              },
+              "reference_scope": "A-matched without native bank and fair Strata are whole engine/pack references, not same-budget A+ controls; within-arm stable sequences do not establish cross-engine equality or accuracy."
+            }
+          }
+        ],
+        "hypothesis": "The large same-budget C3-versus-A+ 60 GiB TTFT advantage visible even in the six-pair quiet subset may survive strict quiet independent launch replication, but startup cost and possible decode regression may prevent a useful deployment tradeoff under the 100 GiB cap.",
+        "uncertainty": "Neither 60 GiB causal benefit nor overall product improvement is established. The full mirror is build-overlap screening, the quiet subset is limited, strict 30 GiB results are null/adverse, C4 has no observed useful prefetch, and capacity optimality, accuracy and read-path attribution remain unresolved.",
+        "action": {
+          "next_bounded_operation": {
+            "admission_criteria": "Require operator/LAB admission under star-deepseek-v1, verified existing image identities and both configurations, complete actual allocation and C3 seed ledgers matching the retained 7,432 admissions and 63.875 GB report value via exact receipt bytes, complete cap/process-exit monitoring and strict quiet for conditioning through shutdown with no builds, planners or competing workloads; missing exact identities or bytes blocks execution rather than allowing a rebuild or guessed manifest. Preserve existing frozen correctness/performance gates and freeze any deployment latency/decode tolerance before measurement.",
+            "candidate": "Original native C3 profile seeding with its retained startup read path, 61,440 MiB budget and 61,401.18 MiB logged allocation; C4 disabled.",
+            "decision_criteria": "Only support a scoped warm 60 GiB benefit if both prompt sizes show replicated TTFT improvement in each mirrored launch position and the prespecified frozen performance gate passes with decode meeting its frozen nonregression requirement and correctness/cap/engagement satisfied. Report bootstrap intervals as conditional on the four launches, retain per-launch effects and all observed ranges; do not infer broad capacity optimality or cold benefit. Charge C3's roughly 87-95 s extra observed load-to-ready against any measured TTFT saving before claiming a deployment/session advantage; use the actual session/request mix, not a warm-only extrapolation.",
+            "fixed_controls": "Freeze existing receipt-linked ELF/model/pack/profile digests, actual admission/slot digest, argv, effective runtime, sampler, prompt/request bytes, output length, native bank/reserve policy and CPU/memory controls from the reported 60 GiB campaign; identical 100 GiB scope cap, swap off and CPUs 0-7; freeze control and treatment configuration identities before starting.",
+            "matched_control": "Stock A+ at the identical 61,440 MiB budget and 61,401.18 MiB logged allocation; no profile seed and C4 disabled.",
+            "name": "Strict quiet same-capacity original C3 versus stock A+ 60 GiB confirmation",
+            "protocol": "One fixed four-fresh-launch ABBA block: A+1, C3-1, C3-2, A+2, with identical file-specific cold source conditioning before every launch, three warmups per size then five timed requests per size in frozen P4 order at 512 and 2048 tokens, yielding ten timed requests per arm per size; no optional extension or tuning.",
+            "single_intervention": "Original profile-seeding treatment versus stock A+; do not change read source, prediction, eviction, chunk size or capacity within this comparison.",
+            "specific_observation": "For each size and launch, observe client TTFT and decode rate, total response time and native prefill separately; report load-to-ready plus each cold/transition request position separately from warmed requests and compute launch-to-first-output cost. Retain seed time/bytes, post-ready-before-any-prompt residency in every scope, subsequent same-strata samples, per-phase engine process read/fault deltas, cgroup refault/reclaim/headroom/cap/OOM, separate host NVMe, native bank hit/miss/upload/copy counters and exact output/finish-reason evidence.",
+            "status": "Proposed separately admitted LAB input only; no execution authorized or submitted in this planning task.",
+            "stop_criteria": "Stop at the fixed block; invalidate and retain affected evidence on any foreign-workload exposure, incomplete cap/exit receipt, OOM, incorrect output/finish reason, mismatched allocation/admission or seed engagement. If TTFT advantage disappears, decode fails the frozen gate, or launch effects disagree, retain A+ as control and report inconclusive/adverse; no automatic retry, source change, predictor enablement or default promotion."
+          },
+          "operating_choice_pending_confirmation": "Keep C4 off and preserve stock A+ as the unpromoted control; neither C3 at 60 GiB nor a new optimization is accepted.",
+          "prior_diagnostic_disposition": "Displaces the prior same-ELF 02b mmap/direct diagnostic in immediate priority because the new 60 GiB report exposes a much larger user TTFT question with an observable quiet-subset signal; it does not resolve or cancel read-path attribution. Defer that diagnostic, and do not interpret this profile-on/off comparison as isolating O_DIRECT.",
+          "summary": "Prioritize one strictly quiet 60 GiB C3 versus same-budget A+ confirmation under the 100 GiB cap, keeping C4 off and deferring the same-ELF direct versus mmap diagnostic.",
+          "type": "report_inconclusive"
+        },
+        "expected_evidence": "One uncontaminated, matched 60 GiB ABBA confirmation will test whether the quiet-subset user TTFT signal survives fresh mirrored launches while preserving decode, correctness and the cap, with cold startup cost and host/process/GPU accounting reported separately; null or adverse results remain valid outcomes.",
+        "budget": {
+          "builds": 0,
+          "decision_turns": 1,
+          "execution_authorized": false,
+          "jobs": 0,
+          "model_runs": 0,
+          "proposed_future_launches": 4,
+          "proposed_future_timed_requests_per_arm_per_size": 10,
+          "source_edits": 0,
+          "tests": 0
+        },
+        "stop_condition": "Publish this terminal evidence-only decision now and end the planning turn; no graph inspection, source, build, job, model or test actions. Any future comparison requires its separately frozen admission and stops according to the bounded criteria above.",
+        "reason_for_change": "verified-cache60-screening.md report-v2 and cache60-io-supplement.md add large same-budget TTFT and process-read differences, including a six-pair quiet subset, but explicitly retain build overlap and startup/decode tradeoffs. This warrants strict quiet 60 GiB confirmation ahead of the mechanism-first priority in prior-native-decision.json, not promotion. direct-abba.md and quiet-original30.md retain separate strict 30 GiB null/adverse evidence; predictor-pooled30.md supplies actual completed but zero-useful prefetch and adverse candidate-only screening; a-s-reference.md and previous-cache-full.md remain limited context. post60-bounded-plan-checkpoint.json documents a prior partial turn without a decision.",
+        "created": 1795183820.5476449,
+        "plan_patch": null,
+        "expected_graph_rev": null
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "native_tuner_sha256": "c3baf2d21ba7119cdd78a941f4f587caee2b376bad1c83bb44d194231ae6998b",
+  "max_mib": 61440,
+  "calibration": {
+    "hits": 739918,
+    "misses": 244725,
+    "cpu": 0,
+    "up_mib": 2024069.24,
+    "mib": 12544,
+    "share": 0.0,
+    "ms": 810139.145,
+    "tokens": 4096,
+    "hit": 75.1458142697404
+  },
+  "scopes": [
+    "/home/user2/predemo-spark/OPS/runs/aplus-tune-1795160937260432874"
+  ]
+}

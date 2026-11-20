@@ -1,0 +1,172 @@
+{
+  "schema": "spark-native-successor-link/1",
+  "home": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache-direct-seed-postlab-plan-03",
+  "task_id": "spark-cache-predictor-postlab-plan-05",
+  "decision": {
+    "artifact_id": "native-plan.json",
+    "decision_id": "spark-cache-predictor-postlab-plan-05:decision:1",
+    "home": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache-direct-seed-postlab-plan-03",
+    "reason_for_change": "verified-cache60-screening.md report-v2 and cache60-io-supplement.md add large same-budget TTFT and process-read differences, including a six-pair quiet subset, but explicitly retain build overlap and startup/decode tradeoffs. This warrants strict quiet 60 GiB confirmation ahead of the mechanism-first priority in prior-native-decision.json, not promotion. direct-abba.md and quiet-original30.md retain separate strict 30 GiB null/adverse evidence; predictor-pooled30.md supplies actual completed but zero-useful prefetch and adverse candidate-only screening; a-s-reference.md and previous-cache-full.md remain limited context. post60-bounded-plan-checkpoint.json documents a prior partial turn without a decision.",
+    "sha256": "b64857f52c2ceabdec1ba1fcc76629934410887949cfb26fba1ef21c4a35846f",
+    "summary": "Prioritize one strictly quiet 60 GiB C3 versus same-budget A+ confirmation under the 100 GiB cap, keeping C4 off and deferring the same-ELF direct versus mmap diagnostic.",
+    "task_id": "spark-cache-predictor-postlab-plan-05"
+  },
+  "evidence_ids": [
+    "spark-cache-predictor-postlab-plan-05",
+    "direct-abba.md",
+    "quiet-original30.md",
+    "a-s-reference.md",
+    "previous-cache-full.md",
+    "verified-cache60-screening.md",
+    "cache60-io-supplement.md",
+    "prior-native-decision.json",
+    "predictor-pooled30.md",
+    "post60-bounded-plan-checkpoint.json"
+  ],
+  "action": {
+    "next_bounded_operation": {
+      "admission_criteria": "Require operator/LAB admission under star-deepseek-v1, verified existing image identities and both configurations, complete actual allocation and C3 seed ledgers matching the retained 7,432 admissions and 63.875 GB report value via exact receipt bytes, complete cap/process-exit monitoring and strict quiet for conditioning through shutdown with no builds, planners or competing workloads; missing exact identities or bytes blocks execution rather than allowing a rebuild or guessed manifest. Preserve existing frozen correctness/performance gates and freeze any deployment latency/decode tolerance before measurement.",
+      "candidate": "Original native C3 profile seeding with its retained startup read path, 61,440 MiB budget and 61,401.18 MiB logged allocation; C4 disabled.",
+      "decision_criteria": "Only support a scoped warm 60 GiB benefit if both prompt sizes show replicated TTFT improvement in each mirrored launch position and the prespecified frozen performance gate passes with decode meeting its frozen nonregression requirement and correctness/cap/engagement satisfied. Report bootstrap intervals as conditional on the four launches, retain per-launch effects and all observed ranges; do not infer broad capacity optimality or cold benefit. Charge C3's roughly 87-95 s extra observed load-to-ready against any measured TTFT saving before claiming a deployment/session advantage; use the actual session/request mix, not a warm-only extrapolation.",
+      "fixed_controls": "Freeze existing receipt-linked ELF/model/pack/profile digests, actual admission/slot digest, argv, effective runtime, sampler, prompt/request bytes, output length, native bank/reserve policy and CPU/memory controls from the reported 60 GiB campaign; identical 100 GiB scope cap, swap off and CPUs 0-7; freeze control and treatment configuration identities before starting.",
+      "matched_control": "Stock A+ at the identical 61,440 MiB budget and 61,401.18 MiB logged allocation; no profile seed and C4 disabled.",
+      "name": "Strict quiet same-capacity original C3 versus stock A+ 60 GiB confirmation",
+      "protocol": "One fixed four-fresh-launch ABBA block: A+1, C3-1, C3-2, A+2, with identical file-specific cold source conditioning before every launch, three warmups per size then five timed requests per size in frozen P4 order at 512 and 2048 tokens, yielding ten timed requests per arm per size; no optional extension or tuning.",
+      "single_intervention": "Original profile-seeding treatment versus stock A+; do not change read source, prediction, eviction, chunk size or capacity within this comparison.",
+      "specific_observation": "For each size and launch, observe client TTFT and decode rate, total response time and native prefill separately; report load-to-ready plus each cold/transition request position separately from warmed requests and compute launch-to-first-output cost. Retain seed time/bytes, post-ready-before-any-prompt residency in every scope, subsequent same-strata samples, per-phase engine process read/fault deltas, cgroup refault/reclaim/headroom/cap/OOM, separate host NVMe, native bank hit/miss/upload/copy counters and exact output/finish-reason evidence.",
+      "status": "Proposed separately admitted LAB input only; no execution authorized or submitted in this planning task.",
+      "stop_criteria": "Stop at the fixed block; invalidate and retain affected evidence on any foreign-workload exposure, incomplete cap/exit receipt, OOM, incorrect output/finish reason, mismatched allocation/admission or seed engagement. If TTFT advantage disappears, decode fails the frozen gate, or launch effects disagree, retain A+ as control and report inconclusive/adverse; no automatic retry, source change, predictor enablement or default promotion."
+    },
+    "operating_choice_pending_confirmation": "Keep C4 off and preserve stock A+ as the unpromoted control; neither C3 at 60 GiB nor a new optimization is accepted.",
+    "prior_diagnostic_disposition": "Displaces the prior same-ELF 02b mmap/direct diagnostic in immediate priority because the new 60 GiB report exposes a much larger user TTFT question with an observable quiet-subset signal; it does not resolve or cancel read-path attribution. Defer that diagnostic, and do not interpret this profile-on/off comparison as isolating O_DIRECT.",
+    "summary": "Prioritize one strictly quiet 60 GiB C3 versus same-budget A+ confirmation under the 100 GiB cap, keeping C4 off and deferring the same-ELF direct versus mmap diagnostic.",
+    "type": "report_inconclusive"
+  },
+  "prior_approved_decision_id": "spark-cache-direct-seed-postlab-plan-03:decision:1",
+  "prior_decision_sha256": "db8b06ee9c9aa4aff1896636ad7f7c53fd7101c512de4b0c27126532f927af37",
+  "native_reads": {
+    "a-s-reference.md": {
+      "at": 1795183730.360082,
+      "delivered_at": 1795183730.666555,
+      "native_call": "b188440e-6301-4836-9693-21b2068d13c9",
+      "sha256": "2e54df9a4075a2d142b3fced011688af1ba4211aafd8ab79c8b0c3ffee7123e6"
+    },
+    "cache60-io-supplement.md": {
+      "at": 1795183740.104427,
+      "delivered_at": 1795183740.39125,
+      "native_call": "48a52bc6-c999-429a-993f-7a0df6bc227e",
+      "sha256": "472b2cc59745762c534f7ef75d589f2c912b5518f5ee64e8ab8913ea7fefaf59"
+    },
+    "direct-abba.md": {
+      "at": 1795183728.8305826,
+      "delivered_at": 1795183729.7742,
+      "native_call": "67beb3f0-b232-487f-8a35-aa0dbb5ddb86",
+      "sha256": "ffc2cf8295ba18924e2f17c17add93148582faaa992405b1dd9b7c4463598d94"
+    },
+    "post60-bounded-plan-checkpoint.json": {
+      "at": 1795183744.873294,
+      "delivered_at": 1795183745.1924207,
+      "native_call": "599de4f5-fe6e-452f-be4f-45b16cda1a50",
+      "sha256": "525d62a4530d5f7b90d173250379740ece4d4224594784c70655607effd64abb"
+    },
+    "predictor-pooled30.md": {
+      "at": 1795183744.5949633,
+      "delivered_at": 1795183744.8617153,
+      "native_call": "56e836a2-41df-4661-8d75-b020e9f56ce1",
+      "sha256": "0a7dc44bc87b73a04607e9c5044b73675590614da3e67e1b37871ac6e2da633a"
+    },
+    "previous-cache-full.md": {
+      "at": 1795183730.687813,
+      "delivered_at": 1795183731.0025992,
+      "native_call": "44d02b62-8145-4c07-8e21-deb0073bc05e",
+      "sha256": "ebfed88d1e8ae878ee58331f5ec47390f142fefdad3af4dceeb566a694770a50"
+    },
+    "prior-native-decision.json": {
+      "at": 1795183740.398419,
+      "delivered_at": 1795183740.6534991,
+      "native_call": "38e5a19e-d50b-4967-98e3-ee982312a661",
+      "sha256": "db8b06ee9c9aa4aff1896636ad7f7c53fd7101c512de4b0c27126532f927af37"
+    },
+    "quiet-original30.md": {
+      "at": 1795183729.7982318,
+      "delivered_at": 1795183730.3451335,
+      "native_call": "96f2a8dd-bbda-472e-8e3e-0cedfaf86c8a",
+      "sha256": "94f44196e97827cdd1857bb999781806fca4a43967459e676a27dfb04ea78c6e"
+    },
+    "verified-cache60-screening.md": {
+      "at": 1795183739.5072384,
+      "delivered_at": 1795183740.0937417,
+      "native_call": "69afaabb-0bd1-4d50-8a29-efd580400328",
+      "sha256": "c483dee24ee544de39af9c9a80b7481888bdc31f8d26d9b66a21dd3734b2c074"
+    }
+  },
+  "source_reports": {
+    "a-s-reference.md": {
+      "artifact_id": "spark-a-s-cold-steady/reference/report.md",
+      "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+      "observation_id": "spark-a-s-cold-steady:report",
+      "sha256": "2e54df9a4075a2d142b3fced011688af1ba4211aafd8ab79c8b0c3ffee7123e6",
+      "task_id": "spark-direct-benchmarks-20261120"
+    },
+    "cache60-io-supplement.md": {
+      "artifact_id": "spark-p4-cache60-build-overlap/process-io.md",
+      "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+      "observation_id": "spark-p4-cache60-build-overlap:process-io",
+      "sha256": "472b2cc59745762c534f7ef75d589f2c912b5518f5ee64e8ab8913ea7fefaf59",
+      "task_id": "spark-direct-benchmarks-20261120"
+    },
+    "direct-abba.md": {
+      "artifact_id": "spark-p4-cache30-direct-seed/mechanism/report-v2.md",
+      "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+      "observation_id": "spark-p4-cache30-direct-seed:report-v2",
+      "sha256": "ffc2cf8295ba18924e2f17c17add93148582faaa992405b1dd9b7c4463598d94",
+      "task_id": "spark-direct-benchmarks-20261120"
+    },
+    "predictor-pooled30.md": {
+      "artifact_id": "spark-pooled30-c4-01/report.md",
+      "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+      "observation_id": "spark-pooled30-c4-01:report",
+      "sha256": "0a7dc44bc87b73a04607e9c5044b73675590614da3e67e1b37871ac6e2da633a",
+      "task_id": "spark-direct-benchmarks-20261120"
+    },
+    "previous-cache-full.md": {
+      "artifact_id": "spark-c3-native-cache/full/report.md",
+      "home": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache-residency-01",
+      "observation_id": "spark-c3-native-cache:report-v3",
+      "sha256": "ebfed88d1e8ae878ee58331f5ec47390f142fefdad3af4dceeb566a694770a50",
+      "task_id": "spark-cache-residency-do-01"
+    },
+    "quiet-original30.md": {
+      "artifact_id": "spark-p4-cache30-attribution/report.md",
+      "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+      "observation_id": "spark-p4-cache30-attribution:report",
+      "sha256": "94f44196e97827cdd1857bb999781806fca4a43967459e676a27dfb04ea78c6e",
+      "task_id": "spark-direct-benchmarks-20261120"
+    },
+    "verified-cache60-screening.md": {
+      "artifact_id": "spark-p4-cache60-build-overlap/report-v2.md",
+      "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+      "observation_id": "spark-p4-cache60-build-overlap:report-v2",
+      "sha256": "c483dee24ee544de39af9c9a80b7481888bdc31f8d26d9b66a21dd3734b2c074",
+      "task_id": "spark-direct-benchmarks-20261120"
+    }
+  },
+  "screening_scope": "pooled C4 and build-overlap 60 inputs",
+  "catalog": {
+    "successor_live_run_id": "05bee636d8b337be89805fc6",
+    "benchmark_live_run_id": "6b9e027926873a0cb78550fd",
+    "live_catalog": "http://100.105.127.48:5173/api/factory/runs"
+  },
+  "verified_successor_observations": [
+    {
+      "observation_id": "spark-pooled30-c4-01:report:spark-cache-predictor-postlab-plan-05",
+      "report_artifact_id": "spark-pooled30-c4-01/report.md",
+      "report_sha256": "0a7dc44bc87b73a04607e9c5044b73675590614da3e67e1b37871ac6e2da633a"
+    },
+    {
+      "observation_id": "spark-p4-cache60-build-overlap:report-v2:spark-cache-predictor-postlab-plan-05",
+      "report_artifact_id": "spark-p4-cache60-build-overlap/report-v2.md",
+      "report_sha256": "c483dee24ee544de39af9c9a80b7481888bdc31f8d26d9b66a21dd3734b2c074"
+    }
+  ]
+}

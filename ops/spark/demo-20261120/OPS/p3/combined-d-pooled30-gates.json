@@ -1,0 +1,177 @@
+{
+  "arm": "D",
+  "binary_sha256": "a6edf58241a6939154ad6b6a5d94cfcda876a282f67e3a0a4ce7de80d57bbdc4",
+  "legacy_cache": {
+    "active": [],
+    "declined": [
+      "native MoE cache enabled"
+    ],
+    "stats": [
+      {
+        "bytes_copied_saved": 0,
+        "device_fill_bytes": 0,
+        "device_hit_bytes": 0,
+        "evictions": 0,
+        "host_upload_bytes": 0,
+        "leases": 0,
+        "peak_bytes": 0,
+        "reuses": 0
+      }
+    ]
+  },
+  "legacy_predictor": {
+    "active": [],
+    "declined": [
+      "server requires one configured slot"
+    ],
+    "stats": [
+      {
+        "bytes_useful_at_consumption": 0,
+        "hits": 0,
+        "lead_ns_total": 0,
+        "lead_samples": 0,
+        "misses": 0,
+        "wasted_bytes": 0
+      }
+    ]
+  },
+  "mapper": {
+    "active": [],
+    "declined": [
+      "multiple slots configured"
+    ],
+    "observed_cuts": [],
+    "stats": [
+      {
+        "bypasses": 42,
+        "decisions": 0,
+        "rows": 0
+      }
+    ]
+  },
+  "native_bank_readbacks": [
+    {
+      "allocated_mib": 30682.35,
+      "cpu_miss_share_pct": 0.0,
+      "host_experts_mib": 125955.0
+    }
+  ],
+  "placement": {
+    "active": [
+      "active cap_bytes=130661142528 peak_bytes=243123746080"
+    ],
+    "all_assignment_rows": 1043,
+    "classes": {
+      "expert": {
+        "assigned": 1,
+        "stock": 119
+      },
+      "other": {
+        "assigned": 0,
+        "stock": 923
+      }
+    },
+    "cpu_equivalent": true,
+    "declined": [],
+    "expert_assignment_rows": 120,
+    "expert_buffers": {
+      "CPU_Mapped": 120
+    },
+    "expert_payload_bytes": 132073390080,
+    "planned_experts": [
+      {
+        "actual": "CPU_Mapped",
+        "bytes": 990904320,
+        "name": "blk.0.ffn_gate_exps.weight",
+        "planned": "CPU"
+      }
+    ],
+    "stats": [
+      {
+        "assigned": 1,
+        "stock": 1042
+      }
+    ]
+  },
+  "recorder": {
+    "active": [
+      "active capacity_bytes=67108864 ring_bytes=67006240 overflow=drop-newest"
+    ],
+    "declined": [],
+    "stats": [
+      {
+        "bytes": 1373036875776,
+        "events": 17040,
+        "lost": 0
+      }
+    ],
+    "trace": {
+      "consistent": true,
+      "duplicate_microbatch_layer": 0,
+      "event_rows": 17040,
+      "incomplete_route_layers": [],
+      "microbatches": 426,
+      "phase_counts": {
+        "decode": {
+          "event_rows": 14880,
+          "expert_selections": 89280,
+          "route_rows": 14880,
+          "submitted_bytes": 44208967680
+        },
+        "prefill": {
+          "event_rows": 2160,
+          "expert_selections": 3686400,
+          "route_rows": 614400,
+          "submitted_bytes": 1328827908096
+        }
+      },
+      "request_ids": [
+        0,
+        35,
+        71,
+        106,
+        142,
+        178,
+        213,
+        248,
+        284,
+        320,
+        355,
+        390
+      ],
+      "sha256": "d3a4a07225e03a6a9a4f73b26a352f998c4e9ef1fda03bf19e3d73d9aa3384dc",
+      "status": "route-complete-as-recorded",
+      "submitted_bytes": 1373036875776,
+      "summary": {
+        "bytes_transferred": 1373036875776,
+        "capacity_lost": 0,
+        "contended_lost": 0,
+        "expected": 17040,
+        "failed_dispatches": 0,
+        "flush_ns": 218438831,
+        "lost": 0,
+        "overhead_ns": 422532327,
+        "route_lost": 0,
+        "transfer_incomplete": 0,
+        "type": "summary",
+        "writer_lost": 0,
+        "written": 17040
+      },
+      "transfer_scope": "Recorded submitted expert copies. Startup, elapsed DMA time, and saved bytes are outside this count."
+    }
+  },
+  "requested_gates": {
+    "LLAMA_BATCH_LAYOUT": "1",
+    "LLAMA_EVENT_REC": "/home/user2/predemo-spark/OPS/runs/pooled30-d-01/events.jsonl",
+    "LLAMA_EVENT_REC_MIB": "64",
+    "LLAMA_EXPERT_CACHE": "1",
+    "LLAMA_EXPERT_CACHE_MIB": "64",
+    "LLAMA_EXPERT_PREDICT": "1",
+    "LLAMA_PLACEMENT_PLAN": "1"
+  },
+  "schema": "spark-combined-gates/1",
+  "scope": "/home/user2/predemo-spark/OPS/runs/pooled30-d-01",
+  "source_commit": "59493673e75a9b4153733a862fd09951d3705616",
+  "stderr_sha256": "46b5170a8a87d3eaede7b5dea20f244a24f8e2eb6d347e79602a3c44bf956538",
+  "stop": "2026-11-20T14:15:11.766675+00:00"
+}

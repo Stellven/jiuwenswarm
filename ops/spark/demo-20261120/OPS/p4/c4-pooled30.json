@@ -1,0 +1,35 @@
+{
+  "schema": "spark-pooled30-admission/1",
+  "iteration_id": "spark-pooled30-c4-01",
+  "subject_arm": "C4",
+  "comparison_target": "same-budget-cc",
+  "frozen_at": "2026-11-20T13:52:46.612964+00:00",
+  "products_manifest_sha256": "4798e041418145c5fa0f08388e2dcb38d3a71948ed88c71f118b32ed49909df3",
+  "prompt_manifest_sha256": "eaba043a72be89ae59b2d71cd7cd38a62b6d85547434e03abdac4790899c451a",
+  "regions_sha256": "9ea8774da2921aeccd9c2951f2f0e916480b7a7f2d93bfea369e03ce99351f7c",
+  "command": [
+    "/home/user2/predemo-spark/jiuwenswarm/.venv/bin/python",
+    "/home/user2/predemo-spark/jiuwenswarm/ops/spark/probe_candidate.py",
+    "C4",
+    "on",
+    "pooled",
+    "/home/user2/predemo-spark/OPS/runs/pooled30-c4-01",
+    "--native-mib",
+    "30720",
+    "--products",
+    "/home/user2/predemo-spark/OPS/p3/predictor-iteration2-native-products.json",
+    "--arm",
+    "C4",
+    "--launch-pass",
+    "1"
+  ],
+  "launches": [
+    {
+      "arm": "C4",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "/home/user2/predemo-spark/OPS/runs/pooled30-c4-01",
+      "profile_sha256": "4f9124b9d78edf0531632824c7723a6af34f282af5517bda224693d7466119c5"
+    }
+  ]
+}

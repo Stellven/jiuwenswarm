@@ -1,0 +1,44 @@
+{
+  "schema": "spark-p4-admitted-launches/1",
+  "iteration_id": "spark-p4-cache30-direct-seed",
+  "comparison_target": "same-budget-cc",
+  "subject_arm": "C3-direct",
+  "frozen_at": "2026-11-20T11:17:45.032792+00:00",
+  "bank_budget_mib": 30720,
+  "source_treatment": "direct-seed",
+  "subject_source_commit": "8e7044906a614c42656c703dbdb375023bc9cdeb",
+  "products_manifest_sha256": "e0676235181f034997da8241505eff8025218367a31f3bdb22840b1f778834c8",
+  "expert_sample_detail": true,
+  "prompt_manifest_sha256": "eaba043a72be89ae59b2d71cd7cd38a62b6d85547434e03abdac4790899c451a",
+  "regions_sha256": "9ea8774da2921aeccd9c2951f2f0e916480b7a7f2d93bfea369e03ce99351f7c",
+  "launches": [
+    {
+      "arm": "A+",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-direct-aplus-pass-1-01",
+      "profile_sha256": "14da485debbeb4592d477a14ccaa761617363c3f2704f894c8d8d7c125b66a24"
+    },
+    {
+      "arm": "C3-direct",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-direct-c3-pass-1-01",
+      "profile_sha256": "f1000655e9d342b2f018414448a218c025bed5f32455b1459fdf055e1a5b942f"
+    },
+    {
+      "arm": "C3-direct",
+      "launch_pass": 2,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-direct-c3-pass-2-01",
+      "profile_sha256": "f1000655e9d342b2f018414448a218c025bed5f32455b1459fdf055e1a5b942f"
+    },
+    {
+      "arm": "A+",
+      "launch_pass": 2,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-direct-aplus-pass-2-01",
+      "profile_sha256": "14da485debbeb4592d477a14ccaa761617363c3f2704f894c8d8d7c125b66a24"
+    }
+  ]
+}

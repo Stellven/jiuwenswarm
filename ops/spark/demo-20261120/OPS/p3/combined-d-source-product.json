@@ -1,0 +1,52 @@
+{
+  "task_id": "spark-star-combined-d-01",
+  "home": "/home/user2/predemo-spark/factory-runs/star-combined-d-01",
+  "checkout": "/home/user2/predemo-spark/factory-runs/star-combined-d-01/agent-workspace/llama.cpp-combined-d",
+  "base": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "head": "59493673e75a9b4153733a862fd09951d3705616",
+  "diff_artifact_id": "spark-combined-d-product.diff",
+  "diff_sha256": "1b86186a8e38a81155b954743531e3ef1b8358c4c30b9a7a4e398124ba2d5951",
+  "incremental_stages": [
+    {
+      "stage": "recorder",
+      "commit": "9f11f51b91b4e40b418d808adb5809aaf806446d",
+      "verifier_release": "55e12fb5f64f41cf38e57a73897aaf471eb82f77ad7a88fc2f5b2160ab5002a1",
+      "verifier_call": "4af03b58-376d-4106-8d69-8dfcb4d6ad9a",
+      "receipt_artifact_id": "spark-combined-d-recorder-verify.json",
+      "done": true
+    },
+    {
+      "stage": "placement",
+      "commit": "9ac315cc4882cbc7dd753c43dd3fe571a2df95e4",
+      "verifier_release": "31d6f432515d4949cb1f6462ff2ad5fb3b32161e9d6d480873f2c3bb4a300347",
+      "verifier_call": "86cb639c-96f9-4ba5-bb1f-ad64e738a690",
+      "receipt_artifact_id": "spark-combined-d-placement-verify.json",
+      "done": true
+    },
+    {
+      "stage": "cache",
+      "commit": "53bd4d9aff46c460af6eefbb759f3bf53ac41606",
+      "verifier_release": "f85f3e6200ba4f1ecccc6d5c4bc1f3cb74daf76f1d0e7e63be4885825f838a4d",
+      "verifier_call": "1eb9ee90-4dbc-40b6-8f7a-ff3e9a49cf6a",
+      "receipt_artifact_id": "spark-combined-d-cache-verify.json",
+      "done": true
+    },
+    {
+      "stage": "predictor",
+      "commit": "276115ae2be3c351fb8c8a305ad9a95c5f2c826d",
+      "verifier_release": "74498b8db91b19ba88710d1f29a6cb667822e687857d290593857ee27880c85c",
+      "verifier_call": "a7404bd6-7d8e-4a56-b0a5-6e0d7ba96398",
+      "receipt_artifact_id": "spark-combined-d-predictor-verify.json",
+      "done": true
+    },
+    {
+      "stage": "mapper",
+      "commit": "59493673e75a9b4153733a862fd09951d3705616",
+      "verifier_release": "9655985be2c3b7108d9e77a615cf452cee05d8e6d00571d11d582e1bb1748f4a",
+      "verifier_call": "8c11b0ec-26e6-498e-8ce0-a29c640daf0c",
+      "receipt_artifact_id": "spark-combined-d-mapper-verify.json",
+      "done": true
+    }
+  ],
+  "limitations": "Per-stage native capsule source verification and full stock diff applyability. Configured native binary, gate-disabled parity and all-gates runtime acceptance are pending."
+}

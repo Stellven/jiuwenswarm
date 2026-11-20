@@ -1,0 +1,116 @@
+{
+  "schema": "spark-native-star-build-products/1",
+  "scope": "Verified native build products. Runtime eligibility and acceptance are tracked per product.",
+  "products": [
+    {
+      "capsule": "observability_event_recorder",
+      "home": "/home/user2/predemo-spark/factory-runs/star-observability_event_recorder",
+      "task_id": "spark-star-observability-event-recorder",
+      "attempt_id": "3d4a835381364f5c9d2b62380ae3ecab",
+      "state": "succeeded",
+      "source_commit": "9d0733cba12c164827b646ea86af618ce7b5ca47",
+      "source_tree": "d04f776713bd08fa6e4d7b6dfc379146b2e40842",
+      "build_seconds": 246.84210026171058,
+      "executable": {
+        "path": "/home/user2/predemo-spark/factory-runs/star-observability_event_recorder/builds/3d4a835381364f5c9d2b62380ae3ecab/engine/image/app/llama-server",
+        "sha256": "0f03e5f482a3577ee8786ec6f3a58198cd34a8c6fb6a8a1b184ab25d9d8b4023",
+        "size": 73224
+      },
+      "retain_library_dir": "/home/user2/predemo-spark/factory-runs/star-observability_event_recorder/builds/3d4a835381364f5c9d2b62380ae3ecab/engine/image/app",
+      "receipt_artifact_id": "3d4a835381364f5c9d2b62380ae3ecab:receipt",
+      "receipt_sha256": "a4b8fa432a001b677a2f85cac32440f8bfc1d25e7af05ee4938b2b61253e68b5",
+      "record_artifact_id": "3d4a835381364f5c9d2b62380ae3ecab:build-record",
+      "record_sha256": "2d7d33849f550194fd978a5b3774cee6c71da5aea47be19a1ca2c4aa35b245ad",
+      "native_cmake_recipe_sha256": "7d704641a6da231b0842fd7630f5b23bac7fde579a79568f2b688811a60936c6",
+      "native_ui_archive_sha256": "a9e8b8b1a9b9b2c9a19c762f1cfc737937974070d17a32690f801efcc2b3eafa"
+    },
+    {
+      "capsule": "weight_placement_planner",
+      "home": "/home/user2/predemo-spark/factory-runs/star-weight_placement_planner",
+      "task_id": "spark-star-weight-placement-planner",
+      "attempt_id": "156cdc0569b442cdbe767f9fb106b2ae",
+      "state": "succeeded",
+      "source_commit": "a3d66fcafc91152fab50097f00520cc6a8e484a8",
+      "source_tree": "1922e02c6ba21e74cf2ac71c17667503bed3d223",
+      "build_seconds": 270.5072343670763,
+      "executable": {
+        "path": "/home/user2/predemo-spark/factory-runs/star-weight_placement_planner/builds/156cdc0569b442cdbe767f9fb106b2ae/engine/image/app/llama-server",
+        "sha256": "7c34af9c37e180f6c37d0c87273c257be39ca504ff8995d8d00222c4762f07f3",
+        "size": 73224
+      },
+      "retain_library_dir": "/home/user2/predemo-spark/factory-runs/star-weight_placement_planner/builds/156cdc0569b442cdbe767f9fb106b2ae/engine/image/app",
+      "receipt_artifact_id": "156cdc0569b442cdbe767f9fb106b2ae:receipt",
+      "receipt_sha256": "a8986d1437c983f969a61a31d6ffc11375acb8e4106fcf64eacdba08c6758529",
+      "record_artifact_id": "156cdc0569b442cdbe767f9fb106b2ae:build-record",
+      "record_sha256": "a15241dcfb15610b6dc11f0fe4da18dfdb16b6b964fa5e74d3aebdab336f0b18",
+      "native_cmake_recipe_sha256": "7d704641a6da231b0842fd7630f5b23bac7fde579a79568f2b688811a60936c6",
+      "native_ui_archive_sha256": "a9e8b8b1a9b9b2c9a19c762f1cfc737937974070d17a32690f801efcc2b3eafa"
+    },
+    {
+      "capsule": "expert_weight_cache",
+      "home": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache",
+      "task_id": "spark-star-expert-weight-cache",
+      "attempt_id": "274db8f868a14d59bcfa0bcfb8b2a399",
+      "state": "succeeded",
+      "source_commit": "acc87866b7a461f4fd4ad70b91e71eea90329622",
+      "source_tree": "21f05d42db936ab9452c5a406ba12613174a01fc",
+      "build_seconds": 262.7435106122866,
+      "executable": {
+        "path": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache/builds/274db8f868a14d59bcfa0bcfb8b2a399/engine/image/app/llama-server",
+        "sha256": "881af0ee29cfe2ef0feb6aaf8e55e386700780ae005ba1b83fa9a8f2ef154582",
+        "size": 73224
+      },
+      "retain_library_dir": "/home/user2/predemo-spark/factory-runs/star-expert_weight_cache/builds/274db8f868a14d59bcfa0bcfb8b2a399/engine/image/app",
+      "receipt_artifact_id": "274db8f868a14d59bcfa0bcfb8b2a399:receipt",
+      "receipt_sha256": "1322e5492f6f477b468497d732759ed3c437cbe954c9a72bf55dc1309460720c",
+      "record_artifact_id": "274db8f868a14d59bcfa0bcfb8b2a399:build-record",
+      "record_sha256": "9ac8b356e4cb094d6c451452b79c6a562d5e471b091c097c6c8d9e5468a8e827",
+      "native_cmake_recipe_sha256": "7d704641a6da231b0842fd7630f5b23bac7fde579a79568f2b688811a60936c6",
+      "native_ui_archive_sha256": "a9e8b8b1a9b9b2c9a19c762f1cfc737937974070d17a32690f801efcc2b3eafa"
+    },
+    {
+      "capsule": "batch_layout_mapper",
+      "home": "/home/user2/predemo-spark/factory-runs/star-batch_layout_mapper",
+      "task_id": "spark-star-batch-layout-mapper",
+      "attempt_id": "8acc58cf6593463196eefefb4d58d71d",
+      "state": "succeeded",
+      "source_commit": "7a068a8e2d8f4985a3ed43468c76795e420ed70f",
+      "source_tree": "c0afcce14c861fa1c5d354b5cf4c6c97e5a04ed6",
+      "build_seconds": 254.10358798038214,
+      "executable": {
+        "path": "/home/user2/predemo-spark/factory-runs/star-batch_layout_mapper/builds/8acc58cf6593463196eefefb4d58d71d/engine/image/app/llama-server",
+        "sha256": "5a080a0d662fa04cf4a2db9c828c8f471fde53cddc13a300b3131b3d6e84e58c",
+        "size": 73224
+      },
+      "retain_library_dir": "/home/user2/predemo-spark/factory-runs/star-batch_layout_mapper/builds/8acc58cf6593463196eefefb4d58d71d/engine/image/app",
+      "receipt_artifact_id": "8acc58cf6593463196eefefb4d58d71d:receipt",
+      "receipt_sha256": "876eb06e979fc36f2af5b4259d29589b7c3f0ca6c4fdf3d1b58179bc0bdc2196",
+      "record_artifact_id": "8acc58cf6593463196eefefb4d58d71d:build-record",
+      "record_sha256": "e31f7bd793e8ab557ed7489b6a219ce08792b1100db400bbcb1abadf5b78b05c",
+      "native_cmake_recipe_sha256": "7d704641a6da231b0842fd7630f5b23bac7fde579a79568f2b688811a60936c6",
+      "native_ui_archive_sha256": "a9e8b8b1a9b9b2c9a19c762f1cfc737937974070d17a32690f801efcc2b3eafa"
+    },
+    {
+      "capsule": "expert_demand_predictor",
+      "home": "/home/user2/predemo-spark/factory-runs/star-expert_demand_predictor",
+      "task_id": "spark-star-expert-demand-predictor",
+      "attempt_id": "4285c0c311c2455da971a32a5743c081",
+      "state": "succeeded",
+      "source_commit": "e26cda7b058ce0c8f9df5076b14f535cc78e2da9",
+      "source_tree": "287a45ed3bd7cca51429c202d994e963fecf30aa",
+      "build_seconds": 259.892177333124,
+      "executable": {
+        "path": "/home/user2/predemo-spark/factory-runs/star-expert_demand_predictor/builds/4285c0c311c2455da971a32a5743c081/engine/image/app/llama-server",
+        "sha256": "48112c91542ba8bc70598cdee8e992bfcffac349f857910a07a9db9a2f604778",
+        "size": 73224
+      },
+      "retain_library_dir": "/home/user2/predemo-spark/factory-runs/star-expert_demand_predictor/builds/4285c0c311c2455da971a32a5743c081/engine/image/app",
+      "receipt_artifact_id": "4285c0c311c2455da971a32a5743c081:receipt",
+      "receipt_sha256": "f97281a1d894d2b44ae61cde15ff929a1f8121ecc2bc8fd1b87991d483e1b81f",
+      "record_artifact_id": "4285c0c311c2455da971a32a5743c081:build-record",
+      "record_sha256": "f755e2d1b5472f0b568338d36acc4c897ae5aa80565afd589107d403b5827c3d",
+      "native_cmake_recipe_sha256": "7d704641a6da231b0842fd7630f5b23bac7fde579a79568f2b688811a60936c6",
+      "native_ui_archive_sha256": "a9e8b8b1a9b9b2c9a19c762f1cfc737937974070d17a32690f801efcc2b3eafa"
+    }
+  ]
+}

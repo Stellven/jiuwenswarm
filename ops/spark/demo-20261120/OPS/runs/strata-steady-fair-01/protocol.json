@@ -1,0 +1,140 @@
+{
+  "schema": "spark-cold-steady/1",
+  "arm": "S-fair-steady",
+  "view": "strata",
+  "source_reset": "file-specific DONTNEED",
+  "regions_sha256": "9ea8774da2921aeccd9c2951f2f0e916480b7a7f2d93bfea369e03ce99351f7c",
+  "warmups_per_size": 3,
+  "measured_per_size": 5,
+  "ordered_requests": [
+    {
+      "position": 1,
+      "phase": "warmup",
+      "pair": 1,
+      "repeat": 0,
+      "size": 512,
+      "path": "warmup-1-512"
+    },
+    {
+      "position": 2,
+      "phase": "warmup",
+      "pair": 1,
+      "repeat": 0,
+      "size": 2048,
+      "path": "warmup-1-2048"
+    },
+    {
+      "position": 3,
+      "phase": "warmup",
+      "pair": 2,
+      "repeat": 0,
+      "size": 512,
+      "path": "warmup-2-512"
+    },
+    {
+      "position": 4,
+      "phase": "warmup",
+      "pair": 2,
+      "repeat": 0,
+      "size": 2048,
+      "path": "warmup-2-2048"
+    },
+    {
+      "position": 5,
+      "phase": "warmup",
+      "pair": 3,
+      "repeat": 0,
+      "size": 2048,
+      "path": "warmup-3-2048"
+    },
+    {
+      "position": 6,
+      "phase": "warmup",
+      "pair": 3,
+      "repeat": 0,
+      "size": 512,
+      "path": "warmup-3-512"
+    },
+    {
+      "position": 7,
+      "phase": "steady",
+      "pair": 1,
+      "repeat": 1,
+      "size": 512,
+      "path": "rep-1-512"
+    },
+    {
+      "position": 8,
+      "phase": "steady",
+      "pair": 1,
+      "repeat": 1,
+      "size": 2048,
+      "path": "rep-1-2048"
+    },
+    {
+      "position": 9,
+      "phase": "steady",
+      "pair": 2,
+      "repeat": 2,
+      "size": 2048,
+      "path": "rep-2-2048"
+    },
+    {
+      "position": 10,
+      "phase": "steady",
+      "pair": 2,
+      "repeat": 2,
+      "size": 512,
+      "path": "rep-2-512"
+    },
+    {
+      "position": 11,
+      "phase": "steady",
+      "pair": 3,
+      "repeat": 3,
+      "size": 512,
+      "path": "rep-3-512"
+    },
+    {
+      "position": 12,
+      "phase": "steady",
+      "pair": 3,
+      "repeat": 3,
+      "size": 2048,
+      "path": "rep-3-2048"
+    },
+    {
+      "position": 13,
+      "phase": "steady",
+      "pair": 4,
+      "repeat": 4,
+      "size": 2048,
+      "path": "rep-4-2048"
+    },
+    {
+      "position": 14,
+      "phase": "steady",
+      "pair": 4,
+      "repeat": 4,
+      "size": 512,
+      "path": "rep-4-512"
+    },
+    {
+      "position": 15,
+      "phase": "steady",
+      "pair": 5,
+      "repeat": 5,
+      "size": 512,
+      "path": "rep-5-512"
+    },
+    {
+      "position": 16,
+      "phase": "steady",
+      "pair": 5,
+      "repeat": 5,
+      "size": 2048,
+      "path": "rep-5-2048"
+    }
+  ],
+  "conditioning_receipt": "/home/user2/predemo-spark/OPS/p3/early-preflights/strata-steady-fair-01-source.json"
+}
