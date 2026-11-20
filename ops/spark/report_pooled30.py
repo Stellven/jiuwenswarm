@@ -120,6 +120,43 @@ def native_build_lineage(plan, scope, capture, put):
                 binary_sha256=product['executable']['sha256'])
 
 
+def source_lineage(arm, source_do, iteration, capture, put):
+    manifests = {'C4': 'predictor-iteration2-source-product.json', 'D': 'combined-d-source-product.json'}
+    source = capture(BASE / 'OPS/p3' / manifests[arm])
+    identity = source['value']
+    predictor = arm == 'C4'
+    demand(identity['source_commit' if predictor else 'head'] == source_do['source_commit'] and
+           all(identity[k] == source_do[k] for k in ('home', 'task_id')), 'Pooled source product differs from the built release')
+    diff = (identity['source_diff'] if predictor else
+            dict(artifact_id=identity['diff_artifact_id'], sha256=identity['diff_sha256']))
+    source_plan = {}
+    with Store(Path(identity['home'])) as producer:
+        task = identity['task_id']
+
+        def mirror(entry):
+            identifier = entry['artifact_id']
+            raw = producer.artifact_bytes(task, identifier)
+            demand(entry.get('sha256', digest(raw)) == digest(raw), 'Pooled source artifact has a different digest')
+            media = producer.read_artifact(task, identifier)['media_type']
+            return put(f'{iteration}/do/{identifier}', raw, media)['artifact_id']
+
+        if predictor:
+            decision = producer.read(task, identity['planner_decision'])
+            decision_ref = put(f'{iteration}/do/decision.json', json_bytes(decision))
+            source_plan = dict(decision_id=identity['planner_decision'], decision_artifact_id=decision_ref['artifact_id'],
+                               decision_sha256=decision_ref['sha256'], builder_ccs=[dict(id='routing.build_expert_demand_predictor',
+                                   version='1.2.1', release=identity['verifier_release'])])
+            verification = [identity['static_verification']]
+        else:
+            stages = identity['incremental_stages']
+            demand(len(stages) == 5 and stages[-1]['commit'] == source_do['source_commit'] and all(s['done'] is True for s in stages),
+                   'Combined D source lacks its five successful verifier receipts')
+            verification = [dict(artifact_id=stage['receipt_artifact_id']) for stage in stages]
+        source_do.update(source_product=reference(source), diff_artifact_id=mirror(diff),
+                         verification_receipt_ids=[mirror(row) for row in verification])
+    return source_plan
+
+
 def placement_source_lineage(store, launch, iteration, put):
     inventory = json.loads(store.artifact_bytes(TASK, launch['provenance']['products']['artifact_id']))
     product, = inventory['products']
@@ -215,8 +252,8 @@ def publish(path, pin):
         if launch['arm'] == 'C2':
             source_plan, source_do = placement_source_lineage(store, launch, iteration, put)
         else:
-            source_plan = {}
             source_do = native_build_lineage(plan, scope, capture, put)
+            source_plan = source_lineage(launch['arm'], source_do, iteration, capture, put)
         lab_ids = list(dict.fromkeys([*retained, *(c['artifact_id'] for c in controls_refs)]))
         analysis_ref = put(iteration + '/analysis.json', json_bytes(analysis))
         receipt = put(iteration + '/verify-receipt.json', json_bytes(verified))
