@@ -130,4 +130,3 @@ third warmup at ordinal 3. Recompute the estimates using ordinals 4–6 alone an
 show the estimates for each control. Treat CPU overlap and any placement-induced
 allocation differences as observed conditions. This design produces descriptive
 screening estimates for each prompt size.
-
