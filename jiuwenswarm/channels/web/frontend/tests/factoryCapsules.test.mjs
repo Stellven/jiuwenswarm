@@ -88,3 +88,27 @@ test('analysis tables discover measured data and chart only consistently numeric
   ]);
   assert.deepEqual(tableData({ prose: 'Diagnostic only.', rows: [] }), []);
 });
+
+test('atlas names give every capsule a rule-conforming title and kind, keyed by stable directory ids', async () => {
+  const { atlasName, atlasTitle, builderSubtitle, ccKinds } = await import('../src/features/factoryRuns/cc/atlasNames.ts');
+  const { ccKind, displayName } = await import('../src/features/factoryRuns/cc/capsuleModel.ts');
+  assert.deepEqual([...ccKinds], ['builder', 'tool', 'analysis', 'factory']);
+  assert.equal(atlasTitle('expert_weight_cache'), 'Expert weight cache builder');
+  assert.equal(atlasTitle('engine.build_expert_weight_cache'), 'Expert weight cache builder');
+  assert.equal(atlasTitle('observability.build_runtime_event_recorder@1.1.4'), 'Runtime event recorder builder');
+  assert.equal(atlasTitle('factory.lab_client.submit'), 'Capped lab runner');
+  assert.equal(atlasTitle('factory.builder'), 'Image assembler');
+  assert.equal(atlasTitle('batch_layout_mapper'), 'Batch layout mapper builder');
+  assert.equal(atlasTitle('expert_fill'), 'Expert fill builder');
+  assert.equal(atlasTitle('unknown.capsule'), undefined);
+  assert.equal(
+    builderSubtitle(atlasName('expert_weight_cache')),
+    'Builds the code for the expert weight cache component in llama.cpp.',
+  );
+  assert.equal(builderSubtitle(atlasName('lab_client')), undefined);
+  const card = { name: 'weight_placement_planner', id: 'placement.build_weight_placement_planner', kind: 'builder' };
+  assert.equal(displayName(card), 'Weight placement planner builder');
+  assert.equal(ccKind({ name: 'spark_gap_analysis', id: 'factory.spark_gap_analysis', kind: 'analysis' }), 'analysis');
+  assert.equal(ccKind({ name: 'cache_size_pareto', id: 'analysis.cache_size_pareto', kind: 'analysis' }), 'tool');
+  assert.equal(displayName({ ...card, cc_title: 'Server title' }), 'Server title');
+});

@@ -4,10 +4,14 @@ import { CapsuleHeadlineResults, useFinalHeadlines, type HeadlineRow } from '../
 import { capsuleApi, type CapsuleCard, type CapsuleCatalog, type CapsuleDetail } from './capsuleApi';
 import { BuilderRunEvidence, CapsuleEvidenceView, Receipt } from './CapsuleEvidence';
 import { Integrity, Loading, MaterialDialog, MaterialList, SafeMarkdown, StructuredData } from './CapsuleMaterial';
+import { useTranslation } from 'react-i18next';
 import {
-  capsuleHeadlineRows, displayName, headlineArmForCapsule, isRecord,
+  capsuleHeadlineRows, ccKind, displayName, headlineArmForCapsule, isRecord,
   markdownSections, plainDescription, readableName,
 } from './capsuleModel';
+import {
+  atlasName, builderSubtitle, builderSubtitleZh, ccKinds, type CcKind, kindLegend, kindLegendZh,
+} from './atlasNames.ts';
 import { type CopyKey, useCapsuleCopy } from './copy';
 import { capsuleHref } from './navigation';
 import { useCapsuleResource } from './useCapsuleResource';
@@ -17,15 +21,74 @@ const catalogRequest = (mode: string, signal: AbortSignal) => capsuleApi.catalog
 const tabs = ['method', 'ontology', 'acceptance', 'source', 'files', 'artifacts', 'contract'] as const;
 type Tab = (typeof tabs)[number];
 
-function kindLabel(kind: string): CopyKey | undefined {
-  if (kind === 'builder' || kind === 'analysis') return kind;
-  return kind === 'factory-support' ? 'supportKind' : undefined;
+const kindLabels: Record<CcKind, CopyKey> = {
+  builder: 'builder',
+  tool: 'toolKind',
+  analysis: 'analysis',
+  factory: 'factoryKind',
+};
+
+function CapsuleKind({ kind }: { kind: CcKind }) {
+  const copy = useCapsuleCopy();
+  return (
+    <span className="cc-kind" data-kind={kind} data-testid="factory-runs-capsule-kind-badge">
+      {copy(kindLabels[kind])}
+    </span>
+  );
 }
 
-function CapsuleKind({ kind }: { kind: string }) {
+function useZh() {
+  const { i18n } = useTranslation();
+  return !!i18n.resolvedLanguage?.startsWith('zh');
+}
+
+/** Builder CCs build the code for a component; the CC is not the component. */
+function BuilderSubtitle({ capsule }: { capsule: CapsuleCard }) {
+  const zh = useZh();
+  if (ccKind(capsule) !== 'builder') return null;
+  const entry = {
+    component: capsule.cc_component ?? atlasName(capsule.name)?.component ?? null,
+    target: capsule.cc_target ?? atlasName(capsule.name)?.target ?? null,
+  };
+  const text = zh ? builderSubtitleZh(entry) : builderSubtitle(entry);
+  return text ? (
+    <p className="cc-builder-subtitle" data-testid="factory-runs-capsule-builder-subtitle">
+      {text}
+    </p>
+  ) : null;
+}
+
+function RawId({ capsule }: { capsule: CapsuleCard }) {
   const copy = useCapsuleCopy();
-  const label = kindLabel(kind);
-  return <span className="cc-kind">{label ? copy(label) : readableName(kind)}</span>;
+  return (
+    <small className="cc-raw-id" data-testid="factory-runs-capsule-raw-id" title={capsule.id}>
+      {copy('rawId')} <code>{capsule.name}</code>
+    </small>
+  );
+}
+
+function KindsLegend({ capsules }: { capsules: CapsuleCard[] }) {
+  const copy = useCapsuleCopy();
+  const zh = useZh();
+  return (
+    <section className="cc-kinds-legend" data-testid="factory-runs-capsule-kinds-legend" aria-label={copy('kindsLegend')}>
+      <h2>{copy('kindsLegend')}</h2>
+      <dl>
+        {ccKinds.map((kind) => (
+          <div key={kind} data-variant={kind}>
+            <dt>
+              <CapsuleKind kind={kind} />
+              <span className="cc-kinds-count">{capsules.filter((capsule) => ccKind(capsule) === kind).length}</span>
+            </dt>
+            <dd>
+              {zh ? kindLegendZh[kind] : kindLegend[kind].plain} <em>{kindLegend[kind].naming}</em>
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <p>{copy('kindsNote')}</p>
+    </section>
+  );
 }
 
 function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRow[] }) {
@@ -39,17 +102,20 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
       data-variant={capsule.name}
     >
       <div className="cc-card-meta">
-        {capsule.starred ? (
-          <span className="cc-star">
-            <span aria-hidden>★</span> {copy('starred')}
-          </span>
-        ) : (
-          <CapsuleKind kind={capsule.kind} />
-        )}
+        <span className="cc-card-badges">
+          {capsule.starred && (
+            <span className="cc-star">
+              <span aria-hidden>★</span> {copy('starred')}
+            </span>
+          )}
+          <CapsuleKind kind={ccKind(capsule)} />
+        </span>
         <Integrity state={capsule.integrity} />
       </div>
       <h3>{displayName(capsule)}</h3>
-      <p>{plainDescription(capsule.description || capsule.component || capsule.id)}</p>
+      <BuilderSubtitle capsule={capsule} />
+      <p>{plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
+      <RawId capsule={capsule} />
       {!!results?.length && <CapsuleHeadlineResults rows={results} />}
       {!!capsule.used_in_runs && (
         <small className="cc-run-count" data-testid="factory-runs-capsule-used">
@@ -70,18 +136,22 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
 function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlines: HeadlineRow[] }) {
   const copy = useCapsuleCopy();
   const [query, setQuery] = useState('');
-  const [kind, setKind] = useState<'all' | 'builder' | 'analysis' | 'factory-support'>('all');
+  const [kind, setKind] = useState<'all' | CcKind>('all');
   const needle = query.trim().toLowerCase();
   const shown = capsules.filter(
     (capsule) =>
-      (kind === 'all' || capsule.kind === kind) &&
+      (kind === 'all' || ccKind(capsule) === kind) &&
       [
         capsule.name,
         capsule.id,
         displayName(capsule),
         capsule.description,
         capsule.component,
+        capsule.cc_component,
+        capsule.cc_summary,
+        capsule.atlas_cc_id,
         capsule.strata_mechanism,
+        ...(capsule.former_names || []),
       ].some((value) => value?.toLowerCase().includes(needle)),
   );
   const groups = [
@@ -89,18 +159,22 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
       title: 'builders',
       rows: shown.filter((capsule) => capsule.starred).sort((a, b) => (a.arm || '').localeCompare(b.arm || '')),
     },
-    { title: 'builder', rows: shown.filter((capsule) => !capsule.starred && capsule.kind === 'builder') },
+    { title: 'builderKinds', rows: shown.filter((capsule) => !capsule.starred && ccKind(capsule) === 'builder') },
     {
       title: 'featuredAnalysis',
       rows: shown
-        .filter((capsule) => capsule.kind === 'analysis' && capsule.featured_analysis_at)
+        .filter((capsule) => !capsule.starred && ccKind(capsule) !== 'builder' && capsule.featured_analysis_at)
         .sort((a, b) => (b.featured_analysis_at || 0) - (a.featured_analysis_at || 0)),
+    },
+    {
+      title: 'tools',
+      rows: shown.filter((capsule) => ccKind(capsule) === 'tool' && !capsule.featured_analysis_at),
     },
   ] as const;
   const support = shown.filter(
-    (capsule) => !capsule.starred && capsule.kind !== 'analysis' && capsule.kind !== 'builder',
+    (capsule) => !capsule.starred && ccKind(capsule) === 'factory' && !capsule.featured_analysis_at,
   );
-  const library = shown.filter((capsule) => capsule.kind === 'analysis' && !capsule.featured_analysis_at);
+  const library = shown.filter((capsule) => ccKind(capsule) === 'analysis' && !capsule.featured_analysis_at);
   return (
     <>
       <header className="cc-catalog-header">
@@ -122,12 +196,15 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
             data-testid="factory-runs-capsule-kind"
           >
             <option value="all">{copy('allKinds')}</option>
-            <option value="builder">{copy('builder')}</option>
-            <option value="analysis">{copy('analysis')}</option>
-            <option value="factory-support">{copy('supportKind')}</option>
+            {ccKinds.map((value) => (
+              <option key={value} value={value}>
+                {copy(kindLabels[value])}
+              </option>
+            ))}
           </select>
         </div>
       </header>
+      <KindsLegend capsules={capsules} />
       {groups
         .filter(({ rows }) => rows.length)
         .map(({ title, rows }) => (
@@ -170,7 +247,7 @@ function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlin
       {support.length > 0 && (
         <section className="cc-catalog-group" data-testid="factory-runs-capsule-catalog-group" data-variant="support">
           <div className="cc-catalog-group-title">
-            <h2>{copy('support')}</h2>
+            <h2>{copy('factoryWorkers')}</h2>
             <span>{support.length}</span>
           </div>
           <div className="cc-grid">
@@ -201,7 +278,7 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
               <span aria-hidden>★</span> {copy('starred')}
             </span>
           )}
-          <CapsuleKind kind={capsule.kind} />
+          <CapsuleKind kind={ccKind(capsule)} />
           {arm && (
             <span className="cc-kind">
               {copy('arm')} {arm}
@@ -209,8 +286,20 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
           )}
         </div>
         <h1 data-testid="factory-runs-capsule-title">{displayName(capsule)}</h1>
+        <BuilderSubtitle capsule={capsule} />
+        <RawId capsule={capsule} />
         <p>{plainDescription(capsule.description || capsule.verifier || '')}</p>
         <dl className="cc-meta">
+          <div>
+            <dt>{copy('atlasId')}</dt>
+            <dd>{capsule.atlas_cc_id ? <code>{capsule.atlas_cc_id}</code> : copy('notInAtlas')}</dd>
+          </div>
+          {!!capsule.former_names?.length && (
+            <div>
+              <dt>{copy('formerNames')}</dt>
+              <dd>{capsule.former_names.join(', ')}</dd>
+            </div>
+          )}
           {capsule.component && (
             <div>
               <dt>{copy('component')}</dt>

@@ -16,6 +16,8 @@ from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from .capsule_evidence import STAR_ARMS
 
 CCS = CONTRACTS.parent / 'ccs'
+# Display names aligned with the component atlas, keyed by stable capsule directory.
+ATLAS_NAMES = 'atlas-names.json'
 MAX_FILE = 1024 * 1024
 SHA256 = re.compile(r'[0-9a-f]{64}')
 OWNER_MANIFEST = 'SHA256SUMS'
@@ -129,6 +131,25 @@ def _file_row(path, size=0, actual=None, expected=None):
     return dict(path=path, size=size, sha256=actual, expected_sha256=expected, integrity=integrity)
 
 
+def atlas_names(root=CCS):
+    """Read the atlas naming table; capsule directories stay the stable ids."""
+    for base in (Path(root), CCS):
+        try:
+            document = json.loads((base / ATLAS_NAMES).read_text(encoding='utf-8'))
+        except (OSError, ValueError):
+            continue
+        if isinstance(document, dict) and isinstance(document.get('capsules'), dict):
+            return document
+    return {'kinds': {}, 'capsules': {}}
+
+
+def _atlas_fields(entry):
+    entry = entry if isinstance(entry, dict) else {}
+    return dict(cc_title=entry.get('title'), cc_kind=entry.get('kind'), atlas_cc_id=entry.get('atlas_cc_id'),
+                cc_component=entry.get('component'), cc_target=entry.get('target'),
+                cc_summary=entry.get('summary'), former_names=entry.get('former_names') or [])
+
+
 def _material(root, path):
     if path:
         try:
@@ -145,6 +166,7 @@ class CapsuleCatalog:
         owner = owner_ontology or os.environ.get(
             'FACTORY_OWNER_ONTOLOGY_ROOT', str(Path.home() / 'predemo-spark/inputs/ontology'))
         self.owner = Path(owner).expanduser().resolve()
+        self.names = atlas_names(self.root)
 
     def paths(self):
         paths = {path.relative_to(self.root).as_posix() for path in self.root.rglob('cc.yaml')
@@ -308,7 +330,8 @@ class CapsuleCatalog:
                        strata_mechanism=star[2] if star else None, arm=STAR_ARMS.get(capsule_id) if star else None,
                        binding=base.get('binding', 'unavailable'), capabilities=base.get('capabilities', list(caps)),
                        contract_id=CONTRACT_ID if star else None,
-                       digest=digest, expected_digest=expected, integrity=integrity)
+                       digest=digest, expected_digest=expected, integrity=integrity,
+                       **_atlas_fields(self.names['capsules'].get(Path(relative).parent.as_posix())))
         if detail:
             indexed = {row['path']: row for row in rows if _visible(row['path'])}
             files = [_file_row(name, indexed[name]['size'], indexed[name]['sha256'], expected_files.get(name))
@@ -334,7 +357,8 @@ class CapsuleCatalog:
         owner_pins = self.owner_pins()
         owner = [self.external_row(self.owner, name, 'owner-ontology', owner_pins.get(name))
                  for name in [OWNER_MANIFEST, *owner_pins] if owner_pins]
-        return sanitize(dict(capsules=capsules, contract=self.contract(), owner_ontology=owner))
+        return sanitize(dict(capsules=capsules, contract=self.contract(), owner_ontology=owner,
+                             kinds=self.names.get('kinds', {})))
 
     def resolve(self, name):
         candidates = self.paths()

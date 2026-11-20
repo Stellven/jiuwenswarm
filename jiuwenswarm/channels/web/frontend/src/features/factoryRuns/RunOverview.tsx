@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { ArrowUpRight, CheckCircle2, CircleDot, FileText, GitBranch, Layers3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { EvidenceFile, JsonRecord, RunDetail, StoryEvent } from './api';
+import { atlasTitle } from './cc/atlasNames.ts';
 import './story.css';
 
 const capsuleFolders = {
@@ -184,7 +185,7 @@ export function RunOverview({
                 ? capsuleFolders[id as CapsuleId]
                 : undefined;
               const manifest = folder ? connectedFile(detail.files, `${folder}/cc.yaml`) : undefined;
-              const name = folder ? t(`factoryRuns.story.capsuleNames.${folder}`) : id;
+              const name = folder ? t(`factoryRuns.story.capsuleNames.${folder}`) : atlasTitle(id) ?? id;
               const state = text(recordStack.find((row) => row.name === id)?.state);
               return (
                 <li key={id} data-testid="factory-runs-overview-capsule" data-variant={id}>

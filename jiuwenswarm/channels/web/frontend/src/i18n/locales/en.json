@@ -4827,11 +4827,11 @@
       "capsulesInScope": "Capability Capsules in scope",
       "openCapsules": "Browse capsule evidence",
       "capsuleNames": {
-        "observability_event_recorder": "Runtime event recorder",
-        "weight_placement_planner": "Weight placement planner",
-        "expert_weight_cache": "Expert weight cache",
-        "expert_demand_predictor": "Expert demand predictor",
-        "batch_layout_mapper": "Batch layout mapper"
+        "observability_event_recorder": "Runtime event recorder builder",
+        "weight_placement_planner": "Weight placement planner builder",
+        "expert_weight_cache": "Expert weight cache builder",
+        "expert_demand_predictor": "Expert demand predictor builder",
+        "batch_layout_mapper": "Batch layout mapper builder"
       },
       "stackState": {
         "integrating": "Integrating",

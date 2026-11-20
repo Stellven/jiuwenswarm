@@ -4825,11 +4825,11 @@
       "capsulesInScope": "本次涉及的能力胶囊",
       "openCapsules": "浏览胶囊证据",
       "capsuleNames": {
-        "observability_event_recorder": "运行时事件记录器",
-        "weight_placement_planner": "权重放置规划器",
-        "expert_weight_cache": "专家权重缓存",
-        "expert_demand_predictor": "专家需求预测器",
-        "batch_layout_mapper": "批次布局映射器"
+        "observability_event_recorder": "运行时事件记录器构建器",
+        "weight_placement_planner": "权重放置规划器构建器",
+        "expert_weight_cache": "专家权重缓存构建器",
+        "expert_demand_predictor": "专家需求预测器构建器",
+        "batch_layout_mapper": "批次布局映射器构建器"
       },
       "stackState": {
         "integrating": "集成中",

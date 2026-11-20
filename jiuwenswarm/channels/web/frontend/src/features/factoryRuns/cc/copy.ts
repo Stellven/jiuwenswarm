@@ -120,6 +120,18 @@ const en = {
   evidenceUnavailable: 'Run evidence is unavailable.',
   available: 'View file',
   inputs: 'Run inputs',
+  toolKind: 'Tool',
+  factoryKind: 'Factory worker',
+  builderKinds: 'Builders',
+  tools: 'Tools',
+  factoryWorkers: 'Factory workers',
+  kindsLegend: 'Four kinds of Capability Capsule',
+  kindsNote:
+    'Every CC is a packaged method for agents: instructions, helpers, tests, a verifier and a sealed release. Only builder CCs produce product source code; tool and analysis CCs (labs, runners, profilers, analyses) return receipts and findings instead, and that is expected.',
+  rawId: 'Capsule directory',
+  formerNames: 'Formerly',
+  atlasId: 'Atlas CC',
+  notInAtlas: 'Not in the atlas yet',
 } as const;
 
 const zh: Record<keyof typeof en, string> = {
@@ -242,6 +254,18 @@ const zh: Record<keyof typeof en, string> = {
   evidenceUnavailable: '运行证据不可用。',
   available: '查看文件',
   inputs: '运行输入',
+  toolKind: '工具',
+  factoryKind: '工厂工作者',
+  builderKinds: '构建器',
+  tools: '工具',
+  factoryWorkers: '工厂工作者',
+  kindsLegend: '能力胶囊的四种类型',
+  kindsNote:
+    '每个能力胶囊都是供智能体使用的打包方法：说明、辅助工具、测试、验证器和封存版本。只有构建器会产出产品源代码；工具和分析胶囊（实验、运行器、性能分析、分析）返回回执和结论，这是预期行为。',
+  rawId: '胶囊目录',
+  formerNames: '曾用名',
+  atlasId: '图谱 CC',
+  notInAtlas: '尚未收录于图谱',
 };
 
 export type CopyKey = keyof typeof en;

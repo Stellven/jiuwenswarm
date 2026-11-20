@@ -1,4 +1,5 @@
 import type { CapsuleCard } from './capsuleApi';
+import { atlasName, isCcKind, type CcKind } from './atlasNames.ts';
 
 const headlineArms = new Map([
   ['observability_event_recorder', 'C1'],
@@ -24,8 +25,24 @@ export function readableName(value: string): string {
     .replace(/^[a-z]/, (letter) => letter.toUpperCase());
 }
 
-export function displayName(capsule: CapsuleCard): string {
-  return capsule.title || capsule.subcomponent || readableName(capsule.name);
+export function displayName(capsule: Pick<CapsuleCard, 'name' | 'id'> & Partial<CapsuleCard>): string {
+  return (
+    capsule.cc_title ||
+    atlasName(capsule.name)?.title ||
+    atlasName(capsule.id)?.title ||
+    capsule.title ||
+    capsule.subcomponent ||
+    readableName(capsule.name)
+  );
+}
+
+/** Atlas CC kind: builder, tool, analysis or factory worker. */
+export function ccKind(capsule: Pick<CapsuleCard, 'name' | 'id'> & Partial<CapsuleCard>): CcKind {
+  if (isCcKind(capsule.cc_kind)) return capsule.cc_kind;
+  const kind = atlasName(capsule.name)?.kind || atlasName(capsule.id)?.kind;
+  if (kind) return kind;
+  if (capsule.kind === 'builder' || capsule.kind === 'analysis') return capsule.kind;
+  return 'factory';
 }
 
 export function plainDescription(value: string): string {

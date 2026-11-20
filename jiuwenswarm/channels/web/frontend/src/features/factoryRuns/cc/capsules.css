@@ -859,3 +859,91 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Atlas CC kinds: builder, tool, analysis, factory worker. */
+.cc-kind[data-kind='builder'] {
+  color: var(--color-text-link);
+  border-color: currentColor;
+}
+
+.cc-kind[data-kind='analysis'] {
+  color: var(--color-feedback-success-text, var(--color-text-weak));
+}
+
+.cc-card-badges {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cc-card .cc-builder-subtitle,
+.cc-builder-subtitle {
+  color: var(--color-text-default, inherit);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.cc-raw-id {
+  font-size: 11px;
+  color: var(--color-text-weak);
+  overflow-wrap: anywhere;
+}
+
+.cc-raw-id code {
+  font-size: 11px;
+}
+
+.cc-kinds-legend {
+  display: grid;
+  gap: 10px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.cc-kinds-legend h2 {
+  font-size: 14px;
+  margin: 0;
+}
+
+.cc-kinds-legend dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.cc-kinds-legend dl > div {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+}
+
+.cc-kinds-legend dt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cc-kinds-count {
+  font-size: 12px;
+  color: var(--color-text-weak);
+}
+
+.cc-kinds-legend dd,
+.cc-kinds-legend p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text-weak);
+}
+
+.cc-kinds-legend em {
+  display: block;
+  font-style: normal;
+  font-size: 12px;
+  margin-top: 3px;
+}

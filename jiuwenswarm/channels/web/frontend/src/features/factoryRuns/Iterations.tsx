@@ -14,6 +14,7 @@ import type { EvidenceFile, JsonRecord, RunDetail, Run } from './api';
 import { asRecord, buildIterations, decisionSummary, narrativeSummaries, text, type Iteration, type IterationArtifact } from './iterationModel';
 import { FactoryStructuredReport } from './FactoryStructuredReport';
 import './iterations.css';
+import { atlasTitle } from './cc/atlasNames.ts';
 
 type OpenSource = (file: EvidenceFile) => void;
 type OpenChild = (id: string, panel: 'diffs' | 'report' | 'terminal', sourceId?: string, sha256?: string) => void;
@@ -480,7 +481,10 @@ export function Iterations({
                         {iteration.capsuleIds.length > 0 && (
                           <ul className="factory-iteration-capsules">
                             {iteration.capsuleIds.map((id) => (
-                              <li key={id}>{id}</li>
+                              <li key={id} title={id}>
+                                {atlasTitle(id) ?? id}
+                                {atlasTitle(id) && <small className="cc-raw-id"> {id}</small>}
+                              </li>
                             ))}
                           </ul>
                         )}
@@ -555,7 +559,10 @@ export function Iterations({
                         {iteration.analysisCapsules.length > 0 && (
                           <ul className="factory-iteration-capsules">
                             {iteration.analysisCapsules.map((id) => (
-                              <li key={id}>{id}</li>
+                              <li key={id} title={id}>
+                                {atlasTitle(id) ?? id}
+                                {atlasTitle(id) && <small className="cc-raw-id"> {id}</small>}
+                              </li>
                             ))}
                           </ul>
                         )}

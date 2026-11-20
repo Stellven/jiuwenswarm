@@ -21,6 +21,14 @@ export type CapsuleCard = {
   contract_id: string | null;
   strata_mechanism: string | null;
   arm: string | null;
+  // Atlas-aligned naming (factory/ccs/atlas-names.json); `name` stays the stable directory id.
+  cc_title?: string | null;
+  cc_kind?: string | null;
+  atlas_cc_id?: string | null;
+  cc_component?: string | null;
+  cc_target?: string | null;
+  cc_summary?: string | null;
+  former_names?: string[];
 };
 
 export type CapsuleArtifact = {
@@ -131,6 +139,7 @@ export type CapsuleCatalog = {
     clauses: { id: string; title: string; detail: string }[];
   } | null;
   owner_ontology: EvidenceFile[];
+  kinds?: Record<string, { label: string; naming: string; plain: string }>;
 };
 
 export type CapsuleFile = EvidenceFile & { content: string; parsed: unknown; truncated: boolean };

@@ -1,4 +1,5 @@
 import type { StoryEvent } from '../api';
+import { atlasTitle } from '../cc/atlasNames.ts';
 
 type Fields = Record<string, unknown>;
 type NodeKind = 'contract' | 'task' | 'step' | 'capsule' | 'entity' | 'group';
@@ -84,7 +85,7 @@ function addCapsules(graph: GraphBuilder, source: string, values: unknown[], dec
     if (!reference) continue;
     const key = capsuleKey(reference);
     const details = { ...declarations.get(key), reference };
-    graph.link(source, graph.node('capsule', key, details, key), 'capsule');
+    graph.link(source, graph.node('capsule', key, details, atlasTitle(key) ?? key), 'capsule');
   }
 }
 
