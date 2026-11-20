@@ -2,6 +2,7 @@
 """Fail-closed single-GPU runner. Production limits are intentionally not configurable."""
 import argparse
 import datetime as dt
+import errno
 import fcntl
 import hashlib
 import json
@@ -143,7 +144,11 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
     deadline = time.monotonic() + 20
     while True:
         try:
-            min_available = min(min_available, available())
+            sample_available = available()
+            min_available = min(min_available, sample_available)
+            if sample_available < 8 * GIB:
+                memory_stop = stop = 'watchdog: MemAvailable below 8 GiB'
+                kill(unit)
             if shutdown_deadline is not None and time.monotonic() > shutdown_deadline and proc.poll() is None:
                 stop = 'orderly shutdown exceeded 30s'
                 kill(unit)
@@ -165,15 +170,15 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
                 if (int(events.get('oom', 0)) or int(events.get('oom_kill', 0))) and not a.enforcement_test:
                     memory_stop = stop = 'unexpected cgroup OOM kill'
                     kill(unit)
-            if available() < 8 * GIB:
-                memory_stop = stop = 'watchdog: MemAvailable below 8 GiB'
-                kill(unit)
             if cg is None and time.monotonic() > deadline:
                 stop = 'scope verification timeout'
                 kill(unit)
             if proc.poll() is not None:
                 break
-        except FileNotFoundError:
+        except OSError as error:
+            # Kernfs can return ENODEV from an already-open file during scope teardown.
+            if error.errno not in (errno.ENOENT, errno.ENODEV):
+                raise
             if proc.poll() is not None:
                 break
         time.sleep(.05)
