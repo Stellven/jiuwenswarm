@@ -85,6 +85,15 @@ if start_available < 110 * GIB:
 binary = Path(shutil.which(command[0]) or command[0]).resolve()
 unit = f'spark-capped-{os.getpid()}-{time.time_ns()}.scope'
 meta = {'arm': a.arm, 'command': command, 'binary': str(binary), 'binary_sha256': hashlib.file_digest(binary.open('rb'), 'sha256').hexdigest(), 'result_path': str(a.result_dir), 'start': utc(), 'start_mem_available': start_available, 'unit': unit, 'memory_max': limit, 'cpus': '0-7', 'enforcement_test': a.enforcement_test}
+# Record only the hardware and treatment settings used by the Spark experiment.
+recorded_settings = (
+    'LD_LIBRARY_PATH', 'LLAMA_EVENT_REC', 'LLAMA_EVENT_REC_MIB', 'LLAMA_EXPERT_CACHE',
+    'LLAMA_EXPERT_CACHE_MIB', 'LLAMA_EXPERT_PREDICT', 'LLAMA_PLACEMENT_PLAN',
+    'LLAMA_BATCH_LAYOUT', 'LLAMA_MOE_CACHE_TRACE', 'GGML_CUDA_REGISTER_HOST',
+    'GGML_OP_OFFLOAD_MIN_BATCH', 'DS4_UMA_HEADROOM_GIB', 'STRATA_DS4_REUSE',
+    'STRATA_DS4_SLOT_DIR',
+)
+meta['launch_environment'] = {name: os.environ[name] for name in recorded_settings if name in os.environ}
 if a.engine_binary:
     engine=a.engine_binary.resolve(strict=True)
     meta['launcher_binary_sha256']=meta['binary_sha256']
