@@ -74,7 +74,8 @@ def build(root, allow_pending=False):
         assert result['subject_arm'] == cc and result['control_count'] == 4
         assert [(c['prompt_tokens'], c['n']) for c in cells] == [(size, 4) for size in SIZES]
         if cc == 'C5':
-            text = envelope['report']['summary']
+            assert not result['greedy_parity']
+            text = 'All six long prompts split at 1536/512. Serving flags and greedy output differed from stock at both sizes; the timing covers the whole package.'
         add(cc.lower(), arm, None if cc == 'D' else cc, 'Screening · pooled A+30',
             pair([c['pooled_estimates']['ttft_seconds_saved']['median'] for c in cells], 's saved', True),
             pair([c['pooled_estimates']['decode_tps_gained']['median'] for c in cells], 'tok/s gained', True),
