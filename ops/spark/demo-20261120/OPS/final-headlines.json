@@ -85,7 +85,7 @@
       "grade": "Verified · quiet ABBA",
       "ttft": "+27.08 / +92.07 s saved",
       "decode": "−0.18 / −0.15 tok/s gained",
-      "summary": "Across ten pairs per size, C3 returned the first token 27.08 seconds sooner at 512 tokens and 92.07 seconds sooner at 2048 tokens than same-budget stock A+ by the paired medians. The orchestrator disclosed an idle-priority file pull.",
+      "summary": "C3 returned the first token sooner in 20/20 matched pairs. The orchestrator disclosed an idle-priority file pull.",
       "sources": [
         {
           "path": "OPS/iterations/spark-p4-cache60-build-overlap/report-v3.md",

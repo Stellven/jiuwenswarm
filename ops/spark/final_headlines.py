@@ -56,7 +56,11 @@ def build(root, allow_pending=False):
         report = folder / Path(envelope['report']['artifact_id']).name
         assert hashlib.sha256(report.read_bytes()).hexdigest() == envelope['report']['sha256']
         if key == 'c3-60' and confirmed:
-            text = envelope['report']['summary'] + ' The orchestrator disclosed an idle-priority file pull.'
+            text = envelope['report']['summary']
+            if all(c['paired_ttft_seconds_saved_vs_Aplus']['observed_range'][0] > 0 for c in cells):
+                total = sum(c['n'] for c in cells)
+                text = f'C3 returned the first token sooner in {total}/{total} matched pairs.'
+            text += ' The orchestrator disclosed an idle-priority file pull.'
         add(key, arm, 'C3', grade,
             pair([c['paired_ttft_seconds_saved_vs_Aplus']['estimate'] for c in cells], 's saved', True),
             pair([c['paired_decode_tps_gained_vs_Aplus']['estimate'] for c in cells], 'tok/s gained', True), text, [report])

@@ -1,15 +1,15 @@
 {
   "status": "final",
   "task_id": "spark-direct-benchmarks-20261120",
-  "publication_id": "spark-report-final-20261120T154025036239Z",
+  "publication_id": "spark-report-final-20261120T155246807600Z",
   "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
   "export": "/home/user2/predemo-spark/factory-runs/exports/spark-final-snapshot-20261120",
-  "source_report_sha256": "be9c53e1a8c3b5fdabcfe3b36aac8360a52d5028b0e94e93f09ed70d7f691b37",
-  "report_sha256": "81219cdba062e4f68c96d5eb44c56456559c3297cc712c6a4168a4d53d4c10f3",
+  "source_report_sha256": "1e589873dc230185793c3670b27922c3cfb1940f5ab3ee43bdfa58b657a2fca9",
+  "report_sha256": "f5c439112f4dc973e483b8d69ad634b37dfde2fb5526d151309df70dcdd74ed7",
   "citation_count": 49,
   "verified_link_targets": 71,
-  "verified_manifest_files": 3042,
-  "manifest_sha256": "2cd863e9acde888589bb9084f0c6d4fce2067d1e638e0c2eca235c9715b41b9c",
-  "previous_manifest_sha256": "6861f3e8688b89af2b8aa7091a3d66b0df968feef9434aa0915afdb8d3ca2072",
-  "archived_snapshot": "/home/user2/predemo-spark/receipts/frozen-snapshot-spark-report-final-20261120T144513736615Z"
+  "verified_manifest_files": 3047,
+  "manifest_sha256": "b3221159add99809ae2973648c6c5bf04ec831b7e73d786dc54c73325ca3645b",
+  "previous_manifest_sha256": "2cd863e9acde888589bb9084f0c6d4fce2067d1e638e0c2eca235c9715b41b9c",
+  "archived_snapshot": "/home/user2/predemo-spark/receipts/frozen-snapshot-spark-report-final-20261120T154025036239Z"
 }
