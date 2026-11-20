@@ -58,7 +58,7 @@ class ExactHeader:
         return os.pread(self.fd, part.stop - part.start, part.start)
 
 
-def llama_geometry(model, converter):
+def llama_geometry(model, converter, expert_extents=False):
     converter_bytes = converter.read_bytes()
     converter_sha = hashlib.sha256(converter_bytes).hexdigest()
     retained = runpy.run_path(str(converter))
@@ -70,17 +70,23 @@ def llama_geometry(model, converter):
     for number in range(1, 7):
         path = model.parent / f"{shard['prefix']}-{number:05d}-of-00006.gguf"
         regions = defaultdict(list)
+        tensors = []
         with path.open('rb', buffering=0) as stream:
             fd = stream.fileno()
             os.posix_fadvise(fd, 0, 0, os.POSIX_FADV_RANDOM)
             header = reader.__new__(reader)
             header.path = path
             header._parse(ExactHeader(fd, os.fstat(fd).st_size))
-            for name, (offset, _, _, length) in header.tensors.items():
+            for name, (offset, shape, _, length) in header.tensors.items():
                 kind = ('expert' if LLAMA_EXPERT.fullmatch(name) else 'engram'
                         if name == retained['TABLE'] or '.engram_' in name else 'dense')
                 regions[kind].append((offset, offset + length))
-        geometry.append(file_geometry(path, regions))
+                if expert_extents and kind == 'expert':
+                    tensors.append(dict(name=name, offset=offset, length=length, shape=shape))
+        source = file_geometry(path, regions)
+        if expert_extents:
+            source['expert_tensors'] = tensors
+        geometry.append(source)
     return dict(files=geometry, converter=str(converter), converter_sha256=converter_sha)
 
 
