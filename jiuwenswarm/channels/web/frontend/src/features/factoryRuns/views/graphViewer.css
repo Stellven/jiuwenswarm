@@ -228,7 +228,9 @@
 }
 
 .factory-graph-node-button[data-phase='current'] .factory-graph-node-state {
-  color: var(--color-text-link);
+  /* Link blue on the current-node tint was 4.31:1; primary text passes AA. */
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 
 .factory-graph-node-button[data-phase='seen']::after,
@@ -381,3 +383,12 @@
 .factory-graph-summary-fields small { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
 .factory-graph-file-link { padding: 0; border: 0; background: none; color: var(--color-text-link); text-align: left; cursor: pointer; font: inherit; }
 .factory-graph-file-link:hover { text-decoration: underline; }
+.factory-graph-inspector button.factory-graph-file-link {
+  display: inline;
+  width: auto;
+  height: auto;
+  padding: 2px 0;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

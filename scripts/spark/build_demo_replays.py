@@ -198,7 +198,7 @@ REPLAY_1 = dict(
         ),
         dict(
             title='The gate check: off by default, active when switched on',
-            say='Static checks show the gate is off by default; with the gate on, the 60 GiB launch logged the activation marker, and output matched stock.',
+            say='Static checks show the gate is off by default; with the gate on, the 60 GiB launch logged the activation marker; in the 30 GiB pilot its greedy output matched stock.',
             primary=dict(table='observations', home=HOME, task=DO, id='native-cache-profile-verifier-direct'),
             records=[rec('observations', DO, 'spark-c3-native-cache:report')],
             graph=['step:candidate-measure'],
@@ -246,14 +246,14 @@ REPLAY_1 = dict(
             graph=['step:report', 'step:accept'],
             files=[
                 ops(REPORT_V3, 'Measured result · 60 GiB quiet A-B-B-A report-v3',
-                    'Lines 3, 27, 43: 27.08 / 92.07 s saved; lines 94-97: startup cost; lines 108, 110: reads and faults'),
+                    'Lines 3, 27, 43: 27.08 / 92.07 s saved; lines 95-98: startup cost; lines 108, 110: reads and faults'),
                 ops('final-headlines.json', 'Headline table · OPS/final-headlines.json (row c3-60)',
                     'The published headline row cites report-v3 by sha256'),
                 ops('iterations/spark-p4-cache60-build-overlap/iteration-v3.json', 'Iteration record · 60 GiB v3',
                     'Machine-readable iteration record behind report-v3'),
                 ops('iterations/spark-p4-cache60-build-overlap/analysis-v3.json', 'Analysis · 60 GiB v3'),
             ],
-            quotes=[dict(file=f'ops:{REPORT_V3}', lines=[3, 27, 43, 94, 95, 96, 97, 108, 110])],
+            quotes=[dict(file=f'ops:{REPORT_V3}', lines=[3, 27, 43, 93, 95, 96, 97, 98, 108, 110])],
         ),
     ],
 )
@@ -276,6 +276,31 @@ def row(db, table, task, record_id):
     for column in JSON_COLUMNS & set(value):
         if isinstance(value[column], str):
             value[column] = json.loads(value[column])
+    return value
+
+
+def redact_values(value):
+    """Redact scalar values whose serialized key/value pair trips a secret pattern.
+
+    The native export scrubs bytes after serializing, which can cut through a
+    JSON value (for example a long float under a "..._token" key) and leave
+    invalid JSON. Redacting the value keeps the record parseable.
+    """
+    hit = lambda text: any(p.search(text.encode()) for p in SECRET_PATTERNS)
+    if isinstance(value, list):
+        return [redact_values(item) for item in value]
+    if isinstance(value, dict):
+        out = {}
+        for key, item in value.items():
+            if isinstance(item, (dict, list)):
+                out[key] = redact_values(item)
+            elif hit(json.dumps({key: item}, ensure_ascii=False)) or hit(json.dumps({key: item}, ensure_ascii=False, indent=2)):
+                out[key] = '<redacted>'
+            else:
+                out[key] = item
+        return out
+    if isinstance(value, str) and hit(value):
+        return '<redacted>'
     return value
 
 
@@ -531,10 +556,11 @@ class Builder:
         # Same serializer and sanitizer as the native export: record rows come
         # from SQLite, so the bundle's records/*.json are new files.
         from jiuwenswarm.factory.export import json_bytes
-        from jiuwenswarm.factory.redact import scrub_bytes
         path = self.stage / name
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(scrub_bytes(json_bytes(value)))
+        data = json_bytes(redact_values(value))
+        json.loads(data)  # byte-level scrubbing can break JSON; value-level redaction must not
+        path.write_bytes(data)
 
 
 def build(base: Path, out: Path, spec, replace=False):

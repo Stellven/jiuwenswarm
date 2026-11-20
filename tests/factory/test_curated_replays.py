@@ -188,3 +188,11 @@ def test_real_replay_builds_from_spark_records(tmp_path):
     assert len(replay['steps']) == 9
     assert replay['steps'][-1]['quotes'][0]['text'].startswith('Across ten pairs per size, C3 returned')
     assert verify(path) > 0
+
+
+def test_record_redaction_keeps_json_valid():
+    value = {'a': [{'projected_upload_gib_per_token': 0.12345678901234567, 'ok': 1}], 'api_key': 'sk-abcdefghijklmnopqrstuvwxyz'}
+    out = curated.redact_values(value)
+    assert out['a'][0] == {'projected_upload_gib_per_token': '<redacted>', 'ok': 1}
+    assert out['api_key'] == '<redacted>'
+    json.loads(json.dumps(out))

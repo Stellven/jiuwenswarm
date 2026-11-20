@@ -500,7 +500,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                     <small className="factory-original-kind factory-inline-kind" data-testid="factory-runs-current-kind" title="Original record kind">
                       {cursor.kind}
                     </small>
-                    <span className="factory-current-summary"> · {cursor.summary}</span>
+                    {!curatedStep && <span className="factory-current-summary"> · {cursor.summary}</span>}
                   </>
                 ) : (
                   t('factoryRuns.start')
@@ -535,7 +535,9 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                     setPlaying(false);
                     setPosition(next);
                   }}
-                  onOpenFile={(path) => selectPanel('artifacts', path)}
+                  onOpenFile={(path) =>
+                    selectPanel(/(?:^|\/)report[^/]*\.md$/i.test(path) ? 'report' : 'artifacts', path)
+                  }
                 />
               )}
               {panel === 'iterations' && (
