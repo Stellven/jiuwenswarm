@@ -55,7 +55,7 @@ def _node(value, decision_rev):
                     'created_by_decision_rev': decision_rev}
 
 
-def _validate(nodes):
+def _validate(nodes, component_cc=None):
     for node in nodes.values():
         if node['kind'] not in KINDS or node['state'] not in STATES:
             raise ValueError('Unknown plan kind or state')
@@ -73,7 +73,7 @@ def _validate(nodes):
             validate_branch(node['branch'])
         if 'engine_slice' in node:
             from .ontology import validate_slice
-            validate_slice(node['engine_slice'])
+            validate_slice(node['engine_slice'], component_cc)
         if 'entities' in node:
             _ids(node['entities'])
         if 'requires_evidence' in node:
@@ -112,7 +112,7 @@ def _validate(nodes):
         raise ValueError('Plan dependency cycle')
 
 
-def _apply(nodes, patch, decision_rev):
+def _apply(nodes, patch, decision_rev, component_cc=None):
     """Pure patch application. Caller owns the detached node map."""
     _object(patch, {'add', 'update', 'cancel', 'supersede'})
     if not patch or not any(patch.values()):
@@ -165,7 +165,7 @@ def _apply(nodes, patch, decision_rev):
                     if by == key or by not in nodes or nodes[by]['state'] in TERMINAL:
                         raise ValueError('Superseding node must exist and be active')
                     node['superseded_by'] = by
-    _validate(nodes)
+    _validate(nodes, component_cc)
 
 
 def _view(task_id, rev, nodes, history):
@@ -185,7 +185,7 @@ def _view(task_id, rev, nodes, history):
                 blocked_reasons=blocked, history=history)
 
 
-def replay(task_id, history, rev=None):
+def replay(task_id, history, rev=None, *, component_cc=None):
     """Reconstruct a graph solely from committed patch records."""
     history = sorted(json.loads(encoded(history)), key=lambda h: h['rev'])
     if rev is None:
@@ -199,16 +199,16 @@ def replay(task_id, history, rev=None):
             break
         if entry['parent_rev'] != len(applied) or entry['rev'] != len(applied) + 1:
             raise ValueError('Noncontiguous plan history')
-        _apply(nodes, entry['patch'], entry['decision_rev'])
+        _apply(nodes, entry['patch'], entry['decision_rev'], component_cc)
         applied.append(entry)
     return _view(task_id, rev, nodes, applied)
 
 
 def from_records(data, rev=None):
     """Works with Store dumps, read-only story snapshots and exported bundles."""
-    task_id = data['tasks'][0]['task_id']
+    task = data['tasks'][0]
     history = [r['values'] for r in data.get('observations', []) if r['kind'] == KIND]
-    return replay(task_id, history, rev)
+    return replay(task['task_id'], history, rev, component_cc=task.get('component_cc'))
 
 
 def _host(store, task_id, write=False):
@@ -220,9 +220,9 @@ def _host(store, task_id, write=False):
 
 def plan_get(store, task_id, rev=None):
     host = _host(store, task_id)
-    host.get_task(task_id)
+    task = host.get_task(task_id)
     rows = host._db.execute('SELECT "values" FROM observations WHERE task_id=? AND kind=? ORDER BY created', (task_id, KIND))
-    return replay(task_id, [json.loads(r[0]) for r in rows], rev)
+    return replay(task_id, [json.loads(r[0]) for r in rows], rev, component_cc=task.get('component_cc'))
 
 
 def dispatch_precondition(store, task_id, node_id):
@@ -254,7 +254,7 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
         raise ValueError('Only the host initial suggestion may cite decision zero')
     patch = json.loads(encoded(patch))
     nodes = {n['node_id']: n for n in graph['nodes']}
-    _apply(nodes, patch, decision_rev)
+    _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'))
     if any('branch' in n for n in nodes.values()):
         from .branch_workbench import validate_graph
         validate_graph(host, task_id, nodes)
@@ -314,11 +314,15 @@ def initial_plan(task):
             ('report', 'report', 'Report result and limitations', None),
         ]
     constraints = task.get('constraints', {})
+    if isinstance(constraints, dict) and constraints.get('external_model_execution_only'):
+        specs = [(key, kind, ('Await imported capped model evidence' if kind == 'measure' else title),
+                  None if kind == 'measure' else capability)
+                 for key, kind, title, capability in specs]
     slice_id = constraints.get('engine_slice') if isinstance(constraints, dict) else None
     target = {}
     if slice_id is not None:
         from .ontology import validate_slice
-        validate_slice(slice_id)
+        validate_slice(slice_id, component)
         target = {'engine_slice': slice_id}
     nodes = []
     for key, kind, title, capability in specs:

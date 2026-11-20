@@ -4,6 +4,7 @@ from pathlib import Path
 
 import jsonschema
 import pytest
+import yaml
 
 from jiuwenswarm.factory import components, ontology
 from jiuwenswarm.factory.api import dispatch
@@ -168,3 +169,60 @@ def test_engine_slice_target_and_contract_link(store):
     assert 'engine_slice' not in initial_plan(dict(task, constraints={}))['add'][0]
     parsed = parse_engagement('expert_phase: stats decode_tokens=32\n')
     assert parsed['phase']['labels']['decode_tokens']['unit'] == 'tokens'
+
+
+@pytest.fixture
+def capsule_slices(tmp_path, monkeypatch):
+    for name, cc, slices in (
+        ('expert_streaming', 'engine.expert_streaming', None),
+        ('cache', 'engine.build_cache', {'expert_weight_readiness': 'Cache readiness'}),
+        ('recorder', 'observability.build_recorder', {'runtime_event_recording': 'Record events'}),
+    ):
+        folder = tmp_path / name
+        folder.mkdir()
+        (folder / 'cc.yaml').write_text(yaml.safe_dump({'id': cc}))
+        path = folder / 'ONTOLOGY.yaml'
+        if slices is None:
+            path.write_text(ontology.PATH.read_text())
+            monkeypatch.setattr(ontology, 'PATH', path)
+        else:
+            path.write_text(yaml.safe_dump(dict(entities={'regions': {}}, quantities={}, slices={
+                key: dict(purpose=purpose, regions=[], quantities=[]) for key, purpose in slices.items()
+            })))
+    ontology.load.cache_clear()
+    yield
+    ontology.load.cache_clear()
+
+
+def test_expert_streaming_slice_keeps_its_definition(capsule_slices):
+    expected = ontology.load()['slices']['expert_weight_readiness']
+    assert ontology.validate_slice('expert_weight_readiness', 'engine.expert_streaming') == expected
+    assert ontology.validate_slice('expert_weight_readiness') == expected
+
+
+def test_capsule_slice_resolves_in_seed_patch_and_replay(capsule_slices, store):
+    from jiuwenswarm.factory.taskgraph import from_records, seed_plan
+
+    component = 'engine.build_cache'
+    assert ontology.validate_slice('expert_weight_readiness', component)['purpose'] == 'Cache readiness'
+    assert ontology.validate_slice('runtime_event_recording', component)['purpose'] == 'Record events'
+    task = store.create_task(dict(task_id='cache', objective='Verify cache', contract_id='star-prefill-v0',
+                                  component_cc=component, constraints={'engine_slice': 'expert_weight_readiness'}))
+    seeded = seed_plan(store, task)
+    assert all(n['engine_slice'] == 'expert_weight_readiness' for n in seeded['nodes'])
+    store.advance_decision('cache', 0, dict(hypothesis='Inspect runtime evidence'))
+    patch = {'add': [node('record-events', engine_slice='runtime_event_recording')]}
+    graph = plan_patch(store, 'cache', patch, 1, 1)
+    assert graph == plan_get(store, 'cache') == from_records(store.dump('cache'))
+
+
+def test_unknown_capsule_slice_errors(capsule_slices):
+    with pytest.raises(ValueError, match='Unknown engine ontology slice'):
+        ontology.validate_slice('unknown', 'engine.build_cache')
+
+
+def test_ambiguous_capsule_slice_lists_candidates(capsule_slices):
+    with pytest.raises(ValueError, match='Ambiguous engine ontology slice') as error:
+        ontology.validate_slice('expert_weight_readiness', 'observability.build_recorder')
+    assert 'engine.expert_streaming' in str(error.value)
+    assert 'engine.build_cache' in str(error.value)

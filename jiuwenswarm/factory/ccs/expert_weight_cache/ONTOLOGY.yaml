@@ -1,0 +1,36 @@
+id: satay.expert-weight-cache-ontology
+version: '0.2'
+status: provisional
+entities:
+  component: Expert weight cache within weight residency.
+  engine_revision: Pinned llama.cpp revision and candidate patch identity.
+  source_tree: Owned checkout for the engine revision.
+  contract: Fixed workload, correctness and memory budget requirements.
+  observation_point: INFO line and named field emitted by the cache.
+  quantity: Value with a unit, phase and region.
+  regions:
+    L4.selected_expert: selected_expert
+    M.expert_weight_range: expert_weight_range
+    M.read_request: read_request
+    M.readiness: readiness before demand fill
+    M.memory_budget: memory_budget
+relations:
+  modifies_region: component -> engine region
+  reads_range: read_request -> expert_weight_range
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract and workload
+observation_points:
+  active: 'expert_weight_cache: active'
+  inactive: 'expert_weight_cache: inactive ('
+  stats: 'expert_weight_cache: stats'
+quantities:
+  cache.leases: {unit: count, phase: run, source: {line: 'expert_weight_cache: stats', field: leases}, region: M.readiness, distinct_from: []}
+  cache.reuses: {unit: count, phase: run, source: {line: 'expert_weight_cache: stats', field: reuses}, region: M.readiness, distinct_from: [cache.leases]}
+  cache.evictions: {unit: count, phase: run, source: {line: 'expert_weight_cache: stats', field: evictions}, region: M.memory_budget, distinct_from: [cache.reuses]}
+  cache.bytes_copied_saved: {unit: bytes, phase: run, source: {line: 'expert_weight_cache: stats', field: bytes_copied_saved}, region: M.read_request, distinct_from: []}
+  cache.peak_bytes: {unit: bytes, phase: run, source: {line: 'expert_weight_cache: stats', field: peak_bytes}, region: M.memory_budget, distinct_from: [cache.bytes_copied_saved]}
+slices:
+  expert_weight_readiness:
+    purpose: Make selected expert bytes available on the stock copy path using bounded staged slices.
+    regions: [L4.selected_expert, M.expert_weight_range, M.read_request, M.readiness, M.memory_budget]
+    quantities: [cache.leases, cache.reuses, cache.evictions, cache.bytes_copied_saved, cache.peak_bytes]

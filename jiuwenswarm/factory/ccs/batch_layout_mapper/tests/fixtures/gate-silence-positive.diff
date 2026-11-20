@@ -1,0 +1,19 @@
+diff --git a/src/llama-batch-layout.h b/src/llama-batch-layout.h
+new file mode 100644
+--- /dev/null
++++ b/src/llama-batch-layout.h
+@@ -0,0 +1,14 @@
++#include <cstdlib>
++#include <cstring>
++#define LLAMA_LOG_INFO(...) ((void)0)
++#define LOG_INF(...) ((void)0)
++inline void marker_fixture() {
++    const char * value = std::getenv("LLAMA_BATCH_LAYOUT");
++    if (!value) return;
++    LOG_INF("batch_layout_mapper: active");
++    LLAMA_LOG_INFO("batch_layout_mapper: inactive (fixture)");
++    LLAMA_LOG_INFO("batch_layout_mapper: stats");
++    LOG_INF("batch_layout_mapper: layout");
++    const bool enabled = value != nullptr && std::strcmp(value, "1") == 0;
++    (void)enabled;
++}

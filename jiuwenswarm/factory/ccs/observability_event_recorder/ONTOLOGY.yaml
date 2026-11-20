@@ -1,0 +1,50 @@
+id: satay.runtime-event-recording
+version: '0.1'
+status: proposed
+entities:
+  component: Runtime event recording under Generation runtime.
+  workload: Contract-bound prefill and decode requests.
+  contract: Versioned correctness, coverage and measurement requirements.
+  observation_point: Scheduler route evaluation, weight copy, consumer readiness or INFO lifecycle line.
+  quantity: A value tied to an observation, unit, phase and region.
+  capabilities: [observability.build_runtime_event_recorder]
+  regions:
+    L3: generation_loop
+    L4.selected_expert: selected_expert
+    M.read_request: read_request
+    M.readiness: readiness before expert consumption
+    M.memory_budget: memory_budget
+relations:
+  implements: component -> capability
+  modifies_region: component -> engine region
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract and workload
+observation_points:
+  activation:
+    region: L3
+    lines: ['runtime_event_recorder: active', 'runtime_event_recorder: inactive (']
+  route:
+    region: L4.selected_expert
+    source: 'ffn_moe_topk-<layer> eval callback'
+  transfer:
+    region: M.read_request
+    source: 'sched_copy_experts copy submissions and scheduler fallback'
+  consumer_ready:
+    region: M.readiness
+    source: 'expert consumer before submission after input readiness'
+  stats:
+    region: L3
+    lines: ['runtime_event_recorder: stats']
+quantities:
+  recorder.bytes_transferred: {unit: bytes, phase: run, source: {line: JSONL event, field: bytes_transferred}, region: M.read_request, distinct_from: []}
+  recorder.consumer_ready_ns: {unit: ns, phase: run, source: {line: JSONL event, field: consumer_ready_ns}, region: M.readiness, distinct_from: [recorder.overhead_ns]}
+  recorder.expected: {unit: count, phase: run, source: {line: 'runtime_event_recorder: stats', field: expected}, region: L3, distinct_from: [recorder.written, recorder.lost]}
+  recorder.written: {unit: count, phase: run, source: {line: 'runtime_event_recorder: stats', field: written}, region: L3, distinct_from: [recorder.expected, recorder.lost]}
+  recorder.lost: {unit: count, phase: run, source: {line: 'runtime_event_recorder: stats', field: lost}, region: L3, distinct_from: [recorder.expected, recorder.written]}
+  recorder.overhead_ns: {unit: ns, phase: run, source: {line: 'runtime_event_recorder: stats', field: overhead_ns}, region: L3, distinct_from: [recorder.consumer_ready_ns]}
+  recorder.capacity_bytes: {unit: bytes, phase: run, source: {line: 'runtime_event_recorder: active', field: capacity_bytes}, region: M.memory_budget, distinct_from: [recorder.bytes_transferred]}
+slices:
+  runtime_event_recording:
+    purpose: Join routed expert observations per microbatch-layer under one request workload and bounded memory.
+    regions: [L3, L4.selected_expert, M.read_request, M.readiness, M.memory_budget]
+    quantities: [recorder.bytes_transferred, recorder.consumer_ready_ns, recorder.expected, recorder.written, recorder.lost, recorder.overhead_ns, recorder.capacity_bytes]

@@ -430,6 +430,58 @@
           ]
         }
       }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind", "base", "change", "configuration",
+        "engagement_checks", "correctness_obligations", "rollback"
+      ],
+      "properties": {
+        "kind": {"const": "builder_spec"},
+        "implements": {"$ref": "#/oneOf/0/properties/implements"},
+        "modifies_region": {"$ref": "#/oneOf/0/properties/modifies_region"},
+        "quantities": {"$ref": "#/oneOf/0/properties/quantities"},
+        "base": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repo", "commit"],
+          "properties": {
+            "repo": {"$ref": "#/oneOf/0/properties/base/properties/repo"},
+            "commit": {"$ref": "#/oneOf/0/properties/base/properties/commit"},
+            "pre_integration_commit": {"$ref": "#/oneOf/0/properties/base/properties/pre_integration_commit"}
+          }
+        },
+        "change": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["touches"],
+          "properties": {
+            "kind": {"$ref": "#/oneOf/0/properties/change/properties/kind"},
+            "touches": {
+              "description": "Proposed source paths and upper bound on the work order's allowed paths. Grants still come from the operator.",
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^(?!.*(?:^|/)[.]{1,2}(?:/|$))[a-zA-Z0-9_.-]+(?:/[a-zA-Z0-9_.-]+)*$"
+              }
+            }
+          }
+        },
+        "supported": {"$ref": "#/oneOf/0/properties/supported"},
+        "configuration": {"$ref": "#/oneOf/0/properties/configuration"},
+        "engagement_checks": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "correctness_obligations": {"$ref": "#/oneOf/0/properties/correctness_obligations"},
+        "rollback": {"$ref": "#/oneOf/0/properties/rollback"},
+        "acceptance": {"$ref": "#/oneOf/0/properties/acceptance"}
+      }
     }
   ]
 }

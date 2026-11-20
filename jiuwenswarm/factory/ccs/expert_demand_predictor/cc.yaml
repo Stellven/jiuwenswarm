@@ -1,0 +1,78 @@
+cc: '2'
+id: routing.build_expert_demand_predictor
+version: 1.1.2
+materials:
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  expert_demand_prediction:
+    path: components/expert_demand_prediction/component.yaml
+  sample_env_gate:
+    path: samples/env_gate.cpp
+  sample_info_markers:
+    path: samples/info_markers.cpp
+  sample_frequency_rank:
+    path: samples/frequency_rank.cpp
+  sample_outcome_counts:
+    path: samples/outcome_counts.cpp
+  helpers:
+    path: helpers/README.md
+  check_markers:
+    path: helpers/check_markers.py
+  parity_template:
+    path: helpers/parity_template.py
+  replay_score:
+    path: helpers/replay_score.py
+  synthetic_trace:
+    path: helpers/synthetic_trace.jsonl
+  task:
+    path: tasks/expert_demand_predictor.json
+  validation:
+    path: VALIDATION.md
+  gate_verifier:
+    path: helpers/verify_gate.py
+  churn_verifier:
+    path: helpers/verify_churn.py
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Check a candidate patch or uncommitted worktree changes for scope, default-off
+      gate, activation literals and best-effort C++ syntax.
+    takes:
+      checkout: text
+      diff_path:
+        kind: text
+        optional: true
+      env_gate:
+        kind: text
+        optional: true
+      markers:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+    gives:
+      checks: json
+      done: json
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

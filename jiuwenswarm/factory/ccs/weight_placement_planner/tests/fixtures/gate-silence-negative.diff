@@ -1,0 +1,17 @@
+diff --git a/src/llama-placement-plan.cpp b/src/llama-placement-plan.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-placement-plan.cpp
+@@ -0,0 +1,12 @@
++#include <cstdlib>
++#include <cstring>
++#define LLAMA_LOG_INFO(...) ((void)0)
++#define LOG_INF(...) ((void)0)
++inline void marker_fixture() {
++    LOG_INF("weight_placement_planner: active");
++    const char * value = std::getenv("LLAMA_PLACEMENT_PLAN");
++    if (value && std::strcmp(value, "1") == 0) {
++        LLAMA_LOG_INFO("weight_placement_planner: inactive (fixture)");
++        LLAMA_LOG_INFO("weight_placement_planner: stats");
++    }
++}

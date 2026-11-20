@@ -1,0 +1,47 @@
+{
+  "objective": "Run the single-capsule STAR prefill pilot for observability.build_runtime_event_recorder. Read its GUIDE, METHOD, component material and engine slice, and review the star-prefill-v0 contract notes with the operator. Use the task-owned branch and clean checkout at 9048bad8d6e3a0f9f1726e238e451181c7e02613, provisioned from resources.source.copy_from. Build the bare engine first with factory.builder and retain the build record. Hand the bare record to the operator for the first successful gate-unset reference run and freeze, or use the already frozen bare reference after verifying its pin and workload. In the owned checkout, create or modify the recorder as the capsule guide directs. Run the capsule verify capability on the complete diff against the pin and retain its verdict. Commit the scoped change locally after verification, then build the clean candidate with factory.builder. For the fixed candidate check, request only the capsule treatment (LLAMA_EVENT_REC set to a fresh task-owned absolute container JSONL path), require the stderr engagement marker 'runtime_event_recorder: active', and verify byte-identical stdout against the frozen bare reference. The recorder guide uses server-side request and phase tags. Require an authorized workload that exercises those tags and retains the recorder file. Use fixed lab evaluation only, replacing any suggested scored A/B node. Stop after this check, or report the highest evidenced stage and the unmet prerequisite if blocked. Label success only as activation and greedy-parity smoke evidence. Do not claim speed, run scored performance A/B, or claim full capsule acceptance.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false,
+    "engine_slice": "runtime_event_recording"
+  },
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write",
+    "gpu.use"
+  ],
+  "target": "jetson-orin",
+  "budget": {
+    "max_turns": 12,
+    "wall_clock_s": 14400
+  },
+  "contract_id": "star-prefill-v0",
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "observability.build_runtime_event_recorder",
+  "source": {
+    "subpath": "llama.cpp-observability-event-recorder",
+    "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+    "branch": "star-observability-event-recorder"
+  },
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp-observability-event-recorder",
+      "copy_from": "/home/muk/predemo/llama.cpp-stock",
+      "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "capsules": [
+      "observability.build_runtime_event_recorder@1.1.1",
+      "factory.integration_skill",
+      "factory.builder",
+      "factory.engine_inspector",
+      "factory.lab_client",
+      "factory.evidence"
+    ]
+  }
+}

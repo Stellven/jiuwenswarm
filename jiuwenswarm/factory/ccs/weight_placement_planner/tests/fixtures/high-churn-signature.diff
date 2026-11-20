@@ -1,0 +1,7 @@
+diff --git a/ggml/include/ggml-backend.h b/ggml/include/ggml-backend.h
+--- a/ggml/include/ggml-backend.h
++++ b/ggml/include/ggml-backend.h
+@@ -1,2 +1,2 @@
+ bool fixture_copy(int expert,
+-                  long bytes);
++                  long bytes, long *observed);

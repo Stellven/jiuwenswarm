@@ -1,0 +1,57 @@
+kind: builder_spec
+implements: [observability.build_runtime_event_recorder]
+modifies_region: [L3, L4.selected_expert, M.read_request, M.readiness, M.memory_budget]
+quantities: [recorder.bytes_transferred, recorder.consumer_ready_ns, recorder.expected, recorder.written, recorder.lost, recorder.overhead_ns, recorder.capacity_bytes]
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  kind: observability
+  touches:
+    - src/CMakeLists.txt
+    - src/llama-context.cpp
+    - src/llama-context.h
+    - src/llama-event-recorder.cpp
+    - src/llama-event-recorder.h
+    - src/llama-moe-cache.cpp
+    - src/llama-moe-cache.h
+    - ggml/include/ggml-backend.h
+    - ggml/src/ggml-backend.cpp
+    - tools/server/server-context.cpp
+supported:
+  host: {name: jetson-orin, arch: aarch64, cuda_arch: sm_87}
+  models: Start with the contract's MoE model using ffn_moe_topk layer nodes and the stock expert-weight copy path.
+  dtype: any
+configuration:
+  env:
+    LLAMA_EVENT_REC: '<fresh task-owned JSONL path>'
+    LLAMA_EVENT_REC_MIB: '64'
+  source: >-
+    An unset gate uses one cached environment lookup and leaves instrumentation dormant.
+    An empty or unusable path is an enabled configuration error. The capacity override is
+    a positive whole decimal MiB value, subject to the shared memory reservation.
+    Apply the work order's path authority within change.touches. The GGML entries describe
+    optional scheduler observation points that require separate authority to edit.
+engagement_checks:
+  - 'At -lv 4, look for one INFO runtime_event_recorder: active <effective settings> on first use and one runtime_event_recorder: stats events=<n> lost=<n> bytes=<n> at exit.'
+  - 'With a set but unusable gate or recorder error, emit one INFO runtime_event_recorder: inactive (<reason>) and an exit stats line.'
+  - Verify JSONL request and phase joins, complete microbatch-layer coverage, explicit loss, and measured recorder overhead.
+correctness_obligations:
+  - >-
+    With LLAMA_EVENT_REC unset, take the stock path and do no component work
+    beyond one cached getenv check. Emit zero log lines with the runtime_event_recorder: prefix.
+    Active, inactive (<reason>) and stats markers require a set gate.
+  - Preserve byte-identical greedy output with capture off and on and against the frozen stock reference.
+  - Preserve token order, router IDs, mixture weights, quantization, sampling and stock callback semantics.
+  - Keep I/O outside the hot path and reserve recorder-owned buffers under the shared capacity cap before allocation.
+  - Drop newest on overflow and count every lost event once. Drain at normal exit into a fresh JSONL file without overwriting existing data.
+  - Each microbatch-layer event carries request and phase, selected expert IDs in stock order, monotonic timestamps and submitted expert-weight bytes. Report coverage and overhead in the final summary.
+  - On error disable the recorder and continue through stock execution. Missing observations must remain distinct from zero.
+rollback:
+  source: Unset LLAMA_EVENT_REC to disable. Revert only the recorder integration commit in the owned checkout to remove the component.
+  image: Restore the frozen pre-integration image and environment and retain the recorder evidence.
+acceptance:
+  type: observability
+  signal: engagement
+  overhead_bound: 0.03

@@ -1,0 +1,26 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "budget_sample": "reference",
+    "cache_stats_checker": "reference",
+    "churn_verifier": "reference",
+    "expert_weight_cache": "component",
+    "gate_sample": "reference",
+    "gate_verifier": "reference",
+    "guide": "skill",
+    "helpers": "reference",
+    "info_markers_sample": "reference",
+    "lease_interface_sample": "reference",
+    "marker_checker": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "parity_runner": "reference",
+    "source_map": "reference",
+    "task": "reference",
+    "validation": "reference",
+    "verifier": "reference"
+  }
+}

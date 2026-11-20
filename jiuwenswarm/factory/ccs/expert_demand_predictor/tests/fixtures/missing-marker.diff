@@ -1,0 +1,15 @@
+diff --git a/src/llama-expert-predict.cpp b/src/llama-expert-predict.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-expert-predict.cpp
+@@ -0,0 +1,10 @@
++#include <cstdlib>
++#include <cstring>
++bool fixture_gate() {
++    const char *value = std::getenv("LLAMA_EXPERT_PREDICT");
++    return value != nullptr && std::strcmp(value, "1") == 0;
++}
++void fixture_log_lines(void (*log)(const char *)) {
++    log("expert_demand_predictor: active synthetic");
++    log("expert_demand_predictor: inactive (synthetic)");
++}

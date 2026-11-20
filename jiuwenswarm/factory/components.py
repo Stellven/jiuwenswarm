@@ -1,47 +1,104 @@
 """Read host-owned component materials; callers cannot supply engagement code."""
+from contextvars import ContextVar
+from functools import lru_cache
+import json
 from pathlib import Path
 import re
+
+from jsonschema import Draft202012Validator, ValidationError
 import yaml
-from contextvars import ContextVar
+
+from jiuwenswarm.ccv2 import ccv2
+from jiuwenswarm.ccv2.roles import read_roles
 
 SELECTED_BINDING = ContextVar("factory_component_binding", default=None)
+CCS = Path(__file__).with_name('ccs')
+ROOT = CCS / 'expert_streaming' / 'components'
+SCHEMA = Path(__file__).with_name('schemas') / 'component.schema.json'
+COMPONENT_NAME = re.compile(r'[a-z][a-z0-9_]*')
+BUILDER_PATH = re.compile(r'components/([a-z][a-z0-9_]*)/component[.]yaml')
 
-ROOT = Path(__file__).parent / 'ccs' / 'expert_streaming' / 'components'
+
+@lru_cache(maxsize=1)
+def _validator():
+    return Draft202012Validator(json.loads(SCHEMA.read_text()))
+
+
+def _read_component(path, *, ontology_path=None):
+    from .ontology import validate_component
+
+    material = yaml.safe_load(path.read_text())
+    try:
+        _validator().validate(material)
+    except ValidationError as exc:
+        raise ValueError(f'Invalid component manifest {path}: {exc.message}') from exc
+    if (material.get('kind') == 'builder_spec') != (ontology_path is not None):
+        raise ValueError(f'Unexpected component kind in {path}')
+    return validate_component(material, ontology_path=ontology_path)
+
+
+def _builder_materials(declaration, bundle, name, *, legacy=False):
+    roles = read_roles(declaration, bundle, legacy=legacy)
+    return [(key, descriptor) for key, descriptor in declaration.get('materials', {}).items()
+            if (match := BUILDER_PATH.fullmatch(descriptor['path']))
+            and roles['materials'].get(key) in {'component', 'reference'}
+            and name in (match[1], declaration['id'])]
+
+
+def _read_selected(declaration, bundle, name, *, material_name=None, legacy=False):
+    if declaration['id'] == 'factory.components.' + name:
+        roles = read_roles(declaration, bundle, legacy=legacy)
+        if material_name not in (None, 'component') or roles['materials'].get('component') != 'component':
+            raise ValueError('Selected material is not declared as a component')
+        path = ccv2.contained(bundle, declaration['materials']['component']['path'])
+        return _read_component(path)
+    matches = _builder_materials(declaration, bundle, name, legacy=legacy)
+    if material_name is not None:
+        matches = [(key, descriptor) for key, descriptor in matches if key == material_name]
+    if len(matches) != 1:
+        raise ValueError('Selected release names a different or ambiguous component')
+    path = ccv2.contained(bundle, matches[0][1]['path'])
+    return _read_component(path, ontology_path=ccv2.contained(bundle, 'ONTOLOGY.yaml'))
 
 
 def load(component, *, host=None, release=None, legacy=False):
     if not isinstance(component, str):
         raise ValueError('component must name a factory component')
     name = component.removeprefix('factory.components.')
-    if not re.fullmatch(r'[a-z][a-z0-9_]*', name):
+    if not ccv2.ID.fullmatch(name):
         raise ValueError('Invalid component identifier')
     selected = SELECTED_BINDING.get()
+    material_name = None
     if release is None and selected is not None:
         host, binding = selected
-        matches = [row['release'] for row in binding['components']
-                   if host.describe(row['release'])['id'] == 'factory.components.' + name]
+        matches = []
+        for row in binding['components']:
+            declaration, bundle = host.release(row['release'])
+            if (declaration['id'] == 'factory.components.' + name
+                    or _builder_materials(declaration, bundle, name, legacy=legacy)):
+                matches.append(row)
         if len(matches) != 1:
             raise ValueError('Component is not selected by the execution binding: ' + name)
-        release = matches[0]
+        release, material_name = matches[0]['release'], matches[0]['material']
     if release is not None:
         if host is None:
             raise ValueError('Sealed component selection requires its Host')
         declaration, bundle = host.release(release)
-        if declaration['id'] != 'factory.components.' + name:
-            raise ValueError('Selected release names a different component')
-    else:
-        bundle = ROOT / name
-        if not (bundle / 'cc.yaml').is_file():
-            raise ValueError('Unknown component: ' + name)
-        declaration = yaml.safe_load((bundle / 'cc.yaml').read_text())
-    from jiuwenswarm.ccv2.roles import read_roles
-    roles = read_roles(declaration, bundle, legacy=legacy)
-    if roles['materials'].get('component') != 'component':
-        raise ValueError('Selected material is not declared as a component')
-    from jiuwenswarm.ccv2.ccv2 import contained
-    path = contained(bundle, declaration['materials']['component']['path'])
-    from .ontology import validate_component
-    return validate_component(yaml.safe_load(path.read_text()))
+        return _read_selected(declaration, bundle, name, material_name=material_name, legacy=legacy)
+    bundle = ROOT / name
+    if COMPONENT_NAME.fullmatch(name) and (bundle / 'cc.yaml').is_file():
+        declaration = ccv2.load(bundle / 'cc.yaml', legacy=legacy)
+        return _read_selected(declaration, bundle, name, legacy=legacy)
+    matches = []
+    for manifest in sorted(CCS.glob('*/cc.yaml')):
+        declaration = ccv2.load(manifest, legacy=legacy)
+        if _builder_materials(declaration, manifest.parent, name, legacy=legacy):
+            matches.append((declaration, manifest.parent))
+    if not matches:
+        raise ValueError('Unknown component: ' + name)
+    if len(matches) != 1:
+        raise ValueError('Ambiguous builder specification: ' + name)
+    return _read_selected(*matches[0], name, legacy=legacy)
 
 
 def dependents(component):

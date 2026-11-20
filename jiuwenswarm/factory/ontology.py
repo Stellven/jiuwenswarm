@@ -9,7 +9,15 @@ PATH = Path(__file__).parent / 'ccs/expert_streaming/ONTOLOGY.yaml'
 
 @lru_cache(maxsize=1)
 def load():
-    ontology = yaml.safe_load(PATH.read_text())
+    return _validate_ontology(yaml.safe_load(PATH.read_text()))
+
+
+@lru_cache(maxsize=32)
+def _read_yaml(path):
+    return yaml.safe_load(path.read_text())
+
+
+def _validate_ontology(ontology):
     quantities = ontology['quantities']
     for spec in quantities.values():
         if (spec['phase'] not in {'prompt', 'decode', 'run'}
@@ -32,9 +40,11 @@ def validate_quantities(ids):
         raise ValueError('Unknown ontology quantities: ' + ', '.join(sorted(unknown)))
 
 
-def validate_component(material):
-    ontology = load()
-    for field, known in [('implements', ontology['entities']['capabilities']),
+def validate_component(material, *, ontology_path=None):
+    ontology = load() if ontology_path is None else _validate_ontology(_read_yaml(ontology_path))
+    if ontology_path is not None and not ontology.get('slices'):
+        raise ValueError('Builder specification requires a capsule ontology slice')
+    for field, known in [('implements', ontology['entities'].get('capabilities', [])),
                          ('modifies_region', ontology['entities']['regions']),
                          ('quantities', ontology['quantities'])]:
         ids = material.get(field, [])
@@ -43,8 +53,27 @@ def validate_component(material):
     return material
 
 
-def validate_slice(slice_id):
+def validate_slice(slice_id, component_cc=None):
     """Validate a domain target; it grants no execution or acceptance authority."""
-    if not isinstance(slice_id, str) or slice_id not in load().get('slices', {}):
+    if not isinstance(slice_id, str):
         raise ValueError('Unknown engine ontology slice')
-    return load()['slices'][slice_id]
+    # Older task records can omit component_cc. Preserve their original vocabulary.
+    component_cc = component_cc or 'engine.expert_streaming'
+    if component_cc == 'engine.expert_streaming' and slice_id in load().get('slices', {}):
+        return load()['slices'][slice_id]
+
+    sources = []
+    for path in sorted(PATH.parents[1].glob('*/ONTOLOGY.yaml')):
+        manifest = path.with_name('cc.yaml')
+        if manifest.is_file():
+            sources.append((_read_yaml(manifest)['id'], path))
+
+    for preferred in (True, False):
+        matches = [(cc, path) for cc, path in sources if (cc == component_cc) == preferred
+                   and slice_id in _read_yaml(path).get('slices', {})]
+        if len(matches) > 1:
+            candidates = ', '.join(f'{cc} ({path.parent.name})' for cc, path in matches)
+            raise ValueError(f'Ambiguous engine ontology slice {slice_id!r}: {candidates}')
+        if matches:
+            return _validate_ontology(_read_yaml(matches[0][1]))['slices'][slice_id]
+    raise ValueError('Unknown engine ontology slice')

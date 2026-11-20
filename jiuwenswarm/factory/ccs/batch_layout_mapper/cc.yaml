@@ -1,0 +1,76 @@
+cc: '2'
+id: engine.build_batch_layout_mapper
+version: 1.1.2
+materials:
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  component:
+    path: components/batch_layout_mapper/component.yaml
+  validation:
+    path: VALIDATION.md
+  sample_gate:
+    path: samples/env_gate.cpp
+  sample_logging:
+    path: samples/info_markers.cpp
+  sample_alignment:
+    path: samples/aligned_rows.cpp
+  sample_sweep:
+    path: samples/boundary_lengths.py
+  helpers:
+    path: helpers/README.md
+  helper_markers:
+    path: helpers/check_markers.py
+  helper_parity:
+    path: helpers/parity.py
+  helper_sweep:
+    path: helpers/prompt_sweep.py
+  task:
+    path: tasks/batch_layout_mapper.json
+  gate_verifier:
+    path: helpers/verify_gate.py
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Check a proposed llama.cpp diff for applicability, scope, default-off gating,
+      log markers and new-file syntax when available.
+    takes:
+      checkout: text
+      diff_path:
+        kind: text
+        optional: true
+        description: Existing patch file. Omit to inspect the worktree against HEAD.
+      env_gate:
+        kind: text
+        optional: true
+        description: Defaults to LLAMA_BATCH_LAYOUT.
+      markers:
+        kind: json
+        optional: true
+        schema:
+          type: array
+          items:
+            type: string
+            minLength: 1
+        description: Additional required literal strings in added lines.
+    gives:
+      checks: json
+      done: json
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

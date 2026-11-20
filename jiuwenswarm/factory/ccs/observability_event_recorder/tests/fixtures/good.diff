@@ -1,0 +1,15 @@
+diff --git a/src/llama-event-recorder.cpp b/src/llama-event-recorder.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-event-recorder.cpp
+@@ -0,0 +1,10 @@
++// Synthetic verifier input. No engine integration.
++#include <cstdlib>
++#define LLAMA_LOG_INFO(message) ((void)(message))
++void fixture() {
++    const char * path = std::getenv("LLAMA_EVENT_REC");
++    if (!path) return;
++    LLAMA_LOG_INFO("runtime_event_recorder: active");
++    LLAMA_LOG_INFO("runtime_event_recorder: inactive (fixture)");
++    LLAMA_LOG_INFO("runtime_event_recorder: stats");
++}

@@ -84,6 +84,8 @@ class Manager:
             raise ValueError('run_config.profile must be nsys or strata-native when given')
         admission = self._admission(task_id, admission_id)
         contract = contracts.load_for_task(self.store.get_task(task_id), contract_id)
+        if contract.get('external_execution_only'):
+            raise ValueError('Contract requires external bin/capped execution; factory lab launch is disabled')
         if profile == 'strata-native' and contract.get('adapter') not in {'strata-v1','llama-server-v1'}:
             raise ValueError('strata-native profiling requires a Strata contract')
         if contract.get('adapter') in {'strata-v1','llama-server-v1'}:

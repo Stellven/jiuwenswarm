@@ -1,0 +1,24 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "reference",
+    "gate_verifier": "reference",
+    "guide": "skill",
+    "helper_markers": "reference",
+    "helper_parity": "reference",
+    "helper_sweep": "reference",
+    "helpers": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "sample_alignment": "reference",
+    "sample_gate": "reference",
+    "sample_logging": "reference",
+    "sample_sweep": "reference",
+    "source_map": "reference",
+    "task": "reference",
+    "validation": "method"
+  }
+}

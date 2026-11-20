@@ -1,0 +1,58 @@
+kind: builder_spec
+implements: [placement.build_weight_placement_planner]
+modifies_region: [L1, M.memory_budget]
+quantities: [placement.cap_bytes, placement.peak_bytes, placement.assigned, placement.stock]
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  kind: observability
+  touches:
+    - common/arg.cpp
+    - common/common.h
+    - common/common.cpp
+    - src/llama-model.cpp
+    - src/llama-model-loader.cpp
+    - src/llama-placement-plan.cpp
+    - src/llama-placement-plan.h
+    - src/llama-placement-plan-log.h
+    - src/CMakeLists.txt
+    - tests/CMakeLists.txt
+    - tests/test-weight-placement-planner.cpp
+    - scripts/placement_budget.py
+    - scripts/tests/test_placement_budget.py
+supported:
+  host: {name: jetson-orin, arch: aarch64, cuda_arch: sm_87}
+  models: Qwen and Granite inventories with resolved stock buffer types
+  dtype: any
+configuration:
+  env:
+    LLAMA_PLACEMENT_PLAN: '1'
+  source: >-
+    The unset gate bypasses plan I/O and component logging. Exact value 1
+    enables --placement-plan <file> (LLAMA_ARG_PLACEMENT_PLAN). The engine wire
+    format is {"version":1,"overrides":[{"pattern":"<tensor name regex>","buft":"CPU"}]}.
+    Reject unknown fields or versions, input above 4 MiB, more than 4095
+    entries, invalid regex or unresolved and conflicting assignments.
+    Match against the model inventory with stock -ot semantics. Keep
+    stock choices for unmatched tensors. Keep cap and peak evidence in the
+    offline ledger and bind it to the plan, model and load configuration.
+    Reject an unusable plan as inactive and use the stock configuration.
+engagement_checks:
+  - 'At -lv 4, a set gate emits exactly one weight_placement_planner: active cap_bytes=<n> peak_bytes=<n> or one weight_placement_planner: inactive (<reason>).'
+  - 'At -lv 4, a set gate emits exactly one weight_placement_planner: stats assigned=<n> stock=<n> at exit.'
+  - 'On activation, weight_placement_planner: assignment summarizes committed buffers by tensor class. Per-name readback shows planned and actual buffer type and bytes.'
+correctness_obligations:
+  - >-
+    With LLAMA_PLACEMENT_PLAN unset, take the stock path and do no component work
+    beyond one cached getenv check. Emit zero log lines with the weight_placement_planner: prefix.
+    Active, inactive (<reason>) and stats markers require a set gate.
+  - Peak host bytes including KV, compute, headroom, aliases, replicas, temporary copies and displacement respect the cap.
+  - Every tensor has exactly one logical assignment. Unmatched tensors use stock placement. A plan-specific failure discards the entire candidate before stock fallback.
+  - Preserve quantization, token order, router IDs, mixture weights and sampling.
+  - Greedy output is byte identical with gate unset versus stock and with gate active versus stock -ot for the same effective assignments and fixed configuration.
+rollback:
+  source: Unset LLAMA_PLACEMENT_PLAN to bypass. Revert only the owned change if source rollback is required.
+  image: Restore the last admitted stock image and environment for the pinned contract.
+acceptance: {type: prerequisite}

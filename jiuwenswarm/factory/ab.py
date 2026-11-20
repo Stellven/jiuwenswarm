@@ -26,11 +26,15 @@ def submit(manager, task_id, base_image, candidate_image, base_env, candidate_en
     task = manager.store.get_task(task_id)
     contract_id = contract_id or task.get('contract_id')
     contract = dict(contracts.load_for_task(task, contract_id))
+    if contract.get('external_execution_only'):
+        raise ValueError('Contract requires external bin/capped execution; factory A/B launch is disabled')
     if contract.get('adapter') == 'strata-v1':
         raise ValueError('Strata repeatability contract is non-scoring; use methodology.ablation to propose a separately approved comparison contract')
     if not contracts.reference_info(contract).get('stdout_sha256'):
         raise ValueError('Operator must freeze the contract reference before A/B scoring')
     material = components.load(component)
+    if material.get('kind') == 'builder_spec':
+        raise ValueError('A/B submission requires a patch-bearing component')
     if type(rounds) is not int or not 1 <= rounds <= 100:
         raise ValueError('rounds must be an integer in 1..100')
     envs = [environment(contract, e) for e in (base_env, candidate_env)]

@@ -1,0 +1,25 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "churn_verifier": "reference",
+    "gate_verifier": "reference",
+    "guide": "skill",
+    "helper_markers": "reference",
+    "helper_parity": "reference",
+    "helper_plan": "reference",
+    "helpers": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "sample_budget": "reference",
+    "sample_gate": "reference",
+    "sample_json": "reference",
+    "sample_markers": "reference",
+    "source_map": "reference",
+    "task": "reference",
+    "validation": "reference",
+    "weight_placement_planner": "component"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "churn_verifier": "reference",
+    "gate_verifier": "reference",
+    "guide": "skill",
+    "helper_jsonl_coverage": "reference",
+    "helper_marker_check": "reference",
+    "helper_parity": "reference",
+    "helper_usage": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "runtime_event_recorder": "component",
+    "sample_cached_gate": "reference",
+    "sample_lifecycle_markers": "reference",
+    "sample_ring_drain": "reference",
+    "source_map": "reference",
+    "task": "reference",
+    "validation": "reference"
+  }
+}

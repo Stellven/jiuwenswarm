@@ -1,0 +1,3 @@
+load_tensors: loading model tensors... (load_mode = none)
+runtime_event_recorder: active capacity_bytes=4096
+runtime_event_recorder: stats events=1 lost=0 bytes=80
