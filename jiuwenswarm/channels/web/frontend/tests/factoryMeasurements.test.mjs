@@ -16,7 +16,7 @@ const sample = (line, arm, ttft_s, extra = {}) => ({
 const ledger = (samples, summaries = []) => ({ samples, summaries, issues: [] });
 const find = (rows, arm) => rows.find((row) => row.arm === arm).metrics;
 
-function focused(name, budget, byte) {
+function focused(name, budget, byte, subject = 'C3') {
   const ref = (suffix) => ({ artifact_id: `${name}/${suffix}`, sha256: byte.repeat(64) });
   const manifest = ref('launch.json');
   const analysis = ref('analysis.json');
@@ -30,7 +30,7 @@ function focused(name, budget, byte) {
     values: {
       schema: 'spark-factory-iteration/1',
       plan: { manifest },
-      report: { ...report, status: 'verified-p4' },
+      report: { ...report, status: 'verified-p4', summary: name },
       lab: { status: 'complete' },
       analysis: {
         ccs: [{ id: 'factory.spark_gap_analysis', release: 'a'.repeat(64) }],
@@ -38,12 +38,12 @@ function focused(name, budget, byte) {
         output_artifact_ids: [analysis.artifact_id, verifier.artifact_id],
         focused_comparison: {
           schema: 'spark-p4-focused/1',
-          subject_arm: 'C3',
+          subject_arm: subject,
           budget_mib: budget,
           allocated_mib: budget - 10,
           profiles: {
             'A+': { profile_sha256: 'a'.repeat(64), binary_sha256: 'b'.repeat(64) },
-            C3: { profile_sha256: byte.repeat(64), binary_sha256: byte.repeat(64) },
+            [subject]: { profile_sha256: byte.repeat(64), binary_sha256: byte.repeat(64) },
           },
           verification: verifier,
           rows: [512, 2048].map((prompt_tokens) => ({
@@ -65,12 +65,14 @@ function focused(name, budget, byte) {
 
 test('verified P4 cards retain exact launch, budget and candidate version identities', () => {
   const fixtures = [focused('cache-30', 30720, 'c'), focused('cache-60', 61440, 'd'),
-    focused('cache-30-new', 30720, 'e')];
+    focused('cache-30-new', 30720, 'e', 'C3-direct')];
   const inputs = fixtures.map(({ observation }) => observation);
   const files = fixtures.flatMap((item) => item.files);
   const cards = focusedP4Reports(inputs, files);
   assert.deepEqual(cards.map(({ budgetMib }) => budgetMib), [30720, 61440, 30720]);
+  assert.deepEqual(cards.map(({ subject }) => subject), ['C3', 'C3', 'C3-direct']);
   assert.equal(new Set(cards.map(({ key }) => key)).size, 3);
+  assert.equal(cards[2].summary, 'cache-30-new');
   assert.equal(cards[2].candidateProfile.binarySha256, 'e'.repeat(64));
   assert.deepEqual(cards[0].rows[0].ttftSaved.ci, [-0.2, 1.9]);
   assert.equal(cards[1].rows[1].n, 10);

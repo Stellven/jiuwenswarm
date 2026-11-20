@@ -68,7 +68,8 @@ type FocusedP4Row = {
 
 export type FocusedP4 = {
   key: string;
-  subject: MeasurementArm;
+  subject: string;
+  summary?: string;
   budgetMib: number;
   allocatedMib: number;
   manifest: VerifiedArtifact;
@@ -151,9 +152,9 @@ export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile
     });
     if (iteration.schema !== 'spark-factory-iteration/1' || reportRecord.status !== 'verified-p4' ||
       focus.schema !== 'spark-p4-focused/1' || obj(iteration.lab).status !== 'complete' || !gapRelease) continue;
-    const subject = MEASUREMENT_ARMS.find((arm) => arm === focus.subject_arm);
+    const subject = focus.subject_arm;
     const { budget_mib: budgetMib, allocated_mib: allocatedMib } = focus;
-    if (!subject || subject === 'A' || subject === 'A+' || subject === 'S' ||
+    if (typeof subject !== 'string' || !/^(?:C[1-5]|D)(?:-[a-z0-9]+)*$/.test(subject) ||
       !finite(budgetMib) || !Number.isInteger(budgetMib) || !finite(allocatedMib) ||
       allocatedMib <= 0 || allocatedMib > budgetMib || !Array.isArray(focus.rows)) continue;
     const sourceIds = Array.isArray(observation.source_artifacts) ? observation.source_artifacts : [];
@@ -172,6 +173,7 @@ export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile
     const key = `${report.artifact_id}:${report.sha256}:${manifest.sha256}`;
     views.set(key, {
       key, subject, budgetMib, allocatedMib, manifest, analysis, verification, report, controlProfile,
+      summary: typeof reportRecord.summary === 'string' ? reportRecord.summary.trim() : undefined,
       candidateProfile, rows: rows.sort((a, b) => a.tokens - b.tokens),
     });
   }

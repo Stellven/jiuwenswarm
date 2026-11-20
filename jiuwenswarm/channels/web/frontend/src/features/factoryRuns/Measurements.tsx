@@ -71,7 +71,7 @@ function useVerifiedP4(detail: RunDetail, benchmarkRunId?: string) {
       const observations = source.records.observations || [];
       const { verifiedReportSummaries } = narrativeSummaries(observations);
       for (const focus of focusedP4Reports(observations, source.files)) {
-        const summary = verifiedReportSummaries.get(`${focus.report.artifact_id}:${focus.report.sha256}`);
+        const summary = verifiedReportSummaries.get(`${focus.report.artifact_id}:${focus.report.sha256}`) || focus.summary;
         reports.set(focus.key, { focus, runId: source.run.id, summary });
       }
     }
