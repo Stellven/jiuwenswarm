@@ -14,16 +14,29 @@ load = os.getloadavg()[0]
 processes = subprocess.check_output(['ps', '-eo', 'pid,comm,args'], text=True).splitlines()[1:]
 blocked = []
 models = []
+factory_controllers = []
+test_processes = []
 for row in processes:
     fields = row.split(None, 2)
     if len(fields) < 3 or int(fields[0]) == os.getpid():
         continue
     pid, comm, args = fields
+    argv = args.split()
+    if comm.startswith(('python', 'jiuwenswarm-fac')) and (
+        'jiuwenswarm.factory.cli' in argv or
+        any(Path(part).name == 'jiuwenswarm-factory' for part in argv[:2])
+    ) and any(action in argv for action in ('run', 'resume', 'ask')):
+        factory_controllers.append(row.strip())
+    if comm.startswith('pytest') or (comm.startswith('python') and
+            any(Path(part).name in {'py.test', 'pytest'} for part in argv[1:3])):
+        test_processes.append(row.strip())
     if comm in {'ninja', 'make', 'gmake', 'cmake', 'cc1', 'cc1plus', 'nvcc', 'cicc', 'ptxas', 'npm', 'npm run build', 'npm ci', 'vite', 'tsc'}:
         blocked.append(row.strip())
     if comm.startswith(('llama-server', 'llama-cli', 'strata-dsv41')) and int(pid) not in options.allow_model_pid:
         models.append(row.strip())
 mem = int(next(x.split()[1] for x in Path('/proc/meminfo').read_text().splitlines() if x.startswith('MemAvailable:'))) / 1024**2
-quiet = load < 1.0 and not blocked and not models
-print(json.dumps({'quiet': quiet, 'load_1m': load, 'mem_available_gib': round(mem, 2), 'build_processes': blocked, 'model_processes': models}, indent=2))
+quiet = load < 1.0 and not any((blocked, models, factory_controllers, test_processes))
+print(json.dumps({'quiet': quiet, 'load_1m': load, 'mem_available_gib': round(mem, 2),
+                  'build_processes': blocked, 'model_processes': models,
+                  'factory_controllers': factory_controllers, 'test_processes': test_processes}, indent=2))
 sys.exit(0 if quiet else 1)
