@@ -1,6 +1,6 @@
 cc: '2'
 id: routing.build_expert_demand_predictor
-version: 1.1.4
+version: 1.2.0
 materials:
   spark_profile:
     path: SPARK-PROFILE.md
@@ -8,6 +8,8 @@ materials:
     path: GUIDE.md
   method:
     path: METHOD.md
+  native_bank_prefetch:
+    path: NATIVE-BANK-PREFETCH.md
   ontology:
     path: ONTOLOGY.yaml
   source_map:

@@ -25,6 +25,8 @@ ALLOWED = {
     "src/llama-expert-fill.h",  # Only on an existing Fill integration.
     "src/llama-expert-predict.cpp",
     "src/llama-expert-predict.h",
+    "src/llama-moe-cache.cpp",
+    "src/llama-moe-cache.h",
     SERVER_CONTEXT,
 }
 CXX_SUFFIXES = {".cpp", ".h"}

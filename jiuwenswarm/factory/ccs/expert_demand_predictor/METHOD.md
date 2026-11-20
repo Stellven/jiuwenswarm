@@ -26,3 +26,9 @@ Require all component marker lines to come from gate-set arms.
 
 Review informational `high_churn_signatures` findings against the additive
 alternatives in [SOURCE-MAP.md](SOURCE-MAP.md).
+# Native bank composition
+
+For the A+ resident-bank iteration, use `NATIVE-BANK-PREFETCH.md` as the
+method before selecting or applying source edits. The earlier host advice
+method remains provenance for the legacy candidate and its fixture results.
+
