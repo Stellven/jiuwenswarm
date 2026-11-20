@@ -129,3 +129,8 @@
   font-size: 11px;
   color: var(--color-text-weak);
 }
+
+.cc-headline-results small,
+.cc-headline-outcome {
+  display: block;
+}
