@@ -420,7 +420,9 @@ export function FactoryRunsPage() {
                 </label>
               )}
             </header>
-            {isLiveHome && <LiveSession session={session} stale={sessionStale} />}
+            {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
+              <LiveSession session={session} stale={sessionStale} />
+            )}
             <section className="factory-replay" data-testid="factory-runs-replay">
               <div className="factory-replay-controls">
                 <button

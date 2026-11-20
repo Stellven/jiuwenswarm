@@ -282,6 +282,11 @@
   background: var(--color-surface-muted);
 }
 
+.factory-report-prose .factory-report-table th {
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
 .factory-report-structured {
   display: grid;
   gap: 16px;

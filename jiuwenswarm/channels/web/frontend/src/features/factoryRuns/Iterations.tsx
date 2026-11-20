@@ -59,14 +59,16 @@ function RecordedDecision({
   decision,
   source,
   onOpen,
+  operator,
 }: {
   decision: JsonRecord;
   source?: EvidenceFile;
   onOpen: OpenSource;
+  operator?: boolean;
 }) {
   const { t } = useTranslation();
   const action = asRecord(decision.action);
-  const reason = text(decision.reason_for_change);
+  const reason = operator ? '' : text(decision.reason_for_change);
   return (
     <>
       {text(decision.hypothesis) && <p>{text(decision.hypothesis)}</p>}
@@ -306,7 +308,7 @@ export function Iterations({
                       <strong>{label}</strong>
                     )}
                   </div>
-                  {(next?.rationale || text(decision.reason_for_change)) && (
+                  {(next?.rationale || (!iteration.operator && text(decision.reason_for_change))) && (
                     <p className="factory-iteration-reason">{next?.rationale || text(decision.reason_for_change)}</p>
                   )}
                   {iteration.template &&
@@ -327,7 +329,12 @@ export function Iterations({
                   {!next &&
                     !(targetRun && iteration.explicitNextId) &&
                     (Object.keys(decision).length ? (
-                      <RecordedDecision decision={decision} source={decisionSource} onOpen={onOpenSource} />
+                      <RecordedDecision
+                        decision={decision}
+                        source={decisionSource}
+                        onOpen={onOpenSource}
+                        operator={iteration.operator}
+                      />
                     ) : (
                       <p>{t('factoryRuns.iteration.unavailableDecision')}</p>
                     ))}
@@ -389,7 +396,12 @@ export function Iterations({
                         )}
                       </summary>
                       {iteration.plan ? (
-                        <RecordedDecision decision={iteration.plan} source={decisionSource} onOpen={onOpenSource} />
+                        <RecordedDecision
+                          decision={iteration.plan}
+                          source={decisionSource}
+                          onOpen={onOpenSource}
+                          operator={iteration.operator}
+                        />
                       ) : (
                         <p>{iteration.rationale || t('factoryRuns.iteration.noPlan')}</p>
                       )}

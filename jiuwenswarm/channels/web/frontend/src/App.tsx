@@ -4027,7 +4027,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       <ToastStack />
 
       {/* 连接状态提示 */}
-      {!isConnected && (
+      {!isConnected && activeNav !== 'factoryRuns' && (
         <div className="app-toast-wrapper app-toast-wrapper--top" data-testid="app-connection-toast">
           <div
             className="app-connection-toast animate-rise"
