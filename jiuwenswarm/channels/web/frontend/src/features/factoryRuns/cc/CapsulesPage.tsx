@@ -46,7 +46,9 @@ function Card({ capsule }: { capsule: CapsuleCard }) {
       <h3>{displayName(capsule)}</h3>
       <p>{plainDescription(capsule.description || capsule.component || capsule.id)}</p>
       {!!capsule.used_in_runs && (
-        <small className="cc-run-count" data-testid="factory-runs-capsule-used">{copy('usedInRuns')} · {capsule.used_in_runs}</small>
+        <small className="cc-run-count" data-testid="factory-runs-capsule-used">
+          {copy('usedInRuns')} · {capsule.used_in_runs}
+        </small>
       )}
       <div className="cc-card-footer">
         <code>{capsule.version ? `v${capsule.version}` : capsule.binding}</code>
@@ -84,11 +86,14 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
     { title: 'builder', rows: shown.filter((capsule) => !capsule.starred && capsule.kind === 'builder') },
     {
       title: 'featuredAnalysis',
-      rows: shown.filter((capsule) => capsule.kind === 'analysis' && capsule.featured_analysis_at)
+      rows: shown
+        .filter((capsule) => capsule.kind === 'analysis' && capsule.featured_analysis_at)
         .sort((a, b) => (b.featured_analysis_at || 0) - (a.featured_analysis_at || 0)),
     },
   ] as const;
-  const support = shown.filter((capsule) => !capsule.starred && capsule.kind !== 'analysis' && capsule.kind !== 'builder');
+  const support = shown.filter(
+    (capsule) => !capsule.starred && capsule.kind !== 'analysis' && capsule.kind !== 'builder',
+  );
   const library = shown.filter((capsule) => capsule.kind === 'analysis' && !capsule.featured_analysis_at);
   return (
     <>
@@ -138,18 +143,33 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
           </section>
         ))}
       {library.length > 0 && (
-        <details className="cc-catalog-group cc-library" open={!!needle}
-          data-testid="factory-runs-capsule-analysis-library">
+        <details
+          className="cc-catalog-group cc-library"
+          open={!!needle}
+          data-testid="factory-runs-capsule-analysis-library"
+        >
           <summary className="cc-catalog-group-title">
-            <h2>{copy('analysisLibrary')}</h2><span>{library.length}</span>
+            <h2>{copy('analysisLibrary')}</h2>
+            <span>{library.length}</span>
           </summary>
-          <div className="cc-grid">{library.map((capsule) => <Card key={capsule.name} capsule={capsule} />)}</div>
+          <div className="cc-grid">
+            {library.map((capsule) => (
+              <Card key={capsule.name} capsule={capsule} />
+            ))}
+          </div>
         </details>
       )}
       {support.length > 0 && (
         <section className="cc-catalog-group" data-testid="factory-runs-capsule-catalog-group" data-variant="support">
-          <div className="cc-catalog-group-title"><h2>{copy('support')}</h2><span>{support.length}</span></div>
-          <div className="cc-grid">{support.map((capsule) => <Card key={capsule.name} capsule={capsule} />)}</div>
+          <div className="cc-catalog-group-title">
+            <h2>{copy('support')}</h2>
+            <span>{support.length}</span>
+          </div>
+          <div className="cc-grid">
+            {support.map((capsule) => (
+              <Card key={capsule.name} capsule={capsule} />
+            ))}
+          </div>
         </section>
       )}
       {!shown.length && (

@@ -333,14 +333,20 @@ export function BuilderRunEvidence({
   const lab = run?.lab;
   const report = run?.report;
   const digest = build?.binary_sha256 || lab?.binary_sha256;
-  const measurements = capsule.evidence?.measurements.filter((row) =>
-    row.scope !== 'combined' && (digest ? row.binary_sha256 === digest : row.run_id === run?.run_id),
-  ) || [];
+  const measurements =
+    capsule.evidence?.measurements.filter(
+      (row) => row.scope !== 'combined' && (digest ? row.binary_sha256 === digest : row.run_id === run?.run_id),
+    ) || [];
   const hasLabNumbers = Object.keys(lab?.metrics || {}).length > 0 || measurements.length > 0;
   const metricText = (key: string, value: number) => {
-    const label = ({
-      written: 'eventsWritten', lost: 'eventsLost', bytes_transferred: 'copiedBytes', peak_memory_bytes: 'peakMemory',
-    } as Record<string, CopyKey | undefined>)[key];
+    const label = (
+      {
+        written: 'eventsWritten',
+        lost: 'eventsLost',
+        bytes_transferred: 'copiedBytes',
+        peak_memory_bytes: 'peakMemory',
+      } as Record<string, CopyKey | undefined>
+    )[key];
     const formatted = key.endsWith('_bytes') ? number(value / 1024 ** 3, ' GiB') : value.toLocaleString();
     return `${formatted} ${label ? copy(label) : readableName(key)}`;
   };
@@ -351,9 +357,19 @@ export function BuilderRunEvidence({
         <h2>{copy('artifacts')}</h2>
         {run && (
           <div className="cc-actions">
-            {report && <button className="cc-control" type="button" onClick={() => onArtifact(run.run_id, report.path, report.artifact_id)}
-              data-testid="factory-runs-capsule-iteration-report">{copy('iterationReport')}</button>}
-            <a href={runHref(run.run_id, report?.path)} data-testid="factory-runs-capsule-builder-replay">{copy('run')} →</a>
+            {report && (
+              <button
+                className="cc-control"
+                type="button"
+                onClick={() => onArtifact(run.run_id, report.path, report.artifact_id)}
+                data-testid="factory-runs-capsule-iteration-report"
+              >
+                {copy('iterationReport')}
+              </button>
+            )}
+            <a href={runHref(run.run_id, report?.path)} data-testid="factory-runs-capsule-builder-replay">
+              {copy('run')} →
+            </a>
           </div>
         )}
       </div>
@@ -383,21 +399,34 @@ export function BuilderRunEvidence({
             <dt>{copy('labNumbers')}</dt>
             <dd data-testid="factory-runs-capsule-latest-lab">
               {!hasLabNumbers && <span className="cc-muted">{copy('notRecorded')}</span>}
-              {measurements.length > 0 && <ul>
-                {measurements.slice(0, 2).map((row) => (
-                  <li key={`${row.arm}:${row.observation_ids.join(',')}`}>{row.prompt_tokens} · {copy('ttft')} {number(row.ttft_s, ' s')} · {number(row.decode_tps)} {copy('decode')}</li>
-                ))}
-              </ul>}
-              {Object.keys(lab?.metrics || {}).length > 0 && <ul>
-                {Object.entries(lab?.metrics || {}).slice(0, 4).map(([key, value]) => <li key={key}>{metricText(key, value)}</li>)}
-              </ul>}
+              {measurements.length > 0 && (
+                <ul>
+                  {measurements.slice(0, 2).map((row) => (
+                    <li key={`${row.arm}:${row.observation_ids.join(',')}`}>
+                      {row.prompt_tokens} · {copy('ttft')} {number(row.ttft_s, ' s')} · {number(row.decode_tps)}{' '}
+                      {copy('decode')}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {Object.keys(lab?.metrics || {}).length > 0 && (
+                <ul>
+                  {Object.entries(lab?.metrics || {})
+                    .slice(0, 4)
+                    .map(([key, value]) => (
+                      <li key={key}>{metricText(key, value)}</li>
+                    ))}
+                </ul>
+              )}
             </dd>
           </div>
         </dl>
       )}
       {lab?.scope && <p className="cc-muted">{lab.scope}</p>}
       {lab?.binary_sha256 && build?.binary_sha256 && lab.binary_sha256 !== build.binary_sha256 && (
-        <p className="cc-alert">{copy('labReleaseMismatch')} <code>{lab.binary_sha256}</code></p>
+        <p className="cc-alert">
+          {copy('labReleaseMismatch')} <code>{lab.binary_sha256}</code>
+        </p>
       )}
     </section>
   );
