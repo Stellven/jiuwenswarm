@@ -34,7 +34,7 @@ def save(path, value):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cc', choices=ARMS)
-    parser.add_argument('mode', choices=('stock', 'equivalent-stock', 'off', 'on'))
+    parser.add_argument('mode', choices=('stock', 'strict-stock', 'equivalent-stock', 'off', 'on'))
     parser.add_argument('window', choices=('functional', 'early'))
     parser.add_argument('scope', type=Path)
     parser.add_argument('--placement-policy', choices=('cpu_identity_smoke', 'heldout_layer27_policy'),
@@ -48,7 +48,7 @@ def main():
     first = read(ROOT / 'OPS/runs/a-first-load-retry/start.json')
     product = next(p for p in read(ROOT / 'OPS/p3/native-star-build-products.json')['products']
                    if p['capsule'] == ARMS[args.cc])
-    stock = args.mode in ('stock', 'equivalent-stock')
+    stock = args.mode in ('stock', 'strict-stock', 'equivalent-stock')
     binary = Path(first['command'][0] if stock else product['executable']['path'])
     sha = hashlib.sha256(binary.read_bytes()).hexdigest()
     if sha != (first['binary_sha256'] if stock else product['executable']['sha256']):
@@ -88,6 +88,12 @@ def main():
         flags += ['--ctx-checkpoints', '0', '-b', '2047', '-ub', '512']
         if on:
             env['LLAMA_BATCH_LAYOUT'] = '1'
+    if args.mode == 'strict-stock':
+        flags = list(first['command'][1:])
+    elif args.window == 'early' and '-lv' in flags:
+        # All timed cells use documented default verbosity. Diagnostic markers live in gate-on probes.
+        index = flags.index('-lv')
+        del flags[index:index + 2]
     with socket.socket() as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(('127.0.0.1', PORT))
@@ -102,6 +108,10 @@ def main():
         preflight = subprocess.check_output([str(ROOT / 'bin/quiet')])
         (reset_dir / (scope.name + '-quiet.json')).write_bytes(preflight)
     label = f'{args.cc}-{args.mode}-{args.window}'
+    if args.mode == 'strict-stock':
+        label = f'A-{args.cc}-strict-{args.window}'
+    elif args.mode == 'stock':
+        label = f'A-matched-{args.cc}-{args.window}'
     launched = time.monotonic()
     server = subprocess.Popen([str(ROOT / 'bin/capped'), '--arm', label, '--graceful-interrupt',
                                '--result-dir', str(scope), '--', str(binary), *flags], env=env)
