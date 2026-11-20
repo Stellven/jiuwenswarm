@@ -100,12 +100,17 @@ def analyze(evidence, eligible, reference, positive):
                              controls={control['id']: [reference(r) for r in scope[size][2:6]] for control, scope in zip(controls, matches)})))
     control_rows = [dict(id=c['id'], iteration_id=c['iteration_id'], launch_pass=c['scope']['launch_pass'],
                          scope_artifact_id=c['scope']['artifact_id'], scope_sha256=c['scope']['sha256']) for c in controls]
+    candidate_scope = candidate['scope']
+    cap = candidate_scope['value']
     return dict(schema='spark-pooled30-screen/1', subject_arm=subject, control_count=4, controls=control_rows,
                 basis='per-size-all-request-ordinal', matched_ordinals=[3, 4, 5, 6], candidate_warmups_per_size=2,
                 package_treatment=package, greedy_parity=greedy_parity, cpu_overlap_observed=overlap, rows=rows,
                 candidate_bank=bank, control_allocated_mib=[c['scope']['matched_bank']['allocated_mib'] for c in controls],
-                candidate_source_commit=candidate['scope']['source_commit'], candidate_scope=reference(candidate['scope']),
-                predictor_decode=candidate['scope'].get('predictor_decode'), placement=candidate['scope'].get('placement'),
+                candidate_source_commit=candidate_scope['source_commit'], candidate_scope=reference(candidate_scope),
+                startup_seconds=candidate_scope['load']['seconds'],
+                cap=dict(min_mem_available_bytes=cap['min_mem_available_bytes'], peak_memory_bytes=cap['peak_memory_bytes'],
+                         memory_events=cap['memory_events']),
+                predictor_decode=candidate_scope.get('predictor_decode'), placement=candidate_scope.get('placement'),
                 activation_readbacks=evidence.get('activation_readbacks', {}),
                 limitations=['One prospective candidate scope was compared with four historical quiet controls. Differences are descriptive screening estimates.',
                              'Candidate per-size ordinal 3 aligns with the controls’ third discarded warmup. Ordinals 4–6 align with their first three measured requests.',

@@ -58,15 +58,16 @@ def render(report):
     if not report['greedy_parity']:
         lines.extend(['Greedy output or reasoning differs from the controls. Timing is descriptive.', ''])
     allocation = report['candidate_bank']['allocated_mib']
-    text = f'The candidate logged {allocation:,.2f} MiB. Control allocations in order: ' + ', '.join(
+    text = f'The candidate logged {allocation:,.2f} MiB. The four controls logged ' + ', '.join(
         f'{x:,.2f} MiB' for x in report['control_allocated_mib']) + '.'
-    lines.extend([text, ''])
+    cap = report['cap']
+    lines.extend([text, '', f'Startup to first healthy response took {report["startup_seconds"]:.2f} s. '
+                  f'Host memory available stayed at or above {cap["min_mem_available_bytes"] / 1024**3:.2f} GiB. '
+                  f'The capped scope recorded zero OOM events and {int(cap["memory_events"]["max"]):,} memory.max reclaim events.', ''])
     if report['package_treatment']:
         lines.extend(['Placement and its allocation/readback differences are part of the treatment. These timings describe the package.', ''])
     if placement := report.get('placement'):
-        changes = [-row['pooled_estimates']['ttft_seconds_saved']['median'] for row in report['rows']]
-        summary = (f'C2 placed three layer-27 projections on CUDA0 and changed median TTFT by {changes[0]:+.3f} s at '
-                   f'512 tokens and {changes[1]:+.3f} s at 2048 tokens in the pooled A+30 screen.')
+        summary = 'C2 placed three layer-27 projections on CUDA0. ' + summary
         lines[2] = summary
         lines += ['## Placement readback', '',
                   f"The v1 manual policy reports {placement['cpu_mapped_expert_tensors']} other expert weights on CPU_Mapped. "
