@@ -2136,19 +2136,6 @@ function AppContent({
     prevProcessingBySessionRef.current.set(sessionId, isProcessing);
   }, [sessionId, isProcessing, hasPendingQuestion, loadSessionMetadata]);
 
-  // 连接成功后从 config.yaml 同步 preferred_language 到前端显示
-  useEffect(() => {
-    if (!isConnected) return;
-    void webRequest<{ preferred_language?: string }>('locale.get_conf')
-      .then((payload) => {
-        const lang = payload?.preferred_language;
-        if (lang === 'zh' || lang === 'en') {
-          i18n.changeLanguage(lang);
-        }
-      })
-      .catch(() => {});
-  }, [isConnected]);
-
   // 连接成功后拉取个人上下文配置，使总开关（派生态）在刷新后与后端持久化状态一致
   useEffect(() => {
     if (!isConnected || !FEATURE_PERSONAL_CONTEXT_UI) return;
