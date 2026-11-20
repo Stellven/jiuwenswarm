@@ -3,6 +3,7 @@
 import argparse
 from collections import defaultdict
 from copy import deepcopy
+from datetime import datetime
 import json
 from pathlib import Path
 from statistics import median
@@ -53,7 +54,29 @@ def process_deltas(snapshots, pid):
             for pos, phase in enumerate(PHASES)}
 
 
-def summarize(store, iteration, manifest_sha, base=None):
+def effective_launches(store, publication, evidence, manifest, manifest_sha, amendment_sha):
+    base = manifest['launches']
+    ref = evidence.get('scope_amendment')
+    if ref is None:
+        require(amendment_sha is None and publication['plan'].get('scope_amendment') is None and
+                evidence.get('effective_launches', base) == base, 'An altered launch order requires a pinned amendment')
+        return base, None
+    require(ref == publication['plan'].get('scope_amendment') and amendment_sha == ref['sha256'],
+            'Amendment pointer differs from the supplied pin or published plan')
+    record = json.loads(read_ref(store, ref))
+    require(record['schema'] == 'spark-p4-scope-replacement/1' and record['manifest_sha256'] == manifest_sha,
+            'Amendment does not bind the frozen launch manifest')
+    source, target = (record[key] for key in ('replaced_scope', 'replacement_scope'))
+    destinations = {row['scope'] for row in base}
+    require(source in destinations and target not in destinations and
+            Path(target).parent == Path('OPS/runs') and target != source,
+            'Scope amendment does not make one fresh-path substitution')
+    expected = [dict(row, scope=target) if row['scope'] == source else row for row in base]
+    require(expected == evidence['effective_launches'], 'Published effective launch rows differ from the amendment')
+    return expected, dict(ref=ref, **record)
+
+
+def summarize(store, iteration, manifest_sha, base=None, amendment_sha=None):
     observation = store.read(TASK, iteration + ':report')
     publication = observation['values']
     report = publication['report']
@@ -81,23 +104,30 @@ def summarize(store, iteration, manifest_sha, base=None):
             focus['budget_mib'] == manifest.get('bank_budget_mib', focus['budget_mib']) and
             [(s['arm'], s['launch_pass']) for s in evidence['scopes']] == [('A+', 1), ('C3', 1), ('C3', 2), ('A+', 2)],
             'Expected four admitted mirrored scopes at one common budget')
+    launches, amendment = effective_launches(store, publication, evidence, manifest, manifest_sha, amendment_sha)
     require(analysis['mode'] == 'p4-abba' and len(analysis['eligible']) == 40 and len(analysis['excluded']) == 24,
             'Native analysis did not admit all 40 measured requests and 24 warmups')
     eligible = {row['result']['artifact_id'] for row in analysis['eligible']}
     source_ids = [report['artifact_id'], analysis_ref['artifact_id'], verify_ref['artifact_id'],
                   input_id, manifest_ref['artifact_id']]
+    if amendment:
+        source_ids.append(amendment['ref']['artifact_id'])
 
     def retained(ref):
         source_ids.append(ref['artifact_id'])
         return read_ref(store, ref)
 
     windows, measurements = [], defaultdict(dict)
-    for spec, scope in zip(manifest['launches'], evidence['scopes']):
+    for spec, scope in zip(launches, evidence['scopes']):
         outcome = json.loads(read_ref(store, scope))
+        start = json.loads(retained(scope['start']))
         kernel = json.loads(read_ref(store, scope['scope']))
         prelaunch = json.loads(read_ref(store, scope['quiet_preflight']))
         caps = kernel['actual']
         require(outcome == scope['value'] and outcome['arm'] == spec['arm'] and
+                outcome['result_path'] == start['result_path'] and outcome['start'] == start['start'] and
+                ((base / spec['scope']) == Path(outcome['result_path']) if base else
+                 Path(outcome['result_path']).parts[-3:] == Path(spec['scope']).parts) and
                 outcome['returncode'] == 0 and outcome['reason'] is None and outcome['scope_verified'] is True and
                 outcome['memory_max'] == 100 * GIB and outcome['min_mem_available_bytes'] >= 8 * GIB and
                 not any(int(outcome['memory_events'].get(k, 0)) for k in OOM_KEYS) and
@@ -105,6 +135,9 @@ def summarize(store, iteration, manifest_sha, base=None):
                 caps.get('sched_affinity') == list(range(8)) and prelaunch['quiet'] is True and
                 not prelaunch.get('authorized_cpu_lane'),
                 'Scope did not close cleanly under the quiet 100 GiB/no swap/eight CPU conditions')
+        if amendment and spec['scope'] == amendment['replacement_scope']:
+            require(datetime.fromisoformat(amendment['frozen_at']) <= datetime.fromisoformat(start['start']),
+                    'Scope replacement was declared after the fresh scope started')
         arm, number = scope['arm'], scope['launch_pass']
         launch_profile = json.loads(retained(scope['profile']))
         require(scope['profile']['sha256'] == spec['profile_sha256'] and
@@ -159,6 +192,8 @@ def summarize(store, iteration, manifest_sha, base=None):
                             requests=[dict(ordinal=i, stock=stock[i], c3=c3[i]) for i in range(1, 11)]))
     result = dict(schema=SCHEMA, iteration=iteration, budget_mib=focus['budget_mib'], report=report, manifest=manifest_ref,
                   native_verification=verify_ref, native_analysis=analysis_ref, input=input_ref, scopes=windows, measured=effects)
+    if amendment:
+        result['scope_replacement'] = amendment
     if focus['budget_mib'] == 61440 and base:
         from p4_seed_mechanism import collect
         result['mechanism'] = collect(base, evidence['scopes'], evidence['requests'],
@@ -223,6 +258,12 @@ def render(data):
     if 'mechanism' in data:
         from p4_seed_mechanism import render as render_mechanism
         lines += ['', *render_mechanism(data['mechanism'])]
+    if amendment := data.get('scope_replacement'):
+        lines += ['', '## Prospective scope replacement', '',
+                  f"The operator excluded `{amendment['replaced_scope']}` and named "
+                  f"`{amendment['replacement_scope']}` before its fresh launch.",
+                  f"{amendment['reason']} The paired results use the fresh verified scope.",
+                  f"Amendment `{amendment['ref']['artifact_id']}` SHA256 `{amendment['ref']['sha256']}`.", '']
     if lineage := data.get('do_lineage'):
         lines += ['', '## Original native DO and build', '',
                   f"Factory source task `{SOURCE_TASK}` used original commit `{lineage['source_commit']}`, "
@@ -305,9 +346,9 @@ def publish_sixty_revision(store, out, data, appendix, refs, extent):
     return dict(observation_id=observation, **report)
 
 
-def run(base, iteration, sha, publish):
+def run(base, iteration, sha, publish, amendment_sha=None):
     with Store(base / 'factory-runs/spark-direct-benchmarks') as store:
-        data = summarize(store, iteration, sha, base)
+        data = summarize(store, iteration, sha, base, amendment_sha)
         if not publish:
             return dict(iteration=iteration, scopes=len(data['scopes']),
                         pairs={row['tokens']: row['n_pairs'] for row in data['measured']})
@@ -354,6 +395,8 @@ if __name__ == '__main__':
     parser.add_argument('--base', default=Path.home()/'predemo-spark', type=Path)
     parser.add_argument('iteration')
     parser.add_argument('--manifest-sha256', required=True)
+    parser.add_argument('--scope-amendment-sha256')
     parser.add_argument('--publish', action='store_true')
     args = parser.parse_args()
-    print(json.dumps(run(args.base.resolve(), args.iteration, args.manifest_sha256, args.publish), indent=2))
+    print(json.dumps(run(args.base.resolve(), args.iteration, args.manifest_sha256, args.publish,
+                         args.scope_amendment_sha256), indent=2))
