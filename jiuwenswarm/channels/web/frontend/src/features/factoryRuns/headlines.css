@@ -80,7 +80,8 @@
   font-size: 0.79rem;
 }
 
-.cc-headline-results p {
+.cc-card .cc-headline-results p {
+  display: block;
   margin: 3px 0;
 }
 
