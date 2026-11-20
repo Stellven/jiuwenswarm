@@ -52,3 +52,16 @@ startup settings. Its acceptance counters and comparison flags are specified in
 ## Profile-driven Spark treatment provenance
 
 [PROFILE-RESIDENCY.md](PROFILE-RESIDENCY.md) uses the frozen Strata profile and retained routing analyses. Strata source pin `ffa80d73133ea5c548aefe57889a16e8085a938f`, `docs/DEEPSEEK41.md` and `setup.py` describe resident experts and layer-major prefill. Pinned llama.cpp `9048bad8d6e3a0f9f1726e238e451181c7e02613`, `src/llama-context.cpp::sched_copy_experts`, `src/llama-moe-cache.cpp::build_lookup`, `src/llama-model-loader.cpp` tensor overrides and the CUDA offload threshold distinguish the available transfer paths. The observed C1 prefill-only copy profile is evidence for measurement design.
+# Native profile source
+
+At stock `9048bad8d6e3a0f9f1726e238e451181c7e02613`, the native bank in
+`src/llama-moe-cache.cpp` allocates group projections, manages `moe_cache_lru`,
+and reports ordinary refill and large-batch copy counters. Its `get_slot_map`
+lookup cutoff is separate from `copy_experts`, which `src/llama-context.cpp`
+uses for selected large-prefill copies into scheduler destinations. This is
+the bank reused by the opt-in method in [NATIVE-PROFILE.md](NATIVE-PROFILE.md).
+The relevant experimental inputs include the complete C1 v2 report, exact
+positive-upload residency counterfactual, and the retained A+ calibration
+decode-fault report. The latter does not measure fixed-prompt TTFT. Stock
+native replay at three cache sizes is a routing simulation. The planner
+records their exact artifact and release identities in its own decision.

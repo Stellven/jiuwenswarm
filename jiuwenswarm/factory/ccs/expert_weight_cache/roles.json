@@ -16,6 +16,7 @@
     "lease_interface_sample": "reference",
     "marker_checker": "reference",
     "method": "method",
+    "native_profile": "method",
     "ontology": "reference",
     "parity_runner": "reference",
     "profile_residency": "method",

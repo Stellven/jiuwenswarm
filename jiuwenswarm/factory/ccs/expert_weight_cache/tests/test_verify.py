@@ -111,6 +111,26 @@ class VerifyTest(unittest.TestCase):
         self.assert_status(output, "router_sampling_scope", "fail")
         self.assert_status(output, "git_apply_check", "pass")
 
+    def test_native_profile_does_not_widen_independent_cache_scope(self):
+        patch = self.checkout / "native-profile.diff"
+        source = (FIXTURES / "gate-silence-positive.diff").read_text()
+        patch.write_text(source.replace("llama-expert-weight-cache.cpp", "llama-moe-cache.cpp")
+                         .replace("LLAMA_EXPERT_CACHE", "LLAMA_EXPERT_CACHE_NATIVE_PROFILE")
+                         .replace("expert_weight_cache:", "expert_weight_cache_native_profile:"))
+        independent = verify(self.inputs(str(patch)))
+        self.assertFalse(independent["done"])
+        self.assert_status(independent, "allowed_paths", "fail")
+        native = verify(dict(self.inputs(str(patch)), env_gate="LLAMA_EXPERT_CACHE_NATIVE_PROFILE"))
+        self.assertTrue(native["done"], native)
+        self.assert_status(native, "gate_unset_silence", "pass")
+        self.assert_status(native, "native_bank_source", "pass")
+
+    def test_native_profile_rejects_independent_source(self):
+        result = verify(dict(self.inputs("good.diff"), env_gate="LLAMA_EXPERT_CACHE_NATIVE_PROFILE"))
+        self.assertFalse(result["done"])
+        for name in ("allowed_paths", "native_bank_source", "env_gate_default_off", "activation_markers"):
+            self.assert_status(result, name, "fail")
+
     def test_inapplicable_diff(self):
         output = verify(self.inputs("inapplicable.diff"))
         self.assertFalse(output["done"])

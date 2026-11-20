@@ -1,7 +1,9 @@
 cc: '2'
 id: engine.build_expert_weight_cache
-version: 1.2.0
+version: 1.3.0
 materials:
+  native_profile:
+    path: NATIVE-PROFILE.md
   profile_residency:
     path: PROFILE-RESIDENCY.md
   spark_profile:
@@ -67,7 +69,7 @@ capabilities:
       env_gate:
         kind: text
         optional: true
-        description: If supplied, must be LLAMA_EXPERT_CACHE.
+        description: LLAMA_EXPERT_CACHE for the independent cache (default), or LLAMA_EXPERT_CACHE_NATIVE_PROFILE for the separately scoped native-bank profile.
       markers:
         kind: json
         optional: true

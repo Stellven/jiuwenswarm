@@ -13,12 +13,15 @@ from helpers.verify_gate import gate_silence, read_source
 
 
 ENV_GATE = "LLAMA_EXPERT_CACHE"
-# Required marker prefixes from the component specification.
-MARKERS = tuple(f"expert_weight_cache: {label}" for label in ("active", "inactive (", "stats"))
+NATIVE_PROFILE_GATE = "LLAMA_EXPERT_CACHE_NATIVE_PROFILE"
 ALLOWED_PATHS = {
     "src/CMakeLists.txt", "src/llama-context.cpp", "src/llama-context.h",
     "src/llama-model.cpp", "src/llama-model.h", "src/llama-expert-fill.h",
     "src/llama-expert-weight-cache.cpp", "src/llama-expert-weight-cache.h",
+}
+NATIVE_PROFILE_PATHS = {
+    "src/CMakeLists.txt", "src/llama-context.cpp", "src/llama-moe-cache.cpp", "src/llama-moe-cache.h",
+    "src/llama-expert-cache-profile.cpp", "src/llama-expert-cache-profile.h",
 }
 STATIC = "native CC execution"
 
@@ -184,12 +187,15 @@ def verify(inputs):
         if Path(os.fsdecode(git(checkout, "rev-parse", "--show-toplevel")).rstrip()) != checkout:
             raise ValueError("checkout must be the root of the Git working tree")
         env_gate = inputs.get("env_gate", ENV_GATE)
-        if env_gate != ENV_GATE:
-            raise ValueError(f"env_gate must be {ENV_GATE}")
+        if env_gate not in (ENV_GATE, NATIVE_PROFILE_GATE):
+            raise ValueError(f"env_gate must be {ENV_GATE} or {NATIVE_PROFILE_GATE}")
+        native_profile = env_gate == NATIVE_PROFILE_GATE
+        allowed = NATIVE_PROFILE_PATHS if native_profile else ALLOWED_PATHS
+        report_prefix = "expert_weight_cache_native_profile:" if native_profile else "expert_weight_cache:"
         requested = inputs.get("markers", [])
         if not isinstance(requested, list) or any(not isinstance(item, str) or not item for item in requested):
             raise ValueError("markers must be a list of nonempty strings")
-        markers = tuple(dict.fromkeys((*MARKERS, *requested)))
+        markers = tuple(dict.fromkeys((*(f"{report_prefix} {label}" for label in ("active", "inactive (", "stats")), *requested)))
         patch_path = inputs.get("diff_path")
         patch = Path(patch_path).expanduser().read_bytes() if patch_path else working_diff(checkout)
         paths = patch_paths(checkout, patch)
@@ -198,8 +204,11 @@ def verify(inputs):
         return {"done": False, "checks": checks}
 
     record("high_churn_signatures", "info", signature_changes(patch))
-    forbidden = sorted(paths - ALLOWED_PATHS)
+    forbidden = sorted(paths - allowed)
     record("allowed_paths", "fail" if forbidden else "pass", forbidden or sorted(paths))
+    if native_profile:
+        native_bank_source = "src/llama-moe-cache.cpp"
+        record("native_bank_source", "pass" if native_bank_source in paths else "fail", native_bank_source)
     protected = [path for path in forbidden if re.search(r"router|rout|sampl|graph|models/", path)]
     record("router_sampling_scope", "fail" if protected else "pass", protected)
 
@@ -232,7 +241,7 @@ def verify(inputs):
                 scratch = Path(temp)
                 new_paths = materialize(scratch, checkout, paths, patch, from_head=not patch_path)
                 record("gate_unset_silence", *gate_silence(
-                    patch, lambda path: read_source(scratch, path), env_gate, "expert_weight_cache:"
+                    patch, lambda path: read_source(scratch, path), env_gate, report_prefix
                 ))
                 status, detail = syntax_check(scratch, checkout, new_paths)
         except (OSError, ValueError) as exc:
