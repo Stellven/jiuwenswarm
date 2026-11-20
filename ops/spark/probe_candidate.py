@@ -68,7 +68,8 @@ def main():
                         help='Frozen native product/receipt index for this iteration')
     parser.add_argument('--placement-policy', choices=('cpu_identity_smoke', 'heldout_layer27_policy'),
                         default='cpu_identity_smoke')
-    parser.add_argument('--native-mib', type=int, choices=(30720, 61440))
+    parser.add_argument('--native-mib', type=int, choices=(15360, 30720, 46080, 61440),
+                        help='Fixed matched cache budget in MiB for the candidate experiment')
     add_window_arguments(parser)
     args = parser.parse_args()
     p4 = args.window == 'p4'
