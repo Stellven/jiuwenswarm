@@ -68,7 +68,7 @@ def expected_argv(base, first, product, inventory, profile, mib, role, path):
 
 
 def fmt_sample(phase):
-    return f"{phase['process_read_bytes']/1e9:.3f} GB / {phase['process_major_faults']:,}"
+    return f"{phase['process_read_bytes']/1024**2:,.3f} MiB / {phase['process_major_faults']:,}"
 
 
 def format_cold(scopes, pilot=False):
@@ -134,7 +134,16 @@ def report_text(result, release):
         summary = f'After three warmups per size, fair Strata decoded the 512-token workload at a median {s_rate:.2f} tokens per second and A-matched at {a_rate:.2f}.'
         heading = '# A-matched and fair Strata cold and post-warmup reference'
     else:
-        summary = 'The cache experiment separates startup and cold request positions from five post-warmup pairs in each completed arm.'
+        matched = next((row for row in result['comparisons'] if 'same-budget stock bank' in row['relation']), None)
+        if matched:
+            pair = matched['steady'][0]
+            delta = pair['ttft_saved_s']['median']
+            delta_text = f"{abs(delta):.2f} seconds {'faster' if delta >= 0 else 'slower'}"
+            scope = next(r for r in result['scopes'] if r['arm'] == matched['candidate'])
+            summary = (f"Across five post-warmup pairs at {scope['budget_mib']//1024} GiB, "
+                       f"the seeded cache reached the first token a median {delta_text} for the 512-token prompt.")
+        else:
+            summary = 'The cache profile did not produce an active same-budget timing comparison.'
         heading = '# C3 native cache cold and post-warmup lab'
     lines = [heading, '', summary, '', *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
     lines += ['No sampled expert, Engram or dense pages were resident in either pack view immediately before each launch. Launch initialization can change residency before the first request.',
@@ -165,7 +174,7 @@ def interval(row):
 
 
 def phase_counter_span(values):
-    reads = {key: values['process_read_bytes'][key]/1e9 for key in ('median', 'min', 'max')}
+    reads = {key: values['process_read_bytes'][key]/1024**2 for key in ('median', 'min', 'max')}
     return f"{interval(reads)} | {interval(values['process_major_faults'])}"
 
 
@@ -190,7 +199,7 @@ def format_steady(result):
             ttft, decode = metrics['ttft_s'], metrics['decode_tps']
             lines.append(f"| {scope['arm']} | {size} | {interval(ttft)} | {interval(decode)} | "
                          f"{ttft['last_minus_first']:+.3f} s / {decode['last_minus_first']:+.3f} tok/s |")
-    lines += ['', '| Arm | Tokens | Process reads to first token (GB) | Major faults to first token | Process reads afterward (GB) | Major faults afterward |',
+    lines += ['', '| Arm | Tokens | Process reads to first token (MiB) | Major faults to first token | Process reads afterward (MiB) | Major faults afterward |',
               '|---|---:|---:|---:|---:|---:|']
     for scope in result['scopes']:
         for size, metrics in scope.get('steady_trend', {}).items():
@@ -307,9 +316,17 @@ def publish(base, stage):
             arm = expected_argv(base, first, product, launcher_digest, profile_path, mib, role, path)
             expected.append(arm)
             if role == 'strata':
-                attach(Path(arm['config']))
+                instance = attach(Path(arm['config']))['value']
                 attach(base / 'OPS/configs/p4-s-pass-1.json')
-                attach(base / 'OPS/runs/s-first-load/strata-fair-provenance.json')
+                historical = base / 'OPS/runs/s-first-load'
+                attach(historical / 'strata-fair-provenance.json')
+                drift = attach(historical / 'profile-drift.json')['value']
+                args = instance['args']
+                profile_file = Path(args[args.index('--expert-profile') + 1])
+                frozen = safe_bytes(profile_file)
+                if digest(frozen) != drift['before_sha256']:
+                    raise ValueError('Strata fair profile differs from the frozen pre-run bytes')
+                put(f'{prefix}/strata-frozen-profile.bin', frozen, 'application/octet-stream')
                 put(f'{prefix}/scopes/{folder}/engine.log', safe_bytes(path / 'engine.log'), 'text/plain')
             protocol = None
             if (path / 'protocol.json').is_file():
