@@ -1,6 +1,7 @@
 """Factory-native export and live-home views; no model work during reads.
 
 The operator supplies roots through FACTORY_RUN_ROOTS (os.pathsep separated).
+Campaign measurements read FACTORY_MEASUREMENT_ROOT (default ~/predemo-spark/OPS).
 Launching is opt-in: FACTORY_LAUNCH_ROOT contains reviewed task JSON templates;
 FACTORY_LAUNCH_HOME_ROOT is a dedicated directory for new session homes.
 """
@@ -16,6 +17,7 @@ import tempfile
 import subprocess
 import sys
 import time
+from typing import Literal
 from urllib.parse import urlsplit
 import uuid
 
@@ -26,6 +28,7 @@ from jiuwenswarm.factory import monitor, story, taskgraph, telemetry
 from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
+from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
 from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
 
 PREFIX = '/api/factory'
@@ -59,11 +62,13 @@ def _json(path):
 
 
 class FactoryHttpService:
-    def __init__(self, roots=None, launch_root=None, launch_home_root=None):
+    def __init__(self, roots=None, launch_root=None, launch_home_root=None, measurement_root=None):
         default = os.pathsep.join((str(Path.home() / 'predemo-spark/factory-runs'),
                                   str(Path.home() / 'software-factory-spark-20261113/exports/factory-loop-v1')))
         self.roots = tuple(Path(p).expanduser().resolve() for p in
                            (roots if roots is not None else os.environ.get('FACTORY_RUN_ROOTS', default).split(os.pathsep)) if p)
+        self.measurements = MeasurementEvidence(measurement_root or os.environ.get(
+            'FACTORY_MEASUREMENT_ROOT', Path.home() / 'predemo-spark/OPS'))
         launch_root = launch_root or os.environ.get('FACTORY_LAUNCH_ROOT')
         self.launch_root = Path(launch_root).expanduser().resolve() if launch_root else None
         launch_home_root = launch_home_root or os.environ.get('FACTORY_LAUNCH_HOME_ROOT')
@@ -406,6 +411,14 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/runs/{run_id}/file')
     async def file(run_id: str, path: str = Query(..., max_length=1024)):
         return await call(service.file, run_id, path)
+
+    @app.get(PREFIX + '/measurements')
+    async def measurements():
+        return await call(service.measurements.listing)
+
+    @app.get(PREFIX + '/measurements/evidence/{line}')
+    async def measurement_evidence(line: int, kind: Literal['ledger', 'result']):
+        return await call(service.measurements.evidence, line, kind)
 
     @app.post(PREFIX + '/launch', status_code=202)
     async def launch(request: Request):
