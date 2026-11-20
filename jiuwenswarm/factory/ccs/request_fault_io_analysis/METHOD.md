@@ -9,3 +9,7 @@ Pair a pinned `resource-windows.json` artifact with its request's `result.json`.
 5. Call `verify` with the exact inputs and saved report. It recomputes the report and compares each value.
 
 Sampled counters can include background work in the relevant scope. Process and cgroup storage accounting are independent perspectives on the same interval. Keep device totals separate because they can include other processes. Refaults and major faults measure demand and reclaim activity. Readahead and existing page cache can change their relation to backing-store reads. No counter here identifies model tensor bytes or directly measures time waiting on storage.
+
+## Analyze completed calibration decode intervals
+
+Bind the periodic JSONL snapshots and final engine progress log. Match each two-boundary interval against unique slot/task progress markers using the exact logged generation count and reported rate. Exclude stalled samples, overlapping tasks, resets or changed process start ticks. Compute the cumulative counter differences per process and scope. Normalize selected metrics by the count of observed logged generation tokens. Logged progress may lag the sampling boundary. Calibration is stochastic and these intervals cover generation. The first-token field is unavailable for this series.

@@ -6,5 +6,10 @@
     "rows": "windows.to_first_token.rows",
     "columns": ["source", "resource", "counter", "delta", "unit", "per_ttft_second", "status"]
   },
+  "calibration_table": {
+    "schema": "calibration-fault-io-analysis/1",
+    "rows": "rows",
+    "columns": ["task_id", "logged_token_delta", "elapsed_s", "logged_tokens_per_second", "cgroup_pgmajfault", "process_majflt", "process_read_bytes", "host_nvme_read_bytes"]
+  },
   "inform_builder_capsules": ["weight_placement_planner", "expert_weight_cache"]
 }

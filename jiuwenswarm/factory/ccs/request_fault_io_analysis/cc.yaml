@@ -1,6 +1,6 @@
 cc: '2'
 id: analysis.request_fault_io
-version: 1.0.0
+version: 1.1.1
 materials:
   method:
     path: METHOD.md
@@ -8,8 +8,12 @@ materials:
     path: SOURCE-MAP.md
   helper:
     path: fault_io.py
+  calibration_helper:
+    path: calibration_intervals.py
   tests:
     path: test_fault_io.py
+  calibration_tests:
+    path: test_calibration_intervals.py
   checksums:
     path: SHA256SUMS
     media_type: text/plain
@@ -42,6 +46,26 @@ capabilities:
     takes:
       counters: artifact
       request: artifact
+      report: json
+    gives:
+      verified: json
+    needs: [python]
+    changes: [process.exec]
+  analyze_calibration:
+    does: Measure faults and reads during retained A+ calibration decode intervals
+      whose progress markers identify the same live server request.
+    takes:
+      trace: artifact
+      engine_log: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify_calibration:
+    does: Recompute calibration interval admission and counter deltas from pinned inputs.
+    takes:
+      trace: artifact
+      engine_log: artifact
       report: json
     gives:
       verified: json

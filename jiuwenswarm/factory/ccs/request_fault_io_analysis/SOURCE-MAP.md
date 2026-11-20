@@ -9,3 +9,5 @@
 | Linux kernel disk I/O statistics fields | Cumulative device read counts and reset behavior. |
 
 [Linux cgroup v2](https://docs.kernel.org/admin-guide/cgroup-v2.html), [Linux proc filesystem](https://docs.kernel.org/filesystems/proc.html), [Linux disk statistics](https://docs.kernel.org/admin-guide/iostats.html)
+
+The periodic calibration analysis also binds the completed calibration engine stderr. In the Spark run, `slot print_timing` emits task/slot, cumulative `n_gen` and rate, so repeated values can be excluded and the progress reset identified independently. The calibration report pins both that log and the cumulative JSONL counter trace.

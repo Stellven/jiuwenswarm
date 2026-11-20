@@ -24,12 +24,12 @@ def uint(value):
     return type(value) is int and value >= 0
 
 
-def load(artifact):
+def read_pinned(artifact):
     with Path(artifact['path']).open('rb') as stream:
         data = stream.read(8 * 1024**2 + 1)
     if len(data) > 8 * 1024**2 or hashlib.sha256(data).hexdigest() != artifact['sha256']:
         raise ValueError('Request input exceeds limit or differs from its pinned SHA-256')
-    return json.loads(data)
+    return data
 
 
 def adjusted(start, end):
@@ -155,5 +155,5 @@ def analyze(counters, request, hashes):
 
 
 def analyze_artifacts(artifacts):
-    return analyze(load(artifacts['counters']), load(artifacts['request']),
+    return analyze(json.loads(read_pinned(artifacts['counters'])), json.loads(read_pinned(artifacts['request'])),
                    {name: artifact['sha256'] for name, artifact in artifacts.items()})
