@@ -35,9 +35,32 @@ def read(path):
 def save(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n')
 
+
+def combined_profile(first, product, scope, on):
+    controls_path = ROOT / 'OPS/p3/combined-d-matched-controls.json'
+    controls = read(controls_path)
+    if controls['parent_head'] != product['source_commit']:
+        raise RuntimeError('Combined controls belong to a different source revision')
+    matched = read(ROOT / 'OPS/p3/placement-v1-matched-controls.json')['cpu_identity_smoke']
+    field = 'all_gates_enabled_flags' if on else 'stock_and_all_gates_unset_flags'
+    flags = controls[field]
+    if flags != matched['gate_on_argv' if on else 'stock_and_gate_unset_argv']:
+        raise RuntimeError('Combined controls differ from the matched CPU identity policy')
+    settings = {}
+    if on:
+        plan = Path(flags[flags.index('--placement-plan') + 1])
+        if hashlib.sha256(plan.read_bytes()).hexdigest() != matched['plan_sha256']:
+            raise RuntimeError('Combined CPU identity plan digest mismatch')
+        settings = dict(controls['all_gates_on_env'], LLAMA_EVENT_REC=str(scope / 'events.jsonl'))
+        if set(settings) != set(GATES) - {'LLAMA_EXPERT_CACHE_NATIVE_PROFILE', 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'}:
+            raise RuntimeError('Combined gate set differs from the five verified components')
+    return (['-m', first['command'][2], '--host', '127.0.0.1', '--port', str(PORT),
+             *controls['common_flags'], *flags], settings)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('cc', choices=ARMS)
+    parser.add_argument('cc', choices=(*ARMS, 'D'))
     parser.add_argument('mode', choices=('stock', 'strict-stock', 'equivalent-stock', 'off', 'on'))
     parser.add_argument('window', choices=('functional', 'early', 'speed', 'p4'))
     parser.add_argument('scope', type=Path)
@@ -50,6 +73,9 @@ def main():
     args = parser.parse_args()
     p4 = args.window == 'p4'
     validate_window_arguments(parser, args, p4, 'llama')
+    combined = args.cc == 'D'
+    if combined and (args.window != 'functional' or args.mode not in ('stock', 'off', 'on')):
+        parser.error('Combined D supports matched stock, off and on functional smoke probes')
     speed = args.window == 'speed'
     native_cache = bool(args.native_mib)
     if ((speed and not native_cache) or (native_cache and
@@ -64,17 +90,27 @@ def main():
     product_inventory = read(args.products)
     if product_inventory['schema'] != 'spark-native-star-build-products/1':
         raise RuntimeError('Expected a frozen native build product manifest')
-    product = next(p for p in product_inventory['products']
-                   if p['capsule'] == ARMS[args.cc])
+    capsule = 'combined_d' if combined else ARMS[args.cc]
+    product = next(p for p in product_inventory['products'] if p['capsule'] == capsule)
     stock = args.mode in ('stock', 'strict-stock', 'equivalent-stock')
     binary = Path(first['command'][0] if stock else product['executable']['path'])
     sha = hashlib.sha256(binary.read_bytes()).hexdigest()
     if sha != (first['binary_sha256'] if stock else product['executable']['sha256']):
         raise RuntimeError('Engine executable digest differs from the build receipt')
+    if not stock and 'retained_elf_sha256_by_filename' in product:
+        if str(binary.parent) != product['retain_library_dir']:
+            raise RuntimeError('Engine library directory differs from the build receipt')
+        for name, expected in product['retained_elf_sha256_by_filename'].items():
+            with (binary.parent / name).open('rb') as stream:
+                if hashlib.file_digest(stream, 'sha256').hexdigest() != expected:
+                    raise RuntimeError(f'Retained engine library digest differs for {name}')
     flags = list(first['command'][1:]) + ['-lv', '4']
     env = {k: v for k, v in os.environ.items() if k not in GATES and not k.startswith('LLAMA_ARG_')}
     env['LD_LIBRARY_PATH'] = str(binary.parent)
     on = args.mode == 'on'
+    if combined:
+        flags, settings = combined_profile(first, product, scope, on)
+        env.update(settings)
     if args.cc == 'C1' and on:
         env['LLAMA_EVENT_REC'] = str(scope / 'events.jsonl')
     if args.cc == 'C2':
@@ -188,8 +224,9 @@ def main():
             save(scope / 'p4-launch-profile.json', launch_profile)
             hashes = request_window(args, scope, PORT, 'llama', quiet_preflight)
         repeats = [] if speed or p4 else ([0, 1] if early else [0])
+        sizes = (512,) if combined else (512, 2048)
         for repeat in repeats:
-            for size in (512, 2048):
+            for size in sizes:
                 target = scope / f'rep-{repeat}-{size}'
                 if early:
                     boundary_resources(scope / f'{target.name}-before.json', Path(receipt['cgroup']), receipt['pid'])
