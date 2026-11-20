@@ -37,6 +37,8 @@ def main():
     parser.add_argument('mode', choices=('stock', 'strict-stock', 'equivalent-stock', 'off', 'on'))
     parser.add_argument('window', choices=('functional', 'early'))
     parser.add_argument('scope', type=Path)
+    parser.add_argument('--products', type=Path, default=ROOT / 'OPS/p3/native-star-build-products.json',
+                        help='Frozen native product/receipt index for this iteration')
     parser.add_argument('--placement-policy', choices=('cpu_identity_smoke', 'heldout_layer27_policy'),
                         default='cpu_identity_smoke')
     args = parser.parse_args()
@@ -46,7 +48,10 @@ def main():
     if scope.exists() or scope.parent != ROOT / 'OPS/runs':
         parser.error('Choose a fresh directory immediately under OPS/runs')
     first = read(ROOT / 'OPS/runs/a-first-load-retry/start.json')
-    product = next(p for p in read(ROOT / 'OPS/p3/native-star-build-products.json')['products']
+    product_inventory = read(args.products)
+    if product_inventory['schema'] != 'spark-native-star-build-products/1':
+        raise RuntimeError('Expected a frozen native build product manifest')
+    product = next(p for p in product_inventory['products']
                    if p['capsule'] == ARMS[args.cc])
     stock = args.mode in ('stock', 'strict-stock', 'equivalent-stock')
     binary = Path(first['command'][0] if stock else product['executable']['path'])
@@ -131,6 +136,8 @@ def main():
         save(scope / 'load-ready.json', {'ready_at': datetime.now(timezone.utc).isoformat(),
                                          'health_elapsed_s': time.monotonic() - launched,
                                          'source_commit': '9048bad8d6e3a0f9f1726e238e451181c7e02613' if stock else product['source_commit'],
+                                         'products_manifest': str(args.products.resolve()),
+                                         'products_manifest_sha256': hashlib.sha256(args.products.read_bytes()).hexdigest(),
                                          'native_build_receipt': None if stock else product['receipt_artifact_id']})
         receipt = read(scope / 'scope.json')
         hashes = {}
