@@ -358,6 +358,12 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
                                              window, k, prompts[size], geometry, stop['artifact_id'])
         requests.append(request)
     extra = {'engine_log': capture(scope / 'stderr.log', 'text/plain')}
+    if 'load_ready_residency' in window:
+        demand(window['load_ready_residency'] == 'load-ready-residency.json', 'Invalid post-load sample path')
+        after_load = capture(directory / window['load_ready_residency'])
+        source_snapshot(after_load['value'], geometry, (view,), ready,
+                        timepoint(requests[0]['result']['started']), stride, seed, k)
+        extra['load_ready_residency'] = after_load
     if view == 'strata':
         extra['strata_engine_log'] = capture(scope / 'engine.log', 'text/plain')
     resid = cold['after']['views'][view]['total']
