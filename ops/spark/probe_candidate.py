@@ -26,7 +26,9 @@ HERE = Path(__file__).resolve().parent
 PORT = 8082
 GATES = ('LLAMA_EVENT_REC', 'LLAMA_EVENT_REC_MIB', 'LLAMA_EXPERT_CACHE', 'LLAMA_EXPERT_CACHE_MIB',
          'LLAMA_EXPERT_PREDICT', 'LLAMA_BATCH_LAYOUT', 'LLAMA_PLACEMENT_PLAN',
-         'LLAMA_EXPERT_CACHE_NATIVE_PROFILE', 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH')
+         'LLAMA_EXPERT_CACHE_NATIVE_PROFILE', 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH', 'LLAMA_EXPERT_CACHE_DIRECT_SEED')
+C3_PROFILE_GATES = {'LLAMA_EXPERT_CACHE_NATIVE_PROFILE', 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH',
+                    'LLAMA_EXPERT_CACHE_DIRECT_SEED'}
 ARMS = {'C1': 'observability_event_recorder', 'C2': 'weight_placement_planner', 'C3': 'expert_weight_cache',
         'C4': 'expert_demand_predictor', 'C5': 'batch_layout_mapper'}
 def read(path):
@@ -52,7 +54,7 @@ def combined_profile(first, product, scope, on):
         if hashlib.sha256(plan.read_bytes()).hexdigest() != matched['plan_sha256']:
             raise RuntimeError('Combined CPU identity plan digest mismatch')
         settings = dict(controls['all_gates_on_env'], LLAMA_EVENT_REC=str(scope / 'events.jsonl'))
-        if set(settings) != set(GATES) - {'LLAMA_EXPERT_CACHE_NATIVE_PROFILE', 'LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'}:
+        if set(settings) != set(GATES) - C3_PROFILE_GATES:
             raise RuntimeError('Combined gate set differs from the five verified components')
     return (['-m', first['command'][2], '--host', '127.0.0.1', '--port', str(PORT),
              *controls['common_flags'], *flags], settings)
@@ -79,9 +81,10 @@ def main():
         parser.error('Combined D supports matched stock, off and on functional smoke probes')
     speed = args.window == 'speed'
     native_cache = bool(args.native_mib)
+    native_window = args.window in ('speed', 'p4') or (args.cc == 'C4' and args.window == 'functional')
     if ((speed and not native_cache) or (native_cache and
-           (args.window not in ('speed', 'p4') or args.cc != 'C3' or args.mode == 'strict-stock'))):
-        parser.error('Native-cache speed cells require C3, a matched stock/off/on mode and a fixed cache budget')
+           (not native_window or args.cc not in ('C3', 'C4') or args.mode == 'strict-stock'))):
+        parser.error('Native-cache cells require C3 or C4, a matched mode and a fixed cache budget')
     if args.mode == 'equivalent-stock' and not native_cache and (args.cc != 'C2' or args.placement_policy != 'heldout_layer27_policy'):
         parser.error('The equivalent-placement stock control requires the layer 27 policy')
     scope = args.scope.resolve()
@@ -139,15 +142,24 @@ def main():
     if native_cache:
         if args.mode != 'stock':
             flags += ['--moe-cache-mib', str(args.native_mib), '--moe-cache-cpu-share', '0']
-        if on:
-            profile = ROOT / 'OPS/p3/frozen-strata-top192-ranked-pool.json'
+        if args.cc == 'C3' and not stock:
+            default_profile = ROOT / 'OPS/p3/frozen-strata-top192-ranked-pool.json'
+            contract = product.get('runtime_contract')
+            if contract:
+                gates = contract['gate_on_env' if on else 'gate_off_env']
+                if not set(gates) <= C3_PROFILE_GATES:
+                    raise RuntimeError('Native cache product requests unsupported gate settings')
+                env.update(gates)
+            elif on:
+                env.update(LLAMA_EXPERT_CACHE_NATIVE_PROFILE='1', LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH=str(default_profile))
+        if env.get('LLAMA_EXPERT_CACHE_NATIVE_PROFILE') == '1':
+            profile = Path(env['LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH'])
             profile_hash = hashlib.sha256(profile.read_bytes()).hexdigest()
             if profile_hash != 'dd4861349970a46e9e23ebe58c39b5afb91bd1d9e4c28e960026fc375b1034da':
                 raise RuntimeError('Frozen nomination profile digest mismatch')
-            env.update(LLAMA_EXPERT_CACHE_NATIVE_PROFILE='1', LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH=str(profile))
     elif args.cc == 'C3' and on:
         env.update(LLAMA_EXPERT_CACHE='1', LLAMA_EXPERT_CACHE_MIB='64')
-    if args.cc in ('C4', 'C5'):
+    if args.cc == 'C5' or (args.cc == 'C4' and not native_cache):
         flags += ['-np', '1', '-c', '4096']
     if args.cc == 'C4' and on:
         env['LLAMA_EXPERT_PREDICT'] = '1'
@@ -188,7 +200,8 @@ def main():
     elif args.mode == 'stock':
         label = f'A-matched-{args.cc}-{args.window}'
     if speed:
-        arm = {'stock': 'A-matched', 'equivalent-stock': 'Aplus', 'off': 'C3-native-off', 'on': 'C3-profile-on'}[args.mode]
+        arm = {'stock': 'A-matched', 'equivalent-stock': 'Aplus', 'off': f'{args.cc}-native-off',
+               'on': 'C3-profile-on' if args.cc == 'C3' else 'C4-native-on'}[args.mode]
         label = f'{arm}-speed-{args.native_mib}MiB'
     if p4:
         label = args.arm
@@ -214,12 +227,23 @@ def main():
                                          'products_manifest': str(args.products.resolve()),
                                          'products_manifest_sha256': products_sha,
                                          'native_build_receipt': None if stock else product['receipt_artifact_id']})
-        if native_cache and on:
+        if native_cache and env.get('LLAMA_EXPERT_CACHE_NATIVE_PROFILE') == '1':
             log = (scope / 'stderr.log').read_text(errors='replace')
             active = re.search(r'expert_weight_cache_native_profile: active seeds=(\d+) initial_h2d_bytes=(\d+) init_us=(\d+) charged_bound=(\d+)', log)
             if not active or min(map(int, active.groups()[:2])) <= 0 or int(active[4]) > args.native_mib * 1024**2:
                 raise RuntimeError('Profile did not engage within its byte budget; see the retained engine log')
-            save(scope / 'profile-activation.json', {'sha256': profile_hash, 'marker': active[0]})
+            receipt = {'sha256': profile_hash, 'marker': active[0]}
+            if contract and 'LLAMA_EXPERT_CACHE_DIRECT_SEED' in contract['gate_on_env']:
+                direct = env.get('LLAMA_EXPERT_CACHE_DIRECT_SEED') == '1'
+                init = re.findall(r'expert_weight_cache_direct_seed: stats (.+)', log)
+                if direct:
+                    if len(init) != 1 or not init[0].startswith('state=complete scope=startup_seed_payload ') or 'seed_source=direct' not in log:
+                        raise RuntimeError('Direct seed did not complete the witnessed startup transfer')
+                    receipt['direct_seed_stats'] = init[0]
+                elif init or 'seed_source=mmap' not in log:
+                    raise RuntimeError('The buffered control did not preserve the mmap seed path')
+                receipt['seed_source'] = 'direct' if direct else 'mmap'
+            save(scope / 'profile-activation.json', receipt)
         receipt = read(scope / 'scope.json')
         hashes = {}
         prompts = HERE / 'prompts'

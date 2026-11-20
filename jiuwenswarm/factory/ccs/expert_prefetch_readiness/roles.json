@@ -1,0 +1,5 @@
+{
+  "format": "factory-roles/1",
+  "capabilities": {"analyze": "tool", "verify": "tool"},
+  "materials": {"method": "method", "source_map": "reference", "helper": "reference", "tests": "reference", "analysis": "reference", "checksums": "reference"}
+}
