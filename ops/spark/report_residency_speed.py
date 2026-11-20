@@ -11,9 +11,10 @@ from jiuwenswarm.factory.store import NotFound, Store
 
 from import_evidence import append_once, digest, safe_bytes
 from report_early_bracket import CAPSULE, STOCK, content, scope_inputs
-from report_p1 import json_bytes
+from report_p1 import ITERATION as P1_ITERATION, TASK as DIRECT_TASK, json_bytes
 
 ITERATION = 'spark-c3-native-cache'
+REFERENCE_ITERATION = 'spark-a-s-cold-steady'
 PLAN_TASK = 'spark-cache-residency-plan-01'
 PLAN_ID = PLAN_TASK + ':decision:2'
 LANE = 'factory-runs/star-expert_weight_cache-residency-01'
@@ -27,11 +28,12 @@ EARLY = ((30720, 'on', 'residency-speed-30720-on-01'),
 FINAL = (
     (30720, 'stock', 'residency-speed-30720-stock-01'),
     (61440, 'on', 'residency-speed-61440-on-01'),
-    (61440, 'equivalent-stock', 'residency-speed-61440-equivalent-stock-01'),
     (0, 'strata', 'strata-steady-fair-01'),
-    (30720, 'equivalent-stock', 'residency-steady-30720-equivalent-stock-01'),
     (30720, 'on', 'residency-steady-30720-on-01'),
+    (30720, 'equivalent-stock', 'residency-steady-30720-equivalent-stock-01'),
+    (61440, 'equivalent-stock', 'residency-speed-61440-equivalent-stock-01'),
 )
+REFERENCE = (FINAL[0], FINAL[2])
 PILOT_ORDER = ((0, 512), (0, 2048), (1, 512), (1, 2048), (2, 2048), (2, 512), (3, 512), (3, 2048))
 
 
@@ -87,6 +89,12 @@ def format_cold(scopes, pilot=False):
 
 
 def startup_rows(result):
+    if result['mode'] == 'a-s-cold-steady':
+        return ['## Launch and cap accounting', '',
+                '| Arm | Launch to ready | Peak cgroup memory | Reclaim max events |',
+                '|---|---:|---:|---:|',
+                *[f"| {r['arm']} | {r['load_s']:.3f} s | {r['peak_memory_bytes']/1024**3:.2f} GiB | {r['reclaim_max']} |"
+                  for r in result['scopes']]]
     lines = ['## Launch and cache admission', '',
              '| Arm | Launch to ready | Peak cgroup memory | Reclaim max events | Profile seeds | Initial upload |',
              '|---|---:|---:|---:|---:|---:|']
@@ -113,12 +121,18 @@ def startup_rows(result):
 
 def report_text(result, release):
     pilot = result['mode'] == 'c3-warmup-pilot'
+    reference = result['mode'] == 'a-s-cold-steady'
     if pilot:
         on, aplus = result['scopes']
         startup_change = on['load_s'] - aplus['load_s']
         startup = f"{abs(startup_change):.1f} seconds {'more' if startup_change >= 0 else 'less'} to become ready"
         summary = f'Both 30-GiB launches kept warming across eight request positions, and the cache profile took {startup} than stock.'
         heading = '# C3 native cache startup and warm-up pilot'
+    elif reference:
+        a, s = result['scopes']
+        a_rate, s_rate = (r['steady_trend']['512']['decode_tps']['median'] for r in (a, s))
+        summary = f'After three warmups per size, fair Strata decoded the 512-token workload at a median {s_rate:.2f} tokens per second and A-matched at {a_rate:.2f}.'
+        heading = '# A-matched and fair Strata cold and post-warmup reference'
     else:
         summary = 'The cache experiment separates startup and cold request positions from five post-warmup pairs in each completed arm.'
         heading = '# C3 native cache cold and post-warmup lab'
@@ -139,6 +153,8 @@ def report_text(result, release):
         lines.append('')
     else:
         lines += format_steady(result)
+        if reference:
+            lines += ['The paired measurements compare the two complete engine and pack configurations. The experiment used the same request order and host caps, and sampled both source packs after each file-specific reset. The startup and load paths differ between engines.', '']
     lines += ['Source, cap, prompt, raw request phases, residency, model identities and build receipts are linked in the iteration record.',
               f'Native analysis and exact recomputation used release `{release}`.', '']
     return summary, '\n'.join(lines).encode()
@@ -146,6 +162,11 @@ def report_text(result, release):
 
 def interval(row):
     return f"{row['median']:.3f} [{row['min']:.3f}, {row['max']:.3f}]"
+
+
+def phase_counter_span(values):
+    reads = {key: values['process_read_bytes'][key]/1e9 for key in ('median', 'min', 'max')}
+    return f"{interval(reads)} | {interval(values['process_major_faults'])}"
 
 
 def format_steady(result):
@@ -169,6 +190,14 @@ def format_steady(result):
             ttft, decode = metrics['ttft_s'], metrics['decode_tps']
             lines.append(f"| {scope['arm']} | {size} | {interval(ttft)} | {interval(decode)} | "
                          f"{ttft['last_minus_first']:+.3f} s / {decode['last_minus_first']:+.3f} tok/s |")
+    lines += ['', '| Arm | Tokens | Process reads to first token (GB) | Major faults to first token | Process reads afterward (GB) | Major faults afterward |',
+              '|---|---:|---:|---:|---:|---:|']
+    for scope in result['scopes']:
+        for size, metrics in scope.get('steady_trend', {}).items():
+            phases = metrics['phase_counters']
+            before = phase_counter_span(phases['start_to_first_token'])
+            after = phase_counter_span(phases['first_token_to_end'])
+            lines.append(f"| {scope['arm']} | {size} | {before} | {after} |")
     lines += ['', '| Candidate and control | Tokens | TTFT saved s | Decode gain tok/s | Greedy parity |',
               '|---|---:|---:|---:|---|']
     for pair in result['comparisons']:
@@ -182,10 +211,36 @@ def format_steady(result):
     return lines
 
 
+def source_plan(store, task, builder, prefix, put):
+    decision = store.read(PLAN_TASK, PLAN_ID)
+    plan_ref = put(f'{prefix}/source-planner-decision.json', json_bytes(decision))
+    incoming = [key for key in decision['evidence_ids'] if key.startswith('incoming-') and key.endswith('.md')]
+    for key in incoming:
+        if store.read_artifact(task, key)['sha256'] != store.read_artifact(PLAN_TASK, key)['sha256']:
+            raise ValueError('Copied historical planner input disagrees with its original')
+    plan = dict(decision_id=dict(decision_id=PLAN_ID, task_id=PLAN_TASK), decision_artifact_id=plan_ref['artifact_id'],
+                incoming_report_ids=incoming, builder_ccs=[builder],
+                rationale='\n\n'.join(value for value in (decision['hypothesis'], decision['reason_for_change']) if value))
+    authored = decision.get('action', {}).get('summary')
+    if not authored:
+        additions = store.query(PLAN_TASK, kinds=['factory_iteration_summary'], text=PLAN_ID)['items']
+        for item in additions:
+            addition = store.read(PLAN_TASK, item['id'])
+            value = addition['values']
+            if value.get('schema') == 'factory-iteration-summary/1' and value.get('decision_id') == PLAN_ID:
+                authored = value.get('summary')
+                put(f'{prefix}/source-planner-summary.json', json_bytes(addition))
+                break
+    if authored:
+        plan['summary'] = authored
+    return plan, incoming
+
+
 def publish(base, stage):
     repo = Path(__file__).resolve().parents[2]
     ops = base / 'OPS/p3'
     pilot = stage == 'pilot'
+    direct = stage == 'reference'
     source_path = ops / 'cache-native-profile-verified-native-request.json'
     elf_path = ops / 'revised-native-cache-elf-manifest.json'
     inventory_path = ops / 'revised-cache-speed-products.json'
@@ -193,22 +248,27 @@ def publish(base, stage):
     profile_path = ops / 'frozen-strata-top192-ranked-pool.json'
     first_path = base / 'OPS/runs/a-first-load-retry/start.json'
     regions_path = base / 'OPS/p4/source-regions.json'
-    builder = content(release_path)
-    source, elf, first = map(content, (source_path, elf_path, first_path))
-    task, home = source['task_id'], base / LANE
+    first = content(first_path)
     inventory = content(inventory_path)
     product = inventory['products'][0]
     if inventory['schema'] != 'spark-native-star-build-products/1' or product['capsule'] != 'expert_weight_cache':
         raise ValueError('Inventory does not identify the revised native cache')
-    if not source['source_clean'] or source['home'] != str(home) or (
+    if direct:
+        iteration = REFERENCE_ITERATION
+        task, home = DIRECT_TASK, base / 'factory-runs/spark-direct-benchmarks'
+    else:
+        iteration = ITERATION
+        builder, source, elf = map(content, (release_path, source_path, elf_path))
+        task, home = source['task_id'], base / LANE
+        if not source['source_clean'] or source['home'] != str(home) or (
             source['observed_head'] != product['source_commit'] or product['source_commit'] != elf['source']['commit'] or
             elf['build_receipt']['artifact_id'] != product['receipt_artifact_id'] or elf['executable'] != product['executable']):
-        raise ValueError('Initial native build, retained ELF and source receipt disagree')
-    if digest(safe_bytes(profile_path)) != PROFILE_DIGEST:
-        raise ValueError('Cache nomination input differs from the pinned profile')
+            raise ValueError('Initial native build, retained ELF and source receipt disagree')
+        if digest(safe_bytes(profile_path)) != PROFILE_DIGEST:
+            raise ValueError('Cache nomination input differs from the pinned profile')
     model_identity_path = Path(first['command'][2]).parent.parent / 'factory-intake/asset-identity.json'
-    obs = ITERATION + (':report' if pilot else ':report-v2')
-    prefix = f'{ITERATION}/{stage}'
+    obs = iteration + (':report-v2' if stage == 'full' else ':report')
+    prefix = f'{iteration}/{stage}'
     with Store(home) as store:
         try:
             current = store.read(task, obs)['values']['report']
@@ -230,14 +290,17 @@ def publish(base, stage):
             ref = put(f'{prefix}/{path.name}', raw)
             return dict(ref, value=json.loads(raw))
 
-        for path in (source_path, elf_path, inventory_path, release_path, first_path):
+        inputs = (inventory_path, first_path) if direct else (source_path, elf_path, inventory_path, release_path, first_path)
+        for path in inputs:
             attach(path)
         model_identity = attach(model_identity_path)
-        regions, profile = map(attach, (regions_path, profile_path))
+        regions = attach(regions_path)
+        profile = None if direct else attach(profile_path)
         prompts = attach(repo / 'ops/spark/prompts/MANIFEST.json')
         launcher_digest = digest(safe_bytes(inventory_path))
         expected, scopes = [], []
-        for mib, role, folder in EARLY if pilot else FINAL:
+        schedule = EARLY if pilot else REFERENCE if direct else FINAL
+        for mib, role, folder in schedule:
             path = base / 'OPS/runs' / folder
             if not (path / 'result.json').is_file():
                 raise ValueError(f'Scope has no completed result receipt: {folder}')
@@ -252,8 +315,8 @@ def publish(base, stage):
             if (path / 'protocol.json').is_file():
                 protocol_raw = safe_bytes(path / 'protocol.json')
                 protocol_value = json.loads(protocol_raw)
-                inputs = protocol_value['ordered_requests']
-                if any(Path(row['path']).name != row['path'] for row in inputs):
+                protocol_rows = protocol_value['ordered_requests']
+                if any(Path(row['path']).name != row['path'] for row in protocol_rows):
                     raise ValueError('Protocol request path leaves its own scope')
                 protocol = dict(put(f'{prefix}/scopes/{folder}/protocol.json', protocol_raw), value=protocol_value)
                 if protocol_value['conditioning_receipt'] != str(ops / 'early-preflights' / (folder + '-source.json')):
@@ -274,17 +337,12 @@ def publish(base, stage):
                 raw = safe_bytes(path / 'profile-activation.json')
                 scope['activation'] = dict(put(f'{prefix}/scopes/{folder}/profile-activation.json', raw), value=json.loads(raw))
             scopes.append(scope)
-        existing = [DIFF, VERIFY, elf['build_receipt'], elf['build_record']]
+        existing = [] if direct else [DIFF, VERIFY, elf['build_receipt'], elf['build_record']]
         for ref in existing:
             if store.read_artifact(task, ref['artifact_id'])['sha256'] != ref['sha256']:
                 raise ValueError(f"Changed DO or native build artifact {ref['artifact_id']}")
-        decision = store.read(PLAN_TASK, PLAN_ID)
-        plan_ref = put(f'{prefix}/source-planner-decision.json', json_bytes(decision))
-        incoming = [key for key in decision['evidence_ids'] if key.startswith('incoming-') and key.endswith('.md')]
-        for key in incoming:
-            if store.read_artifact(task, key)['sha256'] != store.read_artifact(PLAN_TASK, key)['sha256']:
-                raise ValueError('Copied historical planner input disagrees with its original')
-        evidence = dict(mode='c3-warmup-pilot' if pilot else 'c3-cold-steady', expected=expected,
+        mode = 'c3-warmup-pilot' if pilot else 'a-s-cold-steady' if direct else 'c3-cold-steady'
+        evidence = dict(mode=mode, expected=expected,
                         prompts=prompts, model_identity=model_identity, profile=profile, regions=regions, scopes=scopes)
         analysis_input = json_bytes(evidence)
         host = Host(home / 'analysis-ccv2')
@@ -301,7 +359,7 @@ def publish(base, stage):
         if checked.get('outputs', {}).get('verification', {}).get('done') is not True:
             raise ValueError('Verifying the cache result did not reproduce exact analysis')
         put(f'{prefix}/analysis-input.json', analysis_input)
-        lab = put(f'{prefix}/lab.json', json_bytes(dict(schema='spark-native-cache-lab/1', scopes=analysis['scopes'])))
+        lab = put(f'{prefix}/lab.json', json_bytes(dict(schema='spark-position-lab/1', mode=mode, scopes=analysis['scopes'])))
         lab_ids = list(evidence_ids)
         outputs = [put(f'{prefix}/{name}.json', json_bytes(value))['artifact_id'] for name, value in (
             ('analysis', analysis), ('analyze-receipt', result), ('verify-receipt', checked))]
@@ -309,9 +367,10 @@ def publish(base, stage):
                            (host.store / 'releases' / release / 'manifest.json').read_bytes())['artifact_id'])
         summary, report_body = report_text(analysis, release)
         report = put(f'{prefix}/report.md', report_body, 'text/markdown')
-        report = dict(report, revision=1 if pilot else 2, summary=summary, status='warm-up pilot' if pilot else 'cold and steady lab')
+        report = dict(report, revision=2 if stage == 'full' else 1, summary=summary,
+                      status='warm-up pilot' if pilot else 'cold and steady lab')
         kind = 'factory_iteration_report'
-        if not pilot:
+        if stage == 'full':
             try:
                 previous_obs = ITERATION + ':report'
                 previous = store.read(task, previous_obs)['values']['report']
@@ -320,31 +379,30 @@ def publish(base, stage):
                 evidence_ids.append(previous['artifact_id'])
             except NotFound:
                 pass
-        plan = dict(decision_id=dict(decision_id=PLAN_ID, task_id=PLAN_TASK), decision_artifact_id=plan_ref['artifact_id'],
-                    incoming_report_ids=incoming, builder_ccs=[builder],
-                    rationale='\n\n'.join(value for value in (decision['hypothesis'], decision['reason_for_change']) if value))
-        authored = decision.get('action', {}).get('summary')
-        if not authored:
-            additions = store.query(PLAN_TASK, kinds=['factory_iteration_summary'], text=PLAN_ID)['items']
-            for item in additions:
-                addition = store.read(PLAN_TASK, item['id'])
-                value = addition['values']
-                if value.get('schema') == 'factory-iteration-summary/1' and value.get('decision_id') == PLAN_ID:
-                    authored = value.get('summary')
-                    put(f'{prefix}/source-planner-summary.json', json_bytes(addition))
-                    break
-        if authored:
-            plan['summary'] = authored
-        do = dict(source_commit=source['observed_head'], diff_artifact_id=DIFF['artifact_id'],
-                  verification_receipt_ids=[VERIFY['artifact_id']],
-                  build_receipt_ids=[elf[key]['artifact_id'] for key in ('build_receipt', 'build_record')])
-        envelope = dict(schema='spark-factory-iteration/1', iteration_id=ITERATION, plan=plan, do=do,
+        predecessors, incoming = [], []
+        if direct:
+            baseline = store.read(task, P1_ITERATION + ':report')['values']['report']
+            if store.read_artifact(task, baseline['artifact_id'])['sha256'] != baseline['sha256']:
+                raise ValueError('P1 predecessor report digest changed')
+            predecessors.append({key: baseline[key] for key in ('artifact_id', 'sha256')})
+            evidence_ids.append(baseline['artifact_id'])
+            plan = dict(decision_id=None, incoming_report_ids=[], builder_ccs=[],
+                        summary='Run the same cold and post-warmup prompt order on stock llama.cpp and fair Strata.',
+                        rationale='Address the earlier P1 timing limits with separately conditioned sources, a common request order, and one capped launch per reference.')
+            do = dict(source_commit=None, diff_artifact_id=None, verification_receipt_ids=[], build_receipt_ids=[])
+        else:
+            plan, incoming = source_plan(store, task, builder, prefix, put)
+            do = dict(source_commit=source['observed_head'], diff_artifact_id=DIFF['artifact_id'],
+                      verification_receipt_ids=[VERIFY['artifact_id']],
+                      build_receipt_ids=[elf[key]['artifact_id'] for key in ('build_receipt', 'build_record')])
+        envelope = dict(schema='spark-factory-iteration/1', iteration_id=iteration, predecessor_report_ids=predecessors,
+                        plan=plan, do=do,
                         lab=dict(status=report['status'], result_artifact_ids=lab_ids, lab_artifact_id=lab['artifact_id']),
                         analysis=dict(ccs=[dict(id=CAPSULE, version=host.describe(release)['version'], release=release)],
                                       output_artifact_ids=outputs), report=report, next_plan=dict(decision_id=None))
         append_once(store, task, dict(obs_id=obs, kind=kind, values=envelope,
             source_artifacts=[*evidence_ids, *incoming, *[r['artifact_id'] for r in existing]]))
-        out = base / 'OPS/iterations' / ITERATION / stage
+        out = base / 'OPS/iterations' / iteration / stage
         out.mkdir(parents=True, exist_ok=True)
         (out / 'report.md').write_bytes(report_body)
         (out / 'analysis.json').write_bytes(json_bytes(analysis))
@@ -354,7 +412,7 @@ def publish(base, stage):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('stage', choices=('pilot', 'full'))
+    parser.add_argument('stage', choices=('pilot', 'reference', 'full'))
     parser.add_argument('--base', type=Path, default=Path.home() / 'predemo-spark')
     args = parser.parse_args()
     print(json.dumps(publish(args.base.resolve(), args.stage), indent=2))

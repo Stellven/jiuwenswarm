@@ -9,8 +9,9 @@ from statistics import median
 from early_bracket import (PROMPTS, check_requests, check_server, reject_if,
                            residency_identity, timestamp)
 WARMUP_PILOT = ((30720, 'on'), (30720, 'equivalent-stock'))
-STEADY_LAB = ((30720, 'stock'), (61440, 'on'), (61440, 'equivalent-stock'),
-              (0, 'strata'), (30720, 'equivalent-stock'), (30720, 'on'))
+REFERENCE = ((30720, 'stock'), (0, 'strata'))
+STEADY_LAB = ((30720, 'stock'), (61440, 'on'), (0, 'strata'), (30720, 'on'),
+              (30720, 'equivalent-stock'), (61440, 'equivalent-stock'))
 ORDER = ((0, 512), (0, 2048), (1, 512), (1, 2048), (2, 2048), (2, 512), (3, 512), (3, 2048))
 PROFILE_MARKER = 'expert_weight_cache_native_profile:'
 NATIVE_STATS = re.compile(r'llama_moe_cache: ubatch <= 8: hits = (\d+), misses = (\d+) \((\d+) on the CPU\), '
@@ -204,6 +205,11 @@ def trends(rows):
                          last_minus_first=repeats[-1][metric] - repeats[0][metric])
             for metric in ('ttft_s', 'decode_tps')
         }
+        trends_by_size[str(size)]['phase_counters'] = {
+            phase: {metric: span([row['phases'][phase][metric] for row in repeats])
+                    for metric in ('process_read_bytes', 'process_major_faults', 'cgroup_file_refaults')}
+            for phase in ('start_to_first_token', 'first_token_to_end')
+        }
     return trends_by_size
 
 
@@ -238,8 +244,10 @@ def paired_results(candidate, control):
 
 
 def analyze_steady(evidence, eligible, reference, positive):
-    reject_if(len(evidence['scopes']) != len(STEADY_LAB) or len(evidence['expected']) != len(STEADY_LAB),
-              'Expected all six declared cold and steady scopes')
+    direct = evidence['mode'] == 'a-s-cold-steady'
+    scope_order = REFERENCE if direct else STEADY_LAB
+    reject_if(len(evidence['scopes']) != len(scope_order) or len(evidence['expected']) != len(scope_order),
+              'Expected all declared cold and steady scopes for the comparison')
     schedule = steady_order()
     prompts = {p['target_tokens_including_template']: p['prompt_sha256'] for p in evidence['prompts']['value']['prompts']}
     reject_if(set(prompts) != set(PROMPTS), 'Expected the approved two prompt sizes')
@@ -248,8 +256,8 @@ def analyze_steady(evidence, eligible, reference, positive):
     pin = evidence['model_identity']['value']['files']
     reject_if([(f['path'], f['identity']['size'], f['identity']['mtime_ns']) for f in conditioning['views']['llama']['files']] !=
               [(f['path'], f['size'], f['mtime_ns']) for f in pin], 'GGUF source fingerprint differs from the model receipt')
-    scopes, previous, runtime = [], None, None
-    for (budget, mode), scope, expected in zip(STEADY_LAB, evidence['scopes'], evidence['expected']):
+    ordered, previous, runtime = {}, None, None
+    for (budget, mode), scope, expected in zip(scope_order, evidence['scopes'], evidence['expected']):
         is_strata = mode == 'strata'
         view = 'strata' if is_strata else 'llama'
         label, began, ready, ended, record = check_server(scope, mode, 'S' if is_strata else 'C3',
@@ -274,8 +282,8 @@ def analyze_steady(evidence, eligible, reference, positive):
         counters = server_counters(captured_log(scope['log']), mode, budget, scope, expected, reference)
         record.update(budget_mib=budget if mode not in ('stock', 'strata') else 0, mode=mode,
                       source_view=view, **counters)
+        ordered[(budget, mode)] = record
         if counters['status'] == 'declined':
-            scopes.append(record)
             continue
         protocol = scope['protocol']['value']
         reject_if(protocol['schema'] != 'spark-cold-steady/1' or protocol['arm'] != label or protocol['view'] != view or
@@ -295,22 +303,26 @@ def analyze_steady(evidence, eligible, reference, positive):
         reject_if(any(sample['process'] != samples[0]['process'] for sample in samples),
                   'The underlying engine process changed across one launch')
         record.update(samples=samples, steady_trend=trends(samples), greedy_hashes=hashes)
-        scopes.append(record)
     comparisons = []
-    for a, b, relation in (
-        (5, 4, '30-GiB profile versus the same-budget stock bank'),
-        (1, 2, '60-GiB profile versus the same-budget stock bank'),
-        (5, 0, '30-GiB profile and bank versus stock without a native bank'),
-        (1, 0, '60-GiB profile and bank versus stock without a native bank'),
-        (5, 3, '30-GiB profile versus fair Strata engine and pack'),
-        (1, 3, '60-GiB profile versus fair Strata engine and pack'),
-    ):
-        if scopes[a]['status'] == scopes[b]['status'] == 'completed':
-            if scopes[a]['budget_mib'] == scopes[b]['budget_mib']:
-                reject_if(scopes[a]['native_bank']['allocated_mib'] != scopes[b]['native_bank']['allocated_mib'],
+    stock, strata = (30720, 'stock'), (0, 'strata')
+    on30, on60 = (30720, 'on'), (61440, 'on')
+    pairs = ((strata, stock, 'fair Strata engine and pack versus A-matched'),) if direct else (
+        (on30, (30720, 'equivalent-stock'), '30-GiB profile versus the same-budget stock bank'),
+        (on60, (61440, 'equivalent-stock'), '60-GiB profile versus the same-budget stock bank'),
+        (on30, stock, '30-GiB profile and bank versus stock without a native bank'),
+        (on60, stock, '60-GiB profile and bank versus stock without a native bank'),
+        (on30, strata, '30-GiB profile versus fair Strata engine and pack'),
+        (on60, strata, '60-GiB profile versus fair Strata engine and pack'),
+    )
+    for candidate, control, relation in pairs:
+        a, b = ordered[candidate], ordered[control]
+        if a['status'] == b['status'] == 'completed':
+            if a['budget_mib'] and a['budget_mib'] == b['budget_mib']:
+                reject_if(a['native_bank']['allocated_mib'] != b['native_bank']['allocated_mib'],
                           'Matched arms do not have the same native bank allocation within log precision')
-            comparisons.append(dict(candidate=scopes[a]['arm'], control=scopes[b]['arm'], relation=relation,
-                                    **paired_results(scopes[a], scopes[b])))
-    return dict(mode='c3-cold-steady', scopes=scopes, comparisons=comparisons,
-                source_identity=reference(evidence['model_identity']), source_regions=reference(evidence['regions']),
-                profile=reference(evidence['profile']))
+            comparisons.append(dict(candidate=a['arm'], control=b['arm'], relation=relation, **paired_results(a, b)))
+    result = dict(mode=evidence['mode'], scopes=list(ordered.values()), comparisons=comparisons,
+                  source_identity=reference(evidence['model_identity']), source_regions=reference(evidence['regions']))
+    if not direct:
+        result['profile'] = reference(evidence['profile'])
+    return result

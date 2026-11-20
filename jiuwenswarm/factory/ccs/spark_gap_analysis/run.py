@@ -108,7 +108,7 @@ def analyze(evidence):
     if mode == 'c3-warmup-pilot':
         from residency_speed import analyze as analyze_warmup
         return analyze_warmup(evidence, eligible, reference, positive)
-    if mode == 'c3-cold-steady':
+    if mode in ('c3-cold-steady', 'a-s-cold-steady'):
         from residency_speed import analyze_steady
         return analyze_steady(evidence, eligible, reference, positive)
     if mode not in ('p1-reconnaissance', 'p4-abba'):

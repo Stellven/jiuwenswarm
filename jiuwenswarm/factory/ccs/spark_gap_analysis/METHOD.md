@@ -64,3 +64,9 @@ counter deltas only within a single stable engine PID. Preserve host NVMe
 counter deltas separately from process reads. Report range and residual trend
 within each launch. A same-budget native-bank control isolates the treatment
 more closely than either a plain stock engine or a different quantized pack.
+
+The direct A-matched and fair Strata reference uses the same cold and
+post-warmup admission for those two scopes. Resolve the unique Strata engine
+PID inside its capped service scope and retain its phase counters independently
+from the Python HTTP process. The direct iteration links back to the P1
+reconnaissance and contains no candidate DO attribution.
