@@ -9,6 +9,8 @@ job_id = os.environ.get('JOBQ_JOB_ID', '')
 if not job_id.startswith('job-') or any(c not in 'job-0123456789abcdef' for c in job_id):
     sys.exit('Invalid queue job identity')
 root = (Path.home() / 'predemo-spark/OPS/jobq-cpu').resolve()
+if os.environ.get('SPARK_OWNER_BUILD') == 'placement-tier':
+    root = root.with_name('jobq-cpu-c2')
 if Path(os.environ.get('JOBQ_DIR', '')).resolve() != root:
     sys.exit('Only the private Spark CPU queue is allowed')
 job = json.loads((root / (job_id + '.json')).read_text())
