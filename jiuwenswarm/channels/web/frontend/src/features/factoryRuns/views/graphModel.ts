@@ -1,0 +1,319 @@
+import type { StoryEvent } from '../api';
+
+type Fields = Record<string, unknown>;
+type NodeKind = 'contract' | 'task' | 'step' | 'capsule' | 'entity' | 'group';
+type LinkKind = 'dependency' | 'superseded' | 'contract' | 'step' | 'capsule' | 'relation' | 'member';
+
+export type GraphNode = {
+  id: string;
+  label: string;
+  kind: NodeKind;
+  details: Fields;
+  state?: string;
+  planId?: string;
+};
+export type GraphLink = {
+  source: string;
+  target: string;
+  kind: LinkKind;
+  label?: string;
+};
+export type GraphModel = {
+  kind: 'taskgraph' | 'ontology' | 'contract';
+  nodes: GraphNode[];
+  links: GraphLink[];
+  history: Fields[];
+  taskId?: string;
+};
+type GraphContext = { contract?: unknown; tasks?: readonly unknown[] };
+export type GraphReplay = { events: readonly StoryEvent[]; position: number };
+type NodeProgress = { phase: 'upcoming' | 'seen' | 'current'; details?: Fields };
+
+function record(value: unknown): Fields | undefined {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as Fields) : undefined;
+}
+
+function string(value: unknown): string | undefined {
+  return typeof value === 'string' && value.trim() ? value.trim() : undefined;
+}
+
+function list(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function rows(value: unknown): Fields[] {
+  return list(value)
+    .map(record)
+    .filter((row) => row !== undefined);
+}
+
+function idOf(kind: NodeKind, value: string) {
+  return `${kind}:${value}`;
+}
+
+function builder(kind: GraphModel['kind']) {
+  const nodes = new Map<string, GraphNode>();
+  const links = new Map<string, GraphLink>();
+  return {
+    node(type: NodeKind, key: string, details: Fields, title = key, planId?: string) {
+      const id = idOf(type, key);
+      if (!nodes.has(id))
+        nodes.set(id, { id, label: title, kind: type, details, state: string(details.state), planId });
+      return id;
+    },
+    link(source: string, target: string, kind: LinkKind, label?: string) {
+      if (nodes.has(source) && nodes.has(target)) {
+        links.set(JSON.stringify([source, target, kind, label]), { source, target, kind, label });
+      }
+    },
+    model(history: Fields[] = [], taskId?: string): GraphModel {
+      return { kind, nodes: [...nodes.values()], links: [...links.values()], history, taskId };
+    },
+  };
+}
+
+type GraphBuilder = ReturnType<typeof builder>;
+
+function capsuleKey(value: string) {
+  return value.split('@', 1)[0];
+}
+
+function addCapsules(graph: GraphBuilder, source: string, values: unknown[], declarations: Map<string, Fields>) {
+  for (const value of values) {
+    const reference = string(value);
+    if (!reference) continue;
+    const key = capsuleKey(reference);
+    const details = { ...declarations.get(key), reference };
+    graph.link(source, graph.node('capsule', key, details, key), 'capsule');
+  }
+}
+
+function addRunContext(graph: GraphBuilder, contract: Fields | undefined, tasks: Fields[], primaryTaskId?: string) {
+  const contractId = string(contract?.contract_id);
+  const root = contract && contractId ? graph.node('contract', contractId, contract) : undefined;
+  const declarations = new Map<string, Fields>();
+  for (const declaration of rows(record(contract?.ontology)?.capsule_slices)) {
+    const capsule = string(declaration.capsule);
+    if (capsule) declarations.set(capsuleKey(capsule), declaration);
+  }
+  for (const task of tasks) {
+    const taskId = string(task.task_id);
+    if (!taskId) continue;
+    const taskNode = graph.node('task', taskId, task, string(record(task.operator_labels)?.display_name) ?? taskId);
+    const taskContract = string(task.contract_id);
+    if (root && (!taskContract || taskContract === contractId || taskId === primaryTaskId)) {
+      graph.link(root, taskNode, 'contract');
+    } else if (taskContract) {
+      graph.link(graph.node('contract', taskContract, { contract_id: taskContract }), taskNode, 'contract');
+    }
+    addCapsules(
+      graph,
+      taskNode,
+      [...list(record(task.resources)?.capsules), task.component_cc, task.capability_cc],
+      declarations,
+    );
+  }
+  if (root && tasks.length === 0) {
+    addCapsules(graph, root, [...declarations.keys()], declarations);
+  }
+  return declarations;
+}
+
+function taskGraph(value: Fields, context: GraphContext): GraphModel | null {
+  const rawNodes = rows(value.nodes);
+  if (
+    value.schema !== 'factory.taskgraph/1' &&
+    !rawNodes.some((node) => string(node.node_id) && Array.isArray(node.depends_on))
+  ) {
+    return null;
+  }
+  const graph = builder('taskgraph');
+  const tasks = rows(context.tasks).filter((task) => string(task.task_id));
+  const taskId = string(value.task_id);
+  const declarations = addRunContext(graph, record(context.contract), tasks, taskId);
+  for (const node of rawNodes) {
+    const id = string(node.node_id);
+    if (!id) continue;
+    graph.node('step', id, node, string(node.title) ?? id, id);
+  }
+  for (const node of rawNodes) {
+    const id = string(node.node_id);
+    if (!id) continue;
+    const target = idOf('step', id);
+    const dependencies = list(node.depends_on)
+      .map(string)
+      .filter((name) => name !== undefined);
+    for (const dependency of dependencies) graph.link(idOf('step', dependency), target, 'dependency');
+    if (!dependencies.length && taskId) graph.link(idOf('task', taskId), target, 'step');
+    const replacement = string(node.superseded_by);
+    if (replacement) graph.link(target, idOf('step', replacement), 'superseded');
+    addCapsules(graph, target, [node.capability], declarations);
+  }
+  return graph.model(rows(value.history), taskId);
+}
+
+function ontologyGraph(value: Fields): GraphModel | null {
+  const relationMap = record(value.relations);
+  if (!relationMap && !Array.isArray(value.relations)) return null;
+  const graph = builder('ontology');
+  const entities = record(value.entities);
+  function entity(id: string) {
+    const definition = entities && Object.prototype.hasOwnProperty.call(entities, id) ? entities[id] : undefined;
+    return graph.node('entity', id, record(definition) ?? { entity: id, description: definition });
+  }
+  function relation(source: string | undefined, target: string | undefined, label?: string) {
+    if (source && target) graph.link(entity(source), entity(target), 'relation', label);
+  }
+  for (const [name, definition] of Object.entries(relationMap ?? {})) {
+    const [source, target] =
+      string(definition)
+        ?.split(/(?:->|→)/, 2)
+        .map(string) ?? [];
+    const structured = record(definition);
+    relation(source ?? string(structured?.source), target ?? string(structured?.target), name);
+  }
+  for (const edge of rows(value.relations)) {
+    relation(string(edge.source ?? edge.from), string(edge.target ?? edge.to), string(edge.relation ?? edge.type));
+  }
+  const model = graph.model();
+  return model.links.length ? model : null;
+}
+
+function mermaidBlocks(source: string): GraphModel | null {
+  const lines = source
+    .replace(/%%\{[\s\S]*?\}%%/g, '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith('%%'));
+  if (lines[0] !== 'block-beta') return null;
+  const graph = builder('ontology');
+  const groups: { id: string; label: string; members: string[] }[] = [];
+  for (const line of lines.slice(1)) {
+    const group = /^block:([\w.-]+)(?:\["([^"]*)"\])?$/.exec(line);
+    if (group) {
+      groups.push({ id: group[1], label: group[2]?.trim() || group[1], members: [] });
+      continue;
+    }
+    if (line === 'end') {
+      const current = groups.pop();
+      if (!current) continue;
+      const groupId = graph.node('group', current.id, { block: current.id, title: current.label }, current.label);
+      for (const member of current.members) graph.link(groupId, member, 'member');
+      groups[groups.length - 1]?.members.push(groupId);
+      continue;
+    }
+    const member = /^([\w.-]+)\["([^"]+)"\]$/.exec(line);
+    if (!member) continue;
+    const [, id, label] = member;
+    const current = groups[groups.length - 1];
+    if (current && current.label === current.id && id === `h_${current.id.replace(/^g_/, '')}`) {
+      current.label = label;
+      continue;
+    }
+    const node = graph.node('entity', id, { block: current?.id, title: label }, label);
+    current?.members.push(node);
+  }
+  if (groups.length) return null;
+  const model = graph.model();
+  return model.nodes.length ? model : null;
+}
+
+export function detectGraph(value: unknown, context: GraphContext = {}): GraphModel | null {
+  if (typeof value === 'string') return mermaidBlocks(value);
+  const object = record(value);
+  if (!object) return null;
+  const native = taskGraph(object, context);
+  if (native) return native;
+  const ontology = ontologyGraph(object);
+  if (ontology) return ontology;
+  const contract = record(context.contract) ?? record(object.contract) ?? object;
+  const tasks = rows(context.tasks ?? object.tasks).filter((task) => string(task.task_id));
+  if (!string(contract.contract_id)) return null;
+  const graph = builder('contract');
+  addRunContext(graph, contract, tasks);
+  const model = graph.model([], string(tasks[0]?.task_id));
+  return model.links.length ? model : null;
+}
+
+function nodeEvent(node: Fields, event: StoryEvent) {
+  return [...list(node.evidence_ids), ...list(node.attempt_ids)].some(
+    (id) => typeof id === 'string' && (event.id === id || event.id.startsWith(`${id}:`)),
+  );
+}
+
+function applyHistory(snapshots: Map<string, Fields>, patch: Fields, decisionRev: unknown, touched?: Set<string>) {
+  for (const operation of ['add', 'update', 'cancel', 'supersede']) {
+    for (const change of rows(patch[operation])) {
+      const id = string(change.node_id);
+      if (!id) continue;
+      touched?.add(id);
+      const prior = snapshots.get(id);
+      if (operation === 'add') {
+        snapshots.set(id, {
+          capability: null,
+          inputs: [],
+          depends_on: [],
+          state: 'proposed',
+          attempt_ids: [],
+          evidence_ids: [],
+          reason: '',
+          ...change,
+          created_by_decision_rev: decisionRev,
+        });
+      } else if (prior && operation === 'update') {
+        snapshots.set(id, {
+          ...prior,
+          ...change,
+          attempt_ids: [...new Set([...list(prior.attempt_ids), ...list(change.attempt_ids)])],
+          evidence_ids: [...new Set([...list(prior.evidence_ids), ...list(change.evidence_ids)])],
+        });
+      } else if (prior) {
+        const state = operation === 'cancel' ? 'cancelled' : 'superseded';
+        snapshots.set(id, { ...prior, state, reason: change.reason, superseded_by: change.by });
+      }
+    }
+  }
+}
+
+export function graphProgress(graph: GraphModel, replay: GraphReplay): Map<string, NodeProgress> {
+  const visible = replay.events.slice(0, Math.max(0, replay.position));
+  const current = visible[visible.length - 1];
+  const snapshots = new Map<string, Fields>();
+  const touched = new Set<string>();
+  for (const entry of [...graph.history].sort((a, b) => Number(a.rev) - Number(b.rev))) {
+    const patch = record(entry.patch);
+    const created = entry.created;
+    if (!current || !patch || typeof created !== 'number' || created > current.created) continue;
+    const eventId = `${graph.taskId}:plan:${entry.rev}`;
+    const matches = current.id === eventId;
+    if (created === current.created && !matches && !visible.some((event) => event.id === eventId)) continue;
+    applyHistory(snapshots, patch, entry.decision_rev, matches ? touched : undefined);
+  }
+  const activeStep = (node: GraphNode) => {
+    if (!node.planId || !current) return false;
+    const details = graph.history.length ? snapshots.get(node.planId) : node.details;
+    return touched.has(node.planId) || Boolean(details && nodeEvent(details, current));
+  };
+  const hasActiveStep = graph.nodes.some(activeStep);
+  const result = new Map<string, NodeProgress>();
+  for (const node of graph.nodes) {
+    if (node.planId && graph.history.length) {
+      const details = snapshots.get(node.planId);
+      result.set(node.id, { phase: activeStep(node) ? 'current' : details ? 'seen' : 'upcoming', details });
+    } else if (node.planId) {
+      const seen = visible.some((event) => nodeEvent(node.details, event));
+      if (seen) result.set(node.id, { phase: activeStep(node) ? 'current' : 'seen' });
+    } else if (node.kind === 'task' && string(node.details.task_id) === graph.taskId) {
+      result.set(node.id, { phase: !current ? 'upcoming' : hasActiveStep ? 'seen' : 'current' });
+    } else if (node.kind === 'capsule') {
+      const capsule = string(node.details.reference);
+      const matches = (event: StoryEvent) =>
+        [event.capability, event.component, event.cc].some((value) => {
+          const id = string(value);
+          return id && capsuleKey(id) === capsuleKey(capsule ?? '');
+        });
+      if (visible.some(matches)) result.set(node.id, { phase: current && matches(current) ? 'current' : 'seen' });
+    }
+  }
+  return result;
+}
