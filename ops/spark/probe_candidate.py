@@ -124,7 +124,15 @@ def main():
         subprocess.run([sys.executable, str(HERE / 'source_residency.py'), 'cold-start',
                         '--regions', str(ROOT / 'OPS/p4/source-regions.json'),
                         '--out', str(reset_dir / (scope.name + '-source.json'))], check=True)
-        preflight = subprocess.check_output([str(ROOT / 'bin/quiet')])
+        # File-specific eviction can briefly raise the load average even on an otherwise idle host.
+        # Retain the cold-state receipt and wait for an independent successful post-conditioning check.
+        while True:
+            check = subprocess.run([str(ROOT / 'bin/quiet')], capture_output=True, check=False)
+            quiet = json.loads(check.stdout)
+            if check.returncode == 0 and quiet['mem_available_gib'] >= 110:
+                preflight = check.stdout
+                break
+            time.sleep(5)
         (reset_dir / (scope.name + '-quiet.json')).write_bytes(preflight)
     label = f'{args.cc}-{args.mode}-{args.window}'
     if args.mode == 'strict-stock':
