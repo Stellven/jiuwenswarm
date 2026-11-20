@@ -9,7 +9,23 @@ import sys
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--allow-model-pid', type=int, action='append', default=[])
+parser.add_argument('--screening-scope', help='Owner-authorized attribution scope running alongside a disjoint CPU session')
 options = parser.parse_args()
+root = Path.home() / 'predemo-spark'
+policy_file = root / 'OPS/p3/concurrent-screening.json'
+policy = json.loads(policy_file.read_bytes()) if policy_file.is_file() else {}
+screen = options.screening_scope or os.getenv('SPARK_CONCURRENT_SCREENING_SCOPE')
+if screen and screen not in policy.get('scope_names', []):
+    parser.error('Scope is outside the owner-authorized concurrent screening series')
+# Boundaries of a previously launched probe identify its scope by the capped server PID.
+if not screen and options.allow_model_pid:
+    for name in policy.get('scope_names', []):
+        scope = root / 'OPS/runs' / name
+        if (scope / 'scope.json').is_file() and not (scope / 'result.json').exists():
+            if json.loads((scope / 'scope.json').read_bytes())['pid'] in options.allow_model_pid:
+                screen = name
+                break
+cpu_lane = []
 load = os.getloadavg()[0]
 processes = subprocess.check_output(['ps', '-eo', 'pid,comm,args'], text=True).splitlines()[1:]
 blocked = []
@@ -21,6 +37,16 @@ for row in processes:
     if len(fields) < 3 or int(fields[0]) == os.getpid():
         continue
     pid, comm, args = fields
+    if screen and not comm.startswith(('llama-server', 'llama-cli', 'strata-dsv41')):
+        try:
+            group = Path('/proc', pid, 'cgroup').read_text().strip().split(':')[-1]
+            if any(unit.startswith(policy['unit_prefix']) and unit.endswith('.service') for unit in Path(group).parts):
+                cpus = sorted(os.sched_getaffinity(int(pid)))
+                if set(cpus).issubset(policy['allowed_cpus']):
+                    cpu_lane.append(dict(pid=int(pid), process=comm, cgroup=group, cpus=cpus))
+                    continue
+        except (FileNotFoundError, ProcessLookupError):
+            continue
     argv = args.split()
     if comm.startswith(('python', 'jiuwenswarm-fac')) and (
         'jiuwenswarm.factory.cli' in argv or
@@ -35,8 +61,12 @@ for row in processes:
     if comm.startswith(('llama-server', 'llama-cli', 'strata-dsv41')) and int(pid) not in options.allow_model_pid:
         models.append(row.strip())
 mem = int(next(x.split()[1] for x in Path('/proc/meminfo').read_text().splitlines() if x.startswith('MemAvailable:'))) / 1024**2
-quiet = load < 1.0 and not any((blocked, models, factory_controllers, test_processes))
-print(json.dumps({'quiet': quiet, 'load_1m': load, 'mem_available_gib': round(mem, 2),
+uncontested = not any((blocked, models, factory_controllers, test_processes))
+quiet = load < 1.0 and uncontested and not cpu_lane
+screening_admitted = bool(screen and cpu_lane and uncontested)
+
+print(json.dumps({'quiet': quiet, 'load_1m': load, 'screening_scope': screen, 'authorized_cpu_lane': cpu_lane,
+                  'screening_admitted': screening_admitted, 'mem_available_gib': round(mem, 2),
                   'build_processes': blocked, 'model_processes': models,
                   'factory_controllers': factory_controllers, 'test_processes': test_processes}, indent=2))
-sys.exit(0 if quiet else 1)
+sys.exit(0 if quiet or screening_admitted else 1)
