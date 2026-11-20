@@ -42,9 +42,9 @@ def build(root, allow_pending=False):
         ('c3-original30', 'C3 seeded cache · 30 GiB', 'spark-p4-cache30-attribution', 'iteration.json', 'focused_comparison',
          'Verified · quiet ABBA', 'The early improvement disappeared. Seeding added latency at 2048 tokens and gave no clear decode gain.'),
         ('c3-direct30', 'C3 direct seed · 30 GiB', 'spark-p4-cache30-direct-seed', 'iteration-v2.json', 'focused_comparison',
-         'Verified · quiet ABBA', 'Warm results were close to stock. The first cold request was 15.83 and 12.06 s faster across the two launches.'),
+         'Verified · quiet ABBA', 'Warm results were close to stock. At 512 tokens, cold-request savings were 15.83 and 12.06 s after ready; including startup saved 11.97 and 1.06 s.'),
         ('c3-60', 'C3 seeded cache · 60 GiB', 'spark-p4-cache60-build-overlap', 'iteration-v2.json', 'screening_comparison',
-         'Screening · build overlap', 'C3 saved time in 10/10 pairs per size. The six quiet pairs saved 26.80 / 100.23 s; prefill read less from disk.'),
+         'Screening · build overlap', 'C3 saved time in 10/10 pairs per size. The six quiet pairs saved 26.80 / 100.23 s; the engine recorded fewer storage reads before the first token.'),
     ):
         folder = path/name
         envelope = json.loads((folder/filename).read_bytes())
@@ -57,10 +57,10 @@ def build(root, allow_pending=False):
             pair([c['paired_decode_tps_gained_vs_Aplus']['estimate'] for c in cells], 'tok/s gained', True), text, [report])
 
     for cc, arm, text in (
-        ('C4', 'C4 demand predictor', 'All 96 completed prefetches went unused, and output matched stock.'),
-        ('D', 'D combined build', 'All five gates were requested. Recording and placement ran; the other three declined the stock settings.'),
-        ('C5', 'C5 repaired batch mapper', None),
-        ('C2', 'C2 layer-27 placement', 'Moving three tensors to CUDA raised observed decode speed at both sizes. The bank size and tensor placement also changed.'),
+        ('C4', 'C4 demand predictor', 'All 96 completed prefetches went unused. Output matched stock; CPU work overlapped this screen.'),
+        ('D', 'D combined build', 'All five gates were requested. Recording and placement ran. The other gates declined the stock settings, and CPU work overlapped this screen.'),
+        ('C5', 'C5 mapper + serving settings', None),
+        ('C2', 'C2 layer-27 placement', 'The layer-27 package showed faster decode at both sizes. Tensor placement and actual native-bank allocation both changed.'),
     ):
         folder = path/f'spark-pooled30-{cc.lower()}-01'
         if not (folder/'iteration.json').is_file() and allow_pending and cc == 'C5':
@@ -80,11 +80,35 @@ def build(root, allow_pending=False):
             pair([c['pooled_estimates']['ttft_seconds_saved']['median'] for c in cells], 's saved', True),
             pair([c['pooled_estimates']['decode_tps_gained']['median'] for c in cells], 'tok/s gained', True),
             text, [report])
+        if cc == 'C5' and ((folder/'iteration-v2.json').exists() or not allow_pending):
+            revision = json.loads((folder/'iteration-v2.json').read_bytes())
+            report = folder/'report-v2.md'
+            assert hashlib.sha256(report.read_bytes()).hexdigest() == revision['report']['sha256']
+            matched = revision['analysis']['matched_stock_comparison']
+            cells = sorted(matched['rows'], key=lambda c: c['prompt_tokens'])
+            assert [(c['prompt_tokens'], c['n']) for c in cells] == [(size, 4) for size in SIZES]
+            for key, field, name, grade, summary in (
+                ('c5-mapper-matched', 'c5_vs_stock_flags', 'C5 mapper at matched settings',
+                 'Screening · flags-matched A+30', 'At matched settings, TTFT differences crossed zero at both sizes and stock decoded faster at every measured position.'),
+                ('c5-stock-flags', 'stock_flags_vs_pooled', 'Stock A+30 serving settings',
+                 'Screening · pooled A+30', 'Changing only the stock serving settings reproduced the apparent package gain.'),
+            ):
+                parity = [c['greedy_parity'][field] for c in cells]
+                if all(parity):
+                    summary += ' Greedy output matched at both sizes.'
+                elif not any(parity):
+                    summary += ' Greedy output differed at both sizes.'
+                else:
+                    summary += ' Greedy output matched only at ' + str(SIZES[parity.index(True)]) + ' tokens.'
+                add(key, name, cc, grade,
+                    pair([c[field]['ttft_seconds_saved']['median'] for c in cells], 's saved', True),
+                    pair([c[field]['decode_tps_gained']['median'] for c in cells], 'tok/s gained', True),
+                    summary, [report])
     add('c1', 'C1 event recorder', 'C1', 'Verified · functional', 'Unmeasured', 'Unmeasured',
         'DeepSeek produced all 1,360 expected events. The Granite scorer passed and accounted for one lost event per fixture configuration.',
         [path/'spark-c1-functional/report-v3.md'])
     return dict(schema='spark-final-headlines/1', title='DeepSeek on Spark GB10',
-                summary='At 60 GiB, profile seeding reduced first-token latency and prefill disk reads. Stock A+30 was already faster than fair Strata on these prompts.',
+                summary='The build-overlapped 60 GiB screen found earlier first tokens and fewer engine reads with profile seeding. Stock A+30 already beat fair Strata on the observed medians.',
                 rows=rows)
 
 
