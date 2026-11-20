@@ -4,12 +4,14 @@ import argparse
 from copy import deepcopy
 from datetime import datetime, timezone
 import json
+import sys
 import math
 from pathlib import Path
 import re
 from statistics import median
 
 from jiuwenswarm.ccv2.ccv2 import Host
+from jiuwenswarm.factory.ccs.expert_prefetch_readiness.prefetch import counters as predictor_counters
 from jiuwenswarm.factory.export import export_task, verify
 from jiuwenswarm.factory.store import NotFound, Store
 
@@ -371,11 +373,47 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
         record['matched_bank'] = same_budget_launch(s, log)
         if arm == plan['subject_arm']:
             demand(l['native_build_receipt'], 'Focused P4 subject lacks a native build receipt')
+        if plan.get('source_treatment') == 'direct-seed' and arm == plan['subject_arm']:
+            # Use the direct-seed capsule's exact same startup accounting and per-slot evidence checks.
+            sys.path.insert(0, str(HERE.parents[1] / 'jiuwenswarm/factory/ccs/spark_gap_analysis'))
+            try:
+                from direct_seed import seed_ledger
+            finally:
+                sys.path.pop(0)
+            env = s['launch_environment']
+            demand(plan['subject_source_commit'] == l['source_commit'] and
+                   env.get('LLAMA_EXPERT_CACHE_NATIVE_PROFILE') == '1' and
+                   env.get('LLAMA_EXPERT_CACHE_DIRECT_SEED') == '1', 'Unexpected direct-seed build or activation')
+            profile_data = capture(Path(env['LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH']))
+            activation = capture(scope / 'profile-activation.json')
+            verified = seed_ledger(log, 'on', {'activation': activation}, {'profile_sha256': profile_data['sha256']},
+                                   profile_data['value'], reference)
+            slots = verified.pop('admitted_slots')
+            verified['admitted_slot_count'] = len(slots)
+            verified['admitted_slots_sha256'] = digest(json.dumps(slots, sort_keys=True).encode())
+            record['direct_seed'] = verified
         if arm == 'C3' and arm == plan['subject_arm']:
             demand(s['launch_environment'].get('LLAMA_EXPERT_CACHE_NATIVE_PROFILE') == '1' and
                    re.search(r'expert_weight_cache_native_profile: active\b', log) and
                    re.search(r'expert_weight_cache_native_profile: stats .*\bactive=1\b', log),
                    'Focused P4 native cache profile did not show activation and terminal stats')
+        if plan['subject_arm'] == 'C4':
+            predictor_gate = s['launch_environment'].get('LLAMA_EXPERT_PREDICT')
+            demand(predictor_gate == ('1' if arm == 'C4' else None), 'Focused P4 C4 treatment must use only its declared predictor gate')
+            if arm == 'C4':
+                demand(set(key for key in s['launch_environment'] if key.startswith('LLAMA_')) == {'LLAMA_EXPERT_PREDICT'},
+                       'C4 must run directly on the stock native bank without another capsule gate')
+                result = predictor_counters(log)['decode']
+                totals = result['totals']
+                issue = None if totals is None else totals['issued']
+                record['predictor_decode'] = dict(
+                    status='unobserved' if issue is None else 'observed-issue' if issue else 'observed-no-issue',
+                    totals=totals, graph_rows=len(result['rows']), failed_graph_rows=result['failed_graph_rows'],
+                    activation_marker='expert_demand_predictor: active native_bank phase=decode' in log,
+                    inactive_reasons=sorted(set(re.findall(r'expert_demand_predictor: inactive \(([^\n]+)\)', log))),
+                    engine_log=reference(extra['engine_log']))
+            else:
+                demand('expert_demand_predictor:' not in log, 'Focused P4 stock A+ unexpectedly reported predictor activity')
     return record, requests, ended
 
 
@@ -401,6 +439,10 @@ def evidence_from_lab(base, plan, plan_ref, capture):
                'Focused P4 actual bank allocation or effective launch settings differ among the mirrored scopes')
         demand(plan.get('bank_budget_mib', scopes[0]['matched_bank']['requested_mib']) == scopes[0]['matched_bank']['requested_mib'],
                'Focused P4 native budget differs from manifest admission')
+        if plan.get('source_treatment') == 'direct-seed':
+            direct = [s['direct_seed'] for s in scopes if s['arm'] == plan['subject_arm']]
+            demand(len(direct) == 2 and direct[0]['admitted_slots_sha256'] == direct[1]['admitted_slots_sha256'],
+                   'Direct-seed passes did not admit the same exact slots')
         demand(first['A+']['value']['greedy_hashes'] == first[plan['subject_arm']]['value']['greedy_hashes'],
                'Focused P4 candidate and A+ differ on greedy output or reasoning')
     return dict(mode='p4-abba', comparison_target=target, subject_arm=plan.get('subject_arm'),
@@ -452,8 +494,12 @@ def effect_rows(analysis, evidence, verification):
                'Focused native analysis did not retain the full paired estimates')
         rows.append(dict(prompt_tokens=size, n=cc['n'], control={k: base[k] for k in ('ttft_s', 'decode_tps')},
                          candidate={k: cc[k] for k in ('ttft_s', 'decode_tps')}, **metrics))
-    return dict(schema='spark-p4-focused/1', subject_arm=subject, budget_mib=bank['requested_mib'],
-                allocated_mib=bank['allocated_mib'], profiles=profiles, verification=verification, rows=rows)
+    projection = dict(schema='spark-p4-focused/1', subject_arm=subject, budget_mib=bank['requested_mib'],
+                      allocated_mib=bank['allocated_mib'], profiles=profiles, verification=verification, rows=rows)
+    if subject == 'C4':
+        projection['predictor_decode_by_pass'] = [dict(pass_number=scope['launch_pass'], **scope['predictor_decode'])
+                                                   for scope in evidence['scopes'] if scope['arm'] == subject]
+    return projection
 
 
 def render(analysis, evidence, capsule):
@@ -473,6 +519,20 @@ def render(analysis, evidence, capsule):
         bank = evidence['scopes'][0]['matched_bank']
         lines += [f'A+ and {evidence["subject_arm"]} used the same {bank["requested_mib"]:,} MiB budget, '
                   f'{bank["allocated_mib"]:,.2f} MiB logged allocation and effective runtime settings.', '']
+    predictor = [scope for scope in evidence['scopes'] if 'predictor_decode' in scope]
+    if predictor:
+        lines += ['## Native predictor decode readiness', '',
+                  'These engine counters include warmups and measured requests. Issue and transfer completion are separate from useful demand consumption.', '',
+                  '| Pass | Coverage | Opportunities | Requested | Already resident | Issued | Completed | Useful | Late | Misses | Unused | Reused slots |',
+                  '| ---: | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+        fields = ('opportunities', 'requested', 'already_resident', 'issued', 'completed_transfers', 'useful_ready',
+                  'late', 'miss', 'unused', 'reused')
+        for scope in predictor:
+            readback = scope['predictor_decode']
+            counts = readback['totals'] or {}
+            values = ' | '.join('unobserved' if counts.get(k) is None else f'{counts[k]:,}' for k in fields)
+            lines.append(f'| {scope["launch_pass"]} | {readback["status"]} | {values} |')
+        lines.extend(['', 'Retained graph outcome rows and submitted, completed, useful and wasted byte totals are linked to each engine log.', ''])
     ordered = [scope['arm'] for scope in evidence['scopes'] if scope['launch_pass'] == 1]
     for size in SIZES:
         lines += [f'## {size}-token prompts', '', '| Arm | Requests | TTFT median and range (s) | Decode median (tokens/s) | '
