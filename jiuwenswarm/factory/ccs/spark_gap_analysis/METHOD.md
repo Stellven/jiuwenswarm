@@ -82,3 +82,11 @@ sampled expert page residency and cgroup memory.stat file bytes immediately
 before the five requests at each size. The former describes external inodes
 in the host page cache. The latter describes file-backed charges to the
 cgroup. The planner artifact names every sample receipt.
+
+The full exploratory C3 screening also admits the owner-named iteration-2
+CPU lane in its three authorized scopes when the observed PID, service
+cgroup and affinity prove that it ran on CPUs 12–19. Preserve which source
+conditioning, launch and request boundaries observed its processes. Keep
+the affected comparisons exploratory. Strict timed P4, the prior warm-up
+pilot, the direct A/S reference and the earlier 60-GiB screening retain
+their separate quiet rules.

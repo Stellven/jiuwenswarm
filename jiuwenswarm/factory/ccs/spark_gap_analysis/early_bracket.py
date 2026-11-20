@@ -22,6 +22,35 @@ def check_resources(value):
     reject_if(value['mem_available_gib'] < 8 or unsafe_memory(value.get('memory_events', {})), 'Unexpected memory event')
 
 
+def authorized_lane(value, authorized_scope=None):
+    lane = value.get('authorized_cpu_lane', [])
+    if not lane:
+        reject_if(value.get('screening_admitted', False), 'Screening admission has no retained CPU lane evidence')
+        return []
+    reject_if(not authorized_scope or value.get('screening_scope') != authorized_scope or
+              value.get('screening_admitted') is not True or value.get('quiet') is not False,
+              'CPU-lane overlap was outside the owner-authorized screening scope')
+    pids = {row['pid'] for row in lane}
+    reject_if(len(pids) != len(lane) or any(type(pid) is not int or pid <= 0 for pid in pids),
+              'Authorized screening CPU lane does not contain unique process IDs')
+    for row in lane:
+        cpus = row['cpus']
+        reject_if(not cpus or cpus != sorted(set(cpus)) or not set(cpus).issubset(range(12, 20)) or
+                  not any(unit.startswith('spark-c3-iteration2') and unit.endswith('.service')
+                          for unit in row['cgroup'].split('/')) or
+                  row['process'].startswith(('llama-server', 'llama-cli', 'strata-dsv41')),
+                  'Authorized screening lane disagrees with its service or disjoint CPU affinity')
+    return lane
+
+
+def prelaunch_resources(value, authorized_scope=None):
+    check_resources(value)
+    lane = authorized_lane(value, authorized_scope)
+    if not lane:
+        reject_if(value['quiet'] is not True or value['load_1m'] >= 1, 'Quiet prelaunch was not established')
+    return lane
+
+
 def unsafe_memory(events):
     return any(int(events.get(name, 0)) for name in ('oom', 'oom_kill', 'oom_group_kill'))
 
@@ -82,13 +111,20 @@ def check_server(scope, mode, cc, expected, reference, window='early'):
     if window == 'functional':
         return label, began, ready, ended, summary
     quiet, conditioned = scope['quiet']['value'], scope['conditioning']['value']
-    reject_if(not quiet['quiet'] or quiet['load_1m'] >= 1 or not conditioned['quiet']['quiet'], 'Quiet prelaunch was not established')
-    check_resources(quiet)
+    authorization = expected.get('authorized_scope') if window == 'speed' else None
+    launch_lane = prelaunch_resources(quiet, authorization)
+    if authorization:
+        condition_lane = prelaunch_resources(conditioned['quiet'], authorization)
+    else:
+        condition_lane = authorized_lane(conditioned['quiet'])
+        reject_if(conditioned['quiet']['quiet'] is not True, 'Source conditioning was not quiet')
     reject_if(conditioned['schema'] != 'spark-source-cache-conditioning/1' or
               conditioned['method'] != 'file-specific POSIX_FADV_DONTNEED' or
               not timestamp(conditioned['after']['completed']) <= timestamp(scope['quiet']['mtime_utc']) <= began < ready < ended,
               'File-specific conditioning or ordered scope times are missing')
     summary.update(quiet=reference(scope['quiet']), conditioning=reference(scope['conditioning']))
+    if launch_lane or condition_lane:
+        summary['authorized_cpu_lane'] = dict(launch=launch_lane, conditioning=condition_lane)
     summary['runtime_environment'] = {k: v for k, v in environment.items() if not k.startswith('LLAMA_') and k != 'LD_LIBRARY_PATH'}
     runtime_settings = scope['log']['effective_settings']
     required = {'n_ctx', 'n_ctx_seq', 'n_batch', 'n_ubatch', 'n_slots', 'n_threads', 'n_threads_batch'}
@@ -106,7 +142,7 @@ def residency_identity(sample, view='llama'):
 
 
 def check_requests(scope, label, ready, ended, prompt_hashes, source_identity, eligible, reference, positive,
-                   orders=None, view='llama', protocol=None):
+                   orders=None, view='llama', protocol=None, authorized_scope=None):
     if protocol is None:
         orders = orders or [(0, 512), (0, 2048), (1, 512), (1, 2048)]
         protocol = [dict(repeat=repeat, size=size, discard=repeat == 0, residency=bool(repeat)) for repeat, size in orders]
@@ -131,8 +167,11 @@ def check_requests(scope, label, ready, ended, prompt_hashes, source_identity, e
             reject_if(hashes != greedy.setdefault(size, hashes), 'Greedy outputs drifted within the scope')
         else:
             greedy.setdefault(size, []).append(hashes)
+        lane = {}
         for state in ('before', 'after'):
             check_resources(row[state]['value'])
+            if observed := authorized_lane(row[state]['value'], authorized_scope):
+                lane[state] = observed
         before, after = (timestamp(row[x]['value']['observed_utc']) for x in ('before', 'after'))
         reject_if(not previous <= before <= now < after < ended, 'Resource snapshots must surround the request in its scope')
         resources = row['request_resources']
@@ -142,6 +181,8 @@ def check_requests(scope, label, ready, ended, prompt_hashes, source_identity, e
         fields = ('result', 'request', 'before', 'after', 'request_resources', 'output', 'reasoning', 'response')
         record = dict(repeat=repeat, prompt_tokens=size, discard=discard, ttft_s=result['ttft_s'],
                       decode_tps=result['decode_tps'], evidence={name: reference(row[name]) for name in fields})
+        if lane:
+            record['authorized_cpu_lane'] = lane
         if schedule['residency']:
             residency = row['residency']['value']
             reject_if(residency['schema'] != 'spark-source-residency/1' or not before <= timestamp(residency['completed']) <= now or

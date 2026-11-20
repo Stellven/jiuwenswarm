@@ -13,6 +13,11 @@ REFERENCE = ((30720, 'stock'), (0, 'strata'))
 STEADY_LAB = ((30720, 'stock'), (61440, 'on'), (0, 'strata'), (30720, 'on'),
               (30720, 'equivalent-stock'), (61440, 'equivalent-stock'))
 SCREENING_60 = STEADY_LAB[:3]
+CPU_SCREEN_SCOPES = (
+    'residency-steady-30720-on-01',
+    'residency-steady-30720-equivalent-stock-01',
+    'residency-speed-61440-equivalent-stock-01',
+)
 ORDER = ((0, 512), (0, 2048), (1, 512), (1, 2048), (2, 2048), (2, 512), (3, 512), (3, 2048))
 PROFILE_MARKER = 'expert_weight_cache_native_profile:'
 NATIVE_STATS = re.compile(r'llama_moe_cache: ubatch <= 8: hits = (\d+), misses = (\d+) \((\d+) on the CPU\), '
@@ -228,6 +233,7 @@ def paired_results(candidate, control):
                    greedy_parity=a['greedy_hashes'] == b['greedy_hashes'],
                    ttft_saved_s=b['ttft_s'] - a['ttft_s'], ttft_saved_pct=100 * (1 - a['ttft_s']/b['ttft_s']),
                    decode_gain_tps=a['decode_tps'] - b['decode_tps'], decode_gain_pct=100 * (a['decode_tps']/b['decode_tps'] - 1))
+        row['observed_cpu_lane_overlap'] = bool(a.get('authorized_cpu_lane') or b.get('authorized_cpu_lane'))
         if a['phase'] == 'warmup':
             row['counters_avoided'] = {
                 phase: {key: b['phases'][phase][key] - a['phases'][phase][key]
@@ -243,6 +249,7 @@ def paired_results(candidate, control):
         reject_if(len(pairs) != 5, 'Steady comparison requires five same-position pairs per size')
         estimates.append(dict(
             prompt_tokens=size, n=len(pairs), greedy_parity=all(r['greedy_parity'] for r in pairs),
+            observed_cpu_overlap_positions=[r['position'] for r in pairs if r['observed_cpu_lane_overlap']],
             pairs=pairs, **{metric: span([r[metric] for r in pairs]) for metric in (
                 'ttft_saved_s', 'ttft_saved_pct', 'decode_gain_tps', 'decode_gain_pct')},
         ))
@@ -255,6 +262,11 @@ def analyze_steady(evidence, eligible, reference, positive):
     scope_order = REFERENCE if direct else SCREENING_60 if screening else STEADY_LAB
     reject_if(len(evidence['scopes']) != len(scope_order) or len(evidence['expected']) != len(scope_order),
               'Expected all declared cold and steady scopes for the comparison')
+    if evidence.get('cpu_policy'):
+        policy = evidence['cpu_policy']['value']
+        reject_if(direct or screening or set(policy['scope_names']) != set(CPU_SCREEN_SCOPES) or
+                  policy['unit_prefix'] != 'spark-c3-iteration2' or policy['allowed_cpus'] != list(range(12, 20)),
+                  'CPU authorization is only admitted for the owner-named C3 screening scopes')
     schedule = steady_order()
     prompts = {p['target_tokens_including_template']: p['prompt_sha256'] for p in evidence['prompts']['value']['prompts']}
     reject_if(set(prompts) != set(PROMPTS), 'Expected the approved two prompt sizes')
@@ -267,6 +279,11 @@ def analyze_steady(evidence, eligible, reference, positive):
     for (budget, mode), scope, expected in zip(scope_order, evidence['scopes'], evidence['expected']):
         is_strata = mode == 'strata'
         view = 'strata' if is_strata else 'llama'
+        authorized_scope = expected.get('authorized_scope')
+        if authorized_scope:
+            actual = scope['start']['value']['result_path'].rstrip('/').split('/')[-1]
+            reject_if(not evidence.get('cpu_policy') or authorized_scope != actual or authorized_scope not in CPU_SCREEN_SCOPES,
+                      'Launch is not authorized for the experimental CPU lane')
         label, began, ready, ended, record = check_server(scope, mode, 'S' if is_strata else 'C3',
                                                          expected, reference, window='steady' if is_strata else 'speed')
         condition = scope['conditioning']['value']
@@ -300,7 +317,8 @@ def analyze_steady(evidence, eligible, reference, positive):
         record['protocol'] = reference(scope['protocol'])
         requests = [dict(row, discard=row['phase'] == 'warmup', residency=True) for row in schedule]
         samples, hashes = check_requests(scope, label, ready, ended, prompts, fingerprint[view],
-                                         eligible, reference, positive, view=view, protocol=requests)
+                                         eligible, reference, positive, view=view, protocol=requests,
+                                         authorized_scope=authorized_scope)
         reject_if(hashes != scope['probe']['value']['greedy_hashes'], 'Greedy output sequence differs from its completed probe receipt')
         for slot, sample, row in zip(schedule, samples, scope['requests']):
             process = boundaries(row, None if is_strata else scope['scope']['value']['pid'],
@@ -316,6 +334,12 @@ def analyze_steady(evidence, eligible, reference, positive):
                   'The underlying engine process changed across one launch')
         stability = {size: len({tuple(pair) for pair in values}) == 1 for size, values in hashes.items()}
         record.update(samples=samples, steady_trend=trends(samples), greedy_hashes=hashes, within_arm_greedy_stability=stability)
+        observed_positions = [dict(position=r['position'], prompt_tokens=r['prompt_tokens'], phase=r['phase'],
+                                   boundaries=sorted(r['authorized_cpu_lane'])) for r in samples if r.get('authorized_cpu_lane')]
+        if observed_positions or record.get('authorized_cpu_lane'):
+            record['screening_exposure'] = dict(positions=observed_positions,
+                                                launch=bool(record.get('authorized_cpu_lane', {}).get('launch')),
+                                                conditioning=bool(record.get('authorized_cpu_lane', {}).get('conditioning')))
         if is_strata:
             streaming = scope['prefill_streaming']
             rows = streaming['value']['records']
@@ -352,6 +376,9 @@ def analyze_steady(evidence, eligible, reference, positive):
                   source_identity=reference(evidence['model_identity']), source_regions=reference(evidence['regions']))
     if not direct:
         result['profile'] = reference(evidence['profile'])
+    if evidence.get('cpu_policy'):
+        result['cpu_policy'] = reference(evidence['cpu_policy'])
+        result['exploratory_cpu_overlap'] = any(r.get('screening_exposure') for r in ordered.values())
     if screening and evidence.get('pilot_a_plus'):
         historical = evidence['pilot_a_plus']
         candidate = ordered[on60]

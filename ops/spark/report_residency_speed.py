@@ -174,12 +174,14 @@ def report_text(result, release, residency_ref=None):
             delta = pair['ttft_saved_s']['median']
             delta_text = f"{abs(delta):.2f} seconds {'faster' if delta >= 0 else 'slower'}"
             scope = next(r for r in result['scopes'] if r['arm'] == matched['candidate'])
-            summary = (f"Across five post-warmup pairs at {scope['budget_mib']//1024} GiB, "
+            context = 'In exploratory screening across' if result.get('exploratory_cpu_overlap') else 'Across'
+            summary = (f"{context} five post-warmup pairs at {scope['budget_mib']//1024} GiB, "
                        f"the seeded cache reached the first token a median {delta_text} for the 512-token prompt.")
         else:
             summary = 'The cache profile did not produce an active same-budget timing comparison.'
         heading = '# C3 native cache cold and post-warmup lab'
-    lines = [heading, '', *(opening or [summary]), '', *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
+    lines = [heading, '', *(opening or [summary]), '', *format_cpu_exposure(result),
+             *startup_rows(result), '', *format_cold(result['scopes'], pilot=pilot), '']
     lines += ['No sampled expert, Engram or dense pages were resident in either pack view immediately before each launch. Launch initialization can change residency before the first request.',
               'Process counters come from one unchanged engine PID per launch. Resource snapshots span client request start to first token and first token to stream completion. The raw analysis retains cgroup file refaults and separate host NVMe counters. Host disk activity includes any other activity on the device.', '']
     if pilot:
@@ -245,16 +247,38 @@ def format_steady(result):
             before = phase_counter_span(phases['start_to_first_token'])
             after = phase_counter_span(phases['first_token_to_end'])
             lines.append(f"| {scope['arm']} | {size} | {before} | {after} |")
-    lines += ['', '| Candidate and control | Tokens | TTFT saved s | Decode gain tok/s | Greedy parity |',
-              '|---|---:|---:|---:|---|']
+    lines += ['', '| Candidate and control | Tokens | TTFT saved s | Decode gain tok/s | Greedy parity | Request positions with observed CPU-lane overlap |',
+              '|---|---:|---:|---:|---|---|']
     for pair in result['comparisons']:
         for row in pair['steady']:
             parity = 'matched' if row['greedy_parity'] else 'diverged'
+            overlap = ', '.join(map(str, row.get('observed_cpu_overlap_positions', []))) or '—'
             lines.append(f"| {pair['relation']} | {row['prompt_tokens']} | {interval(row['ttft_saved_s'])} | "
-                         f"{interval(row['decode_gain_tps'])} | {parity} |")
+                         f"{interval(row['decode_gain_tps'])} | {parity} | {overlap} |")
     lines += ['', 'Ranges summarize the five observed paired positions within one launch per arm. Persistent movement across positions indicates residual warming or drift. '
               'Comparisons across cache budgets or Strata packs describe the named settings and engine differences. Greedy parity is reported separately. '
               'Retain mirrored launch replication for a causal performance decision.', '']
+    return lines
+
+
+def format_cpu_exposure(result):
+    if not result.get('exploratory_cpu_overlap'):
+        return []
+    policy = result['cpu_policy']
+    lines = ['## Concurrent CPU lane exposure', '',
+             'The affected scope measurements are exploratory. Boundary receipts identify the owner-authorized '
+             'JiuwenSwarm service on CPUs 12–19 while the capped model used CPUs 0–7. Shared storage and memory can still affect timing.',
+             '', '| Scope | Source conditioning | Launch | Request positions and observed boundaries |',
+             '|---|---|---|---|']
+    for scope in result['scopes']:
+        if exposure := scope.get('screening_exposure'):
+            positions = ', '.join(f"{r['position']} ({'+'.join(r['boundaries'])})" for r in exposure['positions'])
+            conditioning = 'observed' if exposure['conditioning'] else '—'
+            launch = 'observed' if exposure['launch'] else '—'
+            lines.append(f"| {scope['arm']} | {conditioning} | {launch} | {positions or '—'} |")
+    lines += ['', 'Each observation names the PID, service cgroup and CPU affinity. Positions with an empty boundary '
+              'observation can still overlap activity between snapshots. Repeat under the quiet mirrored protocol to confirm timing.',
+              f"Authorization `{policy['artifact_id']}` SHA256 `{policy['sha256']}`.", '']
     return lines
 
 
@@ -400,6 +424,8 @@ def publish(base, stage):
         regions = attach(regions_path)
         profile = None if direct else attach(profile_path)
         prompts = attach(repo / 'ops/spark/prompts/MANIFEST.json')
+        cpu_policy_path = ops / 'concurrent-screening.json'
+        cpu_policy = attach(cpu_policy_path) if stage == 'full' and cpu_policy_path.is_file() else None
         launcher_digest = digest(safe_bytes(inventory_path))
         expected, scopes = [], []
         schedule = {'pilot': EARLY, 'reference': REFERENCE, 'screening': SCREENING, 'full': FINAL}[stage]
@@ -408,6 +434,8 @@ def publish(base, stage):
             if not (path / 'result.json').is_file():
                 raise ValueError(f'Scope has no completed result receipt: {folder}')
             arm = expected_argv(base, first, product, launcher_digest, profile_path, mib, role, path)
+            if cpu_policy and folder in cpu_policy['value']['scope_names']:
+                arm['authorized_scope'] = folder
             expected.append(arm)
             streaming = None
             if role == 'strata':
@@ -462,6 +490,8 @@ def publish(base, stage):
         mode = MODES[stage]
         evidence = dict(mode=mode, expected=expected,
                         prompts=prompts, model_identity=model_identity, profile=profile, regions=regions, scopes=scopes)
+        if cpu_policy:
+            evidence['cpu_policy'] = cpu_policy
         if stage == 'screening':
             prior_id = f'{ITERATION}/pilot/analysis.json'
             try:
@@ -506,6 +536,8 @@ def publish(base, stage):
         report = put(f'{prefix}/report.md', report_body, 'text/markdown')
         status = {'pilot': 'warm-up pilot', 'screening': '60-GiB interim screening',
                   'reference': 'cold and steady reference', 'full': 'cold and steady lab'}[stage]
+        if analysis.get('exploratory_cpu_overlap'):
+            status = 'exploratory cold and post-warmup screening'
         report = dict(report, revision=revision, summary=summary, status=status)
         kind = 'factory_iteration_report'
         for older in range(revision - 1, 0, -1):

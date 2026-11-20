@@ -13,7 +13,21 @@ sys.path.insert(0, str(BUNDLE))
 SPEC = importlib.util.spec_from_file_location('spark_gap_test_early', BUNDLE / 'run.py')
 GAP = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(GAP)
-from early_bracket import GATES, PROCESSES
+from early_bracket import GATES, PROCESSES, prelaunch_resources
+
+
+def test_nonquiet_screening_requires_only_the_evidenced_disjoint_lane():
+    scope = 'residency-steady-30720-equivalent-stock-01'
+    lane = dict(pid=12345, process='python3', cgroup='/app.slice/spark-c3-iteration2-do.service', cpus=[12, 19])
+    check = dict({key: [] for key in PROCESSES}, quiet=False, screening_admitted=True,
+                 screening_scope=scope, authorized_cpu_lane=[lane], load_1m=3.0, mem_available_gib=120)
+    assert prelaunch_resources(check, scope) == [lane]
+    with pytest.raises(ValueError, match='outside the owner-authorized'):
+        prelaunch_resources(check)
+    with pytest.raises(ValueError, match='disjoint CPU affinity'):
+        prelaunch_resources(dict(check, authorized_cpu_lane=[dict(lane, cpus=[0, 12])]), scope)
+    with pytest.raises(ValueError, match='Competing job'):
+        prelaunch_resources(dict(check, factory_controllers=['unrelated']), scope)
 
 
 def ref(name, value=None):
