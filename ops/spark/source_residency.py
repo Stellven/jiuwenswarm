@@ -5,6 +5,7 @@ from bisect import bisect_right
 from collections import Counter, defaultdict
 import ctypes as C
 from datetime import datetime, timezone
+import fcntl
 import hashlib
 import json
 import mmap
@@ -13,6 +14,7 @@ from pathlib import Path
 import random
 import re
 import runpy
+import subprocess
 
 PAGE = os.sysconf('SC_PAGE_SIZE')
 CLASSES = ('expert', 'engram', 'dense')
@@ -209,6 +211,29 @@ def snapshot(geometry, view, stride, seed, scope):
                 'The same page IDs are resampled across repeated snapshots for each geometry.')
 
 
+def cold_start(geometry, stride, seed):
+    """Advise eviction of only the indexed model files, between capped launches."""
+    lock_path = Path.home() / 'predemo-spark/gpu.lock'
+    with lock_path.open('a') as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        quiet = subprocess.run([str(Path(__file__).parent / 'bin/quiet')],
+                               capture_output=True, text=True, check=True)
+        before = snapshot(geometry, 'both', stride, seed, None)
+        files = {}
+        for view in geometry['views'].values():
+            for item in view['files']:
+                files[item['resolved_path']] = item['identity']
+        for path, expected in files.items():
+            with open(path, 'rb') as source:
+                if identity(os.fstat(source.fileno())) != expected:
+                    raise ValueError(f'Source file identity changed: {path}')
+                os.posix_fadvise(source.fileno(), 0, 0, os.POSIX_FADV_DONTNEED)
+        after = snapshot(geometry, 'both', stride, seed, None)
+        return {'schema': 'spark-source-cache-conditioning/1', 'method': 'file-specific POSIX_FADV_DONTNEED',
+                'quiet': json.loads(quiet.stdout), 'advised_files': sorted(files),
+                'before': before, 'after': after}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     modes = parser.add_subparsers(dest='mode', required=True)
@@ -224,13 +249,24 @@ def main():
     sample.add_argument('--seed', type=int, default=20261120)
     sample.add_argument('--scope-json', type=Path)
     sample.add_argument('--out', type=Path, required=True)
+    reset = modes.add_parser('cold-start')
+    reset.add_argument('--regions', type=Path, required=True)
+    reset.add_argument('--pages-per-sample', type=int, default=4096)
+    reset.add_argument('--seed', type=int, default=20261120)
+    reset.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
+    if args.out.exists():
+        parser.error('Choose a new output file')
     if args.mode == 'index':
         result = dict(schema=SCHEMA, views=dict(llama=llama_geometry(args.llama_model.absolute(), args.converter.resolve()),
                                                strata=strata_geometry(args.strata_pack.resolve())))
     else:
         raw = args.regions.read_bytes()
-        result = snapshot(json.loads(raw), args.view, args.pages_per_sample, args.seed, args.scope_json)
+        geometry = json.loads(raw)
+        if args.mode == 'cold-start':
+            result = cold_start(geometry, args.pages_per_sample, args.seed)
+        else:
+            result = snapshot(geometry, args.view, args.pages_per_sample, args.seed, args.scope_json)
         result['regions_sha256'] = hashlib.sha256(raw).hexdigest()
     with args.out.open('x') as stream:
         json.dump(result, stream, indent=2, allow_nan=False)

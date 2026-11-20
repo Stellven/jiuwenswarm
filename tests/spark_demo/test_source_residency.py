@@ -53,3 +53,21 @@ def test_strata_index_groups_experts_dense_and_engram_without_payload_reads(tmp_
         'dense': [[2 * page + 96, 3 * page + 96]],
     }
     assert geometry['files'][1]['regions']['engram'] == [[0, 1]]
+
+
+def test_cold_start_conditions_the_named_file_once_across_views(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    monkeypatch.setenv('HOME', str(tmp_path))
+    (tmp_path/'predemo-spark').mkdir()
+    monkeypatch.setattr(RESIDENCY.subprocess, 'run', lambda *a, **k: SimpleNamespace(stdout='{"quiet":true}'))
+    file = tmp_path/'model'
+    file.write_bytes(b'X' * RESIDENCY.PAGE)
+    groups = defaultdict(list, expert=[(0, RESIDENCY.PAGE)])
+    entry = RESIDENCY.file_geometry(file, groups)
+    views = {engine: {'files': [entry]} for engine in ('llama', 'strata')}
+    calls = []
+    monkeypatch.setattr(os, 'posix_fadvise', lambda fd, start, length, advice: calls.append((os.fstat(fd).st_ino, advice)))
+    result = RESIDENCY.cold_start({'schema': RESIDENCY.SCHEMA, 'views': views}, 1, 7)
+    assert calls == [(file.stat().st_ino, os.POSIX_FADV_DONTNEED)]
+    assert result['advised_files'] == [str(file)]
+    assert result['after']['views']['llama']['total']['expert']['sampled_pages'] == 1

@@ -85,3 +85,5 @@ residency does not measure selected-expert residency, physical I/O or GPU
 allocation. The common warmups control request exposure. Retain any remaining
 imbalance by arm and prompt in the report and qualify the comparisons where
 residency differs. Report other matched counters separately from TTFT.
+
+Before each P4 server launch, run `source_residency.py cold-start --regions SOURCE_REGIONS --out NEW_RECEIPT` under the same protocol for both engines. This acquires the free GPU lock, verifies the quiet preflight, advises eviction of clean pages only on the indexed source files, and samples both packs before and after. Preserve the actual residual fractions. Then take the launch quiet receipt and start the server. Carry out both warmup rounds and the pre-request sampling as above. Keep file-conditioning time outside server load and TTFT measurements.
