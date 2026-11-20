@@ -103,7 +103,7 @@ def run_window(args):
             raise ValueError(f'Fixed {size}-token prompt content changed')
     region_bytes = args.regions.read_bytes()
     regions = json.loads(region_bytes)
-    record = dict(schema='spark-p4-window/1', status='running', arm=args.arm, view=args.view, launch_pass=args.launch_pass,
+    record = dict(schema='spark-p4-window/2', status='running', arm=args.arm, view=args.view, launch_pass=args.launch_pass,
                   scope=str(scope), binary_sha256=start['binary_sha256'], regions_sha256=sha(region_bytes),
                   prompts_sha256=sha(manifest_bytes), quiet_preflight_sha256=sha(quiet_bytes),
                   pages_per_sample=args.pages_per_sample, seed=args.seed, requests=[], greedy_hashes={})
@@ -125,10 +125,11 @@ def run_window(args):
     status = out / 'window.json'
     (out / 'quiet-prelaunch.json').write_bytes(quiet_bytes)
     json_write(status, record)
-    plan = [(f'warmup-{round_number}-{size}', 0, size) for round_number in (1, 2) for size in PROMPTS]
-    repeats = (1, 2) if args.launch_pass == 1 else (3, 4, 5)
+    plan = [(f'warmup-{round_number}-{size}', 0, size) for round_number in (1, 2, 3)
+            for size in (PROMPTS[::-1] if round_number == 3 else PROMPTS)]
+    repeats = range(1, 6) if args.launch_pass == 1 else range(6, 11)
     for repeat in repeats:
-        plan.extend((f'repeat-{repeat}-{size}', repeat, size) for size in (PROMPTS if repeat % 2 else PROMPTS[::-1]))
+        plan.extend((f'repeat-{repeat}-{size}', repeat, size) for size in (PROMPTS if (repeat - 1) % 5 in (0, 2, 4) else PROMPTS[::-1]))
     try:
         for name, repeat, size in plan:
             directory = out / name
@@ -158,7 +159,7 @@ def run_window(args):
             accepted_result(path, size, repeat, args.arm, approved[size], record['greedy_hashes'])
             item.update(status='complete', result=str(path.relative_to(out)), sha256=sha(path.read_bytes()),
                         before_resources=before.name, after_resources=after.name)
-            if repeat == 0 and size == 2048:
+            if repeat == 0 and name in ('warmup-1-2048', 'warmup-2-2048', 'warmup-3-512'):
                 residency = snapshot(regions, args.view, args.pages_per_sample, args.seed, scope / 'scope.json')
                 residency['regions_sha256'] = record['regions_sha256']
                 residency_path = out / f'{name}-after-residency.json'

@@ -17,14 +17,14 @@ On OOM, watchdog kill or unexpected termination, stop and preserve the receipt.
 Use the same admitted arm order in the first pass and its reverse in the second.
 For example, `A S A+ C1 C2 C2 C1 A+ S A` projects to ABBA for every comparison.
 Start a new scoped process for both middle entries. After each server is ready,
-discard four fixed warmup requests in order `512, 2048, 512, 2048`. Save all four
+discard six fixed warmup requests in order `512, 2048, 512, 2048, 2048, 512`. Save all six
 raw results with `--repeat 0 --discard` and distinct output directories. Every
 request uses the approved prompt bytes, 32 greedy output tokens, seed 1 and a
 disabled prompt cache.
 
-Measure paired repeats 1 and 2 in each first-pass scope, 3, 4 and 5 in each
-second-pass scope. For each repeat use `512, 2048` on odd indices and `2048, 512`
-on even indices. Match by prompt size and repeat across arms. Keep the load and
+Measure five pairs per scope. Label them 1–5 in the first launch pass and
+6–10 in the second. Within each launch, use `512, 2048` for the first, third
+and fifth pair and reverse the sizes for the second and fourth. Match by prompt size and repeat across arms. Keep the load and
 warmup artifacts separate from request timing. `factory.spark_gap_analysis`
 checks the mirrored order, warmups and matched repeats and reports 95% paired
 bootstrap intervals conditional on the two launch windows. The intervals only
@@ -86,7 +86,7 @@ allocation. The common warmups control request exposure. Retain any remaining
 imbalance by arm and prompt in the report and qualify the comparisons where
 residency differs. Report other matched counters separately from TTFT.
 
-Before each P4 server launch, run `source_residency.py cold-start --regions SOURCE_REGIONS --out NEW_RECEIPT` under the same protocol for both engines. This acquires the free GPU lock, verifies the quiet preflight, advises eviction of clean pages only on the indexed source files, and samples both packs before and after. Preserve the actual residual fractions. Then take the launch quiet receipt and start the server. Carry out both warmup rounds and the pre-request sampling as above. Keep file-conditioning time outside server load and TTFT measurements.
+Before each P4 server launch, run `source_residency.py cold-start --regions SOURCE_REGIONS --out NEW_RECEIPT` under the same protocol for both engines. This acquires the free GPU lock, verifies the quiet preflight, advises eviction of clean pages only on the indexed source files, and samples both packs before and after. Preserve the actual residual fractions. Then take the launch quiet receipt and start the server. Carry out all three warmup rounds and the pre-request sampling as above. Keep file-conditioning time outside server load and TTFT measurements.
 
 ## Early owner timing brackets
 
