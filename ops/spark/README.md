@@ -50,3 +50,5 @@ become measurement observations. A preliminary cold request labelled 512 whose
 actual count was 510 remains excluded. Memory is labelled as a server scope
 lifetime peak, not a per-request peak. Each observation cites original artifacts;
 import does not create a performance claim from logs alone.
+
+Tuner calibration servers use `--graceful-interrupt`: SIGINT is forwarded for orderly shutdown statistics and forced after 30 seconds. Memory/OOM watchdog stops always kill immediately. Engine logs are retained and forwarded so the unmodified native tuner can parse its cache counters. A synthetic process smoke verified this signal/log path before tuning.

@@ -19,5 +19,5 @@ if not any(arg in ('--cpu-moe','-cmoe') for arg in argv):
 if not any(argv[i:i+2] == ['-lm','mmap'] or argv[i:i+2] == ['--load-mode','mmap'] for i in range(len(argv)-1)):
     sys.exit('REFUSED: explicit mmap mode required')
 run = root/'OPS/runs'/f'aplus-tune-{time.time_ns()}'
-command = [str(root/'bin/capped'), '--arm','A+-tune','--result-dir',str(run),'--echo-output','--',str(root/'build-stock-cuda121/bin/llama-server'),*argv]
+command = [str(root/'bin/capped'), '--arm','A+-tune','--result-dir',str(run),'--echo-output','--graceful-interrupt','--',str(root/'build-stock-cuda121/bin/llama-server'),*argv]
 os.execv(command[0],command)

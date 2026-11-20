@@ -29,8 +29,8 @@ def available():
 def values(path):
     return dict(line.split() for line in path.read_text().splitlines())
 
-def kill(unit):
-    subprocess.run(['systemctl', '--user', 'kill', '--signal=SIGKILL', '--kill-whom=all', unit], capture_output=True)
+def kill(unit, sig="SIGKILL"):
+    subprocess.run(['systemctl', '--user', 'kill', '--signal=' + sig, '--kill-whom=all', unit], capture_output=True)
 
 # The scope member verifies actual kernel controls before executing any workload.
 if len(sys.argv) > 1 and sys.argv[1] == '--inside':
@@ -59,6 +59,7 @@ p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--arm', required=True)
 p.add_argument('--engine-binary', type=Path, help='actual engine binary when command is a Python API server')
 p.add_argument('--result-dir', type=Path, required=True)
+p.add_argument('--graceful-interrupt', action='store_true', help='forward SIGINT for orderly stats; force kill after 30s')
 p.add_argument('--echo-output', action='store_true', help='also forward engine logs (for native tuner)')
 p.add_argument('--enforcement-test', action='store_true', help='only runs the built-in 256 MiB allocator at a 128 MiB cap')
 p.add_argument('command', nargs=argparse.REMAINDER)
@@ -98,10 +99,17 @@ def append(row):
 append(dict(meta, event='start'))
 runner = ['systemd-run', '--user', '--scope', '--unit=' + unit, '-p', f'MemoryMax={limit}', '-p', 'MemorySwapMax=0', '-p', 'MemoryAccounting=yes', '-p', 'AllowedCPUs=0-7', '-p', 'CPUQuota=800%', sys.executable, str(Path(__file__).resolve()), '--inside', str(a.result_dir), str(limit), *command]
 stop = None
+termination_request = None
+shutdown_deadline = None
 def interrupted(sig, _frame):
-    global stop
-    stop = f'signal {sig}'
-    kill(unit)
+    global stop, termination_request, shutdown_deadline
+    if a.graceful_interrupt and sig == signal.SIGINT and shutdown_deadline is None:
+        termination_request = 'SIGINT forwarded for orderly shutdown'
+        shutdown_deadline = time.monotonic() + 30
+        kill(unit, 'SIGINT')
+    else:
+        stop = f'signal {sig}'
+        kill(unit)
 for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
     signal.signal(sig, interrupted)
 min_available = start_available
@@ -125,6 +133,9 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
     while True:
         try:
             min_available = min(min_available, available())
+            if shutdown_deadline is not None and time.monotonic() > shutdown_deadline and proc.poll() is None:
+                stop = 'orderly shutdown exceeded 30s'
+                kill(unit)
             if cg is None and (a.result_dir / 'scope.json').exists():
                 cg = Path(json.loads((a.result_dir / 'scope.json').read_text())['cgroup'])
             if cg is not None and cg.exists():
@@ -164,7 +175,7 @@ properties = subprocess.run(['systemctl', '--user', 'show', unit, '-p', 'MemoryP
 (a.result_dir / 'systemd-final.txt').write_text(properties)
 if 'Result=oom-kill' in properties and not a.enforcement_test:
     stop = 'unexpected cgroup OOM kill'
-result = dict(meta, event='stop', stop=utc(), returncode=rc, reason=stop, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None, min_mem_available_bytes=min_available)
+result = dict(meta, event='stop', stop=utc(), returncode=rc, reason=stop, termination_request=termination_request, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None, min_mem_available_bytes=min_available)
 if a.enforcement_test:
     result['test_passed'] = cg is not None and rc != 0 and (int(events.get('oom_kill', 0)) > 0 or 'oom-kill' in properties)
 write(a.result_dir / 'result.json', result)
