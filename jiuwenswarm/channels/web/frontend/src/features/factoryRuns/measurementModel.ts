@@ -227,6 +227,51 @@ export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile
   return [...selected.values()].map(({ view }) => view);
 }
 
+export type ScreeningReport = {
+  report: VerifiedArtifact;
+  summary: string;
+  pooled: boolean;
+  subject: string;
+  rows: { tokens: number; n: number; ttftSaved: number; decodeGained: number }[];
+};
+
+export function screeningReports(observations: JsonRecord[], files: EvidenceFile[]): ScreeningReport[] {
+  const reports = new Map<string, ScreeningReport>();
+  for (const observation of observations) {
+    if (!['factory_iteration_report', 'factory_iteration_report_revision'].includes(String(observation.kind))) continue;
+    const iteration = obj(observation.values);
+    const entry = obj(iteration.report);
+    const pooled = entry.status === 'pooled-control-screening';
+    if (!pooled && entry.status !== 'build-overlap-screening') continue;
+    const ids = Array.isArray(observation.source_artifacts) ? observation.source_artifacts : [];
+    const report = verifiedArtifact(entry, files, ids);
+    if (!report || typeof entry.summary !== 'string' || !entry.summary.trim()) continue;
+    const analysis = obj(iteration.analysis);
+    const comparison = obj(pooled ? analysis.pooled_comparison : analysis.screening_comparison);
+    const subject = comparison.subject_arm;
+    if (typeof subject !== 'string' || !Array.isArray(comparison.rows)) continue;
+    if (pooled ? (comparison.schema !== 'spark-pooled30-screen/1' || comparison.control_count !== 4)
+      : (comparison.schema !== 'spark-p4-focused/1' || comparison.budget_mib !== 61440)) continue;
+    const rows = [];
+    const measuredPerSize = pooled ? 4 : 10;
+    for (const raw of comparison.rows) {
+      const row = obj(raw);
+      const estimates = obj(row.pooled_estimates);
+      const ttftSaved = pooled ? obj(estimates.ttft_seconds_saved).median : obj(row.paired_ttft_seconds_saved_vs_Aplus).estimate;
+      const decodeGained = pooled ? obj(estimates.decode_tps_gained).median : obj(row.paired_decode_tps_gained_vs_Aplus).estimate;
+      if ((row.prompt_tokens === 512 || row.prompt_tokens === 2048) && row.n === measuredPerSize &&
+          finite(ttftSaved) && finite(decodeGained)) {
+        rows.push({ tokens: row.prompt_tokens, n: measuredPerSize, ttftSaved, decodeGained });
+      }
+    }
+    // A report revision can retain the original timing table while adding mechanism evidence.
+    const prior = typeof entry.supersedes_artifact_id === 'string' ? entry.supersedes_artifact_id : '';
+    if (prior) reports.delete(prior);
+    reports.set(report.artifact_id, { report, summary: entry.summary, pooled, subject, rows });
+  }
+  return [...reports.values()];
+}
+
 export function promptOptions(data: MeasurementLedger, phase: MeasurementPhase): MeasurementPrompt[] {
   const prompts = new Map<string, MeasurementPrompt>();
   for (const sample of data.samples) {

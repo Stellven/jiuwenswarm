@@ -8,6 +8,8 @@ import {
   aggregateMeasurements,
   chartScale,
   focusedP4Reports,
+  screeningReports,
+  type ScreeningReport,
   promptKey,
   promptOptions,
   type MeasurementArm,
@@ -67,15 +69,19 @@ function useVerifiedP4(detail: RunDetail, benchmarkRunId?: string) {
     const sources = benchmarks && benchmarks.run.id === benchmarkRunId && benchmarkRunId !== detail.run.id
       ? [detail, benchmarks] : [detail];
     const reports = new Map<string, { focus: FocusedP4; runId: string; summary?: string }>();
+    const screens = new Map<string, { item: ScreeningReport; runId: string }>();
     for (const source of sources) {
       const observations = source.records.observations || [];
+      for (const item of screeningReports(observations, source.files)) {
+        screens.set(item.report.sha256, { item, runId: source.run.id });
+      }
       const { verifiedReportSummaries } = narrativeSummaries(observations);
       for (const focus of focusedP4Reports(observations, source.files)) {
         const summary = verifiedReportSummaries.get(`${focus.report.artifact_id}:${focus.report.sha256}`) || focus.summary;
         reports.set(focus.key, { focus, runId: source.run.id, summary });
       }
     }
-    return [...reports.values()];
+    return { focused: [...reports.values()], screening: [...screens.values()] };
   }, [benchmarks, benchmarkRunId, detail]);
 }
 
@@ -400,7 +406,8 @@ export function Measurements({ detail, benchmarkRunId, onOpenReport }: {
   const language = i18n.resolvedLanguage ?? 'en';
   const copy = measurementCopy(language);
   const { ledger, error } = useLedger();
-  const focused = useVerifiedP4(detail, benchmarkRunId);
+  const { focused, screening } = useVerifiedP4(detail, benchmarkRunId);
+  const format = new Intl.NumberFormat(language, { maximumFractionDigits: 2 });
   const [chosenPhase, setPhase] = useState<MeasurementPhase>();
   const [chosenPrompt, setPrompt] = useState('');
   const [comparison, setComparison] = useState<MeasurementMetric>('decode_tps');
@@ -415,6 +422,24 @@ export function Measurements({ detail, benchmarkRunId, onOpenReport }: {
   );
   return (
     <section className="factory-measurement-panel" data-testid="factory-runs-measurements">
+      {screening.map(({ item, runId }) => (
+        <section className="factory-measurement-focus" data-testid="factory-screening-report" key={item.report.sha256}>
+          <header>
+            <h3>{item.subject} / A+ · {item.pooled ? copy.pooledScreen : copy.overlapScreen}</h3>
+            <button type="button" onClick={() => onOpenReport(runId, item.report.artifact_id, item.report.sha256)}>
+              {copy.openVerifiedReport}
+            </button>
+          </header>
+          <p>{item.summary}</p>
+          {item.pooled && <p>{copy.pooledBasis}</p>}
+          {item.rows.length > 0 && <table className="factory-measurement-table">
+            <thead><tr><th>{copy.prompt}</th><th>{copy.pairedTtft}</th><th>{copy.pairedDecode}</th></tr></thead>
+            <tbody>{item.rows.map(row => <tr key={row.tokens}><th>{row.tokens}</th>
+              <td>{format.format(row.ttftSaved)} {copy.seconds}</td>
+              <td>{format.format(row.decodeGained)} {copy.tokenRate}</td></tr>)}</tbody>
+          </table>}
+        </section>
+      ))}
       {focused.map(({ focus, runId, summary }) => (
         <VerifiedP4Card key={focus.key} {...{ focus, runId, summary, onOpenReport, language, copy }} />
       ))}
