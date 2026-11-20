@@ -5,6 +5,7 @@ export type Run = {
   id: string;
   name: string;
   kind: 'bundle' | 'live';
+  source_name?: string;
   task_id: string;
   status: string;
   updated: number;

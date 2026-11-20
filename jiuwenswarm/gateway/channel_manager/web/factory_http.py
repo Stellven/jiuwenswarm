@@ -107,7 +107,7 @@ class FactoryHttpService:
                     tid = task['task_id']
                     if not SAFE_ID.fullmatch(tid):
                         continue
-                    item = dict(id=self.run_id(path, tid), name=tid, task_id=tid, kind=kind,
+                    item = dict(id=self.run_id(path, tid), name=tid, task_id=tid, kind=kind, source_name=path.name,
                                 status='replay' if kind == 'bundle' else 'live',
                                 updated=path.stat().st_mtime, objective=task.get('objective', ''))
                     result.append((item, path))
