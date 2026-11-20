@@ -33,10 +33,12 @@ from .capsule_evidence import capsule_usage, collect_capsule_evidence
 
 from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
 from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
+from scripts.spark.recorder_live_demo import TEMPLATE as RECORDER_WALKTHROUGH, valid_template as valid_recorder_walkthrough
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
 SAFE_ID = re.compile(r'^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$')
+HEADLINE_ID = re.compile(r'^source:OPS/final-headlines\.json@sha256:([a-f0-9]{64})$')
 
 
 def _hash(data):
@@ -343,6 +345,47 @@ class FactoryHttpService:
         return sanitize(dict(events=events, cursor=len(events), total=len(events),
                              reset=bool(since)))
 
+    def headlines(self):
+        """Return one verified final snapshot without hashing the whole run."""
+        matches = [(item, path) for item, path in self.catalog()
+                   if item['kind'] == 'live' and item['task_id'] == 'spark-direct-benchmarks-20261120']
+        if not matches:
+            return None
+        if len(matches) != 1:
+            raise ValueError('Multiple live headline publication homes')
+        item, path = matches[0]
+        data = self.load(item, path)
+        publications = sorted(
+            (row for row in data['observations'] if row['kind'] == 'report_publication'),
+            key=lambda row: row['created'], reverse=True,
+        )
+        artifacts = {row['artifact_id']: row for row in data['artifacts']}
+        for publication in publications:
+            linked = publication['source_artifacts'] or []
+            for artifact_id in linked:
+                match = HEADLINE_ID.fullmatch(artifact_id)
+                if not match:
+                    continue
+                artifact = artifacts.get(artifact_id, {})
+                sha256 = match[1]
+                relative = artifact.get('location', '')
+                if (artifact.get('sha256') != sha256 or
+                        not relative.startswith('artifacts/')):
+                    raise ValueError('Headline publication has an invalid artifact binding')
+                target = _inside(path, relative)
+                with target.open('rb') as stream:
+                    raw = stream.read(256 * 1024 + 1)
+                if len(raw) > 256 * 1024 or _hash(raw) != sha256:
+                    raise ValueError('Headline artifact failed integrity verification')
+                payload = json.loads(raw)
+                if not isinstance(payload, dict) or payload.get('schema') != 'spark-final-headlines/1':
+                    raise ValueError('Unsupported headline schema')
+                return sanitize(dict(
+                    run_id=item['id'], artifact_id=artifact_id, sha256=sha256, payload=payload,
+                    source_artifacts=[source for source in linked if source in artifacts],
+                ))
+        return None
+
     def file(self, run_id, relative):
         item, path = self.resolve(run_id)
         data = self.load(item, path)
@@ -367,6 +410,9 @@ class FactoryHttpService:
         if template_id not in {t['id'] for t in self.templates()}:
             raise HTTPException(400, 'Select an operator-prepared task template')
         task = _json(_inside(self.launch_root, template_id + '.json'))
+        native_walkthrough = template_id == RECORDER_WALKTHROUGH
+        if native_walkthrough and not valid_recorder_walkthrough(task):
+            raise HTTPException(422, 'Recorder walkthrough template does not match the reviewed read-only task')
         tid = 'web-' + time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()) + '-' + uuid.uuid4().hex[:8]
         task['task_id'] = tid
         home = self.launch_home_root / tid
@@ -388,9 +434,12 @@ class FactoryHttpService:
             except (OSError, ValueError):
                 (home / 'launch.log').write_text('Inspection preparation failed; operator login/template review required. No agent started.\n')
                 raise HTTPException(422, 'Inspection preparation failed; operator login/template review required') from None
-        command = [*cli, 'run', tid, '--plain']
-        for effect in task.get('allowed_effects', []):
-            command.extend(('--grant', effect))
+        if native_walkthrough:
+            command = [sys.executable, '-m', 'scripts.spark.recorder_live_demo', str(home), tid]
+        else:
+            command = [*cli, 'run', tid, '--plain']
+            for effect in task.get('allowed_effects', []):
+                command.extend(('--grant', effect))
         if os.environ.get('FACTORY_LAUNCH_SYSTEMD') == '1':
             command = ['systemd-run', '--user', '--scope', '--unit=factory-' + tid, *command]
         with (home / 'launch.log').open('ab') as log:
@@ -447,6 +496,10 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/measurements')
     async def measurements():
         return await call(service.measurements.listing)
+
+    @app.get(PREFIX + '/headlines')
+    async def headlines():
+        return await call(service.headlines)
 
     @app.get(PREFIX + '/measurements/evidence/{line}')
     async def measurement_evidence(line: int, kind: Literal['ledger', 'result']):

@@ -49,11 +49,11 @@ def transcript_activity(path, turn):
                     tools[call['tool_call_id']] = call['name']
             elif kind == 'chat.tool_result':
                 tools.pop(row.get('tool_call_id'), None)
-            elif kind in {'chat.delta', 'chat.final'}:
+            elif kind in {'chat.delta', 'chat.final', 'native.progress'}:
                 content = row.get('content')
                 if not isinstance(content, str) or not content:
                     continue
-                if kind == 'chat.final':
+                if kind in {'chat.final', 'native.progress'}:
                     parts = [content]
                 else:
                     parts.append(content)
@@ -94,7 +94,9 @@ def session_snapshot(data, transcript, running, now):
     step = None
     if status in {'running', 'waiting'}:
         active_jobs = [a for a in data.get('attempts', []) if a['state'] in {'running', 'queued', 'cancel_requested'}]
-        if active_jobs:
+        if running and state.get('native_step'):
+            step = dict(kind='job', label=state['native_step'])
+        elif active_jobs:
             step = dict(kind='job', label=active_jobs[-1]['kind'])
         elif tools and running:
             step = dict(kind='tool', label=next(reversed(tools.values())))

@@ -14,6 +14,9 @@ export FRONTEND_HOST=100.105.127.48 FRONTEND_PORT=5173
 export FACTORY_RUN_ROOTS="${FACTORY_RUN_ROOTS:-$base/factory-runs:$base/inputs:$HOME/software-factory-spark-20261113/exports/factory-loop-v1}"
 export FACTORY_LAUNCH_ROOT="${FACTORY_LAUNCH_ROOT:-$base/launch-templates}"
 export FACTORY_LAUNCH_HOME_ROOT="${FACTORY_LAUNCH_HOME_ROOT:-$base/factory-runs}"
+if [[ "$FACTORY_LAUNCH_ROOT" == "$base/launch-templates" ]]; then
+  install -m 0644 "$checkout/scripts/spark/recorder-evidence-walkthrough.json" "$FACTORY_LAUNCH_ROOT/recorder-evidence-walkthrough.json"
+fi
 export SPARK_REPO="$checkout"
 source "$checkout/ops/spark/env.sh"
 cd "$checkout"
