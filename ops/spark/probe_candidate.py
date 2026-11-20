@@ -15,6 +15,7 @@ import urllib.error
 import urllib.request
 
 from run_p4_window import accepted_result, boundary_resources
+from source_residency import snapshot
 
 ROOT = Path.home() / 'predemo-spark'
 HERE = Path(__file__).resolve().parent
@@ -88,9 +89,11 @@ def main():
         if on:
             env['LLAMA_BATCH_LAYOUT'] = '1'
     with socket.socket() as sock:
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(('127.0.0.1', PORT))
     early = args.window == 'early'
     if early:
+        regions = read(ROOT / 'OPS/p4/source-regions.json')
         reset_dir = ROOT / 'OPS/p3/early-preflights'
         reset_dir.mkdir(exist_ok=True)
         subprocess.run([sys.executable, str(HERE / 'source_residency.py'), 'cold-start',
@@ -129,6 +132,9 @@ def main():
                 target = scope / f'rep-{repeat}-{size}'
                 if early:
                     boundary_resources(scope / f'{target.name}-before.json', Path(receipt['cgroup']), receipt['pid'])
+                if early and repeat:
+                    save(scope / f'{target.name}-residency.json',
+                         snapshot(regions, 'llama', 4096, 20261120, scope / 'scope.json'))
                 bench = [sys.executable, str(HERE / 'bench_http.py'), '--url', f'http://127.0.0.1:{PORT}',
                          '--arm', label, '--prompt', str(prompts / f'{size}.txt'), '--prompt-tokens', str(size),
                          '--out', str(target), '--repeat', str(repeat)]
