@@ -266,7 +266,8 @@ def analyze_steady(evidence, eligible, reference, positive):
     if evidence.get('cpu_policy'):
         policy = evidence['cpu_policy']['value']
         reject_if(direct or screening or set(policy['scope_names']) != set(CPU_SCREEN_SCOPES) or
-                  policy['unit_prefix'] != 'spark-c3-iteration2' or policy['allowed_cpus'] != list(range(12, 20)),
+                  set(policy['unit_prefixes']) != {'spark-c3-iteration2', 'spark-predictor-iteration2'} or
+                  policy['allowed_cpus'] != list(range(12, 20)),
                   'CPU authorization is only admitted for the owner-named C3 screening scopes')
     schedule = steady_order()
     prompts = {p['target_tokens_including_template']: p['prompt_sha256'] for p in evidence['prompts']['value']['prompts']}
@@ -338,9 +339,14 @@ def analyze_steady(evidence, eligible, reference, positive):
         observed_positions = [dict(position=r['position'], prompt_tokens=r['prompt_tokens'], phase=r['phase'],
                                    boundaries=sorted(r['authorized_cpu_lane'])) for r in samples if r.get('authorized_cpu_lane')]
         if observed_positions or record.get('authorized_cpu_lane'):
+            receipts = [record.get('authorized_cpu_lane', {}), *[r.get('authorized_cpu_lane', {}) for r in samples]]
+            units = sorted({unit for states in receipts for lanes in states.values() for row in lanes
+                            for unit in row['cgroup'].split('/') if unit.endswith('.service') and
+                            unit.startswith(('spark-c3-iteration2', 'spark-predictor-iteration2'))})
             record['screening_exposure'] = dict(positions=observed_positions,
                                                 launch=bool(record.get('authorized_cpu_lane', {}).get('launch')),
-                                                conditioning=bool(record.get('authorized_cpu_lane', {}).get('conditioning')))
+                                                conditioning=bool(record.get('authorized_cpu_lane', {}).get('conditioning')),
+                                                service_units=units)
         if is_strata:
             streaming = scope['prefill_streaming']
             rows = streaming['value']['records']

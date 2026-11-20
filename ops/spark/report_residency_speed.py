@@ -301,14 +301,15 @@ def format_cpu_exposure(result):
     lines = ['## Concurrent CPU lane exposure', '',
              'The affected scope measurements are exploratory. Boundary receipts identify the owner-authorized '
              'JiuwenSwarm service on CPUs 12–19 while the capped model used CPUs 0–7. Shared storage and memory can still affect timing.',
-             '', '| Scope | Source conditioning | Launch | Request positions and observed boundaries |',
-             '|---|---|---|---|']
+             '', '| Scope | Source conditioning | Launch | Request positions and observed boundaries | Recorded service units |',
+             '|---|---|---|---|---|']
     for scope in result['scopes']:
         if exposure := scope.get('screening_exposure'):
             positions = ', '.join(f"{r['position']} ({'+'.join(r['boundaries'])})" for r in exposure['positions'])
             conditioning = 'observed' if exposure['conditioning'] else '—'
             launch = 'observed' if exposure['launch'] else '—'
-            lines.append(f"| {scope['arm']} | {conditioning} | {launch} | {positions or '—'} |")
+            units = ', '.join(exposure['service_units'])
+            lines.append(f"| {scope['arm']} | {conditioning} | {launch} | {positions or '—'} | {units} |")
     lines += ['', 'Each observation names the PID, service cgroup and CPU affinity. Positions with an empty boundary '
               'observation can still overlap activity between snapshots. Repeat under the quiet mirrored protocol to confirm timing.',
               f"Authorization `{policy['artifact_id']}` SHA256 `{policy['sha256']}`.", '']

@@ -89,4 +89,5 @@ cgroup and affinity prove that it ran on CPUs 12–19. Preserve which source
 conditioning, launch and request boundaries observed its processes. Keep
 the affected comparisons exploratory. Strict timed P4, the prior warm-up
 pilot, the direct A/S reference and the earlier 60-GiB screening retain
-their separate quiet rules.
+their separate quiet rules. The final A+ 60-GiB cell also admits the owner-named
+predictor iteration-2 service on CPUs 12–19.

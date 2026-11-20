@@ -33,10 +33,13 @@ def authorized_lane(value, authorized_scope=None):
     pids = {row['pid'] for row in lane}
     reject_if(len(pids) != len(lane) or any(type(pid) is not int or pid <= 0 for pid in pids),
               'Authorized screening CPU lane does not contain unique process IDs')
+    prefixes = ('spark-c3-iteration2',)
+    if authorized_scope == 'residency-speed-61440-equivalent-stock-01':
+        prefixes += ('spark-predictor-iteration2',)
     for row in lane:
         cpus = row['cpus']
         reject_if(not cpus or cpus != sorted(set(cpus)) or not set(cpus).issubset(range(12, 20)) or
-                  not any(unit.startswith('spark-c3-iteration2') and unit.endswith('.service')
+                  not any(unit.startswith(prefixes) and unit.endswith('.service')
                           for unit in row['cgroup'].split('/')) or
                   row['process'].startswith(('llama-server', 'llama-cli', 'strata-dsv41')),
                   'Authorized screening lane disagrees with its service or disjoint CPU affinity')

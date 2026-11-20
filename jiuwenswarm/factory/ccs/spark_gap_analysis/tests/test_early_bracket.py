@@ -28,6 +28,12 @@ def test_nonquiet_screening_requires_only_the_evidenced_disjoint_lane():
         prelaunch_resources(dict(check, authorized_cpu_lane=[dict(lane, cpus=[0, 12])]), scope)
     with pytest.raises(ValueError, match='Competing job'):
         prelaunch_resources(dict(check, factory_controllers=['unrelated']), scope)
+    predictor = dict(lane, pid=23456, cgroup='/app.slice/spark-predictor-iteration2-do.service')
+    with pytest.raises(ValueError, match='disjoint CPU affinity'):
+        prelaunch_resources(dict(check, authorized_cpu_lane=[lane, predictor]), scope)
+    final_scope = 'residency-speed-61440-equivalent-stock-01'
+    assert prelaunch_resources(dict(check, screening_scope=final_scope, authorized_cpu_lane=[lane, predictor]),
+                               final_scope) == [lane, predictor]
 
 
 def ref(name, value=None):
