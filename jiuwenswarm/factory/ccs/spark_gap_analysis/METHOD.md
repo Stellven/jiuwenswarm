@@ -76,3 +76,9 @@ fair Strata launches. It retains the combined bank-and-profile comparison
 and defers same-budget stock attribution until that reference completes.
 Strata's native engine prefill log and parsed file, page-cache, layer reuse
 and worker-time counters remain separate from client-phase counters.
+
+For each completed post-warmup arm, retain median and observed range of
+sampled expert page residency and cgroup memory.stat file bytes immediately
+before the five requests at each size. The former describes external inodes
+in the host page cache. The latter describes file-backed charges to the
+cgroup. The planner artifact names every sample receipt.

@@ -149,7 +149,7 @@ def screening_finding(result):
     return summary, lines
 
 
-def report_text(result, release):
+def report_text(result, release, residency_ref=None):
     pilot = result['mode'] == 'c3-warmup-pilot'
     reference = result['mode'] == 'a-s-cold-steady'
     opening = None
@@ -196,6 +196,8 @@ def report_text(result, release):
         lines.append('')
     else:
         lines += format_steady(result)
+        if residency_ref:
+            lines += format_residency(result, residency_ref)
         lines += format_greedy(result)
         lines += format_strata_streaming(result)
         if reference:
@@ -290,6 +292,24 @@ def format_greedy(result):
         if same:
             lines += [f"The C3 60-GiB content and reasoning hashes also match the earlier A+ 30-GiB warm-up pilot at {same}. "
                       'That historical hash check uses a different cache budget.', '']
+    return lines
+
+
+def format_residency(result, ref):
+    lines = ['## Source residency immediately before post-warmup requests', '',
+             '| Arm | Source view | Tokens | Sampled expert inode residence, median [min, max] % | Cgroup file memory, median [min, max] GiB |',
+             '|---|---|---:|---:|---:|']
+    units = ('median', 'min', 'max')
+    for scope in result['scopes']:
+        for size, metrics in scope.get('steady_trend', {}).items():
+            resident = metrics['source_residency']
+            experts = {key: 100*resident['expert_inode_fraction'][key] for key in units}
+            files = {key: resident['scope_file_bytes'][key]/1024**3 for key in units}
+            lines.append(f"| {scope['arm']} | {scope['source_view']} | {size} | {interval(experts)} | {interval(files)} |")
+    lines += ['', 'Expert residence estimates come from sampled pages of the named source inodes in the host page cache. '
+              'Cgroup file memory comes from that scope’s memory.stat file field. Strata samples its own pack. '
+              'Residency differences are observed at these boundaries, and a link to specific expert hits remains a hypothesis.',
+              f"Planner input `{ref['artifact_id']}` SHA256 `{ref['sha256']}` retains all sample values and exact artifact references.", '']
     return lines
 
 
@@ -474,7 +494,15 @@ def publish(base, stage):
             ('analysis', analysis), ('analyze-receipt', result), ('verify-receipt', checked))]
         outputs.append(put(f'{prefix}/release-manifest.json',
                            (host.store / 'releases' / release / 'manifest.json').read_bytes())['artifact_id'])
-        summary, report_body = report_text(analysis, release)
+        residency_ref = None
+        if not pilot:
+            by_scope = {scope['arm']: {'source_view': scope['source_view'], 'by_prompt': {
+                size: metrics['source_residency'] for size, metrics in scope['steady_trend'].items()}}
+                for scope in analysis['scopes'] if scope['status'] == 'completed'}
+            residency_ref = put(f'{prefix}/steady-source-residency.json', json_bytes(
+                dict(schema='spark-steady-source-residency/1', scopes=by_scope, n_per_prompt=5)))
+            outputs.append(residency_ref['artifact_id'])
+        summary, report_body = report_text(analysis, release, residency_ref)
         report = put(f'{prefix}/report.md', report_body, 'text/markdown')
         status = {'pilot': 'warm-up pilot', 'screening': '60-GiB interim screening',
                   'reference': 'cold and steady reference', 'full': 'cold and steady lab'}[stage]

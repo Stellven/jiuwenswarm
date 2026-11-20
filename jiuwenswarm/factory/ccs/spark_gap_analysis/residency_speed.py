@@ -211,6 +211,11 @@ def trends(rows):
                     for metric in ('process_read_bytes', 'process_major_faults', 'cgroup_file_refaults')}
             for phase in ('start_to_first_token', 'first_token_to_end')
         }
+        trends_by_size[str(size)]['source_residency'] = {
+            'expert_inode_fraction': span([row['source_fractions']['expert'] for row in repeats]),
+            'scope_file_bytes': span([row['scope_file_bytes'] for row in repeats]),
+            'sample_artifacts': [row['evidence']['residency'] for row in repeats],
+        }
     return trends_by_size
 
 
@@ -300,8 +305,13 @@ def analyze_steady(evidence, eligible, reference, positive):
         for slot, sample, row in zip(schedule, samples, scope['requests']):
             process = boundaries(row, None if is_strata else scope['scope']['value']['pid'],
                                  'strata-dsv41' if is_strata else 'llama-server')
+            file_bytes = row['residency']['value']['scope_accounting']['stat_bytes']['file']
+            reject_if(type(file_bytes) is not int or file_bytes < 0 or
+                      not 0 <= sample['source_fractions']['expert'] <= 1,
+                      'Pre-request cgroup file bytes or sampled expert residency is invalid')
             sample.update(position=slot['position'], pair=slot['pair'], phase=slot['phase'],
-                          greedy_hashes=[row[k]['sha256'] for k in ('output', 'reasoning')], **process)
+                          greedy_hashes=[row[k]['sha256'] for k in ('output', 'reasoning')],
+                          scope_file_bytes=file_bytes, **process)
         reject_if(any(sample['process'] != samples[0]['process'] for sample in samples),
                   'The underlying engine process changed across one launch')
         stability = {size: len({tuple(pair) for pair in values}) == 1 for size, values in hashes.items()}
