@@ -341,7 +341,22 @@ export function Iterations({
                 </article>
               );
             })}
-            {!feedback.length && <p>{t('factoryRuns.iteration.noFollowup')}</p>}
+            {iterations.flatMap((iteration) => iteration.successors.map((edge) => {
+              const run = runs.find((item) => item.task_id === edge.task && item.kind === 'live')
+                ?? runs.find((item) => item.task_id === edge.task);
+              return (
+                <article key={edge.id} className="factory-iteration-feedback" data-testid="factory-runs-successor">
+                  <SourceLink file={edge.reportFile} onOpen={onOpenSource} />
+                  <ArrowRight aria-hidden size={16} />
+                  {run && <button className="factory-story-text-button" type="button"
+                    onClick={() => onOpenDecision(run.id, edge.id)}>{edge.id} <ArrowUpRight aria-hidden size={14} /></button>}
+                  <SourceLink file={edge.decisionFile} onOpen={onOpenSource} label={run ? undefined : edge.id} />
+                  {edge.reason && <p className="factory-iteration-reason">{edge.reason}</p>}
+                </article>
+              );
+            }))}
+            {!feedback.length && iterations.every((item) => !item.successors.length) &&
+              <p>{t('factoryRuns.iteration.noFollowup')}</p>}
           </section>
           <ol className="factory-iteration-list">
             {iterations.map((iteration, index) => {
@@ -559,7 +574,7 @@ export function Iterations({
                             <strong>{t('factoryRuns.iteration.proposed')}</strong> {text(iteration.followup.objective)}
                           </p>
                         )}
-                        {!iteration.nextDecisions.length && !iteration.linkedNextId && !iteration.explicitNextId && (
+                        {!iteration.successors.length && !iteration.nextDecisions.length && !iteration.linkedNextId && !iteration.explicitNextId && (
                           <p className="factory-iteration-cites">{t('factoryRuns.iteration.noFollowup')}</p>
                         )}
                       </section>

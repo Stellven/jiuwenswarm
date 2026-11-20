@@ -204,6 +204,27 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
           ...linkedFiles.filter((entry) => entry.kind === 'report').flatMap(({ file }) => file.artifact_ids || []),
         ]),
       );
+      const successors = new Map<string, {
+        id: string; task: string; reason: string; decisionFile: EvidenceFile; reportFile: EvidenceFile;
+      }>();
+      for (const observation of scopedObservations) {
+        if (observation.kind !== 'factory_iteration_successors') continue;
+        const values = asRecord(observation.values);
+        const reportId = text(values.report_artifact_id);
+        const reportFile = linkedFiles.find(({ file, kind }) =>
+          kind === 'report' && file.artifact_ids?.includes(reportId))?.file;
+        if (!reportFile || (values.report_sha256 && values.report_sha256 !== reportFile.sha256)) continue;
+        for (const edge of rows(values.next_plans)) {
+          const id = text(edge.decision_id);
+          const task = decisionTask(edge);
+          const artifact = text(edge.decision_artifact_id) || text(edge.artifact_id);
+          const file = linkedFiles.find(({ file }) => file.artifact_ids?.includes(artifact))?.file;
+          if (!id || !task || !file || file.integrity !== 'verified' ||
+            (edge.decision_sha256 && edge.decision_sha256 !== file.sha256)) continue;
+          successors.set(id, { id, task, reason: text(edge.reason_for_change) || successors.get(id)?.reason || '',
+            decisionFile: file, reportFile });
+        }
+      }
       const nextPlan = asRecord(meta.next_plan);
       const explicitNextId = decisionId(nextPlan.decision_id);
       const reportedAt = timestamp(metadataObservation.created) ?? timestamp(report?.created) ?? timestamp(cycle.ended);
@@ -274,6 +295,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         linkedNextId: cycleOf(linkedNext || {}),
         iterationStatus: text(asRecord(meta.report).status),
         nextDecisions,
+        successors: [...successors.values()],
         capsuleIds,
         component,
         followup,

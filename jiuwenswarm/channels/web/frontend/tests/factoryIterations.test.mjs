@@ -168,3 +168,23 @@ test('separates predecessor context from planner input and preserves citations t
   assert.deepEqual(iterations[1].inputs, []);
   assert.equal(iterations[1].remoteReferences[0].kind, 'prior');
 });
+
+test('binds cross-run planner decisions to the cited report and verified copy', () => {
+  const report = { kind: 'factory_iteration_report', obs_id: 'c1-report', values: {
+    schema: 'spark-factory-iteration/1', iteration_id: 'c1', report: { artifact_id: 'report.md', sha256: 'digest' },
+  } };
+  const next = { decision_id: 'cache:decision:2', task_id: 'cache', decision_artifact_id: 'cache.json',
+    decision_sha256: 'digest' };
+  const observation = (edges) => ({ kind: 'factory_iteration_successors',
+    source_artifacts: ['report.md', 'cache.json'], values: {
+      iteration_id: 'c1', report_artifact_id: 'report.md', report_sha256: 'digest', next_plans: edges,
+    } });
+  const records = { observations: [report, observation([next]), observation([
+    { ...next, reason_for_change: 'Use profile-ranked native bank seeding.' },
+    { ...next, decision_id: 'other:decision:1', decision_sha256: 'wrong' },
+  ])] };
+  const [iteration] = buildIterations(records, [file('report', ['report.md']), file('decision', ['cache.json'])]);
+  assert.deepEqual(iteration.successors.map(({ id, reason }) => ({ id, reason })), [
+    { id: 'cache:decision:2', reason: 'Use profile-ranked native bank seeding.' },
+  ]);
+});
