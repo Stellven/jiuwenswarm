@@ -138,7 +138,27 @@ function focusedRow(raw: unknown): FocusedP4Row | undefined {
 }
 
 export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile[]): FocusedP4[] {
-  const views = new Map<string, FocusedP4>();
+  const observationById = new Map(observations.map((observation) => [observation.obs_id, observation]));
+  function linkedSources(observation: JsonRecord, seen = new Set<unknown>()): unknown[] {
+    const own = Array.isArray(observation.source_artifacts) ? observation.source_artifacts : [];
+    if (seen.has(observation.obs_id)) return own;
+    seen.add(observation.obs_id);
+    const iteration = obj(observation.values);
+    const report = obj(iteration.report);
+    const prior = observationById.get(report.supersedes_observation_id);
+    if (!prior) return own;
+    const priorIteration = obj(prior.values);
+    const priorReport = obj(priorIteration.report);
+    const manifest = obj(obj(iteration.plan).manifest);
+    const priorManifest = obj(obj(priorIteration.plan).manifest);
+    if (report.supersedes_artifact_id !== priorReport.artifact_id || !hash(manifest.sha256) ||
+      manifest.sha256 !== priorManifest.sha256 || manifest.artifact_id !== priorManifest.artifact_id ||
+      Number(report.revision) <= Number(priorReport.revision || 1)) return own;
+    const inherited = linkedSources(prior, seen);
+    return verifiedArtifact(priorReport, files, inherited) ? [...new Set([...own, ...inherited])] : own;
+  }
+  const candidates: { view: FocusedP4; observationId: unknown; supersedesObservationId: unknown;
+    supersedesArtifactId: unknown; revision: number; created: number }[] = [];
   for (const observation of observations) {
     if (observation.kind !== 'factory_iteration_report' && observation.kind !== 'factory_iteration_report_revision') continue;
     const iteration = obj(observation.values);
@@ -157,7 +177,7 @@ export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile
     if (typeof subject !== 'string' || !/^(?:C[1-5]|D)(?:-[a-z0-9]+)*$/.test(subject) ||
       !finite(budgetMib) || !Number.isInteger(budgetMib) || !finite(allocatedMib) ||
       allocatedMib <= 0 || allocatedMib > budgetMib || !Array.isArray(focus.rows)) continue;
-    const sourceIds = Array.isArray(observation.source_artifacts) ? observation.source_artifacts : [];
+    const sourceIds = linkedSources(observation);
     const manifest = verifiedArtifact(obj(iteration.plan).manifest, files, sourceIds);
     const analysis = verifiedArtifact(analysisRecord.result_artifact, files, sourceIds);
     const verification = verifiedArtifact(focus.verification, files, sourceIds);
@@ -170,14 +190,41 @@ export function focusedP4Reports(observations: JsonRecord[], files: EvidenceFile
       !analysisRecord.output_artifact_ids.includes(verification.artifact_id)) continue;
     const rows = focus.rows.map(focusedRow).filter((row): row is FocusedP4Row => Boolean(row));
     if (focus.rows.length !== 2 || rows.length !== 2 || rows[0].tokens === rows[1].tokens) continue;
-    const key = `${report.artifact_id}:${report.sha256}:${manifest.sha256}`;
-    views.set(key, {
+    // The frozen launch manifest identifies the measurement. A revised report
+    // changes its presentation, not the number of independently measured trials.
+    const key = `manifest:${manifest.sha256}`;
+    candidates.push({ view: {
       key, subject, budgetMib, allocatedMib, manifest, analysis, verification, report, controlProfile,
       summary: typeof reportRecord.summary === 'string' ? reportRecord.summary.trim() : undefined,
       candidateProfile, rows: rows.sort((a, b) => a.tokens - b.tokens),
+    }, observationId: observation.obs_id,
+      supersedesObservationId: reportRecord.supersedes_observation_id,
+      supersedesArtifactId: reportRecord.supersedes_artifact_id,
+      revision: Number.isInteger(reportRecord.revision) && Number(reportRecord.revision) > 0 ? Number(reportRecord.revision) : 1,
+      created: finite(observation.created) ? observation.created : 0,
     });
   }
-  return [...views.values()];
+  const selected = new Map<string, (typeof candidates)[number]>();
+  // Resolve explicit lineage independently of the caller's observation order.
+  for (const candidate of candidates.sort((a, b) => a.revision - b.revision || a.created - b.created)) {
+    const previous = selected.get(candidate.view.key);
+    if (!previous) {
+      selected.set(candidate.view.key, candidate);
+      continue;
+    }
+    const sameTrial = candidate.view.subject === previous.view.subject &&
+      candidate.view.budgetMib === previous.view.budgetMib &&
+      candidate.view.allocatedMib === previous.view.allocatedMib &&
+      candidate.view.controlProfile.profileSha256 === previous.view.controlProfile.profileSha256 &&
+      candidate.view.candidateProfile.profileSha256 === previous.view.candidateProfile.profileSha256;
+    if (sameTrial && candidate.revision > previous.revision &&
+      typeof previous.observationId === 'string' &&
+      candidate.supersedesObservationId === previous.observationId &&
+      candidate.supersedesArtifactId === previous.view.report.artifact_id) {
+      selected.set(candidate.view.key, candidate);
+    }
+  }
+  return [...selected.values()].map(({ view }) => view);
 }
 
 export function promptOptions(data: MeasurementLedger, phase: MeasurementPhase): MeasurementPrompt[] {

@@ -145,3 +145,40 @@ test('only source-provided confidence intervals for the exact input rows are ren
   assert.deepEqual(stats.interval, interval);
   assert.deepEqual(stats.intervalSource, source(3));
 });
+
+
+test('one frozen measurement selects a verified explicit report revision without merging independent trials', () => {
+  const original = focused('direct-30', 30720, 'c', 'C3-direct');
+  original.observation.obs_id = 'direct-30:report';
+  original.observation.created = 1;
+  const revised = structuredClone(original.observation);
+  revised.kind = 'factory_iteration_report_revision';
+  revised.obs_id = 'direct-30:report-v2';
+  revised.created = 2;
+  revised.values.report = {
+    artifact_id: 'direct-30/mechanism/report-v2.md', sha256: 'f'.repeat(64), status: 'verified-p4',
+    revision: 2, summary: 'Updated mechanism report', supersedes_artifact_id: 'direct-30/report.md',
+    supersedes_observation_id: 'direct-30:report',
+  };
+  // Real revision envelopes cite the prior observation/report instead of repeating its measurement source list.
+  revised.source_artifacts = [original.observation.values.report.artifact_id, revised.values.report.artifact_id];
+  const reportFile = {path: revised.values.report.artifact_id, artifact_ids: [revised.values.report.artifact_id],
+    sha256: revised.values.report.sha256, integrity: 'verified', size: 12};
+  const independent = [focused('cache-30', 30720, 'd'), focused('cache-60', 61440, 'e'), focused('direct-new-version', 30720, 'a', 'C3-direct')];
+  const files = [...original.files, reportFile, ...independent.flatMap(item => item.files)];
+  const observations = [original.observation, revised, ...independent.map(item => item.observation)];
+  for (const input of [observations, [...observations].reverse()]) {
+    const cards = focusedP4Reports(input, files);
+    assert.equal(cards.length, 4);
+    const direct = cards.find(card => card.manifest.sha256 === 'c'.repeat(64));
+    assert.equal(direct.report.artifact_id, revised.values.report.artifact_id);
+    assert.equal(direct.summary, 'Updated mechanism report');
+  }
+  assert.ok(files.some(file => file.artifact_ids.includes('direct-30/report.md')));
+  assert.equal(original.observation.values.report.artifact_id, 'direct-30/report.md');
+  const brokenLink = structuredClone(revised);
+  brokenLink.values.report.supersedes_observation_id = 'unrelated:report';
+  assert.equal(focusedP4Reports([original.observation, brokenLink], files)[0].report.artifact_id, 'direct-30/report.md');
+  const invalidFiles = files.map(file => file.path === reportFile.path ? {...file, integrity: 'mismatch'} : file);
+  assert.equal(focusedP4Reports([original.observation, revised], invalidFiles)[0].report.artifact_id, 'direct-30/report.md');
+});
