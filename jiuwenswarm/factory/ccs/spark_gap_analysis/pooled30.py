@@ -5,6 +5,8 @@ from statistics import median
 PROMPTS = (512, 2048)
 ORDER = (512, 2048, 512, 2048, 2048, 512, 512, 2048, 2048, 512, 512, 2048)
 METRICS = ('ttft_s', 'decode_tps')
+MAPPER_ARGV = ['-np', '1', '-c', '4096', '--ctx-checkpoints', '0', '-b', '2047', '-ub', '512']
+MAPPER_SETTINGS = dict(n_ctx=4096, n_ctx_seq=4096, n_slots=1, n_batch=2047, n_ubatch=512)
 
 
 def demand(condition, message):
@@ -57,7 +59,8 @@ def analyze(evidence, eligible, reference, positive):
     controls = evidence['controls']
     expected = {p['target_tokens_including_template']: p['prompt_sha256'] for p in evidence['prompt_manifest']['value']['prompts']}
     subject = candidate['scope']['arm']
-    package = subject in ('C2', 'D')
+    mapper = subject == 'C5'
+    package = subject in ('C2', 'D', 'C5')
     demand(set(expected) == set(PROMPTS) and len(controls) == 4 and len({c['id'] for c in controls}) == 4,
            'Pooled screening uses both fixed prompt sizes and four distinct immutable controls')
     demand(len({c['scope']['sha256'] for c in controls}) == 4,
@@ -68,9 +71,17 @@ def analyze(evidence, eligible, reference, positive):
     for control in controls:
         scope = control['scope']
         other = scope['matched_bank']
-        demand(scope['arm'] == 'A+' and scope['quiet_preflight']['quiet'] and
-               all(bank[key] == other[key] for key in ('requested_mib', 'effective_settings', 'runtime_environment', 'cpu_share_pct')),
-               'Pooled candidate differs from the controls in effective context, batch, slots, threads or cache budget')
+        demand(scope['arm'] == 'A+' and scope['quiet_preflight']['quiet'] and all(
+            bank[key] == other[key] for key in ('requested_mib', 'runtime_environment', 'cpu_share_pct')),
+            'Pooled candidate differs from the controls in runtime environment or cache budget')
+        if mapper:
+            demand(bank['argv'] == other['argv'] + MAPPER_ARGV and
+                   bank['effective_settings'] == (other['effective_settings'] | MAPPER_SETTINGS) and
+                   bank['host_experts_mib'] == other['host_experts_mib'],
+                   'C5 package differs outside its frozen mapper flags or effective settings')
+        else:
+            demand(bank['effective_settings'] == other['effective_settings'],
+                   'Pooled candidate has different effective context, batch, slots or thread counts')
         if not package:
             demand(bank['argv'] == other['argv'] and bank['allocated_mib'] == other['allocated_mib'],
                    'Non-placement candidate has different effective launch argv or logged bank size')
@@ -102,7 +113,7 @@ def analyze(evidence, eligible, reference, positive):
                          scope_artifact_id=c['scope']['artifact_id'], scope_sha256=c['scope']['sha256']) for c in controls]
     candidate_scope = candidate['scope']
     cap = candidate_scope['value']
-    return dict(schema='spark-pooled30-screen/1', subject_arm=subject, control_count=4, controls=control_rows,
+    result = dict(schema='spark-pooled30-screen/1', subject_arm=subject, control_count=4, controls=control_rows,
                 basis='per-size-all-request-ordinal', matched_ordinals=[3, 4, 5, 6], candidate_warmups_per_size=2,
                 package_treatment=package, greedy_parity=greedy_parity, cpu_overlap_observed=overlap, rows=rows,
                 candidate_bank=bank, control_allocated_mib=[c['scope']['matched_bank']['allocated_mib'] for c in controls],
@@ -115,3 +126,14 @@ def analyze(evidence, eligible, reference, positive):
                 limitations=['One prospective candidate scope was compared with four historical quiet controls. Differences are descriptive screening estimates.',
                              'Candidate per-size ordinal 3 aligns with the controls’ third discarded warmup. Ordinals 4–6 align with their first three measured requests.',
                              'The across-control range and warmup exclusion show sensitivity. A positive difference favors the candidate.'])
+    if mapper:
+        mapping = candidate_scope['mapper']
+        demand(mapping['prompts_2048'] == len(observed[2048]) and mapping['prompts_2048'] == 6 and
+               all(type(mapping[key]) is int and mapping[key] >= 0 for key in ('decisions', 'rows', 'bypasses')) and
+               mapping['all_2048_split'] == (mapping['cuts_2048'] == [['0', '1536'], ['1536', '2048']] * 6),
+               'Missing or inconsistent C5 gate-on split and bypass evidence')
+        reference(mapping['engine_log'])
+        result.update(mapper=mapping, earlier_matched_flags=reference(evidence['earlier_matched_flags']),
+                      control_bank=controls[0]['scope']['matched_bank'])
+        result['limitations'].append('C5 and its explicit slot, context, checkpoints and batch settings form one package. The pooled stock scopes cannot isolate the mapper effect.')
+    return result

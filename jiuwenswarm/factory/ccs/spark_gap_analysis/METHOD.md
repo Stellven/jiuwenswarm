@@ -37,6 +37,13 @@ even if its boundary sample misses the active service. Report the ten-pair
 matched result as screening and give observed ranges for the quiet-only ordinal
 pairs. The latter subset has incomplete reverse-pass coverage and no interval.
 
+For the C5 repair under `pooled-30-screen`, admit exactly its explicit slot,
+context, context-checkpoint and batch flags as a package against the four
+historical A+30 scopes. Preserve the actual bank allocation and greedy output
+parity. Report the observed 2048-token logical cuts and whole-launch mapper
+decisions and bypasses. Keep the earlier matched-flags functional report
+separate from the pooled treatment and estimates.
+
 Report client TTFT, internal prefill duration and decode rate separately.
 Load time is separately recorded per scope. Do not add phases across clocks,
 infer phase causality from their differences or assign a CC a causal effect

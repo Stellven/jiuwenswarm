@@ -16,6 +16,7 @@ from report_p4 import HERE, REPO, demand, read_launch, reference, timepoint
 BASE = Path.home() / 'predemo-spark'
 CONTROL_ITERATIONS = ('spark-p4-cache30-attribution', 'spark-p4-cache30-direct-seed')
 MARKERS = {'C4': ('expert_demand_predictor:',), 'C2': ('weight_placement_planner:',),
+           'C5': ('batch_layout_mapper:',),
            'D': ('runtime_event_recorder:', 'weight_placement_planner:', 'expert_weight_cache:',
                  'expert_demand_predictor:', 'batch_layout_mapper:')}
 
@@ -64,8 +65,31 @@ def render(report):
     lines.extend([text, '', f'Startup to first healthy response took {report["startup_seconds"]:.2f} s. '
                   f'Host memory available stayed at or above {cap["min_mem_available_bytes"] / 1024**3:.2f} GiB. '
                   f'The capped scope recorded zero OOM events and {int(cap["memory_events"]["max"]):,} memory.max reclaim events.', ''])
-    if report['package_treatment']:
+    if report['package_treatment'] and subject != 'C5':
         lines.extend(['Placement and its allocation/readback differences are part of the treatment. These timings describe the package.', ''])
+    if mapping := report.get('mapper'):
+        summary = 'C5 and its single-slot, 4096-context, batch-2047 profile were screened as one package. ' + summary
+        lines[2] = summary
+        bank, control = (report[key] for key in ('candidate_bank', 'control_bank'))
+        lines += ['## Mapper runtime settings and logical cuts', '',
+                  '| Arm | Slots | Context | Batch | Ubatch | Requested bank MiB | Actual bank MiB | CPU miss share |',
+                  '| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |']
+        for label, cell in (('C5 package', bank), ('Pooled A+', control)):
+            settings = ' | '.join(str(cell['effective_settings'][k]) for k in ('n_slots', 'n_ctx', 'n_batch', 'n_ubatch'))
+            lines.append(f'| {label} | {settings} | {cell["requested_mib"]:,} | {cell["allocated_mib"]:,.2f} | {cell["cpu_share_pct"]:.0f}% |')
+        lines += ['', 'The candidate explicitly disables context checkpoints. The recorded launch artifact retains the full command.', '',
+                  f'The gate-on log recorded {mapping["decisions"]:,} layout decisions, {mapping["rows"]:,} mapped rows and '
+                  f'{mapping["bypasses"]:,} bypasses across all requests, including warmups.', '']
+        cuts = ', '.join(f'{a}–{b}' for a, b in mapping['cuts_2048'])
+        if mapping['all_2048_split']:
+            lines += [f'All {mapping["prompts_2048"]} 2048-token prompts logged the logical cuts 0–1536 and 1536–2048.', '']
+        else:
+            lines += [f'Across {mapping["prompts_2048"]} 2048-token prompts, the logged logical cuts were {cuts or "absent"}. '
+                      'The full expected split was not observed for every prompt.', '']
+        earlier = report['earlier_matched_flags']
+        lines += ['The logical cut markers do not measure physical dispatch counts.', '',
+                  f'Earlier matched-flags functional control `{earlier["artifact_id"]}` used the legacy ELF without a native bank. '
+                  'It reported greedy parity and zero mapper decisions. Its discarded timings do not estimate this repair’s effect.', '']
     if placement := report.get('placement'):
         summary = 'C2 placed three layer-27 projections on CUDA0. ' + summary
         lines[2] = summary
@@ -125,11 +149,12 @@ def native_build_lineage(plan, scope, capture, put):
 
 
 def source_lineage(arm, source_do, iteration, capture, put):
-    manifests = {'C4': 'predictor-iteration2-source-product.json', 'D': 'combined-d-source-product.json'}
+    manifests = {'C4': 'predictor-iteration2-source-product.json', 'D': 'combined-d-source-product.json',
+                 'C5': 'mapper-alora-source-product.json'}
     source = capture(BASE / 'OPS/p3' / manifests[arm])
     identity = source['value']
     predictor = arm == 'C4'
-    demand(identity['source_commit' if predictor else 'head'] == source_do['source_commit'] and
+    demand(identity['head' if arm == 'D' else 'source_commit'] == source_do['source_commit'] and
            all(identity[k] == source_do[k] for k in ('home', 'task_id')), 'Pooled source product differs from the built release')
     diff = (identity['source_diff'] if predictor else
             dict(artifact_id=identity['diff_artifact_id'], sha256=identity['diff_sha256']))
@@ -151,6 +176,17 @@ def source_lineage(arm, source_do, iteration, capture, put):
                                decision_sha256=decision_ref['sha256'], builder_ccs=[dict(id='routing.build_expert_demand_predictor',
                                    version='1.2.1', release=identity['verifier_release'])])
             verification = [identity['static_verification']]
+        elif arm == 'C5':
+            decision = producer.read(task, identity['planner_decision'])
+            decision_ref = put(f'{iteration}/do/decision.json', json_bytes(decision))
+            receipt = identity['native_verifier_artifact_id']
+            validated = json.loads(producer.artifact_bytes(task, receipt))
+            demand(validated['outputs']['done'] is True and validated['call'] == identity['native_verifier_call'] and
+                   validated['release'] == identity['native_verifier_release'], 'C5 native source verdict changed')
+            source_plan = dict(decision_id=decision['decision_id'], decision_artifact_id=decision_ref['artifact_id'],
+                               decision_sha256=decision_ref['sha256'], builder_ccs=[dict(id='engine.build_batch_layout_mapper',
+                                   version='1.1.4', release=validated['release'])])
+            verification = [dict(artifact_id=receipt)]
         else:
             stages = identity['incremental_stages']
             demand(len(stages) == 5 and stages[-1]['commit'] == source_do['source_commit'] and all(s['done'] is True for s in stages),
@@ -159,6 +195,16 @@ def source_lineage(arm, source_do, iteration, capture, put):
         source_do.update(source_product=reference(source), diff_artifact_id=mirror(diff),
                          verification_receipt_ids=[mirror(row) for row in verification])
     return source_plan
+
+
+def earlier_mapper_control(iteration, put):
+    task = 'spark-star-batch-layout-mapper'
+    with Store(BASE / 'factory-runs/star-batch_layout_mapper') as source:
+        ref = source.read(task, 'spark-c5-functional:report')['values']['report']
+        raw = source.artifact_bytes(task, ref['artifact_id'])
+        demand(digest(raw) == ref['sha256'] == '3103d2ab16df187c1e106bfd8ab0a2d9fd848b462e3a077fbaca755f6be5d441',
+               'Earlier matched-flags C5 control changed')
+        return put(f'{iteration}/history/{ref["artifact_id"]}', raw, 'text/markdown')
 
 
 def placement_source_lineage(store, launch, iteration, put):
@@ -243,6 +289,8 @@ def publish(path, pin):
             readbacks['verified_placement'] = launch['placement']
         payload = dict(mode='pooled-30-screen', prompt_manifest=prompts, candidate=dict(scope=launch, requests=rows),
                        controls=historical, activation_readbacks=readbacks)
+        if launch['arm'] == 'C5':
+            payload['earlier_matched_flags'] = earlier_mapper_control(iteration, put)
         evidence_ref = put(iteration + '/analysis-input.json', json_bytes(payload))
         host = Host(home / 'analysis-ccv2')
         release = host.seal(REPO / 'jiuwenswarm/factory/ccs/spark_gap_analysis')
@@ -265,7 +313,8 @@ def publish(path, pin):
         manifest = put(iteration + '/release-manifest.json', safe_bytes(host.store / 'releases' / release / 'manifest.json'))
         report = dict(put(iteration + '/report.md', text, 'text/markdown'), summary=summary, status='pooled-control-screening')
         outputs = [x['artifact_id'] for x in (analysis_ref, receipt, output, manifest)]
-        envelope = dict(schema='spark-factory-iteration/1', iteration_id=iteration, predecessor_report_ids=[],
+        predecessors = [payload['earlier_matched_flags']['artifact_id']] if 'earlier_matched_flags' in payload else []
+        envelope = dict(schema='spark-factory-iteration/1', iteration_id=iteration, predecessor_report_ids=predecessors,
             plan=dict(decision_id=None, builder_ccs=[], incoming_report_ids=[], manifest=plan_ref,
                       summary='Screen one candidate launch against four closed, position-matched A+30 controls.') | source_plan,
             do=source_do,

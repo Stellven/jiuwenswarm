@@ -13,6 +13,7 @@ import time
 ROOT = Path(__file__).resolve().parents[3]
 SPARK = ROOT / 'jiuwenswarm/ops/spark'
 OOM = ('oom', 'oom_kill', 'oom_group_kill')
+MAPPER_REPAIR = '0fe58a9484bcd2ba730e8bd28b3467361895ce98'
 
 
 def digest(data):
@@ -31,6 +32,11 @@ def freeze(path, cc, inventory, series, options):
     tag = f'{cc.lower()}-{series}'
     scope = ROOT / 'OPS/runs' / f'pooled30-{tag}'
     inventory = inventory.resolve(strict=True)
+    inventory_bytes = inventory.read_bytes()
+    if cc == 'C5':
+        product, = json.loads(inventory_bytes)['products']
+        if (product['capsule'], product['source_commit'], product['state']) != ('batch_layout_mapper', MAPPER_REPAIR, 'succeeded'):
+            raise ValueError('C5 pooled screening requires the exact successfully built aLoRA repair')
     command = [sys.executable, str(SPARK/'probe_candidate.py'), cc, 'on', 'pooled', str(scope), '--native-mib', '30720',
                '--products', str(inventory), '--arm', cc, '--launch-pass', '1', *options]
     profile = subprocess.check_output(command + ['--describe-profile'], env=environment())
@@ -38,7 +44,7 @@ def freeze(path, cc, inventory, series, options):
         raise ValueError('Pooled candidate must use the exact alternate native product')
     plan = dict(schema='spark-pooled30-admission/1', iteration_id='spark-pooled30-'+tag, subject_arm=cc,
                 comparison_target='same-budget-cc', frozen_at=datetime.now(timezone.utc).isoformat(),
-                products_manifest_sha256=digest(inventory.read_bytes()), prompt_manifest_sha256=digest((SPARK/'prompts/MANIFEST.json').read_bytes()),
+                products_manifest_sha256=digest(inventory_bytes), prompt_manifest_sha256=digest((SPARK/'prompts/MANIFEST.json').read_bytes()),
                 regions_sha256=digest((ROOT/'OPS/p4/source-regions.json').read_bytes()), command=command,
                 launches=[dict(arm=cc, launch_pass=1, view='llama', scope=str(scope), profile_sha256=digest(profile))])
     with path.open('x') as stream:
@@ -97,7 +103,7 @@ if __name__ == '__main__':
     sub = parser.add_subparsers(dest='mode', required=True)
     create = sub.add_parser('freeze')
     create.add_argument('manifest', type=Path)
-    create.add_argument('--candidate', choices=('C4', 'C2', 'D'), required=True)
+    create.add_argument('--candidate', choices=('C4', 'C2', 'C5', 'D'), required=True)
     create.add_argument('--products', type=Path, required=True)
     create.add_argument('--series', default='01')
     create.add_argument('--probe-option', action='append', default=[])
