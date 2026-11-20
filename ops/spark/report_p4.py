@@ -150,14 +150,18 @@ def profile_provenance(base, scope, arm, view, profile, start, load, geometry, c
         expected['env']['STRATA_DS4_SLOT_DIR'] = str(scope / 'ds4-slots')
         config_path = base / 'OPS/configs' / (scope.name + '.json')
         config = capture(config_path)
+        args = expected['args']
+        profile_path = Path(args[args.index('--expert-profile') + 1])
+        expert_profile = capture(profile_path, 'application/octet-stream')
         demand(load['config'] == str(config_path) and config['value'] == expected and
                start['engine_binary'] == profile['engine_binary'] and '--profile-readonly' in expected['args'] and
+               expert_profile['sha256'] == profile['fair_profile_sha256'] and
                expected['args'][expected['args'].index('--pack') + 1] == geometry['views']['strata']['pack'] and
                all(start['launch_environment'][key] == expected['env'][key]
                    for key in ('DS4_UMA_HEADROOM_GIB', 'STRATA_DS4_REUSE', 'STRATA_DS4_SLOT_DIR')),
                'P4 launched Strata config differs from its admitted fair read-only profile')
         command[command.index('--config') + 1] = str(config_path)
-        refs = dict(config=config, fair_template=template)
+        refs = dict(config=config, fair_template=template, expert_profile=expert_profile)
     else:
         demand(command[command.index('-m') + 1] == geometry['views']['llama']['files'][0]['path'],
                'P4 llama launch model differs from the sampled GGUF geometry')
@@ -173,6 +177,11 @@ def profile_provenance(base, scope, arm, view, profile, start, load, geometry, c
                load['products_manifest_sha256'] == inventory['sha256'] == profile['products_manifest_sha256'],
                'P4 engine gates, library path or native build manifest drifted')
         refs['products'] = inventory
+        if runtime.get('LLAMA_EXPERT_CACHE_NATIVE_PROFILE') == '1':
+            nomination = capture(Path(runtime['LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH']))
+            activation = capture(scope / 'profile-activation.json')
+            demand(nomination['sha256'] == activation['value']['sha256'], 'P4 native nomination input differs from its activation evidence')
+            refs.update(nomination_profile=nomination, activation=activation)
         if arm in ('A', 'A+'):
             stock = capture(base / 'OPS/runs/a-first-load-retry/start.json')
             demand(stock['value']['binary_sha256'] == profile['binary_sha256'] and profile['build_receipt'] is None and

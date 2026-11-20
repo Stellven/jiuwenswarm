@@ -37,8 +37,12 @@ def main():
             engine_sha = hashlib.file_digest(engine, 'sha256').hexdigest()
         if engine_sha != start['binary_sha256']:
             raise RuntimeError('Fair Strata engine digest differs from the measured reference')
+        args_list = config['args']
+        profile_path = Path(args_list[args_list.index('--expert-profile') + 1])
+        with profile_path.open('rb') as profile:
+            profile_sha = hashlib.file_digest(profile, 'sha256').hexdigest()
         launch_profile = dict(engine_binary=config['exe'], binary_sha256=engine_sha, command=start['command'],
-                              fair_config_sha256=hashlib.sha256(config_bytes).hexdigest())
+                              fair_config_sha256=hashlib.sha256(config_bytes).hexdigest(), fair_profile_sha256=profile_sha)
         if args.describe_profile:
             sys.stdout.buffer.write(profile_bytes(launch_profile))
             return
