@@ -553,6 +553,12 @@ def render(analysis, evidence, capsule):
              'The boundary process checks cannot observe activity that begins and ends between snapshots.', '',
              'Intervals resample matched request repeats within the two fixed launch windows. '
              'They describe those launches and exclude between-launch variation.', '']
+    if 'scope_amendment' in evidence:
+        lines += ['The initial reverse C3 launch completed all requests, but its cap monitor lost the final '
+                  'process-exit receipt during cgroup teardown. Its entire window was excluded. A prospectively '
+                  'recorded amendment repeated that C3 position from identical cold conditioning before the final '
+                  'A+ control. The ten pairs use four launches with complete cap receipts. The original window, '
+                  'memory trace and shutdown journals are retained as excluded evidence.', '']
     if evidence['comparison_target'] == 'same-budget-cc':
         bank = evidence['scopes'][0]['matched_bank']
         lines += [f'A+ and {evidence["subject_arm"]} used the same {bank["requested_mib"]:,} MiB budget, '
@@ -639,7 +645,35 @@ def render(analysis, evidence, capsule):
     return summary, '\n'.join(lines).encode()
 
 
-def publish(base, path, manifest_sha):
+def apply_scope_amendment(base, plan, manifest_sha, amendment_path, amendment_sha, capture):
+    amendment = capture(amendment_path)
+    change = amendment['value']
+    demand(amendment['sha256'] == amendment_sha and change['manifest_sha256'] == manifest_sha and
+           change['schema'] == 'spark-p4-scope-replacement/1', 'Scope amendment digest or parent is invalid')
+    old, new = (Path(change[key]) for key in ('replaced_scope', 'replacement_scope'))
+    launches = plan['launches']
+    matches = [row for row in launches if Path(row['scope']) == old]
+    demand(len(matches) == 1 and new.parent == old.parent == Path('OPS/runs') and
+           (base / new).resolve(strict=True) == base / new and
+           all(row['scope'] != str(new) for row in launches), 'Scope replacement must use a fresh local scope')
+    old_dir = base / old
+    demand(not (old_dir / 'result.json').exists(), 'Excluded scope already has a final receipt')
+    files = [(old_dir / 'p4-window/window.json', 'application/json', 'excluded_window_sha256'),
+             (old_dir / 'memory.jsonl', 'application/x-ndjson', 'excluded_memory_sha256'),
+             (amendment_path.parent / 'cache60-incomplete-monitor.log', 'text/plain', 'monitor_journal_sha256'),
+             (amendment_path.parent / 'cache60-incomplete-unit.log', 'text/plain', 'scope_journal_sha256')]
+    for filename, media, key in files:
+        demand(capture(filename, media)['sha256'] == change[key], 'Excluded-scope evidence changed')
+    started = timepoint(json.loads(safe_bytes(base / new / 'start.json'))['start'])
+    closed = timepoint(json.loads(safe_bytes(old_dir / 'memory.jsonl').splitlines()[-1])['time'])
+    demand(closed < timepoint(change['frozen_at']) <= started and
+           datetime.fromtimestamp(amendment_path.stat().st_mtime, timezone.utc) <= started,
+           'Scope substitution must be recorded after the incomplete attempt and before its replacement')
+    matches[0]['scope'] = str(new)
+    return reference(amendment)
+
+
+def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
     manifest_raw, plan = frozen_plan(path, manifest_sha, base)
     iteration = plan['iteration_id']
     first = base / Path(plan['launches'][0]['scope'])
@@ -657,7 +691,8 @@ def publish(base, path, manifest_sha):
             existing = None
         if existing:
             report = existing['report']
-            demand(existing['plan']['manifest']['sha256'] == manifest_sha and
+            demand(existing['plan'].get('scope_amendment', {}).get('sha256') == amendment_sha and
+                   existing['plan']['manifest']['sha256'] == manifest_sha and
                    store.read_artifact(TASK, report['artifact_id'])['sha256'] == report['sha256'],
                    'P4 iteration already identifies a different manifest or report')
             report_bytes = store.artifact_bytes(TASK, report['artifact_id'])
@@ -677,7 +712,13 @@ def publish(base, path, manifest_sha):
                 return dict(ref, value=json.loads(raw)) if media == 'application/json' else dict(ref, raw=raw)
 
             plan_ref = put(iteration + '/admitted-launches.json', manifest_raw)
+            amendment_ref = None
+            if amendment_path is not None:
+                amendment_ref = apply_scope_amendment(base, plan, manifest_sha, amendment_path,
+                                                      amendment_sha, capture)
             evidence = evidence_from_lab(base, plan, plan_ref, capture)
+            if amendment_ref:
+                evidence.update(scope_amendment=amendment_ref, effective_launches=plan['launches'])
             payload = json_bytes(evidence)
             evidence_ref = put(iteration + '/analysis-input.json', payload)
             host = Host(home / 'analysis-ccv2')
@@ -705,6 +746,8 @@ def publish(base, path, manifest_sha):
                 lab=dict(status='complete', result_artifact_ids=input_ids),
                 analysis=dict(ccs=[capsule], output_artifact_ids=output_ids, result_artifact=analysis_ref),
                 report=report, next_plan=dict(decision_id=None))
+            if amendment_ref:
+                envelope['plan']['scope_amendment'] = amendment_ref
             focused = effect_rows(analysis, evidence, verification)
             if focused:
                 envelope['analysis']['focused_comparison'] = focused
@@ -725,10 +768,15 @@ def main():
     parser.add_argument('manifest', type=Path)
     parser.add_argument('--manifest-sha256', required=True)
     parser.add_argument('--base', type=Path, default=Path.home() / 'predemo-spark')
+    parser.add_argument('--scope-amendment', type=Path)
+    parser.add_argument('--scope-amendment-sha256')
     parser.add_argument('--export', type=Path, help='Native export destination, defaulting to the iteration export directory')
     args = parser.parse_args()
     base = args.base.resolve(strict=True)
-    report = publish(base, args.manifest.absolute(), args.manifest_sha256)
+    if bool(args.scope_amendment) != bool(args.scope_amendment_sha256):
+        parser.error('Supply the prospective scope amendment and its SHA-256 together')
+    amendment = args.scope_amendment.resolve(strict=True) if args.scope_amendment else None
+    report = publish(base, args.manifest.absolute(), args.manifest_sha256, amendment, args.scope_amendment_sha256)
     iteration = report['observation_id'].removesuffix(':report')
     out = args.export or base / 'OPS/iterations' / iteration / 'export'
     bundle = out.resolve() if out.exists() else export_task(TASK, out, Path(report['home']))
