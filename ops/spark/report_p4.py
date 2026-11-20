@@ -14,6 +14,7 @@ from jiuwenswarm.factory.export import export_task, verify
 from jiuwenswarm.factory.store import NotFound, Store
 
 from import_evidence import append_once, digest, safe_bytes
+from report_early_bracket import EFFECTIVE_SETTINGS
 from report_p1 import CAPSULE, TASK, json_bytes
 
 
@@ -24,6 +25,7 @@ PROCESSES = ('build_processes', 'model_processes', 'factory_controllers', 'test_
 OOM_KEYS = ('oom', 'oom_kill', 'oom_group_kill')
 KERNEL = {'memory.max': str(100 * 1024**3), 'memory.swap.max': '0', 'memory.oom.group': '1',
           'cpu.max': '800000 100000', 'sched_affinity': list(range(8))}
+BANK = re.compile(r'CUDA0 MoE cache size = ([\d.]+) MiB for ([\d.]+) MiB of host experts, ([\d.]+)% of the misses on the CPU')
 
 
 def timepoint(value):
@@ -70,8 +72,15 @@ def frozen_plan(path, pinned_sha, base):
     launches = value['launches']
     half = len(launches) // 2
     first = [x['arm'] for x in launches[:half]]
-    demand(2 <= half <= 10 and len(launches) == 2 * half and len(set(first)) == half and {'A', 'S'} <= set(first),
-           'P4 requires an admitted A/S reference and two passes with distinct arms')
+    demand(2 <= half <= 10 and len(launches) == 2 * half and len(set(first)) == half,
+           'P4 requires two passes with distinct arms')
+    target = value.get('comparison_target', 'matrix')
+    if target == 'same-budget-cc':
+        subject = value['subject_arm']
+        demand(half == 2 and subject not in ('A', 'A+', 'S') and set(first) == {'A+', subject},
+               'Focused P4 must admit just A+ and the explicit subject arm')
+    else:
+        demand(target == 'matrix' and {'A', 'S'} <= set(first), 'P4 matrix requires admitted A and S reference arms')
     demand([x['arm'] for x in launches[half:]] == first[::-1], 'P4 second pass does not mirror the frozen order')
     by_arm = {}
     paths = set()
@@ -89,6 +98,26 @@ def frozen_plan(path, pinned_sha, base):
         identity = (row['view'], row['profile_sha256'])
         demand(by_arm.setdefault(row['arm'], identity) == identity, 'Arm launch profiles differ across passes')
     return raw, value
+
+
+def same_budget_launch(start, log):
+    cmd = start['command']
+    demand(cmd.count('--moe-cache-mib') == 1 and cmd.count('--moe-cache-cpu-share') == 1,
+           'Focused P4 requires one explicit native bank budget and CPU share')
+    requested = int(cmd[cmd.index('--moe-cache-mib') + 1])
+    cpu_share = float(cmd[cmd.index('--moe-cache-cpu-share') + 1])
+    alloc = BANK.findall(log)
+    demand(len(alloc) == 1, 'Focused P4 engine log lacks a unique observed native bank allocation')
+    allocated, host_experts, logged_share = map(float, alloc[0])
+    demand(0 < allocated <= requested and host_experts > 0 and cpu_share == logged_share,
+           'Focused P4 observed bank or CPU share differs from its requested profile')
+    settings = {key: int(match.group(1)) for key, regex in EFFECTIVE_SETTINGS.items()
+                if (match := re.search(regex, log))}
+    demand(set(settings) == set(EFFECTIVE_SETTINGS) and all(value > 0 for value in settings.values()),
+           'Focused P4 engine log lacks effective context, batch, slots or thread counts')
+    environment = {key: value for key, value in start['launch_environment'].items() if key.startswith('GGML_')}
+    return dict(requested_mib=requested, allocated_mib=allocated, host_experts_mib=host_experts, cpu_share_pct=logged_share,
+                argv=cmd[1:], effective_settings=settings, runtime_environment=environment)
 
 
 def source_snapshot(sample, geometry, views, before, after, stride, seed, kernel=None):
@@ -323,10 +352,21 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     resid = cold['after']['views'][view]['total']
     startup = {name: bucket['estimated_resident_fraction'] for name, bucket in resid.items()}
     provenance.update({key: reference(val) for key, val in extra.items()})
-    return dict(reference(stop), value=z, arm=arm, launch_pass=number, view=view, load=dict(reference(load), seconds=l['health_elapsed_s']),
+    record = dict(reference(stop), value=z, arm=arm, launch_pass=number, view=view, load=dict(reference(load), seconds=l['health_elapsed_s']),
                 quiet_preflight=dict(reference(quiet), quiet=True), start=reference(start), scope=reference(kernel),
                 profile=reference(profile), window=reference(report), probe=reference(probe), memory=reference(memory),
-                conditioning=reference(conditioning), prelaunch_source_fractions=startup, provenance=provenance), requests, ended
+                conditioning=reference(conditioning), prelaunch_source_fractions=startup, provenance=provenance)
+    if plan.get('comparison_target') == 'same-budget-cc':
+        log = extra['engine_log']['raw'].decode(errors='replace')
+        record['matched_bank'] = same_budget_launch(s, log)
+        if arm == plan['subject_arm']:
+            demand(l['native_build_receipt'], 'Focused P4 subject lacks a native build receipt')
+        if arm == 'C3' and arm == plan['subject_arm']:
+            demand(s['launch_environment'].get('LLAMA_EXPERT_CACHE_NATIVE_PROFILE') == '1' and
+                   re.search(r'expert_weight_cache_native_profile: active\b', log) and
+                   re.search(r'expert_weight_cache_native_profile: stats .*\bactive=1\b', log),
+                   'Focused P4 native cache profile did not show activation and terminal stats')
+    return record, requests, ended
 
 
 def evidence_from_lab(base, plan, plan_ref, capture):
@@ -345,7 +385,16 @@ def evidence_from_lab(base, plan, plan_ref, capture):
         scope, items, previous = read_launch(base, row, plan, region_file['value'], prompts, previous, first, capture)
         scopes.append(scope)
         requests.extend(items)
-    return dict(mode='p4-abba', launch_manifest=plan_ref, source_regions=reference(region_file),
+    target = plan.get('comparison_target', 'matrix')
+    if target == 'same-budget-cc':
+        demand(all(scope['matched_bank'] == scopes[0]['matched_bank'] for scope in scopes[1:]),
+               'Focused P4 actual bank allocation or effective launch settings differ among the mirrored scopes')
+        demand(plan.get('bank_budget_mib', scopes[0]['matched_bank']['requested_mib']) == scopes[0]['matched_bank']['requested_mib'],
+               'Focused P4 native budget differs from manifest admission')
+        demand(first['A+']['value']['greedy_hashes'] == first[plan['subject_arm']]['value']['greedy_hashes'],
+               'Focused P4 candidate and A+ differ on greedy output or reasoning')
+    return dict(mode='p4-abba', comparison_target=target, subject_arm=plan.get('subject_arm'),
+                launch_manifest=plan_ref, source_regions=reference(region_file),
                 prompt_manifest=dict(reference(prompt_file), value=prompt_file['value']), scopes=scopes, requests=requests)
 
 
@@ -378,6 +427,10 @@ def render(analysis, evidence, capsule):
              'The boundary process checks cannot observe activity that begins and ends between snapshots.', '',
              'Intervals resample matched request repeats within the two fixed launch windows. '
              'They describe those launches and exclude between-launch variation.', '']
+    if evidence['comparison_target'] == 'same-budget-cc':
+        bank = evidence['scopes'][0]['matched_bank']
+        lines += [f'A+ and {evidence["subject_arm"]} used the same {bank["requested_mib"]:,} MiB budget, '
+                  f'{bank["allocated_mib"]:,.2f} MiB logged allocation and effective runtime settings.', '']
     ordered = [scope['arm'] for scope in evidence['scopes'] if scope['launch_pass'] == 1]
     for size in SIZES:
         lines += [f'## {size}-token prompts', '', '| Arm | Requests | TTFT median and range (s) | Decode median (tokens/s) | '

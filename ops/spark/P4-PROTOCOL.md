@@ -65,6 +65,12 @@ and the SHA-256 of the described bytes in `profile_sha256`. Include A and S.
 Use the same SHA-256 values for the corresponding rows in the reverse pass.
 Retain the original manifest digest as the publication pin.
 
+For a focused native-cache comparison, set `comparison_target` to
+`same-budget-cc`, name the candidate in `subject_arm`, and admit only A+ and
+that candidate. You can pin `bank_budget_mib` as well. Publication requires the
+same measured bank allocation, effective launch settings and greedy outputs in
+the two arms. The default `matrix` comparison requires A and S.
+
 ```sh
 python3 ops/spark/report_p4.py "$ADMISSION" --manifest-sha256 "$ADMISSION_SHA256"
 ```
