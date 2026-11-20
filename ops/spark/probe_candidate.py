@@ -105,6 +105,9 @@ def main():
             with (binary.parent / name).open('rb') as stream:
                 if hashlib.file_digest(stream, 'sha256').hexdigest() != expected:
                     raise RuntimeError(f'Retained engine library digest differs for {name}')
+        for name, expected in product.get('retained_library_symlinks', {}).items():
+            if os.readlink(binary.parent / name) != expected:
+                raise RuntimeError(f'Retained engine library alias differs for {name}')
     flags = list(first['command'][1:]) + ['-lv', '4']
     env = {k: v for k, v in os.environ.items() if k not in GATES and not k.startswith('LLAMA_ARG_')}
     env['LD_LIBRARY_PATH'] = str(binary.parent)
