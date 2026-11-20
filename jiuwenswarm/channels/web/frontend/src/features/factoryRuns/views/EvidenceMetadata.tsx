@@ -14,7 +14,9 @@ export function DigestBadge({ file }: { file: EvidenceFile }) {
       data-testid="factory-runs-digest"
       title={[actual, expected].filter(Boolean).join('\n')}
     >
-      {t(`factoryRuns.${file.integrity}`)}
+      {file.path === 'MANIFEST.json' && file.integrity === 'untracked'
+        ? t('factoryRuns.story.manifestLabel')
+        : t(`factoryRuns.${file.integrity}`)}
       {(actual || expected) && <> · {(actual || expected).slice(0, 12)}</>}
     </span>
   );

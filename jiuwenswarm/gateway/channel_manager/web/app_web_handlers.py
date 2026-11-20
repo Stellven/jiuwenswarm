@@ -3816,9 +3816,9 @@ def _register_web_handlers(bind: WebHandlersBindParams) -> None:
         if resolved_client is None or is_legacy_shared_directory_client(resolved_client):
             try:
                 cfg = get_config()
-                lang = str(cfg.get("preferred_language") or "zh").strip().lower()
+                lang = str(cfg.get("preferred_language") or "en").strip().lower()
                 if lang not in ("zh", "en"):
-                    lang = "zh"
+                    lang = "en"
                 await channel.send_response(
                     ws, req_id, ok=True, payload={"preferred_language": lang}
                 )
