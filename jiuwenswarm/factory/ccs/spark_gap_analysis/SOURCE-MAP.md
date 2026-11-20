@@ -6,6 +6,7 @@
 | `ops/spark/bench_http.py` | Actual request and response schema and client TTFT timing boundary |
 | `ops/spark/bin/capped` | Memory and affinity receipts, normal completion, watchdog accounting |
 | `ops/spark/probe_candidate.py` | Early and nested launch protocol, strict and candidate-matched flags, scope and gate labels |
+| `OPS/p3/placement-v1-matched-controls.json` | Held-out layer-27 placement plan, stock-equivalent flags and exact selected tensor sizes |
 | `ops/spark/source_residency.py` and `ops/spark/request_resources.py` | File-specific conditioning, external source residency and request phase counters |
 | `ops/spark/prompts/MANIFEST.json` | Fixed rendered prompt and token identities |
 | `jiuwenswarm/factory/deep_profile.py` | Existing bounded parser for optional Strata prompt-stream counter attachments |

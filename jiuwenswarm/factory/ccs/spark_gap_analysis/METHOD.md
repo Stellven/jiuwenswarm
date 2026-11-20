@@ -48,3 +48,9 @@ Preserve qualified measured timings when matched greedy outputs diverge and
 mark them ineligible for candidate attribution. Cross-settings differences are
 reported separately from matched parity. The report lists absolute endpoint
 TTFT and decode values with observed drift and estimates no confidence interval.
+
+For the held-out layer-27 placement functional lab, admit three capped launch
+receipts in equivalent-stock, gate-unset, gate-enabled order. Check the pinned
+plan and flags, exact named tensor readback, all other expert placements, gate
+silence, aggregate CUDA0 model allocation and both greedy output hashes. Keep
+one discarded request per prompt and arm for phase diagnosis only.

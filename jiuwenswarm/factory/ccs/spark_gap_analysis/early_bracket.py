@@ -32,12 +32,12 @@ def timestamp(value):
     return parsed
 
 
-def check_server(scope, mode, cc, expected, reference):
+def check_server(scope, mode, cc, expected, reference, window='early'):
     start, stop, kernel = (scope[name]['value'] for name in ('start', 'stop', 'scope'))
     probe = scope['probe']['value']
     label = expected.get('label', f'{cc}-{mode}-early')
-    reject_if(probe['cc'] != cc or probe['window'] != 'early' or probe['mode'] != expected.get('probe_mode', mode),
-              'Wrong early probe arm or order')
+    reject_if(probe['cc'] != cc or probe['window'] != window or probe['mode'] != expected.get('probe_mode', mode),
+              'Wrong probe arm or order')
     reject_if(start['arm'] != label or stop['arm'] != label or probe['result_dir'] != start['result_path'], 'Scope arm or result path mismatch')
     reject_if(stop['binary_sha256'] != start['binary_sha256'] or stop['command'] != start['command'] or
               stop['start'] != start['start'] or stop['unit'] != start['unit'], 'Scope start/stop disagree')
@@ -60,6 +60,13 @@ def check_server(scope, mode, cc, expected, reference):
               any(kernel['actual'].get(k) != v for k, v in controls.items()), 'Scope does not prove the 100 GiB/eight-CPU controls')
     ready = timestamp(scope['load']['value']['ready_at'])
     began, ended = timestamp(start['start']), timestamp(stop['stop'])
+    summary = {key: reference(scope[key]) for key in ('start', 'stop', 'scope', 'load', 'probe', 'log')}
+    summary.update(arm=label, peak_memory_bytes=stop['peak_memory_bytes'],
+                   min_mem_available_bytes=stop['min_mem_available_bytes'],
+                   reclaim_max=int(stop['memory_events'].get('max', 0)), load_s=scope['load']['value']['health_elapsed_s'])
+    reject_if(not began < ready < ended, 'Scope timestamps are not ordered')
+    if window == 'functional':
+        return label, began, ready, ended, summary
     quiet, conditioned = scope['quiet']['value'], scope['conditioning']['value']
     reject_if(not quiet['quiet'] or quiet['load_1m'] >= 1 or not conditioned['quiet']['quiet'], 'Quiet prelaunch was not established')
     check_resources(quiet)
@@ -67,10 +74,7 @@ def check_server(scope, mode, cc, expected, reference):
               conditioned['method'] != 'file-specific POSIX_FADV_DONTNEED' or
               not timestamp(conditioned['after']['completed']) <= timestamp(scope['quiet']['mtime_utc']) <= began < ready < ended,
               'File-specific conditioning or ordered scope times are missing')
-    summary = {key: reference(scope[key]) for key in ('start', 'stop', 'scope', 'quiet', 'conditioning', 'load', 'probe', 'log')}
-    summary.update(arm=label, peak_memory_bytes=stop['peak_memory_bytes'],
-                   min_mem_available_bytes=stop['min_mem_available_bytes'],
-                   reclaim_max=int(stop['memory_events'].get('max', 0)), load_s=scope['load']['value']['health_elapsed_s'])
+    summary.update(quiet=reference(scope['quiet']), conditioning=reference(scope['conditioning']))
     summary['runtime_environment'] = {k: v for k, v in environment.items() if not k.startswith('LLAMA_') and k != 'LD_LIBRARY_PATH'}
     runtime_settings = scope['log']['effective_settings']
     required = {'n_ctx', 'n_ctx_seq', 'n_batch', 'n_ubatch', 'n_slots', 'n_threads', 'n_threads_batch'}
