@@ -12,6 +12,7 @@ const recordId = (record: JsonRecord) => text(record.obs_id) || text(record.arti
 const cycleOf = (record: JsonRecord) => text(record.cycle_id) || text(record.iteration_id) || text(asRecord(record.cycle).cycle_id);
 const decisionId = (value: unknown) => text(value) || text(asRecord(value).decision_id);
 const decisionTask = (value: unknown) => text(asRecord(value).task_id) || /^(.*):decision:\d+$/.exec(decisionId(value))?.[1] || '';
+const timestamp = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 const revision = (value: unknown) => (typeof value === 'number' && Number.isSafeInteger(value) ? value : undefined);
 
 type ArtifactKind = 'diff' | 'report' | 'analysis' | 'lab' | 'other';
@@ -163,10 +164,15 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
       );
       const nextPlan = asRecord(meta.next_plan);
       const explicitNextId = decisionId(nextPlan.decision_id);
+      const reportedAt = timestamp(metadataObservation.created) ?? timestamp(report?.created) ?? timestamp(cycle.ended);
       const nextDecisions = decisions.flatMap((decision) => {
         const nextRev = revision(decision.rev);
+        const decidedAt = timestamp(decision.created);
+        const later = nextRev !== undefined && activeRev !== undefined
+          ? nextRev > activeRev
+          : reportedAt !== undefined && decidedAt !== undefined && decidedAt > reportedAt;
         const explicit = Boolean(explicitNextId && decision.decision_id === explicitNextId);
-        if (decision === plan || (!explicit && (nextRev === undefined || activeRev === undefined || nextRev <= activeRev))) return [];
+        if (decision === plan || (!explicit && !later)) return [];
         const cited = strings(decision.evidence_ids).filter((reference) => relatedReports.has(reference));
         if (!explicit && !cited.length) return [];
         return [{ decision, cited }];

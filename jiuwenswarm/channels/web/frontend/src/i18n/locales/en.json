@@ -4886,7 +4886,7 @@
       "operator": "Operator-orchestrated",
       "plan": "Plan",
       "noPlan": "No plan decision recorded.",
-      "planInputs": "Evidence read into the plan · {{refs}}",
+      "planInputs": "Evidence cited by this plan · {{refs}}",
       "action": "Action",
       "decisionsFile": "Decision evidence",
       "observationsFile": "Report observation",

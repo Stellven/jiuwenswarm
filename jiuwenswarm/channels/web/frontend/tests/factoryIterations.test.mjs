@@ -111,3 +111,19 @@ test('reads the new report observation schema, artifact scope, and the next plan
     id: 'change.patch', taskId: 'candidate-home-task', sha256: 'remote', kind: 'diff',
   });
 });
+
+test('an operator report without an originating decision can still be cited by a later plan', () => {
+  const [iteration] = buildIterations({
+    observations: [{
+      kind: 'factory_iteration_report',
+      obs_id: 'baseline:report',
+      created: 12,
+      values: { schema: 'spark-factory-iteration/1', iteration_id: 'baseline', report: { artifact_id: 'r.md' } },
+    }],
+    decisions: [
+      { rev: 1, created: 10, evidence_ids: ['r.md'] },
+      { rev: 2, created: 13, evidence_ids: ['r.md'] },
+    ],
+  }, []);
+  assert.deepEqual(iteration.nextDecisions.map(({ decision }) => decision.rev), [2]);
+});
