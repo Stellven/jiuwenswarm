@@ -18,7 +18,13 @@ function AnalysisChart({ rows }: { rows: Record<string, unknown>[] }) {
     const name = row.name ?? row.phase ?? row.label ?? row.region ?? row.key ?? row.arm;
     const category = name ?? row.k_per_layer ?? row.prompt_tokens;
     return typeof value === 'number'
-      ? [{ value, name: typeof category === 'string' || typeof category === 'number' ? String(category) : String(index + 1), index }]
+      ? [
+          {
+            value,
+            name: typeof category === 'string' || typeof category === 'number' ? String(category) : String(index + 1),
+            index,
+          },
+        ]
       : [];
   });
   const max = values.reduce((peak, { value }) => Math.max(peak, Math.abs(value)), 1e-12);
@@ -47,8 +53,11 @@ function AnalysisChart({ rows }: { rows: Record<string, unknown>[] }) {
               <span
                 className="cc-chart-bar"
                 data-negative={value < 0 || undefined}
-                style={{ width: `${(Math.abs(value) / max) * (signed ? 50 : 100)}%`,
-                  left: signed && value >= 0 ? '50%' : undefined, right: value < 0 ? '50%' : undefined }}
+                style={{
+                  width: `${(Math.abs(value) / max) * (signed ? 50 : 100)}%`,
+                  left: signed && value >= 0 ? '50%' : undefined,
+                  right: value < 0 ? '50%' : undefined,
+                }}
               />
             </span>
             <code>{value.toLocaleString(undefined, { maximumSignificantDigits: 6 })}</code>

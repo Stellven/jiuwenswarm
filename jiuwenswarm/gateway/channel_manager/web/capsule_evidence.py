@@ -222,6 +222,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         analysis_reports = defaultdict(list)
         iteration_outputs = set()
         iteration_reports = {}
+        consumes_analysis = False
         for record in observations:
             kind, values = record.get('kind'), _object(record.get('values'))
             if not isinstance(kind, str) or not values:
@@ -239,6 +240,9 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             structured = any(key in values for key in ('analysis', 'phase_breakdown', 'gap_attribution'))
             producer = ANALYSIS_PRODUCERS.get(kind)
             associated = explicit or (producer == capsule_id if producer else analysis and owns_capsule)
+            if explicit and values.get('analysis_obs_id') and not structured and 'rows' not in values:
+                consumes_analysis = True
+                continue
             if associated and (named or structured or analysis and explicit):
                 row = _analysis_row(record, source | dict(path=None, integrity=None))
                 run_analyses.append(row)
@@ -323,7 +327,8 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             if key not in seen_measurements:
                 run_measurements.append(row)
                 seen_measurements.add(key)
-        if capsule_id in _capsules(task) or run_artifacts or run_receipts or run_measurements or run_analyses:
+        if (capsule_id in _capsules(task) or consumes_analysis or run_artifacts
+                or run_receipts or run_measurements or run_analyses):
             related_runs.append({key: run[key] for key in ('id', 'name', 'kind')})
         artifacts.extend(run_artifacts)
         measurements.extend(run_measurements)

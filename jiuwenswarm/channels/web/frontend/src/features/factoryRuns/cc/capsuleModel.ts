@@ -46,8 +46,10 @@ export function findCapsules(value: unknown, capsules: CapsuleCard[]): CapsuleCa
         if (
           text === id.toLowerCase() ||
           text === name ||
-          (name.includes('_') && (tokens.includes(name) || tokens.includes(slug) ||
-            tokens.some((token) => ('-' + token + '-').includes('-' + slug + '-')))) ||
+          (name.includes('_') &&
+            (tokens.includes(name) ||
+              tokens.includes(slug) ||
+              tokens.some((token) => ('-' + token + '-').includes('-' + slug + '-')))) ||
           mention.test(item)
         ) {
           matches.add(name);

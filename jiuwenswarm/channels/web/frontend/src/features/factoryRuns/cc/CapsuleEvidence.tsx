@@ -43,9 +43,9 @@ function MeasurementRows({ rows }: { rows: CapsuleMeasurement[] }) {
         <tbody>
           {rows.map((row) => (
             <tr
-              key={`${row.run_id}:${row.arm}:${row.prompt_tokens}`}
+              key={`${row.run_id}:${row.arm}:${row.observation_ids.join(',')}`}
               data-testid="factory-runs-capsule-result"
-              data-variant={`${row.run_id}:${row.arm}:${row.prompt_tokens}`}
+              data-variant={`${row.run_id}:${row.arm}:${row.prompt_tokens}:${row.observation_ids[0] || ''}`}
             >
               <th scope="row">
                 {row.arm}

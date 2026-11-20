@@ -13,9 +13,15 @@ const catalogRequest = (_key: string, signal: AbortSignal) => capsuleApi.catalog
 const tabs = ['method', 'ontology', 'acceptance', 'source', 'files', 'artifacts', 'contract'] as const;
 type Tab = (typeof tabs)[number];
 
-function kindLabel(kind: string): CopyKey {
+function kindLabel(kind: string): CopyKey | undefined {
   if (kind === 'builder' || kind === 'analysis') return kind;
-  return 'supportKind';
+  return kind === 'factory-support' ? 'supportKind' : undefined;
+}
+
+function CapsuleKind({ kind }: { kind: string }) {
+  const copy = useCapsuleCopy();
+  const label = kindLabel(kind);
+  return <span className="cc-kind">{label ? copy(label) : readableName(kind)}</span>;
 }
 
 function Card({ capsule }: { capsule: CapsuleCard }) {
@@ -33,7 +39,7 @@ function Card({ capsule }: { capsule: CapsuleCard }) {
             <span aria-hidden>★</span> {copy('starred')}
           </span>
         ) : (
-          <span className="cc-kind">{copy(kindLabel(capsule.kind))}</span>
+          <CapsuleKind kind={capsule.kind} />
         )}
         <Integrity state={capsule.integrity} />
       </div>
@@ -53,11 +59,11 @@ function Card({ capsule }: { capsule: CapsuleCard }) {
 function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
   const copy = useCapsuleCopy();
   const [query, setQuery] = useState('');
-  const [kind, setKind] = useState<'all' | 'builder' | 'analysis' | 'supportKind'>('all');
+  const [kind, setKind] = useState<'all' | 'builder' | 'analysis' | 'factory-support'>('all');
   const needle = query.trim().toLowerCase();
   const shown = capsules.filter(
     (capsule) =>
-      (kind === 'all' || kindLabel(capsule.kind) === kind) &&
+      (kind === 'all' || capsule.kind === kind) &&
       [
         capsule.name,
         capsule.id,
@@ -76,7 +82,7 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
     { title: 'analysis', rows: shown.filter((capsule) => !capsule.starred && capsule.kind === 'analysis') },
     {
       title: 'support',
-      rows: shown.filter((capsule) => !capsule.starred && kindLabel(capsule.kind) === 'supportKind'),
+      rows: shown.filter((capsule) => !capsule.starred && capsule.kind !== 'analysis' && capsule.kind !== 'builder'),
     },
   ] as const;
   return (
@@ -102,7 +108,7 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
             <option value="all">{copy('allKinds')}</option>
             <option value="builder">{copy('builder')}</option>
             <option value="analysis">{copy('analysis')}</option>
-            <option value="supportKind">{copy('supportKind')}</option>
+            <option value="factory-support">{copy('supportKind')}</option>
           </select>
         </div>
       </header>
@@ -146,7 +152,7 @@ function CapsuleHeader({ capsule }: { capsule: CapsuleDetail }) {
               <span aria-hidden>★</span> {copy('starred')}
             </span>
           )}
-          <span className="cc-kind">{copy(kindLabel(capsule.kind))}</span>
+          <CapsuleKind kind={capsule.kind} />
           {capsule.arm && (
             <span className="cc-kind">
               {copy('arm')} {capsule.arm}
@@ -422,7 +428,7 @@ function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: Ca
               [
                 ['samples', byFolder('samples')],
                 ['helpers', byFolder('helpers')],
-                ['all', capsule.files],
+                ['declarations', capsule.files.filter(({ path }) => !/^(samples|helpers)\//.test(path))],
               ] as const
             )
               .filter(([, files]) => files.length > 0)
