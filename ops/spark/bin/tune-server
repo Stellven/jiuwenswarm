@@ -1,17 +1,16 @@
 #!/usr/bin/env python3
 """llama-server stand-in for moe-cache-tune.py: cap and ledger every calibration load."""
 import os
+import json
 from pathlib import Path
 import sys
 import time
 
 root = Path.home()/'predemo-spark'
 argv = sys.argv[1:]
-for i, arg in enumerate(argv):
-    if arg == '--moe-cache-mib':
-        mib = int(argv[i+1])
-        if not 0 <= mib <= 61440:
-            sys.exit('REFUSED: tonight MoE GPU cache cannot exceed 61440 MiB (60 GiB)')
+mib_options = [i for i, arg in enumerate(argv) if arg == '--moe-cache-mib']
+if len(mib_options) != 1 or not 0 < int(argv[mib_options[0] + 1]) <= 61440:
+    sys.exit('REFUSED: require one calibration cache size of 1–61440 MiB (60 GiB)')
 if not any(arg in ('--cpu-moe','-cmoe') for arg in argv):
     sys.exit('REFUSED: CPU MoE placement required')
 # The native tuner appends host/port, verbosity and cache parameters to this command.
@@ -19,5 +18,14 @@ if not any(arg in ('--cpu-moe','-cmoe') for arg in argv):
 if not any(argv[i:i+2] == ['-lm','mmap'] or argv[i:i+2] == ['--load-mode','mmap'] for i in range(len(argv)-1)):
     sys.exit('REFUSED: explicit mmap mode required')
 run = root/'OPS/runs'/f'aplus-tune-{time.time_ns()}'
+scope_index = os.environ.get('SPARK_TUNE_SCOPE_INDEX')
+if scope_index:
+    with Path(scope_index).open('a+') as index:
+        index.seek(0)
+        for scope in index.read().splitlines():
+            result = json.loads((Path(scope) / 'result.json').read_text())
+            if result['returncode'] != 0 or result['reason'] or not result['scope_verified']:
+                sys.exit(f'REFUSED: previous calibration attempt did not complete safely: {scope}')
+        index.write(str(run) + '\n')
 command = [str(root/'bin/capped'), '--arm','A+-tune','--result-dir',str(run),'--echo-output','--graceful-interrupt','--',str(root/'build-stock-cuda121/bin/llama-server'),*argv]
 os.execv(command[0],command)

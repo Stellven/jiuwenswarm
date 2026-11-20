@@ -21,7 +21,7 @@ The test exclusively runs the built-in gradual 256 MiB allocator with the same s
 
 The initial gate was approved on 2026-11-20. For a fresh campaign, do not start DeepSeek or Strata until `P0 READY FOR REVIEW` has been written to OPS/STATUS.md and the orchestrator has approved in the terminal. The first load of each engine and any unexpected memory event have separate review stops in BRIEF.md.
 
-The native tuner must use `bin/tune-server` in place of llama-server. This preserves per-load locking, capping, engine log forwarding and ledger rows and refuses cache sizes above 61440 MiB. Keep its `--out` unique: the upstream tuner deletes entries if a reused directory has a different command.
+Run `ops/spark/tune_aplus.py first --model MODEL --out UNIQUE_DIR` after the operator opens a quiet GPU window. The launcher runs the stock tuner's sequential shard warm in a monitored `bin/capped` scope, then stops after the first completed calibration for review. After approval, repeat with `continue` and the same model and output directory. The stock tuner reuses the first calibration and selects its recommendation from the measured runs. The search and each server launch are limited to 61440 MiB. A new experiment requires a new output directory.
 
 ## Import operator evidence into the Factory runs UI
 

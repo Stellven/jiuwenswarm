@@ -37,8 +37,10 @@ def test_prepare_pins_overrides_and_preserves_frozen_sources(tmp_path, monkeypat
     monkeypatch.setattr(adapter, 'PIN', pin)
     monkeypatch.setattr(adapter, 'HASHES', {name: adapter.sha(frozen / name) for name in adapter.HASHES})
     before = {name: (frozen / name).read_bytes() for name in adapter.HASHES}
-    _, receipt, _, overrides = adapter.prepare(tmp_path, tmp_path / 'stage')
+    _, receipt, model, model_digest, overrides = adapter.prepare(tmp_path, tmp_path / 'stage')
     assert overrides['RECEIPT_SHA256'] == adapter.sha(receipt)
+    assert model == tmp_path.parent / adapter.FIXTURE_PATH
+    assert model_digest is None
     assert json.loads(receipt.read_text())['source_verified'] is True
     assert json.loads((tmp_path / 'stage/platform-overrides.json').read_text())['stock_commit'] == pin
     assert before == {name: (frozen / name).read_bytes() for name in adapter.HASHES}
@@ -64,7 +66,7 @@ def test_server_ledger_wrap_preserves_original_context_protocol(tmp_path, monkey
         yield 42
         events.append('clean-exit-check')
     runtime = SimpleNamespace(server=original, MODEL=Path('/synthetic.gguf'), BASE_ARGS=[])
-    adapter.install_ledger(runtime, tmp_path)
+    adapter.install_ledger(runtime, tmp_path, 'a52205df' + 'f' * 56)
     with runtime.server(binary, tmp_path / 'run', 42, ['-n', '1']) as port:
         assert port == 42
         events.append('request')

@@ -15,6 +15,7 @@ import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import shlex
 import shutil
 import subprocess
@@ -24,7 +25,9 @@ import time
 PIN = '9048bad8d6e3a0f9f1726e238e451181c7e02613'
 HASHES = {'scorer.py': '2632d6e0da922e54369105266ded5eb903012fc5c5276c615ea7fdf580032cf9',
           'scorer_runtime.py': '67f48d8664513da1920b3697206181fa66e991918f1be693724b11edf8760439'}
-FIXTURE_HASH = '087517eafc83e81a7b5ae440be1145fe96ffcd954c93b85d703c80f4f3399de8'
+FIXTURE_HASH_PREFIX = 'a52205df'
+FIXTURE_PATH = Path('models/campaign/gguf/granite-3.1-1b-a400m-instruct-Q8_0.gguf')
+FIXTURE_RECEIPT = Path('OPS/scorer-portability/granite-owner.sha256')
 
 
 def sha(path):
@@ -55,6 +58,16 @@ def import_file(name, path):
     sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
+
+
+def owner_fixture_digest(base):
+    receipt = base / FIXTURE_RECEIPT
+    if not receipt.is_file():
+        return None
+    digest = receipt.read_text().strip()
+    if not re.fullmatch(FIXTURE_HASH_PREFIX + '[0-9a-f]{56}', digest):
+        raise SystemExit('Granite owner receipt must contain the full SHA256 beginning with ' + FIXTURE_HASH_PREFIX)
+    return digest
 
 
 def prepare(base, stage):
@@ -95,24 +108,31 @@ def prepare(base, stage):
     if receipt_path.exists() and json.loads(receipt_path.read_text()) != receipt:
         raise SystemExit('Existing Spark receipt changed; use a new stage root')
     write(receipt_path, receipt)
-    fixture = base / 'models/campaign/gguf/granite-3.1-1b-a400m-instruct-Q8_0.gguf'
+    fixture = base.parent / FIXTURE_PATH
+    fixture_digest = owner_fixture_digest(base)
     overrides = dict(ROOT=str(stage), STOCK=str(stock), RECEIPT=str(receipt_path),
                      RECEIPT_SHA256=sha(receipt_path), REFERENCE=str(stage / 'reference.json'),
                      MODEL=str(fixture), STOCK_BIN=str(binary))
     manifest = dict(schema='spark.scorer-platform-adapter/1', frozen_files=HASHES, stock_commit=PIN,
-                    overrides=overrides, adapter_sha256=sha(__file__), fixture_expected_sha256=FIXTURE_HASH,
+                    overrides=overrides, adapter_sha256=sha(__file__), fixture_expected_sha256=fixture_digest,
+                    fixture_expected_sha256_prefix=FIXTURE_HASH_PREFIX, fixture_owner_receipt=str(base / FIXTURE_RECEIPT),
                     fixture_satay_identity='unverified: retained historical full model digest unavailable',
                     stage_predicates='Unchanged frozen v4 functions; only platform constants and server ledger instrumentation supplied',
                     build_platform='Existing Spark cache recipe, sm_121; original three-job limit unchanged')
-    write(stage / 'platform-overrides.json', manifest)
+    manifest_path = stage / 'platform-overrides.json'
+    if manifest_path.exists():
+        previous = json.loads(manifest_path.read_text())
+        if previous['overrides']['MODEL'] != overrides['MODEL'] or previous['fixture_expected_sha256'] not in (None, fixture_digest):
+            raise SystemExit('Existing stage root maps a different Granite artifact; use the new owner stage root')
+    write(manifest_path, manifest)
     command = [sys.executable, str(Path(__file__).resolve()), '--base', str(base), '--stage-root', str(stage), 'run']
     shim = stage / 'run_checks.sh'
     shim.write_text('#!/bin/sh\nexec ' + shlex.join(command) + ' "$@"\n')
     shim.chmod(0o755)
-    return frozen, receipt_path, fixture, overrides
+    return frozen, receipt_path, fixture, fixture_digest, overrides
 
 
-def install_ledger(runtime, base):
+def install_ledger(runtime, base, fixture_digest):
     original = runtime.server
     @contextmanager
     def recorded(binary, directory, port, args, gate=None, cache=False):
@@ -120,7 +140,7 @@ def install_ledger(runtime, base):
                    '--host', '127.0.0.1', '--port', str(port), *runtime.BASE_ARGS,
                    '--cache-prompt' if cache else '--no-cache-prompt', *args],
                    binary_sha256=sha(binary), result_path=str(directory), gate=dict([gate]) if gate else {},
-                   model_sha256=FIXTURE_HASH)
+                   model_sha256=fixture_digest)
         def append(value):
             with (base / 'OPS/LEDGER.jsonl').open('a') as stream:
                 fcntl.flock(stream, fcntl.LOCK_EX)
@@ -148,12 +168,12 @@ def main():
     p.add_argument('arguments', nargs=argparse.REMAINDER)
     args = p.parse_args()
     base = args.base.resolve()
-    stage = (args.stage_root or base / 'scorer-spark-v4').resolve()
+    stage = (args.stage_root or base / 'scorer-spark-v4-owner').resolve()
     if not stage.is_relative_to(base) or stage.is_relative_to((base / 'inputs').resolve()):
         raise SystemExit('Stage root must be inside predemo-spark and outside frozen inputs')
     if args.action != 'prepare' and not (args.action == 'score' and '--scope-only' in args.arguments):
         capped()
-    frozen, receipt_path, fixture, overrides = prepare(base, stage)
+    frozen, _, fixture, fixture_digest, overrides = prepare(base, stage)
     if args.action == 'prepare':
         print(json.dumps(overrides, indent=2))
         return 0
@@ -165,9 +185,11 @@ def main():
     runtime.MODEL = fixture
     runtime.STOCK_BIN = Path(overrides['STOCK_BIN'])
     if args.action != 'score' or '--scope-only' not in args.arguments:
-        if not fixture.is_file() or fixture.stat().st_size != 1422239456 or sha(fixture) != FIXTURE_HASH:
-            raise SystemExit('Published Granite fixture file failed verification')
-    install_ledger(runtime, base)
+        if fixture_digest is None:
+            raise SystemExit('Complete Granite owner copy and record its full digest in ' + str(base / FIXTURE_RECEIPT))
+        if not fixture.is_file() or sha(fixture) != fixture_digest:
+            raise SystemExit('Granite owner fixture failed verification')
+    install_ledger(runtime, base, fixture_digest)
     sys.argv = [str(Path(__file__).resolve()), args.action, *args.arguments]
     return scorer.main()
 
