@@ -40,7 +40,7 @@ for row in processes:
     if screen and not comm.startswith(('llama-server', 'llama-cli', 'strata-dsv41')):
         try:
             group = Path('/proc', pid, 'cgroup').read_text().strip().split(':')[-1]
-            if any(unit.startswith(policy['unit_prefix']) and unit.endswith('.service') for unit in Path(group).parts):
+            if any(unit.startswith(tuple(policy['unit_prefixes'])) and unit.endswith('.service') for unit in Path(group).parts):
                 cpus = sorted(os.sched_getaffinity(int(pid)))
                 if set(cpus).issubset(policy['allowed_cpus']):
                     cpu_lane.append(dict(pid=int(pid), process=comm, cgroup=group, cpus=cpus))
