@@ -88,3 +88,41 @@ def test_star_transport_identity_matches_retained_migration(tmp_path):
     host = Host(tmp_path / 'ccstore')
     for row in migration['releases']:
         assert host.seal((CCS / row['path']).parent) == row['new_release']
+
+
+@pytest.mark.parametrize('invalid', [None, 'outside', 'digest'])
+def test_native_worker_retains_executable_receipt_and_rejects_drift(store, monkeypatch, tmp_path, invalid):
+    import subprocess
+    from jiuwenswarm.factory import build_job
+
+    worker_root = Path(build_job.__file__).parent
+    request = dict(target='spark-gb10', delivery='native', build_target='llama-server',
+                   source={'path': str(tmp_path / 'source'), 'commit': 'a' * 40},
+                   dependency={'path': str(tmp_path / 'dependency'), 'commit': 'b' * 40},
+                   tag='factory/llamacpp:fixture',
+                   engine_sha256=hashlib.sha256((worker_root / 'spark_engine.py').read_bytes()).hexdigest(),
+                   recipe_sha256=hashlib.sha256((worker_root.parents[1] / 'deploy/spark/Runtime.Dockerfile').read_bytes()).hexdigest(),
+                   worker_sha256=hashlib.sha256(Path(build_job.__file__).read_bytes()).hexdigest(),
+                   lifecycle_sha256=hashlib.sha256((worker_root / 'lab_lifecycle.py').read_bytes()).hexdigest())
+    attempt = store.create_attempt('t', dict(kind='build', request=request, idem_key='native', fingerprint='native'))
+    monkeypatch.setattr('jiuwenswarm.factory.execution_binding.verify_task', lambda *args: None)
+    def fake_compile(argv, **kwargs):
+        assert argv[-2:] == ['--delivery', 'native']
+        out = Path(argv[argv.index('--out') + 1]); out.mkdir(parents=True)
+        executable = (tmp_path if invalid == 'outside' else out) / 'llama-server'
+        executable.write_bytes(b'executable-fixture')
+        digest = hashlib.sha256(executable.read_bytes()).hexdigest()
+        record = dict(status='success', delivery='native', executable=dict(path=str(executable),
+                      sha256='0' * 64 if invalid == 'digest' else digest, size=executable.stat().st_size))
+        (out / 'build-record.json').write_text(json.dumps(record))
+        return subprocess.CompletedProcess(argv, 0)
+    monkeypatch.setattr(build_job.subprocess, 'run', fake_compile)
+    result = build_job.run(store, 't', attempt['attempt_id'], request)
+    receipt = json.loads(store.artifact_bytes('t', attempt['attempt_id'] + ':receipt'))
+    assert receipt['delivery'] == 'native' and receipt['image_id'] is None
+    observation = store.read('t', attempt['attempt_id'] + ':build-result')
+    if invalid:
+        assert result == 1 and observation['error']['code'] == 'NATIVE_BUILD_RECORD_INVALID'
+    else:
+        assert result == 0 and observation['values']['status'] == 'success'
+        assert receipt['executable']['sha256'] == observation['values']['executable']['sha256']

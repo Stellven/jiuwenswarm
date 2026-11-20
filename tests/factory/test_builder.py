@@ -56,6 +56,11 @@ r=dict(schema_version=2,status='failed' if os.environ.get('FAKE_BUILD_FAIL') els
 sys.exit(1 if os.environ.get('FAKE_BUILD_FAIL') else 0)
 ''')
     monkeypatch.setenv('FACTORY_BUILD_ENGINE', str(engine))
+    recipe = tmp_path / 'Dockerfile'
+    recipe.write_text('ARG BASE_RUNTIME=nvcr.io/nvidia/l4t-cuda:12.6.11-runtime@sha256:' + 'a' * 64 + '\n')
+    monkeypatch.setenv('FACTORY_BUILD_RECIPE', str(recipe))
+    monkeypatch.setattr('jiuwenswarm.factory.builder.RECIPE', recipe)
+    monkeypatch.setattr('jiuwenswarm.factory.build_job.RECIPE', recipe)
     return dict(target='jetson-orin', source=dict(path=str(source), commit=git('rev-parse', 'HEAD')),
                 tag='factory/llamacpp:test')
 

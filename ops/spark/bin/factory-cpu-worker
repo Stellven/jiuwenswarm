@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+SPARK_REPO="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../.." && pwd)"
+source "$SPARK_REPO/ops/spark/env.sh"
+exec "$SPARK_REPO/.venv/bin/python" "$FACTORY_JOBQ_BIN" worker "$@"

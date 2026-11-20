@@ -83,9 +83,12 @@ def main():
     for name in ('target','source','commit','tag','out','dependency','dependency-commit'):
         p.add_argument('--'+name, required=True)
     p.add_argument('--build-target', default='strata-dsv41')
+    p.add_argument('--delivery', choices=['image', 'native'], default='image')
     a = p.parse_args()
     if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',a.build_target):
         raise ValueError('Invalid build target')
+    if a.delivery == 'native' and a.build_target != 'llama-server':
+        raise ValueError('Native delivery is limited to llama-server')
     if a.target != 'spark-gb10':
         raise ValueError('Spark worker target mismatch')
     source, out = Path(a.source), Path(a.out)
@@ -188,6 +191,12 @@ def main():
                     if path.is_file() and (str(path).startswith('/usr/local/cuda') or path.is_relative_to(build)):
                         shutil.copy2(path,app/path.name)
             record['executable_sha256'] = hashlib.sha256(executable.read_bytes()).hexdigest()
+        if a.delivery == 'native':
+            executable = app / 'llama-server'
+            record.update(delivery='native', executable=dict(path=str(executable.resolve()),
+                sha256=hashlib.sha256(executable.read_bytes()).hexdigest(), size=executable.stat().st_size),
+                status='success')
+            return
         recipe = Path(__file__).resolve().parents[2]/'deploy/spark/Runtime.Dockerfile'
         recipe_text = recipe.read_text()
         if a.build_target == 'llama-server':

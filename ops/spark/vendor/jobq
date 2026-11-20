@@ -1,0 +1,308 @@
+#!/usr/bin/env python3
+"""Local, flock-serialized job queue. All state changes happen under lock."""
+import re, argparse
+from contextlib import contextmanager
+import fcntl
+import json
+import math
+import os
+from pathlib import Path
+import signal
+import subprocess
+import sys
+import time
+import uuid
+
+ROOT = Path(__file__).resolve().parent.parent
+SELF = str(Path(__file__).resolve())
+DIR = Path(os.environ.get('JOBQ_DIR', ROOT / 'lab/jobq')).resolve()
+TERMINAL = {'succeeded', 'failed', 'cancelled', 'skipped_dep_failed', 'timeout'}
+
+
+@contextmanager
+def locked():
+    DIR.mkdir(parents=True, exist_ok=True)
+    with (DIR / 'lock').open('a') as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        yield
+
+
+def jobs():
+    return sorted((json.loads(p.read_text()) for p in DIR.glob('job-*.json')),
+                  key=lambda j: (j['submitted'], j['id']))
+
+
+def get(jid):
+    if not jid.startswith('job-') or any(c not in 'job-0123456789abcdef' for c in jid):
+        raise ValueError('invalid job id')
+    try:
+        return json.loads((DIR / (jid + '.json')).read_text())
+    except FileNotFoundError:
+        raise ValueError('unknown job: ' + jid)
+
+
+def save(j, event):
+    path = DIR / (j['id'] + '.json')
+    tmp = path.with_suffix('.tmp')
+    tmp.write_text(json.dumps(j, indent=2) + '\n')
+    os.replace(tmp, path)
+    with (DIR / 'events.jsonl').open('a') as f:
+        f.write(json.dumps(dict(time=time.time(), job=j['id'], event=event,
+                               state=j['state'])) + '\n')
+        f.flush()
+        os.fsync(f.fileno())
+
+
+def alive(pid):
+    if not pid:
+        return False
+    try:
+        os.kill(pid, 0)
+        # A dead supervisor may remain a zombie until its parent reaps it.
+        stat = Path('/proc/%s/stat' % pid)
+        if stat.exists() and stat.read_text().rsplit(')', 1)[1].split()[0] == 'Z':
+            return False
+        return True
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+
+
+def kill_groups(j, sig):
+    # Let run_op reap the command and record its outcome during the TERM grace.
+    groups = {j.get('pgid')}
+    if sig == signal.SIGKILL:
+        groups.add(j.get('wrapper_pgid'))
+    for pgid in groups - {None}:
+        try:
+            os.killpg(pgid, sig)
+        except ProcessLookupError:
+            pass
+
+
+def finish(j, state, rc):
+    j.update(state=state, rc=rc, end=time.time())
+    save(j, state)
+
+
+def reconcile():
+    for j in jobs():
+        if j['state'] == 'running' and not alive(j.get('runner_pid')):
+            kill_groups(j, signal.SIGKILL)
+            finish(j, j.get('stop_reason') or 'failed', None)
+
+
+def compatible(j, running):
+    for other in running:
+        if j['class'] in ('gpu', 'build') and other['class'] in ('gpu', 'build'):
+            return False
+        if j['class'] == 'gpu' and other['class'] == 'cpu' and not other['allow_during_gpu']:
+            return False
+        if j['class'] == 'cpu' and other['class'] == 'gpu' and not j['allow_during_gpu']:
+            return False
+    return True
+
+
+def worker(once):
+    children = []
+    try:
+        while True:
+            children[:] = [p for p in children if p.poll() is None]
+            with locked():
+                reconcile()
+                alljobs = jobs()
+                byid = {j['id']: j for j in alljobs}
+                running = [j for j in alljobs if j['state'] == 'running']
+                for j in alljobs:
+                    if j['state'] != 'queued':
+                        continue
+                    deps = [byid[d] for d in j['deps']]
+                    if any(d['state'] in TERMINAL - {'succeeded'} for d in deps):
+                        finish(j, 'skipped_dep_failed', None)
+                        continue
+                    if any(d['state'] != 'succeeded' for d in deps) or not compatible(j, running):
+                        continue
+                    j.update(state='running', start=time.time())
+                    for other in running:
+                        other['concurrent_jobs'].append(j['id'])
+                        j['concurrent_jobs'].append(other['id'])
+                        save(other, 'overlap')
+                    with (DIR / (j['id'] + '.log')).open('ab') as log:
+                        p = subprocess.Popen([sys.executable, SELF, '_run', j['id']],
+                                             stdin=subprocess.DEVNULL, stdout=log, stderr=log,
+                                             start_new_session=True)
+                    children.append(p)
+                    j['runner_pid'] = p.pid
+                    save(j, 'started')
+                    running.append(j)
+                pending = any(j['state'] in ('queued', 'running') for j in alljobs)
+            if once and not pending:
+                return 0
+            time.sleep(.05)
+    finally:
+        for p in children:
+            p.poll()
+
+
+def run_job(jid):
+    p = None
+    try:
+        with locked():
+            j = get(jid)
+            if j.get('stop_reason'):
+                finish(j, j['stop_reason'], None)
+                return 0
+            runop = os.environ.get('JOBQ_RUN_OP', str(ROOT / 'bin/run_op'))
+            job_env = (json.loads(Path(j['env_file']).read_text()) if j.get('env_file')
+                       else j.get('env', dict(os.environ)))
+            job_env['JOBQ_JOB_ID'] = jid
+            p = subprocess.Popen([runop, '--agent', 'jobq', '--task', j['name'], '--',
+                                  sys.executable, SELF, '_exec', jid],
+                                 cwd=j['cwd'], env=job_env, start_new_session=True)
+            j['wrapper_pgid'] = p.pid
+            save(j, 'wrapper_started')
+        stopped_at = None
+        while True:
+            with locked():
+                j = get(jid)
+                if not j.get('stop_reason') and j['timeout'] is not None and time.time() - j['start'] >= j['timeout']:
+                    j['stop_reason'] = 'timeout'
+                    save(j, 'timeout_requested')
+                if j.get('stop_reason'):
+                    if stopped_at is None:
+                        # One TERM lets cleanup handlers finish without interruption.
+                        kill_groups(j, signal.SIGTERM)
+                        stopped_at = time.monotonic()
+                    if p.poll() is not None:
+                        kill_groups(j, signal.SIGKILL)  # any remaining descendants
+                        finish(j, j['stop_reason'], p.returncode)
+                        return 0
+                    if time.monotonic() - stopped_at >= j.get('grace', 20):
+                        kill_groups(j, signal.SIGKILL)
+                        rc = p.wait()
+                        finish(j, j['stop_reason'], rc)
+                        return 0
+                elif p.poll() is not None:
+                    # Do not leave command descendants behind after wrapper exit.
+                    kill_groups(j, signal.SIGKILL)
+                    finish(j, 'succeeded' if p.returncode == 0 else 'failed', p.returncode)
+                    return 0
+            time.sleep(.025)
+    except Exception as exc:
+        with locked():
+            j = get(jid)
+            kill_groups(j, signal.SIGKILL)
+            j['error'] = str(exc)
+            finish(j, 'failed', None)
+        if p:
+            p.wait()
+        return 1
+
+
+def exec_job(jid):
+    with locked():
+        j = get(jid)
+        if j.get('stop_reason') or j['state'] != 'running':
+            return 1
+        j.update(pid=os.getpid(), pgid=os.getpgrp())
+        save(j, 'command_started')
+    os.execvpe(j['argv'][0], j['argv'], os.environ)
+
+
+def seconds(value):
+    n = float(value)
+    if not math.isfinite(n) or n < 0:
+        raise argparse.ArgumentTypeError('seconds must be finite and nonnegative')
+    return n
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    sp = ap.add_subparsers(dest='command', required=True)
+    s = sp.add_parser('submit')
+    s.add_argument('--class', dest='cls', choices=['gpu', 'build', 'cpu'], required=True)
+    s.add_argument('--after', nargs='+', action='extend', default=[])
+    s.add_argument('--name')
+    s.add_argument('--timeout', type=seconds)
+    s.add_argument('--grace', type=seconds, default=20, help='TERM to KILL grace in seconds')
+    s.add_argument('--allow-during-gpu', action='store_true')
+    s.add_argument('argv', nargs=argparse.REMAINDER)
+    w = sp.add_parser('worker'); w.add_argument('--once', action='store_true')
+    sp.add_parser('list')
+    r = sp.add_parser('reap-containers')
+    r.add_argument('--yes', action='store_true', help='Remove stale containers; default prints commands')
+    r.add_argument('--dry-run', action='store_true', help='Print commands only (the default)')
+    for cmd in ('show', 'wait', 'cancel', '_run', '_exec'):
+        p = sp.add_parser(cmd); p.add_argument('jobid')
+        if cmd == 'wait':
+            p.add_argument('--timeout', type=seconds)
+    a = ap.parse_args()
+    if a.command == 'reap-containers':
+        sys.path.insert(0, str(ROOT))
+        from cc.acc.server import reap_containers
+        reap_containers(dry_run=not a.yes or a.dry_run, labels=('om=1', 'acc=1'), unowned_max_age=None)
+        return 0
+    if a.command == '_run':
+        return run_job(a.jobid)
+    if a.command == '_exec':
+        return exec_job(a.jobid)
+    if a.command == 'worker':
+        return worker(a.once)
+    if a.command == 'wait':
+        deadline = None if a.timeout is None else time.monotonic() + a.timeout
+        while True:
+            with locked():
+                reconcile(); j = get(a.jobid)
+            if j['state'] in TERMINAL:
+                return 0 if j['state'] == 'succeeded' else 1
+            if deadline is not None and time.monotonic() >= deadline:
+                return 2
+            time.sleep(.05)
+    with locked():
+        reconcile()
+        if a.command == 'submit':
+            argv = a.argv[1:] if a.argv[:1] == ['--'] else a.argv
+            if not argv:
+                ap.error('command required after --')
+            for dep in a.after:
+                get(dep)
+            jid = 'job-' + uuid.uuid4().hex
+            j = dict(id=jid, argv=argv, **{'class': a.cls}, deps=a.after,
+                     name=a.name or argv[0], timeout=a.timeout, grace=a.grace,
+                     allow_during_gpu=a.allow_during_gpu, state='queued', pid=None,
+                     pgid=None, runner_pid=None, start=None, end=None, rc=None,
+                     concurrent_jobs=[], submitted=time.time_ns(), cwd=os.getcwd(),
+                     env_file=None, env_public=None)
+            env = dict(os.environ, JOBQ_DIR=str(DIR))
+            ed = DIR / 'env'; ed.mkdir(parents=True, exist_ok=True); os.chmod(ed, 0o700)
+            ef = ed / f'{jid}.json'
+            fd = os.open(ef, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+            with os.fdopen(fd, 'w') as fh: json.dump(env, fh)
+            j['env_file'] = str(ef)
+            # never persist secrets in the job record (check-in H1 found tokens in job JSON)
+            secret = re.compile(r'TOKEN|KEY|SECRET|PASS|AUTH|SESSION|COOKIE|CREDENTIAL', re.I)
+            j['env_public'] = {k: v for k, v in env.items() if not secret.search(k)
+                               and k in ('PATH', 'DOCKER_CMD_PREFIX', 'BUILD_JOBS', 'LD_LIBRARY_PATH', 'JOBQ_DIR', 'OM_MAX_S', 'OM_MODELDIR') }
+            save(j, 'submitted'); print(jid)
+        elif a.command == 'list':
+            for j in jobs():
+                print(j['id'], j['state'], j['class'], j['name'])
+        elif a.command == 'show':
+            print(json.dumps(get(a.jobid), indent=2))
+        elif a.command == 'cancel':
+            j = get(a.jobid)
+            if j['state'] == 'queued':
+                finish(j, 'cancelled', None)
+            elif j['state'] == 'running':
+                j['stop_reason'] = 'cancelled'
+                save(j, 'cancel_requested')
+    return 0
+
+
+if __name__ == '__main__':
+    try:
+        sys.exit(main())
+    except (ValueError, OSError) as exc:
+        print('jobq: ' + str(exc), file=sys.stderr)
+        sys.exit(1)

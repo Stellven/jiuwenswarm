@@ -151,13 +151,23 @@ def run(store, task_id, attempt_id, request):
         if spark:
             argv += ['--dependency', request['dependency']['path'], '--dependency-commit', request['dependency']['commit'],
                      '--build-target', request.get('build_target','strata-dsv41')]
+            if request.get('delivery') == 'native':
+                argv += ['--delivery', 'native']
         if request.get('patch'):
             argv += ['--patch', request['patch']]
         with stdout.open('wb') as output, stderr.open('wb') as errors:
             rc = subprocess.run(argv, stdin=subprocess.DEVNULL, stdout=output, stderr=errors).returncode
         if (out / 'build-record.json').exists():
             record = json.loads((out / 'build-record.json').read_text())
-        if rc == 0 and (record.get('status') != 'success' or not (record.get('image') or {}).get('Id')):
+        if rc == 0 and request.get('delivery') == 'native':
+            executable = record.get('executable', {})
+            path = Path(executable.get('path', ''))
+            if (record.get('status') != 'success' or record.get('delivery') != 'native'
+                    or not path.is_file() or not path.resolve().is_relative_to(out.resolve())
+                    or hashlib.sha256(path.read_bytes()).hexdigest() != executable.get('sha256')):
+                rc = 1
+                error = dict(code='NATIVE_BUILD_RECORD_INVALID')
+        elif rc == 0 and (record.get('status') != 'success' or not (record.get('image') or {}).get('Id')):
             rc = 1
             error = dict(code='BUILD_RECORD_INVALID')
     except PreparationError as exc:
@@ -190,9 +200,11 @@ def run(store, task_id, attempt_id, request):
         image_id = (record.get('image') or {}).get('Id')
         receipt = dict(request_fingerprint=attempt['fingerprint'], request=request_ref,
                        prep=prep_ref, build_record=record_ref, image_id=image_id, target=request.get('target'))
+        if request.get('delivery') == 'native':
+            receipt.update(delivery='native', executable=record.get('executable'))
         artifact('receipt', json.dumps(receipt, sort_keys=True).encode())
         pruned = prune_intermediates(out) if rc == 0 and image_id else {}
-        values = dict(pruned_intermediates=pruned,status='success' if rc == 0 else 'failed',
+        values = dict(delivery=request.get('delivery', 'image'), executable=record.get('executable'), pruned_intermediates=pruned,status='success' if rc == 0 else 'failed',
             failure_stage=record.get('failure_stage') or (None if rc == 0 else 'prep' if prep['status'] != 'success' else 'build'),
             image_id=image_id, target=request.get('target'), tag=request.get('tag'), source_commit=request.get('source', {}).get('commit'),
             source_tree=record.get('source', {}).get('tree', request.get('source', {}).get('tree')),

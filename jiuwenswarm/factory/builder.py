@@ -32,11 +32,14 @@ class Builder:
         if not isinstance(request, dict):
             raise ValueError('Build request must be an object')
         target = profile(request.get('target'))
-        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target'}:
+        if set(request) - {'target', 'source', 'patch', 'tag', 'deadline_s', 'env', 'dependency', 'build_target', 'delivery'}:
             raise ValueError('Unknown build request fields')
         build_target = request.get('build_target', 'strata-dsv41')
         if not isinstance(build_target,str) or not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,100}',build_target):
             raise ValueError('Invalid declared build target')
+        delivery = request.get('delivery', 'image')
+        if delivery not in {'image', 'native'} or (delivery == 'native' and (target != 'spark-gb10' or build_target != 'llama-server')):
+            raise ValueError('Native delivery requires the Spark llama-server target')
         source = request['source']
         path = Path(source['path']).expanduser().resolve()
         def git(*args):
@@ -77,6 +80,8 @@ class Builder:
             recipe_sha256=hashlib.sha256(recipe.read_bytes()).hexdigest())
         if target == 'spark-gb10':
             normalized['build_target'] = build_target
+            if delivery == 'native':
+                normalized['delivery'] = delivery
             normalized['worker_sha256'] = hashlib.sha256(Path(__file__).with_name('build_job.py').read_bytes()).hexdigest()
             normalized['lifecycle_sha256'] = hashlib.sha256(Path(__file__).with_name('lab_lifecycle.py').read_bytes()).hexdigest()
             if deadline > 5400:
