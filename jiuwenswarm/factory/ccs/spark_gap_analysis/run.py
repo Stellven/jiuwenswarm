@@ -124,6 +124,9 @@ def analyze(evidence):
     if mode == 'pooled-30-screen':
         from pooled30 import analyze as analyze_pooled
         return analyze_pooled(evidence, eligible, reference, positive)
+    if mode == 'c5-matched-stock':
+        from pooled30 import analyze_matched_mapper
+        return analyze_matched_mapper(evidence, eligible, reference, positive)
     p4 = mode in ('p4-abba', 'p4-build-overlap')
     if mode == 'early-bracket':
         from early_bracket import analyze as analyze_early

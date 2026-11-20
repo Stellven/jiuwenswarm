@@ -44,6 +44,13 @@ parity. Report the observed 2048-token logical cuts and whole-launch mapper
 decisions and bypasses. Keep the earlier matched-flags functional report
 separate from the pooled treatment and estimates.
 
+Use `c5-matched-stock` only for the supplemental stock launch with the exact
+C5 arguments and native bank allocation, with the mapper gate unset. Bind the
+original verified pooled C5 input. Report stock flags versus its four pooled
+controls separately from C5 versus the new flags-matched stock run. Both
+comparisons keep four measured request positions per prompt, exact greedy
+hashes, observed paired ranges and the independent scope identities.
+
 Report client TTFT, internal prefill duration and decode rate separately.
 Load time is separately recorded per scope. Do not add phases across clocks,
 infer phase causality from their differences or assign a CC a causal effect

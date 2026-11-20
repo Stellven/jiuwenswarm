@@ -1,5 +1,6 @@
 """Candidate-only fixed-position screening against four closed quiet A+30 controls."""
 from statistics import median
+from datetime import datetime
 
 
 PROMPTS = (512, 2048)
@@ -137,3 +138,56 @@ def analyze(evidence, eligible, reference, positive):
                       control_bank=controls[0]['scope']['matched_bank'])
         result['limitations'].append('C5 and its explicit slot, context, checkpoints and batch settings form one package. The pooled stock scopes cannot isolate the mapper effect.')
     return result
+
+
+def analyze_matched_mapper(evidence, eligible, reference, positive):
+    original = evidence['original_screen']['value']
+    previous = analyze(original, eligible, reference, positive)
+    candidate, stock = original['candidate'], evidence['matched_stock']
+    c_scope, a_scope = (arm['scope'] for arm in (candidate, stock))
+    ref = reference(evidence['original_screen'])
+    demand(previous['subject_arm'] == 'C5' and a_scope['arm'] == 'A+' and
+           reference(c_scope['profile']) == reference(evidence['candidate_profile']) and
+           c_scope['matched_bank'] == a_scope['matched_bank'], 'C5 and stock must share the exact effective profile and actual bank')
+    demand(datetime.fromisoformat(c_scope['value']['stop']) < datetime.fromisoformat(a_scope['value']['start']),
+           'The supplemental stock scope must follow the completed C5 candidate')
+    c_gates = {key: val for key, val in c_scope['value']['launch_environment'].items() if key.startswith('LLAMA_')}
+    a_gates = {key: val for key, val in a_scope['value']['launch_environment'].items() if key.startswith('LLAMA_')}
+    demand(c_gates == {'LLAMA_BATCH_LAYOUT': '1'} and not a_gates and
+           c_scope['value']['binary_sha256'] != a_scope['value']['binary_sha256'],
+           'The mapper gate must be set only on the repaired candidate ELF')
+    prompts = original['prompt_manifest']['value']['prompts']
+    approved = {p['target_tokens_including_template']: p['prompt_sha256'] for p in prompts}
+    c_rows = admitted(c_scope, candidate['requests'], approved, eligible, positive, reference, True)
+    a_rows = admitted(a_scope, stock['requests'], approved, eligible, positive, reference, True)
+    overlap = any(any(entries.values()) for row in stock['requests'] for entries in row.get('cpu_overlap', {}).values())
+    overlap = overlap or any(a_scope['cpu_overlap_prelaunch'].values()) or any(a_scope['cpu_overlap_conditioning'].values())
+    measured = []
+    for size in PROMPTS:
+        c5, flags = [[r['result'] for r in rows[size][2:6]] for rows in (c_rows, a_rows)]
+        controls = {control['id']: [r['result'] for r in control['requests'] if r['result']['prompt_tokens'] == size][2:6]
+                    for control in original['controls']}
+        pool = median_rows(list(controls.values()))
+
+        def hashes(rows):
+            return [dict(output_sha256=r['output_sha256'], reasoning_sha256=r['reasoning_sha256']) for r in rows]
+
+        c_hash, a_hash = hashes(c5), hashes(flags)
+        historical = {key: hashes(rows) for key, rows in controls.items()}
+        measured.append(dict(prompt_tokens=size, n=4, candidate=absolute(c5), stock_flags=absolute(flags),
+                             pooled_reference=absolute(pool), stock_flags_vs_pooled=deltas(flags, pool),
+                             c5_vs_stock_flags=deltas(c5, flags),
+                             stock_flags_by_control={key: deltas(flags, values) for key, values in controls.items()},
+                             greedy_hashes=dict(c5=c_hash, stock_flags=a_hash, pooled_controls=historical),
+                             greedy_parity=dict(c5_vs_stock_flags=c_hash == a_hash,
+                                                stock_flags_vs_pooled=all(a_hash == h for h in historical.values())),
+                             request_artifacts=dict(c5=[reference(r) for r in c_rows[size][2:6]],
+                                                    stock_flags=[reference(r) for r in a_rows[size][2:6]])))
+    return dict(schema='spark-c5-matched-stock/1', comparison='sequential-fixed-profile-screening',
+                original_screen=ref, subject_arm='C5', rows=measured, subject_scope=reference(c_scope),
+                stock_scope=reference(a_scope), stock_profile=reference(a_scope['profile']),
+                candidate_profile=reference(c_scope['profile']), stock_bank=a_scope['matched_bank'],
+                cpu_overlap_observed=dict(stock_flags=overlap, c5=previous['cpu_overlap_observed']),
+                limitations=['Each flags-matched arm ran once. Report observed paired ranges and avoid confidence intervals.',
+                             'The flags-versus-pool comparison describes the settings package and uses historical controls.',
+                             'C5 versus flags-matched stock keeps settings constant. Any greedy divergence limits output-equivalent attribution.'])

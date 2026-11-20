@@ -120,8 +120,10 @@ def main():
     pooled = args.window == 'pooled'
     p4 = args.window in ('p4', 'pooled')
     validate_window_arguments(parser, args, p4, 'llama')
-    if pooled and (args.mode != 'on' or args.launch_pass != 1 or args.first_window or args.native_mib != 30720):
-        parser.error('A pooled screen is one gate-on candidate with a fixed 30720 MiB native bank')
+    matched_mapper_stock = args.cc == 'C5' and args.mode == 'equivalent-stock' and args.arm == 'A+'
+    if pooled and ((args.mode != 'on' and not matched_mapper_stock) or args.launch_pass != 1 or
+                   args.first_window or args.native_mib != 30720):
+        parser.error('A pooled screen requires one admitted arm and a fixed 30720 MiB native bank')
     combined = args.cc == 'D'
     if combined and not pooled and (args.window != 'functional' or args.mode not in ('stock', 'off', 'on')):
         parser.error('Combined D supports matched stock, off and on functional smoke probes')
