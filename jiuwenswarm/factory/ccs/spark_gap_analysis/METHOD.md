@@ -30,3 +30,21 @@ infer phase causality from their differences or assign a CC a causal effect
 without a matched gated arm with parity and activation evidence. Strata's
 ordinary stream counters can be attached from `factory.deep_profile` scope
 analysis. Aggregate worker, DMA and staging intervals can overlap.
+
+## Early timing bracket
+
+Use `early-bracket` only after each scope has shut down under the early probe
+protocol. Admit exactly one stock/candidate-on/stock sequence with one discarded
+and one measured request at each prompt size per launch. For C5, the outer
+strict A launches enclose A-matched/C5/A-matched. Report the inner candidate
+comparison and the separate effect of stock runtime settings. C2 must name the
+retained CPU-identity, all-CPU placement-policy or equivalent-placement control.
+
+Bind actual scope command and binary receipts, source conditioning, prelaunch
+quiet and request boundary checks, the pinned model receipt, prompt bytes,
+resource windows and component markers. Reclaim-only max events are allowed.
+Refuse safety stops, process contamination, mismatched flags or missing cells.
+Preserve qualified measured timings when matched greedy outputs diverge and
+mark them ineligible for candidate attribution. Cross-settings differences are
+reported separately from matched parity. The report lists absolute endpoint
+TTFT and decode values with observed drift and estimates no confidence interval.

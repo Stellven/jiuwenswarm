@@ -87,3 +87,27 @@ imbalance by arm and prompt in the report and qualify the comparisons where
 residency differs. Report other matched counters separately from TTFT.
 
 Before each P4 server launch, run `source_residency.py cold-start --regions SOURCE_REGIONS --out NEW_RECEIPT` under the same protocol for both engines. This acquires the free GPU lock, verifies the quiet preflight, advises eviction of clean pages only on the indexed source files, and samples both packs before and after. Preserve the actual residual fractions. Then take the launch quiet receipt and start the server. Carry out both warmup rounds and the pre-request sampling as above. Keep file-conditioning time outside server load and TTFT measurements.
+
+## Early owner timing brackets
+
+The early pilot uses one discarded 512/2048 round then one measured 512/2048
+round in each scope. Pass completed stock, candidate-on and stock scopes in
+their actual order. For C5 pass strict A, A-matched, C5-on, A-matched and strict
+A. The native post-lab report records all endpoints and controls. The pilot
+does not enter the mirrored P4 estimate or produce a confidence interval.
+
+```sh
+python3 ops/spark/report_early_bracket.py C5 "$A0" "$MATCHED0" "$C5" "$MATCHED1" "$A1" \
+  --products "$REVISED_BUILD_INVENTORY" --source-products "$REVISED_SOURCE_INDEX" \
+  --functional-off "$C5_OFF_FUNCTIONAL" --functional-on "$C5_ON_FUNCTIONAL"
+```
+
+Use the build inventory passed to the probes. The source index uses the
+`spark-source-products.json` field structure and identifies the exact factory
+task, source decision, verifier, diff and commit. C2 also requires
+`--placement-policy` and accepts a pinned `--placement-controls` override.
+The publisher checks controls, seals and runs the analysis and verifier,
+attaches the report to the selected source task, and prints the verified
+report identity for the successor planner. Its accepted controls are the
+`probe_candidate.py` early profiles. The native A+ budget comparison uses its
+own separately admitted experiment and report.

@@ -99,6 +99,9 @@ def p4_design(scopes, rows):
 
 def analyze(evidence):
     mode = evidence['mode']
+    if mode == 'early-bracket':
+        from early_bracket import analyze as analyze_early
+        return analyze_early(evidence, eligible, reference, positive)
     if mode not in ('p1-reconnaissance', 'p4-abba'):
         raise ValueError('Use the P1 reconnaissance or P4 ABBA evidence mode')
     manifest = evidence['prompt_manifest']
