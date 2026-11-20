@@ -184,7 +184,7 @@ export function FactoryRunsPage() {
     };
   }, [selected, filePath]);
   const matchingFiles = useMemo(
-    () => detail?.files.filter((item) => patterns[panel]?.test(item.path)) || [],
+    () => detail?.files.filter((item) => patterns[panel]?.test(item.display_path || item.path)) || [],
     [detail, panel],
   );
   const visibleEvents = events.slice(0, position);
@@ -408,7 +408,7 @@ export function FactoryRunsPage() {
                         aria-pressed={filePath === item.path}
                         onClick={() => setFilePath(item.path)}
                       >
-                        <span>{item.path}</span>
+                        <span>{item.display_path || item.path}</span>
                         <Digest file={item} />
                       </button>
                     ))}
@@ -419,10 +419,10 @@ export function FactoryRunsPage() {
                   <div className="factory-file-content" data-testid="factory-runs-file-content">
                     {file && (
                       <>
-                        <h3>{file.path}</h3>
+                        <h3>{file.display_path || file.path}</h3>
                         <Digest file={file} />
                         {file.truncated && <p data-testid="factory-runs-truncated">{t('factoryRuns.truncated')}</p>}
-                        {/\.md$/i.test(file.path) && panel !== 'diffs' ? (
+                        {/\.md(?:$| ·)/i.test(file.display_path || file.path) && panel !== 'diffs' ? (
                           <MarkdownRenderer content={file.content} testId="factory-runs-markdown" />
                         ) : (
                           <pre>{file.content}</pre>

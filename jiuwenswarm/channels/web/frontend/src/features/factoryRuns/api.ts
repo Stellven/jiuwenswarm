@@ -11,6 +11,7 @@ export type Run = {
 };
 export type EvidenceFile = {
   path: string;
+  display_path?: string;
   sha256: string;
   expected_sha256?: string;
   integrity: 'verified' | 'mismatch' | 'untracked' | 'missing';

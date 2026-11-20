@@ -115,3 +115,18 @@ def test_launch_uses_only_operator_template_in_new_detached_home(tmp_path, monke
     assert (tmp_path / 'runs/homes' / result['task_id'] / 'task.json').is_file()
     with pytest.raises(Exception):
         service.launch('../reviewed')
+
+
+def test_artifact_display_name_preserves_confined_content_path(bundle):
+    blob = bundle / 'artifacts' / 'hash-only-path'
+    blob.parent.mkdir()
+    blob.write_text('Retained report')
+    mapping = [{'artifact_id': 'source:attached/report.md@sha256:abc', 'exported_path': 'artifacts/hash-only-path'}]
+    (bundle / 'artifacts.json').write_text(json.dumps(mapping))
+    service = FactoryHttpService(roots=[bundle])
+    rid = service.listing()['runs'][0]['id']
+    file = service.file(rid, 'artifacts/hash-only-path')
+    assert file['display_path'] == 'attached/report.md'
+    assert file['path'] == 'artifacts/hash-only-path'
+    assert file['content'] == 'Retained report'
+    assert client(service).get(f'/api/factory/runs/{rid}/file', params={'path': 'attached/report.md'}).status_code == 404

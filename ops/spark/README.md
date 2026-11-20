@@ -22,3 +22,31 @@ The test exclusively runs the built-in gradual 256 MiB allocator with the same s
 The initial gate was approved on 2026-11-20. For a fresh campaign, do not start DeepSeek or Strata until `P0 READY FOR REVIEW` has been written to OPS/STATUS.md and the orchestrator has approved in the terminal. The first load of each engine and any unexpected memory event have separate review stops in BRIEF.md.
 
 The native tuner must use `bin/tune-server` in place of llama-server. This preserves per-load locking, capping, engine log forwarding and ledger rows and refuses cache sizes above 61440 MiB. Keep its `--out` unique: the upstream tuner deletes entries if a reused directory has a different command.
+
+## Import operator evidence into the Factory runs UI
+
+Use the checkout's Python environment; this starts no jobs or agents:
+
+```bash
+.venv/bin/python ops/spark/import_evidence.py
+.venv/bin/python ops/spark/import_evidence.py --attach /path/to/report.md \
+  --export "$HOME/predemo-spark/factory-runs/exports/unique-review-name"
+```
+
+The default live home is `factory-runs/spark-direct-benchmarks`. Evidence includes
+OPS run requests/responses, outputs, stderr and memory snapshots; command/binary
+identities; fixed prompt/template manifests; raw/readable contract; original
+ontology documents; and capsule descriptors/slices. Source bytes remain immutable
+artifacts with SHA256 identities. Changed files create new artifact snapshots;
+unchanged request result observations are not counted twice. Export destinations
+must be new paths. Native export applies its existing redaction and manifest
+verification; `artifacts.json` maps source identities to sanitized exported bytes.
+
+This task/session is explicitly labelled **lead-direct-import**, with no factory
+decision agent execution claimed. Failed scopes, cap tests and excluded requests
+remain visible. Only successful, non-discarded requests with actual 512/2048 token
+counts, approved prompt digest, temperature 0 and 32 requested output tokens
+become measurement observations. A preliminary cold request labelled 512 whose
+actual count was 510 remains excluded. Memory is labelled as a server scope
+lifetime peak, not a per-request peak. Each observation cites original artifacts;
+import does not create a performance claim from logs alone.

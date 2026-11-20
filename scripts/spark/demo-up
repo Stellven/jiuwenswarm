@@ -13,7 +13,8 @@ export FRONTEND_HOST=100.105.127.48 FRONTEND_PORT=5173
 export FACTORY_RUN_ROOTS="${FACTORY_RUN_ROOTS:-$base/factory-runs:$base/inputs:$HOME/software-factory-spark-20261113/exports/factory-loop-v1}"
 export FACTORY_LAUNCH_ROOT="${FACTORY_LAUNCH_ROOT:-$base/launch-templates}"
 export FACTORY_LAUNCH_HOME_ROOT="${FACTORY_LAUNCH_HOME_ROOT:-$base/factory-runs}"
-export PATH="$checkout/.venv/bin:$PATH"
+export SPARK_REPO="$checkout"
+source "$checkout/ops/spark/env.sh"
 cd "$checkout"
 [[ -f jiuwenswarm/channels/web/frontend/dist/index.html ]] || { echo 'Build frontend first (see scripts/spark/README.md).' >&2; exit 1; }
 start() {
@@ -21,7 +22,22 @@ start() {
   if [[ -f "$state/$name.pid" ]] && kill -0 "$(cat "$state/$name.pid")" 2>/dev/null; then
     echo "$name already running"; return
   fi
-  systemd-run --user --unit="spark-demo-$name" --collect --service-type=exec     --property="WorkingDirectory=$checkout"     --property="StandardOutput=append:$state/logs/$name.log"     --property="StandardError=append:$state/logs/$name.log"     --setenv="PATH=$PATH" --setenv="JIUWENSWARM_DATA_DIR=$JIUWENSWARM_DATA_DIR"     --setenv=AGENT_SERVER_HOST=127.0.0.1 --setenv=AGENT_SERVER_PORT=18092     --setenv=GATEWAY_HOST=127.0.0.1 --setenv=GATEWAY_PORT=19001     --setenv=WEB_HOST=127.0.0.1 --setenv=WEB_PORT=19000     --setenv="FACTORY_RUN_ROOTS=$FACTORY_RUN_ROOTS"     --setenv="FACTORY_LAUNCH_ROOT=$FACTORY_LAUNCH_ROOT"     --setenv="FACTORY_LAUNCH_HOME_ROOT=$FACTORY_LAUNCH_HOME_ROOT"     "$@" 9>&-
+  service_options=(
+    --user --unit="spark-demo-$name" --collect --service-type=exec
+    --property="WorkingDirectory=$checkout"
+    --property="StandardOutput=append:$state/logs/$name.log"
+    --property="StandardError=append:$state/logs/$name.log"
+    --setenv="PATH=$PATH" --setenv="JIUWENSWARM_DATA_DIR=$JIUWENSWARM_DATA_DIR"
+    --setenv=AGENT_SERVER_HOST=127.0.0.1 --setenv=AGENT_SERVER_PORT=18092
+    --setenv=GATEWAY_HOST=127.0.0.1 --setenv=GATEWAY_PORT=19001
+    --setenv=WEB_HOST=127.0.0.1 --setenv=WEB_PORT=19000
+    --setenv="FACTORY_RUN_ROOTS=$FACTORY_RUN_ROOTS"
+    --setenv="FACTORY_LAUNCH_ROOT=$FACTORY_LAUNCH_ROOT"
+    --setenv="FACTORY_LAUNCH_HOME_ROOT=$FACTORY_LAUNCH_HOME_ROOT"
+    --setenv="FACTORY_JOBQ_BIN=$FACTORY_JOBQ_BIN" --setenv="JOBQ_DIR=$JOBQ_DIR"
+    --setenv="JOBQ_RUN_OP=$JOBQ_RUN_OP" --setenv="FACTORY_YIELD_ON_JOBS=$FACTORY_YIELD_ON_JOBS"
+  )
+  systemd-run "${service_options[@]}" "$@" 9>&-
   systemctl --user show "spark-demo-$name" --property=MainPID --value >"$state/$name.pid"
 }
 start agentserver "$checkout/.venv/bin/python" -m jiuwenswarm.server.app_agentserver --port 18092

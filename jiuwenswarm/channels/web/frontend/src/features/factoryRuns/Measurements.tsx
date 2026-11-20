@@ -30,7 +30,13 @@ export function Measurements({ observations }: { observations: JsonRecord[] }) {
     const groups = new Map<string, JsonRecord[]>();
     for (const observation of observations) {
       const values = observation.values as JsonRecord | undefined;
-      if (!values || typeof values.arm !== 'string') continue;
+      if (
+        !values ||
+        typeof values.arm !== 'string' ||
+        observation.kind !== 'measurement' ||
+        values.measurement_eligible === false
+      )
+        continue;
       if (values.warm === false || values.discarded === true) continue;
       const key = `${values.arm}:${values.prompt_tokens}`;
       groups.set(key, [...(groups.get(key) || []), { ...values, source: observation.obs_id }]);
