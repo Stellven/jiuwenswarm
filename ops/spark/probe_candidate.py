@@ -33,17 +33,21 @@ def save(path, value):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cc', choices=ARMS)
-    parser.add_argument('mode', choices=('stock', 'off', 'on'))
+    parser.add_argument('mode', choices=('stock', 'equivalent-stock', 'off', 'on'))
     parser.add_argument('window', choices=('functional', 'early'))
     parser.add_argument('scope', type=Path)
+    parser.add_argument('--placement-policy', choices=('cpu_identity_smoke', 'heldout_layer27_policy'),
+                        default='cpu_identity_smoke')
     args = parser.parse_args()
+    if args.mode == 'equivalent-stock' and (args.cc != 'C2' or args.placement_policy != 'heldout_layer27_policy'):
+        parser.error('The equivalent-placement stock control requires the layer 27 policy')
     scope = args.scope.resolve()
     if scope.exists() or scope.parent != ROOT / 'OPS/runs':
         parser.error('Choose a fresh directory immediately under OPS/runs')
     first = read(ROOT / 'OPS/runs/a-first-load-retry/start.json')
     product = next(p for p in read(ROOT / 'OPS/p3/native-star-build-products.json')['products']
                    if p['capsule'] == ARMS[args.cc])
-    stock = args.mode == 'stock'
+    stock = args.mode in ('stock', 'equivalent-stock')
     binary = Path(first['command'][0] if stock else product['executable']['path'])
     sha = hashlib.sha256(binary.read_bytes()).hexdigest()
     if sha != (first['binary_sha256'] if stock else product['executable']['sha256']):
@@ -55,17 +59,24 @@ def main():
     if args.cc == 'C1' and on:
         env['LLAMA_EVENT_REC'] = str(scope / 'events.jsonl')
     if args.cc == 'C2':
-        args_file = ROOT / 'OPS/p3/placement-v1-parity-plan.json'
-        expected = {'version': 1, 'overrides': [{'pattern': r'^blk\.0\.ffn_gate_exps\.weight$', 'buft': 'CPU'}]}
-        if read(args_file) != expected:
-            raise RuntimeError('Unexpected placement plan')
-        pattern = r'\.ffn_(up|down|gate|gate_up)_(ch|)exps'
-        override = (r'^(?!blk\.0\.ffn_gate_exps\.weight$).*' if on else '') + pattern + '=CPU'
-        index = flags.index('--cpu-moe')
-        flags[index:index + 1] = ['-ot', override]
+        controls = read(ROOT / 'OPS/p3/placement-v1-matched-controls.json')
+        if controls['source_commit'] != product['source_commit']:
+            raise RuntimeError('Placement controls belong to a different build')
+        profile = controls[args.placement_policy]
         if on:
-            env['LLAMA_PLACEMENT_PLAN'] = '1'
-            flags += ['--placement-plan', str(args_file)]
+            arm_flags = profile['gate_on_argv']
+            plan = Path(arm_flags[arm_flags.index('--placement-plan') + 1])
+            if hashlib.sha256(plan.read_bytes()).hexdigest() != profile['plan_sha256']:
+                raise RuntimeError('Placement plan digest mismatch')
+            env.update(profile['gate_on_env'])
+        elif args.placement_policy == 'cpu_identity_smoke':
+            arm_flags = profile['stock_and_gate_unset_argv']
+        elif args.mode == 'stock':
+            arm_flags = profile['all_cpu_stock_argv']
+        else:
+            arm_flags = profile['equivalent_stock_and_candidate_off_argv']
+        flags = ['-m', first['command'][2], '--host', '127.0.0.1', '--port', str(PORT),
+                 *profile['common_argv'], *arm_flags]
     if args.cc == 'C3' and on:
         env.update(LLAMA_EXPERT_CACHE='1', LLAMA_EXPERT_CACHE_MIB='64')
     if args.cc in ('C4', 'C5'):
@@ -106,7 +117,7 @@ def main():
             raise TimeoutError('Capped server health deadline exceeded')
         save(scope / 'load-ready.json', {'ready_at': datetime.now(timezone.utc).isoformat(),
                                          'health_elapsed_s': time.monotonic() - launched,
-                                         'source_commit': first.get('source_commit') if stock else product['source_commit'],
+                                         'source_commit': '9048bad8d6e3a0f9f1726e238e451181c7e02613' if stock else product['source_commit'],
                                          'native_build_receipt': None if stock else product['receipt_artifact_id']})
         receipt = read(scope / 'scope.json')
         hashes = {}
