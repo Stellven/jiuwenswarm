@@ -108,6 +108,7 @@ def append(row):
 append(dict(meta, event='start'))
 runner = ['systemd-run', '--user', '--scope', '--unit=' + unit, '-p', f'MemoryMax={limit}', '-p', 'MemorySwapMax=0', '-p', 'MemoryAccounting=yes', '-p', 'AllowedCPUs=0-7', '-p', 'CPUQuota=800%', sys.executable, str(Path(__file__).resolve()), '--inside', str(a.result_dir), str(limit), *command]
 stop = None
+memory_stop = None
 termination_request = None
 shutdown_deadline = None
 def interrupted(sig, _frame):
@@ -161,10 +162,10 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
                 memory.write(json.dumps({'time': utc(), 'current': current, 'peak': peak, 'rss': rss, 'available': available(), 'events': events}) + '\n')
                 (a.result_dir / 'monitor.ready').touch()
                 if (int(events.get('oom', 0)) or int(events.get('oom_kill', 0))) and not a.enforcement_test:
-                    stop = 'unexpected cgroup OOM kill'
+                    memory_stop = stop = 'unexpected cgroup OOM kill'
                     kill(unit)
             if available() < 8 * GIB:
-                stop = 'watchdog: MemAvailable below 8 GiB'
+                memory_stop = stop = 'watchdog: MemAvailable below 8 GiB'
                 kill(unit)
             if cg is None and time.monotonic() > deadline:
                 stop = 'scope verification timeout'
@@ -183,15 +184,17 @@ with (a.result_dir / 'stdout.log').open('wb') as stdout, (a.result_dir / 'stderr
 properties = subprocess.run(['systemctl', '--user', 'show', unit, '-p', 'MemoryPeak', '-p', 'Result'], capture_output=True, text=True).stdout
 (a.result_dir / 'systemd-final.txt').write_text(properties)
 if 'Result=oom-kill' in properties and not a.enforcement_test:
-    stop = 'unexpected cgroup OOM kill'
-result = dict(meta, event='stop', stop=utc(), returncode=rc, reason=stop, termination_request=termination_request, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None, min_mem_available_bytes=min_available)
+    memory_stop = stop = 'unexpected cgroup OOM kill'
+stop = memory_stop or stop
+result = dict(meta, requires_review=bool(memory_stop and not a.enforcement_test), event='stop', stop=utc(), returncode=rc, reason=stop, termination_request=termination_request, peak_memory_bytes=peak, peak_rss_bytes=peak_rss, peak_method='kernel memory.peak sampled every 50ms; final milliseconds may be missed', systemd_properties=properties, memory_events=events, scope_verified=cg is not None, min_mem_available_bytes=min_available)
 if a.enforcement_test:
     result['test_passed'] = cg is not None and rc != 0 and (int(events.get('oom_kill', 0)) > 0 or 'oom-kill' in properties)
 write(a.result_dir / 'result.json', result)
 append(result)
 print(json.dumps(result, indent=2))
 if stop and not a.enforcement_test:
-    for name in ('STATUS.md', 'BLOCKERS.md'):
+    suffix = '; await orchestrator review' if memory_stop else ''
+    for name in (('STATUS.md', 'BLOCKERS.md') if memory_stop else ('STATUS.md',)):
         with (ROOT / 'OPS' / name).open('a') as out:
-            out.write(f'{utc()} STOP: {stop}; {a.result_dir}; await orchestrator review.\n')
+            out.write(f'{utc()} STOP: {stop}; {a.result_dir}{suffix}.\n')
 sys.exit((0 if result['test_passed'] else 1) if a.enforcement_test else (rc if rc else (1 if stop else 0)))
