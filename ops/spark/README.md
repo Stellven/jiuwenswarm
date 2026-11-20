@@ -21,7 +21,7 @@ The test exclusively runs the built-in gradual 256 MiB allocator with the same s
 
 The initial gate was approved on 2026-11-20. For a fresh campaign, do not start DeepSeek or Strata until `P0 READY FOR REVIEW` has been written to OPS/STATUS.md and the orchestrator has approved in the terminal. The first load of each engine and any unexpected memory event have separate review stops in BRIEF.md.
 
-Run `ops/spark/tune_aplus.py first --model MODEL --out UNIQUE_DIR` after the operator opens a quiet GPU window. The launcher runs the stock tuner's sequential shard warm in a monitored `bin/capped` scope, then stops after the first completed calibration for review. After approval, repeat with `continue` and the same model and output directory. The stock tuner reuses the first calibration and selects its recommendation from the measured runs. The search and each server launch are limited to 61440 MiB. A new experiment requires a new output directory.
+Run `ops/spark/tune_aplus.py first --model MODEL --out UNIQUE_DIR` after the operator opens a quiet GPU window. The launcher runs the stock tuner's sequential shard warm in a monitored `bin/capped` scope, then stops after the first completed calibration for review. For the owner-limited survey, repeat with `point-30` and then `point-60`, using the same model and output directory. These two points use the stock run_server routine with 512 tokens per generation and CPU share zero. The first calibration uses 2048 tokens per generation. The selection file reports the fastest observed size and leaves the upstream six-run model recommendation unavailable. Each launch is limited to 61440 MiB. A new experiment requires a new output directory.
 
 ## Import operator evidence into the Factory runs UI
 
