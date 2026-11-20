@@ -26,7 +26,7 @@ def marker(log, name):
 
 def trace_evidence(path, recorder):
     if not path.is_file():
-        return dict(status='absent')
+        return dict(status='absent', summary=None)
     digest = hashlib.sha256()
     phase = defaultdict(Counter)
     layers = defaultdict(set)
@@ -41,14 +41,20 @@ def trace_evidence(path, recorder):
             except (ValueError, UnicodeDecodeError):
                 sums['malformed_rows'] += 1
                 continue
+            if not isinstance(entry, dict):
+                sums['malformed_rows'] += 1
+                continue
             if summary is not None:
                 sums['after_summary'] += 1
                 continue
-            if entry['type'] == 'summary':
+            if entry.get('type') == 'summary':
                 summary = entry
                 continue
-            if entry['type'] != 'event':
+            if entry.get('type') != 'event':
                 sums['unknown_record_types'] += 1
+                continue
+            if not {'phase', 'expert_ids', 'microbatch', 'layer', 'request_id', 'bytes_transferred'} <= entry.keys():
+                sums['malformed_rows'] += 1
                 continue
             sums['event_rows'] += 1
             by_phase = phase[entry['phase']]
@@ -60,6 +66,7 @@ def trace_evidence(path, recorder):
             layers[batch].add(layer)
             if entry['request_id'] is not None:
                 requests.add(entry['request_id'])
+            requests.update(row['request_id'] for row in entry.get('rows', ()) if row['request_id'] is not None)
             if entry['bytes_transferred'] is None:
                 sums['null_transfer_rows'] += 1
                 by_phase['null_transfer_rows'] += 1
@@ -70,6 +77,7 @@ def trace_evidence(path, recorder):
     consistent = bool(summary and not problem and summary['written'] == sums['event_rows'] and
                       summary['expected'] == summary['written'] + summary['lost'] and
                       summary['lost'] == sum(summary[key] for key in LOSSES) and
+                      (summary['writer_lost'] or summary['transfer_incomplete'] == sums['null_transfer_rows']) and
                       summary['bytes_transferred'] == sums['submitted_bytes'] and recorder['stats'] == [
                           dict(events=summary['written'], lost=summary['lost'], bytes=summary['bytes_transferred'])])
     incomplete_layers = [dict(microbatch=batch, missing=sorted(set(range(40)) - observed),
@@ -77,7 +85,8 @@ def trace_evidence(path, recorder):
                          for batch, observed in layers.items() if observed != set(range(40))]
     status = ('missing-terminal-summary' if summary is None else 'inconsistent' if not consistent else
               'observed-loss' if summary['lost'] or incomplete_layers else 'route-complete-as-recorded')
-    return dict(status=status, sha256=digest.hexdigest(), summary=summary, consistent=consistent, **sums,
+    return dict(status=status, sha256=digest.hexdigest(), summary=summary, consistent=consistent,
+                transfer_scope='Recorded submitted expert copies. Startup, elapsed DMA time, and saved bytes are outside this count.', **sums,
                 request_ids=sorted(requests), microbatches=len(layers), incomplete_route_layers=incomplete_layers,
                 phase_counts=phase)
 
