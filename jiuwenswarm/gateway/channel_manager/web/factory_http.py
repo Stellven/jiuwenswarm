@@ -27,6 +27,7 @@ from jiuwenswarm.factory.export import snapshot
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from .capsule_catalog import CapsuleCatalog
+from .capsule_evidence import collect_capsule_evidence
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
@@ -134,7 +135,12 @@ class FactoryHttpService:
                              launch_enabled=bool(self.launch_root and self.launch_home_root)))
 
     def capsule_detail(self, name):
-        return self.capsule_catalog.detail(name)
+        detail = self.capsule_catalog.detail(name)
+        detail['evidence'] = collect_capsule_evidence(
+            self, detail['id'], release=detail['digest'] or detail['expected_digest'],
+            starred=detail['starred'], analysis=detail['kind'] == 'analysis',
+        )
+        return detail
 
     def bundle_safe(self, path):
         # story.load_source reads records/contracts itself: validate those inputs

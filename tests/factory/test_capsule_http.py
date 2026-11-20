@@ -28,6 +28,16 @@ def test_catalog_detail_and_file_use_retained_release_pins():
     assert all(row['kind'] == 'builder' and row['integrity'] == 'verified' for row in stars)
     assert all(row['expected_digest'] == row['digest'] for row in stars)
     assert 'files' not in stars[0]
+    kinds = {capsule['id']: capsule['kind'] for capsule in capsules}
+    assert kinds['factory.builder'] == 'factory-support'
+    assert kinds['factory.deep_profile'] == 'analysis'
+    assert kinds['factory.numerical_investigation_lab'] == 'analysis'
+    assert kinds['engine.performance_baseline'] == 'analysis'
+
+    analysis = api.get(f'{PREFIX}/factory.deep_profile').json()
+    assert analysis['sections']['method'] == 'METHOD.md'
+    assert analysis['capability_descriptions']['analyze'].startswith('Parse scoped')
+    assert analysis['evidence']['analyses'] == []
 
     detail = api.get(f'{PREFIX}/{CAPSULE_ID}').json()
     assert detail['name'] == NAME
@@ -110,3 +120,15 @@ def test_files_confined_to_capsule_and_pinned_ontology(catalog_inputs, tmp_path)
         assert api.get(f'{PREFIX}/{NAME}/file', params={'path': path}).status_code == 404
     assert api.get(f'{PREFIX}/engine_inspector/file', params={'path': 'owner-ontology/overview.md'}).status_code == 404
     assert api.get(f'{PREFIX}/missing/file', params={'path': 'cc.yaml'}).status_code == 404
+
+
+def test_file_sanitization_preserves_the_original_byte_digest(catalog_inputs):
+    root, owner = catalog_inputs
+    content = b'{"password":"short-value","sample":12}'
+    (root / NAME / 'samples' / 'redaction.json').write_bytes(content)
+    api = client(CapsuleCatalog(root=root, owner_ontology=owner))
+
+    body = api.get(f'{PREFIX}/{NAME}/file', params={'path': 'samples/redaction.json'}).json()
+    assert body['sha256'] == hashlib.sha256(content).hexdigest()
+    assert 'short-value' not in body['content']
+    assert body['parsed'] == {'password': '<redacted>', 'sample': 12}

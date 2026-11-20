@@ -13,6 +13,7 @@ from jiuwenswarm.ccv2.ccv2 import contained, load, release_manifest_bytes, sha, 
 from jiuwenswarm.factory.capsules import capsule_row
 from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
+from .capsule_evidence import STAR_ARMS
 
 CCS = CONTRACTS.parent / 'ccs'
 MAX_FILE = 1024 * 1024
@@ -20,17 +21,49 @@ SHA256 = re.compile(r'[0-9a-f]{64}')
 OWNER_MANIFEST = 'SHA256SUMS'
 CONTRACT_ID = 'star-deepseek-v1'
 CONTRACT_FILES = (CONTRACT_ID + '.json', CONTRACT_ID + '.md')
-SECTION_KEYS = ('guide', 'method', 'ontology', 'source_map', 'validation', 'verifier')
+SECTION_KEYS = {
+    'guide': ('guide', 'skill'),
+    'method': ('method', 'methodology'),
+    'ontology': ('ontology',),
+    'source_map': ('source_map', 'sources'),
+    'validation': ('validation', 'verification', 'verification_units'),
+    'verifier': ('verifier',),
+}
+# CC-v2 roles describe tools and passive materials. These factory packages
+# advertise analysis through a concrete capability, without a package kind.
+ANALYSIS_CAPABILITIES = {
+    'engine.expert_cache_lab': 'predict',
+    'engine.gpu_kernel_lab': 'evaluate',
+    'engine.heterogeneous_placement_lab': 'overlap_schedule',
+    'engine.kv_reuse_lab': 'estimate',
+    'engine.memory_residency_lab': 'plan',
+    'engine.performance_baseline': 'ceilings',
+    'engine.precision_lab': 'evaluate',
+    'engine.serving_scheduler_lab': 'analyze',
+    'engine.ssd_streaming_lab': 'evaluate',
+    'factory.cc_workflow_lab': 'analyze_receipts',
+    'factory.deep_profile': 'analyze',
+    'factory.evidence_digest_lab': 'project',
+    'factory.expert_prediction': 'evaluate',
+    'factory.inference_lab': 'diagnose',
+    'factory.methodology_ablation': 'ablation',
+    'factory.methodology_diagnosis': 'diagnose',
+    'factory.methodology_followup': 'followup',
+    'factory.methodology_hypothesis': 'propose',
+    'factory.methodology_out_of_core': 'cache_protocol',
+    'factory.methodology_transfer_lab': 'analyze_abba',
+    'factory.numerical_investigation_lab': 'compare_logits',
+}
 STAR_DETAILS = {
-    'observability_event_recorder': ('C1', 'Generation runtime', 'Runtime event recorder',
+    'observability_event_recorder': ('Generation runtime', 'Runtime event recorder',
                                     'Instrumentation for comparing the engine paths'),
-    'weight_placement_planner': ('C2', 'Weight residency', 'Weight placement planner',
+    'weight_placement_planner': ('Weight residency', 'Weight placement planner',
                                  'Profile-driven hot-expert residency'),
-    'expert_weight_cache': ('C3', 'Weight residency', 'Expert weight cache',
+    'expert_weight_cache': ('Weight residency', 'Expert weight cache',
                             'Profile-driven hot-expert residency'),
-    'expert_demand_predictor': ('C4', 'Weight residency', 'Expert demand predictor',
+    'expert_demand_predictor': ('Weight residency', 'Expert demand predictor',
                                 'Expert lookahead'),
-    'batch_layout_mapper': ('C5', 'Generation runtime', 'Batch layout mapper',
+    'batch_layout_mapper': ('Generation runtime', 'Batch layout mapper',
                            'Work-split prefill chunking'),
 }
 CONTRACT_CLAUSES = (
@@ -76,19 +109,30 @@ def _parse(relative, content):
         elif suffix in {'.yaml', '.yml'}:
             if any(isinstance(token, (yaml.tokens.AliasToken, yaml.tokens.AnchorToken, yaml.tokens.TagToken))
                    for token in yaml.scan(content)):
-                return None
+                return None, False
             value = yaml.safe_load(content)
         else:
-            return None
-        return sanitize(json.loads(json.dumps(value, allow_nan=False, default=str)))
+            return None, False
+        normalized = json.loads(json.dumps(value, allow_nan=False, default=str))
+        cleaned = sanitize(normalized)
+        return cleaned, cleaned != normalized
     except (ValueError, TypeError, RecursionError, yaml.YAMLError):
-        return None
+        return None, False
 
 
 def _file_row(path, size=0, actual=None, expected=None):
     integrity = 'missing' if actual is None else (
         ('verified' if actual == expected else 'mismatch') if expected else 'untracked')
     return dict(path=path, size=size, sha256=actual, expected_sha256=expected, integrity=integrity)
+
+
+def _material(root, path):
+    if path:
+        try:
+            return _read(root, path).decode('utf-8')
+        except (OSError, ValueError):
+            pass
+    return ''
 
 
 class CapsuleCatalog:
@@ -159,14 +203,14 @@ class CapsuleCatalog:
         return {}
 
     def summary(self, relative, pin, *, detail=False):
-        path = contained(self.root, relative)
-        root = path.parent
+        root = contained(self.root, Path(relative).parent.as_posix())
+        path = root / 'cc.yaml'
         name = root.name
         star = STAR_DETAILS.get(name) if root.parent == self.root else None
         expected = pin.get('new_release')
         declaration, rows, digest, base = {}, [], None, {}
         try:
-            declaration = load(path)
+            declaration = load(_target(root, 'cc.yaml'))
             rows = tree_files(root)
             digest = sha(release_manifest_bytes(declaration, rows))
         except (OSError, ValueError, yaml.YAMLError):
@@ -176,7 +220,8 @@ class CapsuleCatalog:
                 base = capsule_row(path, declaration, rows)
             except (OSError, ValueError):
                 pass
-        previous = self.previous_manifest(root, pin) if detail and star and digest != expected else {}
+        previous = (self.previous_manifest(root, pin)
+                    if star and expected != digest and (detail or not declaration) else {})
         material_decl = declaration or previous.get('declaration', {})
         materials = {key: value['path'] for key, value in material_decl.get('materials', {}).items()}
         caps = material_decl.get('capabilities', {})
@@ -191,28 +236,36 @@ class CapsuleCatalog:
             known.extend(row for row in rows if row['path'] in transport)
             if sha(release_manifest_bytes(declaration, known)) == expected:
                 expected_files = {row['path']: row['sha256'] for row in known}
-        sections = {key: materials[key] for key in SECTION_KEYS if key in materials}
-        component_path = next((value for value in materials.values() if value.endswith('/component.yaml')), None)
+        sections = {}
+        for section, keys in SECTION_KEYS.items():
+            path = next((materials[key] for key in keys if key in materials), None)
+            if path:
+                sections[section] = path
+        component_path = materials.get('component') or next(
+            (path for path in materials.values() if Path(path).name.lower() in {'component.yaml', 'component.json'}), None)
         if component_path:
             sections['component'] = component_path
         if 'verifier' not in sections and 'verify' in caps and any(row['path'] == 'run.py' for row in rows):
             sections['verifier'] = 'run.py'
-        guide = ''
-        if 'guide' in sections:
-            try:
-                guide = _read(root, sections['guide']).decode('utf-8')
-            except (OSError, ValueError):
-                pass
-        paragraphs = [paragraph for paragraph in guide.split('\n\n') if paragraph.strip() and not paragraph.startswith('#')]
-        description = ' '.join(paragraphs[0].split()) if paragraphs else next(
-            (cap.get('does', '') for cap in caps.values() if cap.get('does')), '')
+        component_spec = _parse(component_path, _material(root, component_path))[0] if component_path else None
+        capsule_id = material_decl.get('id', name)
+        analysis_cap = ANALYSIS_CAPABILITIES.get(capsule_id)
+        if star or (isinstance(component_spec, dict) and component_spec.get('kind') == 'builder_spec'):
+            kind = 'builder'
+        else:
+            kind = 'analysis' if analysis_cap in caps else 'factory-support'
+        overview = _material(root, sections.get('guide') if star else sections.get('guide') or sections.get('method'))
+        intro = next((text.strip() for text in overview.split('\n\n')
+                      if text.strip() and not text.lstrip().startswith(('#', '```', '|'))), '')
+        description = caps.get(analysis_cap, {}).get('does') or ' '.join(intro.split()) or next(
+            (cap['does'] for cap in caps.values()), '')
         integrity = ('verified' if expected == digest else 'mismatch') if expected else (
             'untracked' if digest else 'missing')
-        summary = dict(name=name, id=material_decl.get('id', name),
+        summary = dict(name=name, id=capsule_id,
                        version=declaration.get('version', 'unknown'), starred=bool(star),
-                       kind='builder' if star else 'support', component=star[1] if star else None,
-                       subcomponent=star[2] if star else None, description=description,
-                       strata_mechanism=star[3] if star else None, arm=star[0] if star else None,
+                       kind=kind, component=star[0] if star else None,
+                       subcomponent=star[1] if star else None, description=description,
+                       strata_mechanism=star[2] if star else None, arm=STAR_ARMS.get(capsule_id) if star else None,
                        binding=base.get('binding', 'unavailable'), capabilities=base.get('capabilities', list(caps)),
                        contract_id=CONTRACT_ID if star else None,
                        digest=digest, expected_digest=expected, integrity=integrity)
@@ -221,15 +274,11 @@ class CapsuleCatalog:
             files = [_file_row(name, indexed[name]['size'], indexed[name]['sha256'], expected_files.get(name))
                      if name in indexed else _file_row(name, expected=expected_files[name])
                      for name in sorted(set(indexed) | {name for name in expected_files if _visible(name)})]
-            parsed = {}
-            for key in ('ontology', 'component'):
-                if key in sections:
-                    try:
-                        parsed[key] = _parse(sections[key], _read(root, sections[key]).decode('utf-8'))
-                    except (OSError, ValueError):
-                        pass
-            summary.update(materials=materials, sections=sections, ontology=parsed.get('ontology'),
-                           component_spec=parsed.get('component'), verifier=caps.get('verify', {}).get('does'),
+            ontology_path = sections.get('ontology')
+            ontology = _parse(ontology_path, _material(root, ontology_path))[0] if ontology_path else None
+            summary.update(materials=materials, sections=sections, ontology=ontology,
+                           component_spec=component_spec, verifier=caps.get('verify', {}).get('does'),
+                           capability_descriptions={name: cap['does'] for name, cap in caps.items()},
                            contract_clauses=[row[0] for row in CONTRACT_CLAUSES] if star else [],
                            files=files)
         return summary
@@ -240,7 +289,7 @@ class CapsuleCatalog:
         for relative in self.paths():
             try:
                 capsules.append(self.summary(relative, pins.get(relative, {})))
-            except ValueError:
+            except (OSError, ValueError):
                 continue
         owner_pins = self.owner_pins()
         owner = [self.external_row(self.owner, name, 'owner-ontology', owner_pins.get(name))
@@ -261,15 +310,18 @@ class CapsuleCatalog:
         raise HTTPException(404, 'Capsule not found')
 
     def detail(self, name):
-        relative = self.resolve(name)
+        return sanitize(self._detail(self.resolve(name)))
+
+    def _detail(self, relative):
         pins = self.pins('migration.json') | self.pins('star-transport-migration.json')
         try:
-            return sanitize(self.summary(relative, pins.get(relative, {}), detail=True))
+            return self.summary(relative, pins.get(relative, {}), detail=True)
         except ValueError:
             raise HTTPException(404, 'Capsule not found') from None
 
     def file(self, name, path):
-        detail = self.detail(name)
+        definition = self.resolve(name)
+        detail = self._detail(definition)
         prefix, _, relative = path.partition('/')
         if detail['starred'] and prefix == 'contract' and relative in CONTRACT_FILES:
             root, expected = self.contracts, None
@@ -282,23 +334,17 @@ class CapsuleCatalog:
             files = {row['path']: row for row in detail['files']}
             if path not in files:
                 raise HTTPException(404, 'File is not part of this capsule')
-            root = (self.root / self.resolve(name)).parent
+            root = (self.root / definition).parent
             relative, expected = path, files[path]['expected_sha256']
         try:
             data = _read(root, relative)
         except (OSError, ValueError):
             raise HTTPException(404, 'Capsule file is unavailable') from None
         content = scrub_bytes(data).decode('utf-8', errors='replace')
-        parsed = _parse(relative, content)
-        if parsed is not None:
-            original = _parse(relative, data.decode('utf-8', errors='replace'))
-            # When key-based redaction changed a value, return only the sanitized tree.
-            try:
-                if Path(relative).suffix == '.json' and original != json.loads(content):
-                    content = json.dumps(parsed, ensure_ascii=False, indent=2)
-                elif Path(relative).suffix in {'.yaml', '.yml'} and original != yaml.safe_load(content):
-                    content = yaml.safe_dump(parsed, allow_unicode=True, sort_keys=False)
-            except (ValueError, yaml.YAMLError):
-                pass
+        parsed, changed = _parse(relative, data.decode('utf-8', errors='replace'))
+        if changed:
+            # Keep the raw tab usable when redaction changes a structured value.
+            content = (json.dumps(parsed, ensure_ascii=False, indent=2) if relative.endswith('.json')
+                       else yaml.safe_dump(parsed, allow_unicode=True, sort_keys=False))
         return sanitize(dict(_file_row(path, len(data), sha(data), expected),
                              content=content, parsed=parsed, truncated=False))
