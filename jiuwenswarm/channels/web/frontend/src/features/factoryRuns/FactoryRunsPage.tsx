@@ -11,7 +11,15 @@ import {
 } from './api';
 import { MarkdownRenderer } from '../../components/MarkdownRenderer';
 import { Measurements } from './Measurements';
+import { CapsuleChips, CapsuleLinksContext } from './cc/CapsuleChips';
+import { capsuleApi, type CapsuleCard } from './cc/capsuleApi';
+import { useCapsuleCopy } from './cc/copy';
+import { capsuleHref, runHref, type FactoryEntry } from './cc/navigation';
+import { useCapsuleResource } from './cc/useCapsuleResource';
 import './factoryRuns.css';
+
+const catalogRequest = (_key: string, signal: AbortSignal) => capsuleApi.catalog(signal);
+const emptyCapsules: CapsuleCard[] = [];
 
 const panels = [
   'overview',
@@ -62,12 +70,13 @@ function Graph({ value }: { value: JsonRecord }) {
     <div className="factory-graph" data-testid="factory-runs-graph">
       {nodes.map((node, index) => (
         <article
-          key={String(node.node_id || index)}
+          key={String(node.node_id || node.id || index)}
           data-testid="factory-runs-graph-node"
-          data-variant={String(node.node_id || index)}
+          data-variant={String(node.node_id || node.id || index)}
         >
-          <strong>{String(node.title || node.label || node.node_id)}</strong>
-          <small>{String(node.status || node.kind || '')}</small>
+          <strong>{String(node.title || node.label || node.node_id || node.id || node.capability || '')}</strong>
+          <small>{String(node.status || node.state || node.kind || '')}</small>
+          <CapsuleChips value={node} />
           <JsonView value={node} />
         </article>
       ))}
@@ -76,12 +85,22 @@ function Graph({ value }: { value: JsonRecord }) {
   );
 }
 
-export function FactoryRunsPage() {
+export function FactoryRunsPage({ entry }: { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }> }) {
+  const capsuleCatalog = useCapsuleResource('catalog', catalogRequest);
+  return (
+    <CapsuleLinksContext.Provider value={capsuleCatalog.data?.capsules ?? emptyCapsules}>
+      <FactoryReplay key={JSON.stringify(entry)} entry={entry} />
+    </CapsuleLinksContext.Provider>
+  );
+}
+
+function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }> }) {
   const { t } = useTranslation();
+  const copy = useCapsuleCopy();
   const [listing, setListing] = useState<RunList>({ runs: [], launch_templates: [], launch_enabled: false });
-  const [selected, setSelected] = useState('');
+  const [selected, setSelected] = useState(entry?.run || '');
   const [detail, setDetail] = useState<RunDetail | null>(null);
-  const [panel, setPanel] = useState<Panel>('overview');
+  const [panel, setPanel] = useState<Panel>(entry?.file ? 'capsules' : 'overview');
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const [position, setPosition] = useState(0);
   const [live, setLive] = useState(false);
@@ -90,7 +109,7 @@ export function FactoryRunsPage() {
   const [loading, setLoading] = useState(false);
   const [template, setTemplate] = useState('');
   const [file, setFile] = useState<FileContent | null>(null);
-  const [filePath, setFilePath] = useState('');
+  const [filePath, setFilePath] = useState(entry?.file || '');
   const [launching, setLaunching] = useState(false);
   const refresh = useCallback(async () => {
     try {
@@ -111,7 +130,6 @@ export function FactoryRunsPage() {
     setLoading(true);
     setDetail(null);
     setFile(null);
-    setFilePath('');
     setError('');
     setPlaying(false);
     factoryApi
@@ -184,12 +202,34 @@ export function FactoryRunsPage() {
     };
   }, [selected, filePath]);
   const matchingFiles = useMemo(
-    () => detail?.files.filter((item) => patterns[panel]?.test(item.display_path || item.path)) || [],
-    [detail, panel],
+    () => detail?.files.filter((item) => item.path === filePath || patterns[panel]?.test(item.display_path || item.path)) || [],
+    [detail, filePath, panel],
   );
   const visibleEvents = events.slice(0, position);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const records = detail?.records || {};
+  const eventRefs = useMemo(() => {
+    const result = new Map<string, JsonRecord>();
+    const data = detail?.records;
+    for (const type of ['decisions', 'observations', 'evaluations', 'attempts']) {
+      for (const row of data?.[type] ?? []) {
+        const id = row.decision_id ?? row.obs_id ?? row.eval_id ?? row.attempt_id;
+        if (typeof id === 'string') result.set(id, row);
+      }
+    }
+    return result;
+  }, [detail]);
+  const capsuleEvent = (event: StoryEvent) => [
+    event,
+    eventRefs.get(event.id) ?? eventRefs.get(event.id.split(':')[0]),
+    ['build', 'integrate'].includes(event.kind) ? records.tasks?.[0]?.component_cc : null,
+  ];
+  const selectRun = (id: string) => {
+    if (id === selected) return;
+    window.history.replaceState(window.history.state, '', runHref(id));
+    setFilePath('');
+    setSelected(id);
+  };
   const selectPanel = (value: Panel) => {
     setPanel(value);
     setFilePath('');
@@ -201,7 +241,7 @@ export function FactoryRunsPage() {
     try {
       const result = await factoryApi.launch(template);
       await refresh();
-      setSelected(result.id);
+      selectRun(result.id);
       setLive(true);
     } catch (err) {
       setError(String(err));
@@ -223,20 +263,23 @@ export function FactoryRunsPage() {
         </p>
         <div className="factory-run-list" data-testid="factory-runs-list">
           {listing.runs.map((run) => (
-            <button
-              key={run.id}
-              className="factory-run"
-              data-testid="factory-runs-run"
-              data-variant={run.id}
-              aria-pressed={run.id === selected}
-              onClick={() => setSelected(run.id)}
-            >
-              <strong>{run.name}</strong>
-              <span>
-                {run.kind} · {run.status || t('factoryRuns.recorded')}
-              </span>
-              <small>{run.task_id}</small>
-            </button>
+            <div key={run.id} data-testid="factory-runs-run-entry" data-variant={run.id}>
+              <button
+                className="factory-run"
+                style={{ width: '100%' }}
+                data-testid="factory-runs-run"
+                data-variant={run.id}
+                aria-pressed={run.id === selected}
+                onClick={() => selectRun(run.id)}
+              >
+                <strong>{run.name}</strong>
+                <span>
+                  {run.kind} · {run.status || t('factoryRuns.recorded')}
+                </span>
+                <small>{run.task_id}</small>
+              </button>
+              <CapsuleChips value={[run.task_id, run.objective]} />
+            </div>
           ))}
           {!listing.runs.length && <p data-testid="factory-runs-empty">{t('factoryRuns.empty')}</p>}
         </div>
@@ -287,6 +330,7 @@ export function FactoryRunsPage() {
                 <p className="factory-muted">
                   {detail.run.task_id} · {detail.run.status}
                 </p>
+                <CapsuleChips value={[detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]} />
               </div>
               <label className="factory-live">
                 <input
@@ -332,6 +376,7 @@ export function FactoryRunsPage() {
               </div>
               <p data-testid="factory-runs-current-event">
                 {cursor ? `${cursor.kind} · ${cursor.summary}` : t('factoryRuns.start')}
+                {cursor && <CapsuleChips value={capsuleEvent(cursor)} />}
               </p>
             </section>
             <nav className="factory-tabs" data-testid="factory-runs-tabs" aria-label={t('factoryRuns.panels')}>
@@ -371,7 +416,7 @@ export function FactoryRunsPage() {
                       <li key={`${event.id}-${index}`} data-testid="factory-runs-event" data-variant={event.id}>
                         <time>{new Date(event.created * 1000).toLocaleTimeString()}</time>
                         <strong>{event.kind}</strong>
-                        <span>{event.summary}</span>
+                        <span>{event.summary} <CapsuleChips value={capsuleEvent(event)} /></span>
                       </li>
                     ))}
                   </ol>
@@ -394,7 +439,12 @@ export function FactoryRunsPage() {
                   <JsonView value={detail.contract} />
                 </>
               )}
-              {panel === 'capsules' && <JsonView value={detail.stack} />}
+              {panel === 'capsules' && (
+                <div className="cc-actions" data-testid="factory-runs-run-capsules">
+                  <CapsuleChips value={[detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]} />
+                  <a href={capsuleHref()} data-testid="factory-runs-capsule-browse">{copy('catalog')} →</a>
+                </div>
+              )}
               {panel === 'tests' && <JsonView value={records.evaluations || []} />}
               {panel === 'measurements' && (
                 <Measurements

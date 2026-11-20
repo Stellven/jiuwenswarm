@@ -6,6 +6,7 @@ export type Run = {
   name: string;
   kind: 'bundle' | 'live';
   task_id: string;
+  objective?: string;
   status: string;
   updated: number;
 };
@@ -55,8 +56,8 @@ export const factoryApi = {
     request<{ events: StoryEvent[]; cursor: number; total: number; reset?: boolean }>(
       `/runs/${encodeURIComponent(id)}/story?since=${since}`,
     ),
-  file: (id: string, path: string) =>
-    request<FileContent>(`/runs/${encodeURIComponent(id)}/file?path=${encodeURIComponent(path)}`),
+  file: (id: string, path: string, signal?: AbortSignal) =>
+    request<FileContent>(`/runs/${encodeURIComponent(id)}/file?path=${encodeURIComponent(path)}`, { signal }),
   launch: (template_id: string) =>
     request<{ id: string; task_id: string; pid: number }>('/launch', {
       method: 'POST',

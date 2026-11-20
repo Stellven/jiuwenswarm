@@ -17,6 +17,8 @@ import { SessionSidebar } from './components/SessionSidebar';
 import { SkillPanel } from './components/SkillPanel';
 import { AgentManagementPanel } from './components/AgentManagementPanel';
 import { FactoryRunsPage } from './features/factoryRuns/FactoryRunsPage';
+import { CapsulesPage } from './features/factoryRuns/cc/CapsulesPage';
+import { capsuleHref, readFactoryEntry, runHref } from './features/factoryRuns/cc/navigation';
 import { RsiPage } from './features/rsi/RsiPage';
 import {
   normalizeRSIEnabled,
@@ -398,7 +400,21 @@ function AppContent({
   const [chatWelcomeVariant, setChatWelcomeVariant] = useState<'group-create' | null>(null);
   const [trajectoryUiRequested, setTrajectoryUiRequested] = useState(false);
 
-  const [activeNav, setActiveNav] = useState<MainNavKey>('chat');
+  const [factoryEntry, setFactoryEntry] = useState(() => readFactoryEntry(window.location.hash));
+  const [activeNav, setActiveNav] = useState<MainNavKey>(() => factoryEntry?.view || 'chat');
+
+  useEffect(() => {
+    const syncFactoryEntry = () => {
+      const next = readFactoryEntry(window.location.hash);
+      setFactoryEntry(next);
+      if (next) setActiveNav(next.view);
+      else if (!window.location.hash) {
+        setActiveNav((current) => current === 'factoryRuns' || current === 'capabilityCapsules' ? 'chat' : current);
+      }
+    };
+    window.addEventListener('hashchange', syncFactoryEntry);
+    return () => window.removeEventListener('hashchange', syncFactoryEntry);
+  }, []);
   const masterEnabled = usePersonalContextStore(
     (s) => s.config.collection_enabled || s.config.agent_use_enabled,
   );
@@ -620,6 +636,7 @@ function AppContent({
   } = useSingleAgentPanelState();
 
   useEffect(() => {
+    if (readFactoryEntry(window.location.hash)) return;
     if (route.kind === 'chat-session') {
       sessionIdRef.current = route.sessionId;
       setSessionId(route.sessionId);
@@ -1733,7 +1750,7 @@ function AppContent({
       setConfigError(null);
       if (!modelSetupGuideEvaluatedRef.current) {
         modelSetupGuideEvaluatedRef.current = true;
-        if (config.runtime_mode !== 'codex_subscription' && (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled))) {
+        if (!readFactoryEntry(window.location.hash) && config.runtime_mode !== 'codex_subscription' && (shouldPreviewModelSetupGuide() || isSetupGuideEnabled(config.setup_guide_enabled))) {
           setActiveNav('chat');
           setModelSetupGuideStep(1);
         }
@@ -3455,6 +3472,22 @@ function AppContent({
         return;
       }
       if (nav !== 'settings') setRequestedSettingsModuleId(null);
+      if (nav === 'capabilityCapsules') {
+        if (window.location.hash !== capsuleHref()) {
+          const hash = capsuleHref();
+          window.location.hash = hash;
+          setFactoryEntry(readFactoryEntry(hash));
+        }
+      } else if (nav === 'factoryRuns') {
+        if (activeNav !== nav) {
+          const hash = runHref();
+          window.location.hash = hash;
+          setFactoryEntry(readFactoryEntry(hash));
+        }
+      } else if (readFactoryEntry(window.location.hash)) {
+        window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+        setFactoryEntry(undefined);
+      }
       setActiveNav(nav);
       if (nav === 'chat') {
         setConversationSidebarCollapsed(false);
@@ -3863,7 +3896,16 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
             </div>
           </>
         )}
-        {activeNav === 'factoryRuns' && <div className="app-section min-h-0" data-testid="app-factory-runs"><FactoryRunsPage /></div>}
+        {activeNav === 'factoryRuns' && (
+          <div className="app-section min-h-0" data-testid="app-factory-runs">
+            <FactoryRunsPage entry={factoryEntry?.view === 'factoryRuns' ? factoryEntry : undefined} />
+          </div>
+        )}
+        {activeNav === 'capabilityCapsules' && (
+          <div className="app-section min-h-0" data-testid="app-capability-capsules">
+            <CapsulesPage name={factoryEntry?.view === 'capabilityCapsules' ? factoryEntry.capsule : undefined} />
+          </div>
+        )}
         {activeNav === 'experiments' && (
           <div className="app-section">
             <RsiPage />
@@ -4040,7 +4082,7 @@ const showWorkspaceDivider = effectiveTeamAreaExpanded && !showConversationNotFo
       <ToastStack />
 
       {/* 连接状态提示 */}
-      {!isConnected && (
+      {!isConnected && activeNav !== 'capabilityCapsules' && activeNav !== 'factoryRuns' && (
         <div className="app-toast-wrapper app-toast-wrapper--top" data-testid="app-connection-toast">
           <div
             className="app-connection-toast animate-rise"
