@@ -116,7 +116,7 @@ function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRo
       <BuilderSubtitle capsule={capsule} />
       <p>{plainDescription(capsule.cc_summary || capsule.description || capsule.component || capsule.id)}</p>
       <RawId capsule={capsule} />
-      {!!results?.length && <CapsuleHeadlineResults rows={results} />}
+      {!!results?.length && <CapsuleHeadlineResults rows={results} compact />}
       {!!capsule.used_in_runs && (
         <small className="cc-run-count" data-testid="factory-runs-capsule-used">
           {copy('usedInRuns')} · {capsule.used_in_runs}
@@ -444,7 +444,12 @@ function Ontology({
   );
 }
 
-function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: CapsuleCatalog }) {
+function DetailView({ capsule, catalog, headlines }: {
+  capsule: CapsuleDetail;
+  catalog?: CapsuleCatalog;
+  headlines: HeadlineRow[];
+}) {
+  const results = capsule.starred ? capsuleHeadlineRows(capsule.name, headlines) : [];
   const copy = useCapsuleCopy();
   const [requestedTab, setTab] = useState<Tab>(capsule.kind === 'analysis' ? 'artifacts' : 'method');
   const [material, setMaterial] = useState<{ path: string; run?: string; title?: string }>();
@@ -479,6 +484,12 @@ function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: Ca
         ← {copy('back')}
       </a>
       <CapsuleHeader capsule={capsule} />
+      {results.length > 0 && (
+        <section className="cc-section cc-detail-results" data-testid="factory-runs-capsule-detail-results">
+          <h2>{copy('results')}</h2>
+          <CapsuleHeadlineResults rows={results} />
+        </section>
+      )}
       {capsule.kind === 'builder' && <BuilderRunEvidence capsule={capsule} onArtifact={onArtifact} />}
       <nav className="cc-tabs" aria-label={copy('title')} data-testid="factory-runs-capsule-tabs">
         {visibleTabs.map((item) => (
@@ -624,7 +635,7 @@ function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: Ca
 }
 
 export function CapsulesPage({ name }: { name?: string }) {
-  const headlines = useFinalHeadlines(!name);
+  const headlines = useFinalHeadlines();
   const catalog = useCapsuleResource(name ? 'manifests-only' : 'with-usage', catalogRequest);
   const detail = useCapsuleResource(name, capsuleApi.detail);
   const copy = useCapsuleCopy();
@@ -633,7 +644,8 @@ export function CapsulesPage({ name }: { name?: string }) {
       <div className="cc-shell">
         {name ? (
           detail.data ? (
-            <DetailView key={detail.data.name} capsule={detail.data} catalog={catalog.data} />
+            <DetailView key={detail.data.name} capsule={detail.data} catalog={catalog.data}
+              headlines={headlines?.payload.rows ?? []} />
           ) : (
             <>
               <a className="cc-back" href={capsuleHref()} data-testid="factory-runs-capsule-back">

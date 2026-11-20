@@ -132,6 +132,8 @@ const en = {
   formerNames: 'Formerly',
   atlasId: 'Atlas CC',
   notInAtlas: 'Not in the atlas yet',
+  fromRelease: 'from release',
+  pairedSaved: 'paired TTFT saved',
 } as const;
 
 const zh: Record<keyof typeof en, string> = {
@@ -266,6 +268,8 @@ const zh: Record<keyof typeof en, string> = {
   formerNames: '曾用名',
   atlasId: '图谱 CC',
   notInAtlas: '尚未收录于图谱',
+  fromRelease: '来自版本',
+  pairedSaved: '配对首词元节省',
 };
 
 export type CopyKey = keyof typeof en;

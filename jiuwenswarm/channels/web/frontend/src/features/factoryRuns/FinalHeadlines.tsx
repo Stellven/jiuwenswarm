@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { request } from './api';
+import { headlineOutcome } from './cc/capsuleModel.ts';
 import './headlines.css';
 
 type HeadlineSource = { path: string; sha256: string };
@@ -89,17 +90,41 @@ export function FinalHeadlines({ publication, onOpen }: {
   );
 }
 
-export function CapsuleHeadlineResults({ rows }: { rows: HeadlineRow[] }) {
+const outcomeLabels = {
+  faster: 'Faster first token',
+  slower: 'Slower first token',
+  mixed: 'Mixed / near parity',
+} as const;
+
+/** Rows arrive strongest first (see capsuleHeadlineRows): the first leads, the rest stay visible and labelled. */
+export function CapsuleHeadlineResults({ rows, compact = false }: { rows: HeadlineRow[]; compact?: boolean }) {
+  const [lead, ...more] = rows;
+  if (!lead) return null;
+  const outcome = (row: HeadlineRow) => {
+    const value = headlineOutcome(row);
+    return value ? <span className="cc-headline-outcome" data-outcome={value}>{outcomeLabels[value]}</span> : null;
+  };
   return (
     <div className="cc-headline-results" data-testid="factory-capsule-headline-results">
-      {rows.map((row) => (
-        <div key={row.id} data-testid="factory-capsule-headline-row" data-arm={row.id}>
-          {rows.length > 1 && <strong>{row.arm}</strong>}
-          <span className="factory-headline-grade">{row.grade}</span>
-          <p>{row.summary}</p>
-          <small>TTFT {row.ttft} · Decode {row.decode}</small>
+      <div key={lead.id} className="cc-headline-lead" data-testid="factory-capsule-headline-row" data-arm={lead.id}>
+        <strong>{lead.arm}</strong>
+        <span className="factory-headline-grade">{lead.grade}</span> {outcome(lead)}
+        <p>{lead.summary}</p>
+        <small>TTFT {lead.ttft} · Decode {lead.decode}</small>
+      </div>
+      {more.length > 0 && (
+        <div className="cc-headline-more">
+          <small className="cc-headline-more-title">Additional results</small>
+          {more.map((row) => (
+            <div key={row.id} data-testid="factory-capsule-headline-row" data-arm={row.id}>
+              <strong>{row.arm}</strong>
+              <span className="factory-headline-grade">{row.grade}</span> {outcome(row)}
+              {!compact && <p>{row.summary}</p>}
+              <small>TTFT {row.ttft} · Decode {row.decode}</small>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
   );
 }

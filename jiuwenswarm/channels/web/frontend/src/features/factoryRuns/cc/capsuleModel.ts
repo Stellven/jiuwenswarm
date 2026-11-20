@@ -13,9 +13,43 @@ export function headlineArmForCapsule(name: string) {
   return headlineArms.get(name);
 }
 
-export function capsuleHeadlineRows<T extends { cc: string | null }>(name: string, rows: T[]) {
+/** Signed "saved" values from a headline metric such as "+27.08 / +92.07 s saved". */
+export function savedValues(value: unknown): number[] {
+  if (typeof value !== 'string' || !/saved/.test(value)) return [];
+  return [...value.replace(/\u2212/g, '-').matchAll(/[+-]?\d+(?:\.\d+)?/g)].map((match) => Number(match[0]));
+}
+
+/** Evidence grade rank: verified quiet comparisons lead, then verified functional checks, then screening. */
+export function gradeRank(grade: unknown): number {
+  const text = typeof grade === 'string' ? grade.toLowerCase() : '';
+  if (text.startsWith('verified')) return /quiet|abba/.test(text) ? 3 : 2;
+  return text.startsWith('screening') ? 1 : 0;
+}
+
+/** Outcome of a row derived from its published TTFT saved values. */
+export function headlineOutcome(row: { ttft?: unknown }): 'faster' | 'slower' | 'mixed' | undefined {
+  const values = savedValues(row.ttft);
+  if (!values.length) return undefined;
+  if (values.every((value) => value > 0)) return 'faster';
+  if (values.every((value) => value < 0)) return 'slower';
+  return 'mixed';
+}
+
+/**
+ * Headline rows for one capsule, strongest verified evidence first: grade (quiet ABBA before
+ * functional before screening), then the total paired TTFT saved. Ties keep publication order.
+ */
+export function capsuleHeadlineRows<T extends { cc: string | null; grade?: unknown; ttft?: unknown }>(
+  name: string,
+  rows: T[],
+) {
   const arm = headlineArmForCapsule(name);
-  return rows.filter((row) => row.cc === arm);
+  const total = (row: T) => savedValues(row.ttft).reduce((sum, value) => sum + value, 0);
+  return rows
+    .filter((row) => row.cc === arm)
+    .map((row, index) => ({ row, index }))
+    .sort((a, b) => gradeRank(b.row.grade) - gradeRank(a.row.grade) || total(b.row) - total(a.row) || a.index - b.index)
+    .map(({ row }) => row);
 }
 
 export function readableName(value: string): string {

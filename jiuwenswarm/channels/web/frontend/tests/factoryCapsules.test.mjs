@@ -112,3 +112,23 @@ test('atlas names give every capsule a rule-conforming title and kind, keyed by 
   assert.equal(ccKind({ name: 'cache_size_pareto', id: 'analysis.cache_size_pareto', kind: 'analysis' }), 'tool');
   assert.equal(displayName({ ...card, cc_title: 'Server title' }), 'Server title');
 });
+
+test('capsule headline rows lead with the strongest verified quiet result and keep the rest', () => {
+  const rows = [
+    { cc: 'C3', id: 'c3-original30', grade: 'Verified · quiet ABBA', ttft: '−1.18 / −2.84 s saved' },
+    { cc: 'C3', id: 'c3-direct30', grade: 'Verified · quiet ABBA', ttft: '−0.02 / +0.20 s saved' },
+    { cc: 'C3', id: 'c3-60', grade: 'Verified · quiet ABBA', ttft: '+27.08 / +92.07 s saved' },
+    { cc: 'C3', id: 'c3-screen', grade: 'Screening · pooled A+30', ttft: '+99 / +99 s saved' },
+  ];
+  assert.deepEqual(capsuleHeadlineRows('expert_weight_cache', rows).map(({ id }) => id),
+    ['c3-60', 'c3-direct30', 'c3-original30', 'c3-screen']);
+});
+
+test('headline outcomes are derived from the published saved values', async () => {
+  const { headlineOutcome, savedValues } = await import('../src/features/factoryRuns/cc/capsuleModel.ts');
+  assert.deepEqual(savedValues('−1.18 / −2.84 s saved'), [-1.18, -2.84]);
+  assert.equal(headlineOutcome({ ttft: '+27.08 / +92.07 s saved' }), 'faster');
+  assert.equal(headlineOutcome({ ttft: '−1.18 / −2.84 s saved' }), 'slower');
+  assert.equal(headlineOutcome({ ttft: '−0.02 / +0.20 s saved' }), 'mixed');
+  assert.equal(headlineOutcome({ ttft: 'Unmeasured' }), undefined);
+});

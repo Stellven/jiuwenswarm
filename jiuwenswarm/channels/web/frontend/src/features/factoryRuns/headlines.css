@@ -90,3 +90,42 @@
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
+
+.cc-headline-lead strong,
+.cc-headline-more strong {
+  display: block;
+}
+
+.cc-headline-more {
+  display: grid;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--color-border-default);
+}
+
+.cc-headline-more-title {
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cc-headline-outcome {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--color-text-secondary);
+}
+
+.cc-headline-outcome[data-outcome='faster'] {
+  color: var(--color-feedback-success-text, var(--color-text-link));
+}
+
+.cc-headline-outcome[data-outcome='slower'] {
+  color: var(--color-text-danger);
+}
+
+.cc-release-origin {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: var(--color-text-weak);
+}

@@ -153,6 +153,70 @@ def _lab_rollup(record, artifacts):
                 limitations=record.get('limitations'), artifact=artifact,
                 created=_number(record.get('created')))
 
+def _capsule_version(task, capsule_id):
+    """Version of the capsule a run was given, from ``resources.capsules`` (``id@version``)."""
+    for reference in _strings(_object(task.get('resources')).get('capsules')):
+        name, _, version = reference.partition('@')
+        if name == capsule_id and version:
+            return version
+    return None
+
+
+def _builder_entry(iteration, capsule_id):
+    return next((row for row in _records(_object(iteration.get('plan')).get('builder_ccs'))
+                 if row.get('id') == capsule_id), {})
+
+
+def _iteration_lab(iteration, capsule_id, read_json, created):
+    """Lab rollup for a builder from a published quiet comparison in a factory iteration.
+
+    Parity compares the candidate arm's greedy output digests with the control arm's for each prompt
+    size; activation reads the candidate's retained profile-activation marker. Both are recomputed
+    from the iteration's own verified artifacts.
+    """
+    analysis = _object(iteration.get('analysis'))
+    comparison = _object(analysis.get('focused_comparison'))
+    profiles = _object(comparison.get('profiles'))
+    arms = [arm for arm in profiles if arm not in BASELINES]
+    controls = [arm for arm in profiles if arm in BASELINES]
+    lab_ids = _strings(_object(iteration.get('lab')).get('result_artifact_ids'))
+    if len(arms) != 1 or len(controls) != 1 or not lab_ids:
+        return None
+    arm, control = arms[0], controls[0]
+    result = _object(analysis.get('result_artifact'))
+    parsed, artifact = read_json(result.get('artifact_id'), result.get('sha256'))
+    parity = None
+    if isinstance(parsed, dict):
+        outputs = defaultdict(lambda: defaultdict(set))
+        for row in _records(parsed.get('eligible')):
+            if isinstance(row.get('output_sha256'), str):
+                outputs[row.get('prompt_tokens')][row.get('arm')].add(row['output_sha256'])
+        sizes = [by_arm for by_arm in outputs.values() if by_arm.get(arm) and by_arm.get(control)]
+        if sizes:
+            parity = all(by_arm[arm] == by_arm[control] for by_arm in sizes)
+    activation = None
+    for reference in lab_ids:
+        aid, _, digest = reference.partition('@')
+        if aid.endswith('/profile-activation.json') and f'-{arm.lower()}-' in aid:
+            marker, _ = read_json(reference, digest)
+            text = str(_object(marker).get('marker', ''))
+            if text:
+                activation = bool(activation) or ': active ' in text + ' '
+    metrics = {}
+    for row in _records(comparison.get('rows')):
+        saved = _number(_object(row.get('paired_ttft_seconds_saved_vs_' + control.replace('+', 'plus'))).get('estimate'))
+        size = _number(row.get('prompt_tokens'))
+        if saved is not None and size is not None:
+            metrics[f'paired_ttft_saved_s_{size}'] = round(saved, 2)
+    entry = _builder_entry(iteration, capsule_id)
+    scope = f"{iteration.get('iteration_id')}: {arm} vs {control}"
+    if isinstance(parsed, dict) and isinstance(parsed.get('mode'), str):
+        scope += f" ({parsed['mode']})"
+    return dict(binary_sha256=_object(profiles[arm]).get('binary_sha256'), parity=parity, activation=activation,
+                metrics=metrics, scope=scope, limitations=None, artifact=artifact, created=created,
+                version=entry.get('version'), release=entry.get('release'))
+
+
 def _artifact_kind(row, verifier_refs, product_refs):
     aid = row['artifact_id']
     if aid in verifier_refs or re.search(r'verif(?:y|ier|ication)[-_]receipts?(?:\.json)?$', aid):
@@ -322,6 +386,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         iteration_outputs = set()
         iteration_reports = {}
         builder_reports = []
+        built_iterations = []
         lab_refs = set()
         consumes_analysis = False
         for record in observations:
@@ -340,7 +405,11 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
                     if isinstance(report.get('artifact_id'), str) and isinstance(report.get('sha256'), str):
                         iteration_reports[report['artifact_id']] = report['sha256']
                         if contributed_build:
-                            builder_reports.append(dict(report, created=_number(record.get('created'))))
+                            entry = _builder_entry(iteration, capsule_id)
+                            builder_reports.append(dict(report, created=_number(record.get('created')),
+                                                        version=entry.get('version'), release=entry.get('release')))
+                if contributed_build and not analysis:
+                    built_iterations.append((iteration, _number(record.get('created'))))
             if kind == 'functional_lab' and record in relevant:
                 lab_refs.update(aid for aid in _strings(record.get('source_artifacts')) if aid.rsplit('/', 1)[-1] == 'lab.json')
             explicit = capsule_id in _capsules(record) or capsule_id in _capsules(values)
@@ -440,17 +509,45 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
                 run_measurements.append(row)
                 seen_measurements.add(key)
         if not analysis and (owns_capsule or builder_reports):
-            build = max((item for row in relevant if row.get('kind') == 'build_result'
-                         if (item := _build_rollup(row, artifact_index))), key=lambda item: item['created'] or 0, default=None)
-            lab = max((item for row in relevant if (item := _lab_rollup(row, artifact_index))),
-                      key=lambda item: item['created'] or 0, default=None)
-            report = max((row for row in builder_reports if row['artifact_id'] in artifact_index),
-                         key=lambda row: (row['created'] or 0, _number(row.get('revision')) or 0), default=None)
-            if build or lab or report or run_measurements:
-                builder_summaries.append(source | dict(
-                    build=build, lab=lab, report=artifact_index[report['artifact_id']] if report else None,
-                    updated=max((item['created'] or 0 for item in (build, lab, report) if item), default=0),
-                ))
+            run_version = _capsule_version(task, capsule_id)
+            builds = [item | dict(version=run_version) for row in relevant if row.get('kind') == 'build_result'
+                      if (item := _build_rollup(row, artifact_index))]
+            labs = [item | dict(version=run_version) for row in relevant if (item := _lab_rollup(row, artifact_index))]
+            entries = {entry.get('artifact_id'): entry for entry in _records(inventory)
+                       if entry.get('task_id', task_id) == task_id and isinstance(entry.get('artifact_id'), str)}
+
+            def read_json(reference, digest):
+                aid = reference.split('@', 1)[0] if isinstance(reference, str) else None
+                entry = entries.get(reference) or entries.get(aid)
+                relative = entry.get('exported_path' if bundle else 'location') if entry else None
+                if not isinstance(relative, str) or not isinstance(digest, str):
+                    return None, None
+                try:
+                    target = _inside(root, relative)
+                    if not target.is_file() or target.stat().st_size > MAX_FILE:
+                        return None, None
+                    blob = target.read_bytes()
+                except (OSError, ValueError):
+                    return None, None
+                if hashlib.sha256(blob).hexdigest() != digest:
+                    return None, None
+                artifact = source | dict(path=relative, artifact_id=entry['artifact_id'], kind='lab',
+                                         integrity='verified', sha256=digest, media_type=entry.get('media_type'),
+                                         created=_number(entry.get('created')))
+                try:
+                    return json.loads(blob), artifact
+                except (ValueError, UnicodeDecodeError):
+                    return None, artifact
+
+            for iteration, created in built_iterations:
+                if item := _iteration_lab(iteration, capsule_id, read_json, created):
+                    labs.append(item)
+            reports = [artifact_index[row['artifact_id']] | dict(version=row.get('version'), release=row.get('release'),
+                                                                 revision=row.get('revision'), created=row['created'])
+                       for row in builder_reports if row['artifact_id'] in artifact_index]
+            if builds or labs or reports or run_measurements:
+                builder_summaries.append(dict(builds=[source | item for item in builds],
+                                              labs=[source | item for item in labs], reports=reports))
         if (capsule_id in _capsules(task) or consumes_analysis or run_artifacts
                 or run_receipts or run_measurements or run_analyses):
             related_runs.append({key: run[key] for key in ('id', 'name', 'kind')})
@@ -470,5 +567,27 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         artifacts=sorted(artifacts, key=lambda row: row['created'] or 0, reverse=True),
         measurements=measurements, analyses=sorted(analyses, key=lambda row: row['created'] or 0, reverse=True),
         runs=related_runs,
-        latest_builder_run=max(builder_summaries, key=lambda row: row['updated'], default=None),
+        latest_builder_run=_latest_builder_evidence(builder_summaries),
     ))
+
+
+def _latest_builder_evidence(summaries):
+    """Latest lab, its matching build and the latest report, each from whichever run and release produced it.
+
+    Evidence is not limited to the current sealed release: each item carries the capsule version that
+    produced it, so earlier releases' builds and labs are shown and labelled instead of "awaiting".
+    """
+    def newest(rows, extra=lambda row: 0):
+        return max(rows, key=lambda row: (row.get('created') or 0, extra(row)), default=None)
+
+    labs = [row for summary in summaries for row in summary['labs']]
+    builds = [row for summary in summaries for row in summary['builds']]
+    reports = [row for summary in summaries for row in summary['reports']]
+    lab = newest(labs, lambda row: (row.get('parity') is not None) + (row.get('activation') is not None))
+    build = newest([row for row in builds if lab and row['binary_sha256'] == lab.get('binary_sha256')]) or newest(builds)
+    report = newest(reports, lambda row: _number(row.get('revision')) or 0)
+    anchor = report or lab or build
+    if not anchor:
+        return None
+    return dict(run_id=anchor['run_id'], run_name=anchor['run_name'], build=build, lab=lab, report=report,
+                updated=max((row.get('created') or 0 for row in (build, lab, report) if row), default=0))

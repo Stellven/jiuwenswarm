@@ -88,11 +88,14 @@ export type CapsuleAnalysis = {
   values: unknown;
 };
 
+// Each item carries the run and capsule release that produced it; earlier releases' evidence is shown, labelled.
+export type EvidenceOrigin = { run_id?: string; run_name?: string; version?: string | null; release?: string | null };
+
 export type BuilderRun = {
   run_id: string;
   run_name: string;
-  build: { binary_sha256: string; artifact: CapsuleArtifact | null } | null;
-  lab: {
+  build: ({ binary_sha256: string; artifact: CapsuleArtifact | null } & EvidenceOrigin) | null;
+  lab: (EvidenceOrigin & {
     binary_sha256: string | null;
     artifact: CapsuleArtifact | null;
     parity: boolean | null;
@@ -100,8 +103,8 @@ export type BuilderRun = {
     metrics: Record<string, number>;
     scope: string | null;
     limitations: string | null;
-  } | null;
-  report: CapsuleArtifact | null;
+  }) | null;
+  report: (CapsuleArtifact & EvidenceOrigin) | null;
 };
 
 export type CapsuleEvidence = {

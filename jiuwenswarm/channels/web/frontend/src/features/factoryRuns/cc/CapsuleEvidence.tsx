@@ -338,7 +338,15 @@ export function BuilderRunEvidence({
       (row) => row.scope !== 'combined' && (digest ? row.binary_sha256 === digest : row.run_id === run?.run_id),
     ) || [];
   const hasLabNumbers = Object.keys(lab?.metrics || {}).length > 0 || measurements.length > 0;
+  const origin = (item?: { version?: string | null; run_name?: string } | null) =>
+    item?.version && item.version !== capsule.version ? (
+      <small className="cc-release-origin" data-testid="factory-runs-capsule-evidence-origin" title={item.run_name}>
+        {copy('fromRelease')} {item.version}
+      </small>
+    ) : null;
   const metricText = (key: string, value: number) => {
+    const saved = /^paired_ttft_saved_s_(\d+)$/.exec(key);
+    if (saved) return `${value > 0 ? '+' : ''}${number(value, ' s')} ${copy('pairedSaved')} · ${saved[1]} ${copy('tokens').toLowerCase()}`;
     const label = (
       {
         written: 'eventsWritten',
@@ -384,18 +392,21 @@ export function BuilderRunEvidence({
             <dd data-testid="factory-runs-capsule-binary-digest">
               {digest ? <code title={digest}>{digest}</code> : <span className="cc-muted">{copy('notRecorded')}</span>}
               {build?.artifact && <Integrity state={build.artifact.integrity} />}
+              {origin(build)}
             </dd>
           </div>
           <div>
             <dt>{copy('parity')}</dt>
             <dd data-testid="factory-runs-capsule-parity" data-verdict={lab?.parity ?? undefined}>
               {copy(verdict(lab?.parity, 'parityMatch', 'parityMismatch'))}
+              {lab?.parity != null && origin(lab)}
             </dd>
           </div>
           <div>
             <dt>{copy('activation')}</dt>
             <dd data-testid="factory-runs-capsule-activation" data-verdict={lab?.activation ?? undefined}>
               {copy(verdict(lab?.activation, 'active', 'inactive'))}
+              {lab?.activation != null && origin(lab)}
             </dd>
           </div>
           <div>
@@ -421,6 +432,7 @@ export function BuilderRunEvidence({
                     ))}
                 </ul>
               )}
+              {hasLabNumbers && origin(lab)}
             </dd>
           </div>
         </dl>
