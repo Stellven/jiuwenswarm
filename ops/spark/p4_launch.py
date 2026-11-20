@@ -47,16 +47,21 @@ def validate_window_arguments(parser, args, enabled, view):
             parser.error('First-window cap receipt requires review')
 
 
-def condition_source_and_check_quiet(scope):
+def condition_source_and_check_quiet(scope, pooled_screen=False):
     preflights = ROOT / 'OPS/p3/early-preflights'
     preflights.mkdir(exist_ok=True)
-    subprocess.run([sys.executable, str(HERE / 'source_residency.py'), 'cold-start',
-                    '--regions', str(REGIONS), '--out', str(preflights / f'{scope.name}-source.json')], check=True)
+    command = [sys.executable, str(HERE / 'source_residency.py'), 'cold-start',
+               '--regions', str(REGIONS), '--out', str(preflights / f'{scope.name}-source.json')]
+    if pooled_screen:
+        command.append('--pooled-screen')
+    subprocess.run(command, check=True)
     quiet_path = preflights / f'{scope.name}-quiet.json'
     # File-specific eviction can briefly elevate load. Validate quiet after conditioning.
     while True:
         quiet = subprocess.run([str(ROOT / 'bin/quiet')], capture_output=True, check=False)
-        if quiet.returncode == 0 and json.loads(quiet.stdout)['mem_available_gib'] >= 110:
+        snapshot = json.loads(quiet.stdout)
+        admissible = quiet.returncode == 0 or (pooled_screen and quiet.returncode == 1 and not snapshot['model_processes'])
+        if admissible and snapshot['mem_available_gib'] >= 110:
             quiet_path.write_bytes(quiet.stdout)
             return quiet_path
         time.sleep(5)
@@ -73,8 +78,9 @@ def profile_bytes(profile):
     return (json.dumps(profile, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
 
 
-def request_window(args, scope, port, view, quiet_preflight):
+def request_window(args, scope, port, view, quiet_preflight, pooled_screen=False):
     receipt = run_window(Namespace(scope=scope, arm=args.arm, port=port, view=view, regions=REGIONS,
                                    launch_pass=args.launch_pass, first_window=args.first_window,
-                                   quiet_preflight=quiet_preflight, pages_per_sample=4096, seed=20261120))
+                                   quiet_preflight=quiet_preflight, pages_per_sample=4096, seed=20261120,
+                                   pooled_screen=pooled_screen))
     return json.loads(receipt.read_bytes())['greedy_hashes']

@@ -31,6 +31,9 @@ C3_PROFILE_GATES = {'LLAMA_EXPERT_CACHE_NATIVE_PROFILE', 'LLAMA_EXPERT_CACHE_NAT
                     'LLAMA_EXPERT_CACHE_DIRECT_SEED'}
 ARMS = {'C1': 'observability_event_recorder', 'C2': 'weight_placement_planner', 'C3': 'expert_weight_cache',
         'C4': 'expert_demand_predictor', 'C5': 'batch_layout_mapper'}
+C2_POOLED_SOURCE = '24dbb8309e604de8d8c97e623b78d49d0f14a736'
+PLACEMENT_ROW = re.compile(r'weight_placement_planner: assignment name="(blk\.\d+\.ffn_(?:gate|up|down)_exps\.weight)" '
+                           r'planned=(\w+) actual=(\w+) bytes=(\d+)')
 def read(path):
     return json.loads(path.read_bytes())
 
@@ -38,7 +41,41 @@ def save(path, value):
     path.write_text(json.dumps(value, indent=2) + '\n')
 
 
-def combined_profile(first, product, scope, on):
+def pooled_placement_profile(first, product):
+    if product['source_commit'] != C2_POOLED_SOURCE:
+        raise RuntimeError('Pooled placement requires the verified tier03 source with its compatible manual path')
+    control = read(ROOT / 'OPS/p3/placement-v1-matched-controls.json')['heldout_layer27_policy']
+    placement = control['gate_on_argv']
+    plan = Path(placement[placement.index('--placement-plan') + 1])
+    if hashlib.sha256(plan.read_bytes()).hexdigest() != control['plan_sha256'] or read(plan)['version'] != 1:
+        raise RuntimeError('Pooled C2 requires the pinned version-1 layer-27 placement plan')
+    common = list(first['command'][1:])
+    common.remove('--cpu-moe')
+    return [*common, '-lv', '4', *placement], control
+
+
+def pooled_placement_readback(log, control):
+    rows = PLACEMENT_ROW.findall(log)
+    actual = {name: (planned, buffer, int(size)) for name, planned, buffer, size in rows}
+    expected = {f'blk.{layer}.ffn_{kind}_exps.weight' for layer in range(40) for kind in ('gate', 'up', 'down')}
+    requested = {item['name']: item['bytes'] for item in control['selected']}
+    stock = expected - requested.keys()
+    match = re.findall(r'CUDA0 MoE cache size = ([\d.]+) MiB for ([\d.]+) MiB of host experts, ([\d.]+)% of the misses on the CPU', log)
+    active = re.findall(r'weight_placement_planner: active cap_bytes=\d+ peak_bytes=\d+', log)
+    if (len(active) != 1 or len(rows) != len(actual) or set(actual) != expected or
+            any(actual[name] != ('CUDA0', 'CUDA0', size) for name, size in requested.items()) or
+            any(actual[name][:2] != ('stock', 'CPU_Mapped') for name in stock) or len(match) != 1):
+        raise RuntimeError('C2 activation, exact layer-27 CUDA weight or CPU fallback readback is missing')
+    allocated, host, share = map(float, match[0])
+    if not 0 < allocated <= 30720 or host <= 0 or share != 0:
+        raise RuntimeError('C2 placement did not preserve the bounded native cache request')
+    return dict(policy='manual-v1-layer27', source_commit=C2_POOLED_SOURCE, plan_sha256=control['plan_sha256'],
+                active_marker=active[0], selected=[dict(name=name, planned=actual[name][0], buffer=actual[name][1],
+                bytes=actual[name][2]) for name in sorted(requested)], cpu_mapped_expert_tensors=len(stock),
+                native_bank=dict(requested_mib=30720, allocated_mib=allocated, host_experts_mib=host, cpu_share_pct=share))
+
+
+def combined_profile(first, product, scope, on, pooled=False):
     controls_path = ROOT / 'OPS/p3/combined-d-matched-controls.json'
     controls = read(controls_path)
     if controls['parent_head'] != product['source_commit']:
@@ -56,6 +93,12 @@ def combined_profile(first, product, scope, on):
         settings = dict(controls['all_gates_on_env'], LLAMA_EVENT_REC=str(scope / 'events.jsonl'))
         if set(settings) != set(GATES) - C3_PROFILE_GATES:
             raise RuntimeError('Combined gate set differs from the five verified components')
+    if pooled:
+        # Keep the stock A+ scheduler and context. The disjoint override plus the
+        # identity placement plan still puts every expert tensor on the CPU.
+        base_flags = list(first['command'][1:])
+        base_flags.remove('--cpu-moe')
+        return [*base_flags, '-lv', '4', *flags], settings
     return (['-m', first['command'][2], '--host', '127.0.0.1', '--port', str(PORT),
              *controls['common_flags'], *flags], settings)
 
@@ -64,7 +107,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cc', choices=(*ARMS, 'D'))
     parser.add_argument('mode', choices=('stock', 'strict-stock', 'equivalent-stock', 'off', 'on'))
-    parser.add_argument('window', choices=('functional', 'early', 'speed', 'p4'))
+    parser.add_argument('window', choices=('functional', 'early', 'speed', 'p4', 'pooled'))
     parser.add_argument('scope', type=Path)
     parser.add_argument('--products', type=Path, default=ROOT / 'OPS/p3/native-star-build-products.json',
                         help='Frozen native product/receipt index for this iteration')
@@ -74,19 +117,23 @@ def main():
                         help='Fixed matched cache budget in MiB for the candidate experiment')
     add_window_arguments(parser)
     args = parser.parse_args()
-    p4 = args.window == 'p4'
+    pooled = args.window == 'pooled'
+    p4 = args.window in ('p4', 'pooled')
     validate_window_arguments(parser, args, p4, 'llama')
+    if pooled and (args.mode != 'on' or args.launch_pass != 1 or args.first_window or args.native_mib != 30720):
+        parser.error('A pooled screen is one gate-on candidate with a fixed 30720 MiB native bank')
     combined = args.cc == 'D'
-    if combined and (args.window != 'functional' or args.mode not in ('stock', 'off', 'on')):
+    if combined and not pooled and (args.window != 'functional' or args.mode not in ('stock', 'off', 'on')):
         parser.error('Combined D supports matched stock, off and on functional smoke probes')
     speed = args.window == 'speed'
     native_cache = bool(args.native_mib)
-    native_window = args.window in ('speed', 'p4') or (args.cc in ('C4', 'C5') and args.window == 'functional')
+    native_window = args.window in ('speed', 'p4', 'pooled') or (args.cc in ('C4', 'C5') and args.window == 'functional')
+    pooled_placement = pooled and args.cc == 'C2'
     if native_cache and args.cc == 'C5' and (args.native_mib != 30720 or args.mode == 'stock'):
         parser.error('The mapper native comparison requires the 30 GiB bank on both arms')
     if ((speed and not native_cache) or (native_cache and
-           (not native_window or args.cc not in ('C3', 'C4', 'C5') or args.mode == 'strict-stock'))):
-        parser.error('Native-cache cells require C3, C4 or C5, a matched mode and a fixed cache budget')
+           (not native_window or (args.cc not in ('C3', 'C4', 'C5') and not (combined and pooled) and not pooled_placement) or args.mode == 'strict-stock'))):
+        parser.error('Native-cache cells require a supported arm, a matched mode and a fixed cache budget')
     if args.mode == 'equivalent-stock' and not native_cache and (args.cc != 'C2' or args.placement_policy != 'heldout_layer27_policy'):
         parser.error('The equivalent-placement stock control requires the layer 27 policy')
     scope = args.scope.resolve()
@@ -118,11 +165,14 @@ def main():
     env['LD_LIBRARY_PATH'] = str(binary.parent)
     on = args.mode == 'on'
     if combined:
-        flags, settings = combined_profile(first, product, scope, on)
+        flags, settings = combined_profile(first, product, scope, on, pooled=pooled)
         env.update(settings)
     if args.cc == 'C1' and on:
         env['LLAMA_EVENT_REC'] = str(scope / 'events.jsonl')
-    if args.cc == 'C2':
+    if pooled_placement:
+        flags, placement_control = pooled_placement_profile(first, product)
+        env.update(placement_control['gate_on_env'])
+    elif args.cc == 'C2':
         controls = read(ROOT / 'OPS/p3/placement-v1-matched-controls.json')
         if controls['source_commit'] != product['source_commit']:
             raise RuntimeError('Placement controls belong to a different build')
@@ -195,7 +245,7 @@ def main():
     if early:
         regions = read(REGIONS)
     if early or speed or p4:
-        quiet_preflight = condition_source_and_check_quiet(scope)
+        quiet_preflight = condition_source_and_check_quiet(scope, pooled_screen=pooled)
     label = f'{args.cc}-{args.mode}-{args.window}'
     if args.mode == 'strict-stock':
         label = f'A-{args.cc}-strict-{args.window}'
@@ -246,6 +296,9 @@ def main():
                     raise RuntimeError('The buffered control did not preserve the mmap seed path')
                 receipt['seed_source'] = 'direct' if direct else 'mmap'
             save(scope / 'profile-activation.json', receipt)
+        if pooled_placement:
+            log = (scope / 'stderr.log').read_text(errors='replace')
+            save(scope / 'placement-activation.json', pooled_placement_readback(log, placement_control))
         receipt = read(scope / 'scope.json')
         hashes = {}
         prompts = HERE / 'prompts'
@@ -255,7 +308,7 @@ def main():
             hashes = steady_requests(scope, label, PORT, 'llama')
         if p4:
             (scope / 'p4-launch-profile.json').write_bytes(profile_bytes(launch_profile))
-            hashes = request_window(args, scope, PORT, 'llama', quiet_preflight)
+            hashes = request_window(args, scope, PORT, 'llama', quiet_preflight, pooled_screen=pooled)
         repeats = [] if speed or p4 else ([0, 1] if early else [0])
         sizes = (512,) if combined else (512, 2048)
         for repeat in repeats:

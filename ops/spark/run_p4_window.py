@@ -48,7 +48,7 @@ def check_scope(scope, receipt, start, arm, port):
     return cgroup
 
 
-def boundary_resources(out, cgroup, scope_pid):
+def boundary_resources(out, cgroup, scope_pid, pooled_screen=False):
     pids = (cgroup / 'cgroup.procs').read_text().split()
     if str(scope_pid) not in pids:
         raise ValueError('The capped server process has exited')
@@ -61,10 +61,10 @@ def boundary_resources(out, cgroup, scope_pid):
     values = dict(quiet, observed_utc=datetime.now(timezone.utc).isoformat(), scope_pids=pids,
                   cgroup_memory_current_bytes=int((cgroup / 'memory.current').read_text()), memory_events=events)
     json_write(out, values)
-    blocked = ('build_processes', 'model_processes', 'factory_controllers', 'test_processes')
+    blocked = ('model_processes',) if pooled_screen else ('build_processes', 'model_processes', 'factory_controllers', 'test_processes')
     if probe.returncode not in (0, 1) or any(quiet[key] for key in blocked):
         raise ValueError(f'Competing process detected. See {out}')
-    if any(int(events.get(key, 0)) for key in ('oom', 'oom_kill')) or quiet['mem_available_gib'] < 8:
+    if any(int(events.get(key, 0)) for key in ('oom', 'oom_kill', 'oom_group_kill')) or quiet['mem_available_gib'] < 8:
         raise ValueError(f'Unexpected memory event. See {out}')
 
 
@@ -88,12 +88,15 @@ def accepted_result(path, size, repeat, arm, approved, hash_pairs):
 
 
 def run_window(args):
+    pooled = getattr(args, 'pooled_screen', False)
     scope = args.scope.resolve(strict=True)
     start = json_read(scope / 'start.json')
     receipt = json_read(scope / 'scope.json')
     cgroup = check_scope(scope, receipt, start, args.arm, args.port)
     quiet_bytes = args.quiet_preflight.read_bytes()
-    if json.loads(quiet_bytes)['quiet'] is not True or (
+    preflight = json.loads(quiet_bytes)
+    admitted = (not preflight['model_processes'] and preflight['mem_available_gib'] >= 110) if pooled else preflight['quiet'] is True
+    if not admitted or (
             args.quiet_preflight.stat().st_mtime > datetime.fromisoformat(start['start']).timestamp()):
         raise ValueError('Quiet preflight must pass before launch')
     prompts = HERE / 'prompts'
@@ -104,10 +107,13 @@ def run_window(args):
             raise ValueError(f'Fixed {size}-token prompt content changed')
     region_bytes = args.regions.read_bytes()
     regions = json.loads(region_bytes)
-    record = dict(schema='spark-p4-window/2', status='running', arm=args.arm, view=args.view, launch_pass=args.launch_pass,
+    record = dict(schema='spark-pooled30-window/1' if pooled else 'spark-p4-window/2',
+                  status='running', arm=args.arm, view=args.view, launch_pass=args.launch_pass,
                   scope=str(scope), binary_sha256=start['binary_sha256'], regions_sha256=sha(region_bytes),
                   prompts_sha256=sha(manifest_bytes), quiet_preflight_sha256=sha(quiet_bytes),
                   pages_per_sample=args.pages_per_sample, seed=args.seed, requests=[], greedy_hashes={})
+    if pooled and (args.launch_pass != 1 or args.first_window):
+        raise ValueError('Pooled screening has one new launch and no prior launch receipt')
     if args.launch_pass == 2:
         if not args.first_window:
             raise ValueError('Second-pass launches need that arm’s completed --first-window receipt')
@@ -132,11 +138,12 @@ def run_window(args):
         json_write(out / 'load-ready-residency.json', postload)
         record['load_ready_residency'] = 'load-ready-residency.json'
     json_write(status, record)
-    plan = [(f'warmup-{round_number}-{size}', 0, size) for round_number in (1, 2, 3)
+    plan = [(f'warmup-{round_number}-{size}', 0, size) for round_number in ((1, 2) if pooled else (1, 2, 3))
             for size in (PROMPTS[::-1] if round_number == 3 else PROMPTS)]
-    repeats = range(1, 6) if args.launch_pass == 1 else range(6, 11)
+    repeats = range(1, 5) if pooled else range(1, 6) if args.launch_pass == 1 else range(6, 11)
     for repeat in repeats:
-        plan.extend((f'repeat-{repeat}-{size}', repeat, size) for size in (PROMPTS if (repeat - 1) % 5 in (0, 2, 4) else PROMPTS[::-1]))
+        forward = repeat % 2 == 0 if pooled else (repeat - 1) % 5 in (0, 2, 4)
+        plan.extend((f'repeat-{repeat}-{size}', repeat, size) for size in (PROMPTS if forward else PROMPTS[::-1]))
     try:
         for name, repeat, size in plan:
             directory = out / name
@@ -144,7 +151,7 @@ def run_window(args):
             record['requests'].append(item)
             json_write(status, record)
             before = out / f'{name}-before-resources.json'
-            boundary_resources(before, cgroup, receipt['pid'])
+            boundary_resources(before, cgroup, receipt['pid'], pooled)
             if repeat:
                 residency = snapshot(regions, args.view, args.pages_per_sample, args.seed, scope / 'scope.json')
                 residency['regions_sha256'] = record['regions_sha256']
@@ -159,7 +166,7 @@ def run_window(args):
             with (out / f'{name}-client.log').open('wb') as log:
                 finished = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
             after = out / f'{name}-after-resources.json'
-            boundary_resources(after, cgroup, receipt['pid'])
+            boundary_resources(after, cgroup, receipt['pid'], pooled)
             if finished.returncode:
                 raise ValueError(f'Client failed with exit {finished.returncode}. See {name}-client.log')
             path = directory / 'result.json'

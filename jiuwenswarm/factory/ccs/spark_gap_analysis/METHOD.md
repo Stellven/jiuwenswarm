@@ -28,6 +28,15 @@ tokens/s gained with observed ranges, pass medians, and conditional intervals.
 It is conditional on those launch windows and excludes between-launch
 uncertainty. If any draw lacks a positive A–S gap, omit the gap interval.
 
+Use `p4-build-overlap` for the 60 GiB C3 comparison whose final A+ control
+overlapped the two owner-authorized build services. All four launches require
+the original quiet preflight and retain the mirrored design. Check the systemd
+service receipts for actual onset, CPU affinity 12–19, nice 19 and idle I/O.
+Keep each final-control request that reaches a build onset in the screening set,
+even if its boundary sample misses the active service. Report the ten-pair
+matched result as screening and give observed ranges for the quiet-only ordinal
+pairs. The latter subset has incomplete reverse-pass coverage and no interval.
+
 Report client TTFT, internal prefill duration and decode rate separately.
 Load time is separately recorded per scope. Do not add phases across clocks,
 infer phase causality from their differences or assign a CC a causal effect
@@ -110,3 +119,15 @@ pages. Use the same classes for A+ as for both 02b arms. These report host page
 cache occupancy. Device bank membership can change during later requests.
 One launch per arm gives observed paired ranges and does not establish
 between-launch repeatability.
+## Candidate-only 30 GiB screening
+
+Use `pooled-30-screen` for one new candidate and the four archived quiet
+A+30 launches from the attribution and direct-seed experiments. Verify their
+full retained request sequences, effective settings and observed cache banks.
+The candidate discards two requests per prompt size and measures four. Compare
+per-size request ordinals 3–6 across the source windows, retaining the historical
+third warmup at ordinal 3. Recompute the estimates using ordinals 4–6 alone and
+show the estimates for each control. Treat CPU overlap and any placement-induced
+allocation differences as observed conditions. This design produces descriptive
+screening estimates for each prompt size.
+

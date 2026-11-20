@@ -121,6 +121,10 @@ def p4_design(scopes, rows):
 
 def analyze(evidence):
     mode = evidence['mode']
+    if mode == 'pooled-30-screen':
+        from pooled30 import analyze as analyze_pooled
+        return analyze_pooled(evidence, eligible, reference, positive)
+    p4 = mode in ('p4-abba', 'p4-build-overlap')
     if mode == 'early-bracket':
         from early_bracket import analyze as analyze_early
         return analyze_early(evidence, eligible, reference, positive)
@@ -136,7 +140,7 @@ def analyze(evidence):
     if mode == 'c3-direct-seed-30g':
         from direct_seed import analyze as analyze_direct_seed
         return analyze_direct_seed(evidence, eligible, reference, positive)
-    if mode not in ('p1-reconnaissance', 'p4-abba'):
+    if mode != 'p1-reconnaissance' and not p4:
         raise ValueError('Use the P1 reconnaissance or P4 ABBA evidence mode')
     manifest = evidence['prompt_manifest']
     prompt_hashes = {p['target_tokens_including_template']: p['prompt_sha256'] for p in manifest['value']['prompts']}
@@ -160,7 +164,7 @@ def analyze(evidence):
         scope_metrics.append({'arm': scope['arm'], 'result': reference(scope), 'load': reference(load),
                               'load_s': load['seconds'], 'binary_sha256': value['binary_sha256'],
                               **{key: value.get(key) for key in ('peak_memory_bytes', 'peak_rss_bytes', 'min_mem_available_bytes')}})
-        if mode == 'p4-abba':
+        if p4:
             scope_metrics[-1]['quiet_preflight'] = reference(scope['quiet_preflight'])
     validated, accepted, excluded = [], [], []
     for row in rows:
@@ -178,7 +182,7 @@ def analyze(evidence):
                                  engine_prefill_ms=result['timings'].get('prompt_ms')))
     if not accepted:
         raise ValueError('No requests satisfy the fixed workload')
-    blocks = p4_design(scopes, validated) if mode == 'p4-abba' else None
+    blocks = p4_design(scopes, validated) if p4 else None
     draws = paired_draws(blocks) if blocks else None
     summaries = []
     for n in PROMPTS:
@@ -206,7 +210,7 @@ def analyze(evidence):
                 if all(positive(x) for label in (arm, 'A+') for x in decode[label].values()):
                     comparisons['paired_decode_tps_gained_vs_Aplus'] = paired_changes(decode, arm, 'A+', draws, blocks, 1)
             summaries.append(dict(cell, comparisons=comparisons))
-    return dict(schema='spark-gap-analysis/1', mode=mode, prompt_manifest=reference(manifest),
+    output = dict(schema='spark-gap-analysis/1', mode=mode, prompt_manifest=reference(manifest),
                 scopes=scope_metrics, measurements=summaries, eligible=accepted, excluded=excluded,
                 limitations=[
                     'Client TTFT measures wall time to first text or reasoning; engine prefill is an internal engine counter.',
@@ -215,6 +219,11 @@ def analyze(evidence):
                     ('P1 ran under concurrent work in contiguous batches and stock warm-up drifted; results are descriptive.'
                      if mode == 'p1-reconnaissance' else
                      'The paired bootstrap interval is conditional on two launches per arm and omits between-launch uncertainty.')])
+    if mode == 'p4-build-overlap':
+        from p4_build_overlap import classify_and_compare
+        output['build_overlap'] = classify_and_compare(evidence, accepted)
+        output['limitations'].append('The final A+ launch overlapped owner-authorized builds. Full-pair estimates and intervals are descriptive screening and do not adjust for the build lane.')
+    return output
 
 
 def main():

@@ -226,13 +226,16 @@ def snapshot(geometry, view, stride, seed, scope):
                 'The same page IDs are resampled across repeated snapshots for each geometry.')
 
 
-def cold_start(geometry, stride, seed):
+def cold_start(geometry, stride, seed, pooled_screen=False):
     """Advise eviction of only the indexed model files, between capped launches."""
     lock_path = Path.home() / 'predemo-spark/gpu.lock'
     with lock_path.open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         quiet = subprocess.run([str(Path(__file__).parent / 'bin/quiet')],
-                               capture_output=True, text=True, check=True)
+                               capture_output=True, text=True, check=not pooled_screen)
+        preflight = json.loads(quiet.stdout)
+        if pooled_screen and (quiet.returncode not in (0, 1) or preflight['model_processes'] or preflight['mem_available_gib'] < 110):
+            raise ValueError('Pooled screening source conditioning requires no other model and at least 110 GiB available')
         before = snapshot(geometry, 'both', stride, seed, None)
         files = {}
         for view in geometry['views'].values():
@@ -245,7 +248,7 @@ def cold_start(geometry, stride, seed):
                 os.posix_fadvise(source.fileno(), 0, 0, os.POSIX_FADV_DONTNEED)
         after = snapshot(geometry, 'both', stride, seed, None)
         return {'schema': 'spark-source-cache-conditioning/1', 'method': 'file-specific POSIX_FADV_DONTNEED',
-                'quiet': json.loads(quiet.stdout), 'advised_files': sorted(files),
+                'quiet': preflight, 'advised_files': sorted(files),
                 'before': before, 'after': after}
 
 
@@ -269,6 +272,7 @@ def main():
     reset.add_argument('--pages-per-sample', type=int, default=4096)
     reset.add_argument('--seed', type=int, default=20261120)
     reset.add_argument('--out', type=Path, required=True)
+    reset.add_argument('--pooled-screen', action='store_true', help='Record CPU overlap for the candidate-only screen')
     args = parser.parse_args()
     if args.out.exists():
         parser.error('Choose a new output file')
@@ -279,7 +283,7 @@ def main():
         raw = args.regions.read_bytes()
         geometry = json.loads(raw)
         if args.mode == 'cold-start':
-            result = cold_start(geometry, args.pages_per_sample, args.seed)
+            result = cold_start(geometry, args.pages_per_sample, args.seed, args.pooled_screen)
         else:
             result = snapshot(geometry, args.view, args.pages_per_sample, args.seed, args.scope_json)
         result['regions_sha256'] = hashlib.sha256(raw).hexdigest()

@@ -56,13 +56,20 @@ def strict_quiet(data, prelaunch=False):
         demand(data['quiet'] is True and 0 <= data['load_1m'] < 1, 'P4 prelaunch quiet threshold did not pass')
 
 
-def planned_window(pass_number):
+def screen_safety(data, prelaunch=False):
+    demand(not data['model_processes'] and not any(int(data.get('memory_events', {}).get(k, 0)) for k in OOM_KEYS),
+           'A competing model or memory safety event invalidates the pooled screen')
+    demand(data['mem_available_gib'] >= (110 if prelaunch else 8), 'Pooled screen headroom fell below the safety floor')
+
+
+def planned_window(pass_number, pooled_screen=False):
     result = [(f'warmup-{p}-{n}', 0, n, 'after' if index == 1 else None)
-              for p in (1, 2, 3) for index, n in enumerate(SIZES if p < 3 else SIZES[::-1])]
-    for pair in range(5):
+              for p in ((1, 2) if pooled_screen else (1, 2, 3)) for index, n in enumerate(SIZES if p < 3 else SIZES[::-1])]
+    for pair in range(4 if pooled_screen else 5):
         repeat = pair + (1 if pass_number == 1 else 6)
+        forward = pair % 2 == (1 if pooled_screen else 0)
         result.extend((f'repeat-{repeat}-{n}', repeat, n, 'before')
-                      for n in (SIZES if pair % 2 == 0 else SIZES[::-1]))
+                      for n in (SIZES if forward else SIZES[::-1]))
     return result
 
 
@@ -225,7 +232,7 @@ def sse_evidence(raw):
 
 
 def request_evidence(capture, directory, name, repeat, size, phase, item, arm, before_start, stop,
-                     window, scope_value, prompt, geometry, scope_id):
+                     window, scope_value, prompt, geometry, scope_id, boundary_check=strict_quiet):
     expected_names = (f'{name}/result.json', f'{name}-before-resources.json', f'{name}-after-resources.json')
     demand((item['result'], item['before_resources'], item['after_resources']) == expected_names and
            (item['status'], item['repeat'], item['prompt_tokens'], item['discarded']) == ('complete', repeat, size, repeat == 0),
@@ -249,7 +256,7 @@ def request_evidence(capture, directory, name, repeat, size, phase, item, arm, b
         timings = engine_status['value'].get('last_timings') or timings
         refs['engine_status'] = engine_status
     for entry in (before, after):
-        strict_quiet(entry['value'])
+        boundary_check(entry['value'])
         demand(str(scope_value['pid']) in entry['value']['scope_pids'], 'P4 boundary does not refer to its owning process')
     began, ended = (timepoint(x['value']['observed_utc']) for x in (before, after))
     started = timepoint(data['started'])
@@ -283,6 +290,9 @@ def request_evidence(capture, directory, name, repeat, size, phase, item, arm, b
         demand('residency' not in item, 'Unexpected P4 source sample role')
     row = dict(reference(result), result=data, request=request['value'], request_ref=reference(request), scope_id=scope_id,
                evidence={key: reference(value) for key, value in refs.items()})
+    if boundary_check is screen_safety:
+        row['cpu_overlap'] = {label: {key: rec['value'][key] for key in PROCESSES if key != 'model_processes'}
+                              for label, rec in (('before', before), ('after', after))}
     beginning, first_token = (snapshots[key]['processes'] for key in ('start', 'first_token'))
     engine_name = 'llama-server' if window['view'] == 'llama' else 'strata-dsv41'
     engine_pids = [pid for pid, process in beginning.items() if process['comm'] == engine_name]
@@ -298,7 +308,9 @@ def request_evidence(capture, directory, name, repeat, size, phase, item, arm, b
     return row, ended
 
 
-def read_launch(base, row, plan, geometry, prompts, previous_stop, first, capture):
+def read_launch(base, row, plan, geometry, prompts, previous_stop, first, capture, boundary_check=strict_quiet, pooled_screen=False):
+    if pooled_screen:
+        boundary_check = screen_safety
     scope = base / Path(row['scope'])
     arm, number, view = (row[k] for k in ('arm', 'launch_pass', 'view'))
     directory = scope / 'p4-window'
@@ -325,10 +337,12 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     demand(profile['sha256'] == row['profile_sha256'], 'P4 launch profile changed after admission')
     provenance = profile_provenance(base, scope, arm, view, profile['value'], s, l, geometry, capture)
     stride, seed = plan.get('pages_per_sample', 4096), plan.get('seed', 20261120)
-    expected_window = dict(schema='spark-p4-window/2', status='complete', arm=arm, launch_pass=number,
+    expected_window = dict(schema='spark-pooled30-window/1' if pooled_screen else 'spark-p4-window/2',
+                           status='complete', arm=arm, launch_pass=number,
                            view=view, scope=str(scope), binary_sha256=s['binary_sha256'], pages_per_sample=stride, seed=seed,
                            prompts_sha256=plan['prompt_manifest_sha256'], regions_sha256=plan['regions_sha256'])
-    demand(all(window[key] == value for key, value in expected_window.items()) and probe['value']['window'] == 'p4' and
+    demand(all(window[key] == value for key, value in expected_window.items()) and
+           probe['value']['window'] == ('pooled' if pooled_screen else 'p4') and
            probe['value']['greedy_hashes'] == window['greedy_hashes'], 'P4 window and probe receipt do not establish completed launch')
     if number == 1:
         demand('first_window_sha256' not in window, 'First P4 launch unexpectedly refers to another window')
@@ -340,12 +354,12 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     preflights = base / 'OPS/p3/early-preflights'
     quiet_path = preflights / f'{scope.name}-quiet.json'
     quiet, original_quiet = capture(directory / 'quiet-prelaunch.json'), capture(quiet_path)
-    strict_quiet(quiet['value'], prelaunch=True)
+    (screen_safety if pooled_screen else strict_quiet)(quiet['value'], prelaunch=True)
     demand(quiet['sha256'] == original_quiet['sha256'] == window['quiet_preflight_sha256'], 'P4 window quiet receipt differs from the prelaunch artifact')
     quiet_time = datetime.fromtimestamp(quiet_path.stat().st_mtime, timezone.utc)
     conditioning = capture(preflights / f'{scope.name}-source.json')
     cold = conditioning['value']
-    strict_quiet(cold['quiet'], prelaunch=True)
+    (screen_safety if pooled_screen else strict_quiet)(cold['quiet'], prelaunch=True)
     expected_paths = sorted({f['resolved_path'] for v in geometry['views'].values() for f in v['files']})
     demand(cold['schema'] == 'spark-source-cache-conditioning/1' and cold['method'] == 'file-specific POSIX_FADV_DONTNEED' and
            cold['regions_sha256'] == window['regions_sha256'] and cold['advised_files'] == expected_paths and quiet_time <= began,
@@ -358,13 +372,13 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     demand(monitor and all(began <= timepoint(sample['time']) <= ended and sample['available'] >= 8 * 1024**3 and
                            not any(int(sample['events'].get(key, 0)) for key in OOM_KEYS) for sample in monitor),
            'P4 watchdog memory series is missing or contains a safety event')
-    schedule = planned_window(number)
-    demand(len(window['requests']) == len(schedule), 'P4 requires all sixteen request positions per launch')
+    schedule = planned_window(number, pooled_screen=pooled_screen)
+    demand(len(window['requests']) == len(schedule), 'Window did not retain the full scheduled sequence')
     requests = []
     previous = ready
     for (name, repeat, size, phase), item in zip(schedule, window['requests']):
         request, previous = request_evidence(capture, directory, name, repeat, size, phase, item, arm, previous, ended,
-                                             window, k, prompts[size], geometry, stop['artifact_id'])
+                                             window, k, prompts[size], geometry, stop['artifact_id'], boundary_check)
         requests.append(request)
     extra = {'engine_log': capture(scope / 'stderr.log', 'text/plain')}
     if 'load_ready_residency' in window:
@@ -380,14 +394,32 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     provenance.update({key: reference(val) for key, val in extra.items()})
     record = dict(reference(stop), value=z, arm=arm, launch_pass=number, view=view, source_commit=l.get('source_commit'),
                 load=dict(reference(load), seconds=l['health_elapsed_s']),
-                quiet_preflight=dict(reference(quiet), quiet=True), start=reference(start), scope=reference(kernel),
+                quiet_preflight=dict(reference(quiet), quiet=quiet['value']['quiet']), start=reference(start), scope=reference(kernel),
                 profile=reference(profile), window=reference(report), probe=reference(probe), memory=reference(memory),
                 conditioning=reference(conditioning), prelaunch_source_fractions=startup, provenance=provenance)
+    if pooled_screen:
+        record['cpu_overlap_prelaunch'] = {key: quiet['value'][key] for key in PROCESSES if key != 'model_processes'}
+        record['cpu_overlap_conditioning'] = {key: cold['quiet'][key] for key in PROCESSES if key != 'model_processes'}
     if plan.get('comparison_target') == 'same-budget-cc':
         log = extra['engine_log']['raw'].decode(errors='replace')
         record['matched_bank'] = same_budget_launch(s, log)
         if arm == plan['subject_arm']:
             demand(l['native_build_receipt'], 'Focused P4 subject lacks a native build receipt')
+        if pooled_screen and arm == 'C2':
+            from probe_candidate import C2_POOLED_SOURCE, pooled_placement_readback
+
+            operator = capture(base / 'OPS/p3/placement-v1-matched-controls.json')
+            expected = operator['value']['heldout_layer27_policy']
+            path = Path(s['command'][s['command'].index('--placement-plan') + 1])
+            placement = capture(path)
+            proof = capture(scope / 'placement-activation.json')
+            gates = {key: value for key, value in s['launch_environment'].items() if key.startswith('LLAMA_')}
+            demand(l['source_commit'] == C2_POOLED_SOURCE and gates == expected['gate_on_env'] and
+                   '--placement-plan-mode' not in s['command'] and placement['value']['version'] == 1 and
+                   placement['sha256'] == expected['plan_sha256'] and proof['value'] == pooled_placement_readback(log, expected),
+                   'Pooled C2 must prove the pinned v1 layer-27 plan and its ready-time tensor placements')
+            record['placement'] = dict(proof['value'], activation=reference(proof), placement_plan=reference(placement),
+                                       control=reference(operator))
         if plan.get('source_treatment') == 'direct-seed' and arm == plan['subject_arm']:
             # Use the direct-seed capsule's exact same startup accounting and per-slot evidence checks.
             sys.path.insert(0, str(HERE.parents[1] / 'jiuwenswarm/factory/ccs/spark_gap_analysis'))
@@ -447,7 +479,7 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
     return record, requests, ended
 
 
-def evidence_from_lab(base, plan, plan_ref, capture):
+def evidence_from_lab(base, plan, plan_ref, capture, boundary_check=None):
     prompt_file = capture(HERE / 'prompts/MANIFEST.json')
     region_file = capture(base / 'OPS/p4/source-regions.json')
     demand(prompt_file['sha256'] == plan['prompt_manifest_sha256'] and region_file['sha256'] == plan['regions_sha256'],
@@ -460,7 +492,8 @@ def evidence_from_lab(base, plan, plan_ref, capture):
     scopes, requests, first = [], [], {}
     previous = timepoint(plan['frozen_at'])
     for row in plan['launches']:
-        scope, items, previous = read_launch(base, row, plan, region_file['value'], prompts, previous, first, capture)
+        admit = strict_quiet if boundary_check is None else boundary_check(row)
+        scope, items, previous = read_launch(base, row, plan, region_file['value'], prompts, previous, first, capture, admit)
         scopes.append(scope)
         requests.extend(items)
     target = plan.get('comparison_target', 'matrix')
@@ -533,10 +566,11 @@ def effect_rows(analysis, evidence, verification):
 
 
 def render(analysis, evidence, capsule):
+    screened = analysis['mode'] == 'p4-build-overlap'
     by_arm = {scope['arm'] for scope in evidence['scopes']}
     actual = {(cell['arm'], cell['prompt_tokens']): cell for cell in analysis['measurements']}
     demand(set(actual) == {(arm, size) for arm in by_arm for size in SIZES} and
-           all(cell['n'] == 10 for cell in actual.values()) and analysis['mode'] == 'p4-abba',
+           all(cell['n'] == 10 for cell in actual.values()) and analysis['mode'] in ('p4-abba', 'p4-build-overlap'),
            'The native release did not produce ten eligible requests per size and arm')
     summary = (f'P4 measured {len(by_arm)} arms in two mirrored launches with ten timed requests per arm at each prompt size. '
                'First-token latency and decode throughput are reported separately.')
@@ -548,8 +582,12 @@ def render(analysis, evidence, capsule):
             direction = 'sooner' if saved > 0 else 'later'
             phrases.append(f'{abs(saved):.2f} seconds {direction} at {size} tokens')
         summary = f'Across ten pairs per size, {subject} returned the first token ' + ' and '.join(phrases) + ' than same-budget stock A+ by the paired medians.'
-    lines = ['# Spark P4 matched benchmark', '', summary, '',
-             'All admitted scopes passed the strict quiet preflight and every retained request boundary. '
+    if screened:
+        summary = 'Partially build-overlapped screening. ' + summary
+    runtime = ('Every launch passed quiet preflight. Two authorized builds overlapped the final A+ scope. '
+               'The ten-pair result is descriptive screening.' if screened else
+               'All admitted scopes passed the strict quiet preflight and every retained request boundary.')
+    lines = ['# Spark P4 matched benchmark', '', summary, '', runtime + ' '
              'The boundary process checks cannot observe activity that begins and ends between snapshots.', '',
              'Intervals resample matched request repeats within the two fixed launch windows. '
              'They describe those launches and exclude between-launch variation.', '']
