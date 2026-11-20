@@ -304,7 +304,8 @@ def analyze_steady(evidence, eligible, reference, positive):
                           greedy_hashes=[row[k]['sha256'] for k in ('output', 'reasoning')], **process)
         reject_if(any(sample['process'] != samples[0]['process'] for sample in samples),
                   'The underlying engine process changed across one launch')
-        record.update(samples=samples, steady_trend=trends(samples), greedy_hashes=hashes)
+        stability = {size: len({tuple(pair) for pair in values}) == 1 for size, values in hashes.items()}
+        record.update(samples=samples, steady_trend=trends(samples), greedy_hashes=hashes, within_arm_greedy_stability=stability)
         if is_strata:
             streaming = scope['prefill_streaming']
             rows = streaming['value']['records']
@@ -341,4 +342,11 @@ def analyze_steady(evidence, eligible, reference, positive):
                   source_identity=reference(evidence['model_identity']), source_regions=reference(evidence['regions']))
     if not direct:
         result['profile'] = reference(evidence['profile'])
+    if screening and evidence.get('pilot_a_plus'):
+        historical = evidence['pilot_a_plus']
+        candidate = ordered[on60]
+        result['pilot_a_plus_output_check'] = dict(
+            evidence=reference(historical),
+            matches={size: all(pair == historical['hashes'][size] for pair in pairs)
+                     for size, pairs in candidate['greedy_hashes'].items()})
     return result

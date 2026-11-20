@@ -196,6 +196,7 @@ def report_text(result, release):
         lines.append('')
     else:
         lines += format_steady(result)
+        lines += format_greedy(result)
         lines += format_strata_streaming(result)
         if reference:
             lines += ['The paired measurements compare the two complete engine and pack configurations. The experiment used the same request order and host caps, and sampled both source packs after each file-specific reset. The startup and load paths differ between engines.', '']
@@ -272,6 +273,23 @@ def format_strata_streaming(result):
             lines.append(f"I/O workers accumulated {row['io_worker_busy_ms']:.0f} ms of activity across threads.")
     lines += ['', 'Worker times can overlap one another and other prefill work. '
               'The engine counters have their own boundaries and remain separate from client TTFT, process reads and GPU copies.', '']
+    return lines
+
+
+def format_greedy(result):
+    lines = ['## Greedy output checks', '',
+             '| Arm | Prompt tokens | Within-arm content and reasoning stability | Content SHA256 prefix |',
+             '|---|---:|---|---|']
+    for scope in result['scopes']:
+        for size, stability in scope.get('within_arm_greedy_stability', {}).items():
+            hashes = ', '.join(sorted({pair[0][:12] for pair in scope['greedy_hashes'][size]}))
+            lines.append(f"| {scope['arm']} | {size} | {'stable' if stability else 'diverged'} | `{hashes}` |")
+    lines += ['', 'Cross-arm equality is shown in the paired tables. Timing comparisons use the actual generated sequences. Accuracy remains unmeasured.', '']
+    if historical := result.get('pilot_a_plus_output_check'):
+        same = ', '.join(f'{size} tokens' for size, match in historical['matches'].items() if match)
+        if same:
+            lines += [f"The C3 60-GiB content and reasoning hashes also match the earlier A+ 30-GiB warm-up pilot at {same}. "
+                      'That historical hash check uses a different cache budget.', '']
     return lines
 
 
@@ -424,6 +442,17 @@ def publish(base, stage):
         mode = MODES[stage]
         evidence = dict(mode=mode, expected=expected,
                         prompts=prompts, model_identity=model_identity, profile=profile, regions=regions, scopes=scopes)
+        if stage == 'screening':
+            prior_id = f'{ITERATION}/pilot/analysis.json'
+            try:
+                prior_raw = store.artifact_bytes(task, prior_id)
+            except NotFound:
+                pass
+            else:
+                prior = json.loads(prior_raw)
+                historical = next(row for row in prior['scopes'] if row['mode'] == 'equivalent-stock')
+                evidence['pilot_a_plus'] = dict(artifact_id=prior_id, sha256=digest(prior_raw), hashes=historical['greedy_hashes'])
+                evidence_ids.append(prior_id)
         analysis_input = json_bytes(evidence)
         host = Host(home / 'analysis-ccv2')
         release = host.seal(repo / 'jiuwenswarm/factory/ccs/spark_gap_analysis')
