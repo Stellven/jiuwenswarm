@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import time
 import urllib.request
+from request_resources import snapshot
 
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--url', required=True)
@@ -26,15 +27,21 @@ result = {'arm':a.arm,'prompt_tokens':a.prompt_tokens,'repeat':a.repeat,'discard
 text = ''
 reasoning = ''
 server_meta = {}
+cgroup = None
 for parent in a.out.resolve().parents:
     if (parent/'start.json').exists():
-        server_meta=json.loads((parent/'start.json').read_text()); break
+        server_meta=json.loads((parent/'start.json').read_text())
+        if (parent/'scope.json').is_file():
+            cgroup = Path(json.loads((parent/'scope.json').read_text())['cgroup'])
+        break
 ledger=Path.home()/'predemo-spark/OPS/LEDGER.jsonl'
 def record(event, observation):
     row={'event':event, 'arm':a.arm, 'command':server_meta.get('command'), 'binary_sha256':server_meta.get('binary_sha256'), 'result_path':str(a.out.resolve()), **observation}
     with ledger.open('a') as stream:
         fcntl.flock(stream,fcntl.LOCK_EX); stream.write(json.dumps(row)+'\n')
 record('request-start',result)
+resources = {'schema': 'spark-request-resources/1', 'cgroup': str(cgroup) if cgroup else None,
+             'snapshots': {'start': snapshot(cgroup)}}
 t0 = time.monotonic()
 try:
     with urllib.request.urlopen(req,timeout=3600) as response, (a.out/'response.sse').open('wb') as raw:
@@ -51,8 +58,11 @@ try:
                 delta=choice.get('delta') or {}
                 piece=delta.get('content') or ''
                 think=delta.get('reasoning_content') or ''
-                if (piece or think) and result['ttft_s'] is None: result['ttft_s']=time.monotonic()-t0
-                if piece and result['first_content_s'] is None: result['first_content_s']=time.monotonic()-t0
+                arrived = time.monotonic() - t0
+                if piece and result['first_content_s'] is None: result['first_content_s']=arrived
+                if (piece or think) and result['ttft_s'] is None:
+                    result['ttft_s'] = arrived
+                    resources['snapshots']['first_token'] = snapshot(cgroup)
                 text += piece; reasoning += think
                 if choice.get('finish_reason'): result['finish_reason']=choice['finish_reason']
     try:
@@ -68,6 +78,10 @@ except Exception as exc:
     result['error']=repr(exc)
 finally:
     result['wall_s']=time.monotonic()-t0
+    resources['snapshots']['end'] = snapshot(cgroup)
+    resource_path = a.out/'resource-windows.json'
+    resource_path.write_text(json.dumps(resources,indent=2)+'\n')
+    result['resource_windows_sha256'] = hashlib.sha256(resource_path.read_bytes()).hexdigest()
     result['output_sha256']=hashlib.sha256(text.encode()).hexdigest()
     result['reasoning_sha256']=hashlib.sha256(reasoning.encode()).hexdigest()
     result['decode_tps']=result['timings'].get('predicted_per_second')
