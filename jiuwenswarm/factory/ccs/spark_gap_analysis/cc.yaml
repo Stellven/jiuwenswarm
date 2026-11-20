@@ -1,0 +1,35 @@
+cc: '2'
+id: factory.spark_gap_analysis
+version: 1.0.1
+materials:
+  method:
+    path: METHOD.md
+  source_map:
+    path: SOURCE-MAP.md
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  analyze:
+    does: Analyze fixed-prompt client TTFT and bounded engine metrics, and quantify the gap to Strata with the lab's supported evidence tier.
+    takes:
+      evidence: json
+    gives:
+      analysis: json
+    needs: [python]
+    changes: [process.exec]
+  verify:
+    does: Recompute a timing and gap analysis from the same pinned input records and check exact result equality.
+    takes:
+      evidence: json
+      analysis: json
+    gives:
+      verification: json
+    needs: [python]
+    changes: [process.exec]
