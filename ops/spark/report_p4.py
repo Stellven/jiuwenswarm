@@ -412,6 +412,21 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
                    re.search(r'expert_weight_cache_native_profile: active\b', log) and
                    re.search(r'expert_weight_cache_native_profile: stats .*\bactive=1\b', log),
                    'Focused P4 native cache profile did not show activation and terminal stats')
+        if plan['subject_arm'] == 'C5':
+            gates = {key: value for key, value in s['launch_environment'].items() if key.startswith('LLAMA_')}
+            demand(gates == ({'LLAMA_BATCH_LAYOUT': '1'} if arm == 'C5' else {}),
+                   'Mapper comparison has unexpected runtime gates')
+            if arm == 'C5':
+                cuts = re.findall(r'batch_layout_mapper: layout length=2048 cached_prefix=0 begin=(\d+) end=(\d+) ', log)
+                stats = re.findall(r'batch_layout_mapper: stats decisions=(\d+) rows=(\d+) bypasses=(\d+)', log)
+                demand(len(stats) == 1, 'Mapper shutdown statistics are missing or ambiguous')
+                expected = sum(row['result']['prompt_tokens'] == 2048 for row in requests)
+                record['mapper'] = dict(decisions=int(stats[0][0]), rows=int(stats[0][1]), bypasses=int(stats[0][2]),
+                    cuts_2048=cuts, prompts_2048=expected,
+                    all_2048_split=cuts == [('0', '1536'), ('1536', '2048')] * expected,
+                    engine_log=reference(extra['engine_log']))
+            else:
+                demand('batch_layout_mapper:' not in log, 'Stock control emitted mapper markers')
         if plan['subject_arm'] == 'C4':
             predictor_gate = s['launch_environment'].get('LLAMA_EXPERT_PREDICT')
             demand(predictor_gate == ('1' if arm == 'C4' else None), 'Focused P4 C4 treatment must use only its declared predictor gate')
@@ -542,6 +557,13 @@ def render(analysis, evidence, capsule):
         bank = evidence['scopes'][0]['matched_bank']
         lines += [f'A+ and {evidence["subject_arm"]} used the same {bank["requested_mib"]:,} MiB budget, '
                   f'{bank["allocated_mib"]:,.2f} MiB logged allocation and effective runtime settings.', '']
+    for scope in evidence['scopes']:
+        if 'mapper' in scope:
+            mapping = scope['mapper']
+            split = ('Every 2048-token request used the 1536/512 split.' if mapping['all_2048_split'] else
+                     'The observed cuts did not reproduce the planned 1536/512 split on every 2048-token request.')
+            lines += [f"C5 pass {scope['launch_pass']} logged {mapping['decisions']} scheduling decisions and "
+                      f"{mapping['bypasses']} bypasses across all requests. {split}", '']
     predictor = [scope for scope in evidence['scopes'] if 'predictor_decode' in scope]
     if predictor:
         lines += ['## Native predictor decode readiness', '',

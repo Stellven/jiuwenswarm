@@ -81,10 +81,12 @@ def main():
         parser.error('Combined D supports matched stock, off and on functional smoke probes')
     speed = args.window == 'speed'
     native_cache = bool(args.native_mib)
-    native_window = args.window in ('speed', 'p4') or (args.cc == 'C4' and args.window == 'functional')
+    native_window = args.window in ('speed', 'p4') or (args.cc in ('C4', 'C5') and args.window == 'functional')
+    if native_cache and args.cc == 'C5' and (args.native_mib != 30720 or args.mode == 'stock'):
+        parser.error('The mapper native comparison requires the 30 GiB bank on both arms')
     if ((speed and not native_cache) or (native_cache and
-           (not native_window or args.cc not in ('C3', 'C4') or args.mode == 'strict-stock'))):
-        parser.error('Native-cache cells require C3 or C4, a matched mode and a fixed cache budget')
+           (not native_window or args.cc not in ('C3', 'C4', 'C5') or args.mode == 'strict-stock'))):
+        parser.error('Native-cache cells require C3, C4 or C5, a matched mode and a fixed cache budget')
     if args.mode == 'equivalent-stock' and not native_cache and (args.cc != 'C2' or args.placement_policy != 'heldout_layer27_policy'):
         parser.error('The equivalent-placement stock control requires the layer 27 policy')
     scope = args.scope.resolve()
@@ -201,7 +203,7 @@ def main():
         label = f'A-matched-{args.cc}-{args.window}'
     if speed:
         arm = {'stock': 'A-matched', 'equivalent-stock': 'Aplus', 'off': f'{args.cc}-native-off',
-               'on': 'C3-profile-on' if args.cc == 'C3' else 'C4-native-on'}[args.mode]
+               'on': 'C3-profile-on' if args.cc == 'C3' else f'{args.cc}-native-on'}[args.mode]
         label = f'{arm}-speed-{args.native_mib}MiB'
     if p4:
         label = args.arm
