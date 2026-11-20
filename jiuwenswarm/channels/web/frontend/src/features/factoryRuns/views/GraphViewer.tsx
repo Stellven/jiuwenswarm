@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   Handle,
@@ -16,6 +16,8 @@ import { Box, ClipboardList, FileText, GitBranch, Layers3, Maximize, Minus, Plus
 import { useTranslation } from 'react-i18next';
 import type { GraphLink, GraphModel, GraphNode, GraphReplay } from './graphModel';
 import { graphProgress } from './graphModel';
+import { MembershipEdge } from './MembershipEdge';
+import { layoutOntologyGroups, type GraphPlacement } from './ontologyLayout';
 import '@xyflow/react/dist/style.css';
 import './graphViewer.css';
 
@@ -124,6 +126,7 @@ type FlowNode = Node<
     phase?: Phase;
     state?: string;
     grouped?: boolean;
+    member?: boolean;
     select: (id: string) => void;
   },
   'factoryNode'
@@ -142,11 +145,11 @@ function linkText(link: GraphLink, text: ReturnType<typeof useLabels>) {
 
 function GraphCard({ data, selected }: NodeProps<FlowNode>) {
   const text = useLabels();
-  const { node, state, phase, grouped, select } = data;
+  const { node, state, phase, grouped, member, select } = data;
   const Icon = icons[node.kind];
   const status = statusText(state, phase, text);
   return (
-    <div className="factory-graph-card" data-grouped={grouped || undefined}>
+    <div className="factory-graph-card" data-grouped={grouped || undefined} data-member={member || undefined}>
       <Handle type="target" position={Position.Left} isConnectable={false} className="factory-graph-handle" />
       <button
         type="button"
@@ -171,58 +174,20 @@ function GraphCard({ data, selected }: NodeProps<FlowNode>) {
           </span>
         )}
       </button>
-      <Handle type="source" position={Position.Right} isConnectable={false} className="factory-graph-handle" />
+      <Handle
+        type="source"
+        position={grouped ? Position.Bottom : Position.Right}
+        isConnectable={false}
+        className={grouped ? 'factory-graph-handle factory-graph-membership-origin' : 'factory-graph-handle'}
+      />
     </div>
   );
 }
 
 const nodeTypes = { factoryNode: GraphCard };
+const edgeTypes = { membership: MembershipEdge };
 
-type Placement = {
-  node: GraphNode;
-  position: { x: number; y: number };
-  width: number;
-  height: number;
-  parentId?: string;
-  grouped?: boolean;
-};
-
-function groupLayout(graph: GraphModel): Placement[] | null {
-  const groups = graph.nodes.filter((node) => node.kind === 'group');
-  const members = graph.nodes.filter((node) => node.kind !== 'group');
-  const links = graph.links.filter((link) => link.kind === 'member');
-  const memberIds = new Set(links.map((link) => link.target));
-  if (!groups.length || links.length !== graph.links.length || members.length !== links.length) return null;
-  if (members.some((node) => !memberIds.has(node.id))) return null;
-
-  const columns = Math.min(3, groups.length);
-  const step = nodeHeight + 9;
-  const width = nodeWidth + 24;
-  const height =
-    step * (Math.max(...groups.map((group) => links.filter((link) => link.source === group.id).length)) + 1) + 15;
-  return groups.flatMap((group, index) => [
-    {
-      node: group,
-      position: { x: (index % columns) * (width + 18), y: Math.floor(index / columns) * (height + 18) },
-      width,
-      height,
-      grouped: true,
-    },
-    ...members
-      .filter((member) => links.some((link) => link.source === group.id && link.target === member.id))
-      .map((node, memberIndex) => ({
-        node,
-        position: { x: 12, y: step * (memberIndex + 1) + 8 },
-        width: nodeWidth,
-        height: nodeHeight,
-        parentId: group.id,
-      })),
-  ]);
-}
-
-function layout(graph: GraphModel): { placement: Placement[]; links: GraphLink[] } {
-  const groups = groupLayout(graph);
-  if (groups) return { placement: groups, links: [] };
+function layout(graph: GraphModel): { placement: GraphPlacement[]; links: GraphLink[] } {
   const positions = new dagre.graphlib.Graph()
     .setGraph({ rankdir: 'LR', nodesep: 22, ranksep: 112, acyclicer: 'greedy' })
     .setDefaultEdgeLabel(() => ({}));
@@ -238,8 +203,8 @@ function layout(graph: GraphModel): { placement: Placement[]; links: GraphLink[]
   };
 }
 
-function ZoomControls() {
-  const { fitView, zoomIn, zoomOut } = useReactFlow();
+function ZoomControls({ grouped }: { grouped: boolean }) {
+  const { fitView, setViewport, zoomIn, zoomOut } = useReactFlow();
   const text = useLabels();
   return (
     <Panel position="top-right" className="factory-graph-controls">
@@ -266,7 +231,10 @@ function ZoomControls() {
         aria-label={text.fit}
         title={text.fit}
         data-testid="factory-runs-graph-fit"
-        onClick={() => void fitView({ ...fitOptions, duration: 220 })}
+        onClick={() => {
+          if (grouped) void setViewport({ x: 0, y: 0, zoom: 1 }, { duration: 220 });
+          else void fitView({ ...fitOptions, duration: 220 });
+        }}
       >
         <Maximize size={15} aria-hidden="true" />
       </button>
@@ -362,7 +330,19 @@ function NodeDetails({
 export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: GraphReplay }) {
   const text = useLabels();
   const [selectedId, setSelectedId] = useState('');
-  const geometry = useMemo(() => layout(graph), [graph]);
+  const view = useRef<HTMLElement>(null);
+  const [width, setWidth] = useState(760);
+  useLayoutEffect(() => {
+    const element = view.current;
+    if (!element || graph.kind !== 'ontology') return;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width > 0) setWidth(Math.floor(entry.contentRect.width) - 2);
+    });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [graph]);
+  const grouped = useMemo(() => layoutOntologyGroups(graph, width), [graph, width]);
+  const geometry = useMemo(() => grouped ?? layout(graph), [graph, grouped]);
   const nodeLabels = useMemo(() => new Map(graph.nodes.map((node) => [node.id, node.label])), [graph.nodes]);
   const progress = useMemo(() => (replay ? graphProgress(graph, replay) : undefined), [graph, replay]);
   const nodes = useMemo<FlowNode[]>(
@@ -379,7 +359,7 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
           height,
           parentId,
           selected: selectedId === node.id,
-          data: { node, state, grouped, phase: mark?.phase, select: setSelectedId },
+          data: { node, state, grouped, member: Boolean(parentId), phase: mark?.phase, select: setSelectedId },
         };
       }),
     [geometry, progress, selectedId],
@@ -408,19 +388,23 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
         const current =
           progress?.get(link.source)?.phase === 'current' || progress?.get(link.target)?.phase === 'current';
         const reached = visibleLinks.has(link);
+        const membership = Boolean(grouped && link.kind === 'member');
         const edgeClass = !reached ? 'factory-graph-edge-upcoming' : current ? 'factory-graph-edge-current' : undefined;
         return {
           id: `graph-edge-${index}`,
           source: link.source,
           target: link.target,
-          type: 'smoothstep',
+          type: membership ? 'membership' : 'smoothstep',
+          zIndex: membership ? 1 : undefined,
           className: edgeClass,
           label: link.kind === 'relation' || link.kind === 'superseded' ? linkText(link, text) : undefined,
-          markerEnd: { type: MarkerType.ArrowClosed, width: 17, height: 17 },
+          markerEnd: membership
+            ? { type: MarkerType.ArrowClosed, width: 12, height: 12, color: 'var(--color-text-link)' }
+            : { type: MarkerType.ArrowClosed, width: 17, height: 17 },
           style: link.kind === 'superseded' ? { strokeDasharray: '5 4' } : undefined,
         };
       }),
-    [geometry.links, progress, text, visibleLinks],
+    [geometry.links, grouped, progress, text, visibleLinks],
   );
   const selected = graph.nodes.find((node) => node.id === selectedId);
   const selectedProgress = selected ? progress?.get(selected.id) : undefined;
@@ -433,7 +417,12 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
     );
 
   return (
-    <section className="factory-graph-view" aria-label={text.title[graph.kind]} data-testid="factory-runs-graph">
+    <section
+      ref={view}
+      className="factory-graph-view"
+      aria-label={text.title[graph.kind]}
+      data-testid="factory-runs-graph"
+    >
       <div className="factory-graph-summary">
         <strong data-testid="factory-runs-graph-title">{text.title[graph.kind]}</strong>
         <span data-testid="factory-runs-graph-count">
@@ -450,11 +439,13 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
           </div>
         )}
       </div>
-      <div className="factory-graph-canvas">
+      <div className="factory-graph-canvas" style={grouped ? { height: grouped.height + 2 } : undefined}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          elevateNodesOnSelect={!grouped}
           nodesDraggable={false}
           nodesConnectable={false}
           nodesFocusable={false}
@@ -465,7 +456,9 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
           minZoom={0.1}
           maxZoom={2}
           defaultMarkerColor="var(--color-text-secondary)"
-          fitView
+          zoomOnScroll={!grouped}
+          preventScrolling={!grouped}
+          fitView={!grouped}
           fitViewOptions={fitOptions}
           onPaneClick={() => setSelectedId('')}
           onKeyDown={(event) => {
@@ -476,7 +469,7 @@ export function GraphViewer({ graph, replay }: { graph: GraphModel; replay?: Gra
           data-testid="factory-runs-graph-canvas"
         >
           <Background gap={19} size={1.2} color="var(--color-border-default)" />
-          <ZoomControls />
+          <ZoomControls grouped={Boolean(grouped)} />
         </ReactFlow>
         {selected && (
           <NodeDetails

@@ -85,16 +85,45 @@
 }
 
 .factory-graph-card[data-grouped='true'] {
-  padding: 8px 12px;
+  padding: 4px;
   border: 1px solid var(--color-border-default);
-  border-radius: 14px;
+  border-radius: 10px;
   background: var(--color-surface-muted);
 }
 
 .factory-graph-card[data-grouped='true'] .factory-graph-node-button {
-  height: 62px;
+  height: 32px;
   border-color: transparent;
   background: transparent;
+}
+
+.factory-graph-card:is([data-grouped='true'], [data-member='true']) .factory-graph-node-button {
+  padding: 3px 7px;
+  gap: 6px;
+}
+
+.factory-graph-card:is([data-grouped='true'], [data-member='true']) .factory-graph-node-button > svg {
+  align-self: center;
+  margin-top: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.factory-graph-card:is([data-grouped='true'], [data-member='true']) .factory-graph-node-kind {
+  display: none;
+}
+
+.factory-graph-canvas .factory-graph-membership-origin {
+  left: 16px;
+  top: 33px;
+  bottom: auto;
+  transform: none;
+}
+
+.factory-graph-canvas .factory-graph-membership-edge {
+  stroke: var(--color-text-link);
+  stroke-width: 1.5;
+  pointer-events: none;
 }
 
 .factory-graph-canvas .factory-graph-handle {
