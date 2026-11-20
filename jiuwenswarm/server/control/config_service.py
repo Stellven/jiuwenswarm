@@ -472,9 +472,9 @@ async def handle_config_request(request: AgentRequest) -> AgentResponse:
         )
     raw = _read_raw_config()
     if method == ReqMethod.LOCALE_GET_CONF:
-        lang = str(raw.get("preferred_language") or "zh").strip().lower()
+        lang = str(raw.get("preferred_language") or "en").strip().lower()
         if lang not in {"zh", "en"}:
-            lang = "zh"
+            lang = "en"
         return AgentResponse(
             request_id=request.request_id,
             channel_id=request.channel_id,

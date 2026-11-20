@@ -1,7 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Moon, Plus, RefreshCw, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { factoryApi, type FileContent, type JsonRecord, type RunDetail, type RunList, type StoryEvent } from './api';
-import { Measurements } from './Measurements';
+import {
+  factoryApi,
+  type EvidenceFile,
+  type FileContent,
+  type JsonRecord,
+  type RunDetail,
+  type RunList,
+  type SessionSnapshot,
+  type StoryEvent,
+} from './api';
+import { Measurements, MeasurementSummary } from './Measurements';
+import { RunOverview } from './RunOverview';
+import { Iterations } from './Iterations';
+import { FactoryReport } from './FactoryReport';
+import { reportFiles } from './reportModel';
+import { LiveSession } from './LiveSession';
+import { LaunchSessionDialog } from './LaunchSessionDialog';
 import { DataViewer } from './views/DataViewer';
 import { evidenceKind } from './views/dataModel';
 import { EvidenceFileBrowser } from './views/EvidenceFiles';
@@ -21,6 +37,7 @@ const emptyCapsules: CapsuleCard[] = [];
 
 const panels = [
   'overview',
+  'iterations',
   'contract',
   'ontology',
   'graph',
@@ -33,6 +50,11 @@ const panels = [
   'report',
 ] as const;
 type Panel = (typeof panels)[number];
+const storyVersion = (events: StoryEvent[]) => {
+  const last = events[events.length - 1];
+  return `${events.length}:${last?.id ?? ''}:${last?.summary ?? ''}`;
+};
+
 const patterns: Partial<Record<Panel, RegExp>> = {
   contract: /contract|task.*\.json/i,
   ontology: /ontology|dictionary|alignment|example\.md|\.(mmd|mermaid)$/i,
@@ -40,7 +62,7 @@ const patterns: Partial<Record<Panel, RegExp>> = {
   diffs: /(?:diff|patch|scor)/i,
   tests: /test|scor|verif|parity/i,
   measurements: /bench|measur|result|ledger|metrics/i,
-  terminal: /terminal/i,
+  terminal: /session|\.log$|stdout|stderr|terminal/i,
   report: /report|summary.*\.md/i,
 };
 export function FactoryRunsPage({ entry }: { entry?: Extract<FactoryEntry, { view: 'factoryRuns' }> }) {
@@ -67,19 +89,33 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [playing, setPlaying] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [template, setTemplate] = useState('');
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const observedStory = useRef('');
   const [file, setFile] = useState<FileContent | null>(null);
   const [filePath, setFilePath] = useState(entry?.file || '');
   const [fileError, setFileError] = useState('');
-  const [launching, setLaunching] = useState(false);
+  const [childSource, setChildSource] = useState<{ id: string; sha256?: string }>();
+  const [expectedSha, setExpectedSha] = useState('');
+  const [focusedDecisionId, setFocusedDecisionId] = useState<string>();
+  const main = useRef<HTMLElement>(null);
+  const [launchOpen, setLaunchOpen] = useState(false);
+  const [session, setSession] = useState<SessionSnapshot | null>(null);
+  const [sessionStale, setSessionStale] = useState(false);
+  const [appearance, setAppearance] = useState<'light' | 'dark'>(() =>
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+  );
   const refresh = useCallback(async () => {
+    setCatalogLoading(true);
     try {
       const result = await factoryApi.list();
-      setListing(result);
-      setSelected((old) => old || result.runs[0]?.id || '');
-      setTemplate((old) => old || result.launch_templates[0]?.id || '');
+      const runs = [...result.runs].sort((a, b) => b.updated - a.updated);
+      setListing({ ...result, runs });
+      setSelected((old) => old || runs[0]?.id || '');
     } catch (err) {
       setError(String(err));
+    } finally {
+      setCatalogLoading(false);
     }
   }, []);
   useEffect(() => {
@@ -91,6 +127,8 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     setLoading(true);
     setDetail(null);
     setFile(null);
+    setSession(null);
+    setSessionStale(false);
     setError('');
     setPlaying(false);
     factoryApi
@@ -98,8 +136,10 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
       .then((result) => {
         if (active) {
           setDetail(result);
+          observedStory.current = storyVersion(result.events);
           setEvents(result.events);
           setPosition(result.events.length);
+          if (result.session) setSession(result.session);
         }
       })
       .catch((err) => {
@@ -111,32 +151,61 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     return () => {
       active = false;
     };
-  }, [selected]);
+  }, [selected, refreshVersion]);
+  const isLiveHome = detail?.run.id === selected && detail.run.kind === 'live';
   useEffect(() => {
-    if (!live || !selected || !detail) return;
-    let active = true;
+    if (!isLiveHome) return;
+    let stopped = false;
+    let timer: number;
     const tick = async () => {
       try {
-        const result = await factoryApi.story(selected, events.length);
-        if (!active) return;
-        if (result.events.length) {
-          setEvents((old) => (result.reset ? result.events : [...old, ...result.events]));
-          setPosition(result.total);
-          const next = await factoryApi.detail(selected);
-          if (active) setDetail(next);
+        const update = await factoryApi.session(selected);
+        if (!stopped) {
+          setSession(update);
+          setSessionStale(false);
+        }
+      } catch {
+        if (!stopped) setSessionStale(true);
+      }
+      if (!stopped) timer = window.setTimeout(tick, 3000);
+    };
+    void tick();
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+    };
+  }, [selected, isLiveHome]);
+  useEffect(() => {
+    if (!isLiveHome || !live) return;
+    let stopped = false;
+    let timer: number;
+    const tick = async () => {
+      try {
+        const result = await factoryApi.story(selected, 0);
+        if (stopped) return;
+        const version = storyVersion(result.events);
+        setEvents(result.events);
+        setPosition(result.total);
+        if (version !== observedStory.current) {
+          const current = await factoryApi.detail(selected);
+          if (!stopped) {
+            observedStory.current = storyVersion(current.events);
+            setDetail(current);
+            setEvents(current.events);
+            setPosition(current.events.length);
+          }
         }
       } catch (err) {
-        if (active) setError(String(err));
+        if (!stopped) setError(String(err));
       }
+      if (!stopped) timer = window.setTimeout(tick, 3000);
     };
-    const timer = window.setInterval(() => {
-      void tick();
-    }, 2000);
+    void tick();
     return () => {
-      active = false;
-      window.clearInterval(timer);
+      stopped = true;
+      window.clearTimeout(timer);
     };
-  }, [selected, live, detail, events.length]);
+  }, [selected, live, isLiveHome]);
   useEffect(() => {
     if (!playing) return;
     if (position >= events.length) {
@@ -181,7 +250,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   useEffect(() => {
     setFile(null);
     setFileError('');
-    if (!selected || !previewPath) return;
+    if (!selected || !previewPath || panel === 'report') return;
     let active = true;
     factoryApi
       .file(selected, previewPath)
@@ -194,7 +263,21 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     return () => {
       active = false;
     };
-  }, [selected, previewPath, previewDigest]);
+  }, [selected, previewPath, previewDigest, panel, refreshVersion]);
+  useEffect(() => {
+    if (!detail || detail.run.id !== selected || !childSource) return;
+    const source = detail.files.find((item) => item.artifact_ids?.includes(childSource.id));
+    if (source) {
+      setFilePath(source.path);
+      setExpectedSha(childSource.sha256 || '');
+    } else {
+      setError(t('factoryRuns.iteration.unavailable', { id: childSource.id }));
+    }
+    setChildSource(undefined);
+  }, [childSource, detail, selected, t]);
+  useEffect(() => {
+    if (main.current) main.current.scrollTop = 0;
+  }, [panel, selected]);
   const visibleEvents = events.slice(0, position);
   const cursor = visibleEvents[visibleEvents.length - 1];
   const records = detail?.records || {};
@@ -218,76 +301,111 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     eventRefs.get(event.id) ?? eventRefs.get(event.id.split(':')[0]),
     ['build', 'integrate'].includes(event.kind) ? records.tasks?.[0]?.component_cc : null,
   ];
+  const selectPanel = (value: Panel, path = '', digest = '') => {
+    setPanel(value);
+    setExpectedSha(digest);
+    if (path !== filePath) {
+      setFilePath(path);
+      setFile(null);
+    }
+  };
   const selectRun = (id: string) => {
     if (id === selected) return;
     window.history.replaceState(window.history.state, '', runHref(id));
-    setFilePath('');
     setSelected(id);
-  };
-  const selectPanel = (value: Panel) => {
-    setPanel(value);
+    setLive(false);
+    setPanel('overview');
+    setFocusedDecisionId(undefined);
+    setChildSource(undefined);
+    setExpectedSha('');
     setFilePath('');
   };
-  async function launch() {
-    setLaunching(true);
-    setError('');
-    try {
-      const result = await factoryApi.launch(template);
-      await refresh();
-      selectRun(result.id);
-      setLive(true);
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setLaunching(false);
-    }
+  const openIterationChild = (id: string, panel: Panel, sourceId?: string, sha256?: string) => {
+    selectRun(id);
+    setPanel(panel);
+    setChildSource(sourceId ? { id: sourceId, sha256 } : undefined);
+  };
+  const openIterationSource = (source: EvidenceFile) => {
+    const report = reportFiles([source]).length > 0;
+    selectPanel(report ? 'report' : 'terminal', source.path, source.expected_sha256 || '');
+  };
+  const onLaunched = (id: string) => {
+    setLaunchOpen(false);
+    selectRun(id);
+    setLive(true);
+    void refresh();
+  };
+  const changeAppearance = () => setAppearance((mode) => (mode === 'dark' ? 'light' : 'dark'));
+  let measurementSummary: ReactNode;
+  if (
+    detail &&
+    (detail.contract.contract_id === 'star-deepseek-v1' ||
+      detail.records.tasks?.[0]?.contract_id === 'star-deepseek-v1')
+  ) {
+    measurementSummary = <MeasurementSummary onOpenMeasurements={() => selectPanel('measurements')} />;
   }
   return (
-    <div className="factory-runs-page" data-testid="factory-runs-page">
+    <div className="factory-runs-page" data-testid="factory-runs-page" data-appearance={appearance}>
       <aside className="factory-rail" data-testid="factory-runs-rail">
         <div className="factory-heading">
           <h1 data-testid="factory-runs-title">{t('factoryRuns.title')}</h1>
-          <button data-testid="factory-runs-refresh" onClick={() => void refresh()}>
-            {t('factoryRuns.refresh')}
+          <button
+            className="factory-story-icon-button"
+            type="button"
+            data-testid="factory-runs-refresh"
+            title={t('factoryRuns.refresh')}
+            aria-label={t('factoryRuns.refresh')}
+            disabled={catalogLoading || loading}
+            onClick={() => {
+              void refresh();
+              setRefreshVersion((value) => value + 1);
+            }}
+          >
+            <RefreshCw aria-hidden size={16} />
           </button>
         </div>
-        <p className="factory-muted" data-testid="factory-runs-description">
-          {t('factoryRuns.description')}
-        </p>
-        <FactoryRunList runs={listing.runs} selected={selected} onSelect={selectRun} />
-        <form
-          className="factory-launch"
-          data-testid="factory-runs-launch"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void launch();
-          }}
+        <button
+          className="factory-story-launch-button"
+          type="button"
+          data-testid="factory-runs-launch-button"
+          disabled={catalogLoading || (!listing.launch_enabled && !listing.launch_templates.length)}
+          onClick={() => setLaunchOpen(true)}
         >
-          <h2 data-testid="factory-runs-launch-title">{t('factoryRuns.launch')}</h2>
-          <select
-            data-testid="factory-runs-template"
-            aria-label={t('factoryRuns.template')}
-            value={template}
-            onChange={(event) => setTemplate(event.target.value)}
-            disabled={!listing.launch_enabled}
-          >
-            {listing.launch_templates.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-          <button data-testid="factory-runs-launch-button" disabled={launching || !listing.launch_enabled || !template}>
-            {t(launching ? 'factoryRuns.launching' : 'factoryRuns.launch')}
-          </button>
-          {(!listing.launch_enabled || !listing.launch_templates.length) && (
-            <p className="factory-muted" data-testid="factory-runs-launch-disabled">
-              {t('factoryRuns.launchDisabled')}
-            </p>
+          <Plus aria-hidden size={17} /> {t('factoryRuns.launch')}
+        </button>
+        {!catalogLoading && !listing.launch_enabled && !listing.launch_templates.length && (
+          <p className="factory-muted" data-testid="factory-runs-launch-disabled">
+            {t('factoryRuns.launchDisabled')}
+          </p>
+        )}
+        <div aria-busy={catalogLoading}>
+          {listing.runs.length > 0 || !catalogLoading ? (
+            <FactoryRunList runs={listing.runs} selected={selected} onSelect={selectRun} />
+          ) : null}
+          {!listing.runs.length && catalogLoading && (
+            <p className="factory-muted">{t('factoryRuns.story.loadingCatalog')}</p>
           )}
-        </form>
+        </div>
+        <button
+          type="button"
+          className="factory-story-appearance-button"
+          onClick={changeAppearance}
+          data-testid="factory-runs-appearance"
+        >
+          <Moon className="factory-story-moon" aria-hidden size={15} />
+          <Sun className="factory-story-sun" aria-hidden size={15} />
+          {t(appearance === 'dark' ? 'factoryRuns.story.lightMode' : 'factoryRuns.story.darkMode')}
+        </button>
       </aside>
-      <section className="factory-main" data-testid="factory-runs-main">
+      {launchOpen && (
+        <LaunchSessionDialog
+          enabled={listing.launch_enabled}
+          templates={listing.launch_templates}
+          onClose={() => setLaunchOpen(false)}
+          onLaunched={onLaunched}
+        />
+      )}
+      <section ref={main} className="factory-main" data-testid="factory-runs-main">
         {error && (
           <div className="factory-error" role="alert" data-testid="factory-runs-error">
             {error}
@@ -298,25 +416,30 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
           <>
             <header className="factory-detail-header">
               <div>
-                <h2 data-testid="factory-runs-run-title">{detail.run.name}</h2>
-                <p className="factory-muted">
-                  {detail.run.task_id} · {detail.run.status}
+                <p className="factory-story-kicker">
+                  {t(detail.run.kind === 'bundle' ? 'factoryRuns.story.bundle' : 'factoryRuns.story.factoryHome')}
                 </p>
+                <h2 data-testid="factory-runs-run-title">{detail.run.name}</h2>
                 <CapsuleChips value={[detail.stack, records.tasks?.map(({ component_cc, capability_cc }) => [component_cc, capability_cc])]} />
               </div>
-              <label className="factory-live">
-                <input
-                  type="checkbox"
-                  data-testid="factory-runs-live"
-                  checked={live}
-                  onChange={(event) => {
-                    setLive(event.target.checked);
-                    setPlaying(false);
-                  }}
-                />
-                {t('factoryRuns.live')}
-              </label>
+              {isLiveHome && (
+                <label className="factory-live">
+                  <input
+                    type="checkbox"
+                    data-testid="factory-runs-live"
+                    checked={live}
+                    onChange={(event) => {
+                      setLive(event.target.checked);
+                      setPlaying(false);
+                    }}
+                  />
+                  {t('factoryRuns.live')}
+                </label>
+              )}
             </header>
+            {isLiveHome && (live || panel === 'overview' || panel === 'terminal') && (
+              <LiveSession session={session} stale={sessionStale} />
+            )}
             <section className="factory-replay" data-testid="factory-runs-replay">
               <div className="factory-replay-controls">
                 <button
@@ -366,33 +489,35 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
             </nav>
             <section className="factory-evidence" data-testid="factory-runs-evidence">
               {panel === 'overview' && (
-                <>
-                  <div className="factory-stats">
-                    <article>
-                      <strong>{events.length}</strong>
-                      <span>{t('factoryRuns.events')}</span>
-                    </article>
-                    <article>
-                      <strong>{detail.files.length}</strong>
-                      <span>{t('factoryRuns.files')}</span>
-                    </article>
-                    <article>
-                      <strong>
-                        {detail.files.filter((item) => ['mismatch', 'missing'].includes(item.integrity)).length}
-                      </strong>
-                      <span>{t('factoryRuns.mismatches')}</span>
-                    </article>
-                  </div>
-                  <ol className="factory-timeline" data-testid="factory-runs-timeline">
-                    {visibleEvents.map((event, index) => (
-                      <li key={`${event.id}-${index}`} data-testid="factory-runs-event" data-variant={event.id}>
-                        <time>{new Date(event.created * 1000).toLocaleTimeString()}</time>
-                        <strong>{event.kind}</strong>
-                        <span>{event.summary} <CapsuleChips value={capsuleEvent(event)} /></span>
-                      </li>
-                    ))}
-                  </ol>
-                </>
+                <RunOverview
+                  detail={detail}
+                  events={visibleEvents}
+                  onOpen={selectPanel}
+                  measurements={measurementSummary}
+                  eventCapsules={(event) => <CapsuleChips value={capsuleEvent(event)} />}
+                />
+              )}
+              {panel === 'iterations' && (
+                <Iterations
+                  detail={detail}
+                  runs={listing.runs}
+                  onOpenSource={openIterationSource}
+                  onOpenChild={openIterationChild}
+                  onOpenDecision={(runId, decisionId) => {
+                    selectRun(runId);
+                    setPanel('iterations');
+                    setFocusedDecisionId(decisionId);
+                  }}
+                  focusedDecisionId={focusedDecisionId}
+                />
+              )}
+              {panel === 'report' && (
+                <FactoryReport
+                  runId={detail.run.id}
+                  files={detail.files}
+                  initialPath={filePath}
+                  expectedSha={expectedSha}
+                />
               )}
               {panel === 'graph' && (
                 <DataViewer
@@ -444,24 +569,16 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   <a href={capsuleHref()} data-testid="factory-runs-capsule-browse">{copy('catalog')} →</a>
                 </div>
               )}
-              {panel === 'measurements' && (
-                <Measurements
-                  observations={records.observations || []}
-                  onOpenEvidence={(artifact) => {
-                    const source = detail.files.find((item) => item.artifact_ids?.includes(artifact));
-                    if (source) setFilePath(source.path);
-                  }}
-                />
-              )}
-              {panel !== 'overview' && panel !== 'graph' && (
+              {panel === 'measurements' && <Measurements />}
+              {!['overview','graph','report','iterations','measurements'].includes(panel) && (
                 <EvidenceFileBrowser
                   key={`${selected}:${panel}`}
                   files={matchingFiles}
                   runFiles={detail.files}
-                  selectedFile={selectedFile}
-                  content={file}
+                  selectedFile={selectedFile && expectedSha && selectedFile.sha256 !== expectedSha ? { ...selectedFile, expected_sha256: expectedSha, integrity: 'mismatch' } : selectedFile}
+                  content={file && expectedSha && file.sha256 !== expectedSha ? { ...file, expected_sha256: expectedSha, integrity: 'mismatch' } : file}
                   error={fileError}
-                  onSelect={setFilePath}
+                  onSelect={(path) => { setExpectedSha(''); setFilePath(path); }}
                 />
               )}
             </section>

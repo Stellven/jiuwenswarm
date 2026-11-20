@@ -5,6 +5,7 @@
  */
 
 import { useCallback } from 'react';
+import { Workflow } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './SessionSidebar.css';
 import PlusIcon from '../../assets/sidebar/plus.svg?react';
@@ -87,11 +88,11 @@ const capsuleNavIcon = (
 
 const mainNavItems: NavItem[] = [
   { key: 'chat', labelKey: 'nav.work', icon: <WorkIcon aria-hidden /> },
+  { key: 'factoryRuns', labelKey: 'nav.factoryRuns', icon: <Workflow aria-hidden /> },
+  { key: 'capabilityCapsules', labelKey: 'nav.capabilityCapsules', icon: capsuleNavIcon },
   { key: 'agents', labelKey: 'nav.agent', icon: <AgentDesignIcon aria-hidden /> },
   { key: 'skills', labelKey: 'nav.skills', icon: <SkillDesignIcon aria-hidden /> },
   { key: 'connectorMarket', labelKey: 'nav.connectorMarket', icon: connectorMarketNavIcon },
-  { key: 'factoryRuns', labelKey: 'nav.factoryRuns', icon: <WorkIcon aria-hidden /> },
-  { key: 'capabilityCapsules', labelKey: 'nav.capabilityCapsules', icon: capsuleNavIcon },
   { key: 'experiments', labelKey: 'nav.experiments', icon: experimentsNavIcon },
   { key: 'personalContext', labelKey: 'nav.personalContext', icon: personalContextNavIcon },
   { key: 'settings', labelKey: 'nav.settings', icon: <SettingsIcon aria-hidden /> },
@@ -159,16 +160,17 @@ export function SessionSidebar({
       {visibleMainNavItems.map((item) => (
         <button
           key={item.key}
+          title={getNavItemLabel(item)}
+          aria-label={getNavItemLabel(item)}
+          aria-current={isNavItemActive(item) ? 'page' : undefined}
           className={`icon-rail-nav-item${isNavItemActive(item) ? ' icon-rail-nav-item--active' : ''}`}
           onClick={() => handleNavClick(item.key)}
           data-testid="session-sidebar-nav-item"
-          aria-label={getNavItemLabel(item)}
-          title={getNavItemLabel(item)}
           data-variant={item.key}
           data-model-setup-guide-target={item.key === 'settings' ? 'settings' : undefined}
         >
           <span className="icon-rail-nav-item__icon">{item.icon}</span>
-          <span className={`icon-rail-nav-item__label${item.key === 'personalContext' || item.key === 'capabilityCapsules' ? ' icon-rail-nav-item__label--multiline' : ''}`}>
+          <span className={`icon-rail-nav-item__label${item.key === 'personalContext' || (item.key === 'factoryRuns' || item.key === 'capabilityCapsules') ? ' icon-rail-nav-item__label--multiline' : ''}`}>
             {getNavItemLabel(item)}
           </span>
         </button>

@@ -1,22 +1,82 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { aggregateMeasurements, gapScale } from '../src/features/factoryRuns/measurementModel.ts';
-const observation = (arm, ttft, extra = {}) => ({kind:'measurement',obs_id:`${arm}-${ttft}`,source_artifacts:['source:OPS/runs/test/result.json@sha256:abc'],values:{arm,prompt_tokens:512,ttft_s:ttft,decode_tps:ttft,warm:true,...extra}});
-test('median preserves early slow warm samples and full observed range', () => {
- const rows=aggregateMeasurements([1,2,3,100,200].map((value)=>observation('A',value)));
- assert.equal(rows[0].ttft,3); assert.equal(rows[0].count,5);
- assert.equal(rows[0].ttftMin,1); assert.equal(rows[0].ttftMax,200);
- assert.equal(rows[0].decode,3); assert.equal(rows[0].artifacts.length,1);
+import { aggregateMeasurements, chartScale, promptOptions } from '../src/features/factoryRuns/measurementModel.ts';
+
+const phase = 'reconnaissance';
+const prompt = { tokens: 512, hash: 'pinned-test-prompt' };
+const source = (line) => ({ line, integrity: 'ledger-match' });
+const identity = (arm) => ({ arm, phase, prompt_tokens: prompt.tokens, prompt_sha256: prompt.hash });
+const sample = (line, arm, ttft_s, extra = {}) => ({
+  ...identity(arm),
+  ttft_s,
+  decode_tps: ttft_s,
+  source: source(line),
+  ...extra,
 });
-test('exclude explicit ineligible/discarded requests; surface safety min and cgroup peak',()=>{
- const rows=aggregateMeasurements([observation('A',2,{peak_memory_bytes:50,min_mem_available_bytes:20}),observation('A',3,{peak_memory_bytes:60,min_mem_available_bytes:10}),observation('A',99,{discarded:true}),observation('A',99,{measurement_eligible:false})]);
- assert.equal(rows[0].count,2); assert.equal(rows[0].ttft,2.5); assert.equal(rows[0].memory,60);assert.equal(rows[0].available,10);
+const ledger = (samples, summaries = []) => ({ samples, summaries, issues: [] });
+const find = (rows, arm) => rows.find((row) => row.arm === arm).metrics;
+
+test('preserves warm-sample median, observed range and independent scope counts', () => {
+  const data = ledger(
+    [1, 2, 3, 100, 200].map((value, index) =>
+      sample(index + 1, 'A', value, {
+        peak_memory_bytes: index > 1 ? 20 : 10,
+        memory_source: source(index > 1 ? 8 : 7),
+      }),
+    ),
+  );
+  const rows = aggregateMeasurements(data, phase, prompt);
+  assert.deepEqual(
+    rows.map((row) => row.arm),
+    ['A', 'A+', 'C1', 'C2', 'C3', 'C4', 'C5', 'D', 'S'],
+  );
+  const metrics = find(rows, 'A');
+  assert.equal(metrics.ttft_s.value, 3);
+  assert.equal(metrics.ttft_s.n, 5);
+  assert.deepEqual(metrics.ttft_s.range, [1, 200]);
+  assert.equal(metrics.ttft_s.interval, undefined);
+  assert.equal(metrics.decode_tps.value, 3);
+  assert.equal(metrics.peak_memory_bytes.value, 20);
+  assert.equal(metrics.peak_memory_bytes.n, 2);
+  assert.deepEqual(metrics.peak_memory_bytes.sources, [source(7), source(8)]);
 });
-test('matching median controls derive negative and >100% closure without clipping',()=>{
- const rows=aggregateMeasurements([observation('A',10),observation('S',5),observation('C1',20),observation('D',2)]);
- assert.equal(rows.find(row=>row.arm==='C1').gap,-2);assert.equal(rows.find(row=>row.arm==='D').gap,1.6);
- const scale=gapScale(rows); assert.equal(scale.position(-2),0); assert.equal(scale.position(1.6),100);
+
+test('derived comparisons cite all matching control rows and retain the full closure scale', () => {
+  const data = ledger([sample(1, 'A', 10), sample(2, 'S', 5), sample(3, 'C1', 20), sample(4, 'D', 2)]);
+  const rows = aggregateMeasurements(data, phase, prompt);
+  assert.equal(find(rows, 'C1').gap.value, -2);
+  assert.equal(find(rows, 'D').gap.value, 1.6);
+  assert.deepEqual(find(rows, 'D').gap.sources, [source(4), source(1), source(2)]);
+  assert.deepEqual(find(rows, 'D').inverse_a.sources, [source(4), source(1)]);
+  const scale = chartScale(rows, 'gap');
+  assert.equal(scale.position(-2), 0);
+  assert.equal(scale.position(1.6), 100);
 });
-test('A matching or beating S yields undefined gap; absent controls stay undefined',()=>{
- for(const values of [[observation('A',5),observation('S',10)],[observation('A',5),observation('S',5)],[observation('A',5)]]) assert.ok(aggregateMeasurements(values).every(row=>row.gap===null));
+
+test('prompt hash and phase isolate control cohorts; a zero or negative stock gap remains unavailable', () => {
+  const data = ledger([
+    sample(1, 'A', 5),
+    sample(2, 'S', 5),
+    sample(3, 'A', 500, { phase: 'final' }),
+    sample(4, 'S', 2, { prompt_sha256: 'different-prompt' }),
+  ]);
+  const rows = aggregateMeasurements(data, phase, prompt);
+  assert.equal(find(rows, 'A').ttft_s.value, 5);
+  assert.ok(rows.every((row) => row.metrics.gap === undefined));
+  assert.equal(promptOptions(data, phase).length, 2);
+  assert.equal(find(aggregateMeasurements(data, 'final', prompt), 'A').ttft_s.value, 500);
+});
+
+test('only source-provided confidence intervals for the exact input rows are rendered', () => {
+  const interval = { low: 2, high: 4, level: 0.9, n: 2, source_lines: [1, 2] };
+  const data = ledger(
+    [sample(1, 'A', 2), sample(2, 'A', 4)],
+    [
+      { ...identity('A'), source: source(3), intervals: { ttft_s: interval } },
+      { ...identity('A'), source: source(4), intervals: { ttft_s: { ...interval, source_lines: [1, 9] } } },
+    ],
+  );
+  const stats = find(aggregateMeasurements(data, phase, prompt), 'A').ttft_s;
+  assert.deepEqual(stats.interval, interval);
+  assert.deepEqual(stats.intervalSource, source(3));
 });

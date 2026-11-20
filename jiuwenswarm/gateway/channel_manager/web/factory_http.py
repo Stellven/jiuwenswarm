@@ -1,6 +1,7 @@
 """Factory-native export and live-home views; no model work during reads.
 
 The operator supplies roots through FACTORY_RUN_ROOTS (os.pathsep separated).
+Campaign measurements read FACTORY_MEASUREMENT_ROOT (default ~/predemo-spark/OPS).
 Launching is opt-in: FACTORY_LAUNCH_ROOT contains reviewed task JSON templates;
 FACTORY_LAUNCH_HOME_ROOT is a dedicated directory for new session homes.
 """
@@ -16,6 +17,7 @@ import tempfile
 import subprocess
 import sys
 import time
+from typing import Literal
 from urllib.parse import urlsplit
 import uuid
 
@@ -28,6 +30,9 @@ from jiuwenswarm.factory.contract import CONTRACTS
 from jiuwenswarm.factory.redact import sanitize, scrub_bytes
 from .capsule_catalog import CapsuleCatalog
 from .capsule_evidence import capsule_usage, collect_capsule_evidence
+
+from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
+from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
@@ -60,11 +65,13 @@ def _json(path):
 
 
 class FactoryHttpService:
-    def __init__(self, roots=None, launch_root=None, launch_home_root=None, *, capsule_catalog=None):
+    def __init__(self, roots=None, launch_root=None, launch_home_root=None, measurement_root=None, *, capsule_catalog=None):
         default = os.pathsep.join((str(Path.home() / 'predemo-spark/factory-runs'),
                                   str(Path.home() / 'software-factory-spark-20261113/exports/factory-loop-v1')))
         self.roots = tuple(Path(p).expanduser().resolve() for p in
                            (roots if roots is not None else os.environ.get('FACTORY_RUN_ROOTS', default).split(os.pathsep)) if p)
+        self.measurements = MeasurementEvidence(measurement_root or os.environ.get(
+            'FACTORY_MEASUREMENT_ROOT', Path.home() / 'predemo-spark/OPS'))
         launch_root = launch_root or os.environ.get('FACTORY_LAUNCH_ROOT')
         self.launch_root = Path(launch_root).expanduser().resolve() if launch_root else None
         launch_home_root = launch_home_root or os.environ.get('FACTORY_LAUNCH_HOME_ROOT')
@@ -127,8 +134,30 @@ class FactoryHttpService:
     def templates(self):
         if not self.launch_root or not self.launch_root.is_dir():
             return []
-        return [dict(id=p.stem, name=p.stem) for p in sorted(self.launch_root.glob('*.json'))
-                if not p.is_symlink() and SAFE_ID.fullmatch(p.stem)]
+        templates = []
+        for path in sorted(self.launch_root.glob('*.json')):
+            if path.is_symlink() or not SAFE_ID.fullmatch(path.stem):
+                continue
+            try:
+                task = _json(_inside(self.launch_root, path.name))
+            except (OSError, ValueError):
+                continue
+            if not isinstance(task, dict):
+                continue
+            labels = task.get('operator_labels')
+            name = labels.get('display_name') if isinstance(labels, dict) else None
+            name = name if isinstance(name, str) and name else path.stem
+            component = task.get('component_cc')
+            capsules = [component] if isinstance(component, str) and component else []
+            if path.stem == 'star-capsule-inspection':
+                from scripts.spark.prepare_inspection_home import NAMES
+                capsules = list(NAMES)
+            template = dict(id=path.stem, name=name, capsules=capsules)
+            for field in ('contract_id', 'objective'):
+                if isinstance(task.get(field), str):
+                    template[field] = task[field]
+            templates.append(template)
+        return templates
 
     def listing(self):
         return sanitize(dict(runs=[item for item, _ in self.catalog()], launch_templates=self.templates(),
@@ -280,7 +309,26 @@ class FactoryHttpService:
         return sanitize(dict(run=item, records=data, contract=data.get('_contract', {}),
                              graph=taskgraph.from_records(data), stack=monitor.engine_stack(data),
                              telemetry=trace, files=self.files(item, path, data), events=events,
-                             summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace))))
+                             summary=dict(meta=data.get('_meta', {}), telemetry=telemetry.summary(trace)),
+                             session=self._session(item, path, data) if item['kind'] == 'live' else None))
+
+    def _session(self, item, path, data):
+        state = data['_meta']['controller_state']
+        # The native lock is scoped to the home. It identifies a task only
+        # when the home has a single task; stale state may survive a crash.
+        running = (state.get('tick') is not None and not state.get('outcome')
+                   and not state.get('finished') and controller_is_locked(_inside(path, 'controller.lock'))
+                   and len(monitor.tasks(path)) == 1)
+        transcript = _inside(path, f"sessions/{item['task_id']}.jsonl")
+        if transcript.is_file() and transcript.stat().st_size > MAX_FILE:
+            raise ValueError('Session evidence exceeds view limit')
+        return session_snapshot(data, transcript, running, time.time())
+
+    def session(self, run_id):
+        item, path = self.resolve(run_id)
+        if item['kind'] != 'live':
+            raise HTTPException(404, 'This run is an exported bundle')
+        return sanitize(self._session(item, path, self.load(item, path)))
 
     @staticmethod
     def events(data):
@@ -372,6 +420,10 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     async def detail(run_id: str):
         return await call(service.detail, run_id)
 
+    @app.get(PREFIX + '/runs/{run_id}/session')
+    async def session(run_id: str):
+        return await call(service.session, run_id)
+
     @app.get(PREFIX + '/runs/{run_id}/story')
     async def events(run_id: str, since: int = Query(0, ge=0)):
         return await call(service.event_page, run_id, since)
@@ -391,6 +443,14 @@ def attach_factory_routes(app: FastAPI, channel=None, *, service=None):
     @app.get(PREFIX + '/capsules/{name}/file')
     async def capsule_file(name: str, path: str = Query(..., max_length=1024)):
         return await call(service.capsule_catalog.file, name, path)
+
+    @app.get(PREFIX + '/measurements')
+    async def measurements():
+        return await call(service.measurements.listing)
+
+    @app.get(PREFIX + '/measurements/evidence/{line}')
+    async def measurement_evidence(line: int, kind: Literal['ledger', 'result']):
+        return await call(service.measurements.evidence, line, kind)
 
     @app.post(PREFIX + '/launch', status_code=202)
     async def launch(request: Request):
