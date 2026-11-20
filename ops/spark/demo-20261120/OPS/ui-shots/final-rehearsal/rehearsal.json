@@ -1,0 +1,106 @@
+{
+  "bundle": "6e52cb81f7ff9e4d1f2a8a57",
+  "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57",
+  "start": "2026-11-20T14:55:14.775474+00:00",
+  "publication_id": "spark-report-final-20261120T144513736615Z",
+  "steps": [
+    {
+      "name": "01-contract",
+      "verified_utc": "2026-11-20T14:55:18.518882+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57"
+    },
+    {
+      "name": "02-ontology",
+      "verified_utc": "2026-11-20T14:55:18.652007+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57",
+      "source": "ontology/20261117 Unified overview prepresentation.mmd"
+    },
+    {
+      "name": "03-capsules",
+      "verified_utc": "2026-11-20T14:55:23.626094+00:00",
+      "url": "http://100.105.127.48:5173/#capsules",
+      "builder_rows": [
+        1,
+        1,
+        3,
+        1,
+        3
+      ]
+    },
+    {
+      "name": "04-report-to-decision",
+      "verified_utc": "2026-11-20T14:55:30.337378+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/05bee636d8b337be89805fc6",
+      "decision": "spark-cache-predictor-postlab-plan-05:decision:1"
+    },
+    {
+      "name": "05-measurements",
+      "verified_utc": "2026-11-20T14:55:33.406688+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57"
+    },
+    {
+      "name": "06-report",
+      "verified_utc": "2026-11-20T14:55:37.731282+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57",
+      "replay_events": 73
+    },
+    {
+      "name": "07-live-running",
+      "verified_utc": "2026-11-20T14:57:12.033567+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/7180124f2e5166b47bc402e8",
+      "run_id": "7180124f2e5166b47bc402e8"
+    },
+    {
+      "name": "07-live-finished",
+      "verified_utc": "2026-11-20T14:58:42.647215+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/7180124f2e5166b47bc402e8",
+      "run_id": "7180124f2e5166b47bc402e8",
+      "status": {
+        "status": "finished",
+        "elapsed_s": 180.04471278190613,
+        "turn": null,
+        "step": null,
+        "latest_message": {
+          "text": "Verification complete. DeepSeek was loss-free and the separate Granite fixture recorded one loss per configuration.",
+          "created": 1795186718.3994744
+        }
+      },
+      "checkpoints": [
+        {
+          "checkpoint": "report-pinned",
+          "observed_utc": "2026-11-20T14:55:39.112530+00:00"
+        },
+        {
+          "checkpoint": "parity-checked",
+          "observed_utc": "2026-11-20T14:56:25.116617+00:00"
+        },
+        {
+          "checkpoint": "deepseek-trace-checked",
+          "observed_utc": "2026-11-20T14:57:11.944412+00:00"
+        },
+        {
+          "checkpoint": "granite-traces-checked",
+          "observed_utc": "2026-11-20T14:57:55.244137+00:00"
+        },
+        {
+          "checkpoint": "verification-complete",
+          "observed_utc": "2026-11-20T14:58:38.885959+00:00"
+        }
+      ],
+      "receipt": {
+        "path": "artifacts/fe/fe925f8f760af5241009bc6715b92da34789d5ec5ded8d08a5f309b912682ea1",
+        "display_path": "recorder-evidence-verification.json",
+        "artifact_ids": [
+          "recorder-evidence-verification.json"
+        ],
+        "size": 1836,
+        "sha256": "fe925f8f760af5241009bc6715b92da34789d5ec5ded8d08a5f309b912682ea1",
+        "expected_sha256": "fe925f8f760af5241009bc6715b92da34789d5ec5ded8d08a5f309b912682ea1",
+        "integrity": "verified"
+      }
+    }
+  ],
+  "page_errors": [],
+  "failed_factory_requests": [],
+  "stop": "2026-11-20T14:58:42.681268+00:00"
+}
