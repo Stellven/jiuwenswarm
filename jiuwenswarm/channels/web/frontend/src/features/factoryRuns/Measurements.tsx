@@ -2,6 +2,7 @@ import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getApiBase } from '../../utils/env';
 import { request, type RunDetail } from './api';
+import { narrativeSummaries } from './iterationModel';
 import { measurementCopy } from './measurementCopy';
 import {
   aggregateMeasurements,
@@ -65,19 +66,23 @@ function useVerifiedP4(detail: RunDetail, benchmarkRunId?: string) {
   return useMemo(() => {
     const sources = benchmarks && benchmarks.run.id === benchmarkRunId && benchmarkRunId !== detail.run.id
       ? [detail, benchmarks] : [detail];
-    const reports = new Map<string, { focus: FocusedP4; runId: string }>();
+    const reports = new Map<string, { focus: FocusedP4; runId: string; summary?: string }>();
     for (const source of sources) {
-      for (const focus of focusedP4Reports(source.records.observations || [], source.files)) {
-        reports.set(focus.key, { focus, runId: source.run.id });
+      const observations = source.records.observations || [];
+      const { verifiedReportSummaries } = narrativeSummaries(observations);
+      for (const focus of focusedP4Reports(observations, source.files)) {
+        const summary = verifiedReportSummaries.get(`${focus.report.artifact_id}:${focus.report.sha256}`);
+        reports.set(focus.key, { focus, runId: source.run.id, summary });
       }
     }
     return [...reports.values()];
   }, [benchmarks, benchmarkRunId, detail]);
 }
 
-function VerifiedP4Card({ focus, runId, onOpenReport, language, copy }: {
+function VerifiedP4Card({ focus, runId, summary, onOpenReport, language, copy }: {
   focus: FocusedP4;
   runId: string;
+  summary?: string;
   onOpenReport: OpenReport;
   language: string;
   copy: Labels;
@@ -112,6 +117,7 @@ function VerifiedP4Card({ focus, runId, onOpenReport, language, copy }: {
           {copy.openVerifiedReport}
         </button>
       </header>
+      {summary && <p data-testid="factory-runs-focused-p4-summary">{summary}</p>}
       <div className="factory-measurement-table-container">
         <table className="factory-measurement-table">
           <thead>
@@ -409,8 +415,8 @@ export function Measurements({ detail, benchmarkRunId, onOpenReport }: {
   );
   return (
     <section className="factory-measurement-panel" data-testid="factory-runs-measurements">
-      {focused.map(({ focus, runId }) => (
-        <VerifiedP4Card key={focus.key} {...{ focus, runId, onOpenReport, language, copy }} />
+      {focused.map(({ focus, runId, summary }) => (
+        <VerifiedP4Card key={focus.key} {...{ focus, runId, summary, onOpenReport, language, copy }} />
       ))}
       <header className="factory-measurement-heading">
         <div>

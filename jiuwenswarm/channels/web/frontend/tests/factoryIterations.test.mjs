@@ -210,3 +210,21 @@ test('uses an authored decision summary while retaining the complete rationale',
   assert.equal(iteration.plan.hypothesis, plan.hypothesis);
   assert.equal(iteration.reportSummary, '');
 });
+
+test('a digest-bound outcome supplement leads the exact verified report', () => {
+  const digest = 'a'.repeat(64);
+  const report = { kind: 'factory_iteration_report', obs_id: 'quiet:report', values: {
+    schema: 'spark-factory-iteration/1', iteration_id: 'quiet',
+    report: { artifact_id: 'quiet.md', sha256: digest, summary: 'The experiment collected ten pairs.' },
+  } };
+  const supplement = { kind: 'factory_iteration_summary', source_artifacts: ['quiet.md'], values: {
+    schema: 'factory-iteration-summary/1', report_artifact_id: 'quiet.md',
+    report_sha256: digest, summary: 'The candidate took longer to produce its first token.',
+  } };
+  const attached = { ...file('quiet.md', ['quiet.md']), sha256: digest };
+  const [matched] = buildIterations({ observations: [report, supplement] }, [attached]);
+  assert.equal(matched.reportSummary, supplement.values.summary);
+  const [wrongDigest] = buildIterations({ observations: [report, supplement] },
+    [{ ...attached, sha256: 'b'.repeat(64) }]);
+  assert.equal(wrongDigest.reportSummary, report.values.report.summary);
+});

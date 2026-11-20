@@ -20,6 +20,7 @@ const revision = (value: unknown) => (typeof value === 'number' && Number.isSafe
 export function narrativeSummaries(observations: JsonRecord[]) {
   const decisions = new Map<string, string>();
   const reports = new Map<string, string>();
+  const verifiedReportSummaries = new Map<string, string>();
   for (const observation of observations) {
     const value = asRecord(observation.values);
     if (observation.kind !== 'factory_iteration_summary' || value.schema !== 'factory-iteration-summary/1') continue;
@@ -27,11 +28,18 @@ export function narrativeSummaries(observations: JsonRecord[]) {
     if (!summary) continue;
     const decision = text(value.decision_id);
     if (decision) decisions.set(decision, summary);
+    const reportId = text(value.report_artifact_id);
+    const sha256 = text(value.report_sha256);
+    if (reportId && /^[a-f0-9]{64}$/.test(sha256) &&
+        strings(observation.source_artifacts).includes(reportId)) {
+      verifiedReportSummaries.set(`${reportId}:${sha256}`, summary);
+      continue;
+    }
     for (const id of [text(value.report_artifact_id), text(value.report_observation_id)]) {
       if (id) reports.set(id, summary);
     }
   }
-  return { decisions, reports };
+  return { decisions, reports, verifiedReportSummaries };
 }
 
 export function decisionSummary(decision: JsonRecord, summaries: Map<string, string>) {
@@ -268,7 +276,11 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         return [{ decision, cited }];
       });
       const reportId = reportRefs[0]?.id || resultId;
-      const reportSummary = text(asRecord(meta.report).summary).trim() || text(reportData.summary).trim() ||
+      const verifiedReport = linkedFiles.find(({ file, kind }) => kind === 'report' &&
+        file.integrity === 'verified' && file.artifact_ids?.includes(reportId) &&
+        file.sha256 === reportRefs[0]?.sha256);
+      const supplement = verifiedReport ? summaries.verifiedReportSummaries.get(`${reportId}:${verifiedReport.file.sha256}`) : '';
+      const reportSummary = supplement || text(asRecord(meta.report).summary).trim() || text(reportData.summary).trim() ||
         summaries.reports.get(reportId) || summaries.reports.get(recordId(metadataObservation)) ||
         summaries.reports.get(resultId) || '';
       const linkedNext = ordered.slice(index + 1).find((candidate) => {
