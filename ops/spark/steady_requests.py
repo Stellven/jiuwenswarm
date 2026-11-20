@@ -1,4 +1,5 @@
 """Collect a cold-start position curve and five post-warmup pairs on one existing capped server."""
+from datetime import datetime, timezone
 import hashlib
 import json
 import subprocess
@@ -38,9 +39,16 @@ def run(scope, arm, port, view):
     if not fractions or any(fractions):
         raise ValueError('Cold-start comparison needs zero sampled source-page residency before load')
     (scope / 'protocol.json').write_text(json.dumps(protocol, indent=2) + '\n')
+    with (ROOT / 'OPS/STATUS.md').open('a') as status:
+        status.write(f'{datetime.now(timezone.utc).isoformat()} {arm}: zero sampled residency confirmed; '
+                     f'starting three discarded warmups per size, followed by five measured pairs. {scope}\n')
     hashes = {str(size): [] for size in approved}
     for row in schedule:
         name, size, repeat = row['path'], row['size'], row['repeat']
+        if row['position'] == 7:
+            with (ROOT / 'OPS/STATUS.md').open('a') as status:
+                status.write(f'{datetime.now(timezone.utc).isoformat()} {arm}: six discarded warmups complete; '
+                             f'beginning five measured pairs. {scope}\n')
         boundary_resources(scope / (name + '-before.json'), cgroup, receipt['pid'])
         page_state = snapshot(regions, view, 4096, 20261120, scope / 'scope.json')
         (scope / (name + '-residency.json')).write_text(json.dumps(page_state) + '\n')
