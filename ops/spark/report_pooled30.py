@@ -103,13 +103,14 @@ def render(report):
     if gates := report['activation_readbacks'].get('combined_runtime'):
         trace = gates['recorder']['trace']
         lines.extend(['## Runtime gate readbacks', ''])
-        if terminal := trace['summary']:
+        terminal = trace['summary']
+        if terminal and {'written', 'expected', 'lost', 'transfer_incomplete', 'bytes_transferred'} <= terminal.keys():
             lines.extend([f'The recorder wrote {terminal["written"]:,} of {terminal["expected"]:,} events with '
                           f'{terminal["lost"]:,} losses, {terminal["transfer_incomplete"]:,} incomplete transfer records, '
                           f'and {terminal["bytes_transferred"]:,} submitted bytes. '
                           f'Trace status is `{trace["status"]}`.', ''])
         else:
-            lines.extend([f'The recorder trace has status `{trace["status"]}` without a terminal summary.', ''])
+            lines.extend([f'The recorder trace has status `{trace["status"]}` without a complete terminal summary.', ''])
         placement = gates['placement']
         lines.extend([f'Placement emitted {placement["expert_assignment_rows"]} expert tensor readbacks among '
                       f'{placement["all_assignment_rows"]:,} assignments. CPU-equivalent placement verified '

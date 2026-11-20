@@ -14,6 +14,7 @@ EXPERT = re.compile(r'blk\.(\d+)\.ffn_(gate|up|down)_exps\.weight')
 ASSIGNMENT = re.compile(r'weight_placement_planner: assignment name="([^"]+)" planned=(\w+) actual=(\w+) bytes=(\d+)')
 BANK = re.compile(r'CUDA0 MoE cache size = ([\d.]+) MiB for ([\d.]+) MiB of host experts, ([\d.]+)% of the misses on the CPU')
 LOSSES = ('capacity_lost', 'route_lost', 'contended_lost', 'writer_lost')
+SUMMARY_FIELDS = ('expected', 'written', 'lost', 'bytes_transferred', 'transfer_incomplete', 'failed_dispatches', *LOSSES)
 
 
 def marker(log, name):
@@ -56,6 +57,9 @@ def trace_evidence(path, recorder):
             if not {'phase', 'expert_ids', 'microbatch', 'layer', 'request_id', 'bytes_transferred'} <= entry.keys():
                 sums['malformed_rows'] += 1
                 continue
+            if not entry['expert_ids'] or not all(isinstance(ids, list) and ids for ids in entry['expert_ids']):
+                sums['malformed_rows'] += 1
+                continue
             sums['event_rows'] += 1
             by_phase = phase[entry['phase']]
             by_phase['event_rows'] += 1
@@ -74,7 +78,8 @@ def trace_evidence(path, recorder):
                 sums['submitted_bytes'] += entry['bytes_transferred']
                 by_phase['submitted_bytes'] += entry['bytes_transferred']
     problem = any(sums[key] for key in ('malformed_rows', 'after_summary', 'unknown_record_types', 'duplicate_microbatch_layer'))
-    consistent = bool(summary and not problem and summary['written'] == sums['event_rows'] and
+    complete_summary = summary is not None and all(type(summary.get(key)) is int and summary[key] >= 0 for key in SUMMARY_FIELDS)
+    consistent = bool(complete_summary and not problem and summary['written'] == sums['event_rows'] and
                       summary['expected'] == summary['written'] + summary['lost'] and
                       summary['lost'] == sum(summary[key] for key in LOSSES) and
                       (summary['writer_lost'] or summary['transfer_incomplete'] == sums['null_transfer_rows']) and
@@ -84,7 +89,8 @@ def trace_evidence(path, recorder):
                               unexpected=sorted(observed - set(range(40))))
                          for batch, observed in layers.items() if observed != set(range(40))]
     status = ('missing-terminal-summary' if summary is None else 'inconsistent' if not consistent else
-              'observed-loss' if summary['lost'] or incomplete_layers else 'route-complete-as-recorded')
+              'observed-loss' if summary['lost'] or incomplete_layers or summary['failed_dispatches'] else
+              'route-complete-as-recorded' if sums['event_rows'] else 'no-routes-observed')
     return dict(status=status, sha256=digest.hexdigest(), summary=summary, consistent=consistent,
                 transfer_scope='Recorded submitted expert copies. Startup, elapsed DMA time, and saved bytes are outside this count.', **sums,
                 request_ids=sorted(requests), microbatches=len(layers), incomplete_route_layers=incomplete_layers,
