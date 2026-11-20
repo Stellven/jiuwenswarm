@@ -53,6 +53,7 @@ ANALYSIS_CAPABILITIES = {
     'factory.methodology_out_of_core': 'cache_protocol',
     'factory.methodology_transfer_lab': 'analyze_abba',
     'factory.numerical_investigation_lab': 'compare_logits',
+    'factory.spark_gap_analysis': 'analyze',
 }
 STAR_DETAILS = {
     'observability_event_recorder': ('Generation runtime', 'Runtime event recorder',
