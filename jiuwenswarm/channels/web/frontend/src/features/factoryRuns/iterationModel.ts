@@ -10,6 +10,8 @@ const strings = (value: unknown) =>
 const unique = (values: string[]) => [...new Set(values.filter(Boolean))];
 const recordId = (record: JsonRecord) => text(record.obs_id) || text(record.artifact_id);
 const cycleOf = (record: JsonRecord) => text(record.cycle_id) || text(record.iteration_id) || text(asRecord(record.cycle).cycle_id);
+const decisionId = (value: unknown) => text(value) || text(asRecord(value).decision_id);
+const decisionTask = (value: unknown) => text(asRecord(value).task_id) || /^(.*):decision:\d+$/.exec(decisionId(value))?.[1] || '';
 const revision = (value: unknown) => (typeof value === 'number' && Number.isSafeInteger(value) ? value : undefined);
 
 type ArtifactKind = 'diff' | 'report' | 'analysis' | 'lab' | 'other';
@@ -91,7 +93,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
       const meta = asRecord(cycle.meta);
       const metaPlan = asRecord(meta.plan);
       const metadataObservation = asRecord(cycle.metadata_observation);
-      const recordedPlanId = text(metaPlan.decision_id) || text(asRecord(metaPlan.decision_id).decision_id);
+      const recordedPlanId = decisionId(metaPlan.decision_id);
       const attached = artifactReferences(meta);
       const contract = asRecord(cycle.contract);
       const request = asRecord(cycle.request);
@@ -160,7 +162,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         ]),
       );
       const nextPlan = asRecord(meta.next_plan);
-      const explicitNextId = text(nextPlan.decision_id) || text(asRecord(nextPlan.decision_id).decision_id);
+      const explicitNextId = decisionId(nextPlan.decision_id);
       const nextDecisions = decisions.flatMap((decision) => {
         const nextRev = revision(decision.rev);
         const explicit = Boolean(explicitNextId && decision.decision_id === explicitNextId);
@@ -175,7 +177,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         const candidatePlan = asRecord(candidateMeta.plan);
         const incoming = [...refIds(candidatePlan.incoming_report_ids), ...refIds(candidateMeta.predecessor_report_ids)];
         return Boolean(
-          (explicitNextId && candidatePlan.decision_id === explicitNextId) ||
+          (explicitNextId && decisionId(candidatePlan.decision_id) === explicitNextId) ||
           incoming.some((reference) => relatedReports.has(reference)),
         );
       });
@@ -214,6 +216,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         sourceCommit: text(asRecord(meta.do).source_commit),
         analysisCapsules: unique(capsuleNames(asRecord(meta.analysis).ccs)),
         explicitNextId,
+        explicitNextTask: text(nextPlan.task_id) || decisionTask(nextPlan.decision_id),
         linkedNextId: cycleOf(linkedNext || {}),
         iterationStatus: text(asRecord(meta.report).status),
         nextDecisions,

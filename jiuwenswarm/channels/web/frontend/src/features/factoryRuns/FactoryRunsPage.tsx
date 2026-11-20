@@ -109,6 +109,7 @@ export function FactoryRunsPage() {
   const [filePath, setFilePath] = useState('');
   const [childSource, setChildSource] = useState<{ id: string; sha256?: string }>();
   const [expectedSha, setExpectedSha] = useState('');
+  const [focusedDecisionId, setFocusedDecisionId] = useState<string>();
   const main = useRef<HTMLElement>(null);
   const [launchOpen, setLaunchOpen] = useState(false);
   const [session, setSession] = useState<SessionSnapshot | null>(null);
@@ -275,6 +276,7 @@ export function FactoryRunsPage() {
     setSelected(id);
     setLive(false);
     setPanel('overview');
+    setFocusedDecisionId(undefined);
     setChildSource(undefined);
     setExpectedSha('');
     setFilePath('');
@@ -479,6 +481,12 @@ export function FactoryRunsPage() {
                   runs={listing.runs}
                   onOpenSource={openIterationSource}
                   onOpenChild={openIterationChild}
+                  onOpenDecision={(runId, decisionId) => {
+                    selectRun(runId);
+                    setPanel('iterations');
+                    setFocusedDecisionId(decisionId);
+                  }}
+                  focusedDecisionId={focusedDecisionId}
                 />
               )}
               {panel === 'report' && <FactoryReport runId={detail.run.id} files={detail.files} initialPath={filePath} expectedSha={expectedSha} />}

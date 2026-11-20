@@ -109,6 +109,18 @@ export function linkedEvidence(href: string, report: EvidenceFile, files: Eviden
   return matches.length === 1 ? matches[0] : undefined;
 }
 
+export function evidenceIndex(files: EvidenceFile[]) {
+  const indexed = new Map<string, EvidenceFile | null>();
+  for (const file of files) {
+    for (const key of [...evidencePaths(file), ...(file.artifact_ids ?? [])]) {
+      const previous = indexed.get(key);
+      if (previous?.path === file.path || previous === null) continue;
+      indexed.set(key, previous ? null : file);
+    }
+  }
+  return indexed;
+}
+
 export function externalReportLink(href: string): string | undefined {
   if (!/^https?:\/\//i.test(href) || /[\\\u0000-\u0020\u007f]/.test(href)) return undefined;
   try {

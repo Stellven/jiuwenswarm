@@ -4,7 +4,7 @@ import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { factoryApi, type EvidenceFile, type FileContent } from './api';
 import { FactoryStructuredReport } from './FactoryStructuredReport';
-import { externalReportLink, linkedEvidence, reportFiles, reportHeadings } from './reportModel';
+import { evidenceIndex, externalReportLink, linkedEvidence, reportFiles, reportHeadings } from './reportModel';
 import './factoryReport.css';
 
 type FileResult = { key: string; file?: FileContent };
@@ -134,9 +134,11 @@ function EvidenceDialog({ runId, source, onClose }: { runId: string; source: Evi
       {file ? (
         <>
           {file.truncated && <TruncatedNotice />}
-          <pre className="factory-report-raw" data-testid="factory-runs-report-evidence-content">
-            {file.content}
-          </pre>
+          <div data-testid="factory-runs-report-evidence-content">
+            {/\.json(?:$| ·)/i.test(file.display_path || file.path)
+              ? <FactoryStructuredReport content={file.content} />
+              : <pre className="factory-report-raw">{file.content}</pre>}
+          </div>
         </>
       ) : (
         <FileStatus evidence loading={loading} missing={source.integrity === 'missing'} onRetry={retry} />
@@ -165,6 +167,7 @@ function MarkdownReport({
   const components = useMemo<Components>(() => {
     const headingsByOffset = new Map(headings.map((heading) => [heading.offset, heading.slug]));
     const slugs = new Set(headings.map((heading) => heading.slug));
+    const indexed = evidenceIndex(files);
     const renderLink = (href: string | undefined) => {
       if (!href) return {};
       const external = externalReportLink(href);
@@ -222,6 +225,21 @@ function MarkdownReport({
             {children}
           </a>
         );
+      },
+      code({ children, className }) {
+        const reference = typeof children === 'string' && !children.includes('\n') ? indexed.get(children) : undefined;
+        const code = <code className={className}>{children}</code>;
+        return reference && reference.path !== source.path ? (
+          <button
+            className="factory-report-evidence-link"
+            type="button"
+            data-testid="factory-runs-report-evidence-link"
+            data-variant={reference.path}
+            onClick={() => onOpenEvidence(reference)}
+          >
+            {code}
+          </button>
+        ) : code;
       },
       img({ alt }) {
         return alt ? <span>{alt}</span> : null;

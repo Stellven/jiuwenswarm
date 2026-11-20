@@ -1,4 +1,4 @@
-import { useId, useMemo } from 'react';
+import { useEffect, useId, useMemo } from 'react';
 import {
   ArrowDown,
   ArrowRight,
@@ -98,11 +98,15 @@ export function Iterations({
   runs,
   onOpenSource,
   onOpenChild,
+  onOpenDecision,
+  focusedDecisionId,
 }: {
   detail: RunDetail;
   runs: Run[];
   onOpenSource: OpenSource;
   onOpenChild: OpenChild;
+  onOpenDecision: (runId: string, decisionId: string) => void;
+  focusedDecisionId?: string;
 }) {
   const { t } = useTranslation();
   const prefix = useId();
@@ -112,6 +116,15 @@ export function Iterations({
   const observationSource = source('records/observations.json');
   const planTarget = (iteration: Iteration) => `${prefix}-plan-${encodeURIComponent(iteration.id)}`;
   const reportTarget = (iteration: Iteration) => `${prefix}-report-${encodeURIComponent(iteration.id)}`;
+  const focusedIteration = focusedDecisionId ? iterations.find((item) => item.plan?.decision_id === focusedDecisionId || item.recordedPlanId === focusedDecisionId) : undefined;
+  const focusedDecision = focusedDecisionId && detail.records.decisions?.find((item) => item.decision_id === focusedDecisionId);
+  const focusedTarget = focusedIteration ? planTarget(focusedIteration) : `${prefix}-spotlight`;
+  useEffect(() => {
+    if (!focusedDecisionId) return;
+    const timer = window.requestAnimationFrame(() => reveal(focusedTarget));
+    return () => window.cancelAnimationFrame(timer);
+  }, [focusedDecisionId, focusedTarget]);
+
   const feedback = iterations.flatMap((iteration) => {
     const edges = iteration.nextDecisions.map((edge) => ({
       iteration, ...edge, target: iterations.find((item) => item.activeRev === edge.decision.rev),
@@ -180,6 +193,13 @@ export function Iterations({
           </span>
         </div>
       </header>
+      {focusedDecisionId && !focusedIteration && (
+        <section className="factory-story-card" id={`${prefix}-spotlight`} tabIndex={-1} data-testid="factory-runs-iteration-linked-plan">
+          <h4>{t('factoryRuns.iteration.nextPlan')}</h4>
+          {focusedDecision ? <RecordedDecision decision={focusedDecision} source={decisionSource} onOpen={onOpenSource} />
+            : <p>{t('factoryRuns.iteration.unavailableDecision')}</p>}
+        </section>
+      )}
       {!iterations.length ? (
         <div className="factory-story-card" data-testid="factory-runs-iterations-empty">
           <h4>{t('factoryRuns.iteration.emptyTitle')}</h4>
@@ -196,6 +216,7 @@ export function Iterations({
               {t('factoryRuns.iteration.learning')}
             </h4>
             {feedback.map(({ iteration, decision, cited, target: next }) => {
+              const targetRun = runs.find((run) => run.task_id === iteration.explicitNextTask && run.id !== detail.run.id);
               const label = typeof decision.rev === 'number' ? t('factoryRuns.iteration.decision', { rev: decision.rev })
                 : iteration.explicitNextId || t('factoryRuns.iteration.nextPlan');
               return (
@@ -217,6 +238,11 @@ export function Iterations({
                         planTarget(next),
                         'factory-runs-iteration-feedback-plan',
                       )
+                    ) : targetRun && iteration.explicitNextId ? (
+                      <button type="button" className="factory-story-text-button" data-testid="factory-runs-iteration-remote-plan"
+                        onClick={() => onOpenDecision(targetRun.id, iteration.explicitNextId)}>
+                        {label} <ArrowUpRight aria-hidden size={14} />
+                      </button>
                     ) : (
                       <strong>{label}</strong>
                     )}
@@ -237,7 +263,7 @@ export function Iterations({
                   {cited.length > 0 && <p className="factory-iteration-cites">
                     {t('factoryRuns.iteration.explicitCitations', { refs: cited.join(', ') })}
                   </p>}
-                  {!next && (Object.keys(decision).length ? <RecordedDecision decision={decision} source={decisionSource} onOpen={onOpenSource} />
+                  {!next && !(targetRun && iteration.explicitNextId) && (Object.keys(decision).length ? <RecordedDecision decision={decision} source={decisionSource} onOpen={onOpenSource} />
                     : <p>{t('factoryRuns.iteration.unavailableDecision')}</p>)}
                 </article>
               );
