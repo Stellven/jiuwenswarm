@@ -213,17 +213,18 @@ class CapsuleCatalog:
         return dict(id=CONTRACT_ID, raw=raw, readable=readable,
                     clauses=[dict(id=key, title=title, detail=detail) for key, title, detail in CONTRACT_CLAUSES])
 
-    def previous_manifest(self, root, pin):
-        """Use a previous inventory only when its retained release digest matches."""
+    def retained_manifest(self, root, digest):
+        """Read an inventory only when its retained release digest matches."""
+        if not digest:
+            return {}
         try:
             state = contained(root, '.cc-state')
             manifests = sorted(state.glob('*.manifest.json'))
-            old_digest = pin.get('old_release')
             for path in manifests:
                 target = contained(root, path.relative_to(root).as_posix())
                 if target.is_file() and target.stat().st_size <= MAX_FILE:
                     content = target.read_bytes()
-                    if sha(content) == old_digest:
+                    if sha(content) == digest:
                         return json.loads(content)
         except (OSError, ValueError):
             pass
@@ -247,14 +248,19 @@ class CapsuleCatalog:
                 base = capsule_row(path, declaration, rows)
             except (OSError, ValueError):
                 pass
-        previous = (self.previous_manifest(root, pin)
-                    if star and expected != digest and (detail or not declaration) else {})
-        material_decl = declaration or previous.get('declaration', {})
+        retained, previous = {}, {}
+        if star and expected != digest and (detail or not declaration):
+            retained = self.retained_manifest(root, expected)
+            if not retained:
+                previous = self.retained_manifest(root, pin.get('old_release'))
+        material_decl = declaration or (retained or previous).get('declaration', {})
         materials = {key: value['path'] for key, value in material_decl.get('materials', {}).items()}
         caps = material_decl.get('capabilities', {})
         expected_files = {}
         if digest is not None and digest == expected:
             expected_files = {row['path']: row['sha256'] for row in rows}
+        elif retained:
+            expected_files = {row['path']: row['sha256'] for row in retained['files']}
         elif declaration and previous:
             # Transport migration changes the declaration and adds a roles sidecar.
             # Authenticate the reconstructed manifest against the current release pin.

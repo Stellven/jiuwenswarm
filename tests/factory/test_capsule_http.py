@@ -29,6 +29,9 @@ def test_catalog_detail_and_file_use_retained_release_pins():
     assert len(stars) == 5 and len(capsules) > len(stars)
     assert all(row['kind'] == 'builder' and row['integrity'] == 'verified' for row in stars)
     assert all(row['expected_digest'] == row['digest'] for row in stars)
+    cache = next(row for row in stars if row['name'] == 'expert_weight_cache')
+    assert cache['version'] == '1.4.1'
+    assert cache['expected_digest'] == 'c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0'
     assert 'files' not in stars[0]
     kinds = {capsule['id']: capsule['kind'] for capsule in capsules}
     assert kinds['factory.builder'] == 'factory-support'
@@ -61,6 +64,28 @@ def test_catalog_detail_and_file_use_retained_release_pins():
     assert raw['parsed']['contract_id'] == contract['id']
     readable = api.get(f'{PREFIX}/{NAME}/file', params={'path': contract['readable']['path']}).json()
     assert 'Star DeepSeek contract v1' in readable['content']
+
+
+def test_cache_method_drift_uses_the_exact_current_retained_inventory(tmp_path):
+    name = 'expert_weight_cache'
+    capsule = tmp_path / name
+    shutil.copytree(CCS / name, capsule)
+    for migration in CCS.glob('*migration.json'):
+        shutil.copyfile(migration, tmp_path / migration.name)
+    document = 'DIRECT-SEED.md'
+    original = hashlib.sha256((capsule / document).read_bytes()).hexdigest()
+    (capsule / document).write_text('Unsealed method change')
+    api = client(CapsuleCatalog(root=tmp_path))
+    detail = api.get(f'{PREFIX}/{name}').json()
+    assert detail['integrity'] == 'mismatch'
+    assert detail['expected_digest'] == 'c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0'
+    files = {row['path']: row for row in detail['files']}
+    assert files[document]['integrity'] == 'mismatch'
+    assert files[document]['expected_sha256'] == original
+    assert files['cc.yaml']['integrity'] == 'verified'
+    displayed = api.get(f'{PREFIX}/{name}/file', params={'path': document}).json()
+    assert displayed['integrity'] == 'mismatch'
+    assert displayed['content'] == 'Unsealed method change'
 
 
 @pytest.fixture
