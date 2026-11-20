@@ -1,0 +1,51 @@
+{
+  "bundle": "6e52cb81f7ff9e4d1f2a8a57",
+  "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57",
+  "start": "2026-11-20T15:42:39.881096+00:00",
+  "publication_id": "spark-report-final-20261120T154025036239Z",
+  "steps": [
+    {
+      "name": "01-contract",
+      "verified_utc": "2026-11-20T15:42:47.198269+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57"
+    },
+    {
+      "name": "02-ontology",
+      "verified_utc": "2026-11-20T15:42:47.342744+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57",
+      "source": "ontology/20261117 Unified overview prepresentation.mmd"
+    },
+    {
+      "name": "03-capsules",
+      "verified_utc": "2026-11-20T15:43:00.852399+00:00",
+      "url": "http://100.105.127.48:5173/#capsules",
+      "builder_rows": [
+        1,
+        1,
+        3,
+        1,
+        3
+      ]
+    },
+    {
+      "name": "04-report-to-decision",
+      "verified_utc": "2026-11-20T15:43:08.377010+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/05bee636d8b337be89805fc6",
+      "decision": "spark-cache-predictor-postlab-plan-05:decision:1"
+    },
+    {
+      "name": "05-measurements",
+      "verified_utc": "2026-11-20T15:43:11.471590+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57"
+    },
+    {
+      "name": "06-report",
+      "verified_utc": "2026-11-20T15:43:16.772444+00:00",
+      "url": "http://100.105.127.48:5173/#factory-run/6e52cb81f7ff9e4d1f2a8a57",
+      "replay_events": 75
+    }
+  ],
+  "page_errors": [],
+  "failed_factory_requests": [],
+  "stop": "2026-11-20T15:43:16.807803+00:00"
+}

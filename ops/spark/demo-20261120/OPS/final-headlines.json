@@ -1,7 +1,7 @@
 {
   "schema": "spark-final-headlines/1",
   "title": "DeepSeek on Spark GB10",
-  "summary": "The build-overlapped 60 GiB screen found earlier first tokens and fewer engine reads with profile seeding. Stock A+30 already beat fair Strata on the observed medians.",
+  "summary": "The quiet 60 GiB ABBA measures profile seeding against the same stock cache budget. Stock A+30 already beat fair Strata on the observed medians.",
   "rows": [
     {
       "id": "s",
@@ -82,14 +82,14 @@
       "id": "c3-60",
       "arm": "C3 seeded cache · 60 GiB",
       "cc": "C3",
-      "grade": "Screening · build overlap",
-      "ttft": "+24.92 / +90.80 s saved",
-      "decode": "−0.41 / −0.15 tok/s gained",
-      "summary": "C3 saved time in 10/10 pairs per size. The six quiet pairs saved 26.80 / 100.23 s; the engine recorded fewer storage reads before the first token.",
+      "grade": "Verified · quiet ABBA",
+      "ttft": "+27.08 / +92.07 s saved",
+      "decode": "−0.18 / −0.15 tok/s gained",
+      "summary": "Across ten pairs per size, C3 returned the first token 27.08 seconds sooner at 512 tokens and 92.07 seconds sooner at 2048 tokens than same-budget stock A+ by the paired medians. The orchestrator disclosed an idle-priority file pull.",
       "sources": [
         {
-          "path": "OPS/iterations/spark-p4-cache60-build-overlap/report-v2.md",
-          "sha256": "c483dee24ee544de39af9c9a80b7481888bdc31f8d26d9b66a21dd3734b2c074"
+          "path": "OPS/iterations/spark-p4-cache60-build-overlap/report-v3.md",
+          "sha256": "eb1b16d39530e161caf83cd9f8279ea6074b3555c25e4403dee7a50ba24a8547"
         }
       ]
     },

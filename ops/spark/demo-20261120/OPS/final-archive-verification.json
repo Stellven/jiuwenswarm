@@ -1,11 +1,11 @@
 {
   "schema": "spark-delivery-archive/1",
   "archive": "spark-final-snapshot-20261120.tar.zst",
-  "bytes": 17307455,
-  "sha256": "e15e004bb02a1112f6464f93a87742a1db5b21f2b208699e380ffa8ce1ad2fec",
-  "unpacked_manifest_sha256": "6861f3e8688b89af2b8aa7091a3d66b0df968feef9434aa0915afdb8d3ca2072",
-  "verified_manifest_files": 2924,
-  "source_report_sha256": "299447a0c7d62541c377a7dcdfd113957fbd1543d78043e461dd01e198bcff4b",
-  "direct_citations": 51,
+  "bytes": 20896672,
+  "sha256": "c2d07752b142b270885827720cccc2bef203e5737612eec5a3393a6f4d398b75",
+  "unpacked_manifest_sha256": "2cd863e9acde888589bb9084f0c6d4fce2067d1e638e0c2eca235c9715b41b9c",
+  "verified_manifest_files": 3042,
+  "source_report_sha256": "be9c53e1a8c3b5fdabcfe3b36aac8360a52d5028b0e94e93f09ed70d7f691b37",
+  "direct_citations": 49,
   "verified_report_links": 71
 }

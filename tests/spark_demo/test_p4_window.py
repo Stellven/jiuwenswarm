@@ -31,7 +31,7 @@ def window(monkeypatch, tmp_path):
         repeat = int(args['--repeat'])
         out = Path(args['--out'])
         out.mkdir()
-        cache = 0 if repeat != 5 or not bench.contaminate else 1
+        cache = 0 if repeat != 10 or not bench.contaminate else 1
         output = (str(prompt)[0]) * 64
         module.json_write(out / 'result.json', dict(arm=args['--arm'], prompt_tokens=prompt, repeat=repeat,
             discard=repeat == 0, ok=True, ttft_s=1.0, prompt_sha256=module.sha(Path(args['--prompt']).read_bytes()),
@@ -59,14 +59,15 @@ def window(monkeypatch, tmp_path):
 def test_mirrored_window_cells_and_pre_measure_receipts(window):
     launch, invoked, _ = window
     first = launch(1)
-    warm = [(0, 512), (0, 2048)] * 2
-    assert invoked == warm + [(1, 512), (1, 2048), (2, 2048), (2, 512)]
+    warm = [(0, 512), (0, 2048)] * 2 + [(0, 2048), (0, 512)]
+    paired_sizes = [(512, 2048), (2048, 512), (512, 2048), (2048, 512), (512, 2048)]
+    assert invoked == warm + [(repeat, size) for repeat, sizes in enumerate(paired_sizes, 1) for size in sizes]
     invoked.clear()
     second = launch(2, first)
-    assert invoked == warm + [(3, 512), (3, 2048), (4, 2048), (4, 512), (5, 512), (5, 2048)]
+    assert invoked == warm + [(repeat, size) for repeat, sizes in enumerate(paired_sizes, 6) for size in sizes]
     data = json.loads(second.read_bytes())
     assert data['status'] == 'complete'
-    assert (second.parent / data['requests'][4]['residency']).is_file()
+    assert all((second.parent / row['residency']).is_file() for row in data['requests'][6:])
 
 
 def test_cache_contamination_gives_failed_receipt(window):

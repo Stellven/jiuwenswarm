@@ -1,0 +1,1446 @@
+{
+  "eligible": [
+    {
+      "arm": "A+",
+      "decode_tps": 21.036445302188536,
+      "engine_prefill_ms": 55571.843,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 1,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-512/result.json@05ddcad22ef7fb1b6f370c96713071ec0c1459d433ec9a693b40fa883b8b16c5",
+        "sha256": "05ddcad22ef7fb1b6f370c96713071ec0c1459d433ec9a693b40fa883b8b16c5"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 55.7207724689506
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.293036833519363,
+      "engine_prefill_ms": 178207.559,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 1,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-2048/result.json@c2b2b72021506a0f92ad5d8576803bcb8e855f7865f6e96141aab79d7fac01d9",
+        "sha256": "c2b2b72021506a0f92ad5d8576803bcb8e855f7865f6e96141aab79d7fac01d9"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 178.40626834519207
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.33828197920137,
+      "engine_prefill_ms": 140926.852,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 2,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-2048/result.json@a935d676e6adf7d292a370f18fa8b5560c4fe1a49c6f60980c67b75a8c225646",
+        "sha256": "a935d676e6adf7d292a370f18fa8b5560c4fe1a49c6f60980c67b75a8c225646"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 141.09979657595977
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.510733509073713,
+      "engine_prefill_ms": 46647.66,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 2,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-512/result.json@177db9af7841242d448330eab90fd32767db5087ff717eb062abb6fe153fb8fa",
+        "sha256": "177db9af7841242d448330eab90fd32767db5087ff717eb062abb6fe153fb8fa"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 46.76277050282806
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.673956573780945,
+      "engine_prefill_ms": 53464.166,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 3,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-512/result.json@d590a47f4366c329ae945460620373e141f0c23063607e0a4527eb6119bee16d",
+        "sha256": "d590a47f4366c329ae945460620373e141f0c23063607e0a4527eb6119bee16d"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 53.608643606770784
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.509345463679043,
+      "engine_prefill_ms": 167994.925,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 3,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-2048/result.json@3335a1ad353d1e95d79c0160e27b6d3ee4b7cb73b7bb869fe61df5aa2af8683b",
+        "sha256": "3335a1ad353d1e95d79c0160e27b6d3ee4b7cb73b7bb869fe61df5aa2af8683b"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 168.1893829558976
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.483765896254198,
+      "engine_prefill_ms": 155080.381,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 4,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-2048/result.json@2f8ed8fb8e0047b1c419a252afbbbbc8224f2b9d489c4b14e532e8965ef66678",
+        "sha256": "2f8ed8fb8e0047b1c419a252afbbbbc8224f2b9d489c4b14e532e8965ef66678"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 155.2326722261496
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.403178579146537,
+      "engine_prefill_ms": 48990.518,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 4,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-512/result.json@f5fe34e70d024f7fc2ba24ffe92e026ec76cec6416608808d478e967afd7fb6d",
+        "sha256": "f5fe34e70d024f7fc2ba24ffe92e026ec76cec6416608808d478e967afd7fb6d"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 49.16838324815035
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 21.614611477358697,
+      "engine_prefill_ms": 52933.013,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 5,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-512/result.json@da1e594011c94ecadd713817510946725eac20a9500bea02a922cb122c470fbd",
+        "sha256": "da1e594011c94ecadd713817510946725eac20a9500bea02a922cb122c470fbd"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 53.099726213142276
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 20.41013843999386,
+      "engine_prefill_ms": 166342.037,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 5,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-2048/result.json@d859d8124ed634188cdf2e30e4b4c6390202f063c6c6a4830014457392e08cff",
+        "sha256": "d859d8124ed634188cdf2e30e4b4c6390202f063c6c6a4830014457392e08cff"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+      "ttft_s": 166.51166994404048
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.163833330033597,
+      "engine_prefill_ms": 23239.6,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 1,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-512/result.json@27393f59f4f0c8e37b8c9abf95e3457ae35af91f789a50aa6b15715d08394694",
+        "sha256": "27393f59f4f0c8e37b8c9abf95e3457ae35af91f789a50aa6b15715d08394694"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 23.405119134578854
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.162691949029316,
+      "engine_prefill_ms": 52367.772,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 1,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-2048/result.json@b51dee0fc47c574ce52b17aa6b06582ad6318c247ebc86a06fad8cbda57355cf",
+        "sha256": "b51dee0fc47c574ce52b17aa6b06582ad6318c247ebc86a06fad8cbda57355cf"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 52.48551200516522
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.171204703012393,
+      "engine_prefill_ms": 66991.6,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 2,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-2048/result.json@86f163794c44c5dddcc4439e014e42d1fccc42169bac5d6197f6a4378f4cff7b",
+        "sha256": "86f163794c44c5dddcc4439e014e42d1fccc42169bac5d6197f6a4378f4cff7b"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 67.13296980597079
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 19.104186220212103,
+      "engine_prefill_ms": 22742.838,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 2,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-512/result.json@750a973b822ffc51102a123e2d9678523454449f7263b3c727dc0c356c55950b",
+        "sha256": "750a973b822ffc51102a123e2d9678523454449f7263b3c727dc0c356c55950b"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 22.87286239815876
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.279122366622804,
+      "engine_prefill_ms": 25759.15,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 3,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-512/result.json@c1b9978fe239bb8f4d7b234ef1e68713900a69b9da6737a41d5ebda9d19b8b8c",
+        "sha256": "c1b9978fe239bb8f4d7b234ef1e68713900a69b9da6737a41d5ebda9d19b8b8c"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 25.956743367016315
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 20.23905589374365,
+      "engine_prefill_ms": 64867.306,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 3,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-2048/result.json@effd6cee15c0bd6df278c5188cc6a9f0f56d008f5048ca1eb5d24fe1681971a4",
+        "sha256": "effd6cee15c0bd6df278c5188cc6a9f0f56d008f5048ca1eb5d24fe1681971a4"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 64.99326369771734
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.129270924282917,
+      "engine_prefill_ms": 75152.497,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 4,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-2048/result.json@5e5501de0c2b973af26cb1d4984477ab3a30d040cdb9af1c3d9497295b8d7d5f",
+        "sha256": "5e5501de0c2b973af26cb1d4984477ab3a30d040cdb9af1c3d9497295b8d7d5f"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 75.28653059806675
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 20.933286964977263,
+      "engine_prefill_ms": 23078.456,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 4,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-512/result.json@a301f2d536bae5c908bffcf39bc66319b259de4aac69a7de9593f33a9077386d",
+        "sha256": "a301f2d536bae5c908bffcf39bc66319b259de4aac69a7de9593f33a9077386d"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 23.227980706840754
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.187859766441438,
+      "engine_prefill_ms": 22563.794,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 5,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-512/result.json@3e1348a5d25e21e6379b0e98e0d46067e0722baaa56af05fc4093879e3f48900",
+        "sha256": "3e1348a5d25e21e6379b0e98e0d46067e0722baaa56af05fc4093879e3f48900"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 22.722326518967748
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.01511122078137,
+      "engine_prefill_ms": 64881.678,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 5,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-2048/result.json@6b79528c0f07244460272c71bc8bdefd4385bc92498398e381436817434a1e5f",
+        "sha256": "6b79528c0f07244460272c71bc8bdefd4385bc92498398e381436817434a1e5f"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+      "ttft_s": 65.01382099697366
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 18.996832431392328,
+      "engine_prefill_ms": 22208.875,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 6,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-512/result.json@7b8969d6a142351a947f4ab5d5f0ffc71bece368a5d879ec9acec2a1085c1213",
+        "sha256": "7b8969d6a142351a947f4ab5d5f0ffc71bece368a5d879ec9acec2a1085c1213"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 22.363266640342772
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.238011656242914,
+      "engine_prefill_ms": 59006.293,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 6,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-2048/result.json@c5de63c2431319c70232a6cacfee509cbde2691f333c19a543a68eba02ef884f",
+        "sha256": "c5de63c2431319c70232a6cacfee509cbde2691f333c19a543a68eba02ef884f"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 59.17266592383385
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 18.988803343989524,
+      "engine_prefill_ms": 70677.798,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 7,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-2048/result.json@a997018ce7612dd2c5e6342f9bff37f7a8bdbf1e530cd24627e6122f7ddad809",
+        "sha256": "a997018ce7612dd2c5e6342f9bff37f7a8bdbf1e530cd24627e6122f7ddad809"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 70.83417079038918
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 19.374891016238035,
+      "engine_prefill_ms": 23803.899,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 7,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-512/result.json@6b5df29eddc4d1dbcebb507c7df2a4df14a975c9f4208e97858608c8e24dff6e",
+        "sha256": "6b5df29eddc4d1dbcebb507c7df2a4df14a975c9f4208e97858608c8e24dff6e"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 23.948314131237566
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.221757093030018,
+      "engine_prefill_ms": 23750.148,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 8,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-512/result.json@167e0f6a786dad3dbdf76cb7d20de1451c555bdf4f304a14e2c6b44b7cde05cf",
+        "sha256": "167e0f6a786dad3dbdf76cb7d20de1451c555bdf4f304a14e2c6b44b7cde05cf"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 23.951903328765184
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 18.73641609832871,
+      "engine_prefill_ms": 68407.796,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 8,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-2048/result.json@c0196195ca6ea7d1acb2ae2d82203c24ae9092f7ee4a5653cdd03c0cc7048864",
+        "sha256": "c0196195ca6ea7d1acb2ae2d82203c24ae9092f7ee4a5653cdd03c0cc7048864"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 68.55094024678692
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.13231007506742,
+      "engine_prefill_ms": 56846.774,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 9,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-2048/result.json@26aab5392917a4f2e0faa491f0e60ff60570071cce0a9a31a3197534856785e8",
+        "sha256": "26aab5392917a4f2e0faa491f0e60ff60570071cce0a9a31a3197534856785e8"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 57.02380387997255
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.122547570021247,
+      "engine_prefill_ms": 24938.393,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 9,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-512/result.json@a854b28a72b55f33760a838d0dd9f1dd9ff8937a98b398e64aed4c656d8c3c26",
+        "sha256": "a854b28a72b55f33760a838d0dd9f1dd9ff8937a98b398e64aed4c656d8c3c26"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 25.09362985473126
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 21.14519656165462,
+      "engine_prefill_ms": 22444.316,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 10,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-512/result.json@92a557ebe2301e5e60339b36bd742aef7c17f4c5c7fae36c6534da775a51dcb5",
+        "sha256": "92a557ebe2301e5e60339b36bd742aef7c17f4c5c7fae36c6534da775a51dcb5"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 22.646981848869473
+    },
+    {
+      "arm": "C3",
+      "decode_tps": 20.60145619067113,
+      "engine_prefill_ms": 63550.695,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 10,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-2048/result.json@a0e23c33f3d2b4593f2d783de7c5413f833fc325c490ac9a999b455eb114b28b",
+        "sha256": "a0e23c33f3d2b4593f2d783de7c5413f833fc325c490ac9a999b455eb114b28b"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+      "ttft_s": 63.67782220430672
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.26499686788438,
+      "engine_prefill_ms": 48723.593,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 6,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-6-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-6-512/result.json@d396910d500e4e3d6f635454dfed485e785e2bed707dc91bf5dcaa50f7ef1c64",
+        "sha256": "d396910d500e4e3d6f635454dfed485e785e2bed707dc91bf5dcaa50f7ef1c64"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 48.87472120998427
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.30076443479268,
+      "engine_prefill_ms": 158652.19,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 6,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-6-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-6-2048/result.json@be7c6aa44b5b81b351296e263670379b14dd7fb30793506f7700a357e177525c",
+        "sha256": "be7c6aa44b5b81b351296e263670379b14dd7fb30793506f7700a357e177525c"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 158.7912080148235
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.578246673276958,
+      "engine_prefill_ms": 154957.179,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 7,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-7-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-7-2048/result.json@dd1c923077c96d8d1672feefd4e73d9464c6c13e1ca9818d35224738fdd02581",
+        "sha256": "dd1c923077c96d8d1672feefd4e73d9464c6c13e1ca9818d35224738fdd02581"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 155.07345807319507
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.47269206198849,
+      "engine_prefill_ms": 44072.316,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 7,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-7-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-7-512/result.json@039b9d07c7c41d13214ddb4cc1da06559745ce1639688be90683edb585ae6ad0",
+        "sha256": "039b9d07c7c41d13214ddb4cc1da06559745ce1639688be90683edb585ae6ad0"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 44.2285524928011
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.5203534317411,
+      "engine_prefill_ms": 53080.592,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 8,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-8-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-8-512/result.json@5c96f1aec0fd924f1717408551d8061a670e121cb075fd4711bb5688547b48af",
+        "sha256": "5c96f1aec0fd924f1717408551d8061a670e121cb075fd4711bb5688547b48af"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 53.25651303306222
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.47247189211497,
+      "engine_prefill_ms": 157854.189,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 8,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-8-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-8-2048/result.json@cce29d43ac5a60db5435505948554d166e9ab86032dcde6e6e8364fbfa4206b4",
+        "sha256": "cce29d43ac5a60db5435505948554d166e9ab86032dcde6e6e8364fbfa4206b4"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 158.05017915507779
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.39990462756564,
+      "engine_prefill_ms": 150168.737,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 9,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-9-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-9-2048/result.json@aabd9ce0d18ebfee12c3abc565170409fe2a5ac8aa32e4be94d6b966948d35da",
+        "sha256": "aabd9ce0d18ebfee12c3abc565170409fe2a5ac8aa32e4be94d6b966948d35da"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 150.33343728864565
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.658599876467896,
+      "engine_prefill_ms": 44910.587,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 9,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-9-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-9-512/result.json@2976936f3036df0f84ce26fbc7f540db265b46321142e7e314313a3541828884",
+        "sha256": "2976936f3036df0f84ce26fbc7f540db265b46321142e7e314313a3541828884"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 45.06779938004911
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 19.677142523447536,
+      "engine_prefill_ms": 50558.445,
+      "output_sha256": "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5",
+      "prompt_tokens": 512,
+      "repeat": 10,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-10-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-10-512/result.json@247145ada1f6e2dfa8357daa1ac68b8bc981910b5d6df82a66e9f778ba5b39ac",
+        "sha256": "247145ada1f6e2dfa8357daa1ac68b8bc981910b5d6df82a66e9f778ba5b39ac"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 50.70324219902977
+    },
+    {
+      "arm": "A+",
+      "decode_tps": 18.93738080140552,
+      "engine_prefill_ms": 154382.166,
+      "output_sha256": "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1",
+      "prompt_tokens": 2048,
+      "repeat": 10,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-10-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-10-2048/result.json@32f1602e16332bc37c37dc9f11829437eb9e3d6ea2453cd0e4d33e2c8e0723f7",
+        "sha256": "32f1602e16332bc37c37dc9f11829437eb9e3d6ea2453cd0e4d33e2c8e0723f7"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+      "ttft_s": 154.51614533131942
+    }
+  ],
+  "excluded": [
+    {
+      "arm": "A+",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-512/result.json@dbf1bb50ad6cbd416e1a793ceddefe1befd72d74f6c1512390bca63b460ae81e",
+        "sha256": "dbf1bb50ad6cbd416e1a793ceddefe1befd72d74f6c1512390bca63b460ae81e"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-1-2048/result.json@4ffbf22f92f8b9a516bc2e52fded024c263a5fed6ea2f470a66bb8d90abed9fe",
+        "sha256": "4ffbf22f92f8b9a516bc2e52fded024c263a5fed6ea2f470a66bb8d90abed9fe"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-512/result.json@a2b40ea7ec15ec16ff0914d6f144b28c4fc9ec403e8c7bfe8392660e4fb1cf0e",
+        "sha256": "a2b40ea7ec15ec16ff0914d6f144b28c4fc9ec403e8c7bfe8392660e4fb1cf0e"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-2-2048/result.json@bff2bff86c210f5dfdd8798fcf8fae9cd7aab22cb998e053b99b27045d6e1d08",
+        "sha256": "bff2bff86c210f5dfdd8798fcf8fae9cd7aab22cb998e053b99b27045d6e1d08"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-2048/result.json@bfab8e590ba21a8a1a35fd8b9668cde0a829472f82b7ddf61a51b877e3d85e37",
+        "sha256": "bfab8e590ba21a8a1a35fd8b9668cde0a829472f82b7ddf61a51b877e3d85e37"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/warmup-3-512/result.json@37331dc0a4948767b479b3f1ef4dad613b0c9acc851abc767fcf8f23a2c93795",
+        "sha256": "37331dc0a4948767b479b3f1ef4dad613b0c9acc851abc767fcf8f23a2c93795"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-512/result.json@36b288980fda9bfa37aa688b9fdd4e6895898b82cfac791b612a43e86f52dcf4",
+        "sha256": "36b288980fda9bfa37aa688b9fdd4e6895898b82cfac791b612a43e86f52dcf4"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-1-2048/result.json@7447acdfbb6a05d0bfdf2c1834cb2a53a0f01484fde29c3d91b21d16eb9fb1f1",
+        "sha256": "7447acdfbb6a05d0bfdf2c1834cb2a53a0f01484fde29c3d91b21d16eb9fb1f1"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-512/result.json@09b39cc222ff76f59a776180604361d61c0dc4f2f3a58bbcba786faf15406358",
+        "sha256": "09b39cc222ff76f59a776180604361d61c0dc4f2f3a58bbcba786faf15406358"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-2-2048/result.json@87334d90e9b6c27425e3ddcdb552cc4bcbdfed1fc4376424bff23539057e05aa",
+        "sha256": "87334d90e9b6c27425e3ddcdb552cc4bcbdfed1fc4376424bff23539057e05aa"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-2048/result.json@cea4345c1109ddb3aa1b904c1ed02c41a7a700feed059d0a73cb2cdeaf8fd98f",
+        "sha256": "cea4345c1109ddb3aa1b904c1ed02c41a7a700feed059d0a73cb2cdeaf8fd98f"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/warmup-3-512/result.json@0ac744960e5fe3b419dcb1a2a96d2d06d2d42ee85b8eba5c329c4dd6fb98dc35",
+        "sha256": "0ac744960e5fe3b419dcb1a2a96d2d06d2d42ee85b8eba5c329c4dd6fb98dc35"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-512/result.json@788328e40fe2aed1fed2b849fb130064d4d618069f6859224a8f339481e41787",
+        "sha256": "788328e40fe2aed1fed2b849fb130064d4d618069f6859224a8f339481e41787"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-1-2048/result.json@f9b8a1b66f8abb79029a6829f399f0d15b57bde41943c4ba97d45ad1c67bb33f",
+        "sha256": "f9b8a1b66f8abb79029a6829f399f0d15b57bde41943c4ba97d45ad1c67bb33f"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-512/result.json@733b73a2a2d01930b257627682bc455ccc1dbc98625bf4c43a6a22e38faadeaa",
+        "sha256": "733b73a2a2d01930b257627682bc455ccc1dbc98625bf4c43a6a22e38faadeaa"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-2-2048/result.json@9ff0b1d670cb570de13b6833f6eb08ff1ecf23142f613724ab1bc2191403ba16",
+        "sha256": "9ff0b1d670cb570de13b6833f6eb08ff1ecf23142f613724ab1bc2191403ba16"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-2048/result.json@7864ae02bcc508378c7cab56f877c2761228f4fe341dd7398173db95045ea087",
+        "sha256": "7864ae02bcc508378c7cab56f877c2761228f4fe341dd7398173db95045ea087"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+    },
+    {
+      "arm": "C3",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/warmup-3-512/result.json@9d26b93d3aac2873a942c086583cffdf935b5aa64a190857257677c6c8d03fea",
+        "sha256": "9d26b93d3aac2873a942c086583cffdf935b5aa64a190857257677c6c8d03fea"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-1-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-1-512/result.json@758b07f7a903e89fffd8ff4c3b9698bd806b32a2ec79dcb1140a25e71349aa76",
+        "sha256": "758b07f7a903e89fffd8ff4c3b9698bd806b32a2ec79dcb1140a25e71349aa76"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-1-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-1-2048/result.json@ee831b8eb8a57d1d04b3fa4caf9b578869171fc7c5400e3500092ef14c0d41c8",
+        "sha256": "ee831b8eb8a57d1d04b3fa4caf9b578869171fc7c5400e3500092ef14c0d41c8"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-2-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-2-512/result.json@094c0f9149f84da434d9d65710b565f563fff5fb0afe8607b4460e54f5a73156",
+        "sha256": "094c0f9149f84da434d9d65710b565f563fff5fb0afe8607b4460e54f5a73156"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-2-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-2-2048/result.json@2305f5b82d01d9ac2dfc76146d9fec8dd255bd84d3f078113e962a4d8c4d442b",
+        "sha256": "2305f5b82d01d9ac2dfc76146d9fec8dd255bd84d3f078113e962a4d8c4d442b"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 2048,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-3-2048/request.json@2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c",
+        "sha256": "2e92b013e05a33bd384c5d12f647a7468203ecb53015a0aed8d3b83ea7495a0c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-3-2048/result.json@7eecb63375fcf3bb087e0a9bc614739bcb8eb3194ba24a68cb808d3b144f3ae1",
+        "sha256": "7eecb63375fcf3bb087e0a9bc614739bcb8eb3194ba24a68cb808d3b144f3ae1"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+    },
+    {
+      "arm": "A+",
+      "prompt_tokens": 512,
+      "reason": "warmup",
+      "repeat": 0,
+      "request": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-3-512/request.json@d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529",
+        "sha256": "d11f6970eb4180de3e6698eb680cf875c17523b876185d61e1c458cf84839529"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/warmup-3-512/result.json@4181e0827aad0c88044b0aa5621918f70e7159714926f6cd94578ddc9b6a19e0",
+        "sha256": "4181e0827aad0c88044b0aa5621918f70e7159714926f6cd94578ddc9b6a19e0"
+      },
+      "scope_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+    }
+  ],
+  "limitations": [
+    "Client TTFT measures wall time to first text or reasoning; engine prefill is an internal engine counter.",
+    "Sampled scope memory can omit final teardown and CUDA UMA may escape cgroup accounting.",
+    "Engine comparisons do not attribute changes to individual CCs without matched, activated candidate arms.",
+    "The paired bootstrap interval is conditional on two launches per arm and omits between-launch uncertainty."
+  ],
+  "measurements": [
+    {
+      "arm": "A+",
+      "comparisons": {
+        "inverse_ttft_vs_Aplus": {
+          "conditional_ci95": [
+            1.0,
+            1.0
+          ],
+          "estimate": 1.0
+        },
+        "paired_decode_tps_gained_vs_Aplus": {
+          "conditional_ci95": [
+            0.0,
+            0.0
+          ],
+          "estimate": 0.0,
+          "observed_range": [
+            0.0,
+            0.0
+          ],
+          "pass_medians": [
+            0.0,
+            0.0
+          ]
+        },
+        "paired_ttft_seconds_saved_vs_Aplus": {
+          "conditional_ci95": [
+            -0.0,
+            -0.0
+          ],
+          "estimate": -0.0,
+          "observed_range": [
+            -0.0,
+            -0.0
+          ],
+          "pass_medians": [
+            -0.0,
+            -0.0
+          ]
+        }
+      },
+      "decode_tps": 20.356793912818034,
+      "engine_prefill_ms": 49774.481499999994,
+      "n": 10,
+      "output_hashes": [
+        "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5"
+      ],
+      "prompt_tokens": 512,
+      "range_s": [
+        44.2285524928011,
+        55.7207724689506
+      ],
+      "source_artifacts": [
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-512/result.json@05ddcad22ef7fb1b6f370c96713071ec0c1459d433ec9a693b40fa883b8b16c5",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-512/result.json@177db9af7841242d448330eab90fd32767db5087ff717eb062abb6fe153fb8fa",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-512/result.json@d590a47f4366c329ae945460620373e141f0c23063607e0a4527eb6119bee16d",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-512/result.json@f5fe34e70d024f7fc2ba24ffe92e026ec76cec6416608808d478e967afd7fb6d",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-512/result.json@da1e594011c94ecadd713817510946725eac20a9500bea02a922cb122c470fbd",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-6-512/result.json@d396910d500e4e3d6f635454dfed485e785e2bed707dc91bf5dcaa50f7ef1c64",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-7-512/result.json@039b9d07c7c41d13214ddb4cc1da06559745ce1639688be90683edb585ae6ad0",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-8-512/result.json@5c96f1aec0fd924f1717408551d8061a670e121cb075fd4711bb5688547b48af",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-9-512/result.json@2976936f3036df0f84ce26fbc7f540db265b46321142e7e314313a3541828884",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-10-512/result.json@247145ada1f6e2dfa8357daa1ac68b8bc981910b5d6df82a66e9f778ba5b39ac"
+      ],
+      "ttft_s": 49.93581272359006
+    },
+    {
+      "arm": "C3",
+      "comparisons": {
+        "inverse_ttft_vs_Aplus": {
+          "conditional_ci95": [
+            1.9750530121153962,
+            2.2881272230986616
+          ],
+          "estimate": 2.1416467227527938
+        },
+        "paired_decode_tps_gained_vs_Aplus": {
+          "conditional_ci95": [
+            -0.3474580737046562,
+            0.795667860699206
+          ],
+          "estimate": -0.18298274112125412,
+          "observed_range": [
+            -2.40654728886161,
+            1.7014036612889178
+          ],
+          "pass_medians": [
+            -0.4267517109172587,
+            1.4639476935533509
+          ]
+        },
+        "paired_ttft_seconds_saved_vs_Aplus": {
+          "conditional_ci95": [
+            23.889908104669303,
+            29.304609704297036
+          ],
+          "estimate": 27.081677404697984,
+          "observed_range": [
+            19.974169525317848,
+            32.315653334371746
+          ],
+          "pass_medians": [
+            27.651900239754468,
+            26.5114545696415
+          ]
+        }
+      },
+      "decode_tps": 21.133872065837934,
+      "engine_prefill_ms": 23159.028,
+      "n": 10,
+      "output_hashes": [
+        "ca9f89c46a40f9bcbde19b09af6c0c06eea4fa91c84d4563192cf633405b10d5"
+      ],
+      "prompt_tokens": 512,
+      "range_s": [
+        22.363266640342772,
+        25.956743367016315
+      ],
+      "source_artifacts": [
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-512/result.json@27393f59f4f0c8e37b8c9abf95e3457ae35af91f789a50aa6b15715d08394694",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-512/result.json@750a973b822ffc51102a123e2d9678523454449f7263b3c727dc0c356c55950b",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-512/result.json@c1b9978fe239bb8f4d7b234ef1e68713900a69b9da6737a41d5ebda9d19b8b8c",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-512/result.json@a301f2d536bae5c908bffcf39bc66319b259de4aac69a7de9593f33a9077386d",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-512/result.json@3e1348a5d25e21e6379b0e98e0d46067e0722baaa56af05fc4093879e3f48900",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-512/result.json@7b8969d6a142351a947f4ab5d5f0ffc71bece368a5d879ec9acec2a1085c1213",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-512/result.json@6b5df29eddc4d1dbcebb507c7df2a4df14a975c9f4208e97858608c8e24dff6e",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-512/result.json@167e0f6a786dad3dbdf76cb7d20de1451c555bdf4f304a14e2c6b44b7cde05cf",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-512/result.json@a854b28a72b55f33760a838d0dd9f1dd9ff8937a98b398e64aed4c656d8c3c26",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-512/result.json@92a557ebe2301e5e60339b36bd742aef7c17f4c5c7fae36c6534da775a51dcb5"
+      ],
+      "ttft_s": 23.316549920709804
+    },
+    {
+      "arm": "A+",
+      "comparisons": {
+        "inverse_ttft_vs_Aplus": {
+          "conditional_ci95": [
+            1.0,
+            1.0
+          ],
+          "estimate": 1.0
+        },
+        "paired_decode_tps_gained_vs_Aplus": {
+          "conditional_ci95": [
+            0.0,
+            0.0
+          ],
+          "estimate": 0.0,
+          "observed_range": [
+            0.0,
+            0.0
+          ],
+          "pass_medians": [
+            0.0,
+            0.0
+          ]
+        },
+        "paired_ttft_seconds_saved_vs_Aplus": {
+          "conditional_ci95": [
+            -0.0,
+            -0.0
+          ],
+          "estimate": -0.0,
+          "observed_range": [
+            -0.0,
+            -0.0
+          ],
+          "pass_medians": [
+            -0.0,
+            -0.0
+          ]
+        }
+      },
+      "decode_tps": 19.99419255663541,
+      "engine_prefill_ms": 156467.285,
+      "n": 10,
+      "output_hashes": [
+        "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1"
+      ],
+      "prompt_tokens": 2048,
+      "range_s": [
+        141.09979657595977,
+        178.40626834519207
+      ],
+      "source_artifacts": [
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-1-2048/result.json@c2b2b72021506a0f92ad5d8576803bcb8e855f7865f6e96141aab79d7fac01d9",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-2-2048/result.json@a935d676e6adf7d292a370f18fa8b5560c4fe1a49c6f60980c67b75a8c225646",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-3-2048/result.json@3335a1ad353d1e95d79c0160e27b6d3ee4b7cb73b7bb869fe61df5aa2af8683b",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-4-2048/result.json@2f8ed8fb8e0047b1c419a252afbbbbc8224f2b9d489c4b14e532e8965ef66678",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/repeat-5-2048/result.json@d859d8124ed634188cdf2e30e4b4c6390202f063c6c6a4830014457392e08cff",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-6-2048/result.json@be7c6aa44b5b81b351296e263670379b14dd7fb30793506f7700a357e177525c",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-7-2048/result.json@dd1c923077c96d8d1672feefd4e73d9464c6c13e1ca9818d35224738fdd02581",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-8-2048/result.json@cce29d43ac5a60db5435505948554d166e9ab86032dcde6e6e8364fbfa4206b4",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-9-2048/result.json@aabd9ce0d18ebfee12c3abc565170409fe2a5ac8aa32e4be94d6b966948d35da",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/repeat-10-2048/result.json@32f1602e16332bc37c37dc9f11829437eb9e3d6ea2453cd0e4d33e2c8e0723f7"
+      ],
+      "ttft_s": 156.6414256906137
+    },
+    {
+      "arm": "C3",
+      "comparisons": {
+        "inverse_ttft_vs_Aplus": {
+          "conditional_ci95": [
+            2.2479766907235073,
+            2.683522966824194
+          ],
+          "estimate": 2.4097367625536847
+        },
+        "paired_decode_tps_gained_vs_Aplus": {
+          "conditional_ci95": [
+            -0.5894433292874339,
+            1.134524085026559
+          ],
+          "estimate": -0.14871108033951153,
+          "observed_range": [
+            -1.270289569935393,
+            1.9372472214502352
+          ],
+          "pass_medians": [
+            -0.1670772761889765,
+            1.6640753892656086
+          ]
+        },
+        "paired_ttft_seconds_saved_vs_Aplus": {
+          "conditional_ci95": [
+            84.23928728280589,
+            100.55819551902823
+          ],
+          "estimate": 92.0739782678429,
+          "observed_range": [
+            73.96682676998898,
+            125.92075634002686
+          ],
+          "pass_medians": [
+            101.49784894706681,
+            90.8383231270127
+          ]
+        }
+      },
+      "decode_tps": 21.072191072532142,
+      "engine_prefill_ms": 64874.492,
+      "n": 10,
+      "output_hashes": [
+        "b2881b1b899ae178b31d75a78842b421df5c9773ad7775b04241afc7ba0b26a1"
+      ],
+      "prompt_tokens": 2048,
+      "range_s": [
+        52.48551200516522,
+        75.28653059806675
+      ],
+      "source_artifacts": [
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-1-2048/result.json@b51dee0fc47c574ce52b17aa6b06582ad6318c247ebc86a06fad8cbda57355cf",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-2-2048/result.json@86f163794c44c5dddcc4439e014e42d1fccc42169bac5d6197f6a4378f4cff7b",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-3-2048/result.json@effd6cee15c0bd6df278c5188cc6a9f0f56d008f5048ca1eb5d24fe1681971a4",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-4-2048/result.json@5e5501de0c2b973af26cb1d4984477ab3a30d040cdb9af1c3d9497295b8d7d5f",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/repeat-5-2048/result.json@6b79528c0f07244460272c71bc8bdefd4385bc92498398e381436817434a1e5f",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-6-2048/result.json@c5de63c2431319c70232a6cacfee509cbde2691f333c19a543a68eba02ef884f",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-7-2048/result.json@a997018ce7612dd2c5e6342f9bff37f7a8bdbf1e530cd24627e6122f7ddad809",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-8-2048/result.json@c0196195ca6ea7d1acb2ae2d82203c24ae9092f7ee4a5653cdd03c0cc7048864",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-9-2048/result.json@26aab5392917a4f2e0faa491f0e60ff60570071cce0a9a31a3197534856785e8",
+        "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/repeat-10-2048/result.json@a0e23c33f3d2b4593f2d783de7c5413f833fc325c490ac9a999b455eb114b28b"
+      ],
+      "ttft_s": 65.0035423473455
+    }
+  ],
+  "mode": "p4-abba",
+  "prompt_manifest": {
+    "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/jiuwenswarm/ops/spark/prompts/MANIFEST.json@eaba043a72be89ae59b2d71cd7cd38a62b6d85547434e03abdac4790899c451a",
+    "sha256": "eaba043a72be89ae59b2d71cd7cd38a62b6d85547434e03abdac4790899c451a"
+  },
+  "schema": "spark-gap-analysis/1",
+  "scopes": [
+    {
+      "arm": "A+",
+      "binary_sha256": "0340c6ccbc12793d3aaf177773f948e625866196cb16dcfdf67cf2442ef8aa44",
+      "load": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/load-ready.json@ad3d3a357593d30820906dd50735b97c030d6b645d032e05ec732c74f3d0dc36",
+        "sha256": "ad3d3a357593d30820906dd50735b97c030d6b645d032e05ec732c74f3d0dc36"
+      },
+      "load_s": 81.17360304202884,
+      "min_mem_available_bytes": 24119746560,
+      "peak_memory_bytes": 107374329856,
+      "peak_rss_bytes": 102360260608,
+      "quiet_preflight": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/p4-window/quiet-prelaunch.json@1de39906f2855366f19b56de69ec86f0b17ba848b677d9e52f617aafd3c1c94c",
+        "sha256": "1de39906f2855366f19b56de69ec86f0b17ba848b677d9e52f617aafd3c1c94c"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-1-01/result.json@1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54",
+        "sha256": "1703d4d1946cf2da1d8a5df14ce011a743e3a5125633f8880c1d38046a1c2e54"
+      }
+    },
+    {
+      "arm": "C3",
+      "binary_sha256": "6e7fe898f11dc08641743725b8bec92d49c45c03dcf98cc75291b7d78ca4de56",
+      "load": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/load-ready.json@5195b08979ce311aa9e494d5379bec79c25598faaba99ff3676bbe9bf1285590",
+        "sha256": "5195b08979ce311aa9e494d5379bec79c25598faaba99ff3676bbe9bf1285590"
+      },
+      "load_s": 170.28412029799074,
+      "min_mem_available_bytes": 24090095616,
+      "peak_memory_bytes": 107374182400,
+      "peak_rss_bytes": 100921987072,
+      "quiet_preflight": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/p4-window/quiet-prelaunch.json@205d44bd10cce48395f05e7f9c60b12adcc1f700894df0170ee139783c789820",
+        "sha256": "205d44bd10cce48395f05e7f9c60b12adcc1f700894df0170ee139783c789820"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-1-01/result.json@902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982",
+        "sha256": "902b845410e40f798c0e65dd652ce7b05459a2a60b5f4218aa48a14d0a5cd982"
+      }
+    },
+    {
+      "arm": "C3",
+      "binary_sha256": "6e7fe898f11dc08641743725b8bec92d49c45c03dcf98cc75291b7d78ca4de56",
+      "load": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/load-ready.json@f7356a5e71998872d9e22f8663c8faf0bf8b939fadc634acc386484713342522",
+        "sha256": "f7356a5e71998872d9e22f8663c8faf0bf8b939fadc634acc386484713342522"
+      },
+      "load_s": 176.30151996109635,
+      "min_mem_available_bytes": 24173408256,
+      "peak_memory_bytes": 107374178304,
+      "peak_rss_bytes": 101342261248,
+      "quiet_preflight": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/p4-window/quiet-prelaunch.json@57c14c45fc9bf01ed824c95c5e4ee398337ac32d1901188892ecdad88d52a88b",
+        "sha256": "57c14c45fc9bf01ed824c95c5e4ee398337ac32d1901188892ecdad88d52a88b"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-c3-pass-2-retry-01/result.json@48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b",
+        "sha256": "48e130360d4a2708ee5e04a6bcc4ff0c7d287b681e9390f14e64be59fb404c7b"
+      }
+    },
+    {
+      "arm": "A+",
+      "binary_sha256": "0340c6ccbc12793d3aaf177773f948e625866196cb16dcfdf67cf2442ef8aa44",
+      "load": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/load-ready.json@a70efe99749b74e887c1ce0c2cc18f1c1e70b081ff6c1632dddaa1c1f25a378a",
+        "sha256": "a70efe99749b74e887c1ce0c2cc18f1c1e70b081ff6c1632dddaa1c1f25a378a"
+      },
+      "load_s": 89.61561433086172,
+      "min_mem_available_bytes": 23990755328,
+      "peak_memory_bytes": 107374170112,
+      "peak_rss_bytes": 102501044224,
+      "quiet_preflight": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/p4-window/quiet-prelaunch.json@07e31be8c89d406f740228b7b2f140d399e1aec1bc4b4d2a7e83082b358d2435",
+        "sha256": "07e31be8c89d406f740228b7b2f140d399e1aec1bc4b4d2a7e83082b358d2435"
+      },
+      "result": {
+        "artifact_id": "spark-p4-cache60-build-overlap/quiet-v3/raw/OPS/runs/p4-cache60-aplus-pass-2-quiet-01/result.json@bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c",
+        "sha256": "bf2c56b041c9e4c4612f178a2f25ba72c8f6dc9c3deb4ed1bdd3a25903ad247c"
+      }
+    }
+  ]
+}

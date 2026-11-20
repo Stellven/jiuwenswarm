@@ -1,0 +1,9 @@
+{
+  "home": "/home/user2/predemo-spark/factory-runs/spark-direct-benchmarks",
+  "task_id": "spark-direct-benchmarks-20261120",
+  "observation_id": "spark-p4-cache60-build-overlap:report-v3",
+  "artifact_id": "spark-p4-cache60-build-overlap/report-v3.md",
+  "sha256": "eb1b16d39530e161caf83cd9f8279ea6074b3555c25e4403dee7a50ba24a8547",
+  "export": "/home/user2/predemo-spark/OPS/iterations/spark-p4-cache60-build-overlap/export-v3",
+  "verified_manifest_files": 3034
+}

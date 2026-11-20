@@ -1,0 +1,17 @@
+{
+  "schema": "spark-p4-quiet-control-amendment/1",
+  "frozen_at": "2026-11-20T15:09:31.112074+00:00",
+  "reason": "Owner requested one replacement for the build-overlapped final control. Idle-priority file pull by orchestrator is permitted and disclosed.",
+  "manifest_sha256": "ea63132ffa5a5ee05767d43ed807e6cfa81ddc3b56d1dc58ea67819ac45112b9",
+  "previous_amendment_sha256": "cb072674e5927e56b9a503a96ff4cef7b76b0f17ebe1002ed8297e09af6ed248",
+  "replaced_scope": "OPS/runs/p4-cache60-aplus-pass-2-01",
+  "replacement_scope": "OPS/runs/p4-cache60-aplus-pass-2-quiet-01",
+  "launch_order": [
+    "OPS/runs/p4-cache60-aplus-pass-1-01",
+    "OPS/runs/p4-cache60-c3-pass-1-01",
+    "OPS/runs/p4-cache60-c3-pass-2-retry-01",
+    "OPS/runs/p4-cache60-aplus-pass-2-quiet-01"
+  ],
+  "profile_sha256": "6b0f64b10c34ffac4f9cd19f11174ba2f1587f39e977c478619ada8b67ba95b8",
+  "protocol": "Identical fresh source conditioning, frozen profile and mirrored 16-position sequence, 5 measured per size/pass. Replace full scope prospectively. Zero concurrent builds, tests, browsers or planners. Clean stop by 15:50Z if incomplete, retain screening result."
+}

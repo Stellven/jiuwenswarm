@@ -719,7 +719,36 @@ def apply_scope_amendment(base, plan, manifest_sha, amendment_path, amendment_sh
     return reference(amendment)
 
 
-def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
+def apply_quiet_control(base, plan, path, pin, manifest_sha, retry_sha, capture):
+    amendment = capture(path)
+    change = amendment['value']
+    row = plan['launches'][-1]
+    scopes = [item['scope'] for item in plan['launches'][:-1]]
+    demand(change['schema'] == 'spark-p4-quiet-control-amendment/1' and amendment['sha256'] == pin
+           and change['manifest_sha256'] == manifest_sha and change['previous_amendment_sha256'] == retry_sha
+           and row['arm'] == 'A+' and row['launch_pass'] == 2
+           and change['replaced_scope'] == row['scope'] and change['profile_sha256'] == row['profile_sha256'],
+           'Quiet control amendment must identify the original manifest, retry and frozen final A+ profile')
+    new = Path(change['replacement_scope'])
+    demand(new.parent == Path('OPS/runs') and (base/new).resolve(strict=True) == base/new
+           and str(new) not in scopes + [row['scope']] and change['launch_order'] == scopes + [str(new)],
+           'Amended scope order differs from the predeclared four launches')
+    excluded = capture(base/row['scope']/'result.json')
+    start = timepoint(json.loads(safe_bytes(base/new/'start.json'))['start'])
+    demand(timepoint(excluded['value']['stop']) < timepoint(change['frozen_at']) <= start
+           and datetime.fromtimestamp(path.stat().st_mtime, timezone.utc) <= start,
+           'Control replacement must be declared before the new launch')
+    samples = capture(base/new/'host-activity.jsonl', 'application/x-ndjson')
+    activity = [json.loads(line) for line in samples['raw'].splitlines()]
+    demand(activity and all(process['name'] in {'rsync', 'scp', 'rclone', 'sftp-server'}
+                            for sample in activity for process in sample['browsers_or_transfer_processes']),
+           'Browser activity observed during the replacement control')
+    row['scope'] = str(new)
+    return reference(amendment)
+
+
+def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None,
+            control_path=None, control_sha=None):
     manifest_raw, plan = frozen_plan(path, manifest_sha, base)
     iteration = plan['iteration_id']
     first = base / Path(plan['launches'][0]['scope'])
@@ -728,7 +757,14 @@ def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
            'Frozen P4 manifest file postdates the first launch')
     home = base / 'factory-runs/spark-direct-benchmarks'
     out = base / 'OPS/iterations' / iteration
-    observation = iteration + ':report'
+    if control_path:
+        demand(iteration == 'spark-p4-cache60-attribution' and amendment_path is not None,
+               'The quiet control is a revision of the amended 60 GiB experiment')
+        iteration = 'spark-p4-cache60-build-overlap'
+        out = base / 'OPS/iterations' / iteration
+    revision = '-v3' if control_path else ''
+    artifact_root = iteration + ('/quiet-v3' if control_path else '')
+    observation = iteration + ':report' + revision
     with Store(home) as store:
         store.get_task(TASK)
         try:
@@ -738,6 +774,7 @@ def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
         if existing:
             report = existing['report']
             demand(existing['plan'].get('scope_amendment', {}).get('sha256') == amendment_sha and
+                   existing['plan'].get('control_amendment', {}).get('sha256') == control_sha and
                    existing['plan']['manifest']['sha256'] == manifest_sha and
                    store.read_artifact(TASK, report['artifact_id'])['sha256'] == report['sha256'],
                    'P4 iteration already identifies a different manifest or report')
@@ -753,20 +790,24 @@ def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
             def capture(filepath, media='application/json'):
                 raw = safe_bytes(filepath)
                 label = filepath.relative_to(base if filepath.is_relative_to(base) else REPO).as_posix()
-                ref = put(f'{iteration}/raw/{label}@{digest(raw)}', raw, media)
+                ref = put(f'{artifact_root}/raw/{label}@{digest(raw)}', raw, media)
                 retained.append(ref['artifact_id'])
                 return dict(ref, value=json.loads(raw)) if media == 'application/json' else dict(ref, raw=raw)
 
-            plan_ref = put(iteration + '/admitted-launches.json', manifest_raw)
+            plan_ref = put(artifact_root + '/admitted-launches.json', manifest_raw)
             amendment_ref = None
             if amendment_path is not None:
                 amendment_ref = apply_scope_amendment(base, plan, manifest_sha, amendment_path,
                                                       amendment_sha, capture)
+            control_ref = (apply_quiet_control(base, plan, control_path, control_sha, manifest_sha, amendment_sha, capture)
+                           if control_path else None)
             evidence = evidence_from_lab(base, plan, plan_ref, capture)
             if amendment_ref:
                 evidence.update(scope_amendment=amendment_ref, effective_launches=plan['launches'])
+            if control_ref:
+                evidence['control_amendment'] = control_ref
             payload = json_bytes(evidence)
-            evidence_ref = put(iteration + '/analysis-input.json', payload)
+            evidence_ref = put(artifact_root + '/analysis-input.json', payload)
             host = Host(home / 'analysis-ccv2')
             release = host.seal(REPO / 'jiuwenswarm/factory/ccs/spark_gap_analysis')
             capsule = dict(id=CAPSULE, version=host.describe(release)['version'], release=release)
@@ -778,11 +819,26 @@ def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
             demand(checked.get('outputs', {}).get('verification', {}).get('done') is True, 'P4 native verifier did not reproduce the analysis')
             summary, report_bytes = render(analysis, evidence, capsule)
             analysis_bytes = json_bytes(analysis)
-            analysis_ref = put(iteration + '/analysis.json', analysis_bytes)
-            verification = put(iteration + '/verify-receipt.json', json_bytes(checked))
-            outputs = [analysis_ref, put(iteration + '/analyze-receipt.json', json_bytes(analyzed)), verification,
-                       put(iteration + '/release-manifest.json', (host.store / 'releases' / release / 'manifest.json').read_bytes())]
-            report = dict(put(iteration + '/report.md', report_bytes, 'text/markdown'), summary=summary, status='verified-p4')
+            analysis_ref = put(artifact_root + '/analysis.json', analysis_bytes)
+            verification = put(artifact_root + '/verify-receipt.json', json_bytes(checked))
+            outputs = [analysis_ref, put(artifact_root + '/analyze-receipt.json', json_bytes(analyzed)), verification,
+                       put(artifact_root + '/release-manifest.json', (host.store / 'releases' / release / 'manifest.json').read_bytes())]
+            if control_ref:
+                by_position = {(r['result']['arm'], r['result']['prompt_tokens'], r['result']['repeat']): r['first_token_io']
+                               for r in evidence['requests'] if not r['result']['discard']}
+                reads = {}
+                for size in SIZES:
+                    differences = [(by_position['A+', size, i], by_position['C3', size, i]) for i in range(1, 11)]
+                    reads[str(size)] = {key: median(a[key] - b[key] for a, b in differences)
+                                        for key in ('read_bytes', 'major_faults')}
+                report_bytes += (b'\n## Prospective final-control replacement\n\n'
+                                 b'The closing stock pass in report-v2 overlapped builds. The owner declared its whole-scope '
+                                 b'replacement before the fresh control started. The three earlier admitted launches are reused. '
+                                 b'The orchestrator disclosed a concurrent idle-priority file pull. Its storage impact was not isolated.\n')
+                for size, io in reads.items():
+                    report_bytes += (f"\nAt {size} tokens the paired median stock-minus-C3 difference before the first "
+                                     f"token was {io['read_bytes']/1e9:.2f} GB read and {io['major_faults']:,.0f} major faults.\n").encode()
+            report = dict(put(iteration + '/report' + revision + '.md', report_bytes, 'text/markdown'), summary=summary, status='verified-p4')
             input_ids = list(dict.fromkeys([plan_ref['artifact_id'], evidence_ref['artifact_id'], *retained]))
             output_ids = [ref['artifact_id'] for ref in outputs]
             envelope = dict(schema='spark-factory-iteration/1', iteration_id=iteration, predecessor_report_ids=[],
@@ -794,14 +850,27 @@ def publish(base, path, manifest_sha, amendment_path=None, amendment_sha=None):
                 report=report, next_plan=dict(decision_id=None))
             if amendment_ref:
                 envelope['plan']['scope_amendment'] = amendment_ref
+            if control_ref:
+                prior_id = iteration + ':report-v2'
+                prior = store.read(TASK, prior_id)['values']
+                demand(prior['report']['revision'] == 2, 'Expected native screening predecessor')
+                envelope['analysis']['paired_first_token_io_saved'] = reads
+                envelope['do'] = prior['do']
+                envelope['predecessor_report_ids'] = [prior_id]
+                envelope['plan'].update(control_amendment=control_ref, incoming_report_ids=[prior_id],
+                                        builder_ccs=prior['plan']['builder_ccs'], source_decision=prior['plan']['source_decision'],
+                                        summary='Replace the build-overlapped closing stock control and measure all ten pairs at each size.')
+                envelope['report'].update(revision=3, supersedes_observation_id=prior_id,
+                                          supersedes_artifact_id=prior['report']['artifact_id'])
             focused = effect_rows(analysis, evidence, verification)
             if focused:
                 envelope['analysis']['focused_comparison'] = focused
-            append_once(store, TASK, dict(obs_id=observation, kind='factory_iteration_report', values=envelope,
+            kind = 'factory_iteration_report_revision' if control_ref else 'factory_iteration_report'
+            append_once(store, TASK, dict(obs_id=observation, kind=kind, values=envelope,
                 source_artifacts=input_ids + output_ids + [report['artifact_id']]))
 
     out.mkdir(parents=True, exist_ok=True)
-    for name, raw in (('report.md', report_bytes), ('analysis.json', analysis_bytes), ('iteration.json', json_bytes(envelope))):
+    for name, raw in (('report' + revision + '.md', report_bytes), ('analysis' + revision + '.json', analysis_bytes), ('iteration' + revision + '.json', json_bytes(envelope))):
         dest = out / name
         temporary = dest.with_suffix('.tmp')
         temporary.write_bytes(raw)
@@ -816,15 +885,21 @@ def main():
     parser.add_argument('--base', type=Path, default=Path.home() / 'predemo-spark')
     parser.add_argument('--scope-amendment', type=Path)
     parser.add_argument('--scope-amendment-sha256')
+    parser.add_argument('--control-amendment', type=Path)
+    parser.add_argument('--control-amendment-sha256')
     parser.add_argument('--export', type=Path, help='Native export destination, defaulting to the iteration export directory')
     args = parser.parse_args()
     base = args.base.resolve(strict=True)
     if bool(args.scope_amendment) != bool(args.scope_amendment_sha256):
         parser.error('Supply the prospective scope amendment and its SHA-256 together')
     amendment = args.scope_amendment.resolve(strict=True) if args.scope_amendment else None
-    report = publish(base, args.manifest.absolute(), args.manifest_sha256, amendment, args.scope_amendment_sha256)
-    iteration = report['observation_id'].removesuffix(':report')
-    out = args.export or base / 'OPS/iterations' / iteration / 'export'
+    if bool(args.control_amendment) != bool(args.control_amendment_sha256):
+        parser.error('Supply the control amendment and its SHA-256 together')
+    control = args.control_amendment.resolve(strict=True) if args.control_amendment else None
+    report = publish(base, args.manifest.absolute(), args.manifest_sha256, amendment, args.scope_amendment_sha256,
+                     control, args.control_amendment_sha256)
+    iteration = report['observation_id'].split(':')[0]
+    out = args.export or base / 'OPS/iterations' / iteration / ('export-v3' if control else 'export')
     bundle = out.resolve() if out.exists() else export_task(TASK, out, Path(report['home']))
     files = verify(bundle)
     exported = json.loads((bundle / 'artifacts.json').read_bytes())

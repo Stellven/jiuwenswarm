@@ -16,6 +16,7 @@ def pair(values, unit, signed=False):
 def build(root, allow_pending=False):
     rows = []
     path = root / 'OPS/iterations'
+    confirmed = (path/'spark-p4-cache60-build-overlap/iteration-v3.json').is_file()
 
     def add(key, arm, cc, grade, ttft, decode, summary, refs):
         sources = []
@@ -47,11 +48,15 @@ def build(root, allow_pending=False):
          'Screening · build overlap', 'C3 saved time in 10/10 pairs per size. The six quiet pairs saved 26.80 / 100.23 s; the engine recorded fewer storage reads before the first token.'),
     ):
         folder = path/name
+        if key == 'c3-60' and confirmed:
+            filename, projection, grade = 'iteration-v3.json', 'focused_comparison', 'Verified · quiet ABBA'
         envelope = json.loads((folder/filename).read_bytes())
         cells = sorted(envelope['analysis'][projection]['rows'], key=lambda c: c['prompt_tokens'])
         assert [(c['prompt_tokens'], c['n']) for c in cells] == [(size, 10) for size in SIZES]
         report = folder / Path(envelope['report']['artifact_id']).name
         assert hashlib.sha256(report.read_bytes()).hexdigest() == envelope['report']['sha256']
+        if key == 'c3-60' and confirmed:
+            text = envelope['report']['summary'] + ' The orchestrator disclosed an idle-priority file pull.'
         add(key, arm, 'C3', grade,
             pair([c['paired_ttft_seconds_saved_vs_Aplus']['estimate'] for c in cells], 's saved', True),
             pair([c['paired_decode_tps_gained_vs_Aplus']['estimate'] for c in cells], 'tok/s gained', True), text, [report])
@@ -110,7 +115,7 @@ def build(root, allow_pending=False):
         'DeepSeek produced all 1,360 expected events. The Granite scorer passed and accounted for one lost event per fixture configuration.',
         [path/'spark-c1-functional/report-v3.md'])
     return dict(schema='spark-final-headlines/1', title='DeepSeek on Spark GB10',
-                summary='The build-overlapped 60 GiB screen found earlier first tokens and fewer engine reads with profile seeding. Stock A+30 already beat fair Strata on the observed medians.',
+                summary='The quiet 60 GiB ABBA measures profile seeding against the same stock cache budget. Stock A+30 already beat fair Strata on the observed medians.' if confirmed else 'The build-overlapped 60 GiB screen found earlier first tokens and fewer engine reads with profile seeding. Stock A+30 already beat fair Strata on the observed medians.',
                 rows=rows)
 
 
