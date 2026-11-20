@@ -1,7 +1,9 @@
 cc: '2'
 id: engine.build_expert_weight_cache
-version: 1.3.0
+version: 1.4.0
 materials:
+  prefill_hits:
+    path: PREFILL-HITS.md
   native_profile:
     path: NATIVE-PROFILE.md
   profile_residency:

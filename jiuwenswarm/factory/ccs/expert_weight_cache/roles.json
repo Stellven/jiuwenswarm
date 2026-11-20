@@ -19,6 +19,7 @@
     "native_profile": "method",
     "ontology": "reference",
     "parity_runner": "reference",
+    "prefill_hits": "method",
     "profile_residency": "method",
     "source_map": "reference",
     "spark_profile": "method",

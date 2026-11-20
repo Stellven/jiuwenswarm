@@ -52,3 +52,7 @@ alternatives in [SOURCE-MAP.md](SOURCE-MAP.md).
 ## Profile-driven Spark treatment
 
 Follow [PROFILE-RESIDENCY.md](PROFILE-RESIDENCY.md) for a separately admitted residency comparison with reproducible controls. Retain the native verifier result and fixture acceptance before interpreting runtime timing.
+
+## Report-led prefill hit admission
+
+Follow [PREFILL-HITS.md](PREFILL-HITS.md) to verify GPU hits avoid original host payload reads and compare refill/copy amplification under matched admission.
