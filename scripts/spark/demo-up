@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-checkout=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)
+script=$(readlink -f -- "${BASH_SOURCE[0]}")
+checkout=$(cd -- "$(dirname -- "$script")/../.." && pwd)
 base=${SPARK_DEMO_ROOT:-$HOME/predemo-spark}
 state="$base/demo-runtime"
 mkdir -p "$state/logs" "$base/factory-runs" "$base/launch-templates"
