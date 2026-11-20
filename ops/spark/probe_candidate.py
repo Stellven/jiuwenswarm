@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import signal
 import socket
@@ -35,14 +36,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('cc', choices=ARMS)
     parser.add_argument('mode', choices=('stock', 'strict-stock', 'equivalent-stock', 'off', 'on'))
-    parser.add_argument('window', choices=('functional', 'early'))
+    parser.add_argument('window', choices=('functional', 'early', 'speed'))
     parser.add_argument('scope', type=Path)
     parser.add_argument('--products', type=Path, default=ROOT / 'OPS/p3/native-star-build-products.json',
                         help='Frozen native product/receipt index for this iteration')
     parser.add_argument('--placement-policy', choices=('cpu_identity_smoke', 'heldout_layer27_policy'),
                         default='cpu_identity_smoke')
+    parser.add_argument('--native-mib', type=int, choices=(30720, 61440))
     args = parser.parse_args()
-    if args.mode == 'equivalent-stock' and (args.cc != 'C2' or args.placement_policy != 'heldout_layer27_policy'):
+    speed = args.window == 'speed'
+    if speed != bool(args.native_mib) or (speed and (args.cc != 'C3' or args.mode == 'strict-stock')):
+        parser.error('Native-cache speed cells require C3, a matched stock/off/on mode and a fixed cache budget')
+    if args.mode == 'equivalent-stock' and not speed and (args.cc != 'C2' or args.placement_policy != 'heldout_layer27_policy'):
         parser.error('The equivalent-placement stock control requires the layer 27 policy')
     scope = args.scope.resolve()
     if scope.exists() or scope.parent != ROOT / 'OPS/runs':
@@ -83,7 +88,16 @@ def main():
             arm_flags = profile['equivalent_stock_and_candidate_off_argv']
         flags = ['-m', first['command'][2], '--host', '127.0.0.1', '--port', str(PORT),
                  *profile['common_argv'], *arm_flags]
-    if args.cc == 'C3' and on:
+    if speed:
+        if args.mode != 'stock':
+            flags += ['--moe-cache-mib', str(args.native_mib), '--moe-cache-cpu-share', '0']
+        if on:
+            profile = ROOT / 'OPS/p3/frozen-strata-top192-ranked-pool.json'
+            profile_hash = hashlib.sha256(profile.read_bytes()).hexdigest()
+            if profile_hash != 'dd4861349970a46e9e23ebe58c39b5afb91bd1d9e4c28e960026fc375b1034da':
+                raise RuntimeError('Frozen nomination profile digest mismatch')
+            env.update(LLAMA_EXPERT_CACHE_NATIVE_PROFILE='1', LLAMA_EXPERT_CACHE_NATIVE_PROFILE_PATH=str(profile))
+    elif args.cc == 'C3' and on:
         env.update(LLAMA_EXPERT_CACHE='1', LLAMA_EXPERT_CACHE_MIB='64')
     if args.cc in ('C4', 'C5'):
         flags += ['-np', '1', '-c', '4096']
@@ -102,7 +116,7 @@ def main():
     with socket.socket() as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.bind(('127.0.0.1', PORT))
-    early = args.window == 'early'
+    early = args.window in ('early', 'speed')
     if early:
         regions = read(ROOT / 'OPS/p4/source-regions.json')
         reset_dir = ROOT / 'OPS/p3/early-preflights'
@@ -117,6 +131,9 @@ def main():
         label = f'A-{args.cc}-strict-{args.window}'
     elif args.mode == 'stock':
         label = f'A-matched-{args.cc}-{args.window}'
+    if speed:
+        arm = {'stock': 'A-matched', 'equivalent-stock': 'Aplus', 'off': 'C3-native-off', 'on': 'C3-profile-on'}[args.mode]
+        label = f'{arm}-speed-{args.native_mib}MiB'
     launched = time.monotonic()
     server = subprocess.Popen([str(ROOT / 'bin/capped'), '--arm', label, '--graceful-interrupt',
                                '--result-dir', str(scope), '--', str(binary), *flags], env=env)
@@ -139,13 +156,21 @@ def main():
                                          'products_manifest': str(args.products.resolve()),
                                          'products_manifest_sha256': hashlib.sha256(args.products.read_bytes()).hexdigest(),
                                          'native_build_receipt': None if stock else product['receipt_artifact_id']})
+        if speed and on:
+            log = (scope / 'stderr.log').read_text(errors='replace')
+            active = re.search(r'expert_weight_cache_native_profile: active seeds=(\d+) initial_h2d_bytes=(\d+) init_us=(\d+) charged_bound=(\d+)', log)
+            if not active or min(map(int, active.groups()[:2])) <= 0 or int(active[4]) > args.native_mib * 1024**2:
+                raise RuntimeError('Profile did not engage within its byte budget; see the retained engine log')
+            save(scope / 'profile-activation.json', {'sha256': profile_hash, 'marker': active[0]})
         receipt = read(scope / 'scope.json')
         hashes = {}
         prompts = HERE / 'prompts'
         manifest = read(prompts / 'MANIFEST.json')
         approved = {p['target_tokens_including_template']: p['prompt_sha256'] for p in manifest['prompts']}
-        for repeat in ([0, 1] if early else [0]):
-            for size in (512, 2048):
+        repeats = [0, 1, 2, 3] if speed else ([0, 1] if early else [0])
+        for repeat in repeats:
+            sizes = (2048, 512) if speed and repeat == 2 else (512, 2048)
+            for size in sizes:
                 target = scope / f'rep-{repeat}-{size}'
                 if early:
                     boundary_resources(scope / f'{target.name}-before.json', Path(receipt['cgroup']), receipt['pid'])
