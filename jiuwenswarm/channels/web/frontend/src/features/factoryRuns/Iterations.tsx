@@ -151,7 +151,7 @@ export function Iterations({
         return run ? (
           <button key={`${ref.taskId}:${ref.id}`} type="button" className="factory-iteration-source"
             data-testid="factory-runs-iteration-remote-artifact" data-variant={ref.id}
-            onClick={() => onOpenChild(run.id, ref.kind === 'report' ? 'report' : 'terminal', ref.id, ref.sha256)}>
+            onClick={() => onOpenChild(run.id, ref.kind === 'report' || ref.kind === 'prior' ? 'report' : 'terminal', ref.id, ref.sha256)}>
             {ref.id} <ArrowUpRight aria-hidden size={14} />
           </button>
         ) : <p key={ref.id} className="factory-iteration-cites">{t('factoryRuns.iteration.unavailable', { id: ref.id })}</p>;
@@ -217,6 +217,8 @@ export function Iterations({
             </h4>
             {feedback.map(({ iteration, decision, cited, target: next }) => {
               const targetRun = runs.find((run) => run.task_id === iteration.explicitNextTask && run.id !== detail.run.id);
+              const citedReport = iteration.linkedFiles.find(({ file, kind }) =>
+                kind === 'report' && file.artifact_ids?.some((id) => cited.some((ref) => ref === id || iteration.reportAliases.get(ref) === id)));
               const label = typeof decision.rev === 'number' ? t('factoryRuns.iteration.decision', { rev: decision.rev })
                 : iteration.explicitNextId || t('factoryRuns.iteration.nextPlan');
               return (
@@ -226,7 +228,12 @@ export function Iterations({
                   data-testid="factory-runs-iteration-feedback"
                 >
                   <div className="factory-iteration-feedback-labels">
-                    {anchorButton(
+                    {citedReport ? (
+                      <button type="button" className="factory-story-text-button" data-testid="factory-runs-iteration-feedback-report"
+                        onClick={() => onOpenSource(citedReport.file)}>
+                        {t('factoryRuns.iteration.reportOf', { number: iteration.number })} <ArrowUpRight aria-hidden size={14} />
+                      </button>
+                    ) : anchorButton(
                       t('factoryRuns.iteration.reportOf', { number: iteration.number }),
                       reportTarget(iteration),
                       'factory-runs-iteration-feedback-report',
@@ -278,6 +285,7 @@ export function Iterations({
               const reportNotes = Array.isArray(iteration.reportData.limitations)
                 ? iteration.reportData.limitations.filter((note): note is string => typeof note === 'string')
                 : [];
+              const priorReports = artifactLinks(iteration, ['prior']);
               const diffFiles = artifactLinks(iteration, ['diff']);
               const labFiles = artifactLinks(iteration, ['lab']);
               const analysisFiles = artifactLinks(iteration, ['report', 'analysis']);
@@ -331,6 +339,12 @@ export function Iterations({
                         <p className="factory-iteration-cites">
                           {t('factoryRuns.iteration.planInputs', { refs: iteration.inputs.join(', ') })}
                         </p>
+                      )}
+                      {(!Array.isArray(priorReports) || priorReports.length > 0) && (
+                        <div className="factory-iteration-prior" data-testid="factory-runs-iteration-prior-reports">
+                          <p className="factory-iteration-cites">{t('factoryRuns.iteration.priorReports')}</p>
+                          {priorReports}
+                        </div>
                       )}
                     </details>
                     <div className="factory-iteration-stages">

@@ -17,13 +17,12 @@ export type ReportFile = { file: EvidenceFile; format: 'markdown' | 'json'; labe
 
 export function reportFiles(files: EvidenceFile[]): ReportFile[] {
   const candidates = files.flatMap((file) =>
-    evidencePaths(file).flatMap<ReportFile & { rank: number }>((label) => {
+    evidencePaths(file).flatMap<ReportFile & { rank: number; revision: number }>((label) => {
       const name = label.split('/').pop()?.toLowerCase() ?? '';
-      if (name === 'report.md' || /[-_.]report\.md$/.test(name)) {
-        return [{ file, label, format: 'markdown', rank: name === 'report.md' ? 0 : 1 }];
-      }
-      if (/(?:^|[-_.:])report(?:\.json)?$/.test(name)) {
-        return [{ file, label, format: 'json', rank: name.endsWith('.json') ? 3 : 2 }];
+      const match = /(?:^|[-_.:])report(?:[-_.]v(\d+))?(?:\.(md|json))?$/.exec(name);
+      if (match) {
+        const format = match[2] === 'md' ? 'markdown' : 'json';
+        return [{ file, label, format, rank: format === 'markdown' ? 0 : 1, revision: Number(match[1]) || 0 }];
       }
       return [];
     }),
@@ -31,6 +30,7 @@ export function reportFiles(files: EvidenceFile[]): ReportFile[] {
   const ordered = candidates.sort(
     (a, b) =>
       a.rank - b.rank ||
+      b.revision - a.revision ||
       Number(b.file.path.toLowerCase() === 'report.md') - Number(a.file.path.toLowerCase() === 'report.md') ||
       a.label.localeCompare(b.label),
   );

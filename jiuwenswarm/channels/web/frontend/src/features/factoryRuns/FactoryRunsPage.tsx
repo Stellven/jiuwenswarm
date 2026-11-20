@@ -18,6 +18,7 @@ import { RunOverview } from './RunOverview';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
 import { FactoryStructuredReport } from './FactoryStructuredReport';
+import { reportFiles } from './reportModel';
 import { LiveSession } from './LiveSession';
 import { LaunchSessionDialog } from './LaunchSessionDialog';
 import './factoryRuns.css';
@@ -288,7 +289,7 @@ export function FactoryRunsPage() {
     setChildSource(sourceId ? { id: sourceId, sha256 } : undefined);
   };
   const openIterationSource = (source: EvidenceFile) => {
-    const report = /(?:^|[\s/])(?:[^/ ]*[-_])?report\.md(?:$|\s)/i.test(`${source.path} ${source.display_path || ''}`);
+    const report = reportFiles([source]).length > 0;
     selectPanel(report ? 'report' : 'terminal', source.path, source.expected_sha256 || '');
   };
   const onLaunched = (id: string) => {

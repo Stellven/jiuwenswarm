@@ -127,3 +127,23 @@ test('an operator report without an originating decision can still be cited by a
   }, []);
   assert.deepEqual(iteration.nextDecisions.map(({ decision }) => decision.rev), [2]);
 });
+
+test('separates predecessor context from planner input and preserves citations to superseded reports', () => {
+  const observe = (id, obs_id, values) => ({
+    kind: 'factory_iteration_report',
+    obs_id,
+    values: { schema: 'spark-factory-iteration/1', iteration_id: id, ...values },
+  });
+  const first = observe('first', 'first:report', { report: { artifact_id: 'report.md', revision: 1 } });
+  const second = observe('first', 'first:report:v2', { report: { artifact_id: 'report-v2.md', revision: 2 } });
+  const followup = observe('second', 'second:report', {
+    predecessor_report_ids: [{ task_id: 'campaign', artifact_id: 'report.md' }],
+    plan: { incoming_report_ids: [] },
+  });
+  const iterations = buildIterations({ observations: [first, second, followup, first] }, []);
+  assert.equal(iterations[0].reportId, 'report-v2.md');
+  assert.equal(iterations[0].reportAliases.get('first:report'), 'report.md');
+  assert.equal(iterations[0].linkedNextId, '');
+  assert.deepEqual(iterations[1].inputs, []);
+  assert.equal(iterations[1].remoteReferences[0].kind, 'prior');
+});

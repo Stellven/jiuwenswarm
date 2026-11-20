@@ -15,7 +15,7 @@ const decisionTask = (value: unknown) => text(asRecord(value).task_id) || /^(.*)
 const timestamp = (value: unknown) => typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 const revision = (value: unknown) => (typeof value === 'number' && Number.isSafeInteger(value) ? value : undefined);
 
-type ArtifactKind = 'diff' | 'report' | 'analysis' | 'lab' | 'other';
+type ArtifactKind = 'diff' | 'report' | 'analysis' | 'lab' | 'prior' | 'other';
 export type IterationArtifact = { id: string; taskId: string; sha256: string; kind: ArtifactKind };
 const refId = (value: unknown) => text(value) || text(asRecord(value).artifact_id);
 const refIds = (value: unknown) => Array.isArray(value) ? value.map(refId) : [];
@@ -37,6 +37,9 @@ function artifactReferences(meta: JsonRecord): IterationArtifact[] {
     ...(Array.isArray(lab.result_artifact_ids) ? lab.result_artifact_ids.flatMap((value) => reference(value, 'lab')) : []),
     ...(Array.isArray(analysis.output_artifact_ids) ? analysis.output_artifact_ids.flatMap((value) => reference(value, 'analysis')) : []),
     ...reference(meta.report, 'report'),
+    ...(Array.isArray(meta.predecessor_report_ids)
+      ? meta.predecessor_report_ids.flatMap((value) => reference(value, 'prior'))
+      : []),
   ];
 }
 
@@ -55,6 +58,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
   const artifacts = records.artifacts || [];
   const attempts = records.attempts || [];
   const cycles = new Map<string, JsonRecord>();
+  const reportHistory = new Map<string, JsonRecord[]>();
   for (const observation of observations) {
     const cycle = asRecord(asRecord(observation.values).cycle);
     const id = cycleOf(cycle);
@@ -80,7 +84,14 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
     const meta = asRecord(observation.values);
     const id = text(meta.iteration_id);
     if (observation.kind !== 'factory_iteration_report' || meta.schema !== 'spark-factory-iteration/1' || !id) continue;
-    cycles.set(id, { ...cycles.get(id), cycle_id: id, meta, metadata_observation: observation });
+    const history = reportHistory.get(id) ?? [];
+    history.push(observation);
+    reportHistory.set(id, history);
+    const previous = asRecord(asRecord(cycles.get(id)?.meta).report);
+    const version = revision(asRecord(meta.report).revision) ?? 0;
+    if (version >= (revision(previous.revision) ?? 0)) {
+      cycles.set(id, { ...cycles.get(id), cycle_id: id, meta, metadata_observation: observation });
+    }
   }
 
   return [...cycles.values()]
@@ -95,7 +106,14 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
       const metaPlan = asRecord(meta.plan);
       const metadataObservation = asRecord(cycle.metadata_observation);
       const recordedPlanId = decisionId(metaPlan.decision_id);
-      const attached = artifactReferences(meta);
+      const historical = (reportHistory.get(id) ?? [])
+        .filter((observation) => observation !== metadataObservation);
+      const historyRefs = historical.flatMap((observation) => {
+        const prior = asRecord(asRecord(observation.values).report);
+        const artifactId = refId(prior);
+        return artifactId ? [{ id: artifactId, taskId: text(prior.task_id), sha256: text(prior.sha256), kind: 'report' as const }] : [];
+      });
+      const attached = [...artifactReferences(meta), ...historyRefs];
       const contract = asRecord(cycle.contract);
       const request = asRecord(cycle.request);
       const result = asRecord(cycle.result);
@@ -120,6 +138,11 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         scopedObservations.find((observation) => observation.kind === 'factory_loop_result');
       const localTask = text(records.tasks?.[0]?.task_id);
       const reportRefs = attached.filter((ref) => ref.kind === 'report');
+      const reportAliases = new Map(
+        (reportHistory.get(id) ?? []).map((observation) => [
+          recordId(observation), refId(asRecord(observation.values).report),
+        ] as const),
+      );
       const resultId = text(report?.obs_id) || evidenceId;
       const reportData = asRecord(report?.values ?? result.analysis);
       const rawArtifacts = rows(reportData.raw_artifacts);
@@ -154,6 +177,9 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         unique([
           resultId,
           text(metadataObservation.obs_id),
+          ...historical.map(recordId),
+          text(asRecord(meta.report).supersedes_observation_id),
+          text(asRecord(meta.report).supersedes_artifact_id),
           ...reportRefs.map((ref) => ref.id),
           text(report?.obs_id),
           ...scopedObservations
@@ -181,7 +207,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
       const linkedNext = ordered.slice(index + 1).find((candidate) => {
         const candidateMeta = asRecord(candidate.meta);
         const candidatePlan = asRecord(candidateMeta.plan);
-        const incoming = [...refIds(candidatePlan.incoming_report_ids), ...refIds(candidateMeta.predecessor_report_ids)];
+        const incoming = refIds(candidatePlan.incoming_report_ids);
         return Boolean(
           (explicitNextId && decisionId(candidatePlan.decision_id) === explicitNextId) ||
           incoming.some((reference) => relatedReports.has(reference)),
@@ -214,6 +240,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         reportData,
         resultId,
         reportId,
+        reportAliases,
         linkedFiles,
         remoteReferences,
         metadataObservation,
@@ -229,7 +256,7 @@ export function buildIterations(records: Record<string, JsonRecord[]>, files: Ev
         capsuleIds,
         component,
         followup,
-        inputs: unique([...strings(plan?.evidence_ids ?? request.evidence_ids), ...refIds(metaPlan.incoming_report_ids), ...refIds(meta.predecessor_report_ids)]),
+        inputs: unique([...strings(plan?.evidence_ids ?? request.evidence_ids), ...refIds(metaPlan.incoming_report_ids)]),
         state: text(cycle.state),
         template: text(asRecord(plan?.action).template_id) || text(request.template_id),
         childTask: text(cycle.child_task_id),

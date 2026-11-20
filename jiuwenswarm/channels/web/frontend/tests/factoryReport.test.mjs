@@ -126,3 +126,9 @@ test('builds compact tables for record arrays without inventing missing data', (
     assert.equal(reportTable(values), undefined);
   }
 });
+
+test('offers report revisions with the newest recorded Markdown revision first', () => {
+  const original = evidence('artifact1', { display_path: 'iteration/report.md' });
+  const revised = evidence('artifact2', { display_path: 'iteration/report-v2.md' });
+  assert.deepEqual(reportFiles([original, revised]).map(({ file }) => file.path), ['artifact2', 'artifact1']);
+});

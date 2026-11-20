@@ -4882,6 +4882,7 @@
       "operator": "由操作员编排",
       "plan": "计划",
       "noPlan": "尚无规划决策记录。",
+      "priorReports": "供参考的先前报告",
       "planInputs": "计划引用的证据 · {{refs}}",
       "action": "操作",
       "decisionsFile": "决策证据",
