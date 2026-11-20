@@ -88,7 +88,7 @@ def p4_design(scopes, rows):
         local = sorted((r for r in rows if r['scope_id'] == scope['artifact_id']),
                        key=lambda r: datetime.fromisoformat(r['result']['started']))
         seen = [(r['result']['repeat'], r['result']['prompt_tokens']) for r in local]
-        expected = [(0, 512), (0, 2048)]
+        expected = [(0, 512), (0, 2048)] * 2
         for i in ((1, 2) if number < half else (3, 4, 5)):
             expected.extend((i, n) for n in (PROMPTS if i % 2 else PROMPTS[::-1]))
         if seen != expected or any(not r['valid'] or bool(r['result']['discard']) != (r['result']['repeat'] == 0) for r in local):

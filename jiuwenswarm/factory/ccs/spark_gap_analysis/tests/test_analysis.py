@@ -27,11 +27,12 @@ def tiny_abba():
                            value=dict(start=stamp(i, 0), stop=stamp(i, 50), returncode=0, scope_verified=True,
                                       memory_max=GAP.CEILING, cpus='0-7', binary_sha256=ref(arm)['sha256'],
                                       memory_events={'oom': '0', 'oom_kill': '0'})))
-        for repeat in ((0, 1, 2) if i < 2 else (0, 3, 4, 5)):
+        repeats = (0, 0, 1, 2) if i < 2 else (0, 0, 3, 4, 5)
+        for step, repeat in enumerate(repeats):
             for offset, prompt in enumerate(GAP.PROMPTS if repeat == 0 or repeat % 2 else GAP.PROMPTS[::-1]):
-                name = f'scope-{i}-repeat-{repeat}-prompt-{prompt}'
+                name = f'scope-{i}-step-{step}-prompt-{prompt}'
                 result = dict(arm=arm, prompt_tokens=prompt, repeat=repeat, discard=repeat == 0,
-                              started=stamp(i, 1 + repeat * 2 + offset), ok=True, ttft_s=2.0 if arm == 'A' else 1.0,
+                              started=stamp(i, 1 + step * 2 + offset), ok=True, ttft_s=2.0 if arm == 'A' else 1.0,
                               usage=dict(prompt_tokens=prompt, completion_tokens=32, prompt_tokens_details={'cached_tokens': 0}),
                               timings={'cache_n': 0}, prompt_sha256=ref(str(prompt))['sha256'], output_sha256=ref('output')['sha256'])
                 request = dict(messages=[{'role': 'user', 'content': str(prompt)}], max_tokens=32,
@@ -44,7 +45,7 @@ def tiny_abba():
 def test_matched_two_window_bootstrap():
     analysis = GAP.analyze(tiny_abba())
     assert len(analysis['eligible']) == 20
-    assert len(analysis['excluded']) == 8
+    assert len(analysis['excluded']) == 16
     cell = next(r for r in analysis['measurements'] if r['arm'] == 'S')
     assert cell['comparisons']['inverse_ttft_vs_A'] == {'estimate': 2, 'conditional_ci95': [2, 2]}
     assert cell['comparisons']['gap_closed'] == {'estimate': 1, 'conditional_ci95': [1, 1]}
@@ -52,7 +53,7 @@ def test_matched_two_window_bootstrap():
 
 def test_reconnaissance_suppresses_intervals_and_rejects_cache_use():
     evidence = tiny_abba()
-    evidence['requests'][2]['result']['timings']['cache_n'] = 1
+    evidence['requests'][4]['result']['timings']['cache_n'] = 1
     with pytest.raises(ValueError, match='matched warmups or measured repeats'):
         GAP.analyze(evidence)
     evidence['mode'] = 'p1-reconnaissance'

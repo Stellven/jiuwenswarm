@@ -11,8 +11,8 @@ Use `p1-reconnaissance` for exploratory batches with unknown or unmatched
 conditions. Preserve exclusions and show medians, ranges and output hashes.
 Use `p4-abba` only with two mirrored launch passes under the lab's quiet
 preflight. Independent scopes have verified cgroup controls, sequential
-nonoverlapping lifetimes and a normal stop. Each launch discards the same 512
-then 2048 warmups. The first pass measures repeats 1 and 2 and the second 3–5.
+nonoverlapping lifetimes and a normal stop. Each launch discards two matched
+512/2048 warmup rounds. The first pass measures repeats 1 and 2 and the second 3–5.
 Both arms use the same alternating prompt order by repeat. The CC validates
 order and matched requests, including actual prompt and output token counts,
 prompt SHA256, seed, temperature and zero prompt cache reuse.
