@@ -30,6 +30,25 @@ checks the mirrored order, warmups and matched repeats and reports 95% paired
 bootstrap intervals conditional on the two launch windows. The intervals only
 resample repeat pairs within windows. P1 contributes no observations to P4.
 
+After starting the capped server and checking its readiness, run the window
+client. `--arm` and `--port` must match the scope start receipt. For pass 2,
+pass the same arm's completed pass-1 `p4-window/window.json` as `--first-window`.
+
+```sh
+python3 ops/spark/run_p4_window.py --scope "$SCOPE" --arm A --port 8082 \
+  --launch-pass 1 --view llama --regions "$RUNS/source-regions.json" \
+  --quiet-preflight "$PREFLIGHT"
+```
+
+The client writes `p4-window/window.json`, bench request/result/SSE artifacts,
+before/after resource checks and adjacent page-residency receipts. It requires
+exact token counts, no cache hits and unchanged content/reasoning hashes for
+each prompt across both launches. It retains and fails a contaminated window
+when a boundary check sees another model, build, test or Factory controller.
+Boundary process checks do not prove the absence of transient work between
+checks. Model load contributes to the in-window load average, which is retained
+as context. The prelaunch receipt enforces the idle load threshold.
+
 ## External source-page cache
 
 Build the region manifest once before the timed window from the retained GGUF
