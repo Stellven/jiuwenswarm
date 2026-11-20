@@ -130,3 +130,24 @@ def test_artifact_display_name_preserves_confined_content_path(bundle):
     assert file['path'] == 'artifacts/hash-only-path'
     assert file['content'] == 'Retained report'
     assert client(service).get(f'/api/factory/runs/{rid}/file', params={'path': 'attached/report.md'}).status_code == 404
+
+
+def test_catalog_distinguishes_exports_and_live_home_for_same_task(bundle, tmp_path):
+    import os
+    import shutil
+
+    second = tmp_path / 'later-export'
+    shutil.copytree(bundle, second)
+    os.utime(bundle, (1000, 1000))
+    os.utime(second, (2000, 2000))
+    home = tmp_path / 'source-home'
+    with Store(home) as store:
+        store.create_task(dict(task_id='synthetic', objective='Live source', budget={}, source={}))
+
+    runs = FactoryHttpService(roots=[tmp_path, second]).listing()['runs']
+    assert len(runs) == len({run['id'] for run in runs}) == 3
+    assert {run['name'] for run in runs} == {'synthetic'}
+    sources = {run['source_name']: (run['kind'], run['updated']) for run in runs}
+    assert sources['bundle'] == ('bundle', 1000)
+    assert sources['later-export'] == ('bundle', 2000)
+    assert sources['source-home'][0] == 'live'

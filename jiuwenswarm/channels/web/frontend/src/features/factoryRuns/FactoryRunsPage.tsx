@@ -6,6 +6,7 @@ import { DataViewer } from './views/DataViewer';
 import { evidenceKind } from './views/dataModel';
 import { EvidenceFileBrowser } from './views/EvidenceFiles';
 import { detectGraph } from './views/graphModel';
+import { RunList } from './views/RunList';
 import { TerminalViewer } from './views/TerminalViewer';
 import { useViewerLabels } from './views/viewerLabels';
 import './factoryRuns.css';
@@ -214,25 +215,7 @@ export function FactoryRunsPage() {
         <p className="factory-muted" data-testid="factory-runs-description">
           {t('factoryRuns.description')}
         </p>
-        <div className="factory-run-list" data-testid="factory-runs-list">
-          {listing.runs.map((run) => (
-            <button
-              key={run.id}
-              className="factory-run"
-              data-testid="factory-runs-run"
-              data-variant={run.id}
-              aria-pressed={run.id === selected}
-              onClick={() => setSelected(run.id)}
-            >
-              <strong>{run.name}</strong>
-              <span>
-                {run.kind} · {run.status || t('factoryRuns.recorded')}
-              </span>
-              <small>{run.task_id}</small>
-            </button>
-          ))}
-          {!listing.runs.length && <p data-testid="factory-runs-empty">{t('factoryRuns.empty')}</p>}
-        </div>
+        <RunList runs={listing.runs} selected={selected} onSelect={setSelected} />
         <form
           className="factory-launch"
           data-testid="factory-runs-launch"

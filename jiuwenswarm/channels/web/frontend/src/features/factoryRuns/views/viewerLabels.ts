@@ -2,6 +2,10 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 const labels = {
+  runExport: ['Export', '导出包'],
+  runHome: ['Run home', '运行目录'],
+  runReplay: ['Replay', '回放'],
+  runLive: ['Live', '实时'],
   artifacts: ['Artifacts', '产物'],
   browseFiles: ['Evidence files', '证据文件'],
   filterFiles: ['Filter evidence files', '筛选证据文件'],
