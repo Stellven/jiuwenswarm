@@ -42,3 +42,7 @@ alternatives in [SOURCE-MAP.md](SOURCE-MAP.md).
 ## Profile-driven Spark treatment
 
 Follow [PROFILE-PLACEMENT.md](PROFILE-PLACEMENT.md) for a separately admitted residency comparison with reproducible controls. Retain the native verifier result and fixture acceptance before interpreting runtime timing.
+
+## Code-producing tier placement iteration
+
+Follow [TIER-PLACEMENT.md](TIER-PLACEMENT.md) for the opt-in byte-budgeted treatment. Preserve a distinct report-fed planner decision and complete candidate verifier receipt.

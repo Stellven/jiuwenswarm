@@ -21,6 +21,7 @@
     "source_map": "reference",
     "spark_profile": "method",
     "task": "reference",
+    "tier_placement": "method",
     "validation": "reference",
     "weight_placement_planner": "component"
   }

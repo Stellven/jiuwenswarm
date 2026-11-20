@@ -50,3 +50,7 @@ startup settings. Its acceptance counters and comparison flags are specified in
 ## Profile-driven Spark treatment provenance
 
 [PROFILE-PLACEMENT.md](PROFILE-PLACEMENT.md) uses the frozen Strata profile and retained routing analyses. Strata source pin `ffa80d73133ea5c548aefe57889a16e8085a938f`, `docs/DEEPSEEK41.md` and `setup.py` describe resident experts and layer-major prefill. Pinned llama.cpp `9048bad8d6e3a0f9f1726e238e451181c7e02613`, `src/llama-context.cpp::sched_copy_experts`, `src/llama-moe-cache.cpp::build_lookup`, `src/llama-model-loader.cpp` tensor overrides and the CUDA offload threshold distinguish the available transfer paths. The observed C1 prefill-only copy profile is evidence for measurement design.
+
+## Byte-budgeted expert placement provenance
+
+[TIER-PLACEMENT.md](TIER-PLACEMENT.md) uses the verified recorder transfer and fault evidence, the frozen Strata rank prior and the original placement component. The stock pin's `ggml/include/gguf.h` exposes metadata-only tensor sizes. `src/llama-model-loader.cpp` contains the split discovery and tensor override controls. Borrow the split identity checks and measure real allocations, since payload size alone does not model GPU or UMA charge.
