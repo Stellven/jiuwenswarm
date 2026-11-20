@@ -95,10 +95,13 @@ def render(report):
                       f'and median decode gained ranged from {b[0]:+.3f} to {b[1]:+.3f} tok/s.', ''])
     readiness = report.get('predictor_decode')
     if readiness:
-        lines += ['## Decode readiness', '', f'Coverage `{readiness["status"]}`; {readiness["graph_rows"]} observed graph rows.', '']
+        lines += ['## Decode readiness', '', f'Coverage `{readiness["status"]}` across {readiness["graph_rows"]} observed '
+                  f'graph rows and {readiness["observed_requests"]} request IDs. '
+                  f'{readiness["requests_with_useful_ready"]} request IDs showed a completed prefetch consumed by demand.', '']
         if readiness['totals']:
             lines += ['| Counter | Value |', '| --- | ---: |']
             lines.extend(f'| {key.replace("_", " ")} | {value:,} |' for key, value in readiness['totals'].items() if value is not None)
+            lines.extend(f'| {key.replace("_", " ")} | {value:,} |' for key, value in readiness['demand'].items() if value is not None)
             lines.append('')
     return summary, ('\n'.join(lines) + '\n').encode()
 

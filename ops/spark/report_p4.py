@@ -474,6 +474,14 @@ def read_launch(base, row, plan, geometry, prompts, previous_stop, first, captur
                     activation_marker='expert_demand_predictor: active native_bank phase=decode' in log,
                     inactive_reasons=sorted(set(re.findall(r'expert_demand_predictor: inactive \(([^\n]+)\)', log))),
                     engine_log=reference(extra['engine_log']))
+                if pooled_screen:
+                    rows = result['rows']
+                    record['predictor_decode']['observed_requests'] = len({r['request_id'] for r in rows})
+                    record['predictor_decode']['requests_with_useful_ready'] = len({r['request_id'] for r in rows
+                                                                                   if r['counts']['useful_ready']})
+                    record['predictor_decode']['demand'] = {key: sum(row['counts'][key] for row in rows)
+                        if rows and all(key in row['counts'] for row in rows) else None
+                        for key in ('demand_selected', 'demand_hits', 'demand_issued_bytes')}
             else:
                 demand('expert_demand_predictor:' not in log, 'Focused P4 stock A+ unexpectedly reported predictor activity')
     return record, requests, ended
