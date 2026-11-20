@@ -57,6 +57,7 @@ if len(sys.argv) > 1 and sys.argv[1] == '--inside':
 
 p = argparse.ArgumentParser(description=__doc__)
 p.add_argument('--arm', required=True)
+p.add_argument('--engine-binary', type=Path, help='actual engine binary when command is a Python API server')
 p.add_argument('--result-dir', type=Path, required=True)
 p.add_argument('--echo-output', action='store_true', help='also forward engine logs (for native tuner)')
 p.add_argument('--enforcement-test', action='store_true', help='only runs the built-in 256 MiB allocator at a 128 MiB cap')
@@ -83,6 +84,11 @@ if start_available < 110 * GIB:
 binary = Path(shutil.which(command[0]) or command[0]).resolve()
 unit = f'spark-capped-{os.getpid()}-{time.time_ns()}.scope'
 meta = {'arm': a.arm, 'command': command, 'binary': str(binary), 'binary_sha256': hashlib.file_digest(binary.open('rb'), 'sha256').hexdigest(), 'result_path': str(a.result_dir), 'start': utc(), 'start_mem_available': start_available, 'unit': unit, 'memory_max': limit, 'cpus': '0-7', 'enforcement_test': a.enforcement_test}
+if a.engine_binary:
+    engine=a.engine_binary.resolve(strict=True)
+    meta['launcher_binary_sha256']=meta['binary_sha256']
+    meta['engine_binary']=str(engine)
+    meta['binary_sha256']=hashlib.file_digest(engine.open('rb'),'sha256').hexdigest()
 write(a.result_dir / 'start.json', meta)
 ledger = ROOT / 'OPS/LEDGER.jsonl'
 def append(row):
