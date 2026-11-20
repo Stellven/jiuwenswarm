@@ -13,6 +13,7 @@
     "helper_usage": "reference",
     "method": "method",
     "ontology": "reference",
+    "projected_rows": "method",
     "runtime_event_recorder": "component",
     "sample_cached_gate": "reference",
     "sample_lifecycle_markers": "reference",

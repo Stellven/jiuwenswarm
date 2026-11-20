@@ -30,3 +30,7 @@ Require all component marker lines to come from gate-set arms.
 
 Review informational `high_churn_signatures` findings against the additive
 alternatives in [SOURCE-MAP.md](SOURCE-MAP.md).
+
+## Graph-projected route rows
+
+Follow [PROJECTED-ROWS.md](PROJECTED-ROWS.md) when the selected route tensor represents a verified subset of microbatch rows. Keep the normal zero-loss acceptance threshold.

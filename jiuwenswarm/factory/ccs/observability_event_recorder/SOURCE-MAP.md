@@ -48,3 +48,7 @@ The Spark profile derives from the pinned llama.cpp stock CLI and model loaders,
 selected Satay round-1/2 implementation evidence, and observed Spark strict-A
 startup settings. Its acceptance counters and comparison flags are specified in
 [SPARK-PROFILE.md](SPARK-PROFILE.md).
+
+## Granite projected route provenance
+
+At stock pin `9048bad8d6e3a0f9f1726e238e451181c7e02613`, `src/models/granite.cpp` gathers output rows before the final FFN and `src/llama-graph.cpp` fills the `out_ids` mapping from the stock microbatch. The authoritative Granite runtime evidence reproduces the final-layer prefill loss. [PROJECTED-ROWS.md](PROJECTED-ROWS.md) describes the handling while preserving stock routing and output.
