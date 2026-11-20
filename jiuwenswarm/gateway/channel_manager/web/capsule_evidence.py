@@ -56,7 +56,7 @@ def _capsules(row):
 
 def _artifact_kind(row, verifier_refs, product_refs):
     aid = row['artifact_id']
-    if aid in verifier_refs or re.search(r'verif(?:y|ier)[-_]receipts?(?:\.json)?$', aid):
+    if aid in verifier_refs or re.search(r'verif(?:y|ier|ication)[-_]receipts?(?:\.json)?$', aid):
         return 'verify_receipt'
     if aid.endswith(':build-record'):
         return 'build_record'
@@ -74,13 +74,16 @@ def _receipt_row(receipt, source, capsule_id, release, inferred=False):
     if not (inferred or capsule_id in _capsules(row) or (release and row.get('release') == release)):
         return None
     outputs = _object(row.get('outputs'))
+    verification = _object(outputs.get('verification'))
     created = _number(_object(row.get('provenance')).get('finished'))
     checks = [{key: v for key in ('name', 'stage', 'status', 'detail') if isinstance(v := check.get(key), str)}
               for check in _records(outputs.get('checks'))]
     return source | {key: row.get(key) if isinstance(row.get(key), str) else None
                      for key in ('call', 'release', 'state', 'completeness', 'reason')} | dict(
                          created=created if created is not None else source['created'],
-                         done=outputs.get('done') if isinstance(outputs.get('done'), bool) else None, checks=checks)
+                         done=next((value for value in (outputs.get('done'), outputs.get('verified'), verification.get('done'))
+                                    if isinstance(value, bool)), None),
+                         checks=checks)
 
 
 def _transcript_receipts(target, capsule_id, release):
@@ -129,7 +132,7 @@ def _analysis_call(receipt, source, analysis):
     outputs = _object(receipt.get('outputs'))
     values = _object(outputs.get('analysis'))
     if analysis and not values:
-        values = {key: value for key in ('profile', 'phase_breakdown', 'gap_attribution', 'proposal')
+        values = {key: value for key in ('report', 'profile', 'phase_breakdown', 'gap_attribution', 'proposal')
                   if (value := outputs.get(key)) is not None}
     capability = receipt.get('capability')
     if not values or capability in ('plan', 'profile_plan') or not isinstance(capability, str):
@@ -216,17 +219,33 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
         relevant = [r for r in observations if capsule_id in _capsules(_object(r.get('values'))) or
                     (owns_capsule and not _capsules(_object(r.get('values'))))]
         run_analyses = []
+        analysis_reports = defaultdict(list)
+        iteration_outputs = set()
+        iteration_reports = {}
         for record in observations:
             kind, values = record.get('kind'), _object(record.get('values'))
             if not isinstance(kind, str) or not values:
                 continue
+            if kind == 'factory_iteration_report' and values.get('schema') == 'spark-factory-iteration/1':
+                results = _object(values.get('analysis'))
+                producers = [_object(row).get('id', row) for row in results.get('ccs', [])] if isinstance(results.get('ccs'), list) else []
+                if capsule_id in producers:
+                    iteration_outputs.update(_strings(results.get('output_artifact_ids')))
+                    report = _object(values.get('report'))
+                    if isinstance(report.get('artifact_id'), str) and isinstance(report.get('sha256'), str):
+                        iteration_reports[report['artifact_id']] = report['sha256']
             explicit = capsule_id in _capsules(record) or capsule_id in _capsules(values)
             named = kind in ANALYSIS_OBSERVATIONS or kind.startswith(('analysis.', 'analysis_', 'profile_analysis'))
             structured = any(key in values for key in ('analysis', 'phase_breakdown', 'gap_attribution'))
             producer = ANALYSIS_PRODUCERS.get(kind)
             associated = explicit or (producer == capsule_id if producer else analysis and owns_capsule)
             if associated and (named or structured or analysis and explicit):
-                run_analyses.append(_analysis_row(record, source | dict(path=None, integrity=None)))
+                row = _analysis_row(record, source | dict(path=None, integrity=None))
+                run_analyses.append(row)
+                report_sha = values.get('report_sha256')
+                if isinstance(report_sha, str):
+                    for artifact_id in row['artifact_ids']:
+                        analysis_reports[(artifact_id, report_sha)].append(row)
         verifier_refs = {ref: r for r in relevant if r.get('kind') in VERIFY_OBSERVATIONS
                          for ref in _strings(r.get('source_artifacts'))}
         product_refs = {ref for r in relevant if r.get('kind') == 'capsule_product' for ref in _strings(r.get('source_artifacts'))}
@@ -236,9 +255,17 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             if (entry.get('task_id', task_id) != task_id or not isinstance(aid, str)
                     or re.match(r'input-\d+:', aid) or entry.get('complete') is False):
                 continue
-            if not (owns_capsule or aid in verifier_refs or aid in product_refs):
+            report_sha = entry.get('sha256')
+            report_refs = analysis_reports.get((aid, report_sha), ()) if isinstance(report_sha, str) else ()
+            published_report = aid in iteration_reports and iteration_reports[aid] == report_sha
+            if not (owns_capsule or aid in verifier_refs or aid in product_refs or report_refs
+                    or aid in iteration_outputs or published_report):
                 continue
             kind = _artifact_kind(entry, verifier_refs, product_refs)
+            if published_report:
+                kind = 'report'
+            elif report_refs or (aid in iteration_outputs and not kind):
+                kind = 'analysis_report'
             if not kind:
                 continue
             relative = entry.get('exported_path' if bundle else 'location')
@@ -255,6 +282,8 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             integrity = 'missing' if not digest else ('verified' if digest == expected else 'mismatch') if expected else 'untracked'
             artifact = source | dict(path=relative, artifact_id=aid, kind=kind, integrity=integrity, sha256=digest,
                                      media_type=entry.get('media_type'), created=_number(entry.get('created')))
+            for analysis_row in report_refs:
+                analysis_row.update(path=relative, integrity=integrity, report_artifact_id=aid)
             key = (task_id, aid, entry.get('sha256'), integrity)
             if key not in seen_artifacts:
                 run_artifacts.append(artifact)
@@ -268,7 +297,7 @@ def collect_capsule_evidence(service, capsule_id, *, release=None, starred=False
             saved = saved if isinstance(saved, list) else [saved]
             receipt_source = artifact | {'limitations': verifier_refs.get(aid, {}).get('limitations')}
             for receipt in saved:
-                if row := _receipt_row(receipt, receipt_source, capsule_id, release, aid in verifier_refs):
+                if row := _receipt_row(receipt, receipt_source, capsule_id, release, aid in verifier_refs or aid in iteration_outputs):
                     run_receipts.append(row)
 
         session = 'session.jsonl' if bundle else f'sessions/{task_id}.jsonl'

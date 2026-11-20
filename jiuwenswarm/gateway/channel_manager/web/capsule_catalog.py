@@ -28,6 +28,8 @@ SECTION_KEYS = {
     'source_map': ('source_map', 'sources'),
     'validation': ('validation', 'verification', 'verification_units'),
     'verifier': ('verifier',),
+    'profile': ('spark_profile',),
+    'analysis': ('analysis',),
 }
 # CC-v2 roles describe tools and passive materials. These factory packages
 # advertise analysis through a concrete capability, without a package kind.
@@ -150,7 +152,7 @@ class CapsuleCatalog:
         paths.update(f'{name}/cc.yaml' for name in STAR_DETAILS)
         return sorted(paths)
 
-    def pins(self, file):
+    def pins(self, file, *, release_key='new_release'):
         try:
             records = _json_file(self.root, file)['releases']
         except (OSError, ValueError, KeyError, TypeError):
@@ -159,19 +161,43 @@ class CapsuleCatalog:
             return {}
         return {row['path']: row for row in records
                 if isinstance(row, dict) and isinstance(row.get('path'), str)
-                and SHA256.fullmatch(str(row.get('new_release')))}
+                and SHA256.fullmatch(str(row.get(release_key)))}
 
-    def owner_pins(self):
+    def release_pins(self):
+        pins = self.pins('migration.json') | self.pins('star-transport-migration.json')
+        migrations = [row for path in sorted(self.root.glob('star-*-migration.json'))
+                      for row in self.pins(path.name, release_key='to_release').values()]
+        # Advance only through releases whose previous digest is already pinned.
+        remaining = migrations[:]
+        while remaining:
+            pending = []
+            for row in remaining:
+                relative = row['path']
+                from_release = row.get('from_release')
+                if from_release and from_release == pins.get(relative, {}).get('new_release'):
+                    pins[relative] = dict(old_release=from_release, new_release=row['to_release'])
+                else:
+                    pending.append(row)
+            if len(pending) == len(remaining):
+                break
+            remaining = pending
+        return pins
+
+    @staticmethod
+    def file_pins(root, manifest):
         try:
-            lines = _read(self.owner, OWNER_MANIFEST).decode('utf-8').splitlines()
+            lines = _read(root, manifest).decode('utf-8').splitlines()
         except (OSError, ValueError):
             return {}
         pins = {}
         for line in lines:
             digest, _, name = line.partition('  ')
-            if SHA256.fullmatch(digest) and _visible(name) and '/' not in name:
+            if SHA256.fullmatch(digest) and _visible(name):
                 pins[name] = digest
         return pins
+
+    def owner_pins(self):
+        return {name: digest for name, digest in self.file_pins(self.owner, OWNER_MANIFEST).items() if '/' not in name}
 
     @staticmethod
     def external_row(root, relative, prefix, expected=None):
@@ -237,6 +263,8 @@ class CapsuleCatalog:
             known.extend(row for row in rows if row['path'] in transport)
             if sha(release_manifest_bytes(declaration, known)) == expected:
                 expected_files = {row['path']: row['sha256'] for row in known}
+        if checksum_path := materials.get('checksums'):
+            expected_files = self.file_pins(root, checksum_path) | expected_files
         sections = {}
         for section, keys in SECTION_KEYS.items():
             path = next((materials[key] for key in keys if key in materials), None)
@@ -250,11 +278,16 @@ class CapsuleCatalog:
             sections['verifier'] = 'run.py'
         component_spec = _parse(component_path, _material(root, component_path))[0] if component_path else None
         capsule_id = material_decl.get('id', name)
-        analysis_cap = ANALYSIS_CAPABILITIES.get(capsule_id)
+        analysis_path = sections.get('analysis')
+        analysis_meta = _parse(analysis_path, _material(root, analysis_path))[0] if analysis_path else None
+        declared_kind = analysis_meta.get('kind') if isinstance(analysis_meta, dict) else None
+        title = analysis_meta.get('title') if isinstance(analysis_meta, dict) else None
+        analysis_cap = ('analyze' if declared_kind == 'analysis' and 'analyze' in caps
+                        else ANALYSIS_CAPABILITIES.get(capsule_id))
         if star or (isinstance(component_spec, dict) and component_spec.get('kind') == 'builder_spec'):
             kind = 'builder'
         else:
-            kind = 'analysis' if analysis_cap in caps else 'factory-support'
+            kind = 'analysis' if declared_kind == 'analysis' or analysis_cap in caps else 'factory-support'
         overview = _material(root, sections.get('guide') if star else sections.get('guide') or sections.get('method'))
         intro = next((text.strip() for text in overview.split('\n\n')
                       if text.strip() and not text.lstrip().startswith(('#', '```', '|'))), '')
@@ -264,7 +297,7 @@ class CapsuleCatalog:
             'untracked' if digest else 'missing')
         summary = dict(name=name, id=capsule_id,
                        version=declaration.get('version', 'unknown'), starred=bool(star),
-                       kind=kind, component=star[0] if star else None,
+                       kind=kind, title=title if isinstance(title, str) else None, component=star[0] if star else None,
                        subcomponent=star[1] if star else None, description=description,
                        strata_mechanism=star[2] if star else None, arm=STAR_ARMS.get(capsule_id) if star else None,
                        binding=base.get('binding', 'unavailable'), capabilities=base.get('capabilities', list(caps)),
@@ -285,7 +318,7 @@ class CapsuleCatalog:
         return summary
 
     def listing(self):
-        pins = self.pins('migration.json') | self.pins('star-transport-migration.json')
+        pins = self.release_pins()
         capsules = []
         for relative in self.paths():
             try:
@@ -314,7 +347,7 @@ class CapsuleCatalog:
         return sanitize(self._detail(self.resolve(name)))
 
     def _detail(self, relative):
-        pins = self.pins('migration.json') | self.pins('star-transport-migration.json')
+        pins = self.release_pins()
         try:
             return self.summary(relative, pins.get(relative, {}), detail=True)
         except ValueError:

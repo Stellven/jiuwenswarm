@@ -1,10 +1,12 @@
 import hashlib
+import json
 import shutil
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 import pytest
 
+from jiuwenswarm.ccv2.ccv2 import load, release_manifest_bytes, tree_files
 from jiuwenswarm.gateway.channel_manager.web.capsule_catalog import CCS, CapsuleCatalog
 from jiuwenswarm.gateway.channel_manager.web.factory_http import FactoryHttpService, attach_factory_routes
 
@@ -66,7 +68,15 @@ def catalog_inputs(tmp_path):
     root = tmp_path / 'ccs'
     shutil.copytree(CCS / NAME, root / NAME)
     shutil.copytree(CCS / 'engine_inspector', root / 'engine_inspector')
-    shutil.copyfile(CCS / 'star-transport-migration.json', root / 'star-transport-migration.json')
+    capsule = root / NAME
+    manifest = release_manifest_bytes(load(capsule / 'cc.yaml'), tree_files(capsule))
+    digest = hashlib.sha256(manifest).hexdigest()
+    state = capsule / '.cc-state'
+    state.mkdir(exist_ok=True)
+    (state / 'fixture.manifest.json').write_bytes(manifest)
+    (root / 'star-transport-migration.json').write_text(json.dumps({'releases': [{
+        'path': f'{NAME}/cc.yaml', 'old_release': digest, 'new_release': digest,
+    }]}))
     owner = tmp_path / 'owner'
     owner.mkdir()
     return root, owner
@@ -132,3 +142,30 @@ def test_file_sanitization_preserves_the_original_byte_digest(catalog_inputs):
     assert body['sha256'] == hashlib.sha256(content).hexdigest()
     assert 'short-value' not in body['content']
     assert body['parsed'] == {'password': '<redacted>', 'sample': 12}
+
+
+def test_declarative_analysis_metadata_and_follow_up_release_pin(catalog_inputs):
+    root, owner = catalog_inputs
+    capsule = root / NAME
+    manifest = capsule / 'cc.yaml'
+    initial = CapsuleCatalog(root=root, owner_ontology=owner).detail(NAME)
+    manifest.write_text(manifest.read_text().replace(f"version: {initial['version']}", 'version: 8.2.0', 1))
+    updated = hashlib.sha256(release_manifest_bytes(load(manifest), tree_files(capsule))).hexdigest()
+    (root / 'star-example-migration.json').write_text(json.dumps({'releases': [{
+        'path': f'{NAME}/cc.yaml', 'from_release': initial['digest'], 'to_release': updated,
+    }]}))
+
+    analysis = root / 'engine_inspector'
+    manifest = analysis / 'cc.yaml'
+    text = manifest.read_text().replace('materials:\n', 'materials:\n  analysis:\n    path: ANALYSIS.json\n', 1)
+    manifest.write_text(text)
+    (analysis / 'ANALYSIS.json').write_text(json.dumps({'kind': 'analysis', 'title': 'Phase contributions'}))
+
+    api = client(CapsuleCatalog(root=root, owner_ontology=owner))
+    detail = api.get(f'{PREFIX}/{NAME}').json()
+    assert detail['expected_digest'] == detail['digest'] == updated
+    assert detail['integrity'] == 'verified'
+    analysis_view = api.get(f'{PREFIX}/engine_inspector').json()
+    assert analysis_view['kind'] == 'analysis'
+    assert analysis_view['title'] == 'Phase contributions'
+    assert analysis_view['sections']['analysis'] == 'ANALYSIS.json'

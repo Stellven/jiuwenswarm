@@ -133,3 +133,32 @@ def test_analysis_uses_native_producer_and_retains_distinct_results(tmp_path):
     assert rows[0]['values'] == {'gap_attribution': {'transfer_ms': 3}}
     assert rows[1]['values']['phase_breakdown'] == {'decode_ms': 23}
     assert rows[1]['values']['password'] == '<redacted>'
+
+
+def test_analysis_links_only_its_retained_report_and_iteration_outputs(tmp_path):
+    report = {'rows': [{'phase': 'prefill', 'elapsed_ms': 12}]}
+    report_digest = hashlib.sha256(json.dumps(report).encode()).hexdigest()
+    markdown_report = {'formatted': 'report'}
+    markdown_digest = hashlib.sha256(json.dumps(markdown_report).encode()).hexdigest()
+    files = _export(
+        tmp_path / 'analysis', dict(task_id='multiple-producers'),
+        artifacts=[('applicable.json', report), ('unrelated.json', {}), ('report.md', markdown_report)],
+        observations=[
+            dict(obs_id='analysis', kind='analysis', source_artifacts=['unrelated.json', 'applicable.json'],
+                 values=dict(capsule_id=ANALYZER, report_sha256=report_digest, rows=report['rows'])),
+            dict(obs_id='report', kind='factory_iteration_report', values={
+                'schema': 'spark-factory-iteration/1',
+                'analysis': {'ccs': [{'id': ANALYZER}], 'output_artifact_ids': ['applicable.json']},
+                'report': {'artifact_id': 'report.md', 'sha256': markdown_digest},
+            }),
+        ],
+    )
+    result = collect_capsule_evidence(FactoryHttpService(roots=[tmp_path]), ANALYZER, analysis=True)
+
+    analysis = result['analyses'][0]
+    assert analysis['report_artifact_id'] == 'applicable.json'
+    assert analysis['path'] == files[0]['exported_path']
+    assert analysis['integrity'] == 'verified'
+    assert {(item['artifact_id'], item['kind']) for item in result['artifacts']} == {
+        ('applicable.json', 'analysis_report'), ('report.md', 'report'),
+    }
