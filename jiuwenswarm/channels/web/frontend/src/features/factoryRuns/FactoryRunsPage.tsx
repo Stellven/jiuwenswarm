@@ -12,6 +12,7 @@ import {
   type StoryEvent,
 } from './api';
 import { Measurements, MeasurementSummary } from './Measurements';
+import { FinalHeadlines, useFinalHeadlines } from './FinalHeadlines';
 import { RunOverview } from './RunOverview';
 import { Iterations } from './Iterations';
 import { FactoryReport } from './FactoryReport';
@@ -91,6 +92,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
   const [loading, setLoading] = useState(false);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const finalHeadlines = useFinalHeadlines(true, refreshVersion);
   const observedStory = useRef('');
   const [file, setFile] = useState<FileContent | null>(null);
   const [filePath, setFilePath] = useState(entry?.file || '');
@@ -336,6 +338,8 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
     void refresh();
   };
   const changeAppearance = () => setAppearance((mode) => (mode === 'dark' ? 'light' : 'dark'));
+  const headline = finalHeadlines &&
+    <FinalHeadlines publication={finalHeadlines} onOpen={openIterationChild} />;
   let measurementSummary: ReactNode;
   if (
     detail &&
@@ -494,6 +498,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
                   events={visibleEvents}
                   onOpen={selectPanel}
                   measurements={measurementSummary}
+                  headline={measurementSummary || finalHeadlines?.run_id === selected ? headline : undefined}
                   eventCapsules={(event) => <CapsuleChips value={capsuleEvent(event)} />}
                 />
               )}
@@ -572,6 +577,7 @@ function FactoryReplay({ entry }: { entry?: Extract<FactoryEntry, { view: 'facto
               {panel === 'measurements' && (
                 <Measurements
                   detail={detail}
+                  headline={headline}
                   benchmarkRunId={listing.runs.find((run) =>
                     run.kind === 'live' && run.task_id === 'spark-direct-benchmarks-20261120')?.id}
                   onOpenReport={(runId, reportId, sha256) => openIterationChild(runId, 'report', reportId, sha256)}

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { getApiBase } from '../../utils/env';
 import { request, type RunDetail } from './api';
@@ -397,10 +397,11 @@ function MetricChart({
   );
 }
 
-export function Measurements({ detail, benchmarkRunId, onOpenReport }: {
+export function Measurements({ detail, benchmarkRunId, onOpenReport, headline }: {
   detail: RunDetail;
   benchmarkRunId?: string;
   onOpenReport: OpenReport;
+  headline?: ReactNode;
 }) {
   const { i18n } = useTranslation();
   const language = i18n.resolvedLanguage ?? 'en';
@@ -422,6 +423,7 @@ export function Measurements({ detail, benchmarkRunId, onOpenReport }: {
   );
   return (
     <section className="factory-measurement-panel" data-testid="factory-runs-measurements">
+      {headline}
       {screening.map(({ item, runId }) => (
         <section className="factory-measurement-focus" data-testid="factory-screening-report" key={item.report.sha256}>
           <header>

@@ -36,12 +36,14 @@ export function RunOverview({
   eventCapsules,
   onOpen,
   measurements,
+  headline,
 }: {
   detail: RunDetail;
   events: StoryEvent[];
   eventCapsules?: (event: StoryEvent) => ReactNode;
   onOpen: (panel: OverviewPanel, path?: string) => void;
   measurements?: ReactNode;
+  headline?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
   const task = detail.records.tasks?.[0] || {};
@@ -101,6 +103,7 @@ export function RunOverview({
           </button>
         )}
       </header>
+      {headline}
       <div className="factory-story-overview-grid">
         <section className="factory-story-card" data-testid="factory-runs-overview-progress">
           <div className="factory-story-card-title">

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { EvidenceFile } from '../api';
+import { CapsuleHeadlineResults, useFinalHeadlines, type HeadlineRow } from '../FinalHeadlines';
 import { capsuleApi, type CapsuleCard, type CapsuleCatalog, type CapsuleDetail } from './capsuleApi';
 import { BuilderRunEvidence, CapsuleEvidenceView, Receipt } from './CapsuleEvidence';
 import { Integrity, Loading, MaterialDialog, MaterialList, SafeMarkdown, StructuredData } from './CapsuleMaterial';
@@ -24,7 +25,7 @@ function CapsuleKind({ kind }: { kind: string }) {
   return <span className="cc-kind">{label ? copy(label) : readableName(kind)}</span>;
 }
 
-function Card({ capsule }: { capsule: CapsuleCard }) {
+function Card({ capsule, results }: { capsule: CapsuleCard; results?: HeadlineRow[] }) {
   const copy = useCapsuleCopy();
   return (
     <a
@@ -45,6 +46,7 @@ function Card({ capsule }: { capsule: CapsuleCard }) {
       </div>
       <h3>{displayName(capsule)}</h3>
       <p>{plainDescription(capsule.description || capsule.component || capsule.id)}</p>
+      {!!results?.length && <CapsuleHeadlineResults rows={results} />}
       {!!capsule.used_in_runs && (
         <small className="cc-run-count" data-testid="factory-runs-capsule-used">
           {copy('usedInRuns')} · {capsule.used_in_runs}
@@ -61,7 +63,7 @@ function Card({ capsule }: { capsule: CapsuleCard }) {
   );
 }
 
-function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
+function CatalogView({ capsules, headlines }: { capsules: CapsuleCard[]; headlines: HeadlineRow[] }) {
   const copy = useCapsuleCopy();
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState<'all' | 'builder' | 'analysis' | 'factory-support'>('all');
@@ -137,7 +139,9 @@ function CatalogView({ capsules }: { capsules: CapsuleCard[] }) {
             </div>
             <div className={title === 'builders' ? 'cc-grid cc-grid-stars' : 'cc-grid'}>
               {rows.map((capsule) => (
-                <Card key={capsule.name} capsule={capsule} />
+                <Card key={capsule.name} capsule={capsule} results={capsule.starred
+                  ? headlines.filter((row) => row.cc === capsule.arm)
+                  : undefined} />
               ))}
             </div>
           </section>
@@ -526,6 +530,7 @@ function DetailView({ capsule, catalog }: { capsule: CapsuleDetail; catalog?: Ca
 }
 
 export function CapsulesPage({ name }: { name?: string }) {
+  const headlines = useFinalHeadlines(!name);
   const catalog = useCapsuleResource(name ? 'manifests-only' : 'with-usage', catalogRequest);
   const detail = useCapsuleResource(name, capsuleApi.detail);
   const copy = useCapsuleCopy();
@@ -544,7 +549,7 @@ export function CapsulesPage({ name }: { name?: string }) {
             </>
           )
         ) : catalog.data ? (
-          <CatalogView capsules={catalog.data.capsules} />
+          <CatalogView capsules={catalog.data.capsules} headlines={headlines?.payload.rows ?? []} />
         ) : (
           <Loading {...catalog} />
         )}
