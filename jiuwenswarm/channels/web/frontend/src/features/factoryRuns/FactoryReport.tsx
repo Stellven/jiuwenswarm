@@ -135,9 +135,11 @@ function EvidenceDialog({ runId, source, onClose }: { runId: string; source: Evi
         <>
           {file.truncated && <TruncatedNotice />}
           <div data-testid="factory-runs-report-evidence-content">
-            {/\.json(?:$| ·)/i.test(file.display_path || file.path)
-              ? <FactoryStructuredReport content={file.content} />
-              : <pre className="factory-report-raw">{file.content}</pre>}
+            {/\.json(?:$| ·)/i.test(file.display_path || file.path) ? (
+              <FactoryStructuredReport content={file.content} />
+            ) : (
+              <pre className="factory-report-raw">{file.content}</pre>
+            )}
           </div>
         </>
       ) : (
@@ -239,7 +241,9 @@ function MarkdownReport({
           >
             {code}
           </button>
-        ) : code;
+        ) : (
+          code
+        );
       },
       img({ alt }) {
         return alt ? <span>{alt}</span> : null;
@@ -317,8 +321,10 @@ function ReportDocument({
   const { file, loading, retry } = useRunFile(runId, selected.file);
   const [evidence, setEvidence] = useState<EvidenceFile>();
   const source = file ?? selected.file;
-  const displayed = expectedSha && source.sha256 !== expectedSha && source.integrity !== 'missing'
-    ? { ...source, expected_sha256: expectedSha, integrity: 'mismatch' as const } : source;
+  const displayed =
+    expectedSha && source.sha256 !== expectedSha && source.integrity !== 'missing'
+      ? { ...source, expected_sha256: expectedSha, integrity: 'mismatch' as const }
+      : source;
   return (
     <>
       <div className="factory-report-source" data-testid="factory-runs-report-source">
@@ -346,7 +352,17 @@ function ReportDocument({
   );
 }
 
-export function FactoryReport({ runId, files, initialPath, expectedSha }: { runId: string; files: EvidenceFile[]; initialPath?: string; expectedSha?: string }) {
+export function FactoryReport({
+  runId,
+  files,
+  initialPath,
+  expectedSha,
+}: {
+  runId: string;
+  files: EvidenceFile[];
+  initialPath?: string;
+  expectedSha?: string;
+}) {
   const { t } = useTranslation();
   const reports = useMemo(() => reportFiles(files), [files]);
   const [selection, setSelection] = useState({ runId, path: '' });

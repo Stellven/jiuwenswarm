@@ -116,8 +116,13 @@ export function Iterations({
   const observationSource = source('records/observations.json');
   const planTarget = (iteration: Iteration) => `${prefix}-plan-${encodeURIComponent(iteration.id)}`;
   const reportTarget = (iteration: Iteration) => `${prefix}-report-${encodeURIComponent(iteration.id)}`;
-  const focusedIteration = focusedDecisionId ? iterations.find((item) => item.plan?.decision_id === focusedDecisionId || item.recordedPlanId === focusedDecisionId) : undefined;
-  const focusedDecision = focusedDecisionId && detail.records.decisions?.find((item) => item.decision_id === focusedDecisionId);
+  const focusedIteration = focusedDecisionId
+    ? iterations.find(
+        (item) => item.plan?.decision_id === focusedDecisionId || item.recordedPlanId === focusedDecisionId,
+      )
+    : undefined;
+  const focusedDecision =
+    focusedDecisionId && detail.records.decisions?.find((item) => item.decision_id === focusedDecisionId);
   const focusedTarget = focusedIteration ? planTarget(focusedIteration) : `${prefix}-spotlight`;
   useEffect(() => {
     if (!focusedDecisionId) return;
@@ -127,7 +132,9 @@ export function Iterations({
 
   const feedback = iterations.flatMap((iteration) => {
     const edges = iteration.nextDecisions.map((edge) => ({
-      iteration, ...edge, target: iterations.find((item) => item.activeRev === edge.decision.rev),
+      iteration,
+      ...edge,
+      target: iterations.find((item) => item.activeRev === edge.decision.rev),
     }));
     const target = iterations.find((item) => item.id === iteration.linkedNextId);
     if (!edges.length && (target || iteration.explicitNextId)) {
@@ -149,20 +156,41 @@ export function Iterations({
       ...remote.map((ref) => {
         const run = runs.find((item) => item.task_id === ref.taskId);
         return run ? (
-          <button key={`${ref.taskId}:${ref.id}`} type="button" className="factory-iteration-source"
-            data-testid="factory-runs-iteration-remote-artifact" data-variant={ref.id}
-            onClick={() => onOpenChild(run.id, ref.kind === 'report' || ref.kind === 'prior' ? 'report' : 'terminal', ref.id, ref.sha256)}>
+          <button
+            key={`${ref.taskId}:${ref.id}`}
+            type="button"
+            className="factory-iteration-source"
+            data-testid="factory-runs-iteration-remote-artifact"
+            data-variant={ref.id}
+            onClick={() =>
+              onOpenChild(
+                run.id,
+                ref.kind === 'report' || ref.kind === 'prior' ? 'report' : 'terminal',
+                ref.id,
+                ref.sha256,
+              )
+            }
+          >
             {ref.id} <ArrowUpRight aria-hidden size={14} />
           </button>
-        ) : <p key={ref.id} className="factory-iteration-cites">{t('factoryRuns.iteration.unavailable', { id: ref.id })}</p>;
+        ) : (
+          <p key={ref.id} className="factory-iteration-cites">
+            {t('factoryRuns.iteration.unavailable', { id: ref.id })}
+          </p>
+        );
       }),
     ];
     return items.length > 2 ? (
-      <>{items.slice(0, 2)}<details className="factory-iteration-raw">
-        <summary>{t('factoryRuns.iteration.moreEvidence', { count: items.length - 2 })}</summary>
-        {items.slice(2)}
-      </details></>
-    ) : items;
+      <>
+        {items.slice(0, 2)}
+        <details className="factory-iteration-raw">
+          <summary>{t('factoryRuns.iteration.moreEvidence', { count: items.length - 2 })}</summary>
+          {items.slice(2)}
+        </details>
+      </>
+    ) : (
+      items
+    );
   };
 
   return (
@@ -194,10 +222,18 @@ export function Iterations({
         </div>
       </header>
       {focusedDecisionId && !focusedIteration && (
-        <section className="factory-story-card" id={`${prefix}-spotlight`} tabIndex={-1} data-testid="factory-runs-iteration-linked-plan">
+        <section
+          className="factory-story-card"
+          id={`${prefix}-spotlight`}
+          tabIndex={-1}
+          data-testid="factory-runs-iteration-linked-plan"
+        >
           <h4>{t('factoryRuns.iteration.nextPlan')}</h4>
-          {focusedDecision ? <RecordedDecision decision={focusedDecision} source={decisionSource} onOpen={onOpenSource} />
-            : <p>{t('factoryRuns.iteration.unavailableDecision')}</p>}
+          {focusedDecision ? (
+            <RecordedDecision decision={focusedDecision} source={decisionSource} onOpen={onOpenSource} />
+          ) : (
+            <p>{t('factoryRuns.iteration.unavailableDecision')}</p>
+          )}
         </section>
       )}
       {!iterations.length ? (
@@ -216,11 +252,20 @@ export function Iterations({
               {t('factoryRuns.iteration.learning')}
             </h4>
             {feedback.map(({ iteration, decision, cited, target: next }) => {
-              const targetRun = runs.find((run) => run.task_id === iteration.explicitNextTask && run.id !== detail.run.id);
-              const citedReport = iteration.linkedFiles.find(({ file, kind }) =>
-                kind === 'report' && file.artifact_ids?.some((id) => cited.some((ref) => ref === id || iteration.reportAliases.get(ref) === id)));
-              const label = typeof decision.rev === 'number' ? t('factoryRuns.iteration.decision', { rev: decision.rev })
-                : iteration.explicitNextId || t('factoryRuns.iteration.nextPlan');
+              const targetRun = runs.find(
+                (run) => run.task_id === iteration.explicitNextTask && run.id !== detail.run.id,
+              );
+              const citedReport = iteration.linkedFiles.find(
+                ({ file, kind }) =>
+                  kind === 'report' &&
+                  file.artifact_ids?.some((id) =>
+                    cited.some((ref) => ref === id || iteration.reportAliases.get(ref) === id),
+                  ),
+              );
+              const label =
+                typeof decision.rev === 'number'
+                  ? t('factoryRuns.iteration.decision', { rev: decision.rev })
+                  : iteration.explicitNextId || t('factoryRuns.iteration.nextPlan');
               return (
                 <article
                   key={`${iteration.id}:${decision.rev ?? label}`}
@@ -229,25 +274,32 @@ export function Iterations({
                 >
                   <div className="factory-iteration-feedback-labels">
                     {citedReport ? (
-                      <button type="button" className="factory-story-text-button" data-testid="factory-runs-iteration-feedback-report"
-                        onClick={() => onOpenSource(citedReport.file)}>
-                        {t('factoryRuns.iteration.reportOf', { number: iteration.number })} <ArrowUpRight aria-hidden size={14} />
+                      <button
+                        type="button"
+                        className="factory-story-text-button"
+                        data-testid="factory-runs-iteration-feedback-report"
+                        onClick={() => onOpenSource(citedReport.file)}
+                      >
+                        {t('factoryRuns.iteration.reportOf', { number: iteration.number })}{' '}
+                        <ArrowUpRight aria-hidden size={14} />
                       </button>
-                    ) : anchorButton(
-                      t('factoryRuns.iteration.reportOf', { number: iteration.number }),
-                      reportTarget(iteration),
-                      'factory-runs-iteration-feedback-report',
+                    ) : (
+                      anchorButton(
+                        t('factoryRuns.iteration.reportOf', { number: iteration.number }),
+                        reportTarget(iteration),
+                        'factory-runs-iteration-feedback-report',
+                      )
                     )}
                     <ArrowRight aria-hidden size={16} />
                     {next ? (
-                      anchorButton(
-                        label,
-                        planTarget(next),
-                        'factory-runs-iteration-feedback-plan',
-                      )
+                      anchorButton(label, planTarget(next), 'factory-runs-iteration-feedback-plan')
                     ) : targetRun && iteration.explicitNextId ? (
-                      <button type="button" className="factory-story-text-button" data-testid="factory-runs-iteration-remote-plan"
-                        onClick={() => onOpenDecision(targetRun.id, iteration.explicitNextId)}>
+                      <button
+                        type="button"
+                        className="factory-story-text-button"
+                        data-testid="factory-runs-iteration-remote-plan"
+                        onClick={() => onOpenDecision(targetRun.id, iteration.explicitNextId)}
+                      >
                         {label} <ArrowUpRight aria-hidden size={14} />
                       </button>
                     ) : (
@@ -267,11 +319,18 @@ export function Iterations({
                         })}
                       </p>
                     )}
-                  {cited.length > 0 && <p className="factory-iteration-cites">
-                    {t('factoryRuns.iteration.explicitCitations', { refs: cited.join(', ') })}
-                  </p>}
-                  {!next && !(targetRun && iteration.explicitNextId) && (Object.keys(decision).length ? <RecordedDecision decision={decision} source={decisionSource} onOpen={onOpenSource} />
-                    : <p>{t('factoryRuns.iteration.unavailableDecision')}</p>)}
+                  {cited.length > 0 && (
+                    <p className="factory-iteration-cites">
+                      {t('factoryRuns.iteration.explicitCitations', { refs: cited.join(', ') })}
+                    </p>
+                  )}
+                  {!next &&
+                    !(targetRun && iteration.explicitNextId) &&
+                    (Object.keys(decision).length ? (
+                      <RecordedDecision decision={decision} source={decisionSource} onOpen={onOpenSource} />
+                    ) : (
+                      <p>{t('factoryRuns.iteration.unavailableDecision')}</p>
+                    ))}
                 </article>
               );
             })}
@@ -334,7 +393,9 @@ export function Iterations({
                       ) : (
                         <p>{iteration.rationale || t('factoryRuns.iteration.noPlan')}</p>
                       )}
-                      {iteration.recordedPlanId && !iteration.plan && <p className="factory-iteration-cites">{iteration.recordedPlanId}</p>}
+                      {iteration.recordedPlanId && !iteration.plan && (
+                        <p className="factory-iteration-cites">{iteration.recordedPlanId}</p>
+                      )}
                       {iteration.inputs.length > 0 && (
                         <p className="factory-iteration-cites">
                           {t('factoryRuns.iteration.planInputs', { refs: iteration.inputs.join(', ') })}
@@ -364,7 +425,9 @@ export function Iterations({
                         {iteration.component && (
                           <p>{t('factoryRuns.iteration.component', { id: iteration.component })}</p>
                         )}
-                        {iteration.sourceCommit && <p>{t('factoryRuns.iteration.sourceCommit', { commit: iteration.sourceCommit })}</p>}
+                        {iteration.sourceCommit && (
+                          <p>{t('factoryRuns.iteration.sourceCommit', { commit: iteration.sourceCommit })}</p>
+                        )}
                         {diffFiles}
                         {Array.isArray(diffFiles) && !diffFiles.length && <p>{t('factoryRuns.iteration.noDiff')}</p>}
                         {child && (
@@ -391,7 +454,15 @@ export function Iterations({
                             })}
                           </p>
                         )}
-                        {!verdict && <p>{iteration.labState ? t(`factoryRuns.iteration.states.${iteration.labState}`, { defaultValue: iteration.labState }) : t('factoryRuns.iteration.noLab')}</p>}
+                        {!verdict && (
+                          <p>
+                            {iteration.labState
+                              ? t(`factoryRuns.iteration.states.${iteration.labState}`, {
+                                  defaultValue: iteration.labState,
+                                })
+                              : t('factoryRuns.iteration.noLab')}
+                          </p>
+                        )}
                         {labFiles}
                         {child && iteration.attemptId && (
                           <button
@@ -415,9 +486,13 @@ export function Iterations({
                           <NotebookText aria-hidden size={15} />
                           {t('factoryRuns.iteration.reportTitle')}
                         </h5>
-                        {iteration.analysisCapsules.length > 0 && <ul className="factory-iteration-capsules">
-                          {iteration.analysisCapsules.map((id) => <li key={id}>{id}</li>)}
-                        </ul>}
+                        {iteration.analysisCapsules.length > 0 && (
+                          <ul className="factory-iteration-capsules">
+                            {iteration.analysisCapsules.map((id) => (
+                              <li key={id}>{id}</li>
+                            ))}
+                          </ul>
+                        )}
                         {iteration.resultId && <code>{iteration.resultId}</code>}
                         {iteration.resultId && observationSource && (
                           <SourceLink
@@ -453,9 +528,10 @@ export function Iterations({
                             <FactoryStructuredReport content={JSON.stringify(item.values ?? item, null, 2)} />
                           </details>
                         ))}
-                        {!iteration.resultId && Array.isArray(analysisFiles) && !analysisFiles.length && !iteration.analysisObservations.length && (
-                          <p>{t('factoryRuns.iteration.noReport')}</p>
-                        )}
+                        {!iteration.resultId &&
+                          Array.isArray(analysisFiles) &&
+                          !analysisFiles.length &&
+                          !iteration.analysisObservations.length && <p>{t('factoryRuns.iteration.noReport')}</p>}
                         {child && (
                           <button
                             type="button"

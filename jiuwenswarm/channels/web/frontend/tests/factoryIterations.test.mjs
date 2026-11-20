@@ -79,27 +79,36 @@ test('reads the new report observation schema, artifact scope, and the next plan
     obs_id: `iteration:${id}`,
     values: { schema: 'spark-factory-iteration/1', iteration_id: id, ...values },
   });
-  const [baseline, next] = buildIterations({
-    tasks: [{ task_id: 'campaign' }],
-    observations: [
-      observe('baseline', {
-        plan: { rationale: 'Run controls', builder_ccs: [] },
-        lab: { status: 'historical-reconnaissance', result_artifact_ids: ['timing.json'] },
-        analysis: { ccs: [{ id: 'analysis.gap' }], output_artifact_ids: ['phases.json'] },
-        report: { artifact_id: 'report.md', sha256: 'pinned', status: 'historical-reconnaissance' },
-      }),
-      observe('candidate', {
-        plan: { decision_id: 'campaign:decision:4', incoming_report_ids: ['report.md'], builder_ccs: [{ id: 'builder.recorder' }] },
-        do: { diff_artifact_id: { task_id: 'candidate-home-task', artifact_id: 'change.patch', sha256: 'remote' } },
-      }),
+  const [baseline, next] = buildIterations(
+    {
+      tasks: [{ task_id: 'campaign' }],
+      observations: [
+        observe('baseline', {
+          plan: { rationale: 'Run controls', builder_ccs: [] },
+          lab: { status: 'historical-reconnaissance', result_artifact_ids: ['timing.json'] },
+          analysis: { ccs: [{ id: 'analysis.gap' }], output_artifact_ids: ['phases.json'] },
+          report: { artifact_id: 'report.md', sha256: 'pinned', status: 'historical-reconnaissance' },
+        }),
+        observe('candidate', {
+          plan: {
+            decision_id: 'campaign:decision:4',
+            incoming_report_ids: ['report.md'],
+            builder_ccs: [{ id: 'builder.recorder' }],
+          },
+          do: { diff_artifact_id: { task_id: 'candidate-home-task', artifact_id: 'change.patch', sha256: 'remote' } },
+        }),
+      ],
+      decisions: [
+        { decision_id: 'campaign:decision:4', rev: 4, evidence_ids: ['report.md'], hypothesis: 'Instrument prefill' },
+      ],
+    },
+    [
+      file('report.md', ['report.md']),
+      file('phases.json', ['phases.json']),
+      file('timing.json', ['timing.json']),
+      file('unrelated-local.patch', ['change.patch']),
     ],
-    decisions: [{ decision_id: 'campaign:decision:4', rev: 4, evidence_ids: ['report.md'], hypothesis: 'Instrument prefill' }],
-  }, [
-    file('report.md', ['report.md']),
-    file('phases.json', ['phases.json']),
-    file('timing.json', ['timing.json']),
-    file('unrelated-local.patch', ['change.patch']),
-  ]);
+  );
   assert.equal(baseline.linkedNextId, 'candidate');
   assert.equal(baseline.labState, 'historical-reconnaissance');
   assert.equal(baseline.linkedFiles[0].file.integrity, 'mismatch');
@@ -108,24 +117,35 @@ test('reads the new report observation schema, artifact scope, and the next plan
   assert.deepEqual(next.capsuleIds, ['builder.recorder']);
   assert.deepEqual(next.linkedFiles, []);
   assert.deepEqual(next.remoteReferences[0], {
-    id: 'change.patch', taskId: 'candidate-home-task', sha256: 'remote', kind: 'diff',
+    id: 'change.patch',
+    taskId: 'candidate-home-task',
+    sha256: 'remote',
+    kind: 'diff',
   });
 });
 
 test('an operator report without an originating decision can still be cited by a later plan', () => {
-  const [iteration] = buildIterations({
-    observations: [{
-      kind: 'factory_iteration_report',
-      obs_id: 'baseline:report',
-      created: 12,
-      values: { schema: 'spark-factory-iteration/1', iteration_id: 'baseline', report: { artifact_id: 'r.md' } },
-    }],
-    decisions: [
-      { rev: 1, created: 10, evidence_ids: ['r.md'] },
-      { rev: 2, created: 13, evidence_ids: ['r.md'] },
-    ],
-  }, []);
-  assert.deepEqual(iteration.nextDecisions.map(({ decision }) => decision.rev), [2]);
+  const [iteration] = buildIterations(
+    {
+      observations: [
+        {
+          kind: 'factory_iteration_report',
+          obs_id: 'baseline:report',
+          created: 12,
+          values: { schema: 'spark-factory-iteration/1', iteration_id: 'baseline', report: { artifact_id: 'r.md' } },
+        },
+      ],
+      decisions: [
+        { rev: 1, created: 10, evidence_ids: ['r.md'] },
+        { rev: 2, created: 13, evidence_ids: ['r.md'] },
+      ],
+    },
+    [],
+  );
+  assert.deepEqual(
+    iteration.nextDecisions.map(({ decision }) => decision.rev),
+    [2],
+  );
 });
 
 test('separates predecessor context from planner input and preserves citations to superseded reports', () => {
@@ -136,6 +156,7 @@ test('separates predecessor context from planner input and preserves citations t
   });
   const first = observe('first', 'first:report', { report: { artifact_id: 'report.md', revision: 1 } });
   const second = observe('first', 'first:report:v2', { report: { artifact_id: 'report-v2.md', revision: 2 } });
+  second.kind = 'factory_iteration_report_revision';
   const followup = observe('second', 'second:report', {
     predecessor_report_ids: [{ task_id: 'campaign', artifact_id: 'report.md' }],
     plan: { incoming_report_ids: [] },

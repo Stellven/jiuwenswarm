@@ -490,7 +490,14 @@ export function FactoryRunsPage() {
                   focusedDecisionId={focusedDecisionId}
                 />
               )}
-              {panel === 'report' && <FactoryReport runId={detail.run.id} files={detail.files} initialPath={filePath} expectedSha={expectedSha} />}
+              {panel === 'report' && (
+                <FactoryReport
+                  runId={detail.run.id}
+                  files={detail.files}
+                  initialPath={filePath}
+                  expectedSha={expectedSha}
+                />
+              )}
               {panel === 'graph' && <Graph value={detail.graph} />}
               {panel === 'contract' && (
                 <>
@@ -524,7 +531,10 @@ export function FactoryRunsPage() {
                           data-testid="factory-runs-file"
                           data-variant={item.path}
                           aria-pressed={filePath === item.path}
-                          onClick={() => { setExpectedSha(''); setFilePath(item.path); }}
+                          onClick={() => {
+                            setExpectedSha('');
+                            setFilePath(item.path);
+                          }}
                         >
                           <span>{item.display_path || item.path}</span>
                           <Digest file={item} />
@@ -538,7 +548,13 @@ export function FactoryRunsPage() {
                       {file && (
                         <>
                           <h3>{file.display_path || file.path}</h3>
-                          <Digest file={expectedSha && file.sha256 !== expectedSha ? { ...file, integrity: 'mismatch', expected_sha256: expectedSha } : file} />
+                          <Digest
+                            file={
+                              expectedSha && file.sha256 !== expectedSha
+                                ? { ...file, integrity: 'mismatch', expected_sha256: expectedSha }
+                                : file
+                            }
+                          />
                           {file.truncated && <p data-testid="factory-runs-truncated">{t('factoryRuns.truncated')}</p>}
                           {/\.md(?:$| ·)/i.test(file.display_path || file.path) && panel !== 'diffs' ? (
                             <div className="markdown-body" data-testid="factory-runs-markdown">
@@ -553,8 +569,10 @@ export function FactoryRunsPage() {
                                 {file.content}
                               </ReactMarkdown>
                             </div>
+                          ) : /\.json(?:$| ·)/i.test(file.display_path || file.path) ? (
+                            <FactoryStructuredReport content={file.content} />
                           ) : (
-                            /\.json(?:$| ·)/i.test(file.display_path || file.path) ? <FactoryStructuredReport content={file.content} /> : <pre>{file.content}</pre>
+                            <pre>{file.content}</pre>
                           )}
                         </>
                       )}
