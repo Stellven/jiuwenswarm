@@ -1,0 +1,14 @@
+{
+  "base": "http://100.105.127.48:5173",
+  "snapshot_run_id": "6e52cb81f7ff9e4d1f2a8a57",
+  "checks": [
+    "Contract source opens retained star-deepseek-v1",
+    "Ontology source opens retained task-graph diagram",
+    "C3 results card opens the digest-bound capsule",
+    "Final report renders including recorder-driven build iteration",
+    "Launch dialog offers the rehearsed recorder session"
+  ],
+  "browser_errors": [],
+  "successor_receipt": "OPS/ui-shots/merged/final-demo-cache-successor.json",
+  "measured_live_launch_receipt": "OPS/ui-shots/live-launch/rehearsal.json"
+}

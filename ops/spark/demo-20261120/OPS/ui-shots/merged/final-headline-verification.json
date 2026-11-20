@@ -1,0 +1,50 @@
+{
+  "base": "http://100.105.127.48:5173",
+  "run_id": "6b9e027926873a0cb78550fd",
+  "artifact_id": "source:OPS/final-headlines.json@sha256:2e0613e0f52e539b01495602a46d6082948c4ceb593aa1c288c6f050326e7676",
+  "sha256": "2e0613e0f52e539b01495602a46d6082948c4ceb593aa1c288c6f050326e7676",
+  "row_ids": [
+    "s",
+    "a",
+    "aplus",
+    "c3-original30",
+    "c3-direct30",
+    "c3-60",
+    "c4",
+    "d",
+    "c5",
+    "c5-mapper-matched",
+    "c5-stock-flags",
+    "c2",
+    "c1"
+  ],
+  "browser_errors": [],
+  "checks": [
+    "Overview matches published artifact and all row summaries",
+    "Measurements matches the same published digest, grades, and metrics",
+    "C2 source opens the linked native report",
+    "Each exact named C1–C5 card displays its own published IDs, complete findings and verified release badge"
+  ],
+  "display_run_id": "6e52cb81f7ff9e4d1f2a8a57",
+  "capsule_rows": {
+    "observability_event_recorder": [
+      "c1"
+    ],
+    "weight_placement_planner": [
+      "c2"
+    ],
+    "expert_weight_cache": [
+      "c3-original30",
+      "c3-direct30",
+      "c3-60"
+    ],
+    "expert_demand_predictor": [
+      "c4"
+    ],
+    "batch_layout_mapper": [
+      "c5",
+      "c5-mapper-matched",
+      "c5-stock-flags"
+    ]
+  }
+}

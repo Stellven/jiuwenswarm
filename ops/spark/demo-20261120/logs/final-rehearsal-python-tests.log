@@ -1,0 +1,95 @@
+
+tests/factory/test_factory_http.py::test_manifest_mismatch_is_visible_and_missing_file_preserved PASSED [  2%]
+tests/factory/test_factory_http.py::test_file_membership_traversal_and_symlink_boundaries 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/runs/a2b0ccf64807f0f2a2935561/file?path=..%2Fsecret.txt "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/runs/unknown "HTTP/1.1 404 Not Found"
+PASSED                                                                   [  5%]
+tests/factory/test_factory_http.py::test_live_view_never_initializes_store_or_changes_database PASSED [  8%]
+tests/factory/test_factory_http.py::test_live_contract_cannot_escape_allowed_roots PASSED [ 11%]
+tests/factory/test_factory_http.py::test_sanitized_artifact_keeps_original_digest PASSED [ 14%]
+tests/factory/test_factory_http.py::test_launch_rejects_cross_origin_unconfigured_and_arbitrary_payload 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:31 [INFO] HTTP Request: POST http://testserver/api/factory/launch "HTTP/1.1 403 Forbidden"
+2026-11-20 09:50:31 [INFO] HTTP Request: POST http://testserver/api/factory/launch "HTTP/1.1 403 Forbidden"
+2026-11-20 09:50:31 [INFO] HTTP Request: POST http://testserver/api/factory/launch "HTTP/1.1 400 Bad Request"
+PASSED                                                                   [ 17%]
+tests/factory/test_factory_http.py::test_launch_uses_only_operator_template_in_new_detached_home PASSED [ 20%]
+tests/factory/test_factory_http.py::test_artifact_display_name_preserves_confined_content_path 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/runs/33968d97e9831dcd4876747f/file?path=attached%2Freport.md "HTTP/1.1 404 Not Found"
+PASSED                                                                   [ 23%]
+tests/factory/test_factory_http.py::test_catalog_distinguishes_exports_and_live_home_for_same_task PASSED [ 26%]
+tests/factory/test_factory_http.py::test_session_status_requires_controller_evidence 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/runs/a8b7084fb878b05ad3704151/session "HTTP/1.1 200 OK"
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/runs/a8b7084fb878b05ad3704151/session "HTTP/1.1 200 OK"
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/runs/a8b7084fb878b05ad3704151/session "HTTP/1.1 200 OK"
+PASSED                                                                   [ 29%]
+tests/factory/test_factory_http.py::test_reviewed_template_metadata_lists_contract_and_capsules PASSED [ 32%]
+tests/factory/test_factory_headlines.py::test_headlines_selects_latest_published_artifact_and_rejects_tampering 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/headlines "HTTP/1.1 200 OK"
+2026-11-20 09:50:31 [INFO] HTTP Request: GET http://testserver/api/factory/headlines "HTTP/1.1 422 Unprocessable Entity"
+PASSED                                                                   [ 35%]
+tests/factory/test_capsule_evidence.py::test_live_capsule_links_products_and_preserved_verify_receipts PASSED [ 38%]
+tests/factory/test_capsule_evidence.py::test_bundle_uses_export_paths_and_skips_corrupt_receipt_payload PASSED [ 41%]
+tests/factory/test_capsule_evidence.py::test_measurements_require_eligibility_and_matching_benchmark_inputs PASSED [ 44%]
+tests/factory/test_capsule_evidence.py::test_analysis_uses_native_producer_and_retains_distinct_results PASSED [ 47%]
+tests/factory/test_capsule_evidence.py::test_analysis_links_only_its_retained_report_and_iteration_outputs PASSED [ 50%]
+tests/factory/test_capsule_evidence.py::test_catalog_fresh_analysis_comes_from_native_results_and_deduplicated_usage PASSED [ 52%]
+tests/factory/test_capsule_evidence.py::test_builder_summary_links_latest_iteration_revision_and_verified_functional_evidence PASSED [ 55%]
+tests/factory/test_capsule_http.py::test_catalog_detail_and_file_use_retained_release_pins 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/factory.deep_profile "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/engine.build_batch_layout_mapper "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=ONTOLOGY.yaml "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=contract%2Fstar-deepseek-v1.json "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=contract%2Fstar-deepseek-v1.md "HTTP/1.1 200 OK"
+PASSED                                                                   [ 58%]
+tests/factory/test_capsule_http.py::test_cache_method_drift_uses_the_exact_current_retained_inventory 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/expert_weight_cache "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/expert_weight_cache/file?path=DIRECT-SEED.md "HTTP/1.1 200 OK"
+PASSED                                                                   [ 61%]
+tests/factory/test_capsule_http.py::test_missing_and_changed_files_remain_visible 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=METHOD.md "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules "HTTP/1.1 200 OK"
+PASSED                                                                   [ 64%]
+tests/factory/test_capsule_http.py::test_files_confined_to_capsule_and_pinned_ontology 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=owner-ontology%2Foverview.md "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=%2Ftmp%2Fpytest-of-user2%2Fpytest-265%2Ftest_files_confined_to_capsule0%2Foutside.txt "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=..%2Fengine_inspector%2Fcc.yaml "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=escape.txt "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=.private.txt "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=owner-ontology%2Funlisted.md "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=owner-ontology%2Flink.md "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=owner-ontology%2F..%2Foutside.txt "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/engine_inspector/file?path=owner-ontology%2Foverview.md "HTTP/1.1 404 Not Found"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/missing/file?path=cc.yaml "HTTP/1.1 404 Not Found"
+PASSED                                                                   [ 67%]
+tests/factory/test_capsule_http.py::test_file_sanitization_preserves_the_original_byte_digest 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper/file?path=samples%2Fredaction.json "HTTP/1.1 200 OK"
+PASSED                                                                   [ 70%]
+tests/factory/test_capsule_http.py::test_declarative_analysis_metadata_and_follow_up_release_pin 
+-------------------------------- live log call ---------------------------------
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/batch_layout_mapper "HTTP/1.1 200 OK"
+2026-11-20 09:50:32 [INFO] HTTP Request: GET http://testserver/api/factory/capsules/engine_inspector "HTTP/1.1 200 OK"
+PASSED                                                                   [ 73%]
+tests/factory/test_spark_evidence_import.py::test_cold_mismatched_tokens_excluded_and_import_is_idempotent PASSED [ 76%]
+tests/factory/test_spark_evidence_import.py::test_credentials_and_symlink_inputs_rejected PASSED [ 79%]
+tests/factory/test_spark_evidence_import.py::test_failed_and_wrong_manifest_results_remain_ineligible PASSED [ 82%]
+tests/factory/test_spark_report_publication.py::test_draft_exports_only_direct_citations_and_verifies_native_sanitized_addresses PASSED [ 85%]
+tests/factory/test_spark_report_publication.py::test_final_is_explicit_and_old_publications_are_not_overwritten PASSED [ 88%]
+tests/factory/test_spark_report_publication.py::test_missing_escape_and_credential_citations_fail_before_store_mutation PASSED [ 91%]
+tests/factory/test_spark_report_publication.py::test_code_fences_are_not_treated_as_evidence_citations PASSED [ 94%]
+tests/factory/test_spark_inspection_prepare.py::test_inspection_preparation_is_explicit_and_artifact_only PASSED [ 97%]
+tests/factory/test_spark_inspection_prepare.py::test_missing_login_stops_before_any_inspection_artifact PASSED [100%]
+
+============================== 34 passed in 2.86s ==============================
