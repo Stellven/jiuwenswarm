@@ -31,7 +31,7 @@ def profile_rows(data, layers, experts):
     return list(rows)[:layers]
 
 
-def expert_bytes(index, layers, experts):
+def indexed_expert_roles(index, layers, experts):
     weights = {}
     for line in index.splitlines():
         fields = line.split()
@@ -50,6 +50,11 @@ def expert_bytes(index, layers, experts):
         weights[key] = size
     if len(weights) != layers * experts * 3:
         raise ValueError('Index must name w1, w2 and w3 for every main-layer expert')
+    return weights
+
+
+def expert_bytes(index, layers, experts):
+    weights = indexed_expert_roles(index, layers, experts)
     return [
         [sum(weights[layer, expert, role] for role in (1, 2, 3)) for expert in range(experts)]
         for layer in range(layers)

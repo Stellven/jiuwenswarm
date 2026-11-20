@@ -3,6 +3,7 @@ import json
 import sys
 
 from copy_timing import timing_artifacts
+from residency_counterfactual import compare_artifacts as compare_residency_artifacts
 from routing_profile import analyze, verify
 from routing_transfer import compare_artifacts
 
@@ -10,15 +11,18 @@ from routing_transfer import compare_artifacts
 def dispatch(packet):
     inputs = packet['inputs']
     capability = packet['capability']
-    if capability in {'compare', 'verify_transfer', 'time_copies', 'verify_copy_timing'}:
-        if capability in {'compare', 'verify_transfer'}:
-            report = compare_artifacts({name: inputs[name] for name in ('trace', 'ranks')})
-        else:
-            report = timing_artifacts({name: inputs[name] for name in ('transfer', 'replay', 'request', 'activation', 'baseline')})
-        if capability in {'compare', 'time_copies'}:
-            return {'report': report}
-        saved = json.dumps(inputs['report'], sort_keys=True, allow_nan=False)
-        return {'verified': saved == json.dumps(report, sort_keys=True)}
+    methods = [
+        ('compare', 'verify_transfer', compare_artifacts, ('trace', 'ranks')),
+        ('time_copies', 'verify_copy_timing', timing_artifacts, ('transfer', 'replay', 'request', 'activation', 'baseline')),
+        ('estimate_residency', 'verify_residency', compare_residency_artifacts, ('trace', 'ranks', 'transfer', 'tensor_index', 'timing')),
+    ]
+    for analysis, verification, method, names in methods:
+        if capability in {analysis, verification}:
+            report = method({name: inputs[name] for name in names})
+            if capability == analysis:
+                return {'report': report}
+            saved = json.dumps(inputs['report'], sort_keys=True, allow_nan=False)
+            return {'verified': saved == json.dumps(report, sort_keys=True)}
     artifacts = {name: inputs[name] for name in ('before', 'after', 'tensor_index')}
     request = {
         **inputs['configuration'],
