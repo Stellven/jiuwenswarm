@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Background,
   Handle,
@@ -313,6 +313,19 @@ function ZoomControls({
       )}
     </Panel>
   );
+}
+
+/** Zoom to the current replay step so its nodes are readable, not the whole graph at fit. */
+function FocusCurrent({ ids }: { ids: string }) {
+  const { fitView } = useReactFlow();
+  useEffect(() => {
+    if (!ids) return;
+    const timer = window.setTimeout(() => {
+      void fitView({ nodes: ids.split('|').map((id) => ({ id })), padding: 0.5, maxZoom: 1, duration: 300 });
+    }, 50);
+    return () => window.clearTimeout(timer);
+  }, [fitView, ids]);
+  return null;
 }
 
 function NodeDetails({
@@ -670,6 +683,14 @@ export function GraphViewer({ graph: fullGraph, replay }: { graph: GraphModel; r
           data-testid="factory-runs-graph-canvas"
         >
           <Background gap={19} size={1.2} color="var(--color-border-default)" />
+          {replay && !grouped && (
+            <FocusCurrent
+              ids={graph.nodes
+                .filter((node) => progress?.get(node.id)?.phase === 'current')
+                .map((node) => node.id)
+                .join('|')}
+            />
+          )}
           <ZoomControls
             grouped={Boolean(grouped)}
             onExpandAll={collapsible ? () => setCollapsed(new Set()) : undefined}
