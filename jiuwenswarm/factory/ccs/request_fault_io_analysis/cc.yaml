@@ -1,0 +1,49 @@
+cc: '2'
+id: analysis.request_fault_io
+version: 1.0.0
+materials:
+  method:
+    path: METHOD.md
+  source_map:
+    path: SOURCE-MAP.md
+  helper:
+    path: fault_io.py
+  tests:
+    path: test_fault_io.py
+  checksums:
+    path: SHA256SUMS
+    media_type: text/plain
+  analysis:
+    path: ANALYSIS.json
+    media_type: application/json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  analyze:
+    does: Quantify observed page faults, file-cache changes and backing-store
+      reads before first token and later during a retained request.
+    takes:
+      counters: artifact
+      request: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify:
+    does: Recompute the report from the exact captured window and request
+      result, checking each delta, identity and attribution scope.
+    takes:
+      counters: artifact
+      request: artifact
+      report: json
+    gives:
+      verified: json
+    needs: [python]
+    changes: [process.exec]
