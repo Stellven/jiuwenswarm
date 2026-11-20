@@ -6,6 +6,11 @@
     "rows": "rows",
     "columns": ["k_per_layer", "fraction_slots", "counter_delta_in_selected", "fraction_new_routes", "indexed_payload_bytes", "indexed_payload_gib"]
   },
+  "transfer_table": {
+    "schema": "routing-profile-transfer/1",
+    "rows": "rows",
+    "columns": ["phase", "k_per_layer", "route_selections", "route_fraction", "dispatch_expert_unions", "dispatch_expert_union_fraction"]
+  },
   "inform_builder_capsules": [
     "weight_placement_planner",
     "expert_weight_cache"

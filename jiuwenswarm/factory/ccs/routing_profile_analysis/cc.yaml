@@ -1,6 +1,6 @@
 cc: '2'
 id: analysis.expert_routing_profile
-version: 1.0.0
+version: 1.1.0
 materials:
   method:
     path: METHOD.md
@@ -8,8 +8,12 @@ materials:
     path: SOURCE-MAP.md
   helper:
     path: routing_profile.py
+  transfer_helper:
+    path: routing_transfer.py
   tests:
     path: test_routing_profile.py
+  transfer_tests:
+    path: test_routing_transfer.py
   checksums:
     path: SHA256SUMS
     media_type: text/plain
@@ -62,6 +66,26 @@ capabilities:
       after: artifact
       tensor_index: artifact
       configuration: $configuration
+      report: json
+    gives:
+      verified: json
+    needs: [python]
+    changes: [process.exec]
+  compare:
+    does: Measure historical rank coverage by recorder phase on a retained
+      llama.cpp trace, accounting for unknown phases, losses and submitted copies.
+    takes:
+      trace: artifact
+      ranks: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify_transfer:
+    does: Recompute and verify the exact trace comparison against both pinned inputs.
+    takes:
+      trace: artifact
+      ranks: artifact
       report: json
     gives:
       verified: json
