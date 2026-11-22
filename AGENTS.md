@@ -62,3 +62,16 @@ Existing task histories and application tests are preserved. New v2 tasks do not
 Read the maintained design decisions D20 and D21 with the PRD and D19. D20 limits the semantic model payload to the pinned declaration and exact output; host/deterministic checks retain required input/runtime records. The compiler trial's worker-data copying is not the intended semantic interface. Preserve the explicitly reduced fidelity/source assurance and reconcile affected native evidence. D21 allocates November Generalist, automatic generation, automatic admission with future-plan eligibility and planner/MCTS increments; composition/fusion is December. M1 human activation remains unchanged. No running DAG changes its pins. Architecture freeze requires an available aligned PRD; unresolved product conflicts remain open. These documentation changes create no new TASK/AC/IF identities or runtime PASS.
 
 D23 to D26 (October 14): internal file, port, check and criterion names are lowercase. Verifier criteria are answerable from the declaration and the output alone, and fidelity and preservation are Intent and Requirement producer obligations. Each CC has one tier 3 build page. Build the static DAG first, then the Planner, both producing the same frozen run plan.
+
+## Software factory (CC v2) rules
+These apply to work under `jiuwenswarm/factory/`, `jiuwenswarm/ccv2/` and the Factory runs UI.
+
+1. Fix the pipeline in general; never hard-code a result to make a check pass.
+2. Do not label a simulation as a live-agent or image result. Tests are distinct from live runs.
+3. Keep the protocol lightweight: no registry service, planner or intent compiler.
+4. Preserve unrelated work and credentials; never write secrets into artifacts. Do not commit, push, merge or deploy unless asked.
+5. 5175 is the only local web host port.
+6. Codex integration lives in `jiuwenswarm/server/runtime/codex_subscription/`, `agent_adapter/interface_codex.py`, `gateway_adapter/codex_adapter.py` and `jiuwenswarm/codex_start.py`. The factory reuses them; do not fork them.
+
+## Factory feature (amended)
+The iterative inference factory has a feature-scoped exception for its evidence-driven controller; follow [AMENDMENT.md](docs/architecture/factory/AMENDMENT.md). The host enforces authority and lifecycle; the agent chooses actions. [MIGRATION.md](docs/architecture/factory/MIGRATION.md) maps M1 concerns to the factory and explains the legacy-config guard and rollback. In-run revision retains host contract, authority and lifecycle checks. All existing rules remain in force outside that amendment.

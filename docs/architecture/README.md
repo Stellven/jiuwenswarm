@@ -23,3 +23,6 @@ Local notes are outside the shared review package. Promote material decisions in
 ## Model-routing owner integration
 
 The [routing overview](design-package/side-systems/model-routing.md) connects the separate router design and catalog to one [shared Capsule–routing contract](design-package/reference/model-routing-contract.md). Architecture owns binding, permissions and dispatch; the model-routing owner owns selection, provider integration and routing evidence. Phase 1 remains fixed Codex; APIs belong to Phase 3. The canonical [product receipt](../product/README.md) identifies PRD V10.
+
+## Software factory
+The software factory (`jiuwenswarm/factory/`) runs iterative, evidence-driven engineering work with Capability Capsules v2, next to the M1 research runtime. A real agent makes revisable decisions while the host enforces authority, durable identity and job lifecycle. The feature-scoped [amendment](factory/AMENDMENT.md) permits this controller; [the factory docs](factory/README.md) cover the controller, task graph, telemetry, capsules and the Factory runs web API, and [migration](factory/MIGRATION.md) maps M1 concerns to the factory. The DGX Spark demo of 2026-11-20 is recorded in [ops/spark/demo-20261120](../../ops/spark/demo-20261120/README.md). Keep live-agent evidence separate from tests.
