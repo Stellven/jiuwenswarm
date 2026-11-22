@@ -1,0 +1,32 @@
+format: cc-request/2
+id: demo.compute_service_native.request
+desired:
+  cc: '2'
+  id: demo.compute_service_native
+  version: 1.0.0
+  bindings:
+    default:
+      kind: native
+  capabilities:
+    api:
+      does: Serve a native-process synthetic compute HTTP service multiplying finite numeric x by two, with runtime metadata; no real inference claims.
+      changes: [process.exec, network.listen]
+      serves:
+        interfaces:
+          api: {protocol: http, port: 8080, path: '/', contract: api.json}
+        ready: {interface: api, path: /health}
+  materials:
+    ontology:
+      path: ontology/inference_ontology_standin.md
+      media_type: text/markdown
+      description: Stand-in vocabulary at demo/requests/ontology/inference_ontology_standin.md; copy into the implemented package.
+open:
+  /bindings/default/command:
+    question: Supply the native server implementation and command with host-assigned port substitution under demo/ccs/; do not execute this request.
+    owner: implementer
+  /capabilities/api/serves/interfaces/api/contract:
+    question: Write api.json documenting GET /health status ok and GET /compute?x with value, factor, and runtime platform/python/os_release.
+    owner: implementer
+  /materials/ontology:
+    question: Confirm whether this synthetic stand-in vocabulary is sufficient before any real inference extension.
+    owner: requester

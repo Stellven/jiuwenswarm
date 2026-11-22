@@ -1,0 +1,42 @@
+bindings:
+  default:
+    command:
+    - python
+    - /cc/bundle/payload/server.py
+    - --host
+    - 0.0.0.0
+    - --port
+    - '8080'
+    image: docker.io/library/python@sha256:1148dbb014615300fa7e713b2f94f550c0d1c69780c0805f84f093ceee34dd0b
+    kind: image
+  inspect:
+    command:
+    - '{python}'
+    - '{bundle}/inspect.py'
+    kind: native
+capabilities:
+  api:
+    changes:
+    - process.exec
+    - network.listen
+    - network.request
+    does: Serve the synthetic compute API; startup readiness does not establish scientific
+      quality.
+    serves:
+      interfaces:
+        api:
+          contract: api.json
+          path: /
+          port: 8080
+          protocol: http
+      ready:
+        interface: api
+        path: /health
+  inspect:
+    does: Describe this product package without starting its service.
+    gives:
+      report: json
+    using: inspect
+cc: '2'
+id: example.http_product
+version: 1.0.0

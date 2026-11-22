@@ -1,0 +1,15 @@
+cc: '2'
+id: strata_native_product_inspection
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/worker.py']
+capabilities:
+  inspect_product:
+    does: Inspect a synthetic native Strata engine package using the exact upstream manifest loader; never execute its entrypoint.
+    takes:
+      product: artifact
+      data: json
+    gives:
+      inspection: json

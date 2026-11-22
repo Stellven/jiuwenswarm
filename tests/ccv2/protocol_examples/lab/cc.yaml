@@ -1,0 +1,19 @@
+cc: '2'
+id: lab.client
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/client.py']
+capabilities:
+  benchmark:
+    does: Measure requests to the synthetic compute API; report client duration, not inference latency.
+    takes: {engine: handle, workload: json}
+    gives: {metrics: json}
+    needs: [environment]
+    changes: [network.request]
+  observe:
+    does: Report telemetry coverage for the assigned engine; this fixture has no internal tracer.
+    takes: {engine: handle}
+    gives: {report: json, trace: {kind: artifact, optional: true}}
+    needs: [environment]

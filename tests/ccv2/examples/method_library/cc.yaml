@@ -1,0 +1,8 @@
+cc: '2'
+id: example.method_library
+version: 1.0.0
+materials:
+  method:
+    path: SKILL.md
+    description: Synthetic methodology and its limitations; read as context without executing code.
+    media_type: text/markdown

@@ -1,0 +1,20 @@
+{
+  "openapi": "3.1.0",
+  "info": {"title": "Synthetic compute demo", "version": "1.0.0", "description": "Multiplication only; no inference claims."},
+  "paths": {
+    "/health": {"get": {"responses": {"200": {"description": "Healthy", "content": {"application/json": {"schema": {"type": "object", "required": ["status"], "properties": {"status": {"const": "ok"}}}}}}}}},
+    "/compute": {"get": {
+      "parameters": [{"name": "x", "in": "query", "required": true, "schema": {"type": "number"}}],
+      "responses": {
+        "200": {"description": "x multiplied by two, with runtime evidence", "content": {"application/json": {"schema": {
+          "type": "object", "required": ["value", "factor", "runtime"],
+          "properties": {"value": {"type": "number"}, "factor": {"const": 2}, "runtime": {
+            "type": "object", "required": ["platform", "python", "os_release"],
+            "properties": {"platform": {"type": "string"}, "python": {"type": "string"}, "os_release": {"type": ["string", "null"]}}
+          }}
+        }}}},
+        "400": {"description": "Missing, invalid or nonfinite x"}
+      }
+    }}
+  }
+}
