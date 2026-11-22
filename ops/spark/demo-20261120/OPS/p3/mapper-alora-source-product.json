@@ -1,0 +1,41 @@
+{
+  "summary": "The revised mapper admits the stock no-adapter state and retains the positive aLoRA transition guard, so the next capped check will test whether the 2048-token prompt uses the expected changed cuts with greedy parity.",
+  "task_id": "spark-star-batch-layout-mapper-alora-01",
+  "home": "~/predemo-spark/factory-runs/star-batch_layout_mapper-alora-01",
+  "checkout": "~/predemo-spark/factory-runs/star-batch_layout_mapper-alora-01/agent-workspace/llama.cpp-batch-layout-mapper",
+  "source_base": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "source_commit": "0fe58a9484bcd2ba730e8bd28b3467361895ce98",
+  "predecessor_source_commit": "7a068a8e2d8f4985a3ed43468c76795e420ed70f",
+  "diff_path": "~/predemo-spark/factory-runs/star-batch_layout_mapper-alora-01/products/mapper-alora-1.1.4.diff",
+  "diff_artifact_id": "spark-mapper-alora-product.diff",
+  "diff_sha256": "f1c5c31d501dc709d00d9e2fed958f32e8184b5d97efca65e449348aa9b47f38",
+  "fix_from_legacy_artifact_id": "spark-mapper-alora-only-repair.diff",
+  "fix_from_legacy_sha256": "8cc8dd6fddcbce8eff7e651f34e91cb536617df2e9186e46b5a954c501c1605c",
+  "native_verifier_call": "0c59520d-083b-447a-b15f-34123baab6e3",
+  "native_verifier_release": "a0b777918aff53c51d48969f964746151e2936acadd80eb64af0db85ea116547",
+  "native_verifier_artifact_id": "spark-mapper-alora-verifier-receipt.json",
+  "planner_decision": "spark-star-batch-layout-mapper-alora-01:decision:1",
+  "planner_report_reads": "mapper-complete-report-read-receipts.json",
+  "common_flags": [
+    "-lm",
+    "mmap",
+    "--cpu-moe",
+    "-np",
+    "1",
+    "-c",
+    "4096",
+    "--ctx-checkpoints",
+    "0",
+    "-b",
+    "2047",
+    "-ub",
+    "512",
+    "-lv",
+    "4"
+  ],
+  "gate_on_env": {
+    "LLAMA_BATCH_LAYOUT": "1"
+  },
+  "native_build_status": "pending",
+  "runtime_status": "pending"
+}

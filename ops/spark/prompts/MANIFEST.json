@@ -1,0 +1,33 @@
+{
+  "model_metadata_only": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00006.gguf",
+  "template_parameters": {
+    "enable_thinking": false
+  },
+  "templates": {
+    "~/predemo-spark/jiuwenswarm/ops/spark/prompts/llama-embedded-template.jinja": "4d61d22c90ea0cdf15c7e298f7215f23eeffd20f8eed8fb517fda5fb64693d99",
+    "~/strata-baseline/Strata/serve/fixtures/deepseek41/chat_template.jinja": "06cada875e3a04665f9cf47deae9ef32e16ede2c6511205a4031c8b48140d01b"
+  },
+  "prompts": [
+    {
+      "target_tokens_including_template": 512,
+      "actual_metadata_token_count": 512,
+      "templates_render_identically": true,
+      "strata_token_count": 512,
+      "prompt_sha256": "e1fafe8ac4513e944626eb7de27bd04a29feaf0778ab753786bd7f291dc3a722",
+      "rendered_sha256": "adc479925ed2369b126f64df9341122b88a86b95bc8c769ee99f63c39b68fd6e",
+      "strata_rendered_sha256": "adc479925ed2369b126f64df9341122b88a86b95bc8c769ee99f63c39b68fd6e",
+      "token_ids_sha256": "1d43fc29be45d72a92c26c620c11e6bd488f26195936575693962bc084bef038"
+    },
+    {
+      "target_tokens_including_template": 2048,
+      "actual_metadata_token_count": 2048,
+      "templates_render_identically": true,
+      "strata_token_count": 2048,
+      "prompt_sha256": "61bd0ff5c00855d2469fe1f9d2bdfff947da2c20dab991c06033fd3a5582904d",
+      "rendered_sha256": "dd1c9e043f786b4289118672c4588fbb624dde4a1de4ee4deb5d5dfdbc9c74a8",
+      "strata_rendered_sha256": "dd1c9e043f786b4289118672c4588fbb624dde4a1de4ee4deb5d5dfdbc9c74a8",
+      "token_ids_sha256": "8afd2bb7c535e5a5a3ed6a3c9681da2070089dbc86fba3e566574bea14444490"
+    }
+  ],
+  "server_token_counts_pending": true
+}

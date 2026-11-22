@@ -1,0 +1,44 @@
+{
+  "schema": "spark-native-star-build-products/1",
+  "scope": "Verified combined-d native build",
+  "products": [
+    {
+      "capsule": "combined_d",
+      "home": "~/predemo-spark/factory-runs/star-combined-d-01",
+      "task_id": "spark-star-combined-d-01",
+      "attempt_id": "87ecc8bf665f43729dd3a375a88699e3",
+      "state": "succeeded",
+      "source_commit": "59493673e75a9b4153733a862fd09951d3705616",
+      "source_tree": "cfbdb6613d333714af9f2160c940aa162e96ae41",
+      "build_seconds": 629.2754244348034,
+      "executable": {
+        "path": "~/predemo-spark/factory-runs/star-combined-d-01/builds/87ecc8bf665f43729dd3a375a88699e3/engine/image/app/llama-server",
+        "sha256": "a6edf58241a6939154ad6b6a5d94cfcda876a282f67e3a0a4ce7de80d57bbdc4",
+        "size": 73224
+      },
+      "retain_library_dir": "~/predemo-spark/factory-runs/star-combined-d-01/builds/87ecc8bf665f43729dd3a375a88699e3/engine/image/app",
+      "receipt_artifact_id": "87ecc8bf665f43729dd3a375a88699e3:receipt",
+      "receipt_sha256": "19f54e82920098b3b6536ca88c7b5383c3021ad03dbfa7ab18b6b244dac7a780",
+      "record_artifact_id": "87ecc8bf665f43729dd3a375a88699e3:build-record",
+      "record_sha256": "a05208eb2e42c14106209a78ece26b15a338d0f964f854cd1b5325661dd8aa30",
+      "native_cmake_recipe_sha256": "7d704641a6da231b0842fd7630f5b23bac7fde579a79568f2b688811a60936c6",
+      "native_ui_archive_sha256": "a9e8b8b1a9b9b2c9a19c762f1cfc737937974070d17a32690f801efcc2b3eafa",
+      "linked_at_build": "linux-vdso.so.1 (0x0000e2a0c7bdc000)\n\tlibllama-server-impl.so => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libllama-server-impl.so (0x0000e2a0c74d0000)\n\tlibstdc++.so.6 => /lib/aarch64-linux-gnu/libstdc++.so.6 (0x0000e2a0c7230000)\n\tlibgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000e2a0c71f0000)\n\tlibc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000e2a0c7030000)\n\t/lib/ld-linux-aarch64.so.1 (0x0000e2a0c7ba0000)\n\tlibllama-common.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libllama-common.so.1 (0x0000e2a0c6b50000)\n\tlibmtmd.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libmtmd.so.1 (0x0000e2a0c6910000)\n\tlibllama.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libllama.so.1 (0x0000e2a0c64a0000)\n\tlibggml.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libggml.so.1 (0x0000e2a0c6470000)\n\tlibggml-base.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libggml-base.so.1 (0x0000e2a0c6390000)\n\tlibm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000e2a0c62e0000)\n\tlibggml-cpu.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libggml-cpu.so.1 (0x0000e2a0c6160000)\n\tlibggml-cuda.so.1 => ~/predemo-spark/factory-runs/cache/deepseek-abfaf95c7580250e645caaf2/bin/libggml-cuda.so.1 (0x0000e2a0c2330000)\n\tlibgomp.so.1 => /lib/aarch64-linux-gnu/libgomp.so.1 (0x0000e2a0c22b0000)\n\tlibcudart.so.13 => /usr/local/cuda/targets/sbsa-linux/lib/libcudart.so.13 (0x0000e2a0c21f0000)\n\tlibcublas.so.13 => /usr/local/cuda/targets/sbsa-linux/lib/libcublas.so.13 (0x0000e2a0be6b0000)\n\tlibcublasLt.so.13 => /usr/local/cuda/targets/sbsa-linux/lib/libcublasLt.so.13 (0x0000e2a0939b0000)\n\tlibcuda.so.1 => /lib/aarch64-linux-gnu/libcuda.so.1 (0x0000e2a08dd20000)\n\tlibdl.so.2 => /lib/aarch64-linux-gnu/libdl.so.2 (0x0000e2a08dcf0000)\n\tlibpthread.so.0 => /lib/aarch64-linux-gnu/libpthread.so.0 (0x0000e2a08dcc0000)\n\tlibrt.so.1 => /lib/aarch64-linux-gnu/librt.so.1 (0x0000e2a08dc90000)",
+      "retained_library_symlinks": {},
+      "retained_elf_sha256_by_filename": {
+        "libcublas.so.13": "4e346a7b60a01552bd9bf4bbc6c862e11eb851559c3da3572293345de6aaed75",
+        "libcublasLt.so.13": "930418840b747413584867cb7167dd5911dcf4184135589e0334527e9abbac9f",
+        "libcudart.so.13": "7bdba2b5b08cbdc85203c41cc94598adedb1bcfea7cb574ca693ac73599e4e63",
+        "libggml-base.so.1": "111163263a735ea41ee69a8c74647d84b23c2e0f208d9ecc40ac798fca3d6c09",
+        "libggml-cpu.so.1": "162ff7b085f86530e495622e97158069c2fc2acb24cd2afcbc0abfcb4080d3e1",
+        "libggml-cuda.so.1": "93532063f400415f91f56922e9f27817ef527dc731f6d8ebf6a026b652be00d4",
+        "libggml.so.1": "990dbf6ca6d0c321b00761d8401cdb08d7fd4fddb9dca8bfffb643b7d90a06cb",
+        "libllama-common.so.1": "0d08e13af9a22268faa668ccab49e1056a3dcc501450600cfce38bb93f153e13",
+        "libllama-server-impl.so": "91b6371c6de3ba89fa889eaac2340782ec79fce4106f68d298ea57952198e31d",
+        "libllama.so.1": "75ce48682305549ade769789911ce5ff1ccdf606a162b9dabe6aee76caaf3013",
+        "libmtmd.so.1": "0b908feb140ead8db542900fb5c66b4ec29f755cdd96f4592c2bc5d8ab1d92fd",
+        "llama-server": "a6edf58241a6939154ad6b6a5d94cfcda876a282f67e3a0a4ce7de80d57bbdc4"
+      }
+    }
+  ]
+}

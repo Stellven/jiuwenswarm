@@ -1,0 +1,71 @@
+{
+  "schema": "spark-cache-catalog-release-audit/1",
+  "checked_utc": "2026-11-20T14:50:22.818315+00:00",
+  "commit": "044313a27",
+  "prior_catalog_pin": "7d2e44b450ca1288dd2fe7a8b49157fc1d1b0a3aff3e6f16f02255d1740f065d",
+  "expected_current_pin": "c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0",
+  "history": [
+    {
+      "version": "1.2.0",
+      "sha256": "7d2e44b450ca1288dd2fe7a8b49157fc1d1b0a3aff3e6f16f02255d1740f065d",
+      "retained_manifest": "factory-runs/star-expert_weight_cache/ccstore/releases/7d2e44b450ca1288dd2fe7a8b49157fc1d1b0a3aff3e6f16f02255d1740f065d/manifest.json"
+    },
+    {
+      "version": "1.3.0",
+      "sha256": "f85f3e6200ba4f1ecccc6d5c4bc1f3cb74daf76f1d0e7e63be4885825f838a4d",
+      "retained_manifest": "factory-runs/star-expert_weight_cache-residency-01/ccstore/releases/f85f3e6200ba4f1ecccc6d5c4bc1f3cb74daf76f1d0e7e63be4885825f838a4d/manifest.json"
+    },
+    {
+      "version": "1.4.0",
+      "sha256": "0ac28630f14283910e0559e603cfbf84792e22ae1c8a488a73a61a63395a56a2",
+      "retained_manifest": "factory-runs/star-expert_weight_cache-prefill-iteration-02/ccstore/releases/0ac28630f14283910e0559e603cfbf84792e22ae1c8a488a73a61a63395a56a2/manifest.json"
+    },
+    {
+      "version": "1.4.1",
+      "sha256": "c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0",
+      "retained_manifest": "factory-runs/star-expert_weight_cache-direct-seed-02b/ccstore/releases/c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0/manifest.json"
+    }
+  ],
+  "live_declaration_and_full_inventory_match_retained": true,
+  "catalog_star_rows": [
+    {
+      "name": "batch_layout_mapper",
+      "version": "1.1.4",
+      "digest": "a0b777918aff53c51d48969f964746151e2936acadd80eb64af0db85ea116547",
+      "expected_digest": "a0b777918aff53c51d48969f964746151e2936acadd80eb64af0db85ea116547",
+      "integrity": "verified"
+    },
+    {
+      "name": "expert_demand_predictor",
+      "version": "1.2.1",
+      "digest": "589e4eb4b0af422f55da62eea2e69b88167f4c5629f7f46f6d10dec7d322a0f7",
+      "expected_digest": "589e4eb4b0af422f55da62eea2e69b88167f4c5629f7f46f6d10dec7d322a0f7",
+      "integrity": "verified"
+    },
+    {
+      "name": "expert_weight_cache",
+      "version": "1.4.1",
+      "digest": "c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0",
+      "expected_digest": "c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0",
+      "integrity": "verified"
+    },
+    {
+      "name": "observability_event_recorder",
+      "version": "1.1.4",
+      "digest": "07285f1207aea15a89912f2cd83b796e5fd7c9203addaa5308f0e893e15e92a2",
+      "expected_digest": "07285f1207aea15a89912f2cd83b796e5fd7c9203addaa5308f0e893e15e92a2",
+      "integrity": "verified"
+    },
+    {
+      "name": "weight_placement_planner",
+      "version": "1.2.1",
+      "digest": "6c6aebcf975317d083a9c23f3805e31f5240154ad01580798c8d7374298a912e",
+      "expected_digest": "6c6aebcf975317d083a9c23f3805e31f5240154ad01580798c8d7374298a912e",
+      "integrity": "verified"
+    }
+  ],
+  "pytest": {
+    "passed": 17,
+    "command": "pytest -q -o addopts= -o log_cli=false tests/factory/test_capsule_http.py tests/factory/test_factory_http.py"
+  }
+}

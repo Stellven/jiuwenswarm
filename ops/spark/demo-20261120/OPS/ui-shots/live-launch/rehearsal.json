@@ -1,0 +1,55 @@
+{
+  "rehearsed_utc": "2026-11-20T14:37:44.878129+00:00",
+  "url": "http://<spark-tailnet-ip>:5173",
+  "template": "recorder-evidence-walkthrough",
+  "launch": {
+    "id": "c63282041359ef1073078f51",
+    "task_id": "web-20261120T143442Z-05fe2a40",
+    "pid": 3076271
+  },
+  "session": {
+    "status": "finished",
+    "elapsed_s": 180.04011249542236,
+    "turn": null,
+    "step": null,
+    "latest_message": {
+      "text": "Verification complete. DeepSeek was loss-free and the separate Granite fixture recorded one loss per configuration.",
+      "created": 1795185462.956835
+    }
+  },
+  "observations": [
+    {
+      "checkpoint": "report-pinned",
+      "observed_after_s": 2.204
+    },
+    {
+      "checkpoint": "parity-checked",
+      "observed_after_s": 53.993
+    },
+    {
+      "checkpoint": "deepseek-trace-checked",
+      "observed_after_s": 96.243
+    },
+    {
+      "checkpoint": "granite-traces-checked",
+      "observed_after_s": 136.559
+    },
+    {
+      "checkpoint": "verification-complete",
+      "observed_after_s": 180.815
+    }
+  ],
+  "receipt": {
+    "path": "artifacts/fe/fe925f8f760af5241009bc6715b92da34789d5ec5ded8d08a5f309b912682ea1",
+    "display_path": "recorder-evidence-verification.json",
+    "artifact_ids": [
+      "recorder-evidence-verification.json"
+    ],
+    "size": 1836,
+    "sha256": "fe925f8f760af5241009bc6715b92da34789d5ec5ded8d08a5f309b912682ea1",
+    "expected_sha256": "fe925f8f760af5241009bc6715b92da34789d5ec5ded8d08a5f309b912682ea1",
+    "integrity": "verified"
+  },
+  "page_errors": [],
+  "factory_api_errors": []
+}

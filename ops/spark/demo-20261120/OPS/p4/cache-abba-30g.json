@@ -1,0 +1,39 @@
+{
+  "schema": "spark-p4-admitted-launches/1",
+  "iteration_id": "spark-p4-cache30-attribution",
+  "comparison_target": "same-budget-cc",
+  "subject_arm": "C3",
+  "frozen_at": "2026-11-20T10:05:52.644224+00:00",
+  "prompt_manifest_sha256": "036656eaad8ccea8e5d42da390495e239bd312b0c90d9b80cdd6599039e78608",
+  "regions_sha256": "9ea8774da2921aeccd9c2951f2f0e916480b7a7f2d93bfea369e03ce99351f7c",
+  "launches": [
+    {
+      "arm": "A+",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-aplus-pass-1-01",
+      "profile_sha256": "31800d6d8d5b6a13c72ac0c0f0f3a605a64086e8c20ad1e8ed83ab8456acfebd"
+    },
+    {
+      "arm": "C3",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-c3-pass-1-01",
+      "profile_sha256": "bc078789237ed42265ed6ecb2cd0a52e61fec5bcda1564f1aba98f08a452d021"
+    },
+    {
+      "arm": "C3",
+      "launch_pass": 2,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-c3-pass-2-01",
+      "profile_sha256": "bc078789237ed42265ed6ecb2cd0a52e61fec5bcda1564f1aba98f08a452d021"
+    },
+    {
+      "arm": "A+",
+      "launch_pass": 2,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache30-aplus-pass-2-01",
+      "profile_sha256": "31800d6d8d5b6a13c72ac0c0f0f3a605a64086e8c20ad1e8ed83ab8456acfebd"
+    }
+  ]
+}
