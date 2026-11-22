@@ -1,0 +1,352 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory.lab-report/1",
+  "title": "Lab report, format 1",
+  "description": "What a lab agent delivers for one lab request. Every test of the lab task appears in results, checks or not_run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "request_id",
+    "package_id",
+    "lab_task_id",
+    "contract",
+    "lab",
+    "outcome",
+    "summary",
+    "results",
+    "checks",
+    "not_run",
+    "files",
+    "limits"
+  ],
+  "properties": {
+    "schema": {
+      "const": "factory.lab-report/1"
+    },
+    "request_id": {
+      "$ref": "#/$defs/id"
+    },
+    "package_id": {
+      "$ref": "#/$defs/id"
+    },
+    "lab_task_id": {
+      "$ref": "#/$defs/id"
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "lab": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "operator",
+            "queue",
+            "command",
+            "external"
+          ]
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "outcome": {
+      "enum": [
+        "completed",
+        "partial",
+        "failed"
+      ]
+    },
+    "summary": {
+      "$ref": "#/$defs/text"
+    },
+    "setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "profile": {
+          "type": "string"
+        },
+        "runner": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "string"
+        },
+        "ended_at": {
+          "type": "string"
+        },
+        "deviations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "test_id",
+          "arm",
+          "metric",
+          "unit"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "value"
+            ]
+          },
+          {
+            "required": [
+              "samples"
+            ]
+          }
+        ],
+        "properties": {
+          "test_id": {
+            "$ref": "#/$defs/id"
+          },
+          "arm": {
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/$defs/id"
+          },
+          "metric": {
+            "$ref": "#/$defs/id"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number"
+          },
+          "statistic": {
+            "enum": [
+              "median",
+              "mean",
+              "min",
+              "max",
+              "single",
+              "ratio"
+            ]
+          },
+          "samples": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "number"
+            }
+          },
+          "interval": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "low",
+              "high",
+              "level"
+            ],
+            "properties": {
+              "low": {
+                "type": "number"
+              },
+              "high": {
+                "type": "number"
+              },
+              "level": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "test_id",
+          "check",
+          "verdict"
+        ],
+        "properties": {
+          "test_id": {
+            "$ref": "#/$defs/id"
+          },
+          "check": {
+            "$ref": "#/$defs/id"
+          },
+          "arm": {
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "pass",
+              "fail",
+              "not_run"
+            ]
+          },
+          "detail": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "not_run": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "test_id",
+          "reason"
+        ],
+        "properties": {
+          "test_id": {
+            "$ref": "#/$defs/id"
+          },
+          "reason": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/file"
+      }
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/text"
+      }
+    },
+    "sections": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Free text by deliverable section id."
+    },
+    "builds": {
+      "type": "object",
+      "description": "Subjects this lab assembled from a shipped source bundle.",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "head_tree"
+        ],
+        "properties": {
+          "head_tree": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "base_commit": {
+            "type": "string"
+          },
+          "recipe": {
+            "type": "string"
+          },
+          "machine": {
+            "type": "string"
+          },
+          "warm": {
+            "type": "boolean"
+          },
+          "seconds": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "executable_sha256": {
+            "type": "string"
+          },
+          "image_id": {
+            "type": "string"
+          },
+          "jobs": {
+            "type": "integer"
+          },
+          "generator": {
+            "type": "string"
+          },
+          "ccache": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "media_type": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

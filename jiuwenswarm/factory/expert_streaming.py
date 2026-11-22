@@ -1,0 +1,381 @@
+"""Read-only expert-streaming inspection with task-scoped observation publication."""
+from __future__ import annotations
+
+import math
+from pathlib import Path
+import re
+import shlex
+import struct
+
+from . import components, ontology
+
+
+def _candidates(observed):
+    if not isinstance(observed, dict):
+        raise ValueError('observed must map quantity ids to values')
+    ontology.validate_quantities(list(observed))
+    if any(v is not None and (type(v) not in (int, float) or not math.isfinite(v)) for v in observed.values()):
+        raise ValueError('observed values must be finite numbers or null')
+    costs = {'fill.decode_bytes_read', 'fill.demand_wait_ns_per_token', 'faults.minflt',
+             'latency.tok_ns_p95', 'decode.ms_per_token', 'readiness.missing_bytes_predicted',
+             'readiness.missing_bytes_unpredicted', 'readiness.duplicate_demand_bytes',
+             'readiness.wasted_async_bytes'}
+    candidates = []
+    # Deliberately naive: positive costs/recall below .9 and missing evidence, not causal attribution.
+    for path in sorted(components.ROOT.glob('*/component.yaml')):
+        material = components.load(path.parent.name)
+        ids = material.get('quantities', [])
+        unmeasured = [q for q in ids if observed.get(q) is None]
+        bottleneck = [q for q in ids if observed.get(q) is not None and
+                      ((q in costs and observed[q] > 0) or (q == 'prediction.recall_at_k' and observed[q] < .9))]
+        addressed = ', '.join(f'{q} (unmeasured)' for q in unmeasured)
+        addressed += ('; ' if addressed and bottleneck else '') + ', '.join(f'{q} (bottleneck signal)' for q in bottleneck)
+        explanation = (f"component {path.parent.name} → implements {', '.join(material.get('implements', []))} "
+                       f"→ modifies_region {', '.join(material.get('modifies_region', []))} "
+                       f"→ quantity {addressed or ', '.join(ids)} [ONTOLOGY.yaml]")
+        candidates.append(dict(component=path.parent.name, score=len(unmeasured) + 2 * len(bottleneck),
+                               unmeasured=unmeasured, bottleneck=bottleneck, explanation=explanation))
+    return sorted(candidates, key=lambda c: (-c['score'], c['component']))
+
+
+def gguf_bytes(path):
+    """Read GGUF v2/v3 metadata and tensor directory; never map/read weight data."""
+    with Path(path).open('rb') as stream:
+        def unpack(fmt):
+            size = struct.calcsize('<' + fmt)
+            data = stream.read(size)
+            if len(data) != size:
+                raise ValueError('Truncated GGUF header')
+            return struct.unpack('<' + fmt, data)[0]
+        def string():
+            n = unpack('Q')
+            if n > 16 * 1024 * 1024:
+                raise ValueError('GGUF string too large')
+            data = stream.read(n)
+            if len(data) != n:
+                raise ValueError('Truncated GGUF string')
+            return data.decode('utf-8')
+        def skip(kind, depth=0):
+            sizes = {0:1, 1:1, 2:2, 3:2, 4:4, 5:4, 6:4, 7:1, 10:8, 11:8, 12:8}
+            if kind in sizes:
+                stream.seek(sizes[kind], 1)
+            elif kind == 8:
+                string()
+            elif kind == 9 and depth < 8:
+                element, count = unpack('I'), unpack('Q')
+                if count > 10000000:
+                    raise ValueError('GGUF array too large')
+                if element in sizes:
+                    stream.seek(count * sizes[element], 1)
+                else:
+                    for _ in range(count):
+                        skip(element, depth + 1)
+            else:
+                raise ValueError('Unknown GGUF metadata type')
+        if stream.read(4) != b'GGUF' or unpack('I') not in (2, 3):
+            raise ValueError('Expected GGUF v2/v3')
+        tensors, metadata = unpack('Q'), unpack('Q')
+        if tensors > 1000000 or metadata > 1000000:
+            raise ValueError('GGUF directory too large')
+        for _ in range(metadata):
+            string(); skip(unpack('I'))
+        # GGML type -> elements/block, bytes/block (including quantization scales).
+        types = {0:(1,4),1:(1,2),2:(32,18),3:(32,20),6:(32,22),7:(32,24),8:(32,34),9:(32,40),
+                 10:(256,84),11:(256,110),12:(256,144),13:(256,176),14:(256,210),15:(256,292),
+                 16:(256,66),17:(256,74),18:(256,98),19:(256,50),20:(32,18),21:(256,110),
+                 22:(256,82),23:(256,136),24:(1,1),25:(1,2),26:(1,4),27:(1,8),28:(1,8),
+                 29:(256,56),30:(1,2),34:(256,54)}
+        expert, other = 0, 0
+        for _ in range(tensors):
+            name, dims = string(), unpack('I')
+            if not 1 <= dims <= 4:
+                raise ValueError('Invalid GGUF tensor dimensions')
+            shape = [unpack('Q') for _ in range(dims)]
+            kind = unpack('I'); unpack('Q')  # offset, not weight contents
+            if kind not in types:
+                raise ValueError(f'Unsupported GGML tensor type {kind}')
+            block, size = types[kind]
+            if shape[0] % block:
+                raise ValueError('Invalid GGUF quantized row size')
+            count = math.prod(shape) // block * size
+            if re.search(r'_exps(?:\.|$)', name):
+                expert += count
+            else:
+                other += count
+        return expert, other
+
+
+def applicability(model_path, argv, meminfo='/proc/meminfo', observed=None):
+    argv = shlex.split(argv) if isinstance(argv, str) else list(argv)
+    result = dict(expert_bytes=None, other_bytes=None, mem_total=None, mem_available=None,
+                  experts_cpu_side=None, mmap=None, verdict='unknown', reasons=[])
+    reasons = result['reasons']
+    try:
+        result['expert_bytes'], result['other_bytes'] = gguf_bytes(model_path)
+    except (OSError, ValueError, UnicodeError) as exc:
+        reasons.append('Model header unavailable: ' + str(exc))
+    try:
+        mem = {k: int(v) * 1024 for k, v in re.findall(r'^(MemTotal|MemAvailable):\s+(\d+) kB', Path(meminfo).read_text(), re.M)}
+        result.update(mem_total=mem.get('MemTotal'), mem_available=mem.get('MemAvailable'))
+    except (OSError, ValueError) as exc:
+        reasons.append('Memory information unavailable: ' + str(exc))
+    cpu = any(a in {'-cmoe', '--cpu-moe'} for a in argv)
+    overrides = [argv[i+1] for i, a in enumerate(argv[:-1]) if a in {'-ot', '--override-tensor'}]
+    if not cpu and overrides:
+        cpu = any(re.search(r'(exps|expert|ffn_).*?=CPU', o, re.I) for o in overrides)
+    result['experts_cpu_side'] = True if cpu else None
+    mmap = None
+    for i, arg in enumerate(argv):
+        if arg in {'-lm', '--load-mode'} and i + 1 < len(argv):
+            mmap = argv[i+1] == 'mmap'
+        if arg in {'--no-mmap', '--no-mmap-load'}:
+            mmap = False
+        if arg == '--mmap':
+            mmap = True
+    result['mmap'] = mmap
+    if result['expert_bytes'] == 0 or mmap is False:
+        result['verdict'] = 'not_applicable'
+        reasons.append('Requires MoE expert tensors and mmap loading')
+    elif all(result[k] is not None for k in ('expert_bytes','mem_available')) and cpu and mmap:
+        if result['expert_bytes'] > result['mem_available'] * 2:
+            result['verdict'] = 'applicable'
+            reasons.append('CPU-side mapped expert bytes exceed available memory by more than 2x')
+        else:
+            result['verdict'] = 'not_applicable'
+            reasons.append('Expert bytes do not greatly exceed available memory (2x heuristic)')
+    else:
+        reasons.append('Need expert size, memory headroom, explicit CPU expert placement and mmap evidence')
+    result['candidates'] = _candidates({} if observed is None else observed)
+    return result
+
+
+def parse_engagement(stderr, requires_evidence=None):
+    required = [] if requires_evidence is None else requires_evidence
+    ontology.validate_quantities(required)
+    specs = ontology.load()['quantities']
+    labels = {(s['source']['line'], s['source']['field']):
+              dict(quantity=q, unit=s['unit'], phase=s['phase']) for q, s in specs.items()}
+    blocks = {}
+    measured = set()
+    for block, marker in [('config','expert_config: effective'), ('fill','expert_fill: stats'),
+                          ('pregate','expert_pregate: stats'), ('readiness','expert_readiness: stats'),
+                          ('phase','expert_phase: stats')]:
+        rows = []
+        for line in stderr.splitlines():
+            if marker not in line:
+                continue
+            row = {}
+            for key, value in re.findall(r'(\w+)=([^\s]+)', line.split(marker, 1)[1]):
+                try:
+                    row[key] = float(value) if '.' in value else int(value)
+                except ValueError:
+                    row[key] = value
+            rows.append(row)
+        blocks[block] = dict(status='measured', counters=rows) if rows else dict(status='not_measured')
+        if rows:
+            blocks[block]['labels'] = {key: labels[marker, key] for row in rows for key in row if (marker, key) in labels}
+            measured.update(label['quantity'] for label in blocks[block]['labels'].values())
+    def counters(block):
+        rows = blocks[block].get('counters', [])
+        keys = {k for row in rows for k in row}
+        return {k: sum(row[k] for row in rows if isinstance(row.get(k), (int,float))) for k in keys}
+    f, p, r = (counters(b) for b in ('fill','pregate','readiness'))
+    tokens = r.get('decode_tokens')
+    # Fallback only to the printed decode timing token count; never use decode_calls (layers).
+    if not tokens:
+        matches = re.findall(r'(?<!prompt )\beval time[^\n]*?/\s*(\d+)\s+(?:runs|tokens)', stderr)
+        tokens = int(matches[-1]) if matches else None
+    def div(n, d):
+        return n / d if n is not None and d else None
+    derived = dict(decode_tokens=tokens, decode_bytes_read_per_token=div(f.get('decode_bytes_read'),tokens),
+                   demand_wait_ms_per_token=div(f.get('decode_fill_wall_ns'),tokens * 1e6 if tokens else None),
+                   recall_at_k=div(p.get('hits'),p.get('actual')),
+                   readiness_ratio_predicted=div(r.get('decode_ready_bytes_predicted'),
+                       r.get('decode_ready_bytes_predicted',0)+r.get('decode_missing_bytes_predicted',0)),
+                   readiness_ratio_unpredicted=div(r.get('decode_ready_bytes_unpredicted'),
+                       r.get('decode_ready_bytes_unpredicted',0)+r.get('decode_missing_bytes_unpredicted',0)),
+                   wasted_bytes_per_token=div(r.get('decode_wasted_async_bytes'),tokens),
+                   duplicate_bytes_per_token=div(r.get('decode_duplicate_demand_bytes'),tokens))
+    if derived['recall_at_k'] is None and 'recall_at_k' in p:
+        derived['recall_at_k'] = p['recall_at_k']
+    for state in ('done','inflight','queued','resident'):
+        derived['predicted_hits_' + state + '_share'] = div(p.get('hit_'+state),p.get('hits'))
+    timings = {}
+    for phase, pattern in [('prompt', r'prompt eval time[^\n]*?\(\s*([\d.]+) ms per token'),
+                           ('decode', r'(?<!prompt )\beval time[^\n]*?\(\s*([\d.]+) ms per token')]:
+        matches = re.findall(pattern, stderr)
+        if matches:
+            q = phase + '.ms_per_token'
+            spec = specs[q]
+            timings[phase] = dict(value=float(matches[-1]), quantity=q, unit=spec['unit'], phase=spec['phase'])
+            measured.add(q)
+    return dict(**blocks, derived=derived, timings=timings,
+                missing_required=[q for q in required if q not in measured])
+
+
+
+def strata_applicability(contract, observed=None, meminfo='/proc/meminfo'):
+    """Inspect the complete approved pack; configuration is not engagement.
+
+    The llama-specific CPU/mmap/2x-memory heuristic does not apply to Strata's
+    GPU/CPU resident slots and multi-file pack. Keep its byte split unknown.
+    """
+    from .engine_adapters import flag, inspect_assets
+    assets = inspect_assets(contract)
+    argv = contract['workload']['argv']
+    mem = {}
+    try:
+        mem = {k: int(v) * 1024 for k, v in re.findall(
+            r'^(MemTotal|MemAvailable):\s+(\d+) kB', Path(meminfo).read_text(), re.M)}
+    except (OSError, ValueError):
+        pass
+    configured = dict(experts=int(flag(argv, '--experts')),
+                      mmap_experts=flag(argv, '--mmap-experts'),
+                      draft_policy=flag(argv, '--dspark'))
+    return dict(expert_bytes=None, other_bytes=None,
+                mem_total=mem.get('MemTotal'), mem_available=mem.get('MemAvailable'),
+                experts_cpu_side=None, mmap=configured['mmap_experts'] == 'on',
+                verdict='unknown', reasons=[
+                    'Approved strata-v1 configuration requests full-six-expert mapped streaming; no execution engagement is inferred.',
+                    'Complete sealed asset inventory checked; total file bytes are not an expert/other tensor split.',
+                    'Strata resident CPU/GPU placement is not described by llama CPU-MoE flags or its 2x-memory heuristic.',
+                    'Native Strata mechanisms require their own readiness/inflight evidence; llama source patches are not automatically applicable.'],
+                candidates=[dict(component='strata_native_streaming', backend='strata-v1',
+                    status='configured_not_measured', configuration=configured, assets=assets,
+                    observed={} if observed is None else _validated_observed(observed),
+                    expected_performance_benefit='unknown')])
+
+
+def _validated_observed(observed):
+    # Reuse ontology/value validation without presenting llama patches as
+    # applicable Strata integrations or interpreting missing signals as zero.
+    _candidates(observed)
+    return observed
+
+
+def parse_strata_engagement(stdout, stderr, contract, requires_evidence=None):
+    """Use native phase evidence; unavailable streaming counters stay unknown."""
+    from .engine_adapters import parse_protocol, validate_contract
+    required = [] if requires_evidence is None else requires_evidence
+    ontology.validate_quantities(required)
+    blocks = {name: dict(status='not_measured') for name in ('config', 'fill', 'pregate', 'readiness', 'phase')}
+    derived = dict(decode_tokens=None, decode_bytes_read_per_token=None,
+                   demand_wait_ms_per_token=None, recall_at_k=None,
+                   readiness_ratio_predicted=None, readiness_ratio_unpredicted=None,
+                   wasted_bytes_per_token=None, duplicate_bytes_per_token=None,
+                   predicted_hits_done_share=None, predicted_hits_inflight_share=None,
+                   predicted_hits_queued_share=None, predicted_hits_resident_share=None)
+    result = dict(backend='strata-v1', status='not_measured', **blocks,
+                  derived=derived, timings={}, quantities={}, requests=[],
+                  draft=dict(status='not_measured', accepted=None, offered=None),
+                  missing_required=list(required))
+    try:
+        validate_contract(contract)
+        parsed = parse_protocol(stdout, stderr, contract)
+    except (ValueError, TypeError, KeyError, OverflowError) as exc:
+        result.update(status='invalid', error=str(exc)[:400])
+        return result
+    rows = parsed['requests']
+    decode_tokens = sum(row['generated_tokens'] for row in rows)
+    prompt_tokens = sum(row['prompt_tokens'] for row in rows)
+    # Tokens and native milliseconds have matching units/phases. Native STAT
+    # disk_mb/CPU counters are deliberately not mapped to llama ontology fields.
+    quantities = {'decode.ms_per_token': sum(row['decode_ms'] for row in rows) / decode_tokens,
+                  'prompt.ms_per_token': sum(row['prefill_ms'] for row in rows) / prompt_tokens}
+    specs = ontology.load()['quantities']
+    timings = {phase: dict(value=quantities[phase + '.ms_per_token'],
+                          quantity=phase + '.ms_per_token', unit=specs[phase + '.ms_per_token']['unit'],
+                          phase=specs[phase + '.ms_per_token']['phase']) for phase in ('prompt', 'decode')}
+    result.update(status='measured', requests=rows, quantities=quantities, timings=timings,
+                  config=dict(status='measured', backend='strata-v1', effective_experts=parsed['effective_experts']),
+                  phase=dict(status='measured', source='native DONE protocol',
+                             counters=[dict(prompt_tokens=row['prompt_tokens'], decode_tokens=row['generated_tokens'],
+                                            prompt_ms=row['prefill_ms'], decode_ms=row['decode_ms']) for row in rows]),
+                  draft=dict(status='measured', accepted=sum(row['accepted_drafts'] for row in rows),
+                             offered=sum(row['offered_drafts'] for row in rows)),
+                  missing_required=[q for q in required if q not in quantities])
+    result['derived']['decode_tokens'] = decode_tokens
+    return result
+
+
+def _strata_contract(record):
+    """Prefer the attempt/evaluation snapshot over the task's current contract."""
+    contract = record.get('contract') or record.get('request', {}).get('contract')
+    return contract if isinstance(contract, dict) and contract.get('adapter') == 'strata-v1' else None
+
+
+def strata_engagement(store, task_id, refs, contract, required):
+    from .store import NotFound
+    stdout_refs = [ref for ref in refs if ref.endswith(':stdout.log') or ref.endswith('/stdout.log')]
+    runs = []
+    retained = []
+    for stdout_ref in stdout_refs:
+        stderr_ref = stdout_ref[:-len('stdout.log')] + 'stderr.log'
+        retained.append(stdout_ref)
+        if stderr_ref not in refs:
+            runs.append(dict(artifact_id=stdout_ref, backend='strata-v1', status='not_measured',
+                             error='Paired raw stderr.log artifact missing', missing_required=list(required)))
+            continue
+        retained.append(stderr_ref)
+        try:
+            stdout = store.artifact_bytes(task_id, stdout_ref).decode('utf-8')
+            stderr = store.artifact_bytes(task_id, stderr_ref).decode('utf-8')
+            parsed = parse_strata_engagement(stdout, stderr, contract, required)
+        except (OSError, UnicodeError, NotFound) as exc:
+            parsed = dict(backend='strata-v1', status='not_measured', error=str(exc)[:400],
+                          missing_required=list(required))
+        runs.append(dict(artifact_id=stdout_ref, stderr_artifact_id=stderr_ref, **parsed))
+    status = ('invalid' if any(run['status'] == 'invalid' for run in runs) else
+              'measured' if runs and all(run['status'] == 'measured' for run in runs) else 'not_measured')
+    return dict(runs=runs, status=status, missing_required=[q for q in required if not runs or
+                any(q in run['missing_required'] for run in runs)]), retained
+
+
+def dispatch(store, task_id, capability, inputs):
+    from .api import fields
+    if capability == 'applicability':
+        from .contract import load
+        fields(inputs, {'model_path','argv','observed'})
+        contract = None
+        if 'model_path' in inputs and 'argv' in inputs:
+            model_path, argv = inputs['model_path'], inputs['argv']
+        else:
+            contract = load(store.get_task(task_id)['contract_id'])
+            model_path = inputs.get('model_path', contract.get('model', {}).get('path'))
+            argv = inputs.get('argv', contract['workload']['argv'])
+        if contract and contract.get('adapter') == 'strata-v1' and 'model_path' not in inputs:
+            if argv != contract['workload']['argv']:
+                raise ValueError('Strata pack inspection uses the approved contract argv')
+            values = strata_applicability(contract, observed=inputs.get('observed'))
+        else:
+            values = applicability(model_path, argv, observed=inputs.get('observed'))
+        refs = []
+    elif capability == 'engagement':
+        fields(inputs, {'attempt_id','evaluation_id','requires_evidence'})
+        if len({'attempt_id', 'evaluation_id'} & inputs.keys()) != 1:
+            raise ValueError('Supply exactly one of attempt_id or evaluation_id')
+        required = inputs.get('requires_evidence', [])
+        ontology.validate_quantities(required)
+        record = store.read(task_id, inputs.get('attempt_id', inputs.get('evaluation_id')))
+        if 'evaluation_id' in inputs:
+            refs = record.get('inputs', {}).get('source_artifacts', [])
+        else:
+            if record.get('kind') != 'lab':
+                raise ValueError('engagement requires a lab or A/B attempt')
+            refs = record.get('result_refs', [])
+        contract = _strata_contract(record)
+        if contract:
+            values, refs = strata_engagement(store, task_id, refs, contract, required)
+        else:
+            stderr_refs = [ref for ref in refs if ref.endswith(':stderr.txt') or ref.endswith('/stderr.txt')]
+            values = dict(runs=[dict(artifact_id=ref, **parse_engagement(store.artifact_bytes(task_id,ref).decode(errors='replace'), required))
+                                for ref in stderr_refs], status='measured' if stderr_refs else 'not_measured')
+            # All supplied runs must carry required evidence; another arm cannot fill its gaps.
+            values['missing_required'] = [q for q in required if not values['runs'] or
+                                          any(q in run['missing_required'] for run in values['runs'])]
+            refs = stderr_refs
+    else:
+        raise ValueError('Unknown expert_streaming capability')
+    observation = store.append_observation(task_id, dict(kind='expert_streaming_' + capability,
+        values=values, source_artifacts=refs, limitations='Read-only inspection; not performance scoring'))
+    return dict(**values, evidence=dict(observation_id=observation['obs_id']))

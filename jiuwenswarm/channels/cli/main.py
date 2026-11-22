@@ -12,7 +12,12 @@ import sys
 logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
 
 
+
 def main() -> None:
+    if sys.argv[1:2] == ["factory"]:
+        from jiuwenswarm.factory.cli import main as factory_main
+        factory_main(sys.argv[2:])
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "research":
         from jiuwenswarm.channels.cli.research import main as research_main
 

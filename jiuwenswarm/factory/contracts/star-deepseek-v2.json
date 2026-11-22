@@ -1,0 +1,161 @@
+{
+  "schema": "factory.contract/2",
+  "contract_id": "star-deepseek-v2",
+  "version": 2,
+  "title": "Five builder capsules on stock llama.cpp, DeepSeek V4.1 Flash, DGX Spark",
+  "purpose": "How much sooner does the first token come at 512 and 2048 prompt tokens when one or all five builder capsules are applied to stock llama.cpp, with output unchanged when their gates are unset?",
+  "scope": {
+    "covers": [
+      "client time to first token at 512 and 2048 rendered prompt tokens",
+      "greedy output parity with the gate unset, and the activation marker with the gate set",
+      "decode rate, sampled peak memory and load time, reported beside the primary metric"
+    ],
+    "excludes": [
+      "accuracy benchmarks",
+      "throughput under concurrent requests",
+      "any claim of runtime acceptance from a source or build check alone"
+    ]
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "requires": {"machine": "DGX Spark GB10", "cuda": "13", "sm": "121", "arch": "arm64"}
+  },
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+    },
+    "model": {
+      "name": "DeepSeek V4.1 Flash, IQ2_XXS six-shard GGUF conversion",
+      "files": [
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00006.gguf", "size": 5780704, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00002-of-00006.gguf", "size": 39535781184, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00003-of-00006.gguf", "size": 39736712000, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00004-of-00006.gguf", "size": 39036908384, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00005-of-00006.gguf", "size": 19923784832, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00006-of-00006.gguf", "size": 110595290816, "sha256": null}
+      ],
+      "digest_status": "Shard digests are not asserted. The conversion receipt kept on the lab machine establishes the lineage; the Strata yardstick runs the same weights in its native pack."
+    }
+  },
+  "inputs": {
+    "prompt_512": {
+      "media_type": "text/plain",
+      "sha256": "e1fafe8ac4513e944626eb7de27bd04a29feaf0778ab753786bd7f291dc3a722",
+      "size": 2985,
+      "description": "Fixed text that renders to 512 tokens with the no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/512.txt"
+    },
+    "prompt_2048": {
+      "media_type": "text/plain",
+      "sha256": "61bd0ff5c00855d2469fe1f9d2bdfff947da2c20dab991c06033fd3a5582904d",
+      "size": 11997,
+      "description": "Fixed text that renders to 2048 tokens with the no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/2048.txt"
+    },
+    "chat_template": {
+      "media_type": "text/plain",
+      "sha256": "4d61d22c90ea0cdf15c7e298f7215f23eeffd20f8eed8fb517fda5fb64693d99",
+      "size": 18509,
+      "description": "The chat template embedded in the model file, as rendered for the prompt manifest.",
+      "repo_path": "ops/spark/prompts/llama-embedded-template.jinja"
+    }
+  },
+  "workload": {
+    "tool": "llama-server",
+    "argv": ["-m", "{model}", "-lm", "mmap", "--cpu-moe"],
+    "env": {},
+    "requests": [
+      {
+        "id": "p512",
+        "input": "prompt_512",
+        "params": {"n_predict": 32, "temperature": 0, "seed": 1, "cache_prompt": false, "chat_template_kwargs": {"enable_thinking": false}},
+        "expect": {"rendered_prompt_tokens": 512}
+      },
+      {
+        "id": "p2048",
+        "input": "prompt_2048",
+        "params": {"n_predict": 32, "temperature": 0, "seed": 1, "cache_prompt": false, "chat_template_kwargs": {"enable_thinking": false}},
+        "expect": {"rendered_prompt_tokens": 2048}
+      }
+    ]
+  },
+  "arms": [
+    {"id": "A", "role": "baseline", "summary": "Stock llama.cpp as documented for an oversized mixture-of-experts model.", "deviations": ["-lm mmap", "--cpu-moe"]},
+    {"id": "A+", "role": "baseline", "from": "A", "summary": "A with llama.cpp's native MoE cache, sized by its tuning script.", "deviations": ["--moe-cache-mib chosen by scripts/moe-cache-tune.py"]},
+    {"id": "S", "role": "yardstick", "summary": "Strata fair profile on the same weights in its native pack."},
+    {"id": "C1", "role": "candidate", "from": "A", "summary": "Runtime event recorder build."},
+    {"id": "C2", "role": "candidate", "from": "A", "summary": "Weight placement planner build."},
+    {"id": "C3", "role": "candidate", "from": "A", "summary": "Expert weight cache build."},
+    {"id": "C4", "role": "candidate", "from": "A", "summary": "Expert demand predictor build."},
+    {"id": "C5", "role": "candidate", "from": "A", "summary": "Batch layout mapper build."},
+    {"id": "D", "role": "combined", "from": "A", "summary": "All five builds combined."}
+  ],
+  "measurement": {
+    "primary": "client_ttft_ms",
+    "metrics": {
+      "client_ttft_ms": {"unit": "ms", "better": "lower", "how": "Client clock from sending the request to the first streamed token."},
+      "decode_tokens_per_second": {"unit": "tokens/s", "better": "higher", "how": "Generated tokens after the first, over the time they took, from the server's timings."},
+      "sampled_peak_memory_bytes": {"unit": "bytes", "better": "lower", "how": "Highest sampled resident memory of the engine process group under the cap."},
+      "load_seconds": {"unit": "s", "better": "lower", "how": "From engine start to the health endpoint answering ready; cold load, recorded once per load."}
+    },
+    "protocol": {
+      "repeats": 5,
+      "order": "ABBA",
+      "discard_first_request": true,
+      "cold_load": "separate",
+      "quiet": {"max_load": 1.0, "no_builds": true},
+      "confidence": {"level": 0.95, "method": "bootstrap over paired warm repeats"},
+      "notes": "Server token counts are checked against the rendered prompt token counts before a timed cell counts."
+    },
+    "derived": {
+      "gap_closed": {"formula": "(TTFT_A - TTFT_X) / (TTFT_A - TTFT_S)", "uses": ["client_ttft_ms", "A", "S"]},
+      "inverse_ttft_ratio_vs_A": {"formula": "TTFT_A / TTFT_X", "uses": ["client_ttft_ms", "A"], "unit": "ratio"},
+      "inverse_ttft_ratio_vs_A_plus": {"formula": "TTFT_A+ / TTFT_X", "uses": ["client_ttft_ms", "A+"], "unit": "ratio"}
+    }
+  },
+  "correctness": {
+    "equivalence": "byte_identical_output",
+    "reference": {"arm": "A", "output_sha256": null, "frozen_at": null, "run_ref": null},
+    "checks": [
+      {"id": "gate_unset_parity", "does": "With the capsule's gate unset, the greedy output of each request equals arm A's output byte for byte.", "applies_to": ["candidate", "combined"]},
+      {"id": "gate_set_activation", "does": "With the gate set, the engine prints the capsule's activation marker.", "applies_to": ["candidate", "combined"]},
+      {"id": "server_token_count", "does": "The server's prompt token count equals the request's rendered prompt token count.", "applies_to": ["baseline", "candidate", "combined"]}
+    ]
+  },
+  "acceptance": {
+    "rules": [
+      "A timed cell counts only when the machine is quiet: load below 1.0 and no builds running.",
+      "A candidate's speed counts only when it passes gate_unset_parity and gate_set_activation.",
+      "Failures and no-gain results are reported, not dropped.",
+      "Speed targets are targets, not promises."
+    ]
+  },
+  "limits": {
+    "memory_bytes": 107374182400,
+    "cpus": 8,
+    "start_available_bytes": 118111600640,
+    "watchdog_available_bytes": 8589934592
+  },
+  "execution": {
+    "by": "lab_agent",
+    "lab_profile": "spark-gb10",
+    "notes": "The lab agent runs every engine under its memory-capped runner, one GPU job at a time."
+  },
+  "revisions": [],
+  "provenance": {
+    "derived_from": [
+      {"contract_id": "star-deepseek-v1", "sha256": "40c33a9fde0e8ac3cabadbedde58bf2b7c6758b0e3ca1c9ce11b8234b05474e5", "how": "The same contract in format 2: files named by digest instead of host path, arms, checks and metrics declared."}
+    ],
+    "notes": [
+      "star-deepseek-v1 is the record of the 2026-11-20 run and stays unchanged.",
+      "The five source capsules were 1.1.1; their transport copies 1.1.2 changed only manifest kind fields."
+    ]
+  },
+  "extensions": {
+    "factory.run-record": {
+      "ontology": "The owner's system ontology files were pinned for the 2026-11-20 run by inputs/ontology/SHA256SUMS in the run workspace; they are not in this repository."
+    }
+  }
+}

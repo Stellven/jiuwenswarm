@@ -1,0 +1,641 @@
+"""Evidence-driven factory host. Only the agent chooses the next action.
+
+The injectable stream callable and clock are for offline unit tests, not a
+simulation mode exposed to operators. Host progress is separate from evidence.
+"""
+from __future__ import annotations
+
+import asyncio
+from contextlib import contextmanager
+import fcntl
+import json
+import math
+import os
+from pathlib import Path
+import re
+import sys
+import subprocess
+import time
+import uuid
+
+from .jobs import Jobs
+from .store import Store, TASK_INPUTS
+
+# Controller-owned optional inputs use Store's existing additive schema boundary.
+TASK_INPUTS.update(resources="JSON NOT NULL DEFAULT '{}'", capability_cc="TEXT NOT NULL DEFAULT ''")
+
+try:
+    from .taskgraph import seed_plan
+except ImportError:
+    seed_plan = None
+
+ROOT = Path(__file__).resolve().parents[2]
+ACTIVE = {'queued', 'running', 'cancel_requested'}
+TERMINAL = {'reject', 'accept', 'report_inconclusive', 'stop_missing_prerequisite'}
+
+
+EVOLVE_ACTIONS = {'investigate', 'tune', 'integrate', 'build', 'measure', 'keep_component', 'keep_dormant', 'revert_component'}
+COMPONENT_ACTIONS = {'keep_component', 'keep_dormant', 'revert_component'}
+
+
+def validate_action(action, *, sealed_component=False):
+    if not isinstance(action, dict) or not isinstance(action.get('type'), str):
+        raise ValueError('Decision action requires type')
+    kind = action['type']
+    if kind not in EVOLVE_ACTIONS | TERMINAL:
+        raise ValueError('Unsupported evolve action type')
+    if kind in COMPONENT_ACTIONS:
+        from .components import load, dependents
+        if not sealed_component:
+            load(action.get('component'))
+        elif not isinstance(action.get('component'),str) or not action['component'].strip():
+            raise ValueError('Sealed component identifier required')
+        if kind == 'keep_dormant':
+            # A rejected component may keep its default-off source only as a prerequisite
+            # of components still to be measured; its switch stays off in every arm.
+            needed = set(action.get('needed_by') or [])
+            if (not needed or not needed <= dependents(action['component'])
+                    or not isinstance(action.get('reason'), str) or not action['reason'].strip()):
+                raise ValueError('keep_dormant requires reason and needed_by naming dependent components')
+        if kind == 'keep_component':
+            ratio = action.get('ratio')
+            if (not isinstance(action.get('image'), (str, dict)) or not action['image']
+                    or type(ratio) not in (int, float) or not math.isfinite(ratio) or ratio <= 0):
+                raise ValueError('keep_component requires image and finite ratio > 0')
+        elif not isinstance(action.get('reason'), str) or not action['reason'].strip():
+            raise ValueError('revert_component requires reason')
+
+
+def validate_keep_evidence(store, task_id, record):
+    action = record['action']
+    if store.get_task(task_id).get('constraints',{}).get('factory_loop',{}).get('comparison_templates'):
+        from .construction_comparison import validate_acceptance
+        accepted = validate_acceptance(store,task_id,record.get('evidence_ids',[]))
+        image = action.get('image')
+        image = image.get('id') if isinstance(image,dict) else image
+        from jiuwenswarm.ccv2.ccv2 import Host
+        host = Host(getattr(store,'_store',store).home/'ccstore')
+        component = accepted['lineage']['component']
+        _,bundle = host.release(component['release'])
+        material = host.material(component['release'],component['material'])
+        identifier = json.loads((bundle/material['path']).read_text()).get('id')
+        if identifier != action['component']:
+            raise ValueError('Keep component differs from evaluated source release')
+        if action.get('ratio') != accepted['ratio']:
+            raise ValueError('Keep ratio differs from independently evaluated result')
+        if image != accepted['lineage']['image_id']:
+            raise ValueError('Keep image differs from independently evaluated candidate')
+        return
+    for ref in record.get('evidence_ids', []):
+        evidence = store.read(task_id, ref)
+        if (evidence.get('kind') == 'ab_result'
+                and evidence.get('values', {}).get('component', '').removeprefix('factory.components.')
+                    == action['component'].removeprefix('factory.components.')
+                and evidence['values'].get('acceptance', {}).get('verdict') == 'accept'):
+            return
+        if (evidence.get('inputs', {}).get('ab_result', {}).get('component', '').removeprefix('factory.components.')
+                == action['component'].removeprefix('factory.components.')
+                and evidence.get('inputs', {}).get('acceptance', {}).get('verdict') == 'accept'):
+            return
+    raise ValueError('keep_component requires a cited ab_result with acceptance.verdict == accept')
+
+
+def read_tasks(task):
+    constraints = task.get('constraints')
+    reads = constraints.get('read_tasks', []) if isinstance(constraints, dict) else []
+    if not isinstance(reads, list) or not all(isinstance(t, str) and t for t in reads):
+        raise ValueError('constraints.read_tasks must be a list of task ids')
+    return reads
+from .redact import sanitize as scrub
+from .config import DOCKER_PREFIX, expand_sources
+
+
+def factory_home():
+    return Path(os.environ.get('FACTORY_HOME', '~/.jiuwenswarm-factory')).expanduser().resolve()
+
+
+def configure_agent(task, grants=(), home=None):
+    """Configure one operator-owned profile; grants are always an intersection."""
+    home = Path(home or factory_home()).resolve()
+    workspace, data = home / 'agent-workspace', home / 'agent-data'
+    for directory in (home, workspace, data, home / 'sessions', home / 'ccstore'):
+        directory.mkdir(parents=True, exist_ok=True)
+    effective = sorted(set(task.get('allowed_effects', [])) & set(grants))
+    args = ['-m', 'jiuwenswarm.ccv2.agent_mcp', '--ccs', str(ROOT / 'jiuwenswarm/factory/ccs'),
+            '--store', str(home / 'ccstore'), '--workspace', str(workspace)]
+    for grant in effective:
+        args += ['--grant', grant]
+    env = {'FACTORY_HOME': str(home), 'FACTORY_TASK_ID': task['task_id'],
+           'FACTORY_WORKSPACE': str(workspace), 'DOCKER_CMD_PREFIX': DOCKER_PREFIX,
+           'PYTHONPATH': os.pathsep.join(dict.fromkeys([str(ROOT), *filter(None, os.environ.get('PYTHONPATH', '').split(os.pathsep))])),
+           # Bind native {python} to the controller's admitted environment.
+           'CCV2_PYTHON': sys.executable, 'FACTORY_PYTHON': sys.executable,
+           'PATH': '/usr/local/cuda/bin:' + os.environ.get('PATH', '')}
+    for key in ('FACTORY_BRIDGE_DIR', 'FACTORY_HOST_PYTHON', 'FACTORY_JOBQ_BIN', 'JOBQ_DIR',
+                'FACTORY_YIELD_ON_JOBS', 'FACTORY_BUILD_RECIPE', 'FACTORY_NATIVE_BUILDER_IMAGE'):
+        if key in os.environ:
+            env[key] = os.environ[key]
+    # Cross-task reads only when the operator lists prior tasks in constraints.read_tasks.
+    reads = read_tasks(task)
+    if reads:
+        env['FACTORY_READ_TASKS'] = ','.join(reads)
+    quote = json.dumps
+    mcp = home / 'agent-mcp.toml'
+    mcp.write_text('[mcp_servers.cc]\n' + f'command = {quote(sys.executable)}\n'
+                   + 'args = ' + json.dumps(args) + '\n'
+                   + 'env_vars = ["FACTORY_TURN", "HOME", "DOCKER_HOST", "DOCKER_CONTEXT", "TMP", "TEMP"]\n'
+                   + 'startup_timeout_sec = 60\ntool_timeout_sec = 300\n'
+                   + 'default_tools_approval_mode = "approve"\n[mcp_servers.cc.env]\n'
+                   + ''.join(f'{k} = {quote(v)}\n' for k, v in env.items()), encoding='utf-8')
+    os.environ.update(env | {'JIUWENSWARM_DATA_DIR': str(data),
+        'JIUWENSWARM_AGENT_SDK': 'codex_subscription', 'JIUWENSWARM_CODEX_AGENT': '1',
+        'JIUWENSWARM_CODEX_AGENT_MCP': str(mcp), 'JIUWENSWARM_CODEX_AGENT_CWD': str(workspace),
+        'JIUWENSWARM_SKIP_DOTENV': '1'})
+    return mcp
+
+
+STALL_TURNS = 3
+ENGINE_CONTRACTS = {'qwen36-bare-greedy-v1', 'qwen36-quick-v1'}
+
+class Controller:
+    def __init__(self, home=None, *, store=None, jobs=None, grants=(), facade=None,
+                 sleep=asyncio.sleep, clock=time.time):
+        self.home = Path(home or (store.home if store else factory_home())).resolve()
+        self.store = store or Store(self.home)
+        if store is not None:
+            # An injected Store may have been opened before importing Controller.
+            columns = {row['name'] for row in store._db.execute('PRAGMA table_info(tasks)')}
+            with store._transaction(inject=False):
+                for name in ('resources', 'capability_cc'):
+                    if name not in columns:
+                        store._db.execute(f'ALTER TABLE tasks ADD COLUMN {name} {TASK_INPUTS[name]}')
+                        if name == 'resources':
+                            store._json_columns['tasks'].add(name)
+        self.jobs = jobs or Jobs(self.store)
+        self.grants = list(grants)
+        self.facade = facade
+        self._live_facade = None
+        self.sleep, self.clock = sleep, clock
+        (self.home / 'sessions').mkdir(parents=True, exist_ok=True)
+
+    def init_task(self, task_file):
+        # External checkouts, caches and models are written as ${FACTORY_...}; see config.py.
+        task = expand_sources(json.loads(Path(task_file).read_text(encoding='utf-8')))
+        required = {'objective', 'constraints', 'allowed_effects', 'target', 'budget',
+                    'contract_id', 'initial_run_config', 'component_cc', 'source'}
+        if not isinstance(task, dict) or required - task.keys() or task.keys() - required - {'operator_labels', 'task_id', 'resources', 'capability_cc'}:
+            raise ValueError('Invalid task fields')
+        if not isinstance(task['objective'], str) or not task['objective'].strip():
+            raise ValueError('objective must be nonempty text')
+        for key in ('contract_id', 'component_cc'):
+            if not isinstance(task[key], str) or not task[key].strip():
+                raise ValueError(f'{key} must be nonempty text')
+        if not isinstance(task['constraints'], (dict, list)) or not isinstance(task['target'], (str, dict)):
+            raise ValueError('constraints must be object/list and target must be text/object')
+        from .targets import profile
+        profile(task['target'])
+        if not isinstance(task['allowed_effects'], list) or not all(isinstance(g, str) for g in task['allowed_effects']):
+            raise ValueError('allowed_effects must be a list of grants')
+        for key in ('budget', 'source', 'initial_run_config', 'operator_labels', 'resources'):
+            if not isinstance(task.get(key, {}), dict):
+                raise ValueError(f'{key} must be an object')
+        for prior in read_tasks(task):
+            self.store.get_task(prior)  # must exist; raises NotFound otherwise
+        budget = task['budget']
+        if (type(budget.get('max_turns')) is not int or budget['max_turns'] < 1
+                or type(budget.get('wall_clock_s')) not in (int, float)
+                or not math.isfinite(budget['wall_clock_s']) or budget['wall_clock_s'] <= 0):
+            raise ValueError('budget requires positive max_turns and wall_clock_s')
+        source = task['source']
+        if not isinstance(source.get('subpath'), str) or not isinstance(source.get('pre_integration_commit'), str):
+            raise ValueError('source requires a workspace subpath and pre_integration_commit')
+        subpath = Path(source['subpath'])
+        if (not source.get('subpath') or subpath.is_absolute() or '..' in subpath.parts
+                or not source.get('pre_integration_commit')):
+            raise ValueError('source requires a workspace subpath and pre_integration_commit')
+        task.setdefault('task_id', 'factory-' + uuid.uuid4().hex)
+        # Paths use task IDs; prohibit traversal even for operator-supplied IDs.
+        self._state_path(task['task_id'])
+        if task['contract_id'] in ENGINE_CONTRACTS:
+            self._init_evolve(source)
+        elif isinstance(task.get('constraints'), dict) and task['constraints'].get('local_commits'):
+            self._init_owned_source(source)
+        task = self.store.create_task(task)
+        if seed_plan is not None:
+            seed_plan(self.store, task)
+        return task['task_id']
+
+    def _init_owned_source(self, source):
+        workspace = (self.home / 'agent-workspace').resolve()
+        checkout = (workspace / source['subpath']).resolve()
+        if not checkout.is_relative_to(workspace) or not checkout.is_dir():
+            raise ValueError('Existing isolated source checkout required')
+        result = subprocess.run(['git','-C',str(checkout),'rev-parse','HEAD'],capture_output=True,text=True,check=True)
+        if result.stdout.strip() != source['pre_integration_commit']:
+            raise ValueError('Owned source revision differs from task')
+        if subprocess.run(['git','-C',str(checkout),'status','--porcelain','--untracked-files=all'],capture_output=True,text=True,check=True).stdout:
+            raise ValueError('Initial source must be clean')
+
+    def _init_evolve(self, source):
+        workspace = (self.home / 'agent-workspace').resolve()
+        checkout = (workspace / source['subpath']).resolve()
+        if not checkout.is_relative_to(workspace):
+            raise ValueError('Owned checkout escapes workspace')
+        if not isinstance(source.get('branch'), str) or not re.fullmatch(r'[a-z][a-z0-9_-]*', source['branch']) or source['pre_integration_commit'] != 'cf34d3113':
+            raise ValueError('Engine capability task requires a valid source.branch at cf34d3113')
+        def git(*args, check=True):
+            return subprocess.run(['git', '-C', str(checkout), *args], check=check,
+                                  capture_output=True, text=True)
+        if not checkout.is_dir() or git('rev-parse', '--show-toplevel').stdout.strip() != str(checkout):
+            raise ValueError('Evolution requires an existing owned git checkout')
+        if git('show-ref', '--verify', '--quiet', 'refs/heads/' + source['branch'], check=False).returncode:
+            # Create only the named ref: never switch/reset the current branch or worktree.
+            git('branch', source['branch'], 'cf34d3113')
+
+    def _state_path(self, task_id):
+        if not isinstance(task_id, str) or not re.fullmatch(r'[A-Za-z0-9_-]+', task_id):
+            raise ValueError('task_id must contain only letters, digits, underscore or hyphen')
+        return self.home / 'sessions' / (task_id + '.state.json')
+
+    def _load(self, task_id):
+        path = self._state_path(task_id)
+        if path.exists():
+            return json.loads(path.read_text())
+        return dict(turns=0, started=None, outcome=None, seen_attempts={}, missing_decision=False)
+
+    def _active(self, state):
+        """Seconds this task has actually been running; host downtime between runs is not counted."""
+        if 'active_s' not in state:  # state written before active-time accounting
+            return max(0, self.clock() - state['started']) if state.get('started') is not None else 0
+        return state['active_s'] + (self.clock() - state['tick'] if state.get('tick') is not None else 0)
+
+    def _save(self, task_id, state):
+        if state.get('tick') is not None:  # fold elapsed running time in, so a crash loses at most a few seconds
+            now = self.clock()
+            state['active_s'] = state.get('active_s', 0) + now - state['tick']
+            state['tick'] = now
+        path = self._state_path(task_id)
+        temp = path.with_suffix('.tmp')
+        with temp.open('w') as out:
+            json.dump(state, out)
+            out.flush()
+            os.fsync(out.fileno())
+        temp.replace(path)
+
+    @contextmanager
+    def _lock(self):
+        # A profile has one MCP configuration and one Codex transport: serialize
+        # controllers across tasks. Cancellation remains independently available.
+        with (self.home / 'controller.lock').open('a') as handle:
+            try:
+                fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                raise ValueError('A controller is already running in FACTORY_HOME') from None
+            yield
+
+    def _snapshot(self, task_id):
+        snapshot = self.store.dump(task_id)
+        from .loop import owned_attempts
+        snapshot['attempts'] = owned_attempts(self.store, task_id)
+        return snapshot
+
+    def _reconcile(self, task_id):
+        for attempt in self._snapshot(task_id)['attempts']:
+            if attempt['state'] in ACTIVE | {'unknown'}:
+                if attempt['kind'] == 'lab':
+                    from .manager import Manager
+                    Manager(self.store, self.home / 'lab-spool').status(attempt['attempt_id'])
+                else:
+                    self.jobs.status(attempt['attempt_id'])
+
+    def _remaining(self, task, state):
+        remaining = {'turns': max(0, task['budget']['max_turns'] - state['turns']),
+                     'wall_clock_s': max(0, task['budget']['wall_clock_s'] - self._active(state))}
+        owner_id = task.get('constraints', {}).get('campaign_budget_owner')
+        if owner_id:
+            owner = self.store.get_task(owner_id)
+            turns = state['turns']
+            for row in self.store._db.execute('SELECT task_id,constraints FROM tasks'):
+                if row['task_id'] == task['task_id']:
+                    continue
+                constraints = json.loads(row['constraints'])
+                if row['task_id'] == owner_id or constraints.get('campaign_budget_owner') == owner_id:
+                    path = self._state_path(row['task_id'])
+                    if path.exists():
+                        turns += json.loads(path.read_text()).get('turns',0)
+            remaining['turns'] = min(remaining['turns'],max(0,owner['budget']['max_turns']-turns))
+            remaining['wall_clock_s'] = min(remaining['wall_clock_s'],
+                max(0,owner['budget']['wall_clock_s']-(self.clock()-owner['created'])))
+        return remaining
+
+    def _message(self, task, state):
+        current = self.store.get_task(task['task_id'])
+        attempts = self._snapshot(task['task_id'])['attempts']
+        changed = [{'attempt_id': a['attempt_id'], 'state': a['state']} for a in attempts
+                   if state['seen_attempts'].get(a['attempt_id']) != a['state']]
+        state['seen_attempts'] = {a['attempt_id']: a['state'] for a in attempts}
+        message = dict(task_id=task['task_id'], decision_rev=current['current_decision_rev'],
+                       evidence_cursor=current['evidence_cursor'], changed_attempts=changed,
+                       remaining_budget=self._remaining(task, state))
+        from .operator_notes import pending
+        notes = pending(self.home, task['task_id'], state)
+        if notes or state.get('operator_notes'):
+            message['operator_notes'] = state.pop('operator_notes', []) + [n['text'] for n in notes]
+            state['pending_operator_note_ids'] = [n['note_id'] for n in notes]
+        if state['missing_decision']:
+            message['host_observation'] = 'Previous turn ended without publishing a new decision revision.'
+        if state['turns'] == 0 or state.pop('needs_context', False):
+            if state['turns']:
+                message['host_observation'] = ('Controller restarted (host reboot or crash): this is a NEW agent session with no memory. '
+                    'Durable evidence and decisions in the store are authoritative; read them before acting. '
+                    + message.get('host_observation', ''))
+            # Only operator inputs and standing instructions; never producer prose.
+            message['objective'] = task['objective']
+            message['operator_labels'] = task.get('operator_labels', {})
+            message['resources'] = task.get('resources', {})
+            if read_tasks(task):
+                message['readable_prior_tasks'] = read_tasks(task)  # ids only; query their evidence
+            message['instructions'] = Path(__file__).with_name('AGENT.md').read_text()
+        return json.dumps(message, ensure_ascii=False)
+
+    def _terminal_ready(self, task_id):
+        data = self._snapshot(task_id)
+        latest = max(data['decisions'], key=lambda d: d['rev'], default={})
+        if latest.get('action', {}).get('type') not in TERMINAL or not latest.get('evidence_ids'):
+            return False
+        if any(a['state'] in ACTIVE | {'unknown'} for a in data['attempts']):
+            return False
+        exists = self.store._db.execute("SELECT 1 FROM sqlite_master WHERE name='factory_loop_cycles'").fetchone()
+        if exists and any(json.loads(row['record'])['state'] != 'collected' for row in self.store._db.execute(
+                'SELECT record FROM factory_loop_cycles WHERE task_id=?', (task_id,))):
+            return False
+        self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(self.store.get_task(task_id)))
+        return True
+
+    async def _bounded_turn(self, task_id, query, turn, session_id, timeout):
+        """A persisted terminal decision can end a streaming transport promptly."""
+        initial_rev = self.store.get_task(task_id)['current_decision_rev']
+        running = asyncio.create_task(self._turn(task_id, query, turn, session_id))
+        deadline = asyncio.get_running_loop().time() + timeout
+        try:
+            while True:
+                remaining = deadline - asyncio.get_running_loop().time()
+                if remaining <= 0:
+                    raise asyncio.TimeoutError()
+                done, _ = await asyncio.wait({running}, timeout=min(.2, remaining))
+                if done:
+                    return await running
+                if self.store.get_task(task_id)['current_decision_rev'] > initial_rev and self._terminal_ready(task_id):
+                    return
+        finally:
+            if not running.done():
+                running.cancel()
+                try:
+                    await running
+                except asyncio.CancelledError:
+                    pass
+
+    async def _turn(self, task_id, query, turn, session_id=None):
+        from jiuwenswarm.common.schema.agent import AgentRequest
+        from jiuwenswarm.common.schema.message import ReqMethod
+        stream = self.facade
+        if stream is None:
+            if self._live_facade is None:
+                from jiuwenswarm.server.runtime.agent_adapter.interface import JiuWenSwarm
+                self._live_facade = JiuWenSwarm()
+                self._live_facade._sdk_name = 'codex_subscription'
+            stream = self._live_facade.process_message_stream
+        params = {'query': query, 'mode': 'agent.work.normal'}
+        # Optional explicit agent model (e.g. gpt-6.1-sol). Unset keeps the transport's default
+        # resolution; the governed service rejects provider fallback, so a typo fails loudly.
+        if os.environ.get('JIUWENSWARM_CODEX_MODEL'):
+            params['codex_model'] = os.environ['JIUWENSWARM_CODEX_MODEL']
+        request = AgentRequest(request_id=f'{task_id}-{turn}-{uuid.uuid4().hex}', channel_id='web',
+            session_id=session_id or task_id, req_method=ReqMethod.CHAT_SEND, params=params)
+        log = self.home / 'sessions' / f'{task_id}.jsonl'
+        from .telemetry import emit as telemetry_emit
+        started = self.clock()
+        calls, tokens, pending_tools = {}, None, {}
+        outcome = 'error'
+        os.environ['FACTORY_TURN'] = str(turn)
+        # MCP may outlive a turn; native entrypoints also read the durable reservation.
+        try:
+            with log.open('a', encoding='utf-8') as out:
+                def emit(payload):
+                    out.write(json.dumps(scrub({'t': self.clock(), **payload}), ensure_ascii=False, default=str) + '\n')
+                    out.flush()
+                emit({'event': 'turn.start', 'turn': turn, 'session_id': session_id or task_id, 'query': query})
+                async for chunk in stream(request):
+                    payload = getattr(chunk, 'payload', chunk)
+                    payload = payload if isinstance(payload, dict) else {'raw': str(payload)}
+                    emit(payload)
+                    kind = payload.get('event_type', payload.get('event'))
+                    if kind == 'chat.tool_call':
+                        tool = payload.get('tool_call', {})
+                        name = tool.get('name', 'unknown')
+                        calls[name] = calls.get(name, 0) + 1
+                        pending_tools[tool.get('tool_call_id')] = tool.get('arguments', {})
+                    if kind == 'chat.tool_result' and payload.get('tool_name', '').split('.')[-1] in {'cc_material', 'cc_list'}:
+                        result = payload.get('result')
+                        def unpack(value):
+                            if isinstance(value, str):
+                                try:
+                                    return unpack(json.loads(value))
+                                except ValueError:
+                                    return None
+                            if isinstance(value, dict):
+                                if any(k in value for k in ('cc', 'ccs', 'material')):
+                                    return value
+                                for child in value.values():
+                                    found = unpack(child)
+                                    if found is not None:
+                                        return found
+                            if isinstance(value, list):
+                                for child in value:
+                                    found = unpack(child)
+                                    if found is not None:
+                                        return found
+                            return None
+                        material = unpack(result) or {}
+                        args = pending_tools.get(payload.get('tool_call_id'), {})
+                        if isinstance(args, str):
+                            try:
+                                args = json.loads(args)
+                            except ValueError:
+                                args = {}
+                        args = args if isinstance(args, dict) else {}
+                        telemetry_emit(self.home, 'cc.material', task_id, turn=turn,
+                            tool_name=payload['tool_name'], capsule=material.get('cc', args.get('cc')),
+                            material=material.get('material', args.get('material')),
+                            path=material.get('path'), bytes=len(material['text'].encode()) if isinstance(material.get('text'), str) else None,
+                            truncated=material.get('truncated'),
+                            observed=bool(material), bytes_scope='returned UTF-8 text; null for listings')
+                    def usage(value):
+                        if isinstance(value, dict):
+                            if isinstance(value.get('usage'), dict):
+                                return value['usage']
+                            for child in value.values():
+                                found = usage(child)
+                                if found is not None:
+                                    return found
+                        return None
+                    observed = usage(payload)
+                    if observed is not None:
+                        tokens = {key: observed.get(key) for key in ('input_tokens', 'output_tokens')}
+                        tokens.update({key: observed[key] for key in ('input_tokens_details', 'output_tokens_details', 'cached_input_tokens') if key in observed})
+                    if kind in {'chat.error', 'error'}:
+                        outcome = 'stream_error'
+                emit({'event': 'turn.end', 'turn': turn})
+                outcome = 'ok' if outcome != 'stream_error' else 'error'
+        finally:
+            telemetry_emit(self.home, 'agent.turn', task_id, turn=turn, start=started,
+                           duration_ms=(self.clock() - started) * 1000, tool_calls=calls,
+                           tokens=tokens, outcome=outcome)
+
+    def _finish(self, task_id, state, outcome):
+        data = self._snapshot(task_id)
+        state['outcome'] = outcome
+        state['pending_attempts'] = [a['attempt_id'] for a in data['attempts'] if a['state'] in ACTIVE | {'unknown'}]
+        latest = max(data['decisions'], key=lambda d: d['rev'], default={})
+        state['pending_questions'] = [latest.get('uncertainty') or 'No terminal decision with supporting evidence.'] if outcome == 'partial' else []
+        self._save(task_id, state)
+        state['tick'] = None
+        state['finished'] = self.clock()
+        self._save(task_id, state)
+        return self.status(task_id)
+
+    async def run(self, task_id):
+        with self._lock():
+            task = self.store.get_task(task_id)
+            state = self._load(task_id)
+            if 'pending_turn_rev' in state:
+                state['missing_decision'] = task['current_decision_rev'] == state['pending_turn_rev']
+            # An operator fix (e.g. baseline-import) reopens an inconclusive task; accept/reject stay final.
+            from .operator_notes import pending
+            reopen = bool(state.get('operator_notes') or pending(self.home, task_id, state)) and state['outcome'] in {'report_inconclusive', 'partial', 'stop_missing_prerequisite'}
+            if state['outcome'] in TERMINAL and not reopen:
+                return self.status(task_id)
+            missing = sorted(set(task.get('allowed_effects', [])) - set(self.grants))
+            if missing and not self.grants:
+                # No grants at all: every native capsule call would be denied. Fail before a model turn.
+                # (A deliberate subset of grants is the operator's choice and stays allowed.)
+                raise ValueError('Task allows effects with no operator grant: ' + ', '.join(missing)
+                                 + '. Re-run with ' + ' '.join('--grant ' + m for m in missing))
+            configure_agent(task, self.grants, self.home)
+            state['started'] = state['started'] if state['started'] is not None else self.clock()
+            if 'active_s' not in state:
+                state['active_s'] = max(0, self.clock() - state['started'])
+            state['tick'] = self.clock()
+            if state['turns']:
+                # Resumed after an exit/crash: the old agent session cannot be continued (NEW_SESSION_REQUIRED).
+                state['session_gen'] = state.get('session_gen', 0) + 1
+                state['needs_context'] = True
+            state['outcome'] = None
+            state.pop('finished', None)
+            self._save(task_id, state)
+            try:
+                # Also reconciles on ordinary run, making restart safe by default.
+                self._reconcile(task_id)
+                while True:
+                    remaining = self._remaining(task, state)
+                    if remaining['wall_clock_s'] <= 0:
+                        return self._finish(task_id, state, 'partial')
+                    decisions = self._snapshot(task_id)['decisions']
+                    latest = max(decisions, key=lambda d: d['rev'], default={})
+                    action = latest.get('action', {}).get('type')
+                    if self._terminal_ready(task_id) and not (state.get('operator_notes') or pending(self.home, task_id, state)):
+                        self.store.validate_evidence(task_id, latest['evidence_ids'], read_tasks(task))
+                        return self._finish(task_id, state, action)
+                    if remaining['turns'] <= 0:
+                        return self._finish(task_id, state, 'partial')
+                    active = [a for a in self._snapshot(task_id)['attempts'] if a['state'] in ACTIVE]
+                    if active:
+                        if os.environ.get('FACTORY_YIELD_ON_JOBS') == '1':
+                            state['outcome'] = 'waiting'
+                            self._save(task_id, state)
+                            return self.status(task_id)
+                        await self.sleep(min(15, remaining['wall_clock_s']))
+                        self._reconcile(task_id)
+                        self._save(task_id, state)
+                        continue
+                    query = self._message(task, state)
+                    before = self.store.get_task(task_id)['current_decision_rev']
+                    state['turns'] += 1
+                    # Reserve the turn durably before invoking the model. On
+                    # interruption the next message reports the unconfirmed turn.
+                    state['missing_decision'] = True
+                    state['pending_turn_rev'] = before
+                    self._save(task_id, state)
+                    try:
+                        await self._bounded_turn(task_id, query, state['turns'],
+                            f"{task_id}-s{state['session_gen']}" if state.get('session_gen') else None,
+                            remaining['wall_clock_s'])
+                    except asyncio.TimeoutError:
+                        return self._finish(task_id, state, 'partial')
+                    state['operator_notes_delivered'] = sorted(set(state.get('operator_notes_delivered', [])) | set(state.pop('pending_operator_note_ids', [])))
+                    state['missing_decision'] = self.store.get_task(task_id)['current_decision_rev'] == before
+                    state.pop('pending_turn_rev', None)
+                    # A turn that neither advanced the decision nor started a job made no progress.
+                    started = any(a['state'] in ACTIVE for a in self._snapshot(task_id)['attempts'])
+                    state['idle_turns'] = state.get('idle_turns', 0) + 1 if state['missing_decision'] and not started else 0
+                    if state['idle_turns'] >= STALL_TURNS:
+                        state['stop_reason'] = f'stalled: {STALL_TURNS} consecutive turns without a decision or job'
+                        return self._finish(task_id, state, 'partial')
+                    self._save(task_id, state)
+            finally:
+                if self.facade is None:
+                    from jiuwenswarm.server.runtime.codex_subscription.service import get_service
+                    await get_service().transport.close()
+
+    def import_baseline(self, task_id, source_task='operator-bare-build', source_attempt=None):
+        """Link the existing plain-engine build receipt into a task and tell the agent on its next turn."""
+        from .manager import Manager, import_baseline_build
+        info = import_baseline_build(Manager(self.store, self.home / 'lab-spool'), task_id, source_task, source_attempt)
+        state = self._load(task_id)
+        state.setdefault('operator_notes', []).append(
+            'Operator imported the existing plain baseline build (no rebuild) so it can be admitted for the A/B: '
+            + json.dumps(dict(tag=info['tag'], id=info['id'], build_attempt_id=info['build_attempt_id']))
+            + f" (from {info['imported_from']}). Use it as the base image of the fill ABBA.")
+        self._save(task_id, state)
+        return info
+
+    def add_note(self, task_id, text):
+        """Operator instruction delivered with the agent's next turn (reopens inconclusive/partial tasks on resume)."""
+        self._state_path(task_id)
+        self.store.get_task(task_id)
+        from .operator_notes import publish
+        return publish(self.home, task_id, text)
+
+    async def resume(self, task_id):
+        return await self.run(task_id)
+
+    def cancel(self, task_id):
+        from .manager import Manager
+        results = []
+        for attempt in self._snapshot(task_id)['attempts']:
+            if attempt['state'] in ACTIVE | {'unknown'}:
+                owner = Manager(self.store, self.home / 'lab-spool') if attempt['kind'] == 'lab' else self.jobs
+                results.append(owner.cancel(attempt['attempt_id']))
+        return results
+
+    def status(self, task_id):
+        data = self._snapshot(task_id)
+        task = data['tasks'][0]
+        state = self._load(task_id)
+        latest = max(data['decisions'], key=lambda d: d['rev'], default=None)
+        return dict(task_id=task_id, objective=task['objective'], outcome=state['outcome'],
+                    latest_decision=latest, active_jobs=[a for a in data['attempts'] if a['state'] in ACTIVE | {'unknown'}],
+                    artifacts=[{k: a[k] for k in ('artifact_id', 'media_type', 'size')} for a in data['artifacts']],
+                    evaluations=data['evaluations'], readiness={'decision_published': latest is not None,
+                        'jobs_idle': not any(a['state'] in ACTIVE | {'unknown'} for a in data['attempts']),
+                        'evaluations_present': bool(data['evaluations'])},
+                    budget_used={'turns': state['turns'], 'wall_clock_s': self._active(state)},
+                    pending_attempts=state.get('pending_attempts', []), pending_questions=state.get('pending_questions', []))
+
+
+def status(task_id):
+    controller = Controller()
+    try:
+        return controller.status(task_id)
+    finally:
+        controller.store.close()
