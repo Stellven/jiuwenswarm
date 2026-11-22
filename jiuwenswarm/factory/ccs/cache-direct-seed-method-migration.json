@@ -1,0 +1,13 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "expert_weight_cache/cc.yaml",
+      "from_version": "1.4.0",
+      "from_release": "0ac28630f14283910e0559e603cfbf84792e22ae1c8a488a73a61a63395a56a2",
+      "to_version": "1.4.1",
+      "to_release": "c5af98ab3a0d01e384d1f11e5d510238ba5f90d8c783df76269d7a10b69d5ea0",
+      "methodology_changed": true
+    }
+  ]
+}

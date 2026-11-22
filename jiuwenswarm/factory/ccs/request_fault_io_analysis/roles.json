@@ -1,0 +1,14 @@
+{
+  "format": "factory-roles/1",
+  "capabilities": {"analyze": "tool", "verify": "tool", "analyze_calibration": "tool", "verify_calibration": "tool"},
+  "materials": {
+    "method": "method",
+    "source_map": "reference",
+    "helper": "reference",
+    "calibration_helper": "reference",
+    "tests": "reference",
+    "calibration_tests": "reference",
+    "checksums": "reference",
+    "analysis": "reference"
+  }
+}

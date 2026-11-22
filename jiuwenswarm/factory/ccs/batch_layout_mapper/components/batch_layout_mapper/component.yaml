@@ -1,0 +1,42 @@
+kind: builder_spec
+implements: [batch_layout_mapper.prompt_mapping]
+modifies_region: [L3]
+quantities: [layout.length, layout.cached_prefix, layout.begin, layout.end, layout.max_rows, layout.bypasses]
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  touches: [src/llama-batch-layout.h, tools/server/server-context.cpp]
+  kind: observability
+supported:
+  host: {name: jetson-orin, arch: aarch64, cuda_arch: sm_87}
+  models: Splittable causal text completion, one configured slot, stock compute buffers.
+  dtype: any
+configuration:
+  env: {LLAMA_BATCH_LAYOUT: '1'}
+  source: >-
+    Enable only on an exact value of 1, read once per server context. Unset
+    uses stock. Any other value uses stock with an inactive reason. For
+    eligible single-slot causal text prefill, use stock effective limits
+    and post-cache prefix accounting to align intermediate logical cuts
+    to the physical width. Preserve stock boundaries for special paths
+    and log planned half-open prompt-row spans at INFO verbosity 4.
+engagement_checks:
+- 'batch_layout_mapper: active n_batch=<rows> n_ubatch=<rows> limit=<rows>'
+- 'batch_layout_mapper: inactive (<reason>)'
+- 'batch_layout_mapper: layout length=<rows> cached_prefix=<rows> begin=<row> end=<row> max_rows=<rows>'
+- 'batch_layout_mapper: stats decisions=<count> rows=<count> bypasses=<count>'
+correctness_obligations:
+- >-
+  With LLAMA_BATCH_LAYOUT unset, take the stock path and do no component work
+  beyond one cached getenv check. Emit zero log lines with the batch_layout_mapper: prefix.
+  Active, inactive (<reason>) and stats markers require a set gate.
+- Token order, positions, cached prefix, router IDs, mixture weights, quantization and sampling follow stock.
+- Greedy output bytes, token IDs and stop reason equal stock across the cold and primed 14-length sweeps and the mixed-slot control.
+- Every planned microbatch fits the admitted reservation. Mapper memory is zero dynamic bytes and at most 128 fixed bytes per server context, charged to the shared capacity ledger.
+- Invalid or unsupported layout uses stock. Multiple configured slots always use stock.
+rollback:
+  source: Unset LLAMA_BATCH_LAYOUT for stock behavior. Revert the mapper-only commit in the owned checkout and rebuild for source rollback.
+  image: Use the admitted stock image for the same pin, contract and build configuration.
+acceptance: {type: prerequisite}

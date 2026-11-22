@@ -1,0 +1,28 @@
+cc: '2'
+id: analysis.expert_prefetch_readiness
+version: 1.0.0
+materials:
+  method: {path: METHOD.md}
+  source_map: {path: SOURCE-MAP.md}
+  helper: {path: prefetch.py}
+  tests: {path: test_prefetch.py}
+  analysis: {path: ANALYSIS.json, media_type: application/json}
+  checksums: {path: SHA256SUMS, media_type: text/plain}
+  roles: {path: roles.json, media_type: application/json}
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  analyze:
+    does: Validate matching native A+30 controls and summarize issued versus useful expert prefetch outcomes.
+    takes: {evidence: artifact}
+    gives: {report: json}
+    needs: [python]
+    changes: [process.exec]
+  verify:
+    does: Recompute the exact native expert prefetch coverage report from the same retained evidence.
+    takes: {evidence: artifact, report: json}
+    gives: {verification: json}
+    needs: [python]
+    changes: [process.exec]

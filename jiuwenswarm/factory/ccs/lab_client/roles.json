@@ -1,0 +1,17 @@
+{
+  "capabilities": {
+    "ab_result": "tool",
+    "ab_status": "tool",
+    "ab_submit": "tool",
+    "cancel": "tool",
+    "result": "tool",
+    "status": "tool",
+    "submit": "tool",
+    "intake": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "llama_spark": "method",
+    "roles": "reference"
+  }
+}

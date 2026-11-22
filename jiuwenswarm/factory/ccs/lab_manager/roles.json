@@ -1,0 +1,18 @@
+{
+  "capabilities": {
+    "ask": "tool",
+    "cancel": "tool",
+    "compose": "tool",
+    "draft_task": "tool",
+    "reply": "tool",
+    "report": "tool",
+    "send": "tool",
+    "source_bundle": "tool",
+    "status": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "method": "method",
+    "roles": "reference"
+  }
+}

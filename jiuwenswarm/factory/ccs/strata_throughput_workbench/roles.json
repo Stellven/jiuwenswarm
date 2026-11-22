@@ -1,0 +1,30 @@
+{
+  "capabilities": {
+    "ablation": "tool",
+    "apply": "tool",
+    "collect": "tool",
+    "design": "tool",
+    "diagnose": "tool",
+    "execute": "tool",
+    "followup": "tool",
+    "inspect": "tool",
+    "inspect_evidence": "tool",
+    "loop_status": "tool",
+    "propose": "tool",
+    "publish": "tool",
+    "query": "tool",
+    "read": "tool",
+    "select": "tool",
+    "stop": "tool",
+    "test_scope": "tool",
+    "verify_profile": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "integration": "skill",
+    "job_verification": "reference",
+    "method": "method",
+    "verification_units": "reference"
+  }
+}

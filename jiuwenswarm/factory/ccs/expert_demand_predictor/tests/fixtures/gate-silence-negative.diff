@@ -1,0 +1,18 @@
+diff --git a/src/llama-expert-predict.cpp b/src/llama-expert-predict.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-expert-predict.cpp
+@@ -0,0 +1,13 @@
++#include <cstdlib>
++#include <cstring>
++#define LLAMA_LOG_INFO(...) ((void)0)
++#define LOG_INF(...) ((void)0)
++inline void marker_fixture() {
++    LOG_INF("expert_demand_predictor: active ready");
++    const char * value = std::getenv("LLAMA_EXPERT_PREDICT");
++    if (!value) return;
++    LLAMA_LOG_INFO("expert_demand_predictor: inactive (fixture)");
++    LLAMA_LOG_INFO("expert_demand_predictor: stats");
++    const bool enabled = value != nullptr && std::strcmp(value, "1") == 0;
++    (void)enabled;
++}

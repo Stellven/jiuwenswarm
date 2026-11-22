@@ -1,0 +1,462 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 65b9e05..1f28988 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -641,6 +641,64 @@ llama_context::llama_context(
+     }
+ }
+ 
++#ifdef __linux__
++void llama_context::expert_fill_init() {
++    if (expert_fill_checked) { return; }
++    expert_fill_checked = true;
++    const char * fill = getenv("LLAMA_EXPERT_FILL");
++    if (!fill || strcmp(fill, "1") != 0) { return; }
++    try {
++        for (const auto & layer : model.layers) {
++            for (const ggml_tensor * w : {layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps}) {
++                if (!w) { continue; }
++                llama_model::expert_file_range info;
++                if (w->ne[2] <= 0 || w->ne[3] != 1 || !ggml_is_contiguous(w) || !w->nb[2] ||
++                        !model.expert_file_info(w, info)) {
++                    throw std::runtime_error("expert tensors not mmap-backed or file offsets unavailable/unsupported layout");
++                }
++                if (!expert_fillers.count(info.file_index)) {
++                    expert_fillers.emplace(info.file_index, std::make_unique<ExpertFiller>(
++                        "/proc/self/fd/" + std::to_string(info.source_fd), info.mapping, info.mapping_size));
++                }
++            }
++        }
++        if (expert_fillers.empty()) { throw std::runtime_error("no mmap-backed expert tensors"); }
++        expert_prefetch_layers.resize(model.layers.size());
++        expert_fill_enabled = true;
++        const char * random = getenv("LLAMA_EXPERT_FILL_RANDOM");
++        const auto & filler = *expert_fillers.begin()->second;
++        LLAMA_LOG_INFO("expert_fill: active threads=%zu chunk_kib=%zu random=%d files=%zu\n",
++            filler.threads(), filler.chunk_bytes() / 1024, random && strcmp(random, "1") == 0, expert_fillers.size());
++    } catch (const std::exception & e) {
++        expert_fillers.clear();
++        LLAMA_LOG_INFO("expert_fill: inactive (%s)\n", e.what());
++    }
++}
++
++void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> & selected) {
++    if (expert_fill_failed) { return; }
++    try {
++        std::map<size_t, std::vector<ExpertFiller::Range>> ranges;
++        const auto & layer = model.layers[il];
++        for (const ggml_tensor * w : {layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps}) {
++            if (!w) { continue; }
++            llama_model::expert_file_range info;
++            if (!model.expert_file_info(w, info)) { throw std::runtime_error("expert mmap/file offsets unavailable"); }
++            for (const auto id : selected) {
++                if (id < 0 || id >= w->ne[2] || size_t(id) > (SIZE_MAX - info.offset) / w->nb[2]) {
++                    throw std::runtime_error("expert slice out of bounds");
++                }
++                ranges[info.file_index].push_back({info.offset + size_t(id) * w->nb[2], w->nb[2]});
++            }
++        }
++        for (const auto & entry : ranges) { expert_fillers.at(entry.first)->fill(entry.second); }
++    } catch (const std::exception & e) {
++        expert_fill_failed = true;
++        LLAMA_LOG_INFO("expert_fill: inactive (%s)\n", e.what());
++    }
++}
++#endif
++
+ void llama_context::expert_prefetch_advise(size_t il, int32_t id) {
+ #ifdef __linux__
+     auto & state = expert_prefetch_layers[il];
+@@ -704,6 +762,9 @@ void llama_context::expert_prefetch_advise(size_t il, int32_t id) {
+ 
+ void llama_context::expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe, void * data) {
+     auto & ctx = *static_cast<llama_context *>(data);
++#ifdef __linux__
++    if (ctx.expert_fill_failed) { return; }
++#endif
+     if (t->op != GGML_OP_MUL_MAT_ID || !t->src[0] || !t->src[2]) {
+         return;
+     }
+@@ -730,6 +791,12 @@ void llama_context::expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe
+             !ids->data || !base->buffer || !ggml_backend_buffer_is_host(base->buffer) ||
+             !strstr(ids->name, "ffn_moe_topk-")) {
+         if (!ctx.expert_prefetch_warned) {
++#ifdef __linux__
++            if (ctx.expert_fill_enabled) {
++                ctx.expert_fill_failed = true;
++                LLAMA_LOG_INFO("expert_fill: inactive (unsupported host router ids)\n");
++            } else
++#endif
+             LLAMA_LOG_INFO("expert_prefetch: skipping unsupported router ids (once)\n");
+             ctx.expert_prefetch_warned = true;
+         }
+@@ -746,6 +813,12 @@ void llama_context::expert_prefetch_cb(ggml_tensor * t, bool ask, bool * observe
+             }
+         }
+     }
++#ifdef __linux__
++    if (ctx.expert_fill_enabled) {
++        ctx.expert_fill_selected(il, selected);
++        return;
++    }
++#endif
+     state.tokens += ids->ne[1];
+     for (int32_t id : state.predicted) {
+         ++ctx.expert_prefetch_total;
+@@ -773,7 +846,25 @@ llama_context::~llama_context() {
+     // wait for any pending asynchronous copies into the output buffers before they are freed
+     synchronize();
+ 
+-    if (!expert_prefetch_layers.empty()) {
++#ifdef __linux__
++    if (!expert_fillers.empty()) {
++        ExpertFiller::Counters sum;
++        for (const auto & entry : expert_fillers) {
++            const auto s = entry.second->counters();
++            sum.calls += s.calls; sum.ranges += s.ranges;
++            sum.bytes_requested += s.bytes_requested; sum.bytes_skipped_resident += s.bytes_skipped_resident;
++            sum.bytes_read += s.bytes_read; sum.read_syscalls += s.read_syscalls;
++            sum.total_fill_wall_ns += s.total_fill_wall_ns;
++            sum.max_single_fill_ns = std::max(sum.max_single_fill_ns, s.max_single_fill_ns);
++        }
++        LLAMA_LOG_INFO("expert_fill: stats calls=%" PRIu64 " ranges=%" PRIu64 " bytes_requested=%" PRIu64
++            " bytes_skipped_resident=%" PRIu64 " bytes_read=%" PRIu64 " read_syscalls=%" PRIu64
++            " total_fill_wall_ns=%" PRIu64 " max_single_fill_ns=%" PRIu64 "\n",
++            sum.calls, sum.ranges, sum.bytes_requested, sum.bytes_skipped_resident, sum.bytes_read,
++            sum.read_syscalls, sum.total_fill_wall_ns, sum.max_single_fill_ns);
++    }
++#endif
++    if (!expert_prefetch_layers.empty() && expert_prefetch_calls) {
+         LLAMA_LOG_INFO("expert_prefetch: advise calls=%" PRIu64 " bytes advised=%" PRIu64 " failures=%" PRIu64
+                        " next-layer prediction hits/total=%" PRIu64 "/%" PRIu64 " (%.2f%%)\n",
+                 expert_prefetch_calls, expert_prefetch_bytes, expert_prefetch_failures,
+@@ -1827,8 +1918,11 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
+     auto * gf  = res->get_gf();
+ 
+ #ifdef __linux__
++    expert_fill_init();
++    const char * fill = getenv("LLAMA_EXPERT_FILL");
++    const bool fill_requested = fill && strcmp(fill, "1") == 0;
+     const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+-    if (ep && strcmp(ep, "1") == 0 && expert_prefetch_layers.empty()) {
++    if (!fill_requested && ep && strcmp(ep, "1") == 0 && expert_prefetch_layers.empty()) {
+         expert_prefetch_layers.resize(model.layers.size());
+         const char * next = getenv("LLAMA_EXPERT_PREFETCH_NEXT");
+         expert_prefetch_next = next && strcmp(next, "1") == 0;
+diff --git a/src/llama-context.h b/src/llama-context.h
+index 0598b9f..ee779ed 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -12,6 +12,9 @@
+ #include "ggml-cpp.h"
+ #include "ggml-opt.h"
+ 
++#ifdef __linux__
++#include "llama-expert-fill.h"
++#endif
+ #include <array>
+ #include <map>
+ #include <vector>
+@@ -50,6 +53,14 @@ struct llama_context {
+ 
+     ~llama_context();
+ 
++#ifdef __linux__
++    std::map<size_t, std::unique_ptr<ExpertFiller>> expert_fillers;
++    bool expert_fill_checked = false;
++    bool expert_fill_enabled = false;
++    bool expert_fill_failed = false;
++    void expert_fill_init();
++    void expert_fill_selected(size_t il, const std::vector<int32_t> & selected);
++#endif
+     struct expert_prefetch_layer {
+         uint64_t tokens = 0;
+         std::vector<std::pair<int32_t, uint64_t>> recent;
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+new file mode 100644
+index 0000000..690b808
+--- /dev/null
++++ b/src/llama-expert-fill.h
+@@ -0,0 +1,177 @@
++#pragma once
++// Linux buffered reads populate the same page cache as the model mmap.
++#include <algorithm>
++#include <cerrno>
++#include <chrono>
++#include <condition_variable>
++#include <cstdint>
++#include <cstdlib>
++#include <exception>
++#include <fcntl.h>
++#include <limits>
++#include <mutex>
++#include <stdexcept>
++#include <string>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <thread>
++#include <unistd.h>
++#include <vector>
++
++class ExpertFiller {
++public:
++    struct Range { uint64_t offset; size_t len; };
++    struct Counters {
++        uint64_t calls = 0, ranges = 0, bytes_requested = 0;
++        uint64_t bytes_skipped_resident = 0, bytes_read = 0, read_syscalls = 0;
++        uint64_t total_fill_wall_ns = 0, max_single_fill_ns = 0;
++    };
++    // mapping must be a live, offset-zero file mmap for the lifetime of this object.
++    ExpertFiller(const std::string & path, void * mapping, size_t mapping_size)
++        : mapping_(static_cast<char *>(mapping)), size_(mapping_size),
++          threads_(env_size("LLAMA_EXPERT_FILL_THREADS", 8, 256)),
++          chunk_(env_size("LLAMA_EXPERT_FILL_CHUNK_KIB", 1024, 65536) * 1024) {
++        const long page = sysconf(_SC_PAGESIZE);
++        if (page <= 0 || !mapping_ || reinterpret_cast<uintptr_t>(mapping_) % page || !size_) {
++            throw std::runtime_error("invalid expert mmap");
++        }
++        page_ = size_t(page);
++        fd_ = open(path.c_str(), O_RDONLY | O_CLOEXEC);
++        if (fd_ < 0) { throw std::runtime_error("open expert file failed"); }
++        struct stat st {};
++        if (fstat(fd_, &st) || st.st_size < 0 || uint64_t(st.st_size) != size_) {
++            close(fd_); fd_ = -1;
++            throw std::runtime_error("expert file size differs from mmap");
++        }
++        try {
++            // Allocate before starting workers, so allocation failures cannot kill a worker.
++            scratch_.resize(threads_);
++            for (auto & b : scratch_) { b.resize(chunk_); }
++            for (size_t i = 0; i < threads_; ++i) { workers_.emplace_back([this, i] { worker(i); }); }
++        } catch (...) {
++            stop(); close(fd_); throw;
++        }
++    }
++    ~ExpertFiller() { stop(); if (fd_ >= 0) { close(fd_); } }
++    ExpertFiller(const ExpertFiller &) = delete;
++    ExpertFiller & operator=(const ExpertFiller &) = delete;
++    size_t threads() const { return threads_; }
++    size_t chunk_bytes() const { return chunk_; }
++    Counters counters() const { std::lock_guard<std::mutex> lock(fill_mutex_); return counters_; }
++
++    void fill(const std::vector<Range> & ranges) {
++        std::lock_guard<std::mutex> serial(fill_mutex_);
++        const auto start = std::chrono::steady_clock::now();
++        ++counters_.calls;
++        counters_.ranges += ranges.size();
++        auto finish = [&] {
++            const uint64_t ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
++                std::chrono::steady_clock::now() - start).count();
++            counters_.total_fill_wall_ns += ns;
++            counters_.max_single_fill_ns = std::max(counters_.max_single_fill_ns, ns);
++        };
++        try {
++            std::vector<Range> aligned;
++            for (const auto & r : ranges) {
++                if (r.offset > size_ || r.len > size_ - r.offset) { throw std::out_of_range("expert range outside mmap"); }
++                if (!r.len) { continue; }
++                const uint64_t first = r.offset - r.offset % page_;
++                const uint64_t end = r.offset + r.len;
++                const size_t pad = (page_ - end % page_) % page_;
++                const uint64_t last = end + std::min<uint64_t>(pad, size_ - end);
++                aligned.push_back({first, size_t(last - first)});
++            }
++            std::sort(aligned.begin(), aligned.end(), [](const Range & a, const Range & b) { return a.offset < b.offset; });
++            std::vector<Range> merged;
++            for (const auto & r : aligned) {
++                if (!merged.empty() && r.offset <= merged.back().offset + merged.back().len) {
++                    auto & b = merged.back();
++                    b.len = size_t(std::max(b.offset + b.len, r.offset + r.len) - b.offset);
++                } else { merged.push_back(r); }
++            }
++            std::vector<Range> jobs;
++            for (const auto & r : merged) {
++                counters_.bytes_requested += r.len; // page-aligned union, once per fill
++                const size_t pages = r.len / page_ + (r.len % page_ != 0);
++                std::vector<unsigned char> resident(pages);
++                if (mincore(mapping_ + r.offset, r.len, resident.data())) { throw std::runtime_error("expert mincore failed"); }
++                size_t run = 0;
++                while (run < pages) {
++                    if (resident[run] & 1) {
++                        counters_.bytes_skipped_resident += std::min(page_, r.len - run * page_);
++                        ++run; continue;
++                    }
++                    const size_t first = run++;
++                    while (run < pages && !(resident[run] & 1)) { ++run; }
++                    const size_t end = std::min(r.len, run * page_);
++                    for (size_t pos = first * page_; pos < end;) {
++                        const size_t len = std::min(chunk_, end - pos);
++                        jobs.push_back({r.offset + pos, len}); pos += len;
++                    }
++                }
++            }
++            {
++                std::unique_lock<std::mutex> lock(mutex_);
++                jobs_ = std::move(jobs); next_ = 0; pending_ = jobs_.size(); error_ = 0;
++                ready_.notify_all();
++                done_.wait(lock, [this] { return pending_ == 0; });
++                counters_.bytes_read += batch_bytes_; counters_.read_syscalls += batch_syscalls_;
++                batch_bytes_ = batch_syscalls_ = 0;
++                if (error_) { throw std::runtime_error("expert pread failed: errno=" + std::to_string(error_)); }
++            }
++        } catch (...) { finish(); throw; }
++        finish();
++    }
++private:
++    static size_t env_size(const char * name, size_t fallback, size_t maximum) {
++        const char * s = getenv(name);
++        if (!s || !*s || *s == '-') { return fallback; }
++        char * end = nullptr; errno = 0;
++        const auto n = strtoull(s, &end, 10);
++        return errno || *end || n == 0 || n > maximum ? fallback : size_t(n);
++    }
++    void stop() {
++        { std::lock_guard<std::mutex> lock(mutex_); stopping_ = true; }
++        ready_.notify_all();
++        for (auto & t : workers_) { t.join(); }
++    }
++    void worker(size_t index) {
++        for (;;) {
++            Range job {};
++            {
++                std::unique_lock<std::mutex> lock(mutex_);
++                ready_.wait(lock, [this] { return stopping_ || next_ < jobs_.size(); });
++                if (stopping_) { return; }
++                job = jobs_[next_++];
++            }
++            size_t bytes = 0; uint64_t syscalls = 0; int error = 0;
++            while (bytes < job.len) {
++                ++syscalls;
++                const ssize_t n = pread(fd_, scratch_[index].data() + bytes, job.len - bytes, off_t(job.offset + bytes));
++                if (n < 0 && errno == EINTR) { continue; }
++                if (n <= 0) { error = n < 0 ? errno : EIO; break; }
++                bytes += size_t(n);
++            }
++            {
++                std::lock_guard<std::mutex> lock(mutex_);
++                batch_bytes_ += bytes; batch_syscalls_ += syscalls;
++                if (error && !error_) { error_ = error; }
++                if (--pending_ == 0) { done_.notify_one(); }
++            }
++        }
++    }
++    int fd_ = -1;
++    char * mapping_;
++    size_t size_, threads_, chunk_, page_ = 0;
++    mutable std::mutex fill_mutex_;
++    std::mutex mutex_;
++    std::condition_variable ready_, done_;
++    std::vector<std::thread> workers_;
++    std::vector<std::vector<char>> scratch_;
++    std::vector<Range> jobs_;
++    size_t next_ = 0, pending_ = 0;
++    bool stopping_ = false;
++    int error_ = 0;
++    uint64_t batch_bytes_ = 0, batch_syscalls_ = 0;
++    Counters counters_;
++};
+diff --git a/src/llama-mmap.cpp b/src/llama-mmap.cpp
+index f310c9b..0ebae74 100644
+--- a/src/llama-mmap.cpp
++++ b/src/llama-mmap.cpp
+@@ -488,7 +488,8 @@ struct llama_mmap::impl {
+         const char * j_adv = getenv("LLAMA_MMAP_ADVICE");
+         const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+ #ifdef __linux__
+-        const bool expert_prefetch = ep && strcmp(ep, "1") == 0;
++        const char * fill = getenv("LLAMA_EXPERT_FILL");
++        const bool expert_prefetch = !(fill && strcmp(fill, "1") == 0) && ep && strcmp(ep, "1") == 0;
+ #else
+         const bool expert_prefetch = false;
+         (void) ep;
+diff --git a/src/llama-model-loader.cpp b/src/llama-model-loader.cpp
+index c72f5ee..79fb6e8 100644
+--- a/src/llama-model-loader.cpp
++++ b/src/llama-model-loader.cpp
+@@ -1442,7 +1442,10 @@ void llama_model_loader::init_mappings(bool prefetch, llama_mlocks * mlock_mmaps
+             llama_mmap::ranges advice_ranges = lazy.for_file(idx);
+ #ifdef __linux__
+             const char * ep = getenv("LLAMA_EXPERT_PREFETCH");
+-            if (ep && strcmp(ep, "1") == 0) {
++            const char * fill = getenv("LLAMA_EXPERT_FILL");
++            const char * random = getenv("LLAMA_EXPERT_FILL_RANDOM");
++            const bool fill_requested = fill && strcmp(fill, "1") == 0;
++            if (fill_requested ? (random && strcmp(random, "1") == 0) : (ep && strcmp(ep, "1") == 0)) {
+                 for (const auto & entry : weights_map) {
+                     const auto & w = entry.second;
+                     if (w.idx == idx && entry.first.find(".ffn_") != std::string::npos &&
+diff --git a/src/llama-model.cpp b/src/llama-model.cpp
+index bf24349..e575555 100644
+--- a/src/llama-model.cpp
++++ b/src/llama-model.cpp
+@@ -1351,6 +1351,8 @@ struct llama_model::impl {
+ 
+     // model memory mapped files
+     llama_mmaps mappings;
++    llama_files expert_files;
++    std::map<std::string, std::pair<size_t, size_t>> expert_offsets;
+ 
+     // objects representing data potentially being locked in memory
+     llama_mlocks mlock_bufs;
+@@ -2144,6 +2146,23 @@ bool llama_model_base::load_tensors(llama_model_loader & ml) {
+         }
+     }
+ 
++#ifdef __linux__
++    const char * fill = getenv("LLAMA_EXPERT_FILL");
++    if (fill && strcmp(fill, "1") == 0 && use_mmap_buffer) {
++        try {
++            for (const auto & file : ml.files) {
++                const std::string path = "/proc/self/fd/" + std::to_string(file->file_id());
++                pimpl->expert_files.emplace_back(new llama_file(path.c_str(), "rb", false));
++            }
++            for (const auto & entry : ml.weights_map) {
++                pimpl->expert_offsets.emplace(entry.first, std::make_pair(entry.second.idx, entry.second.offs));
++            }
++        } catch (const std::exception &) {
++            pimpl->expert_files.clear();
++            pimpl->expert_offsets.clear();
++        }
++    }
++#endif
+     load_tensors_hadamard();
+ 
+     return true;
+@@ -2532,6 +2551,20 @@ llama_split_mode llama_model::split_mode() const {
+     return params.split_mode;
+ }
+ 
++bool llama_model::expert_file_info(const ggml_tensor * t, expert_file_range & out) const {
++    if (!t || !tensor_is_mapped(t)) { return false; }
++    const auto it = pimpl->expert_offsets.find(t->name);
++    if (it == pimpl->expert_offsets.end()) { return false; }
++    const auto idx = it->second.first;
++    const auto offset = it->second.second;
++    if (idx >= pimpl->mappings.size() || idx >= pimpl->expert_files.size()) { return false; }
++    const auto & mapping = pimpl->mappings[idx];
++    if (offset > mapping->size() || ggml_nbytes(t) > mapping->size() - offset ||
++            static_cast<char *>(mapping->addr()) + offset != t->data) { return false; }
++    out = {idx, offset, mapping->size(), mapping->addr(), pimpl->expert_files[idx]->file_id()};
++    return true;
++}
++
+ bool llama_model::tensor_is_mapped(const ggml_tensor * t) const {
+     if (!t || !t->data) {
+         return false;
+diff --git a/src/llama-model.h b/src/llama-model.h
+index 1f56a2a..255411e 100644
+--- a/src/llama-model.h
++++ b/src/llama-model.h
+@@ -972,6 +972,12 @@ struct llama_model {
+     llama_split_mode split_mode() const;
+     bool no_alloc() const;
+     bool tensor_is_mapped(const ggml_tensor * t) const;
++    struct expert_file_range {
++        size_t file_index, offset, mapping_size;
++        void * mapping;
++        int source_fd;
++    };
++    bool expert_file_info(const ggml_tensor * t, expert_file_range & out) const;
+ 
+     std::map<ggml_backend_buffer_type_t, size_t> memory_breakdown() const;
+ 

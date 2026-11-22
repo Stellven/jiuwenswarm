@@ -1,0 +1,6 @@
+{
+  "weight_elements": 123,
+  "tokens": 128,
+  "kv_heads": 8,
+  "head_dim": 64
+}

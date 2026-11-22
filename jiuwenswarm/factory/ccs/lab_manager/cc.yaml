@@ -1,0 +1,118 @@
+cc: '2'
+id: factory.lab_manager
+version: 1.1.0
+materials:
+  method:
+    path: LAB-MANAGER.md
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  source_bundle:
+    does: Bundle a checkout in your workspace as the diff from a base commit the lab can fetch
+      (any repository, branch or fork), with a lab build recipe and source dependencies. The
+      bundle is stored and the result holds a subject (kind source, transfer attach) to put in
+      a lab task; the lab assembles it into an image on its own machine.
+    takes:
+      checkout: text
+      base: text
+      recipe: text
+      repository: {kind: text, optional: true}
+      include_base: {kind: json, optional: true}
+      worktree: {kind: json, optional: true}
+      deps: {kind: json, optional: true}
+      extra_flags: {kind: json, optional: true}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  draft_task:
+    does: Draft a lab task that runs every check and metric of the task's format-2 contract
+      on the arms you name. Nothing is stored or sent; edit the draft, then compose it.
+    takes:
+      arm_subjects: json
+      subjects: json
+      contract_id: {kind: text, optional: true}
+      lab_task_id: {kind: text, optional: true}
+      purpose: {kind: text, optional: true}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  compose:
+    does: Check a lab task (factory.lab-task/1, as an object or YAML text) against the task's
+      pinned contract, verify each subject against its build receipt, and seal the lab task,
+      the contract and the subjects into a lab package. Returns the package id.
+    takes:
+      lab_task: json
+      contract_id: {kind: text, optional: true}
+      node_id: {kind: text, optional: true}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  send:
+    does: Post a composed lab package to the lab mailbox for any lab agent to take. The same
+      package and idem_key always name the same request.
+    takes:
+      package_id: text
+      idem_key: text
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  status:
+    does: Read a lab request's state (requested, accepted, running, reported, rejected, failed,
+      cancel_requested, cancelled), the lab that took it, its messages and open questions.
+    takes:
+      request_id: text
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  cancel:
+    does: Ask the lab agent to stop a request. The request ends when the lab confirms.
+    takes:
+      request_id: text
+      reason: {kind: text, optional: true}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  ask:
+    does: Ask the lab agent a question about a request, before or after its report. wants may
+      list files, metrics or tests by name; a lab can answer those from its report.
+    takes:
+      request_id: text
+      question: text
+      wants: {kind: json, optional: true}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  reply:
+    does: Read the lab agent's answer to a question and record it, with any files, as evidence.
+      Returns state pending until the lab answers.
+    takes:
+      request_id: text
+      question: text
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  report:
+    does: Check the lab agent's report against the package (every test answered, contract
+      units, required files and digests) and record it as lab_report evidence. A report that
+      fails the check is recorded as invalid, with its problems.
+    takes:
+      request_id: text
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]

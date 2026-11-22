@@ -1,0 +1,14 @@
+{
+  "capabilities": {
+    "index": "tool",
+    "project": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "method": "method",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

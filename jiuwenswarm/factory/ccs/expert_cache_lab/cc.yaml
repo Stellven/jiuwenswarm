@@ -1,0 +1,64 @@
+cc: '2'
+id: engine.expert_cache_lab
+version: 1.0.1
+materials:
+  method:
+    path: METHOD.md
+  integration:
+    path: SKILL.md
+  component:
+    path: COMPONENT.json
+  sources:
+    path: SOURCES.json
+  verification_units:
+    path: VERIFICATION-UNITS.json
+  verification:
+    path: verification.py
+  runtime:
+    path: components.py
+  fixture:
+    path: fixtures/example.json
+  cpu_verification:
+    path: CPU-VERIFICATION.json
+  examples:
+    path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  validate:
+    does: Validate bounded inline multi-request expert events.
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  replay:
+    does: Replay byte bounded LRU LFU or hybrid expert caches on CPU.
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  predict:
+    does: Evaluate causal next expert predictions with prefix holdout.
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

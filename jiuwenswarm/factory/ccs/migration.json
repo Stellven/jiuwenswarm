@@ -1,0 +1,365 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "branch_workbench/cc.yaml",
+      "old_release": "0dbe1479b36335cc346fc69162c6984aca69e1ce61b748d6b5ba75deac65afd6",
+      "new_release": "b7965729d9084002d6590807c48b71e6a75b37fc2471252591852f0cb99a7591",
+      "initial_canonical_release": "b7965729d9084002d6590807c48b71e6a75b37fc2471252591852f0cb99a7591"
+    },
+    {
+      "path": "builder/cc.yaml",
+      "old_release": "56dfd95662e7fd2f66ad2aebaef51a8860d863cb423fa0c16d815748b20d650e",
+      "new_release": "a6328b7ae7f6eab16d7f13889fde4bf5f6752439e8f555cb571c26f636bc5a1e",
+      "initial_canonical_release": "a6328b7ae7f6eab16d7f13889fde4bf5f6752439e8f555cb571c26f636bc5a1e"
+    },
+    {
+      "path": "cc_qualification/cc.yaml",
+      "old_release": "b2cad41069b8cd9d448f6199898019df2f29890284067c577a0dc9f4de0b0864",
+      "new_release": "428ee93a8debc33c1d969eb428557e8295b3f20dab42e984cb397c2ec44d97f8",
+      "initial_canonical_release": "428ee93a8debc33c1d969eb428557e8295b3f20dab42e984cb397c2ec44d97f8"
+    },
+    {
+      "path": "cc_workflow_lab/cc.yaml",
+      "old_release": "14a8b5cf834868d1b27348cb92e54ab78f6f7ea22670518b8d07e70149889574",
+      "new_release": "2c86c6195194bbc40dceb705c0af2854d6de72761cf480eb77da6ab38f0ab230",
+      "initial_canonical_release": "2c86c6195194bbc40dceb705c0af2854d6de72761cf480eb77da6ab38f0ab230"
+    },
+    {
+      "path": "deep_profile/cc.yaml",
+      "old_release": "fbf35bf719de69de9c936c8ac416f8d4fcfb6b1fbe49ec4dcc3d16c5f9391347",
+      "new_release": "9c856d031f24ef6b1de8a0d2eac9de0c1f0dcb836b743db4475fc05ffd6b905e",
+      "initial_canonical_release": "9c856d031f24ef6b1de8a0d2eac9de0c1f0dcb836b743db4475fc05ffd6b905e"
+    },
+    {
+      "path": "engine_component/cc.yaml",
+      "old_release": "60a62caa16f004adec036f145113c54330bb4c0faf39535e9791a95b627bb724",
+      "new_release": "54ff2534db8e1c9f74df02c4f43c965358b9961bd05127e1dd8c25850e17a914",
+      "initial_canonical_release": "54ff2534db8e1c9f74df02c4f43c965358b9961bd05127e1dd8c25850e17a914"
+    },
+    {
+      "path": "engine_factory_loop/cc.yaml",
+      "old_release": "d1962c901982ce4c422cd038f37be31e76e36ffa3c71b9c42a1a4de7402f6aba",
+      "new_release": "d5213b2bbf5f95935dd8782f5cbb3e11cfe77fcee364ea55dda58a4476cd3456",
+      "initial_canonical_release": "dc18cffa343a80f760c53d7d20dca3e7e18ab98d85cd02950e0d69d7ead81559"
+    },
+    {
+      "path": "engine_inspector/cc.yaml",
+      "old_release": "e0aa326d44b0e968d1aad2cdd524c1cec971c4f444e746261fec611636e0feff",
+      "new_release": "517df4ffdb2980e2ece4025700d05c23963de753064db5e535d506ba1930da2b",
+      "initial_canonical_release": "517df4ffdb2980e2ece4025700d05c23963de753064db5e535d506ba1930da2b"
+    },
+    {
+      "path": "evidence/cc.yaml",
+      "old_release": "938169531667c1a9186270511c7ee6f7cf8d725cbf895dd4f04647452cde5bbe",
+      "new_release": "af95b9ca3a00eb540ffdc532ea2bbea0e884f1f1cd331542b690b864eb1f83de",
+      "initial_canonical_release": "af95b9ca3a00eb540ffdc532ea2bbea0e884f1f1cd331542b690b864eb1f83de"
+    },
+    {
+      "path": "evidence_digest_lab/cc.yaml",
+      "old_release": "4252789591ab32394f4b405518d8701ddbce1edf21b85f23cb8e0e1edf731a5c",
+      "new_release": "8f66ebe0356ba3fb349f4499ab672b986484182a8bd46460e8fe5d8a57deeed3",
+      "initial_canonical_release": "8f66ebe0356ba3fb349f4499ab672b986484182a8bd46460e8fe5d8a57deeed3"
+    },
+    {
+      "path": "expert_cache_lab/cc.yaml",
+      "old_release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+      "new_release": "4803c5ce4e77f6f7805423fa683fdf6877ca073e16ceaab97122fffe25cc81f4",
+      "initial_canonical_release": "4803c5ce4e77f6f7805423fa683fdf6877ca073e16ceaab97122fffe25cc81f4"
+    },
+    {
+      "path": "expert_prediction/cc.yaml",
+      "old_release": "f538c3878d569e4a687afd5524603e9f8a40e34eddff2d34ff8ce18684165ff5",
+      "new_release": "760dbebe8bca95f1c28383f573ea38652c8d3989a2b824b4dcf75dfa0633aa0f",
+      "initial_canonical_release": "760dbebe8bca95f1c28383f573ea38652c8d3989a2b824b4dcf75dfa0633aa0f"
+    },
+    {
+      "path": "expert_streaming/cc.yaml",
+      "old_release": "ae4a32102cea54eef9528bf5412b1af4a817b5287257f71d892bfb01b3fb0544",
+      "new_release": "10edabf64602846daf8b653c1c359294b73cb1b43c2ed141e05755fca4aa8954",
+      "initial_canonical_release": "10edabf64602846daf8b653c1c359294b73cb1b43c2ed141e05755fca4aa8954"
+    },
+    {
+      "path": "expert_streaming/components/expert_fill/cc.yaml",
+      "old_release": "0ed3393de66f64c894d406d1d445cddf871595ae3355501ef4295c37220b5d45",
+      "new_release": "71d4163bf8799f3a59ee98f4a69001954972c4fd283fb4275e7049ddb987eeae",
+      "initial_canonical_release": "71d4163bf8799f3a59ee98f4a69001954972c4fd283fb4275e7049ddb987eeae"
+    },
+    {
+      "path": "expert_streaming/components/expert_pregate/cc.yaml",
+      "old_release": "02ecf59263c87c0fc2f7777e7b8b895b3f9dcda2abb2b3d8b55738025d3b9f54",
+      "new_release": "d30a28e2614e517443d6557be1baab19f8b8360c14bdb0293eaeccb1b5940cf2",
+      "initial_canonical_release": "d30a28e2614e517443d6557be1baab19f8b8360c14bdb0293eaeccb1b5940cf2"
+    },
+    {
+      "path": "expert_streaming/components/expert_readiness/cc.yaml",
+      "old_release": "9a790e8b4d5cf744aa0faa13d89069adaa63076b8fdde87d367857ebffb301ce",
+      "new_release": "40c7bde0b590de842c82541d6e28f6b3a83f66d71cfcd233f2807b8ec4caa63a",
+      "initial_canonical_release": "40c7bde0b590de842c82541d6e28f6b3a83f66d71cfcd233f2807b8ec4caa63a"
+    },
+    {
+      "path": "expert_streaming/components/inflight_join/cc.yaml",
+      "old_release": "b4890232cddc64be458c4c0e7cb729d46746aae888ce5b97dba9bb508e05260d",
+      "new_release": "e199389ed6c31247aaff3ac7d53ff4b83909c2600b5641891eba2e4ec83791a9",
+      "initial_canonical_release": "e199389ed6c31247aaff3ac7d53ff4b83909c2600b5641891eba2e4ec83791a9"
+    },
+    {
+      "path": "expert_streaming/components/mmap_advice/cc.yaml",
+      "old_release": "263b841e8f1ef7fc66dc74c70e3b5d26e7279f46d7f690b3883514e8306f01e4",
+      "new_release": "4c11c033259a0cba670614a588afcbda8b81a6994274b709f73938c74f788636",
+      "initial_canonical_release": "4c11c033259a0cba670614a588afcbda8b81a6994274b709f73938c74f788636"
+    },
+    {
+      "path": "expert_streaming/components/phase_stats/cc.yaml",
+      "old_release": "0d862944f3d3a7a4812535ea39dbbcb9fcbf7d299ef7d109ef911560f7877492",
+      "new_release": "68b91f5dca73123897e16df6544f4cbf3a94998382b27f7284b3063e0f1dcf12",
+      "initial_canonical_release": "68b91f5dca73123897e16df6544f4cbf3a94998382b27f7284b3063e0f1dcf12"
+    },
+    {
+      "path": "expert_streaming/components/router_prefetch/cc.yaml",
+      "old_release": "38470f14a683e3b2ce50f6f36b6949bddbb5313de252fd42a6e1300dc15c0c89",
+      "new_release": "60be02e53da9377662ff09577c4ce57a44cb577e8df6e08353a0d16c62f1f1e9",
+      "initial_canonical_release": "60be02e53da9377662ff09577c4ce57a44cb577e8df6e08353a0d16c62f1f1e9"
+    },
+    {
+      "path": "expert_streaming/components/thread_names/cc.yaml",
+      "old_release": "c35a35ef606a5229672294775a83bbd232b1d229de4b1ba43c81fd2752d68504",
+      "new_release": "412cb6af6f6c32e5125a8099b8eeeea569ace271ba9fbc98b5ce43dc3be73dec",
+      "initial_canonical_release": "412cb6af6f6c32e5125a8099b8eeeea569ace271ba9fbc98b5ce43dc3be73dec"
+    },
+    {
+      "path": "gpu_kernel_lab/cc.yaml",
+      "old_release": "a050a0b6ec8b46d5f71717831657705114b64d08bc76be8eb07ff23881662aee",
+      "new_release": "0365bc265f3e0f542023fefc8c37762f81ec71e9cc1c5b20ab2fbdcd306ea369",
+      "initial_canonical_release": "0365bc265f3e0f542023fefc8c37762f81ec71e9cc1c5b20ab2fbdcd306ea369"
+    },
+    {
+      "path": "heterogeneous_placement_lab/cc.yaml",
+      "old_release": "472153322549e77847b309693eed6f4a7d76092653925abc2b7e8f3a5dbd9845",
+      "new_release": "d363b3ed1ea9837cbcbed2e3780f1a0b06904a4a26106492331db0c2489fe751",
+      "initial_canonical_release": "d363b3ed1ea9837cbcbed2e3780f1a0b06904a4a26106492331db0c2489fe751"
+    },
+    {
+      "path": "inference_lab/cc.yaml",
+      "old_release": "396ca26a6b360460bacbc07f01f7a512660463af4ada31fa9888ba7f02734740",
+      "new_release": "1b879f89aadedbffcee5079d596d99a686d12593235d6479179d5685b87f6f2d",
+      "initial_canonical_release": "1b879f89aadedbffcee5079d596d99a686d12593235d6479179d5685b87f6f2d"
+    },
+    {
+      "path": "integration_skill/cc.yaml",
+      "old_release": "56317852a1cb3aa48959093164528bc381dd8b60c63f5e931f9c629af7f5fd8f",
+      "new_release": "48a241cf2d14d58e7780d4fe3e32a3546a30481282f20ec320247649d5539ebb",
+      "initial_canonical_release": "48a241cf2d14d58e7780d4fe3e32a3546a30481282f20ec320247649d5539ebb"
+    },
+    {
+      "path": "kv_reuse_lab/cc.yaml",
+      "old_release": "6218afa26d8f2e9f7cd6fb70f24ed7f14c9fea83ab4c79615052d90324eb6ac6",
+      "new_release": "94a7a37071c7c67ed287cdc3eeccfcee3dc91c09b2d90c32686b6c9fe3832d09",
+      "initial_canonical_release": "94a7a37071c7c67ed287cdc3eeccfcee3dc91c09b2d90c32686b6c9fe3832d09"
+    },
+    {
+      "path": "lab_client/cc.yaml",
+      "old_release": "55da60add445698ba7fd5f6260af70aebe463babf3b2f6b28a0b13f68fe5dda7",
+      "new_release": "5b10a3650cea4e37f5d3f6767426637c7963e165dcef83e85ce918a65b19e29d",
+      "initial_canonical_release": "5b10a3650cea4e37f5d3f6767426637c7963e165dcef83e85ce918a65b19e29d"
+    },
+    {
+      "path": "lab_lifecycle/cc.yaml",
+      "old_release": "352ef0bd6f6bfcd5fc13f249a2f575229292338c29ec0545f6c16166e0b9152c",
+      "new_release": "a3f9c37d458364d72258791f1948ef00dd0a3a94ff2789ba591c391fe7c06f2d",
+      "initial_canonical_release": "a3f9c37d458364d72258791f1948ef00dd0a3a94ff2789ba591c391fe7c06f2d"
+    },
+    {
+      "path": "memory_residency_lab/cc.yaml",
+      "old_release": "1a7b673f1996697405091f805f910f9c10ada4c6368f01f1eb33d44df92966e5",
+      "new_release": "bf1a988afa6425281e9ee3e1c4ae94cd6721c3a8a88d5dee30a7eb44301c8ed6",
+      "initial_canonical_release": "bf1a988afa6425281e9ee3e1c4ae94cd6721c3a8a88d5dee30a7eb44301c8ed6"
+    },
+    {
+      "path": "methodology_ab/cc.yaml",
+      "old_release": "62e9d7cdee41865d265e7c904ce1b65192dc054c8fc366aa569c378c594986c0",
+      "new_release": "d79c65bc23ac1f466c332aee0ceeee020a6ed355802473544c713ade97b60ac6",
+      "initial_canonical_release": "d79c65bc23ac1f466c332aee0ceeee020a6ed355802473544c713ade97b60ac6"
+    },
+    {
+      "path": "methodology_ablation/cc.yaml",
+      "old_release": "0252415b0c912c304c9b7672b714ea31d534d1434fcd666fbfc160c815ee2735",
+      "new_release": "7f377acaeb9dcfdd9faee40bae551828e349089251107fb600146f0ab83e043b",
+      "initial_canonical_release": "7f377acaeb9dcfdd9faee40bae551828e349089251107fb600146f0ab83e043b"
+    },
+    {
+      "path": "methodology_diagnosis/cc.yaml",
+      "old_release": "0db16bada341489a6eee038a8e418edba184ebe88761e1bf7124ff018914662b",
+      "new_release": "0f978937f88ad608c9550123109ee660fa1264a7b50e72c6f75c5b6019fbb914",
+      "initial_canonical_release": "0f978937f88ad608c9550123109ee660fa1264a7b50e72c6f75c5b6019fbb914"
+    },
+    {
+      "path": "methodology_followup/cc.yaml",
+      "old_release": "437f955b16d036a1e388af926d4f7908ddc3f781bd05c092d7350ad5b4734e60",
+      "new_release": "03f7788de60ee33ac521a5e72fef511ca27e97fbf46b53970ce58c012e94fc07",
+      "initial_canonical_release": "03f7788de60ee33ac521a5e72fef511ca27e97fbf46b53970ce58c012e94fc07"
+    },
+    {
+      "path": "methodology_hypothesis/cc.yaml",
+      "old_release": "43d6b4e49743cdc8e83ed3e655b4ce52526c56773bef2a697dfe28af9d192bd3",
+      "new_release": "d2c235dadcd26193be090f556abc584da291aec01d8f5b160c8752e01463d729",
+      "initial_canonical_release": "d2c235dadcd26193be090f556abc584da291aec01d8f5b160c8752e01463d729"
+    },
+    {
+      "path": "methodology_out_of_core/cc.yaml",
+      "old_release": "e7c868670acad3affe8e68f6ba9bbe76313fd81261fe34c06350e1db701ccddd",
+      "new_release": "8c274390719fce6cb6fa02067ebe5a842aa3dcc5b7764e6a54537348a9865028",
+      "initial_canonical_release": "8c274390719fce6cb6fa02067ebe5a842aa3dcc5b7764e6a54537348a9865028"
+    },
+    {
+      "path": "methodology_transfer_lab/cc.yaml",
+      "old_release": "e7eeb33dafc3ee66d9c166f1fdde46c4c0934d6e1b2306a1e7a097a5d91edbd8",
+      "new_release": "8291f7beecae0d948c53387ce252dbb61e6c47482fcbb03629e1040f64d29b9a",
+      "initial_canonical_release": "8291f7beecae0d948c53387ce252dbb61e6c47482fcbb03629e1040f64d29b9a"
+    },
+    {
+      "path": "native_inventory_once/cc.yaml",
+      "old_release": "d2627c132e65f9d3e357d3a368c326ce8d6e0001ddfc4375fd933185287a9d8c",
+      "new_release": "5f94717c306b99897e8ea750c137cdf16ced935ed12ed537fc27ff198afa734c",
+      "initial_canonical_release": "5f94717c306b99897e8ea750c137cdf16ced935ed12ed537fc27ff198afa734c"
+    },
+    {
+      "path": "numerical_investigation_lab/cc.yaml",
+      "old_release": "83cdec270eb516f4d530fb85f34e81f58775632edb7d82df972ee2185ce12ce4",
+      "new_release": "1fd4a23df45ac093096468c6af5119495a1b5fd12254d3bc4a8b86f2d177674c",
+      "initial_canonical_release": "1fd4a23df45ac093096468c6af5119495a1b5fd12254d3bc4a8b86f2d177674c"
+    },
+    {
+      "path": "precision_lab/cc.yaml",
+      "old_release": "e081e76fd40ccabbbe1f9f4e5dcecc9070877b7570bbe4b400a32c228bdc1ad3",
+      "new_release": "5e570d53f6d19208f94efc198882f8606b98b17e51fd05e0ab52c371dcce09e8",
+      "initial_canonical_release": "5e570d53f6d19208f94efc198882f8606b98b17e51fd05e0ab52c371dcce09e8"
+    },
+    {
+      "path": "serving_scheduler_lab/cc.yaml",
+      "old_release": "e3535c2dfd47cf0aade9bc18ed346d42f1224c88d2af8c54d255f916b24aa6ac",
+      "new_release": "b78f32dfe7c08b6060b97f4e043b639560c1c13682f2064785c0eee7b4055dde",
+      "initial_canonical_release": "b78f32dfe7c08b6060b97f4e043b639560c1c13682f2064785c0eee7b4055dde"
+    },
+    {
+      "path": "ssd_streaming_lab/cc.yaml",
+      "old_release": "0cf1dca6a424ed1ea7e12a256c507d01ecfc69c6945fca15b244be2cf49fface",
+      "new_release": "b2066e074b9d5d1b4926743542b1b573beca92404905018a2a58ab651d769598",
+      "initial_canonical_release": "b2066e074b9d5d1b4926743542b1b573beca92404905018a2a58ab651d769598"
+    },
+    {
+      "path": "standard_benchmark/cc.yaml",
+      "old_release": "2a1913bed71bdaa6cd5279c53fb1f50c6d9ff9ef5fa3c3a098e5457a9953a59a",
+      "new_release": "238ffc0988e70cabcc4132f57d696e14c0266a9e87dc1a0bf3178f7514aca62b",
+      "initial_canonical_release": "238ffc0988e70cabcc4132f57d696e14c0266a9e87dc1a0bf3178f7514aca62b"
+    },
+    {
+      "path": "strata_budget_workbench/cc.yaml",
+      "old_release": "16fb6bcad5acc4da32a6ec5dd52049d253005746a14f1caa3aa7e9899ba6679b",
+      "new_release": "8e08310955da4475778c547f0ee51eda8aa91813b1dff8a2d3ad5bb8718f37a3",
+      "initial_canonical_release": "8e08310955da4475778c547f0ee51eda8aa91813b1dff8a2d3ad5bb8718f37a3"
+    },
+    {
+      "path": "strata_fixed_placement/cc.yaml",
+      "old_release": "3c793ccf054da895dd3bc05b5d23b95f2bfa98f74e18f3ad210b528c157f1c83",
+      "new_release": "14bffc9b590025fe1c4066fd4ebddc9f2d1a26cea73e2e9b09024db0593011d5",
+      "initial_canonical_release": "14bffc9b590025fe1c4066fd4ebddc9f2d1a26cea73e2e9b09024db0593011d5"
+    },
+    {
+      "path": "strata_prefill_chunk/cc.yaml",
+      "old_release": "3770d4097e2e1ab50d468466c1775ded19dad5e107474c21510c1352b781d92e",
+      "new_release": "5c5b5c49988614d608a6938b61847497473b56d32a51c633d74a626812a7ed71",
+      "initial_canonical_release": "5c5b5c49988614d608a6938b61847497473b56d32a51c633d74a626812a7ed71"
+    },
+    {
+      "path": "strata_prefill_workbench/cc.yaml",
+      "old_release": "de7d87edf041aa802975f48495fae88fcbb0aa218f512f39d32221370d69a546",
+      "new_release": "99a6ac9c5c397bba0efe68f502061f18503b27904f51d2cecee56d7319985f9d",
+      "initial_canonical_release": "99a6ac9c5c397bba0efe68f502061f18503b27904f51d2cecee56d7319985f9d"
+    },
+    {
+      "path": "strata_throughput_workbench/cc.yaml",
+      "old_release": "4115aee62cad92086000c4aaeab786f0a89368168f4185ce916985c246694c4e",
+      "new_release": "924a88b0dba07dab9b5997ff935e9ce34367ded4470ca9b8302d55c870853fbf",
+      "initial_canonical_release": "924a88b0dba07dab9b5997ff935e9ce34367ded4470ca9b8302d55c870853fbf"
+    },
+    {
+      "path": "strata_verified_drafting/cc.yaml",
+      "old_release": "b930681c6bd7567462db358ec1fee28546a769f250ebf93d6c182b6790229c90",
+      "new_release": "ea6e1b15af347fba14fd890b398dbe0127bf6eaa43885dd9aa22b33f1a0e8fe8",
+      "initial_canonical_release": "ea6e1b15af347fba14fd890b398dbe0127bf6eaa43885dd9aa22b33f1a0e8fe8"
+    },
+    {
+      "path": "cache_size_pareto/cc.yaml",
+      "old_release": "ca505c3e9a7904f88b49d3f20a2156e810d1bc051d52d46c85c1214eac48cd3b",
+      "new_release": "ca505c3e9a7904f88b49d3f20a2156e810d1bc051d52d46c85c1214eac48cd3b",
+      "initial_canonical_release": "ca505c3e9a7904f88b49d3f20a2156e810d1bc051d52d46c85c1214eac48cd3b"
+    },
+    {
+      "path": "expert_prefetch_readiness/cc.yaml",
+      "old_release": "38281167655041ba6f93f18e6462034dd7c18a35b1681a8d16520f54a9cbeb42",
+      "new_release": "38281167655041ba6f93f18e6462034dd7c18a35b1681a8d16520f54a9cbeb42",
+      "initial_canonical_release": "38281167655041ba6f93f18e6462034dd7c18a35b1681a8d16520f54a9cbeb42"
+    },
+    {
+      "path": "expert_weight_residency/cc.yaml",
+      "old_release": "e220b16e30a1afbe9b7482f2c617c7f700b34fee6755e1c3ffa97f9a211a4dd1",
+      "new_release": "e220b16e30a1afbe9b7482f2c617c7f700b34fee6755e1c3ffa97f9a211a4dd1",
+      "initial_canonical_release": "e220b16e30a1afbe9b7482f2c617c7f700b34fee6755e1c3ffa97f9a211a4dd1"
+    },
+    {
+      "path": "expert_weight_streaming/cc.yaml",
+      "old_release": "fbbda7097d9adcf64083a587de978a19acfc223837a7053ce83c14558d013bd1",
+      "new_release": "fbbda7097d9adcf64083a587de978a19acfc223837a7053ce83c14558d013bd1",
+      "initial_canonical_release": "fbbda7097d9adcf64083a587de978a19acfc223837a7053ce83c14558d013bd1"
+    },
+    {
+      "path": "lab_manager/cc.yaml",
+      "old_release": "012f472d73baee288a5c9a3cf8bcfbe0d8aa80a22e519357f7ef44c74f2f28fb",
+      "new_release": "012f472d73baee288a5c9a3cf8bcfbe0d8aa80a22e519357f7ef44c74f2f28fb",
+      "initial_canonical_release": "012f472d73baee288a5c9a3cf8bcfbe0d8aa80a22e519357f7ef44c74f2f28fb"
+    },
+    {
+      "path": "performance_baseline/cc.yaml",
+      "old_release": "3117177c64625accfd9f83e1d150e98c46c3c66cf4d6dc269c58026a77ad1a93",
+      "new_release": "3117177c64625accfd9f83e1d150e98c46c3c66cf4d6dc269c58026a77ad1a93",
+      "initial_canonical_release": "3117177c64625accfd9f83e1d150e98c46c3c66cf4d6dc269c58026a77ad1a93"
+    },
+    {
+      "path": "quant_kernel_profile/cc.yaml",
+      "old_release": "410af5c8fc3e53fd5e38c2d328b00a0f786b93189183127a211c6b5c8f268cac",
+      "new_release": "410af5c8fc3e53fd5e38c2d328b00a0f786b93189183127a211c6b5c8f268cac",
+      "initial_canonical_release": "410af5c8fc3e53fd5e38c2d328b00a0f786b93189183127a211c6b5c8f268cac"
+    },
+    {
+      "path": "request_fault_io_analysis/cc.yaml",
+      "old_release": "c586994fa0d89fa302a80b25da2bc8133abe5cfce2f57b5c20722243192913a9",
+      "new_release": "c586994fa0d89fa302a80b25da2bc8133abe5cfce2f57b5c20722243192913a9",
+      "initial_canonical_release": "c586994fa0d89fa302a80b25da2bc8133abe5cfce2f57b5c20722243192913a9"
+    },
+    {
+      "path": "routing_profile_analysis/cc.yaml",
+      "old_release": "fbf39705fd447a3fd0314e97ba4c770379d364b716150417f95797abc7a8b9b9",
+      "new_release": "fbf39705fd447a3fd0314e97ba4c770379d364b716150417f95797abc7a8b9b9",
+      "initial_canonical_release": "fbf39705fd447a3fd0314e97ba4c770379d364b716150417f95797abc7a8b9b9"
+    },
+    {
+      "path": "source_workbench/cc.yaml",
+      "old_release": "48a026859765378071e3a0a3484ffe8f465676d8e715684e26976d8ebb3ce1ba",
+      "new_release": "48a026859765378071e3a0a3484ffe8f465676d8e715684e26976d8ebb3ce1ba",
+      "initial_canonical_release": "48a026859765378071e3a0a3484ffe8f465676d8e715684e26976d8ebb3ce1ba"
+    },
+    {
+      "path": "spark_gap_analysis/cc.yaml",
+      "old_release": "70693534d3074d68fe87408a185ed88d8f4e00b9435af165bd1e7faf4314f183",
+      "new_release": "70693534d3074d68fe87408a185ed88d8f4e00b9435af165bd1e7faf4314f183",
+      "initial_canonical_release": "70693534d3074d68fe87408a185ed88d8f4e00b9435af165bd1e7faf4314f183"
+    }
+  ],
+  "new_packages": [
+    {
+      "path": "performance_baseline/cc.yaml",
+      "release": "8fa8afd54a7fcaf54a792f3d4c25dd7ab4a23c8c13ceb517f1d6e529c36e8380"
+    }
+  ]
+}

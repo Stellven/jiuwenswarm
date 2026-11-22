@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "engine": "strata-dsv41",
+  "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+  "scope": "Existing native mechanism and observation candidates; not llama.cpp patches or enabled CC integrations.",
+  "components": [
+    {
+      "id": "strata.resident_expert_budget",
+      "engine_slice": "placement",
+      "source_symbols": [
+        "place_experts",
+        "copy_experts"
+      ],
+      "knob": "--reserve-mib",
+      "hypothesis": "A bounded change in resident expert budget can reduce demand stalls without starving unified host memory.",
+      "requires": [
+        "effective placement bytes",
+        "host MemAvailable guard",
+        "same fixed cache state",
+        "frozen correctness policy"
+      ],
+      "bounds": "One reserve setting only; keep vram-experts fixed; never reduce tested headroom without separate admission.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    },
+    {
+      "id": "strata.adaptive_expert_cache",
+      "engine_slice": "cache",
+      "source_symbols": [
+        "store_watch",
+        "store_sync"
+      ],
+      "knob": "--no-expert-cache",
+      "hypothesis": "Adaptive placement may exchange CPU/storage work for promotion work.",
+      "requires": [
+        "promotion counters",
+        "ready-at-demand data",
+        "independent A/A output repeatability",
+        "identical warmup protocol"
+      ],
+      "bounds": "One enabled/disabled cache toggle; preserve all six experts; no scoring if outputs fail the frozen policy.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    },
+    {
+      "id": "strata.cpu_thread_budget",
+      "engine_slice": "cpu",
+      "source_symbols": [
+        "load_experts",
+        "flow_pump"
+      ],
+      "knob": "--cpu-threads",
+      "hypothesis": "A different CPU worker budget may reduce oversubscription or improve overlap.",
+      "requires": [
+        "CPU quota and affinity",
+        "CPU scheduling waits",
+        "no concurrent builds",
+        "effective thread count"
+      ],
+      "bounds": "Compare 4 versus 8 threads under the same 8-CPU quota; do not change async threads simultaneously.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    },
+    {
+      "id": "strata.prefill_chunk",
+      "engine_slice": "prefill",
+      "source_symbols": [
+        "ds4_main option --prefill-chunk"
+      ],
+      "knob": "--prefill-chunk",
+      "hypothesis": "Prefill chunk size can alter launch overhead and memory pressure.",
+      "requires": [
+        "fixed prompt length",
+        "native prefill timing",
+        "peak host/device memory",
+        "end-to-end TTFT"
+      ],
+      "bounds": "One chunk-size change; generation settings and cache policy remain fixed; start at the tested 256 setting.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    },
+    {
+      "id": "strata.verified_drafting",
+      "engine_slice": "draft",
+      "source_symbols": [
+        "ds4_main option --dspark",
+        "ds4_main option --dspark-conf"
+      ],
+      "knob": "--dspark",
+      "hypothesis": "Verified draft tokens can save target steps if draft cost is repaid.",
+      "requires": [
+        "actual accepted/offered counters",
+        "effective drafter state",
+        "target verification",
+        "frozen correctness policy"
+      ],
+      "bounds": "Test none versus on as a separate admitted workload; do not tune confidence in the same comparison; auto can unload the drafter.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    },
+    {
+      "id": "strata.ahead_readiness_observer",
+      "engine_slice": "io",
+      "source_symbols": [
+        "ahead_ask",
+        "flow_spec",
+        "flow_pump"
+      ],
+      "knob": null,
+      "hypothesis": "Readiness-at-demand instrumentation can show whether speculative reads complete in time to help.",
+      "requires": [
+        "demand phase timestamps",
+        "queued/inflight/resident distinctions",
+        "duplicate and wasted bytes",
+        "observer overhead comparison"
+      ],
+      "bounds": "Observability only first; no runtime prefetch change; traces do not score.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    },
+    {
+      "id": "strata.phase_telemetry",
+      "engine_slice": "telemetry",
+      "source_symbols": [
+        "ds4_main PP/STAT/DONE protocol"
+      ],
+      "knob": null,
+      "hypothesis": "Phase and resource telemetry can separate decode, prefill, physical reads and collector overhead.",
+      "requires": [
+        "versioned protocol adapter",
+        "raw stream hashes",
+        "canonical token IDs",
+        "partial-result recovery"
+      ],
+      "bounds": "No engine semantics change; useful signal and bounded observer cost required; no claimed speedup.",
+      "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "source_files": [
+        "src/dsv41/ds4_model.cu",
+        "src/dsv41/ds4_main.cpp"
+      ],
+      "status": "inspection_candidate_not_promoted",
+      "expected_benefit": "unknown",
+      "source_mapping": "Inspect matching source revision before implementation; symbol/flag references are not automatic applicability evidence."
+    }
+  ],
+  "promotion": "Requires source mapping, applicability, bounded effects, correctness, negative replay, observer/performance evidence and operator authority."
+}

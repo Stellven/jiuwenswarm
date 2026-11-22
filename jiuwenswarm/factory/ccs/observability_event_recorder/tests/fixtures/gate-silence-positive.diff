@@ -1,0 +1,18 @@
+diff --git a/src/llama-event-recorder.cpp b/src/llama-event-recorder.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-event-recorder.cpp
+@@ -0,0 +1,13 @@
++#include <cstdlib>
++#include <cstring>
++#define LLAMA_LOG_INFO(...) ((void)0)
++#define LOG_INF(...) ((void)0)
++inline void marker_fixture() {
++    const char * value = std::getenv("LLAMA_EVENT_REC");
++    if (!value) return;
++    LLAMA_LOG_INFO("runtime_event_recorder: active");
++    LLAMA_LOG_INFO("runtime_event_recorder: inactive (fixture)");
++    LLAMA_LOG_INFO("runtime_event_recorder: stats");
++    const bool enabled = value != nullptr && std::strcmp(value, "1") == 0;
++    (void)enabled;
++}

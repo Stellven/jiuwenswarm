@@ -1,0 +1,17 @@
+{
+  "status": "Research-derived methodology; local CPU arithmetic, not an imported inference backend",
+  "sources": [
+    {
+      "url": "https://github.com/ggml-org/llama.cpp/blob/e574a17b062be51b98e239ccd3d3743e3d902333/tools/llama-bench/README.md",
+      "revision": "e574a17b062be51b98e239ccd3d3743e3d902333",
+      "license": "MIT",
+      "use": "Separate prompt processing and token generation, controlled lengths and warmup; no upstream implementation copied."
+    },
+    {
+      "type": "local_measured_example",
+      "source": "workload-shape-comparison-v1/run-001/analysis.json",
+      "sha256": "c16e39b78817bb28d50ee84ea9386a6afe6fda55fe24839b83054677c1aeb2b9",
+      "scope": "Example timing rows transcribed from verified experiment; tool itself does not verify source file."
+    }
+  ]
+}

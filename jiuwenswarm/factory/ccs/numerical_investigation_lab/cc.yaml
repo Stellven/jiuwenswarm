@@ -1,0 +1,101 @@
+cc: '2'
+id: factory.numerical_investigation_lab
+version: 1.0.2
+materials:
+  component:
+    path: COMPONENT.json
+  method:
+    path: METHOD.md
+  skill:
+    path: SKILL.md
+  examples:
+    path: EXAMPLES.json
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  replay_spec:
+    does: Freeze a bounded common-history next-token replay specification and a predeclared
+      numerical policy without executing an engine.
+    takes:
+      baseline_identity: json
+      candidate_identity: json
+      prompt_ids: json
+      teacher_ids: json
+      step: json
+      vocabulary_size: json
+      treatment_fields: json
+      comparison_policy: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  compare_logits:
+    does: Compare externally captured finite full-vocabulary logits under exact replay
+      identity; partial vectors yield unknown top and margin verdicts.
+    takes:
+      spec: json
+      baseline: json
+      candidate: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  first_divergence:
+    does: Locate the first different retained output token or length; compare finish
+      reasons without claiming causal diagnosis.
+    takes:
+      baseline_ids: json
+      candidate_ids: json
+      baseline_finish: json
+      candidate_finish: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  capture_plan:
+    does: Plan source-pinned DS4 serve capture at output49 with the original prompt
+      boundary and no drafting; no engine execution.
+    takes:
+      profile: json
+      spec: json
+      arm: json
+      dump_prefix: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  import_capture:
+    does: Import a bounded completed DS4 logit capture with contained evidence paths
+      and exact common-prefix and profile validation.
+    takes:
+      spec: json
+      arm: json
+      evidence_root: json
+      dump_path: json
+      transcript_path: json
+      stdin_path: json
+      profile: json
+      source_main_sha256: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

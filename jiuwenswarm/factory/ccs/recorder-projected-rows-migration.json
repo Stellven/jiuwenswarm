@@ -1,0 +1,14 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "observability_event_recorder/cc.yaml",
+      "from_version": "1.1.3",
+      "from_release": "55e12fb5f64f41cf38e57a73897aaf471eb82f77ad7a88fc2f5b2160ab5002a1",
+      "to_version": "1.1.4",
+      "to_release": "07285f1207aea15a89912f2cd83b796e5fd7c9203addaa5308f0e893e15e92a2",
+      "methodology_changed": true,
+      "granite_route_loss_reproduced": true
+    }
+  ]
+}

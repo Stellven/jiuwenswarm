@@ -1,0 +1,28 @@
+{
+  "kind": "analysis",
+  "title": "Expert routing coverage and payload cost",
+  "report_schema": "routing-profile-analysis/1",
+  "table": {
+    "rows": "rows",
+    "columns": ["k_per_layer", "fraction_slots", "counter_delta_in_selected", "fraction_new_routes", "indexed_payload_bytes", "indexed_payload_gib"]
+  },
+  "transfer_table": {
+    "schema": "routing-profile-transfer/1",
+    "rows": "rows",
+    "columns": ["phase", "k_per_layer", "route_selections", "route_fraction", "dispatch_expert_unions", "dispatch_expert_union_fraction"]
+  },
+  "copy_timing_table": {
+    "schema": "routing-copy-timing/1",
+    "rows": "rows",
+    "columns": ["pass_index", "residency", "measured_bandwidth_bytes_per_second", "serial_copy_equivalent_seconds", "serial_copy_equivalent_fraction_of_c1_ttft"]
+  },
+  "residency_counterfactual_table": {
+    "schema": "routing-residency-counterfactual/1",
+    "rows": "rows",
+    "columns": ["k_per_layer", "indexed_resident_payload_bytes", "modeled_avoided_upload_bytes", "modeled_avoided_upload_fraction", "modeled_upload_call_reduction", "serial_copy_equivalent_reduction_seconds_at_later_median"]
+  },
+  "inform_builder_capsules": [
+    "weight_placement_planner",
+    "expert_weight_cache"
+  ]
+}

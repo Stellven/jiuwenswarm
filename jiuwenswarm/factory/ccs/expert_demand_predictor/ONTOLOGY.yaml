@@ -1,0 +1,40 @@
+id: satay.engine-ontology
+version: '0.2'
+status: provisional
+entities:
+  engine_revision: Source commit plus candidate patch identity.
+  component: Expert demand prediction within Weight residency.
+  contract: Correctness, capacity and measurement obligations for a fixed workload.
+  workload: One single-slot prefill with fixed model and engine configuration.
+  observation_point: A named stderr line and field at an engine boundary.
+  quantity: A value with unit, phase and region.
+  observation: A value with raw evidence provenance.
+  regions:
+    L3: generation_loop
+    L4.router: router
+    L4.selected_expert: selected_expert
+    M.expert_weight_range: expert_weight_range
+    M.read_request: read_request
+    M.readiness: readiness before demand fill
+    M.page_cache: page_cache
+    M.memory_budget: memory_budget
+relations:
+  modifies_region: component -> engine region
+  reads_range: read_request -> expert_weight_range
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract and workload
+observation_points:
+  active: 'expert_demand_predictor: active '
+  inactive: 'expert_demand_predictor: inactive ('
+  stats: 'expert_demand_predictor: stats'
+quantities:
+  prediction.hits: {unit: count, phase: prompt, source: {line: 'expert_demand_predictor: stats', field: hits}, region: L4.selected_expert, distinct_from: [readiness.ready_bytes_predicted]}
+  prediction.actual: {unit: count, phase: prompt, source: {line: 'expert_demand_predictor: stats', fields: [hits, misses]}, region: L4.selected_expert, distinct_from: []}
+  prediction.recall_at_k: {unit: ratio, phase: prompt, source: {line: 'expert_demand_predictor: stats', fields: [hits, misses]}, region: L4.selected_expert, distinct_from: [readiness.ready_bytes_predicted]}
+  readiness.ready_bytes_predicted: {unit: bytes, phase: prompt, source: {line: 'expert_demand_predictor: stats', field: bytes_useful_at_consumption}, region: M.readiness, distinct_from: [prediction.hits]}
+  readiness.wasted_async_bytes: {unit: bytes, phase: prompt, source: {line: 'expert_demand_predictor: stats', field: wasted_bytes}, region: M.read_request, distinct_from: [readiness.ready_bytes_predicted]}
+slices:
+  expert_weight_readiness:
+    purpose: Use completed routing IDs to advise readiness for the next layer under a shared budget.
+    regions: [L3, L4.router, L4.selected_expert, M.expert_weight_range, M.read_request, M.readiness, M.page_cache, M.memory_budget]
+    quantities: [prediction.hits, prediction.actual, prediction.recall_at_k, readiness.ready_bytes_predicted, readiness.wasted_async_bytes]

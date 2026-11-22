@@ -1,0 +1,14 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "weight_placement_planner/cc.yaml",
+      "from_version": "1.1.4",
+      "from_release": "fc67d5b25d6619b53724a198e6d33333df0d8a542235b0d5239c398e2219fb47",
+      "to_version": "1.2.0",
+      "to_release": "31d6f432515d4949cb1f6462ff2ad5fb3b32161e9d6d480873f2c3bb4a300347",
+      "methodology_changed": true,
+      "requires_new_product_for_profile": true
+    }
+  ]
+}

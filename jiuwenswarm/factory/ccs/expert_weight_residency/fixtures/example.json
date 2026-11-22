@@ -1,0 +1,58 @@
+{
+  "physical_bytes": 103079215104,
+  "allocations": [
+    {
+      "id": "shared-fixed",
+      "kind": "fixed",
+      "bytes": 55834574848
+    },
+    {
+      "id": "workspace",
+      "kind": "workspace",
+      "bytes": 8589934592
+    },
+    {
+      "id": "headroom",
+      "kind": "headroom",
+      "bytes": 4294967296
+    }
+  ],
+  "contexts": [
+    {
+      "id": "short",
+      "sequence_bytes": 8589934592
+    },
+    {
+      "id": "long",
+      "sequence_bytes": 17179869184
+    }
+  ],
+  "fallback_bytes": 1073741824,
+  "max_inflight_bytes": 1073741824,
+  "checkpoint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "inventory": [
+    {
+      "checkpoint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "layer": 0,
+      "expert": 2,
+      "layout": "up:iq2_xxs:256:32",
+      "tensor": "blk.0.ffn_up_exps.weight",
+      "bytes": 2112
+    }
+  ],
+  "training_requests": [
+    "train"
+  ],
+  "evaluation_requests": [
+    "holdout"
+  ],
+  "trace": [
+    {
+      "request": "train",
+      "checkpoint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "layer": 0,
+      "expert": 2,
+      "layout": "up:iq2_xxs:256:32"
+    }
+  ]
+}

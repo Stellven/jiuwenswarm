@@ -1,0 +1,272 @@
+cc: '2'
+id: engine.strata_throughput_workbench
+version: 1.1.2
+materials:
+  method:
+    path: METHOD.md
+  verification_units:
+    path: VERIFICATION-UNITS.json
+  component:
+    path: COMPONENT.json
+  integration:
+    path: INTEGRATE.md
+  job_verification:
+    path: JOB-VERIFICATION.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  inspect_evidence:
+    does: Independently verify a collected ledger-owned benchmark child and import
+      bounded raw evidence and resource summaries into this parent task; no execution.
+    takes:
+      cycle_id: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  inspect:
+    does: Inspect finite throughput mechanisms, risks and required engagement evidence
+      without executing.
+    takes: {}
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  design:
+    does: Read and validate exact operator-installed broad benchmark template and
+      hash; never admit or mutate it.
+    takes:
+      template_id: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  apply:
+    does: Prepare one finite native throughput setting.
+    takes:
+      base_profile: json
+      setting: text
+      value: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  verify_profile:
+    does: Check exact single-setting profile pair; runtime and performance remain
+      unmeasured.
+    takes:
+      base_profile: json
+      setting: text
+      value: json
+      candidate_profile: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  query:
+    does: Query bounded task-scoped evidence summaries and cursor.
+    takes:
+      kinds:
+        kind: json
+        optional: true
+      text:
+        kind: text
+        optional: true
+      since:
+        kind: json
+        optional: true
+      limit:
+        kind: json
+        optional: true
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      items: json
+      cursor: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  read:
+    does: Read a task-scoped evidence record, with bounded artifact preview.
+    takes:
+      id: text
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  publish:
+    does: Publish an immutable observation/artifact or compare-and-swap decision revision.
+    takes:
+      type: text
+      record: json
+      expected_rev:
+        kind: json
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  diagnose:
+    does: Analyze retained experiment reports across inference subsystems; surface
+      uncertainties and inspection candidates.
+    takes:
+      evidence_ids:
+        kind: json
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  ablation:
+    does: Design one-variable diagnostic or ABBA work without executing or scoring
+      it.
+    takes:
+      evidence_ids:
+        kind: json
+      hypothesis_id:
+        kind: text
+        optional: true
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  followup:
+    does: Convert report-backed uncertainty into a proposed next input; never submit
+      or amend a contract.
+    takes:
+      evidence_ids:
+        kind: json
+      hypothesis_id:
+        kind: text
+        optional: true
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  test_scope:
+    does: Choose bounded prefill claim obligations and limits; advice grants no execution.
+    takes:
+      claim: text
+      layer: text
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  loop_status:
+    does: Read durable cycles, pending attempts and remaining operator budgets.
+    takes: {}
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  select:
+    does: Record an agent-selected report-backed hypothesis and reserve one bounded
+      operator-admitted experiment.
+    takes:
+      cycle_id:
+        kind: text
+      evidence_ids:
+        kind: json
+      hypothesis_id:
+        kind: text
+      template_id:
+        kind: text
+      expected_rev:
+        kind: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  execute:
+    does: Freeze an exact admitted template into a new child task and submit via the
+      existing durable benchmark queue. Replay recovers the same attempt.
+    takes:
+      cycle_id:
+        kind: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+    - gpu.use
+  collect:
+    does: Reconcile the child benchmark, retain failed or successful evidence and
+      expose follow-up proposals for the agent's next decision.
+    takes:
+      cycle_id:
+        kind: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  stop:
+    does: Persist stop intent for future experiments without cancelling already queued
+      work.
+    takes:
+      reason:
+        kind: text
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  propose:
+    does: Record an agent-authored unmeasured hypothesis linked to scoped evidence;
+      does not fetch citations or execute experiments.
+    takes:
+      hypothesis_id:
+        kind: json
+        schema:
+          type: string
+          pattern: ^[a-z][a-z0-9_-]{0,63}$
+      hypothesis:
+        kind: json
+    gives:
+      proposal: json
+      observation_id: json
+      replayed: json
+    needs:
+    - python
+    changes:
+    - process.exec

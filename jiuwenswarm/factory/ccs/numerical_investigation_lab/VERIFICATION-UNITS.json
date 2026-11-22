@@ -1,0 +1,26 @@
+{
+  "schema": "verification-units/1",
+  "checker": "tests/factory/test_numerical_investigation_package.py",
+  "scope": "CPU synthetic independent assertions plus actual Host transport; no live GPU/engine certification",
+  "units": [
+    "known full-vector permutation, maximum difference, candidate ranking and margins",
+    "exact history, model/tokenizer/source/precision/routing/profile identity and spec hash rejection",
+    "unique bounded vocabulary IDs and finite matching vectors",
+    "predeclared tolerance range and arithmetic boundary",
+    "partial vectors retain unknown verdicts",
+    "tie reporting and output length/finish divergence",
+    "actual Host success, failed capture and effect denial",
+    "strict native JSON duplicate/nonfinite/unknown capability rejection",
+    "source-pinned bounded DS4 capture plan and exact original stdin prompt verification",
+    "actual Host capture plan/import with full-vector fixture",
+    "native dump truncation, dimensions, finite row, zero drafts, source/profile/common-history checks and symlink containment",
+    "wrapper fake-child transport and raw-versus-witness provenance limits"
+  ],
+  "missing": [
+    "observer-on/off behavior and overhead",
+    "first divergent layer diagnosis",
+    "independent provenance timestamp authentication",
+    "actual engine common-history capture evidence (source hook exists; no new GPU run)"
+  ],
+  "capture_checker": "tests/factory/test_native_logit_capture_adapter.py"
+}

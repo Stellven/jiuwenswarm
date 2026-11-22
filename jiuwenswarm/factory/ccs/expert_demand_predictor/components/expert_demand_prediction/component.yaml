@@ -1,0 +1,50 @@
+kind: builder_spec
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  kind: observability
+  touches:
+  - src/llama-expert-predict.cpp
+  - src/llama-expert-predict.h
+  - src/llama-context.cpp
+  - src/llama-context.h
+  - src/CMakeLists.txt
+  # Only if authoritative request phase and slot metadata needs a server handoff.
+  - tools/server/server-context.cpp
+  # Optional replacement of an existing Fill prediction hook.
+  - src/llama-expert-fill.h
+supported:
+  host: {name: jetson-orin, arch: aarch64, cuda_arch: sm_87}
+  models: Single-slot MoE prefill with completed router observations and host-backed mapped expert weights.
+  dtype: any
+configuration:
+  env:
+    LLAMA_EXPERT_PREDICT: '1'
+  source: >-
+    Only the exact value 1 requests the predictor. Use explicit -lm mmap on the Jetson.
+    Predict up to four expert IDs for the next layer, frequency-ranked using the
+    current layer and the previous two completed microbatches. Break ties by lower ID.
+    Use advisory read-ahead on validated mapped ranges. Bound predictor-owned
+    memory to 1 MiB per context and potential wasted reads to 8 MiB per request.
+engagement_checks:
+- 'At -lv 4, expect one expert_demand_predictor: active <effective settings> on first eligible use.'
+- 'At -lv 4, expect expert_demand_predictor: inactive (<reason>) when requested but unavailable, or upon a later terminal hint failure.'
+- 'At exit with the gate requested, expect one expert_demand_predictor: stats line with hits, misses, bytes_useful_at_consumption, wasted_bytes, lead_ns_total and lead_samples.'
+correctness_obligations:
+- >-
+  With LLAMA_EXPERT_PREDICT unset, take the stock path and do no component work
+  beyond one cached getenv check. Emit zero log lines with the expert_demand_predictor: prefix.
+  Active, inactive (<reason>) and stats markers require a set gate.
+- Preserve greedy output byte for byte within one configuration, including actual routing IDs, mixture weights, token order, quantization and sampling.
+- Keep router, sampling and model source files untouched. Preserve the stock demand path and existing evaluation callback behavior.
+- Bypass unsupported or non-mapped ranges, mixed slots, decode and the final layer. A terminal advice failure disables hints and leaves stock demand working.
+- Reserve speculative unique page-rounded bytes before advice under both the request cap and available shared capacity. Release predictor state before the backing mappings.
+- Report causal held-out coverage and account separately for attributed readiness at consumption.
+rollback:
+  source: Unset LLAMA_EXPERT_PREDICT. Revert the predictor integration in the owned checkout for source rollback, preserving unrelated Fill and cache changes.
+  image: Select the retained baseline binary or image and its recorded environment.
+acceptance:
+  type: prerequisite
+modifies_region: [L3, M.expert_weight_range, M.read_request, M.readiness, M.memory_budget]
+quantities: [prediction.hits, prediction.actual, prediction.recall_at_k, readiness.ready_bytes_predicted, readiness.wasted_async_bytes]

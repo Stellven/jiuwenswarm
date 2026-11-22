@@ -1,0 +1,11 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [{
+    "path": "expert_demand_predictor/cc.yaml",
+    "from_version": "1.2.0",
+    "from_release": "e4369f73b7c9daaea3e14d82660aacc700998dd8c565c592d9da7ee939764b91",
+    "to_version": "1.2.1",
+    "to_release": "589e4eb4b0af422f55da62eea2e69b88167f4c5629f7f46f6d10dec7d322a0f7",
+    "methodology_changed": true
+  }]
+}

@@ -1,0 +1,12 @@
+{
+  "implementation": "precision.py",
+  "runtime": "stdlib_cpu",
+  "qualification": "cpu_reference_qualified",
+  "gpu_integration": false,
+  "capabilities": [
+    "quantize",
+    "evaluate",
+    "calibrate",
+    "memory_plan"
+  ]
+}

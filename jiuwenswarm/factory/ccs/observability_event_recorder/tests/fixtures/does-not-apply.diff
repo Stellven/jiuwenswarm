@@ -1,0 +1,6 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -1 +1 @@
+-// different preimage
++// fixture edit

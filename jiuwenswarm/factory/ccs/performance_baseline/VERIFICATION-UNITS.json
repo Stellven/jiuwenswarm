@@ -1,0 +1,18 @@
+{
+  "format": "factory-baseline-verification/1",
+  "units": [
+    "packed_tensor_byte_accounting",
+    "all_demanded_experts",
+    "capacity_and_compulsory_pages",
+    "precision_sparsity_match",
+    "missing_evidence_remains_unknown",
+    "resident_not_end_to_end",
+    "actual_slice_digest",
+    "fp64_reference",
+    "independent_pinned_bytes_matvec",
+    "retained_run_and_tensor_identity",
+    "fixed_tolerance_all_retained_vectors",
+    "historical_without_vectors_unverified",
+    "forged_reference_flags_do_not_authorize"
+  ]
+}

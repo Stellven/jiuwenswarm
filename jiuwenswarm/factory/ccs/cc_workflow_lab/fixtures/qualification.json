@@ -1,0 +1,251 @@
+{
+  "scope": "Historical CPU native-CC qualification calls; no GPU or quality claim",
+  "sources": [
+    {
+      "path": "expert_cache_lab.json",
+      "sha256": "7b88e12913148bf651ed40423855746848e1f5906652622589c990d3babdd852"
+    },
+    {
+      "path": "heterogeneous_placement_lab.json",
+      "sha256": "537aa0af08952e094179409237d5d5e90316d871da78ecb7834cab125908937d"
+    },
+    {
+      "path": "kv_reuse_lab.json",
+      "sha256": "c09735e3c1526a54cea8feaef39ff84d18beb24c064b2a97c5fd0a9037e8d7c7"
+    },
+    {
+      "path": "methodology_transfer_lab.json",
+      "sha256": "1fb873006ba7e607a7f36046069a273b89947b374704bafadd934a1fb07f55aa"
+    },
+    {
+      "path": "precision_lab.json",
+      "sha256": "8e0871bcfeecab3a35d7dc0ddb4d0b66647a0011e77d67bb37ddd4d586cc7a91"
+    },
+    {
+      "path": "serving_scheduler_lab.json",
+      "sha256": "fcacd5d63f3eee2ddb4a0bc7906102da4c8e2f6734b5969cb398261bec9676ed"
+    },
+    {
+      "path": "ssd_streaming_lab.json",
+      "sha256": "be67eaf871dfc93c321531f78eec63cf9b7722942094d84b8caf97352ff5b05d"
+    }
+  ],
+  "receipts": [
+    {
+      "package": "engine.expert_cache_lab",
+      "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+      "capability": "validate",
+      "call": "c6ec4d1d-48b5-4158-8681-f87369d04a06",
+      "elapsed_s": 0.24729587696492672,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.expert_cache_lab",
+      "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+      "capability": "replay",
+      "call": "a69d7c53-527b-48be-9011-119e3bd19a26",
+      "elapsed_s": 0.16447133710607886,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.expert_cache_lab",
+      "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+      "capability": "predict",
+      "call": "fc134276-456b-4822-81ce-0592daea157e",
+      "elapsed_s": 0.16537116095423698,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.heterogeneous_placement_lab",
+      "release": "472153322549e77847b309693eed6f4a7d76092653925abc2b7e8f3a5dbd9845",
+      "capability": "plan",
+      "call": "e38de3ec-6ce9-4fcf-b6e0-330deab5fa87",
+      "elapsed_s": 0.17846475308761,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.heterogeneous_placement_lab",
+      "release": "472153322549e77847b309693eed6f4a7d76092653925abc2b7e8f3a5dbd9845",
+      "capability": "execute_reference",
+      "call": "8e2cfd38-2423-4177-adc9-ea7cfaa4c5c9",
+      "elapsed_s": 0.17153989989310503,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.heterogeneous_placement_lab",
+      "release": "472153322549e77847b309693eed6f4a7d76092653925abc2b7e8f3a5dbd9845",
+      "capability": "overlap_schedule",
+      "call": "0637c5e7-f54b-4dfa-8345-ca456aa379c4",
+      "elapsed_s": 0.17399739008396864,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.kv_reuse_lab",
+      "release": "6218afa26d8f2e9f7cd6fb70f24ed7f14c9fea83ab4c79615052d90324eb6ac6",
+      "capability": "prefix",
+      "call": "8ac932d2-3bff-42e6-b682-e8cfa5cab17b",
+      "elapsed_s": 0.16881364304572344,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.kv_reuse_lab",
+      "release": "6218afa26d8f2e9f7cd6fb70f24ed7f14c9fea83ab4c79615052d90324eb6ac6",
+      "capability": "allocator",
+      "call": "0960e6bb-3fa0-4e57-833b-174a3b27a89d",
+      "elapsed_s": 0.1570031400769949,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.kv_reuse_lab",
+      "release": "6218afa26d8f2e9f7cd6fb70f24ed7f14c9fea83ab4c79615052d90324eb6ac6",
+      "capability": "estimate",
+      "call": "a5ee2781-8b0d-4729-96e4-5fbbb51d35ea",
+      "elapsed_s": 0.15599491586908698,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.kv_reuse_lab",
+      "release": "6218afa26d8f2e9f7cd6fb70f24ed7f14c9fea83ab4c79615052d90324eb6ac6",
+      "capability": "verify",
+      "call": "63e0bf52-c985-4d32-bae1-1a4c4a2793fa",
+      "elapsed_s": 0.15903790993615985,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "factory.methodology_transfer_lab",
+      "release": "e7eeb33dafc3ee66d9c166f1fdde46c4c0934d6e1b2306a1e7a097a5d91edbd8",
+      "capability": "assess_transfer",
+      "call": "793920cb-3703-4e52-8f40-971728c779d8",
+      "elapsed_s": 0.16092051891610026,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "factory.methodology_transfer_lab",
+      "release": "e7eeb33dafc3ee66d9c166f1fdde46c4c0934d6e1b2306a1e7a097a5d91edbd8",
+      "capability": "design_trial",
+      "call": "9aef1b30-2a3b-410e-8114-e3829b116ee2",
+      "elapsed_s": 0.17179849185049534,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "factory.methodology_transfer_lab",
+      "release": "e7eeb33dafc3ee66d9c166f1fdde46c4c0934d6e1b2306a1e7a097a5d91edbd8",
+      "capability": "analyze_abba",
+      "call": "4c641686-0289-42eb-96b4-958fbaa2f245",
+      "elapsed_s": 0.1568518290296197,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.precision_lab",
+      "release": "e081e76fd40ccabbbe1f9f4e5dcecc9070877b7570bbe4b400a32c228bdc1ad3",
+      "capability": "quantize",
+      "call": "8acd67cb-2443-4f97-8429-4ad5887359a3",
+      "elapsed_s": 0.19015331799164414,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.precision_lab",
+      "release": "e081e76fd40ccabbbe1f9f4e5dcecc9070877b7570bbe4b400a32c228bdc1ad3",
+      "capability": "evaluate",
+      "call": "a01ff5c1-b40c-44d2-aaef-5a4181177813",
+      "elapsed_s": 0.1731274533085525,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.precision_lab",
+      "release": "e081e76fd40ccabbbe1f9f4e5dcecc9070877b7570bbe4b400a32c228bdc1ad3",
+      "capability": "calibrate",
+      "call": "85e3d954-b911-4dcb-9ab2-fd544695378a",
+      "elapsed_s": 0.1948096570558846,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.precision_lab",
+      "release": "e081e76fd40ccabbbe1f9f4e5dcecc9070877b7570bbe4b400a32c228bdc1ad3",
+      "capability": "memory_plan",
+      "call": "c135c624-095c-4677-b47e-4011019f091a",
+      "elapsed_s": 0.17179174115881324,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.serving_scheduler_lab",
+      "release": "e3535c2dfd47cf0aade9bc18ed346d42f1224c88d2af8c54d255f916b24aa6ac",
+      "capability": "schedule",
+      "call": "5aafbb4e-726d-4efc-9c0e-e1fd5235e962",
+      "elapsed_s": 0.15834518894553185,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.serving_scheduler_lab",
+      "release": "e3535c2dfd47cf0aade9bc18ed346d42f1224c88d2af8c54d255f916b24aa6ac",
+      "capability": "analyze",
+      "call": "b4e493d4-2cb5-443d-b6b7-766d05abab9e",
+      "elapsed_s": 0.1601339909248054,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.serving_scheduler_lab",
+      "release": "e3535c2dfd47cf0aade9bc18ed346d42f1224c88d2af8c54d255f916b24aa6ac",
+      "capability": "compare",
+      "call": "39ec1302-c16d-46f6-a4ca-46eb2113e52a",
+      "elapsed_s": 0.17597338976338506,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.serving_scheduler_lab",
+      "release": "e3535c2dfd47cf0aade9bc18ed346d42f1224c88d2af8c54d255f916b24aa6ac",
+      "capability": "verify",
+      "call": "e64ea71a-ae53-4cbe-87a3-5240a92cf15e",
+      "elapsed_s": 0.17384815774857998,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.ssd_streaming_lab",
+      "release": "0cf1dca6a424ed1ea7e12a256c507d01ecfc69c6945fca15b244be2cf49fface",
+      "capability": "plan",
+      "call": "971acfc8-fa9d-4933-bd53-4ca807864157",
+      "elapsed_s": 0.1649471609853208,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.ssd_streaming_lab",
+      "release": "0cf1dca6a424ed1ea7e12a256c507d01ecfc69c6945fca15b244be2cf49fface",
+      "capability": "evaluate",
+      "call": "653ffa1f-6c5b-46cf-bb49-b17c34ba8a28",
+      "elapsed_s": 0.16939079482108355,
+      "state": "succeeded",
+      "completeness": "complete"
+    },
+    {
+      "package": "engine.ssd_streaming_lab",
+      "release": "0cf1dca6a424ed1ea7e12a256c507d01ecfc69c6945fca15b244be2cf49fface",
+      "capability": "read_fixture",
+      "call": "596ae11e-f3c2-4fcd-ad95-36859c62641c",
+      "elapsed_s": 0.17106418823823333,
+      "state": "succeeded",
+      "completeness": "complete"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "format": "factory-verification-units/1",
+  "units": [],
+  "implementation_modules": [
+    "jiuwenswarm.factory.throughput_workbench",
+    "jiuwenswarm.factory.job_packages",
+    "jiuwenswarm.factory.loop",
+    "jiuwenswarm.factory.broad_benchmark"
+  ],
+  "qualification_note": "No independent admission checker is registered for this new package. verify_profile checks pair identity only and cannot satisfy another package qualification policy."
+}

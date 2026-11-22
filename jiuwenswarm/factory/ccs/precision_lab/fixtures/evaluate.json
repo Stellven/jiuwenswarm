@@ -1,0 +1,13 @@
+{
+  "reference": [
+    0,
+    1,
+    2
+  ],
+  "candidate": [
+    0,
+    1.01,
+    2
+  ],
+  "max_abs_budget": 0.02
+}

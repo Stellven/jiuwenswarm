@@ -1,0 +1,14 @@
+{
+  "capabilities": {
+    "apply": "tool",
+    "coverage": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "methodology": "method",
+    "skill": "skill",
+    "verification": "reference",
+    "verification_units": "reference"
+  }
+}

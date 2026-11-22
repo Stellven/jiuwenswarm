@@ -1,0 +1,85 @@
+cc: '2'
+id: observability.build_runtime_event_recorder
+version: 1.1.5
+materials:
+  projected_rows:
+    path: PROJECTED-ROWS.md
+  spark_profile:
+    path: SPARK-PROFILE.md
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  runtime_event_recorder:
+    path: components/runtime_event_recorder/component.yaml
+  task:
+    path: tasks/observability_event_recorder.json
+  validation:
+    path: VALIDATION.md
+  sample_cached_gate:
+    path: samples/cached_gate.cpp
+  sample_lifecycle_markers:
+    path: samples/lifecycle_markers.cpp
+  sample_ring_drain:
+    path: samples/ring_drain.cpp
+  helper_usage:
+    path: helpers/README.md
+  helper_marker_check:
+    path: helpers/check_markers.py
+  helper_parity:
+    path: helpers/parity.py
+  helper_jsonl_coverage:
+    path: helpers/check_jsonl.py
+  gate_verifier:
+    path: helpers/verify_gate.py
+  churn_verifier:
+    path: helpers/verify_churn.py
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Check a proposed recorder diff without changing the checkout or running
+      the engine. The done flag covers this static checklist.
+    takes:
+      checkout:
+        kind: text
+        description: Absolute path to the root of the owned checkout.
+      diff_path:
+        kind: text
+        optional: true
+        description: Absolute patch path. Omit to inspect tracked and untracked working
+          tree changes against HEAD.
+      env_gate:
+        kind: text
+        optional: true
+        description: Recorder path gate. Defaults to LLAMA_EVENT_REC.
+      markers:
+        kind: json
+        optional: true
+        description: Additional required literal strings in added INFO log calls.
+          The three recorder marker prefixes are always checked.
+        schema:
+          type: array
+          items:
+            type: string
+            minLength: 1
+          uniqueItems: true
+    gives:
+      checks: json
+      done: json
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

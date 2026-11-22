@@ -1,0 +1,16 @@
+{
+  "capabilities": {
+    "analyze_receipts": "tool",
+    "benchmark_fixture": "tool",
+    "design_workflow": "tool",
+    "run_batch": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "examples": "reference",
+    "fixture": "reference",
+    "method": "method",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

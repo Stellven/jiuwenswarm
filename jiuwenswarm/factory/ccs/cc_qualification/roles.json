@@ -1,0 +1,12 @@
+{
+  "capabilities": {
+    "assess_admission": "tool",
+    "inspect_package": "tool",
+    "verify_unit": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "alignment": "reference",
+    "methodology": "method"
+  }
+}

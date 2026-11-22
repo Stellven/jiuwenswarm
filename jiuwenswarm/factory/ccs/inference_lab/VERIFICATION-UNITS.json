@@ -1,0 +1,20 @@
+{
+  "profile": "development-verification-v1",
+  "units": [
+    {
+      "id": "scope-claim-boundaries",
+      "runner": "pytest",
+      "target": "tests/factory/test_experiment_methods.py",
+      "scope": "advisory scope selection and existing capability routing",
+      "auto_execute_on_import": false
+    },
+    {
+      "id": "lab-analysis-job-workflow",
+      "runner": "pytest",
+      "target": "tests/factory/test_lab_analysis_job_package.py",
+      "scope": "Native Host.call evidence inquiry, analysis, pure candidate transforms and saved next input; scoped refusal and effect boundary. Synthetic CPU-only fixtures, no engine execution.",
+      "auto_execute_on_import": false
+    }
+  ],
+  "qualification_note": "Development checks establish their stated scopes only. Supported prefill policy assessment is separate; no blanket package, GPU, correctness or speed certification."
+}

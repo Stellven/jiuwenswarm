@@ -1,0 +1,11 @@
+cc: '2'
+id: factory.components.expert_readiness
+version: 1.0.1
+materials:
+  component:
+    path: component.yaml
+  patch_10:
+    path: 10-expert-readiness.patch
+  roles:
+    path: roles.json
+    media_type: application/json

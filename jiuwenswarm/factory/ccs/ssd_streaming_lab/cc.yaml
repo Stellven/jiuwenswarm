@@ -1,0 +1,64 @@
+cc: '2'
+id: engine.ssd_streaming_lab
+version: 1.0.1
+materials:
+  method:
+    path: METHOD.md
+  integration:
+    path: SKILL.md
+  component:
+    path: COMPONENT.json
+  sources:
+    path: SOURCES.json
+  verification_units:
+    path: VERIFICATION-UNITS.json
+  verification:
+    path: verification.py
+  runtime:
+    path: components.py
+  fixture:
+    path: fixtures/example.json
+  cpu_verification:
+    path: CPU-VERIFICATION.json
+  examples:
+    path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  plan:
+    does: Coalesce bounded inline positional ranges.
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  evaluate:
+    does: Evaluate an explicitly modeled positional read schedule.
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  read_fixture:
+    does: Run actual bounded pread against an owned temporary UTF-8 fixture.
+    takes:
+      inputs: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

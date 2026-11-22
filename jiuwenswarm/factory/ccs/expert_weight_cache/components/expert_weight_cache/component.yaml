@@ -1,0 +1,47 @@
+kind: builder_spec
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  touches:
+    - src/CMakeLists.txt
+    - src/llama-context.cpp
+    - src/llama-context.h
+    - src/llama-expert-weight-cache.cpp
+    - src/llama-expert-weight-cache.h
+    - src/llama-expert-fill.h
+  kind: observability
+supported:
+  host: {name: jetson-orin, arch: aarch64, cuda_arch: sm_87}
+  models: MoE mapped host weight ranges with a supported selected-expert backend copy path.
+  dtype: any
+configuration:
+  env:
+    LLAMA_EXPERT_CACHE: '1'
+    LLAMA_EXPERT_CACHE_MIB: '64'
+  source: >-
+    Build the candidate in the owned checkout using GUIDE.md. The gate is off
+    unless its value is the literal 1. Require mapped provenance and clamp the
+    cap to the shared ledger. The touches list covers the intended context,
+    new source and build files, and an existing Fill header when needed.
+engagement_checks:
+  - 'INFO on first eligible use: expert_weight_cache: active cap_mib=<effective> backend=<name>'
+  - 'INFO on bypass or failure: expert_weight_cache: inactive (<reason>)'
+  - 'INFO at exit: expert_weight_cache: stats leases=<n> reuses=<n> evictions=<n> bytes_copied_saved=<n> peak_bytes=<n>'
+correctness_obligations:
+  - >-
+    With LLAMA_EXPERT_CACHE unset, take the stock path and do no component work
+    beyond one cached getenv check. Emit zero log lines with the expert_weight_cache: prefix.
+    Active, inactive (<reason>) and stats markers require a set gate.
+  - Preserve native --moe-cache-mib precedence and the stock copy when disabled or when a lease fails.
+  - Deliver the exact stock weight bytes and padding with identical greedy stdout.
+  - Share one lease per expert per operation and retain backing allocations through the last reader.
+  - Charge reserved and leased bytes to the shared ledger and evict only unleased entries.
+  - Preserve token order, expert IDs, mixture weights, quantization and sampling.
+rollback:
+  source: Unset LLAMA_EXPERT_CACHE. If removing the code, revert only the cache change in the owned checkout and preserve existing Fill changes.
+  image: Restore the previously admitted baseline binary or image and its environment.
+acceptance:
+  type: performance
+modifies_region: [M.expert_weight_range, M.read_request, M.readiness, M.memory_budget]

@@ -1,0 +1,34 @@
+{
+  "capability": "native_experiment",
+  "inputs": {
+    "request": {
+      "alignment": 64,
+      "tensors": [
+        {
+          "name": "attention_scratch",
+          "bytes": 8388608,
+          "start": 0,
+          "end": 2
+        },
+        {
+          "name": "expert_scratch",
+          "bytes": 12582912,
+          "start": 2,
+          "end": 4
+        },
+        {
+          "name": "next_layer_scratch",
+          "bytes": 8388608,
+          "start": 4,
+          "end": 6
+        },
+        {
+          "name": "residual",
+          "bytes": 2097152,
+          "start": 0,
+          "end": 6
+        }
+      ]
+    }
+  }
+}

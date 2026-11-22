@@ -1,0 +1,35 @@
+id: satay.weight-placement-planner
+version: '1.0'
+status: provisional
+entities:
+  engine_revision: Stock source revision and the accepted source delta.
+  component: Weight residency / Weight placement planner.
+  model: Weight tensors in a named inventory and quantization.
+  workload: Phases and their live weight, KV and compute buffers under the contract.
+  contract: Versioned budget, workload and correctness obligations.
+  observation_point: A named engine INFO line with evidence retained from stderr.
+  quantity: A value with unit, phase and region. Absence is unknown.
+  regions:
+    L1: startup
+    M.memory_budget: memory_budget
+  capabilities: [placement.build_weight_placement_planner]
+relations:
+  implements: component -> capability
+  modifies_region: component -> engine region
+  measures: observation_point -> quantity
+  evaluates_under: observation or assessment -> contract and workload
+quantities:
+  placement.cap_bytes: {unit: bytes, phase: run, region: M.memory_budget, source: {line: 'weight_placement_planner: active', field: cap_bytes}, distinct_from: []}
+  placement.peak_bytes: {unit: bytes, phase: run, region: M.memory_budget, source: {line: 'weight_placement_planner: active', field: peak_bytes}, distinct_from: [placement.cap_bytes]}
+  placement.assigned: {unit: count, phase: run, region: L1, source: {line: 'weight_placement_planner: stats', field: assigned}, distinct_from: []}
+  placement.stock: {unit: count, phase: run, region: L1, source: {line: 'weight_placement_planner: stats', field: stock}, distinct_from: []}
+observation_points:
+  - 'weight_placement_planner: active'
+  - 'weight_placement_planner: inactive ('
+  - 'weight_placement_planner: assignment'
+  - 'weight_placement_planner: stats'
+slices:
+  weight_placement_planner:
+    purpose: Admit a static weight placement under the host capacity ledger and read it back at model startup.
+    regions: [L1, M.memory_budget]
+    quantities: [placement.cap_bytes, placement.peak_bytes, placement.assigned, placement.stock]

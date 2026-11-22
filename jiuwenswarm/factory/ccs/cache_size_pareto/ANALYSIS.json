@@ -1,0 +1,11 @@
+{
+  "kind": "analysis",
+  "title": "Cache-size Pareto analysis",
+  "report_schema": "spark-cache-pareto/1",
+  "table": {
+    "rows": "cohorts[].arms[]",
+    "columns": ["role", "requested_mib", "allocated_mib", "measurements", "startup"]
+  },
+  "fronts": "cohorts[].fronts[]",
+  "coverage": "cohorts[].requested_capacity_coverage[]"
+}

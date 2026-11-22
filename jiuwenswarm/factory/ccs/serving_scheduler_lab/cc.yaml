@@ -1,0 +1,70 @@
+cc: '2'
+id: engine.serving_scheduler_lab
+version: 1.0.1
+materials:
+  method:
+    path: METHOD.md
+  skill:
+    path: SKILL.md
+  component:
+    path: COMPONENT.json
+  sources:
+    path: SOURCES.json
+  verification_units:
+    path: VERIFICATION-UNITS.json
+  fixture:
+    path: fixtures/example.json
+  examples:
+    path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  schedule:
+    does: Explore bounded token scheduling, chunked prefill and decode fairness with
+      CPU traces and explicit timeline estimates.
+    takes:
+      spec: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  analyze:
+    does: Explore bounded token scheduling, chunked prefill and decode fairness with
+      CPU traces and explicit timeline estimates.
+    takes:
+      spec: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  compare:
+    does: Explore bounded token scheduling, chunked prefill and decode fairness with
+      CPU traces and explicit timeline estimates.
+    takes:
+      spec: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  verify:
+    does: Run package-attached CPU invariant checks, without host qualification.
+    takes: {}
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

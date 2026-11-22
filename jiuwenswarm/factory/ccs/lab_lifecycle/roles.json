@@ -1,0 +1,10 @@
+{
+  "capabilities": {
+    "recover": "tool",
+    "status": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "method": "method"
+  }
+}

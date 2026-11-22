@@ -1,0 +1,572 @@
+{
+  "format": "factory-cc-atlas-names/1",
+  "source": "20261120 Text Inference Engine Component Atlas: edition.json capsuleMap and kinds, memory/runtime/factory.json titles. Keys are capsule directories relative to factory/ccs (stable ids). atlas_cc_id is null for capsules the atlas does not list; their names follow the atlas naming rules.",
+  "kinds": {
+    "builder": {
+      "label": "Builder",
+      "naming": "<Component> builder",
+      "plain": "Writes the source code for one engine component. The CC is the method that builds the code; it is not the component itself."
+    },
+    "tool": {
+      "label": "Tool",
+      "naming": "Named for the tool job",
+      "plain": "Runs an existing tool, lab or runner and returns a verified receipt or artifact. It does not write product source."
+    },
+    "analysis": {
+      "label": "Analysis",
+      "naming": "<Subject> analysis",
+      "plain": "Reads evidence such as traces, counters and profiles and returns findings that a verifier can recompute. It does not write product source."
+    },
+    "factory": {
+      "label": "Factory worker",
+      "naming": "Named for the factory job and its handoff",
+      "plain": "Performs one step of the software factory (brief, contract, work orders, integration, image or verdict) and hands off its artifact."
+    }
+  },
+  "capsules": {
+    "batch_layout_mapper": {
+      "capsule_id": "engine.build_batch_layout_mapper",
+      "title": "Batch layout mapper builder",
+      "kind": "builder",
+      "atlas_cc_id": "batch.build_batch_layout_builder",
+      "component": "Batch layout mapper",
+      "target": "llama.cpp",
+      "summary": "Maps uncached prompt rows to logical submissions that fill the physical microbatches."
+    },
+    "branch_workbench": {
+      "capsule_id": "factory.branch_workbench",
+      "title": "Hypothesis branch recorder",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Records alternative hypotheses, reservations, evidence and pruning in the task graph."
+    },
+    "builder": {
+      "capsule_id": "factory.builder",
+      "title": "Image assembler",
+      "kind": "factory",
+      "atlas_cc_id": "factory.image_builder",
+      "component": null,
+      "target": null,
+      "summary": "Turns a pinned, clean engine revision into an identified runtime image with a build receipt.",
+      "former_names": [
+        "Image builder",
+        "Native build job"
+      ]
+    },
+    "cache_size_pareto": {
+      "capsule_id": "analysis.cache_size_pareto",
+      "title": "MoE cache size tuner",
+      "kind": "tool",
+      "atlas_cc_id": "tool.moe_cache_size_tuner",
+      "component": null,
+      "target": null,
+      "summary": "Compares native MoE cache sizes per prompt length and recommends a cache setting."
+    },
+    "cc_qualification": {
+      "capsule_id": "factory.cc_qualification",
+      "title": "CC admission qualifier",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Inspects CC release identity, checks verification units and assesses admission."
+    },
+    "cc_workflow_lab": {
+      "capsule_id": "factory.cc_workflow_lab",
+      "title": "CC workflow receipt analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Summarizes CC invocation receipts and designs workflow fixtures."
+    },
+    "deep_profile": {
+      "capsule_id": "factory.deep_profile",
+      "title": "Engine profile analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Parses prompt counters, native profiles or Nsight CSV into bounded evidence."
+    },
+    "engine_factory_loop": {
+      "capsule_id": "factory.engine_factory_loop",
+      "title": "Experiment loop orchestrator",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Reserves, submits, recovers and collects an admitted experiment for a selected hypothesis."
+    },
+    "engine_inspector": {
+      "capsule_id": "factory.engine_inspector",
+      "title": "Engine inspector",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Inspects an authorized source checkout, host and image and publishes the evidence."
+    },
+    "evidence": {
+      "capsule_id": "factory.evidence",
+      "title": "Evidence publisher",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Finds and publishes task-scoped evidence, reports and decisions."
+    },
+    "evidence_digest_lab": {
+      "capsule_id": "factory.evidence_digest_lab",
+      "title": "Evidence digest projector",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Returns exact JSON-pointer selections from evidence with source hashes."
+    },
+    "expert_cache_lab": {
+      "capsule_id": "engine.expert_cache_lab",
+      "title": "Expert cache prediction analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Evaluates causal next-expert predictions with prefix holdout."
+    },
+    "expert_demand_predictor": {
+      "capsule_id": "routing.build_expert_demand_predictor",
+      "title": "Expert demand predictor builder",
+      "kind": "builder",
+      "atlas_cc_id": "routing.build_expert_demand_predictor",
+      "component": "Expert demand predictor",
+      "target": "llama.cpp",
+      "summary": "Read-ahead hints for the next MoE layer, learned from completed router selections."
+    },
+    "expert_prediction": {
+      "capsule_id": "factory.expert_prediction",
+      "title": "Expert prediction holdout analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Evaluates an expert trace against frequency and last-token baselines."
+    },
+    "expert_prefetch_readiness": {
+      "capsule_id": "analysis.expert_prefetch_readiness",
+      "title": "Expert prefetch readiness analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Summarizes issued versus useful expert prefetches against matched native controls."
+    },
+    "expert_streaming": {
+      "capsule_id": "engine.expert_streaming",
+      "title": "Expert streaming builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert streaming",
+      "target": "llama.cpp",
+      "summary": "Preserved historical llama.cpp expert-streaming patches with their build and lab tools."
+    },
+    "expert_streaming/components/expert_fill": {
+      "capsule_id": "factory.components.expert_fill",
+      "title": "Expert fill builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert fill",
+      "target": "llama.cpp",
+      "summary": "Historical patch: background workers that fill expert weights ahead of use."
+    },
+    "expert_streaming/components/expert_pregate": {
+      "capsule_id": "factory.components.expert_pregate",
+      "title": "Expert pre-gate builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert pre-gate",
+      "target": "llama.cpp",
+      "summary": "Historical patch: gates expert compute until its fill is scheduled and observed."
+    },
+    "expert_streaming/components/expert_readiness": {
+      "capsule_id": "factory.components.expert_readiness",
+      "title": "Expert readiness builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert readiness",
+      "target": "llama.cpp",
+      "summary": "Historical patch: readiness tracking for filled experts."
+    },
+    "expert_streaming/components/inflight_join": {
+      "capsule_id": "factory.components.inflight_join",
+      "title": "In-flight fill join builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "In-flight fill join",
+      "target": "llama.cpp",
+      "summary": "Historical patch: joins a request to an expert fill that is already in flight."
+    },
+    "expert_streaming/components/mmap_advice": {
+      "capsule_id": "factory.components.mmap_advice",
+      "title": "Mmap advice builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Mmap advice",
+      "target": "llama.cpp",
+      "summary": "Historical patch: random-access madvise for the mapped checkpoint."
+    },
+    "expert_streaming/components/phase_stats": {
+      "capsule_id": "factory.components.phase_stats",
+      "title": "Phase statistics builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Phase statistics",
+      "target": "llama.cpp",
+      "summary": "Historical patch: per-phase resource usage counters for expert streaming."
+    },
+    "expert_streaming/components/router_prefetch": {
+      "capsule_id": "factory.components.router_prefetch",
+      "title": "Router prefetch builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Router prefetch",
+      "target": "llama.cpp",
+      "summary": "Historical patch: prefetches expert pages selected by the router."
+    },
+    "expert_streaming/components/thread_names": {
+      "capsule_id": "factory.components.thread_names",
+      "title": "Expert fill thread names builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert fill thread names",
+      "target": "llama.cpp",
+      "summary": "Historical patch: names the expert-fill worker threads; observability only."
+    },
+    "expert_weight_cache": {
+      "capsule_id": "engine.build_expert_weight_cache",
+      "title": "Expert weight cache builder",
+      "kind": "builder",
+      "atlas_cc_id": "engine.build_expert_weight_cache",
+      "component": "Expert weight cache",
+      "target": "llama.cpp",
+      "summary": "Bounded reuse of staged expert weight slices, so repeated expert copies are served from a cache."
+    },
+    "expert_weight_residency": {
+      "capsule_id": "engine.expert_weight_residency_builder",
+      "title": "Expert weight residency builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert weight residency",
+      "target": "llama.cpp",
+      "summary": "Residency planning code for expert weights, certified on CPU fixtures only."
+    },
+    "expert_weight_streaming": {
+      "capsule_id": "engine.expert_weight_streaming_builder",
+      "title": "Expert weight streaming builder",
+      "kind": "builder",
+      "atlas_cc_id": null,
+      "component": "Expert weight streaming",
+      "target": "llama.cpp",
+      "summary": "Expert byte-range streaming code at the upstream source seam, certified on CPU fixtures only."
+    },
+    "gpu_kernel_lab": {
+      "capsule_id": "engine.gpu_kernel_lab",
+      "title": "GPU expert kernel analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Compares batched expert matrix-vector output with an FP64 CPU reference."
+    },
+    "heterogeneous_placement_lab": {
+      "capsule_id": "engine.heterogeneous_placement_lab",
+      "title": "Heterogeneous placement analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Estimates dependent transfers and compute for a CPU and GPU placement."
+    },
+    "inference_lab": {
+      "capsule_id": "factory.inference_lab",
+      "title": "Inference experiment analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Analyzes retained experiment reports across inference subsystems."
+    },
+    "integration_skill": {
+      "capsule_id": "factory.integration_skill",
+      "title": "Engine integration runner",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Carries an integration job through preflight, build and lab with task-scoped evidence."
+    },
+    "kv_reuse_lab": {
+      "capsule_id": "engine.kv_reuse_lab",
+      "title": "KV reuse analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Inspects prefix identity, paged token storage and KV size estimates."
+    },
+    "lab_client": {
+      "capsule_id": "factory.lab_client",
+      "title": "Capped lab runner",
+      "kind": "tool",
+      "atlas_cc_id": "tool.capped_lab_runner",
+      "component": null,
+      "target": null,
+      "summary": "Submits one lab attempt for an identified image under the memory and CPU cap and returns its receipt."
+    },
+    "lab_lifecycle": {
+      "capsule_id": "factory.lab_lifecycle",
+      "title": "Lab attempt reconciler",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Reads ownership and queue receipts and recovers terminal lab attempts."
+    },
+    "lab_manager": {
+      "capsule_id": "factory.lab_manager",
+      "title": "Lab manager",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Seals a result under test, a lab task and the pinned contract into a lab package, sends it to a lab agent, relays questions and records the checked report."
+    },
+    "memory_residency_lab": {
+      "capsule_id": "engine.memory_residency_lab",
+      "title": "Memory residency analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Plans aligned arena offsets from liveness intervals."
+    },
+    "methodology_ab": {
+      "capsule_id": "factory.methodology_ab",
+      "title": "A/B experiment method",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Counterbalanced A/B procedure for growing an engine one component at a time."
+    },
+    "methodology_ablation": {
+      "capsule_id": "factory.methodology_ablation",
+      "title": "Ablation designer",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Designs one-variable diagnostic or ABBA work without executing it."
+    },
+    "methodology_diagnosis": {
+      "capsule_id": "factory.methodology_diagnosis",
+      "title": "Experiment diagnosis analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Surfaces uncertainties and inspection candidates from retained reports."
+    },
+    "methodology_followup": {
+      "capsule_id": "factory.methodology_followup",
+      "title": "Follow-up proposer",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Turns report-backed uncertainty into a proposed next experiment input."
+    },
+    "methodology_hypothesis": {
+      "capsule_id": "factory.methodology_hypothesis",
+      "title": "Hypothesis recorder",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Records an agent-authored, unmeasured hypothesis linked to scoped evidence."
+    },
+    "methodology_out_of_core": {
+      "capsule_id": "factory.methodology_out_of_core",
+      "title": "Out-of-core cache protocol analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Describes a bounded out-of-core cache and phase protocol from evidence."
+    },
+    "methodology_transfer_lab": {
+      "capsule_id": "factory.methodology_transfer_lab",
+      "title": "Method transfer analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Computes phase-separated rates and paired ratios from matched cells."
+    },
+    "numerical_investigation_lab": {
+      "capsule_id": "factory.numerical_investigation_lab",
+      "title": "Logit divergence analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Compares captured full-vocabulary logits and finds the first divergence."
+    },
+    "observability_event_recorder": {
+      "capsule_id": "observability.build_runtime_event_recorder",
+      "title": "Runtime event recorder builder",
+      "kind": "builder",
+      "atlas_cc_id": "observability.build_runtime_event_recorder",
+      "component": "Runtime event recorder",
+      "target": "llama.cpp",
+      "summary": "Bounded recording of selected experts and scheduler observations without changing inference."
+    },
+    "performance_baseline": {
+      "capsule_id": "engine.performance_baseline",
+      "title": "Performance ceiling analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Separates compute and traffic bounds, targets, simulations and measurements."
+    },
+    "precision_lab": {
+      "capsule_id": "engine.precision_lab",
+      "title": "Quantization precision analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Evaluates tensor errors against an explicit approximation budget."
+    },
+    "quant_kernel_profile": {
+      "capsule_id": "analysis.quant_kernel_profile",
+      "title": "Quantized kernel profile analysis",
+      "kind": "analysis",
+      "atlas_cc_id": "analysis.quant_kernel_profile",
+      "component": null,
+      "target": null,
+      "summary": "Inventories quantized matmul and dequantization paths and their share of request time."
+    },
+    "request_fault_io_analysis": {
+      "capsule_id": "analysis.request_fault_io",
+      "title": "Request fault and I/O analysis",
+      "kind": "analysis",
+      "atlas_cc_id": "analysis.request_fault_io",
+      "component": null,
+      "target": null,
+      "summary": "Quantifies page faults, file-cache changes and storage reads around the first token."
+    },
+    "routing_profile_analysis": {
+      "capsule_id": "analysis.expert_routing_profile",
+      "title": "Expert routing profile analysis",
+      "kind": "analysis",
+      "atlas_cc_id": "analysis.expert_routing_profile",
+      "component": null,
+      "target": null,
+      "summary": "Ranks experts from routing counts and reports coverage, payload bytes and copy timing."
+    },
+    "serving_scheduler_lab": {
+      "capsule_id": "engine.serving_scheduler_lab",
+      "title": "Serving scheduler analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Explores token scheduling, chunked prefill and decode fairness on CPU traces."
+    },
+    "source_workbench": {
+      "capsule_id": "factory.source_workbench",
+      "title": "Source integration workbench",
+      "kind": "factory",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Inspects and edits the task-owned source checkout and records local commits."
+    },
+    "spark_gap_analysis": {
+      "capsule_id": "factory.spark_gap_analysis",
+      "title": "Engine gap analysis",
+      "kind": "analysis",
+      "atlas_cc_id": "analysis.engine_gap",
+      "component": null,
+      "target": null,
+      "summary": "Quantifies the TTFT and decode gap between matched arms and the reference engine."
+    },
+    "ssd_streaming_lab": {
+      "capsule_id": "engine.ssd_streaming_lab",
+      "title": "SSD read schedule analysis",
+      "kind": "analysis",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Evaluates a modeled positional read schedule for streamed weights."
+    },
+    "standard_benchmark": {
+      "capsule_id": "factory.standard_benchmark",
+      "title": "Standard benchmark runner",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Submits a frozen benchmark contract and reads back its results."
+    },
+    "strata_prefill_chunk": {
+      "capsule_id": "engine.strata_prefill_chunk",
+      "title": "Strata prefill chunk tuner",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Builds one-variable prefill-chunk candidate profiles for an admitted Strata profile."
+    },
+    "strata_prefill_workbench": {
+      "capsule_id": "engine.strata_prefill_workbench",
+      "title": "Strata prefill experiment runner",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Designs, submits and reconciles one scoped Strata prefill experiment."
+    },
+    "strata_throughput_workbench": {
+      "capsule_id": "engine.strata_throughput_workbench",
+      "title": "Strata throughput experiment runner",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Investigates Strata throughput with checked profile pairs and admitted experiments."
+    },
+    "strata_verified_drafting": {
+      "capsule_id": "engine.strata_verified_drafting",
+      "title": "Strata verified drafting switch",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Creates a candidate profile that only toggles Strata speculative drafting."
+    },
+    "weight_placement_planner": {
+      "capsule_id": "placement.build_weight_placement_planner",
+      "title": "Weight placement planner builder",
+      "kind": "builder",
+      "atlas_cc_id": "placement.build_weight_placement_planner",
+      "component": "Weight placement planner",
+      "target": "llama.cpp",
+      "summary": "Offline byte-budget placement plan and the loader readback that applies it."
+    }
+  }
+}

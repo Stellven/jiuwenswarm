@@ -1,0 +1,73 @@
+{
+  "prefix": {
+    "spec": {
+      "identity": {
+        "model": "weights-sha@1",
+        "tokenizer": "tokenizer-sha@1",
+        "adapter": "none",
+        "position": "rope@1",
+        "dtype": "fp16",
+        "tenant": "alice"
+      },
+      "tokens": [
+        1,
+        2,
+        9
+      ],
+      "entries": [
+        {
+          "identity": {
+            "model": "weights-sha@1",
+            "tokenizer": "tokenizer-sha@1",
+            "adapter": "none",
+            "position": "rope@1",
+            "dtype": "fp16",
+            "tenant": "alice"
+          },
+          "tokens": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    }
+  },
+  "allocator": {
+    "spec": {
+      "capacity": 4,
+      "block_tokens": 4,
+      "operations": [
+        {
+          "op": "create",
+          "owner": "a",
+          "tokens": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "share",
+          "source": "a",
+          "target": "b"
+        },
+        {
+          "op": "append",
+          "owner": "b",
+          "token": 3
+        }
+      ]
+    }
+  },
+  "estimate": {
+    "spec": {
+      "layout": "mla",
+      "layers": 4,
+      "tokens": 128,
+      "bits": 16,
+      "latent_dim": 512,
+      "rope_dim": 64
+    }
+  },
+  "verify": {}
+}

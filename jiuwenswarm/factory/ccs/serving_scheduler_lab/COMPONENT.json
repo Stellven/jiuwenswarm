@@ -1,0 +1,17 @@
+{
+  "format": "factory-component/1",
+  "id": "serving_scheduler_lab",
+  "implementation": "reference.py",
+  "ownership": "self-contained package-local stdlib CPU reference",
+  "entrypoint": "run.py",
+  "layer": "serving",
+  "verification": "verification.py; package-attached only, not cc_qualification trusted units",
+  "integration_gate": [
+    "actual backend storage/routing engagement",
+    "pinned model and tokenizer",
+    "same generated tokens or approved approximate quality contract",
+    "GB10 ARM64 build and unified memory headroom",
+    "retained native traces and benchmark artifacts"
+  ],
+  "runtime_support": "unknown; no engine backend installed or modified"
+}

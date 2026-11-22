@@ -1,0 +1,14 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "expert_demand_predictor/cc.yaml",
+      "from_version": "1.1.3",
+      "from_release": "bfd4a49848f273850c7f3b5630749ae2e9e242d21ecd0eb9894a9f32eb61b25c",
+      "to_version": "1.1.4",
+      "to_release": "74498b8db91b19ba88710d1f29a6cb667822e687857d290593857ee27880c85c",
+      "failed_prior_call": "aec1c7b6-f4c4-4e11-b52a-72b2dd4e597a",
+      "reason": "Align verifier scope with frozen WO4 optional server context and protected model sources. No product semantics change. Configured target syntax retained as build requirement."
+    }
+  ]
+}

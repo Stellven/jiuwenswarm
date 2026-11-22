@@ -1,0 +1,185 @@
+{
+  "format": "research-sources/1",
+  "code_copied": false,
+  "sources": [
+    {
+      "repository": "vllm-project/vllm",
+      "revision": "4388bec9295a82de7e8ff6fa58c904346a8374aa",
+      "license": "Apache-2.0",
+      "url": "https://github.com/vllm-project/vllm",
+      "inspected_paths": [
+        ".buildkite/performance-benchmarks/README.md",
+        ".buildkite/scripts/ci-otel/README.md",
+        "README.md",
+        "vllm/v1/core/sched/scheduler.py",
+        "vllm/v1/core/kv_cache_manager.py"
+      ],
+      "observation": "PagedAttention shares physical blocks with reference counts and copy-on-write; scheduler and cache manager are implementation references, not imported code.",
+      "verified_at_utc": "2026-11-15",
+      "verification": "GitHub repository metadata/commit API plus pinned raw source reads",
+      "spark_applicability": "CPU methodology portable; ARM64 GB10 build, unified-memory residency and model-specific DeepSeek v4.1 support unverified",
+      "pinned_source_urls": [
+        "https://github.com/vllm-project/vllm/blob/4388bec9295a82de7e8ff6fa58c904346a8374aa/.buildkite/performance-benchmarks/README.md",
+        "https://github.com/vllm-project/vllm/blob/4388bec9295a82de7e8ff6fa58c904346a8374aa/.buildkite/scripts/ci-otel/README.md",
+        "https://github.com/vllm-project/vllm/blob/4388bec9295a82de7e8ff6fa58c904346a8374aa/README.md",
+        "https://github.com/vllm-project/vllm/blob/4388bec9295a82de7e8ff6fa58c904346a8374aa/vllm/v1/core/sched/scheduler.py",
+        "https://github.com/vllm-project/vllm/blob/4388bec9295a82de7e8ff6fa58c904346a8374aa/vllm/v1/core/kv_cache_manager.py"
+      ]
+    },
+    {
+      "repository": "sgl-project/sglang",
+      "revision": "2af0a254579ffa8218daf6442e92b3c61df5d466",
+      "license": "Apache-2.0",
+      "url": "https://github.com/sgl-project/sglang",
+      "inspected_paths": [
+        ".github/FOLDER_README.md",
+        "3rdparty/amd/wheel/README.md",
+        "README.md",
+        "python/sglang/srt/mem_cache/radix_cache.py"
+      ],
+      "observation": "Radix cache exposes prefix matching, lock references and eviction; active nodes require protection.",
+      "verified_at_utc": "2026-11-15",
+      "verification": "GitHub repository metadata/commit API plus pinned raw source reads",
+      "spark_applicability": "CPU methodology portable; ARM64 GB10 build, unified-memory residency and model-specific DeepSeek v4.1 support unverified",
+      "pinned_source_urls": [
+        "https://github.com/sgl-project/sglang/blob/2af0a254579ffa8218daf6442e92b3c61df5d466/.github/FOLDER_README.md",
+        "https://github.com/sgl-project/sglang/blob/2af0a254579ffa8218daf6442e92b3c61df5d466/3rdparty/amd/wheel/README.md",
+        "https://github.com/sgl-project/sglang/blob/2af0a254579ffa8218daf6442e92b3c61df5d466/README.md",
+        "https://github.com/sgl-project/sglang/blob/2af0a254579ffa8218daf6442e92b3c61df5d466/python/sglang/srt/mem_cache/radix_cache.py"
+      ]
+    },
+    {
+      "repository": "ggml-org/llama.cpp",
+      "revision": "e574a17b062be51b98e239ccd3d3743e3d902333",
+      "license": "MIT",
+      "url": "https://github.com/ggml-org/llama.cpp",
+      "inspected_paths": [
+        "tools/server/README.md",
+        "src/llama-kv-cache.cpp"
+      ],
+      "observation": "Server documents continuous batching and prompt cache reuse; KV code handles sequence state. This is not an arbitrary substring cache.",
+      "verified_at_utc": "2026-11-15",
+      "verification": "GitHub repository metadata/commit API plus pinned raw source reads",
+      "spark_applicability": "CPU methodology portable; ARM64 GB10 build, unified-memory residency and model-specific DeepSeek v4.1 support unverified",
+      "pinned_source_urls": [
+        "https://github.com/ggml-org/llama.cpp/blob/e574a17b062be51b98e239ccd3d3743e3d902333/tools/server/README.md",
+        "https://github.com/ggml-org/llama.cpp/blob/e574a17b062be51b98e239ccd3d3743e3d902333/src/llama-kv-cache.cpp"
+      ]
+    },
+    {
+      "repository": "ro99/strata",
+      "revision": "015b075079c51a7aec670ee24924f920f5e7bb2b",
+      "license": "Apache-2.0",
+      "url": "https://github.com/ro99/strata",
+      "inspected_paths": [
+        "README.md",
+        "src/models/deepseek/deepseek_kv_cache.cpp",
+        "include/strata/models/deepseek/deepseek_kv_cache.hpp"
+      ],
+      "observation": "DeepSeek cache has explicit host capacities, leases, eviction and copy-on-write counters. Backend/model-specific state must be measured.",
+      "verified_at_utc": "2026-11-15",
+      "verification": "GitHub repository metadata/commit API plus pinned raw source reads",
+      "spark_applicability": "CPU methodology portable; ARM64 GB10 build, unified-memory residency and model-specific DeepSeek v4.1 support unverified",
+      "pinned_source_urls": [
+        "https://github.com/ro99/strata/blob/015b075079c51a7aec670ee24924f920f5e7bb2b/README.md",
+        "https://github.com/ro99/strata/blob/015b075079c51a7aec670ee24924f920f5e7bb2b/src/models/deepseek/deepseek_kv_cache.cpp",
+        "https://github.com/ro99/strata/blob/015b075079c51a7aec670ee24924f920f5e7bb2b/include/strata/models/deepseek/deepseek_kv_cache.hpp"
+      ]
+    },
+    {
+      "repository": "stefandsl/DwarfStar",
+      "revision": "80ebbc396aee40eedc1d829222f3362d10fa4c6c",
+      "license": "MIT",
+      "url": "https://github.com/stefandsl/DwarfStar",
+      "inspected_paths": [
+        "README.md",
+        "README.md"
+      ],
+      "observation": "Additional fork of antirez/ds4, confirmed via GitHub parent/source metadata. Fork README describes DeepSeek v4 compressed KV and expert-cache residency; this does not establish v4.1/GB10 compatibility.",
+      "verified_at_utc": "2026-11-15",
+      "verification": "GitHub repository metadata/commit API plus pinned raw source reads",
+      "spark_applicability": "CPU methodology portable; ARM64 GB10 build, unified-memory residency and model-specific DeepSeek v4.1 support unverified",
+      "pinned_source_urls": [
+        "https://github.com/stefandsl/DwarfStar/blob/80ebbc396aee40eedc1d829222f3362d10fa4c6c/README.md",
+        "https://github.com/stefandsl/DwarfStar/blob/80ebbc396aee40eedc1d829222f3362d10fa4c6c/README.md"
+      ],
+      "source_role": "additional fork; canonical DwarfStar is antirez/ds4",
+      "github_fork_metadata": {
+        "fork": true,
+        "parent": "antirez/ds4",
+        "source": "antirez/ds4"
+      }
+    },
+    {
+      "repository": "PKU-SEC-Lab/AdapMoE",
+      "revision": "2cfe8df43012097170e71658b943d7a86f3f3ced",
+      "license": null,
+      "url": "https://github.com/PKU-SEC-Lab/AdapMoE",
+      "inspected_paths": [
+        "README.md",
+        "README.md"
+      ],
+      "observation": "Adaptive gating changes number of activated experts; prefetching and cache allocation are separate techniques. License not declared by GitHub metadata; do not copy code without license review.",
+      "verified_at_utc": "2026-11-15",
+      "verification": "GitHub repository metadata/commit API plus pinned raw source reads",
+      "spark_applicability": "CPU methodology portable; ARM64 GB10 build, unified-memory residency and model-specific DeepSeek v4.1 support unverified",
+      "pinned_source_urls": [
+        "https://github.com/PKU-SEC-Lab/AdapMoE/blob/2cfe8df43012097170e71658b943d7a86f3f3ced/README.md",
+        "https://github.com/PKU-SEC-Lab/AdapMoE/blob/2cfe8df43012097170e71658b943d7a86f3f3ced/README.md"
+      ]
+    },
+    {
+      "repository": "antirez/ds4",
+      "url": "https://github.com/antirez/ds4",
+      "revision": "b3f50180ec2c7324892be1f50bc83555ccb8d5e7",
+      "license": "MIT",
+      "source_role": "canonical DwarfStar, as linked by curated source",
+      "verified_at_utc": "2026-11-15",
+      "verification": "canonical repository metadata/readme pin inherited from independently checked expert_cache_lab SOURCES.json; both KV/prefix files fetched at exact revision",
+      "inspected_paths": [
+        "ds4_kvstore.c",
+        "ds4_prompt_prefix.c"
+      ],
+      "pinned_files": {
+        "ds4_kvstore.c": {
+          "sha256": "e8d9849f979470d500c5f3370a59bd5b10283eb694cae042f6103e8d1bebe2dc",
+          "url": "https://raw.githubusercontent.com/antirez/ds4/b3f50180ec2c7324892be1f50bc83555ccb8d5e7/ds4_kvstore.c"
+        },
+        "ds4_prompt_prefix.c": {
+          "sha256": "61826ac373e18fe8e8876d3661a014975cf17629baeedf3084ed5f4a1aff0e48",
+          "url": "https://raw.githubusercontent.com/antirez/ds4/b3f50180ec2c7324892be1f50bc83555ccb8d5e7/ds4_prompt_prefix.c"
+        }
+      },
+      "observation": "ds4_kvstore.c implements disk KV snapshot storage beneath server prefix-cache policy; ds4_prompt_prefix.c parses prompt prefix boundaries. These are model/server-specific state components, not proof that generic prefix token sharing can be transplanted unchanged. No upstream code copied.",
+      "spark_applicability": "Canonical README names DGX Spark CUDA, but this package does not build or verify ARM64 GB10 runtime or DeepSeek v4.1 model support."
+    }
+  ],
+  "papers": [
+    {
+      "url": "https://arxiv.org/abs/2309.06180",
+      "title": "PagedAttention",
+      "revision": "paper ID 2309.06180; publication metadata checked, latest PDF revision not pinned",
+      "license": "paper rights separate from source Apache-2.0"
+    },
+    {
+      "url": "https://arxiv.org/abs/2312.07104",
+      "title": "SGLang / RadixAttention",
+      "revision": "paper ID 2312.07104; latest PDF revision not pinned",
+      "license": "paper rights separate from source Apache-2.0"
+    },
+    {
+      "url": "https://arxiv.org/abs/2406.06282",
+      "title": "PowerInfer-2",
+      "revision": "paper ID 2406.06282; primary project page https://powerinfer.ai/v2/ checked",
+      "license": "implementation license not established for PowerInfer-2",
+      "applicability": "Smartphone heterogeneous neuron-cluster and I/O design; public PowerInfer repository is not proof of PowerInfer-2 implementation or GB10 compatibility"
+    },
+    {
+      "url": "https://arxiv.org/abs/2408.10284",
+      "title": "AdapMoE",
+      "revision": "paper ID 2408.10284; source README pinned above",
+      "license": "repository license unknown; no copying",
+      "applicability": "Adaptive expert skipping is approximate relative to fixed checkpoint routing"
+    }
+  ]
+}

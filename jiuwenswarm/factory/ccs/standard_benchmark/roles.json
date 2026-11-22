@@ -1,0 +1,11 @@
+{
+  "capabilities": {
+    "result": "tool",
+    "status": "tool",
+    "submit": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "methodology": "method"
+  }
+}
