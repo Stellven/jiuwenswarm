@@ -1,0 +1,394 @@
+.factory-graph-view {
+  color: var(--color-text-primary);
+}
+
+.factory-graph-summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.factory-graph-summary > span,
+.factory-graph-replay-key,
+.factory-graph-empty {
+  color: var(--color-text-secondary);
+}
+
+.factory-graph-replay-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-inline-start: auto;
+  font-size: 12px;
+}
+
+.factory-graph-replay-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.factory-graph-replay-key i {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 50%;
+  background: var(--color-surface-card);
+}
+
+.factory-graph-replay-key [data-phase='current'] i {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary);
+}
+
+.factory-graph-replay-key [data-phase='seen'] i {
+  border-color: var(--color-text-secondary);
+  background: var(--color-text-secondary);
+}
+
+.factory-graph-canvas {
+  position: relative;
+  height: clamp(340px, 57vh, 620px);
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-surface-page);
+}
+
+.factory-graph-canvas .react-flow {
+  --xy-edge-stroke: var(--color-text-secondary);
+  --xy-edge-stroke-width: 1.5;
+  --xy-edge-label-color: var(--color-text-primary);
+  --xy-edge-label-background-color: var(--color-surface-card);
+}
+
+.factory-graph-canvas .react-flow__edge-text {
+  font-size: 12px;
+}
+
+.factory-graph-edge-upcoming {
+  opacity: 0.24;
+}
+
+.factory-graph-edge-current .react-flow__edge-path {
+  stroke: var(--color-action-primary);
+  stroke-width: 2;
+}
+
+.factory-graph-card {
+  width: 100%;
+  height: 100%;
+}
+
+.factory-graph-card[data-grouped='true'] {
+  padding: 4px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 10px;
+  background: var(--color-surface-muted);
+}
+
+.factory-graph-card[data-grouped='true'] .factory-graph-node-button {
+  height: 32px;
+  border-color: transparent;
+  background: transparent;
+}
+
+.factory-graph-card:is([data-grouped='true'], [data-member='true']) .factory-graph-node-button {
+  padding: 3px 7px;
+  gap: 6px;
+}
+
+.factory-graph-card:is([data-grouped='true'], [data-member='true']) .factory-graph-node-button > svg {
+  align-self: center;
+  margin-top: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.factory-graph-card:is([data-grouped='true'], [data-member='true']) .factory-graph-node-kind {
+  display: none;
+}
+
+.factory-graph-canvas .factory-graph-membership-origin {
+  left: 16px;
+  top: 33px;
+  bottom: auto;
+  transform: none;
+}
+
+.factory-graph-canvas .factory-graph-membership-edge {
+  stroke: var(--color-text-link);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
+.factory-graph-canvas .factory-graph-handle {
+  opacity: 0;
+}
+
+.factory-graph-node-button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 8px 10px;
+  appearance: none;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 9px;
+  background: var(--color-surface-card);
+  color: var(--color-text-primary);
+  text-align: start;
+  cursor: pointer;
+}
+
+.factory-graph-node-button > svg {
+  flex: none;
+  align-self: start;
+  margin-top: 4px;
+  color: var(--color-text-secondary);
+}
+
+.factory-graph-node-button[data-kind='contract'] > svg,
+.factory-graph-node-button[data-kind='capsule'] > svg,
+.factory-graph-node-button[data-kind='group'] > svg {
+  color: var(--color-text-link);
+}
+
+.factory-graph-node-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.factory-graph-node-kind {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.factory-graph-node-copy strong {
+  display: -webkit-box;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.2;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.factory-graph-node-button:has(.factory-graph-node-state) {
+  padding-bottom: 20px;
+}
+
+.factory-graph-node-state {
+  position: absolute;
+  inset-inline-start: 36px;
+  bottom: 4px;
+  max-width: calc(100% - 44px);
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.factory-graph-node-button[data-node-state='done'] .factory-graph-node-state {
+  color: var(--color-feedback-success-text);
+}
+
+.factory-graph-node-button[data-node-state='failed'] .factory-graph-node-state {
+  color: var(--color-feedback-danger);
+}
+
+.factory-graph-node-button[data-node-state='blocked'] .factory-graph-node-state {
+  color: var(--color-feedback-warning);
+}
+
+.factory-graph-node-button:hover,
+.factory-graph-card[data-grouped='true'] .factory-graph-node-button:hover {
+  border-color: var(--color-text-link);
+}
+
+.factory-graph-node-button[aria-pressed='true'],
+.factory-graph-node-button[data-phase='current'],
+.factory-graph-card[data-grouped='true'] .factory-graph-node-button[aria-pressed='true'] {
+  border-color: var(--color-action-primary);
+  background: var(--color-action-primary-subtle);
+}
+
+.factory-graph-node-button[data-phase='current'] .factory-graph-node-state {
+  /* Link blue on the current-node tint was 4.31:1; primary text passes AA. */
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.factory-graph-node-button[data-phase='seen']::after,
+.factory-graph-node-button[data-phase='current']::after {
+  position: absolute;
+  inset-inline-end: 7px;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  content: '';
+}
+
+.factory-graph-node-button[data-phase='current']::after {
+  background: var(--color-action-primary);
+}
+
+.factory-graph-node-button[data-phase='upcoming'] {
+  border-style: dashed;
+}
+
+.factory-graph-node-button[data-phase='upcoming'] strong {
+  color: var(--color-text-secondary);
+}
+
+.factory-graph-node-button:focus-visible,
+.factory-graph-controls button:focus-visible,
+.factory-graph-inspector button:focus-visible {
+  outline: 2px solid var(--color-action-primary);
+  outline-offset: 2px;
+}
+
+.factory-graph-controls {
+  display: flex;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-border-default);
+}
+
+.factory-graph-controls button,
+.factory-graph-inspector button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.factory-graph-controls button {
+  background: var(--color-surface-card);
+}
+
+.factory-graph-controls button:focus-visible {
+  outline-offset: -3px;
+}
+
+.factory-graph-controls button:hover,
+.factory-graph-inspector button:hover {
+  background: var(--color-surface-hover);
+}
+
+.factory-graph-inspector {
+  position: absolute;
+  z-index: 5;
+  inset-inline-end: 12px;
+  bottom: 12px;
+  width: min(340px, calc(100% - 24px));
+  max-height: calc(100% - 66px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  border: 1px solid var(--color-border-hover);
+  border-radius: 10px;
+  background: var(--color-surface-card);
+  font-size: 12px;
+}
+
+.factory-graph-inspector-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid var(--color-border-default);
+  padding-bottom: 8px;
+}
+
+.factory-graph-inspector-heading button {
+  flex: none;
+  border-radius: 5px;
+}
+
+.factory-graph-inspector h4 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-size: 15px;
+}
+
+.factory-graph-inspector small,
+.factory-graph-inspector dt {
+  color: var(--color-text-secondary);
+}
+
+.factory-graph-inspector dl {
+  margin: 0;
+}
+
+.factory-graph-inspector dl > div {
+  display: grid;
+  gap: 2px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.factory-graph-inspector dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.factory-graph-inspector pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.factory-graph-inspector ul {
+  margin: 4px 0 0;
+  padding-inline-start: 16px;
+}
+
+.factory-graph-inspector h5 {
+  margin: 10px 0 0;
+  font-size: inherit;
+}
+
+@media (max-width: 680px) {
+  .factory-graph-replay-key {
+    margin-inline-start: 0;
+  }
+
+  .factory-graph-inspector {
+    max-height: 46%;
+  }
+}
+
+.factory-graph-node-toggle { position: absolute; right: 6px; bottom: 4px; padding: 0 5px; border-radius: 999px; font-size: 0.68rem; font-weight: 600; background: var(--color-surface-muted); color: var(--color-text-primary); }
+.factory-graph-node-button { position: relative; }
+.factory-graph-summary-fields p { margin: 0 0 6px; }
+.factory-graph-summary-fields small { display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-secondary); }
+.factory-graph-file-link { padding: 0; border: 0; background: none; color: var(--color-text-link); text-align: left; cursor: pointer; font: inherit; }
+.factory-graph-file-link:hover { text-decoration: underline; }
+.factory-graph-inspector button.factory-graph-file-link {
+  display: inline;
+  width: auto;
+  height: auto;
+  padding: 2px 0;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

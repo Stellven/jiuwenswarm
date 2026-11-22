@@ -1,0 +1,47 @@
+/* Scoped dark tokens leave the surrounding application theme intact. */
+/* Demo build is light only. The app's secondary grey (#777 on white, 4.48:1)
+   fails WCAG AA for body text, so these pages use darker greys (>= 7:1). */
+.factory-runs-page,
+.cc-page {
+  --color-text-secondary: #4b5563;
+  --color-text-tertiary: #4b5563;
+  --color-text-placeholder: #5f6670;
+  color-scheme: light;
+}
+
+.factory-runs-page {
+  --color-bg-primary: var(--color-surface-card);
+  --color-bg-secondary: var(--color-surface-page);
+  --color-text-danger: var(--color-feedback-danger);
+  color-scheme: light;
+}
+
+.factory-runs-page[data-appearance='dark'] {
+  --color-surface-page: #111822;
+  --color-surface-card: #182230;
+  --color-surface-content: #182230;
+  --color-surface-popover: #1b293a;
+  --color-surface-muted: #263647;
+  --color-surface-highlight: #222f40;
+  --color-text-primary: #e7eef8;
+  --color-text-secondary: #a9bacf;
+  --color-text-tertiary: #a9bacf;
+  --color-text-strong: #f1f6ff;
+  --color-text-link: #9cc8ff;
+  --color-border-default: #35485e;
+  --color-border-strong: #49627f;
+  --color-border-hover: #7092ba;
+  --color-border-focus: #9cc8ff;
+  --color-action-primary: #abd0ff;
+  --color-action-primary-hover: #c3deff;
+  --color-action-primary-text: #132238;
+  --color-action-primary-subtle: #213652;
+  --color-feedback-success-text: #7ce3b0;
+  --color-feedback-success-subtle: #203c35;
+  --color-feedback-warning: #ffd08a;
+  --color-feedback-warning-subtle: #3b3226;
+  --color-feedback-danger: #ffacb0;
+  --color-feedback-danger-subtle: #432d37;
+  --color-border-danger: #b07785;
+  color-scheme: dark;
+}

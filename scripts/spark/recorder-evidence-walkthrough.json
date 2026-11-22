@@ -1,0 +1,16 @@
+{
+  "objective": "Recheck the published recorder report, DeepSeek greedy parity and its zero-loss trace, then reconcile the independent Granite fixture losses. Five evidence checks are scheduled over about three minutes so progress is visible live. The job reads archived evidence on CPU.",
+  "constraints": {
+    "inspection_only": true,
+    "contract_immutable": true,
+    "runtime_effects": "Reads pinned recorder evidence and publishes a verification receipt to this session."
+  },
+  "allowed_effects": [],
+  "target": "spark-gb10",
+  "budget": {"max_turns": 1, "wall_clock_s": 270},
+  "contract_id": "star-deepseek-v1",
+  "initial_run_config": {"env": {}},
+  "component_cc": "observability.build_runtime_event_recorder",
+  "source": {"subpath": "read-only-recorder-evidence", "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613"},
+  "operator_labels": {"native_demo": "recorder-evidence-walkthrough", "display_name": "Recorder evidence verification (CPU, about 3 minutes)"}
+}
