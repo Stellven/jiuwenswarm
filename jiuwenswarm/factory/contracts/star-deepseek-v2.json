@@ -156,6 +156,144 @@
   "extensions": {
     "factory.run-record": {
       "ontology": "The owner's system ontology files were pinned for the 2026-11-20 run by inputs/ontology/SHA256SUMS in the run workspace; they are not in this repository."
+    },
+    "factory.node-contracts": {
+      "format": "factory.node-contracts/1",
+      "nodes": [
+        {
+          "node_id": "inspect_engine",
+          "kind": "inspect",
+          "objective": "Inspect the pinned stock llama.cpp checkout and record where each component will attach.",
+          "inputs": [{"name": "source", "from": "task:source"}],
+          "outputs": [{"name": "engine_map", "kind": "evidence", "criteria": ["Names the stock commit and the source anchors each builder will edit, read or protect."]}],
+          "evidence_obligations": ["captured_input_and_output"],
+          "node_limits": {"turns": 10},
+          "authority_ceiling": {"effects": ["workspace.read", "process.exec"], "workspace": "read"},
+          "work": {"helpful_ccs": ["factory.engine_inspector", "factory.source_workbench"]},
+          "verifiers": [{"output": "engine_map"}],
+          "hands_to": "integrate_recorder"
+        },
+        {
+          "node_id": "integrate_recorder",
+          "kind": "integrate",
+          "objective": "Add the runtime event recorder to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C1", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the runtime event recorder as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["observability.build_runtime_event_recorder", "factory.integration_skill", "factory.source_workbench"], "capability": "observability.build_runtime_event_recorder.verify"},
+          "verifiers": [{"output": "change", "verifier": "observability.build_runtime_event_recorder.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_placement",
+          "kind": "integrate",
+          "objective": "Add the weight placement planner to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C2", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the weight placement planner as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["placement.build_weight_placement_planner", "factory.integration_skill", "factory.source_workbench"], "capability": "placement.build_weight_placement_planner.verify"},
+          "verifiers": [{"output": "change", "verifier": "placement.build_weight_placement_planner.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_cache",
+          "kind": "integrate",
+          "objective": "Add the expert weight cache to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C3", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the expert weight cache as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["engine.build_expert_weight_cache", "factory.integration_skill", "factory.source_workbench"], "capability": "engine.build_expert_weight_cache.verify"},
+          "verifiers": [{"output": "change", "verifier": "engine.build_expert_weight_cache.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_predictor",
+          "kind": "integrate",
+          "objective": "Add the expert demand predictor to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C4", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the expert demand predictor as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["routing.build_expert_demand_predictor", "factory.integration_skill", "factory.source_workbench"], "capability": "routing.build_expert_demand_predictor.verify"},
+          "verifiers": [{"output": "change", "verifier": "routing.build_expert_demand_predictor.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_mapper",
+          "kind": "integrate",
+          "objective": "Add the batch layout mapper to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C5", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the batch layout mapper as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["engine.build_batch_layout_mapper", "factory.integration_skill", "factory.source_workbench"], "capability": "engine.build_batch_layout_mapper.verify"},
+          "verifiers": [{"output": "change", "verifier": "engine.build_batch_layout_mapper.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "combine",
+          "kind": "integrate",
+          "objective": "Combine the five component changes into one checkout for the combined arm D.",
+          "requirement_ids": ["D", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["integrate_recorder", "integrate_placement", "integrate_cache", "integrate_predictor", "integrate_mapper"],
+          "inputs": [{"name": "recorder_change", "from": "integrate_recorder.change"}, {"name": "placement_change", "from": "integrate_placement.change"}, {"name": "cache_change", "from": "integrate_cache.change"}, {"name": "predictor_change", "from": "integrate_predictor.change"}, {"name": "mapper_change", "from": "integrate_mapper.change"}],
+          "outputs": [{"name": "combined", "kind": "diff", "criteria": ["Contains all five component changes and nothing else.", "Each component keeps its own switch and stays off by default; any one can be enabled alone.", "Where two components touch the same code, the merge keeps both behaviours."]}],
+          "evidence_obligations": ["captured_input_and_output", "semantic_assessment"],
+          "node_limits": {"turns": 20},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["factory.integration_skill", "factory.source_workbench"]},
+          "verifiers": [{"output": "combined", "review": true}],
+          "hands_to": "build_candidate"
+        },
+        {
+          "node_id": "build_candidate",
+          "kind": "build",
+          "objective": "Package each candidate (C1 to C5) and the combined build (D) so the lab can build and run it.",
+          "requirement_ids": ["C1", "C2", "C3", "C4", "C5", "D"],
+          "predecessors": ["combine"],
+          "inputs": [{"name": "combined", "from": "combine.combined"}],
+          "outputs": [{"name": "sources", "kind": "source_bundle", "criteria": ["One source bundle per arm C1 to C5 and D, each against the pinned stock commit with a lab build recipe."]}, {"name": "image", "kind": "image", "required": false, "criteria": ["Optional: a factory-built image of D, with its build receipt, for labs that take images."]}],
+          "evidence_obligations": ["captured_input_and_output", "invocation_observation"],
+          "node_limits": {"turns": 15, "build_attempts": 3},
+          "authority_ceiling": {"effects": ["workspace.read", "process.exec"], "workspace": "read"},
+          "work": {"helpful_ccs": ["factory.lab_manager", "factory.builder"]},
+          "verifiers": [{"output": "sources"}, {"output": "image"}],
+          "hands_to": "deliver_to_lab"
+        },
+        {
+          "node_id": "deliver_to_lab",
+          "kind": "deliver",
+          "objective": "Send the engine builds and the lab task for this contract to the lab manager.",
+          "requirement_ids": ["A", "A+", "S", "C1", "C2", "C3", "C4", "C5", "D", "gate_unset_parity", "gate_set_activation", "server_token_count", "client_ttft_ms", "decode_tokens_per_second", "sampled_peak_memory_bytes", "load_seconds"],
+          "predecessors": ["build_candidate"],
+          "inputs": [{"name": "sources", "from": "build_candidate.sources"}],
+          "outputs": [{"name": "lab_request", "kind": "lab_request", "criteria": ["The lab task fills every candidate and combined arm with a shipped subject and names the stock and Strata arms.", "It runs every correctness check and metric of the contract."]}],
+          "evidence_obligations": ["captured_input_and_output", "invocation_observation"],
+          "node_limits": {"turns": 10},
+          "authority_ceiling": {"effects": ["process.exec"], "workspace": "none"},
+          "work": {"helpful_ccs": ["factory.lab_manager"]},
+          "verifiers": [{"output": "lab_request"}],
+          "hands_to": "lab_manager"
+        }
+      ]
     }
   }
 }

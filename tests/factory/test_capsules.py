@@ -16,7 +16,7 @@ from jiuwenswarm.factory.store import Store
 
 ROOT = Path(__file__).resolve().parents[2]
 CCS = ROOT / 'jiuwenswarm/factory/ccs'
-NAMES = ['builder', 'engine_inspector', 'evidence', 'integration_skill', 'lab_client', 'lab_manager']
+NAMES = ['builder', 'engine_inspector', 'evidence', 'integration_skill', 'lab_client', 'lab_manager', 'node_check']
 
 
 @pytest.mark.parametrize('name', NAMES)
@@ -186,8 +186,8 @@ def test_preflight_flags_and_id_cache(setup, tmp_path, monkeypatch):
 def test_catalog_factory_capsules(tmp_path):
     catalog = Catalog([CCS, CCS / 'expert_streaming/components'], tmp_path / 'catalog')
     rows = catalog.scan()
-    assert len(list(CCS.glob('*/cc.yaml'))) == 52
-    assert len(rows) == 60 and not catalog.errors
+    assert len(list(CCS.glob('*/cc.yaml'))) == 53
+    assert len(rows) == 61 and not catalog.errors
     by_id = {row['cc']: row for row in rows}
     assert set(by_id) == {'observability.build_runtime_event_recorder', 'placement.build_weight_placement_planner', 'engine.build_expert_weight_cache', 'routing.build_expert_demand_predictor', 'engine.build_batch_layout_mapper', 'engine.expert_weight_residency_builder', 'engine.expert_weight_streaming_builder', 'engine.performance_baseline', 'engine.expert_streaming', 'engine.strata_verified_drafting', 'engine.strata_prefill_chunk', 'engine.strata_prefill_workbench', 'engine.strata_throughput_workbench', 'engine.expert_cache_lab', 'engine.ssd_streaming_lab', 'engine.heterogeneous_placement_lab', 'engine.precision_lab', 'engine.kv_reuse_lab', 'engine.serving_scheduler_lab', 'factory.methodology_transfer_lab', 'engine.memory_residency_lab', 'engine.gpu_kernel_lab', 'factory.branch_workbench', 'factory.cc_workflow_lab', 'factory.evidence_digest_lab', 'factory.numerical_investigation_lab', 'factory.source_workbench', 'analysis.expert_routing_profile', 'factory.spark_gap_analysis', 'analysis.request_fault_io', 'analysis.quant_kernel_profile', 'analysis.cache_size_pareto', 'analysis.expert_prefetch_readiness'} | {'factory.' + name for name in NAMES + ['methodology_ab','methodology_diagnosis','methodology_out_of_core','methodology_ablation','methodology_followup','lab_lifecycle','standard_benchmark','deep_profile','engine_factory_loop','expert_prediction','methodology_hypothesis','inference_lab','cc_qualification'] + ['components.' + n for n in ['mmap_advice', 'router_prefetch', 'expert_fill', 'expert_pregate', 'thread_names', 'expert_readiness', 'inflight_join', 'phase_stats']]}
     assert set(by_id['factory.engine_inspector']['capabilities']) == {'inspect', 'inspect_strata', 'preflight', 'verify_effective_config'}
@@ -196,7 +196,8 @@ def test_catalog_factory_capsules(tmp_path):
     assert set(by_id['factory.builder']['capabilities']) == {'submit', 'status', 'cancel', 'result'}
     assert set(by_id['factory.lab_client']['capabilities']) == {'submit', 'status', 'cancel', 'result', 'ab_submit', 'ab_status', 'ab_result', 'intake'}
     assert set(by_id['factory.lab_manager']['capabilities']) == {'source_bundle', 'draft_task', 'compose', 'send', 'status', 'cancel', 'ask', 'reply', 'report'}
-    assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish', 'plan_get', 'plan_patch'}
+    assert set(by_id['factory.node_check']['capabilities']) == {'start', 'status'}
+    assert set(by_id['factory.evidence']['capabilities']) == {'query', 'read', 'publish', 'plan_get', 'plan_next', 'plan_patch'}
     from jiuwenswarm.factory.job_packages import ROUTES
     assert set(by_id['engine.strata_prefill_workbench']['capabilities']) == set(ROUTES['engine.strata_prefill_workbench'])
     assert set(by_id['factory.cc_qualification']['capabilities']) == {'inspect_package','verify_unit','assess_admission'}

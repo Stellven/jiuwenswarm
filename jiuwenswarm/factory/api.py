@@ -43,6 +43,24 @@ def artifact_source(record, packet):
 from .controller import ENGINE_CONTRACTS  # noqa: E402
 
 
+def _deliver_node(store, task_id, node_id):
+    """With node contracts, the engine reaches the lab manager only from the planned deliver node."""
+    from .node_contract import for_task
+    host = getattr(store, '_store', store)
+    try:
+        contracts = for_task(host.get_task(task_id))
+    except (OSError, ValueError):
+        contracts = None
+    if contracts is None:
+        return
+    if not node_id:
+        raise ValueError('This task has node contracts: compose the lab package from its deliver node (node_id)')
+    from .taskgraph import plan_get
+    node = next((n for n in plan_get(host, task_id)['nodes'] if n['node_id'] == node_id), None)
+    if node is None or node['kind'] != 'deliver':
+        raise ValueError(f'Node {node_id} is not a deliver node; only the deliver node hands the engine to the lab manager')
+
+
 def dispatch(store, task_id, capability, packet):
     from .components import SELECTED_BINDING
     from jiuwenswarm.ccv2.ccv2 import Host
@@ -60,9 +78,14 @@ def _dispatch(store, task_id, capability, packet):
     from .execution_binding import verify_task
     verify_task(store, task_id)
     inputs = packet.get('inputs', {})
-    if capability in {'builder.submit', 'lab.submit', 'lab.ab_submit'} and 'node_id' in inputs:
+    if capability == 'lab_manager.compose':
+        _deliver_node(store, task_id, inputs.get('node_id'))
+    if capability in {'builder.submit', 'lab.submit', 'lab.ab_submit', 'lab_manager.compose'} and 'node_id' in inputs:
         from .taskgraph import dispatch_precondition
+        from .scheduler import charge
         dispatch_precondition(store, task_id, inputs['node_id'])
+        if capability != 'lab_manager.compose':
+            charge(getattr(store, '_store', store), task_id, inputs['node_id'], 'build' if capability == 'builder.submit' else 'lab')
     node_link = {'node_id': inputs['node_id']} if 'node_id' in inputs else {}
     for prefix, module in (('evidence_digest.', 'evidence_digest'),
                            ('source_workbench.', 'source_workbench'),
@@ -73,6 +96,7 @@ def _dispatch(store, task_id, capability, packet):
                            ('cc_qualification.', 'cc_qualification'),
                            ('job_packages.', 'job_packages'),
                            ('lab_manager.', 'lab_manager'),
+                           ('node_check.', 'node_check'),
                            ('inference_methods.', 'experiment_methods')):
         if capability.startswith(prefix):
             from importlib import import_module
@@ -119,6 +143,12 @@ def _dispatch(store, task_id, capability, packet):
     if capability.startswith('expert_streaming.'):
         from .expert_streaming import dispatch as streaming_dispatch
         return streaming_dispatch(store, task_id, capability.removeprefix('expert_streaming.'), inputs)
+    if capability == 'evidence.plan_next':
+        fields(inputs, set())
+        from .scheduler import next_work
+        if hasattr(store, '_check'):
+            store._check(task_id)
+        return {'next': next_work(getattr(store, '_store', store), task_id)}
     if capability in {'evidence.plan_get', 'evidence.plan_patch'}:
         from .taskgraph import plan_get, plan_patch
         if capability == 'evidence.plan_get':

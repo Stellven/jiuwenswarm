@@ -1,6 +1,6 @@
 cc: '2'
 id: factory.evidence
-version: 1.1.1
+version: 1.2.0
 materials:
   skill:
     path: SKILL.md
@@ -25,6 +25,18 @@ capabilities:
         optional: true
     gives:
       plan: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  plan_next:
+    does: The planned nodes that can run now, from the scheduler. For each, its objective,
+      inputs resolved to the checks of the nodes that produced them, the outputs it owes with
+      their criteria and verifiers, the capsules that help and what is left of its limits;
+      plus why the other nodes wait.
+    takes: {}
+    gives:
+      next: json
     needs:
     - python
     changes:

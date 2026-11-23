@@ -1,13 +1,19 @@
 # Software factory
 
-The software factory (`jiuwenswarm/factory/`) lets one JiuwenSwarm agent improve a piece of software, here an inference engine, through Capability Capsules (CC v2). The agent reads evidence, records a decision, calls capsules, and decides again. The host enforces authority, durable identity and job lifecycle; it never picks actions. It runs next to the M1 research runtime and does not replace it ([migration](MIGRATION.md), [amendment](AMENDMENT.md)).
+The software factory (`jiuwenswarm/factory/`) is the step between the planner and the lab manager. It takes the node contracts from the task contract and the plan from the planner, works each node with Capability Capsules (CC v2) and tools, checks every node's outputs, and hands the inference engine to the lab manager. [INTEGRATION.md](INTEGRATION.md) shows what is ours, what is a stand-in and how to connect your component.
+
+Inside, one JiuwenSwarm agent improves a piece of software, here an inference engine, through capsules. The agent reads evidence, records a decision, calls capsules, and decides again. The host enforces authority, durable identity and job lifecycle; it never picks actions. It runs next to the M1 research runtime and does not replace it ([migration](MIGRATION.md), [amendment](AMENDMENT.md)).
 
 ## Parts
 
 | Part | Where | Doc |
 |---|---|---|
 | Controller and store: tasks, revisions, decisions, runs, evidence | `controller.py`, `manager.py`, `store.py` | [CONTROLLER.md](CONTROLLER.md) |
+| Node contracts: what each step takes, owes and must pass | `node_contract.py`, `schemas/node-contract-1.schema.json`, `run_plan_adapter.py` (from an M1 run plan) | [NODE-CONTRACTS.md](NODE-CONTRACTS.md) |
+| Planner seam and stand-in planner | `planner.py` (`factory.plan/1`) | [INTEGRATION.md](INTEGRATION.md) |
+| Scheduler: what can run now, node limits | `scheduler.py` | [INTEGRATION.md](INTEGRATION.md) |
 | Revisable task graph | `taskgraph.py` | [TASK-GRAPH.md](TASK-GRAPH.md) |
+| Node checks: one per output; a node closes only when each passed (capsule verifier and independent reviewer for changes, host checks for builds and lab requests) | `node_check.py`, `ccs/node_check/` | [NODE-CHECKS.md](NODE-CHECKS.md) |
 | Construction loop: source, build and execution identities | `builder.py`, `build_job.py`, `loop.py` | [CONSTRUCTION-LOOP.md](CONSTRUCTION-LOOP.md) |
 | Telemetry, live monitor and story view | `telemetry.py`, `monitor.py`, `story.py` | [TELEMETRY.md](TELEMETRY.md) |
 | Job packages | `job_packages.py` | [CC-JOB-PACKAGES.md](CC-JOB-PACKAGES.md) |
@@ -22,11 +28,11 @@ CLI: `jiuwenswarm-factory` (also `jiuwenswarm factory`), with `init`, `run`, `as
 
 ## Capsules
 
-`jiuwenswarm/factory/ccs/` holds 52 capsules. With the 8 expert-streaming components, the catalog lists 60 entries. `ccs/atlas-names.json` gives each one a display name and kind:
+`jiuwenswarm/factory/ccs/` holds 53 capsules. With the 8 expert-streaming components, the catalog lists 61 entries. `ccs/atlas-names.json` gives each one a display name and kind:
 
 - **Builders (16):** write the source for one engine component. A builder is the method that builds the code, not the component. The five used on the DGX Spark are `expert_weight_cache`, `weight_placement_planner`, `expert_demand_predictor`, `batch_layout_mapper` and `observability_event_recorder`. Each carries `SOURCE-MAP.md` (the llama.cpp anchors to edit, read or protect), `METHOD.md` (how to verify) and `GUIDE.md` (how to build).
 - **Analysis (22):** read traces, counters and profiles and return findings that a verifier can recompute.
-- **Tools (11):** run an existing lab, runner or benchmark and return a verified receipt. The lab manager sends work to a lab agent and records its checked report.
+- **Tools (12):** run an existing lab, runner or benchmark and return a verified receipt. The lab manager sends work to a lab agent and records its checked report. The node check verifies a task graph node's work before it can be done.
 - **Factory workers (11):** one factory step each, such as evidence intake, qualification, integration or follow-up method.
 
 Each release is sealed. After editing a capsule, bump its `cc.yaml` version and run `scripts/factory/reseal_capsules.py`; `tests/factory/test_capsule_release_pins.py` enforces this.

@@ -65,15 +65,27 @@ attempt IDs from the same task. Proposed, ready or blocked work can precede job
 submission, so it need not cite attempts that do not yet exist. Cancelled and
 superseded nodes are terminal; replacement work gets a new node ID.
 
+A node may carry a `check` (`verifier`, `stage`, `review`), set when it is added
+and fixed afterwards; `constraints.node_checks` can give one per node kind. A
+checked node becomes done only by citing its latest passing `node_check`
+observation, which only the host writes. When reconciliation finds a checked
+node's job succeeded, the node waits as blocked until its check passes. See
+[NODE-CHECKS.md](NODE-CHECKS.md).
+
 Ready/running/done nodes must have all dependencies done. The frontier contains
 proposed or ready nodes with all dependencies done; proposed frontier entries
 remain suggestions. Explicitly blocked/failed nodes need an agent revision before
 being reconsidered. Blocked reasons name each unfinished dependency, including
 cancelled/superseded ones. Cancelling a prerequisite never silently satisfies it.
 
-The controller seeds a proposed inspect → applicability → baseline build →
-baseline measurement → integration → candidate build → candidate measurement →
-accept → report suggestion when initializing a task. The seed alone cites
+When the task contract has node contracts, the controller seeds the graph from the
+planner's plan (`planner.py`): the task file's `plan`, else `FACTORY_PLANNER`, else
+the stand-in that orders the node contracts. Each node links its node contract
+(`node_contract`) and carries its output checks; the seed records which planner made
+it. Without node contracts, the controller seeds a proposed inspect → applicability →
+baseline build → baseline measurement → integration → candidate build → candidate
+measurement → accept → report suggestion; for format-2 contracts its measure nodes
+use the lab manager. The seed alone cites
 decision revision zero and is labelled `origin: seed`. All agent patches must cite
 an existing decision revision in that task. Existing tasks without a graph read
 as revision zero and are not silently backfilled.

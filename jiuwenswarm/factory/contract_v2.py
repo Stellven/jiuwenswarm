@@ -148,6 +148,10 @@ def problems(contract):
                 found.append(f'workload: placeholder {match.group(0)} needs subject.model')
     for path in host_paths(contract):
         found.append(f'{path.lstrip("/")}: absolute host path; name the file in inputs or subject and let the lab resolve it')
+    from .node_contract import EXTENSION, problems as node_problems
+    nodes = contract.get('extensions', {}).get(EXTENSION)
+    if nodes is not None:
+        found.extend(f'extensions/{EXTENSION}/{problem}' for problem in node_problems(nodes, contract))
     return found
 
 

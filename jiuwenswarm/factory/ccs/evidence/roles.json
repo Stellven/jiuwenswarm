@@ -1,6 +1,7 @@
 {
   "capabilities": {
     "plan_get": "tool",
+    "plan_next": "tool",
     "plan_patch": "tool",
     "publish": "tool",
     "query": "tool",

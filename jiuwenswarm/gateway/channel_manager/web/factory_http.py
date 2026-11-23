@@ -33,7 +33,8 @@ from .capsule_evidence import capsule_usage, collect_capsule_evidence
 
 from jiuwenswarm.gateway.channel_manager.web.factory_measurements import MeasurementEvidence
 from jiuwenswarm.gateway.channel_manager.web.factory_session import controller_is_locked, session_snapshot
-from scripts.spark.recorder_live_demo import TEMPLATE as RECORDER_WALKTHROUGH, valid_template as valid_recorder_walkthrough
+# The Spark demo walkthrough template (scripts/spark/recorder_live_demo.py); loaded only when launched.
+RECORDER_WALKTHROUGH = 'recorder-evidence-walkthrough'
 
 PREFIX = '/api/factory'
 MAX_FILE = 16 * 1024 * 1024
@@ -537,6 +538,9 @@ class FactoryHttpService:
             raise HTTPException(400, 'Select an operator-prepared task template')
         task = _json(_inside(self.launch_root, template_id + '.json'))
         native_walkthrough = template_id == RECORDER_WALKTHROUGH
+        if native_walkthrough:
+            from scripts.spark.recorder_live_demo import TEMPLATE, valid_template as valid_recorder_walkthrough
+            assert TEMPLATE == RECORDER_WALKTHROUGH
         if native_walkthrough and not valid_recorder_walkthrough(task):
             raise HTTPException(422, 'Recorder walkthrough template does not match the reviewed read-only task')
         tid = 'web-' + time.strftime('%Y%m%dT%H%M%SZ', time.gmtime()) + '-' + uuid.uuid4().hex[:8]

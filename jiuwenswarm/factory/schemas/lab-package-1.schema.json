@@ -1,0 +1,315 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory.lab-package/1",
+  "title": "Lab package, format 1",
+  "type": "object",
+  "description": "The immutable package sealed by LabManager.compose and delivered by send.",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "origin",
+    "lab_task",
+    "subjects",
+    "contract",
+    "package_id"
+  ],
+  "properties": {
+    "schema": {
+      "const": "factory.lab-package/1",
+      "description": "Package protocol version."
+    },
+    "origin": {
+      "type": "object",
+      "description": "Factory task and optional originating node.",
+      "additionalProperties": false,
+      "required": [
+        "task_id"
+      ],
+      "properties": {
+        "task_id": {
+          "type": "string",
+          "description": "Owning factory task."
+        },
+        "node_id": {
+          "type": "string",
+          "description": "Originating node when supplied."
+        }
+      }
+    },
+    "lab_task": {
+      "type": "object",
+      "description": "Lab task conforming to factory.lab-task/1 (lab-task-1.schema.json), with the contract digest pinned by compose. Validate that document separately."
+    },
+    "subjects": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "Subjects by lab-task subject name.",
+      "propertyNames": {
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+      },
+      "additionalProperties": {
+        "$ref": "#/$defs/subject",
+        "description": "One sealed subject."
+      }
+    },
+    "contract": {
+      "type": "object",
+      "description": "Pinned contract identity and full contract document.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sha256",
+        "format",
+        "document"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Contract identifier."
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "Digest of the pinned contract file."
+        },
+        "format": {
+          "type": "integer",
+          "enum": [
+            1,
+            2
+          ],
+          "description": "Contract format interpreted by the lab manager."
+        },
+        "document": {
+          "type": "object",
+          "description": "Full pinned contract document in its native format."
+        }
+      }
+    },
+    "package_id": {
+      "type": "string",
+      "description": "Identity derived from the canonical sealed package.",
+      "pattern": "^labpkg-[0-9a-f]{32}$"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "description": "SHA-256 digest of the exact bytes.",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "subject": {
+      "type": "object",
+      "description": "Lab-task subject with factory verification and an optional payload.",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "identity",
+        "verification"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "container_image",
+            "native_build",
+            "source",
+            "artifact",
+            "stock"
+          ],
+          "description": "Kind of result under test."
+        },
+        "identity": {
+          "type": "object",
+          "minProperties": 1,
+          "description": "Subject identity as stated in the lab task."
+        },
+        "build_attempt_id": {
+          "type": "string",
+          "description": "Optional succeeded factory build attempt."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Subject notes from the lab task."
+        },
+        "transfer": {
+          "enum": [
+            "attach",
+            "none"
+          ],
+          "description": "Whether the factory ships the subject bytes."
+        },
+        "verification": {
+          "$ref": "#/$defs/verification",
+          "description": "Result of checking the subject identity."
+        },
+        "payload": {
+          "$ref": "#/$defs/payload",
+          "description": "Payload present when transfer is attach."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "transfer": {
+                "const": "attach"
+              }
+            },
+            "required": [
+              "transfer"
+            ]
+          },
+          "then": {
+            "required": [
+              "payload"
+            ]
+          }
+        }
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "description": "Whether the subject identity matches a succeeded build receipt.",
+      "additionalProperties": false,
+      "required": [
+        "verified",
+        "against"
+      ],
+      "properties": {
+        "verified": {
+          "type": "boolean",
+          "description": "True when the build receipt matches the subject identity."
+        },
+        "against": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Build receipt checked, or null if no attempt was named."
+        },
+        "note": {
+          "type": "string",
+          "description": "Limitation when identity is only stated."
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "verified": {
+              "const": true
+            },
+            "against": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "properties": {
+            "verified": {
+              "const": false
+            },
+            "against": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "note"
+          ]
+        }
+      ]
+    },
+    "payload": {
+      "type": "object",
+      "description": "Subject payload stored by compose and attached by send.",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "size",
+        "media_type",
+        "format",
+        "artifact_id"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Safe attachment file name.",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "Digest of the attachment bytes."
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Attachment size in bytes."
+        },
+        "media_type": {
+          "type": "string",
+          "description": "Media type of the attachment."
+        },
+        "format": {
+          "enum": [
+            "file",
+            "docker-archive",
+            "source-bundle"
+          ],
+          "description": "How the lab interprets the shipped bytes."
+        },
+        "artifact_id": {
+          "type": "string",
+          "description": "Factory artifact holding the payload."
+        },
+        "image_id": {
+          "type": "string",
+          "description": "Container image identity returned by docker save."
+        },
+        "recipe": {
+          "type": "string",
+          "description": "Lab build recipe for a source bundle."
+        },
+        "head_tree": {
+          "type": "string",
+          "description": "Sealed Git source tree.",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "base_commit": {
+          "type": "string",
+          "description": "Base Git commit of the source bundle.",
+          "pattern": "^[0-9a-f]{40}$"
+        }
+      },
+      "oneOf": [
+        {
+          "properties": {
+            "format": {
+              "const": "file"
+            }
+          }
+        },
+        {
+          "properties": {
+            "format": {
+              "const": "docker-archive"
+            }
+          },
+          "required": [
+            "image_id"
+          ]
+        },
+        {
+          "properties": {
+            "format": {
+              "const": "source-bundle"
+            }
+          },
+          "required": [
+            "recipe",
+            "head_tree",
+            "base_commit"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -9,4 +9,6 @@ For a large JSON artifact, the optional evidence-digest package can index and pr
 
 Publish a decision with actual evidence IDs and current revision; use observation publication for findings or a structured report. Publishing an artifact from a path requires a file that already exists in the admitted workspace. If a local file tool cannot write, retain report text as an immutable observation and return its evidence ID; do not invent a filesystem artifact. The parent exporter can later copy that exact text into a portable report.
 
+When the task contract has node contracts, start each turn from plan_next. It lists the planned nodes that can run now, what each must produce and how each output is checked. Work one node at a time. Check each output with factory.node_check, and mark the node done citing its passing checks. The deliver node hands the engine to the lab manager.
+
 The branch workbench handles branching as its own job. Its mutations already return state; reuse those responses before asking for another full graph. These methods reduce avoidable calls, but the November15 trace is the baseline rather than proof of a future token reduction.

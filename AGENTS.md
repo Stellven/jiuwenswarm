@@ -68,7 +68,7 @@ These apply to work under `jiuwenswarm/factory/`, `jiuwenswarm/ccv2/` and the Fa
 
 1. Fix the pipeline in general; never hard-code a result to make a check pass.
 2. Do not label a simulation as a live-agent or image result. Tests are distinct from live runs.
-3. Keep the protocol lightweight: no registry service, planner or intent compiler.
+3. Keep the protocol lightweight: the factory builds no registry service, planner or intent compiler of its own. Plans come from the planner component through `jiuwenswarm/factory/planner.py` (a stand-in is supplied); see `docs/architecture/factory/INTEGRATION.md`.
 4. Preserve unrelated work and credentials; never write secrets into artifacts. Do not commit, push, merge or deploy unless asked.
 5. 5175 is the only local web host port.
 6. Codex integration lives in `jiuwenswarm/server/runtime/codex_subscription/`, `agent_adapter/interface_codex.py`, `gateway_adapter/codex_adapter.py` and `jiuwenswarm/codex_start.py`. The factory reuses them; do not fork them.

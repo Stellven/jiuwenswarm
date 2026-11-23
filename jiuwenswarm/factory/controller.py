@@ -183,8 +183,12 @@ class Controller:
         task = expand_sources(json.loads(Path(task_file).read_text(encoding='utf-8')))
         required = {'objective', 'constraints', 'allowed_effects', 'target', 'budget',
                     'contract_id', 'initial_run_config', 'component_cc', 'source'}
-        if not isinstance(task, dict) or required - task.keys() or task.keys() - required - {'operator_labels', 'task_id', 'resources', 'capability_cc'}:
+        if not isinstance(task, dict) or required - task.keys() or task.keys() - required - {'operator_labels', 'task_id', 'resources', 'capability_cc', 'plan'}:
             raise ValueError('Invalid task fields')
+        # A planner's output (factory.plan/1), inline or as a file next to the task file; see planner.py.
+        plan = task.pop('plan', None)
+        if isinstance(plan, str):
+            plan = json.loads((Path(task_file).parent / plan).read_text(encoding='utf-8'))
         if not isinstance(task['objective'], str) or not task['objective'].strip():
             raise ValueError('objective must be nonempty text')
         for key in ('contract_id', 'component_cc'):
@@ -220,9 +224,12 @@ class Controller:
             self._init_evolve(source)
         elif isinstance(task.get('constraints'), dict) and task['constraints'].get('local_commits'):
             self._init_owned_source(source)
+        if plan is not None or seed_plan is not None:
+            from .planner import plan_for_task
+            plan_for_task(dict(task, task_id=task['task_id']), plan)  # refuse a bad plan before creating the task
         task = self.store.create_task(task)
         if seed_plan is not None:
-            seed_plan(self.store, task)
+            seed_plan(self.store, task, plan)
         return task['task_id']
 
     def _init_owned_source(self, source):
@@ -344,6 +351,15 @@ class Controller:
             state['pending_operator_note_ids'] = [n['note_id'] for n in notes]
         if state['missing_decision']:
             message['host_observation'] = 'Previous turn ended without publishing a new decision revision.'
+        if current.get('constraints') is not None:
+            from .node_contract import for_task
+            try:
+                planned = for_task(current) is not None
+            except (OSError, ValueError):
+                planned = False
+            if planned:  # the scheduler's view: what can run now and what each node owes
+                from .scheduler import brief, next_work
+                message['next_work'] = brief(next_work(self.store, task['task_id']))
         if state['turns'] == 0 or state.pop('needs_context', False):
             if state['turns']:
                 message['host_observation'] = ('Controller restarted (host reboot or crash): this is a NEW agent session with no memory. '

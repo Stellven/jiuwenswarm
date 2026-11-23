@@ -11,12 +11,13 @@ import time
 from .store import NotFound, StaleRevision, encoded, identifier
 
 KIND = 'taskgraph_patch'
-KINDS = frozenset('inspect integrate build measure tune investigate decide accept report'.split())
+KINDS = frozenset('inspect integrate build measure tune investigate decide accept report deliver'.split())
 STATES = frozenset('proposed ready running blocked done failed cancelled superseded'.split())
 TERMINAL = {'cancelled', 'superseded'}
 NODE_FIELDS = {'node_id', 'kind', 'title', 'capability', 'inputs', 'depends_on', 'state',
                'attempt_ids', 'evidence_ids', 'created_by_decision_rev', 'reason',
-               'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch'}
+               'outcome', 'entities', 'requires_evidence', 'resources', 'engine_slice', 'branch', 'check',
+               'node_contract'}
 
 
 def initialize(db):
@@ -74,6 +75,11 @@ def _validate(nodes, component_cc=None):
         if 'engine_slice' in node:
             from .ontology import validate_slice
             validate_slice(node['engine_slice'], component_cc)
+        if 'check' in node:
+            from .node_check import validate_spec
+            validate_spec(node['check'])
+        if 'node_contract' in node and (not isinstance(node['node_contract'], str) or not node['node_contract']):
+            raise ValueError('node_contract names a node contract of the task contract')
         if 'entities' in node:
             _ids(node['entities'])
         if 'requires_evidence' in node:
@@ -88,8 +94,10 @@ def _validate(nodes, component_cc=None):
             raise ValueError('Plan dependency does not exist')
         if node['state'] == 'done' and not node['evidence_ids']:
             raise ValueError('A done node requires evidence_ids')
-        # Suggestions/readiness precede submission: they cannot name a future attempt.
-        if node['kind'] in {'build', 'measure'} and node['state'] in {'running', 'done', 'failed'} and not node['attempt_ids']:
+        # Suggestions/readiness precede submission: they cannot name a future attempt. A node planned
+        # from a node contract is evidenced by its output checks instead (a lab may do the build).
+        if (node['kind'] in {'build', 'measure'} and node['state'] in {'running', 'done', 'failed'}
+                and not node['attempt_ids'] and not node.get('node_contract')):
             raise ValueError('Executing build/measure nodes require attempt_ids')
         if node['state'] in {'ready', 'running', 'done'} and any(nodes[d]['state'] != 'done' for d in node['depends_on']):
             raise ValueError('Node is not ready: dependencies must all be done')
@@ -242,7 +250,7 @@ def dispatch_precondition(store, task_id, node_id):
         raise ValueError('Dispatch dependencies not done: ' + ', '.join(unfinished))
 
 
-def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False):
+def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, readable=(), seed=False, planner=None):
     """Inside an existing Store transaction (also used by decision publication)."""
     _revision(expected_graph_rev)
     _revision(decision_rev)
@@ -256,7 +264,11 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
         raise ValueError('Only the host initial suggestion may cite decision zero')
     patch = json.loads(encoded(patch))
     nodes = {n['node_id']: n for n in graph['nodes']}
+    before = {key: dict(node) for key, node in nodes.items()}
     _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'))
+    if not seed:  # a checked node is done only with its latest passing node check
+        from .node_check import gate
+        gate(host, task_id, before, nodes)
     if any('branch' in n for n in nodes.values()):
         from .branch_workbench import validate_graph
         validate_graph(host, task_id, nodes)
@@ -267,6 +279,8 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
     rev = expected_graph_rev + 1
     record = dict(task_id=task_id, rev=rev, parent_rev=expected_graph_rev,
                   decision_rev=decision_rev, patch=patch, origin='seed' if seed else 'decision', created=time.time())
+    if planner:
+        record['planner'] = planner
     host._insert('observations', dict(obs_id=f'{task_id}:plan:{rev}', task_id=task_id,
                  source_artifacts=[], kind=KIND, values=record, error={}, host_run={},
                  confidence=None, limitations='Work record; does not authorize execution or acceptance.', created=record['created']))
@@ -289,6 +303,14 @@ def apply_decision_patch(store, task_id, decision, readable=()):
     if patch is None or expected is None:
         raise ValueError('Decision plan_patch requires expected_graph_rev and vice versa')
     _apply_patch(store, task_id, patch, expected, decision['rev'], readable=readable)
+
+
+def _format_two(task):
+    try:
+        from .contract import load
+        return load(task['contract_id']).get('schema') == 'factory.contract/2'
+    except (KeyError, OSError, ValueError):
+        return False
 
 
 def initial_plan(task):
@@ -316,6 +338,10 @@ def initial_plan(task):
             ('report', 'report', 'Report result and limitations', None),
         ]
     constraints = task.get('constraints', {})
+    if _format_two(task):  # format-2 contracts are measured by a lab through the lab manager
+        specs = [(key, kind, title, {'factory.lab_client.submit': 'factory.lab_manager.compose',
+                                     'factory.lab_client.ab_submit': 'factory.lab_manager.compose'}.get(capability, capability))
+                 for key, kind, title, capability in specs]
     if isinstance(constraints, dict) and constraints.get('external_model_execution_only'):
         specs = [(key, kind, ('Await imported capped model evidence' if kind == 'measure' else title),
                   None if kind == 'measure' else capability)
@@ -335,10 +361,17 @@ def initial_plan(task):
     return {'add': nodes}
 
 
-def seed_plan(store, task):
+def seed_plan(store, task, plan=None):
+    """Revision 1 of the graph: the planner's plan, checked against the node contracts.
+
+    Without node contracts (older contracts) the host's fixed suggestion is used. See planner.py.
+    """
+    from .planner import plan_for_task
+    planner, nodes = plan_for_task(task, plan)
+    patch = {'add': [_node(n, 0) for n in nodes]} if nodes else initial_plan(task)
     host = _host(store, task['task_id'], write=True)
     with host._transaction():
-        return _apply_patch(host, task['task_id'], initial_plan(task), 0, 0, seed=True)
+        return _apply_patch(host, task['task_id'], patch, 0, 0, seed=True, planner=planner or 'factory.taskgraph.initial_plan')
 
 
 def reconcile_patch(graph, attempts):
@@ -400,6 +433,13 @@ def reconcile(store, task_id, expected_graph_rev, decision_rev):
             raise StaleRevision('Current plan revision differs from expected_graph_rev')
         attempts = {r['attempt_id']: host._decode('attempts', r) for r in host._db.execute('SELECT * FROM attempts WHERE task_id=?', (task_id,))}
         patch = reconcile_patch(graph, attempts)
+        from .node_check import pending
+        task, nodes = host.get_task(task_id), {n['node_id']: n for n in graph['nodes']}
+        for update in patch.get('update', []):
+            if update['state'] == 'done':
+                reason = pending(host, task, dict(nodes[update['node_id']], evidence_ids=update['evidence_ids']))
+                if reason:
+                    update.update(state='blocked', reason='Attempt succeeded; ' + reason)
         if not patch:
             return graph
         return _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev,

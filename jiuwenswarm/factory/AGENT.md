@@ -42,6 +42,20 @@ only with evidence; executing build/measure nodes require durable attempt IDs.
 Cancelled/superseded nodes stay terminal: add replacement work instead. A ready
 frontier is advisory; all task authority, contracts and job lifecycle still apply.
 
+When the task contract has node contracts, the graph comes from the planner and each
+node owes the outputs its node contract declares. Each turn message carries next_work
+(also factory.evidence.plan_next): the nodes that can run now, their inputs from
+earlier nodes, the outputs they owe with criteria and verifiers, the capsules that help
+and what is left of their limits. Work those nodes; the capsules are help, not orders.
+A node is done only by citing, for every required output, its latest passing check:
+factory.node_check.start({node_id, output, checkout? | refs?}). A diff is checked in
+the background by the capsule verifier and an independent reviewer that never sees
+your reasoning; read factory.node_check.status({node_id}) on a later turn. On a
+failure, fix the output from the findings and check again; do not argue with the
+reviewer. The deliver node composes the lab package with its node_id and sends it:
+that is how the engine reaches the lab manager. Hand-written nodes may carry a check
+({verifier, stage, review}) and constraints.node_checks may set one per kind.
+
 Terminal decisions have action.type in accept, report_inconclusive,
 stop_missing_prerequisite, and cite supporting evidence_ids. Accept only when
 evidence supports the contract and engagement/correctness obligations. Missing

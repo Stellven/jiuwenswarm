@@ -119,6 +119,59 @@
     "capability_cc": {
       "type": "string",
       "minLength": 1
+    },
+    "plan": {
+      "description": "A planner's plan (factory.plan/1): the task graph nodes, each naming a node contract of the task contract, with their order. Inline, or a file name next to the task file. Omit it to let FACTORY_PLANNER or the stand-in planner order the node contracts (see jiuwenswarm/factory/planner.py).",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "format",
+            "nodes"
+          ],
+          "properties": {
+            "format": {
+              "const": "factory.plan/1"
+            },
+            "planner": {
+              "type": "string"
+            },
+            "nodes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "node_id"
+                ],
+                "properties": {
+                  "node_id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                  },
+                  "node_contract": {
+                    "type": "string"
+                  },
+                  "depends_on": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

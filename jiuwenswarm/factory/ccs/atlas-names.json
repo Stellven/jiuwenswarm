@@ -415,6 +415,15 @@
       "target": null,
       "summary": "Computes phase-separated rates and paired ratios from matched cells."
     },
+    "node_check": {
+      "capsule_id": "factory.node_check",
+      "title": "Node check",
+      "kind": "tool",
+      "atlas_cc_id": null,
+      "component": null,
+      "target": null,
+      "summary": "Checks a task graph node's work before it can be done: the capsule's verifier on the exact diff, then an independent reviewer that never sees the building agent's context."
+    },
     "numerical_investigation_lab": {
       "capsule_id": "factory.numerical_investigation_lab",
       "title": "Logit divergence analysis",

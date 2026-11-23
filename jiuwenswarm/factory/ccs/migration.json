@@ -354,6 +354,12 @@
       "old_release": "70693534d3074d68fe87408a185ed88d8f4e00b9435af165bd1e7faf4314f183",
       "new_release": "70693534d3074d68fe87408a185ed88d8f4e00b9435af165bd1e7faf4314f183",
       "initial_canonical_release": "70693534d3074d68fe87408a185ed88d8f4e00b9435af165bd1e7faf4314f183"
+    },
+    {
+      "path": "node_check/cc.yaml",
+      "old_release": "317e160fbe39fa1b4eb8173adcb074d92ffd958aaeaafe14c883cb9f0730393c",
+      "new_release": "317e160fbe39fa1b4eb8173adcb074d92ffd958aaeaafe14c883cb9f0730393c",
+      "initial_canonical_release": "317e160fbe39fa1b4eb8173adcb074d92ffd958aaeaafe14c883cb9f0730393c"
     }
   ],
   "new_packages": [

@@ -1,0 +1,44 @@
+cc: '2'
+id: factory.node_check
+version: 1.0.0
+materials:
+  method:
+    path: NODE-CHECK.md
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  start:
+    does: Check one output of a task graph node; a node is done only when every required
+      output passed. A diff output is checked in the background on the exact change in your
+      checkout (or the patch file you name) by the node's capsule verifier and, if asked, an
+      independent reviewer that sees only the step, its criteria, the capsule's method, the
+      verifier's checks and the diff. Builds, lab requests and evidence are checked by the
+      host at once from refs. A repeat check of the same work returns the earlier result.
+    takes:
+      node_id: text
+      output: {kind: text, optional: true}
+      checkout: {kind: text, optional: true}
+      diff_path: {kind: text, optional: true}
+      verifier_inputs: {kind: json, optional: true}
+      refs: {kind: json, optional: true}
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
+  status:
+    does: For each checked output of the node, the latest check (passed or failed, the
+      verifier's checks, the reviewer's findings, the evidence id to cite) and any check
+      still running, plus what still blocks marking the node done.
+    takes:
+      node_id: text
+    gives:
+      result: json
+    needs: [python]
+    changes: [process.exec]
