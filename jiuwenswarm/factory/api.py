@@ -43,24 +43,6 @@ def artifact_source(record, packet):
 from .controller import ENGINE_CONTRACTS  # noqa: E402
 
 
-def _deliver_node(store, task_id, node_id):
-    """With node contracts, the engine reaches the lab manager only from the planned deliver node."""
-    from .node_contract import for_task
-    host = getattr(store, '_store', store)
-    try:
-        contracts = for_task(host.get_task(task_id))
-    except (OSError, ValueError):
-        contracts = None
-    if contracts is None:
-        return
-    if not node_id:
-        raise ValueError('This task has node contracts: compose the lab package from its deliver node (node_id)')
-    from .taskgraph import plan_get
-    node = next((n for n in plan_get(host, task_id)['nodes'] if n['node_id'] == node_id), None)
-    if node is None or node['kind'] != 'deliver':
-        raise ValueError(f'Node {node_id} is not a deliver node; only the deliver node hands the engine to the lab manager')
-
-
 def dispatch(store, task_id, capability, packet):
     from .components import SELECTED_BINDING
     from jiuwenswarm.ccv2.ccv2 import Host
@@ -78,14 +60,13 @@ def _dispatch(store, task_id, capability, packet):
     from .execution_binding import verify_task
     verify_task(store, task_id)
     inputs = packet.get('inputs', {})
-    if capability == 'lab_manager.compose':
-        _deliver_node(store, task_id, inputs.get('node_id'))
-    if capability in {'builder.submit', 'lab.submit', 'lab.ab_submit', 'lab_manager.compose'} and 'node_id' in inputs:
-        from .taskgraph import dispatch_precondition
-        from .scheduler import charge
-        dispatch_precondition(store, task_id, inputs['node_id'])
-        if capability != 'lab_manager.compose':
-            charge(getattr(store, '_store', store), task_id, inputs['node_id'], 'build' if capability == 'builder.submit' else 'lab')
+    # Jobs that name a node: precondition, authority ceiling and node limits, held under a node lock.
+    from .scheduler import admitted
+    with admitted(store, task_id, capability, inputs):
+        return _route(store, task_id, capability, packet, inputs)
+
+
+def _route(store, task_id, capability, packet, inputs):
     node_link = {'node_id': inputs['node_id']} if 'node_id' in inputs else {}
     for prefix, module in (('evidence_digest.', 'evidence_digest'),
                            ('source_workbench.', 'source_workbench'),

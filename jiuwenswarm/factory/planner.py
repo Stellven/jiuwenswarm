@@ -140,3 +140,49 @@ def plan_for_task(task, plan=None):
     if found:
         raise PlanError('The plan does not fit the node contracts: ' + '; '.join(found[:8]))
     return plan.get('planner', 'unnamed planner'), graph_nodes(task, plan, node_contracts)
+
+
+def contract_gate(host, task_id, after):
+    """Every revision of a planned graph keeps the contracted work: called on each plan patch.
+
+    The agent may add its own nodes and reorder, retry or supersede work, but every node
+    contract stays covered by an active node that carries that contract's kind and checks
+    and depends on nodes covering the contract's predecessors; only a contracted deliver
+    node may be a deliver node.
+    """
+    from .node_contract import check_spec, for_task
+    task = host.get_task(task_id)
+    contracts = None
+    if task.get('contract_id'):
+        try:
+            contracts = for_task(task)
+        except FileNotFoundError:
+            return
+    if contracts is None:
+        if any(n.get('node_contract') for n in after.values()):
+            raise ValueError('node_contract needs a task contract with node contracts')
+        return
+    by_id = {c['node_id']: c for c in contracts['nodes']}
+    active = [n for n in after.values() if n['state'] not in {'cancelled', 'superseded'}]
+    covering = {}
+    for node in active:
+        name = node.get('node_contract')
+        if name is None:
+            if node['kind'] == 'deliver':
+                raise ValueError(f'Node {node["node_id"]}: only the contracted deliver node may be a deliver node')
+            continue
+        if name not in by_id:
+            raise ValueError(f'Node {node["node_id"]}: no node contract {name}')
+        contract = by_id[name]
+        if node['kind'] != contract['kind'] or node.get('check') != check_spec(contract):
+            raise ValueError(f'Node {node["node_id"]} must keep the kind and checks of node contract {name}')
+        covering.setdefault(name, []).append(node)
+    missing = [name for name in by_id if name not in covering]
+    if missing:
+        raise ValueError('Every node contract stays covered by an active node; supersede with a node of the same '
+                         'node_contract instead of cancelling. Uncovered: ' + ', '.join(missing))
+    for name, nodes in covering.items():
+        for node in nodes:
+            for predecessor in by_id[name].get('predecessors', []):
+                if not any(dep in after and after[dep].get('node_contract') == predecessor for dep in node['depends_on']):
+                    raise ValueError(f'Node {node["node_id"]} must depend on a node covering its contract predecessor {predecessor}')

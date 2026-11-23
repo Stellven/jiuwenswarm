@@ -266,6 +266,8 @@ def _apply_patch(host, task_id, patch, expected_graph_rev, decision_rev, *, read
     nodes = {n['node_id']: n for n in graph['nodes']}
     before = {key: dict(node) for key, node in nodes.items()}
     _apply(nodes, patch, decision_rev, host.get_task(task_id).get('component_cc'))
+    from .planner import contract_gate
+    contract_gate(host, task_id, nodes)  # contracted work stays covered, with its checks
     if not seed:  # a checked node is done only with its latest passing node check
         from .node_check import gate
         gate(host, task_id, before, nodes)

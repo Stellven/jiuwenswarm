@@ -95,6 +95,8 @@ def _check_output(entry):
     for flag in ('review', 'required'):
         if flag in entry and type(entry[flag]) is not bool:
             raise ValueError(f'Check {flag} must be true or false')
+    if entry['kind'] == 'diff' and not entry.get('verifier') and not entry.get('review'):
+        raise ValueError(f'Check output {entry["name"]}: a diff needs a capsule verifier, a review or both')
     if entry['kind'] != 'diff' and entry.get('verifier'):
         raise ValueError(f'Check output {entry["name"]}: capsule verifiers check diff outputs')
     if entry.get('review') and entry['kind'] not in ('diff', 'evidence'):
@@ -402,6 +404,11 @@ def default_reviewer():
 
 
 # ---- running a check --------------------------------------------------------------------
+def _spawn(argv, **options):
+    """Start the background worker of a check (detached)."""
+    return subprocess.Popen(argv, **options)
+
+
 class NodeChecks:
     def __init__(self, store, reviewer=None, ccs_roots=None):
         self.store, self.ccs_roots = store, ccs_roots
@@ -459,6 +466,8 @@ class NodeChecks:
     # -- diff outputs --------------------------------------------------------------------
     def _start_diff(self, task, node, entry, checkout, diff_path, verifier_inputs, background):
         task_id, node_id = task['task_id'], node['node_id']
+        if set(verifier_inputs or {}) & {'checkout', 'diff_path'}:
+            raise CheckError('checkout and diff_path are set by the host from the work being checked, not in verifier_inputs')
         checkout = Path(checkout).expanduser().resolve()
         head = _git(checkout, 'rev-parse', 'HEAD')
         diff = Path(diff_path).expanduser().read_bytes() if diff_path else working_diff(checkout)
@@ -528,8 +537,12 @@ class NodeChecks:
             claim.write_text(str(time.time()))  # a stale claim from a worker that died
         if not background:
             return self._result(self.work(work))
+        # Recorded first, so the node cannot close on an older pass while this check runs.
+        self._record(task_id, node_id, dict(format=FORMAT, node_id=node_id, output=entry['name'], kind=request['kind'],
+                                            entry=entry, key=key, state='running', passed=False,
+                                            reason='check running', seconds={}), [])
         log = (work / 'worker.log').open('ab')
-        subprocess.Popen([sys.executable, '-m', 'jiuwenswarm.factory.node_check', 'work', str(work)],
+        _spawn([sys.executable, '-m', 'jiuwenswarm.factory.node_check', 'work', str(work)],
                          stdin=subprocess.DEVNULL, stdout=log, stderr=log, start_new_session=True,
                          env=dict(os.environ, FACTORY_HOME=str(self.store.home), PYTHONPATH=os.pathsep.join(
                              filter(None, [str(Path(__file__).resolve().parents[2]), os.environ.get('PYTHONPATH')]))))
@@ -588,6 +601,8 @@ class NodeChecks:
                 if not values['review']['passed']:
                     values['reason'] = values['review']['reason']
                     return self._close(task_id, node_id, values, artifacts, work)
+            if request['kind'] == 'diff':
+                self._same_work(request)  # after the review too: the pass is for the work as it stands
             values.update(passed=True, reason='passed')
         except (CheckError, OSError, subprocess.TimeoutExpired) as exc:
             values['reason'] = f'check could not run: {exc}'
@@ -605,6 +620,8 @@ class NodeChecks:
 
     def _same_work(self, request):
         """The checkout still holds exactly the work the check was asked about."""
+        if request['kind'] != 'diff':
+            return
         if _git(request['checkout'], 'rev-parse', 'HEAD') != request['head']:
             raise CheckError('the checkout moved to another commit after the check was requested')
         if request['working'] and _sha(working_diff(request['checkout'])) != request['diff_sha256']:
@@ -760,18 +777,22 @@ class NodeChecks:
         if package['origin'].get('node_id') != node['node_id']:
             raise CheckError(f'lab request {request_id} was composed for node {package["origin"].get("node_id")}, not {node["node_id"]}')
         lab_task = package['lab_task']
-        covered = set(lab_task.get('arms', {})) | set(lab_task.get('subjects', {}))
-        for test in lab_task['tests']:
-            covered |= set(test['arms']) | {test.get('check')} | set(test.get('measure', []))
-            for arm in test['arms']:
-                covered.add(arm)
+        tested = dict(arm={a for test in lab_task['tests'] for a in test['arms']},
+                      check={test['check'] for test in lab_task['tests'] if test.get('check')},
+                      metric={m for test in lab_task['tests'] for m in test.get('measure', [])})
         missing = []
         if node.get('node_contract'):
+            from .contract import load
+            from .contract_v2 import arm_ids, check_ids, metric_ids
             from .node_contract import for_task, node as contract_node_of
             contract_node = contract_node_of(for_task(task), node['node_contract']) or {}
-            missing = sorted(set(contract_node.get('requirement_ids', [])) - covered)
+            contract = load(task['contract_id'])
+            kinds = {**{a: 'arm' for a in arm_ids(contract)}, **{c: 'check' for c in check_ids(contract)},
+                     **{m: 'metric' for m in metric_ids(contract)}}
+            # Each requirement counts only as what it is: an arm must be tested, a check run, a metric measured.
+            missing = sorted(r for r in contract_node.get('requirement_ids', []) if r not in tested.get(kinds.get(r), set()))
         if missing:
-            raise CheckError('the lab task does not cover ' + ', '.join(missing))
+            raise CheckError('the lab task does not test ' + ', '.join(missing))
         return dict(request_id=request_id, package_id=sent['values']['package_id'], tests=[t['id'] for t in lab_task['tests']],
                     artifacts=['lab-package:' + sent['values']['package_id']])
 

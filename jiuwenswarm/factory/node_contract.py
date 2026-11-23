@@ -103,6 +103,8 @@ def problems(document, contract=None):
             kind = next((o['kind'] for o in node['outputs'] if o['name'] == verifier['output']), None)
             if verifier.get('stage') and not verifier.get('verifier'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: a stage needs a verifier capability')
+            if kind == 'diff' and not verifier.get('verifier') and not verifier.get('review'):
+                found.append(f'{key}/verifiers/{verifier["output"]}: a diff needs a capsule verifier, a review or both')
             if kind != 'diff' and verifier.get('verifier'):
                 found.append(f'{key}/verifiers/{verifier["output"]}: capsule verifiers check diff outputs')
             if verifier.get('review') and kind not in ('diff', 'evidence'):

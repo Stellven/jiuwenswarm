@@ -228,8 +228,16 @@ def test_contract_to_lab_manager_end_to_end(pipeline, tmp_path):
     packet = {'inputs': {'lab_task': lab_task(subjects)}}
     with pytest.raises(ValueError, match='deliver node'):
         dispatch(store, 'lt', 'lab_manager.compose', packet)
-    with pytest.raises(ValueError, match='not a deliver node'):
+    with pytest.raises(ValueError, match='not the contracted deliver node'):
         dispatch(store, 'lt', 'lab_manager.compose', {'inputs': dict(packet['inputs'], node_id='build')})
+    # Subject names never stand in for checks or metrics: a lab task without the parity test fails the deliver check.
+    thin = lab_task(subjects)
+    thin['tests'] = [test for test in thin['tests'] if test['id'] != 'parity']
+    thin['subjects']['gate_unset_parity'] = thin['subjects']['stock']
+    thin_pkg = dispatch(store, 'lt', 'lab_manager.compose', {'inputs': dict(lab_task=thin, node_id='deliver')})
+    thin_req = dispatch(store, 'lt', 'lab_manager.send', {'inputs': dict(package_id=thin_pkg['package_id'], idem_key='thin')})['request_id']
+    thin_check = checks.start('lt', 'deliver', refs={'request_id': thin_req})
+    assert not thin_check['passed'] and 'does not test gate_unset_parity' in thin_check['reason']
     composed = dispatch(store, 'lt', 'lab_manager.compose', {'inputs': dict(packet['inputs'], node_id='deliver')})
     request = dispatch(store, 'lt', 'lab_manager.send', {'inputs': dict(package_id=composed['package_id'], idem_key='go')})['request_id']
     request_check = checks.start('lt', 'deliver', refs={'request_id': request})
@@ -260,3 +268,102 @@ def test_node_limits_are_charged(pipeline):
     with pytest.raises(ValueError, match='used its build_attempts'):
         scheduler.charge(store, 'lt', 'build', 'build')
     scheduler.charge(store, 'lt', 'build', 'lab')  # other kinds have no limit here
+
+
+# ---- review findings: the done rule and the hand-off cannot be bypassed --------------------------
+def test_agents_cannot_drop_or_fake_contracted_work(pipeline):
+    store, ccs, root, base = pipeline
+    rev = plan_get(store, 'lt')['rev']
+    attempts = [
+        ({'cancel': [dict(node_id='build', reason='skip it')]}, 'stays covered'),
+        ({'add': [dict(node_id='fake', kind='deliver', title='Fake delivery')]}, 'only the contracted deliver node'),
+        ({'add': [dict(node_id='fake', kind='inspect', title='x', node_contract='does_not_exist')]}, 'no node contract'),
+        ({'add': [dict(node_id='b2', kind='build', title='x', node_contract='build', depends_on=['integrate'])]},
+         'keep the kind and checks'),
+    ]
+    for patch, message in attempts:
+        with pytest.raises(ValueError, match=message):
+            plan_patch(store, 'lt', patch, rev, 1)
+    # A replacement that keeps the contract, its checks and its predecessors is fine.
+    build = next(n for n in plan_get(store, 'lt')['nodes'] if n['node_id'] == 'build')
+    replacement = dict(node_id='build_again', kind='build', title='Retry the bundle', node_contract='build',
+                       check=build['check'], depends_on=['integrate'])
+    graph = plan_patch(store, 'lt', {'add': [replacement],
+                                     'supersede': [dict(node_id='build', by='build_again', reason='retry')]}, rev, 1)
+    assert {n['node_id']: n['state'] for n in graph['nodes']}['build'] == 'superseded'
+
+
+def test_check_inputs_scope_and_timing(pipeline, monkeypatch):
+    store, ccs, root, base = pipeline
+    (root / 'main.c').write_text('int main(void){return 0;} /* BAD */\n')
+    (root.parent / 'innocent.diff').write_text('')
+    checks = NodeChecks(store, reviewer=Reviewer(PASS), ccs_roots=[ccs])
+    with pytest.raises(ValueError, match='set by the host'):
+        checks.start('lt', 'integrate', checkout=root, verifier_inputs={'diff_path': str(root.parent / 'innocent.diff')},
+                     background=False)
+
+    # A pass does not count while a newer check of other work is still running.
+    (root / 'main.c').write_text('int main(void){return 1;}\n')
+    first = checks.start('lt', 'integrate', checkout=root, background=False)
+    assert first['passed']
+    (root / 'main.c').write_text('int main(void){return 2;} /* BAD */\n')
+    import jiuwenswarm.factory.node_check as node_check_module
+    monkeypatch.setattr(node_check_module, '_spawn', lambda *a, **k: None)  # the worker never finishes
+    assert checks.start('lt', 'integrate', checkout=root)['state'] == 'running'
+    with pytest.raises(ValueError, match='has not finished'):
+        mark_done(store, 'integrate', [first['obs_id']])
+
+
+def test_the_checkout_must_still_hold_the_reviewed_work(pipeline):
+    store, ccs, root, base = pipeline
+    (root / 'main.c').write_text('int main(void){return 3;}\n')
+
+    class Changing(Reviewer):
+        def __call__(self, prompt):
+            (root / 'main.c').write_text('int main(void){return 4;} /* BAD */\n')
+            return super().__call__(prompt)
+    result = NodeChecks(store, reviewer=Changing(PASS), ccs_roots=[ccs]).start('lt', 'integrate', checkout=root,
+                                                                                background=False)
+    assert not result['passed'] and 'changed after the check was requested' in result['reason']
+
+
+def test_a_diff_needs_a_real_check():
+    from jiuwenswarm.factory.node_check import validate_spec
+    document = tiny_nodes()
+    document['nodes'][0]['verifiers'] = [{'output': 'change'}]
+    assert any('needs a capsule verifier, a review or both' in p for p in node_contract.problems(document))
+    with pytest.raises(ValueError, match='needs a capsule verifier'):
+        validate_spec({'outputs': [{'name': 'change', 'kind': 'diff'}]})
+
+
+def test_authority_ceiling_and_idempotent_limits(pipeline):
+    store, ccs, root, base = pipeline
+    with pytest.raises(ValueError, match='beyond node n'):
+        scheduler.check_ceiling(dict(node_id='n', authority_ceiling=dict(effects=[])), 'builder', 'submit')
+    with pytest.raises(ValueError, match='allows workspace none'):
+        scheduler.check_ceiling(dict(node_id='n', authority_ceiling=dict(workspace='none')), 'source_workbench', 'write')
+    scheduler.check_ceiling(dict(node_id='n', authority_ceiling=dict(effects=['process.exec'])), 'builder', 'submit')
+    checks = NodeChecks(store, reviewer=Reviewer(PASS), ccs_roots=[ccs])
+    (root / 'main.c').write_text('int main(void){return 5;}\n')
+    mark_done(store, 'integrate', [checks.start('lt', 'integrate', checkout=root, background=False)['obs_id']])
+    store.create_attempt('lt', dict(kind='build', idem_key='b1', fingerprint='f', request={'node_id': 'build'}))
+    scheduler.charge(store, 'lt', 'build', 'build', 'b1')  # a retry of the admitted job is not charged again
+    with pytest.raises(ValueError, match='used its build_attempts'):
+        scheduler.charge(store, 'lt', 'build', 'build', 'b2')
+
+
+def test_renamed_plan_nodes_still_receive_their_inputs(pipeline):
+    store, ccs, root, base = pipeline
+    path = store.get_task('lt')['contract_id']
+    store.create_task(dict(task_id='rn', objective='o', contract_id=path))
+    seed_plan(store, store.get_task('rn'), dict(format='factory.plan/1', planner='renamer', nodes=[
+        dict(node_id='p_integrate', node_contract='integrate'),
+        dict(node_id='p_build', node_contract='build', depends_on=['p_integrate']),
+        dict(node_id='p_deliver', node_contract='deliver', depends_on=['p_build'])]))
+    store.advance_decision('rn', 0, {'hypothesis': 'renamed plan'})
+    (root / 'main.c').write_text('int main(void){return 6;}\n')
+    passed = NodeChecks(store, reviewer=Reviewer(PASS), ccs_roots=[ccs]).start('rn', 'p_integrate', checkout=root,
+                                                                                background=False)
+    plan_patch(store, 'rn', {'update': [dict(node_id='p_integrate', state='done', evidence_ids=[passed['obs_id']])]}, 1, 1)
+    build = scheduler.next_work(store, 'rn')['runnable'][0]
+    assert build['node_id'] == 'p_build' and build['inputs']['change']['value']['check'] == passed['obs_id']
