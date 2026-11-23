@@ -1,0 +1,765 @@
+engine: "llama.cpp"
+revision: "92192d3 (shallow copy at <refs>/llama.cpp)"
+basis: "Read in code (targeted ranges, not whole files): src/llama-context.cpp (decode 2140-2617, process_ubatch 1817-1892, sched_reserve 788-955, sched_copy_experts 3159-3243), src/llama-memory.h, src/llama-kv-cache.h, src/llama-kv-cache-dsv4.h, src/llama-kv-cache-msa.h, src/llama-memory-recurrent.h, src/llama-model.cpp (buffer lists 1247-1350, layer placement 1700-1800, Hadamard tensors 2340-2420, memory selection 2940-3500), src/llama-model-loader.h, src/llama-mmap.cpp (lazy ranges 700-910), src/llama-moe-cache.h and the comments of src/llama-moe-cache.cpp, src/llama-batch.h, src/llama-graph.h (builder list), src/llama-grammar.h/.cpp (entry points), src/llama-quant.cpp (type choice), include/llama.h (sampler interface, load and lazy modes, process API), ggml/src/ggml-backend.cpp (scheduler 1171-2340), ggml/src/ggml-cpu/ggml-cpu.c (threadpool struct), ggml/src/ggml-cuda/ggml-cuda.cu (graph capture entry points), ggml/src/ggml-rpc/ggml-rpc.cpp (command list), common/sampling.cpp (sample, accept_n, rejection 607-850), common/speculative.h/.cpp (impl base, MTP driver, umbrella), common/fit.h, common/reasoning-budget.h, common/chat.h, tools/server/server-context.cpp (pre_decode 3704-4100, decode 4577-4716, post_decode spec acceptance 4800-4985, process_token, checkpoints), tools/server/server-slot-sched.h/.cpp, tools/server/server-decision.h, tools/server/server-queue.h, tools/server/server-models-sched.h, conversion/base.py (class layout). Read only in documents: docs/moe-cache.md, docs/multi-gpu.md, docs/speculative.md, tools/server/README-dev.md, tools/rpc/README.md, tools/mtmd/README-dev.md. Not read: the 182 per-architecture graph files in src/models, backend kernels other than the entry points named, ggml-backend-meta.cpp beyond its section headers, llama-vocab.cpp, common/jinja and common/parsers bodies, mtmd encoder graphs, server-http/realtime/tools/mcp bodies, the web UI."
+concurrency: batched
+models: "About 176 architecture ids (src/llama-arch.h). Dense decoder transformers (Llama, Qwen, Gemma, Mistral and many more); mixture-of-experts models (DeepSeek, Qwen-MoE, GLM, Minimax, gpt-oss and others) whose expert weights may live in host memory; pure recurrent models (Mamba, Mamba2, RWKV) and hybrids that mix attention with recurrent or linear-attention layers (Jamba, Nemotron-H, Qwen3.5/next style, Kimi-Linear, Falcon-H1); sliding-window attention models served with a pair of caches (iSWA); sparse-attention models with a learned indexer or compressed KV (DeepSeek 3.2 DSA, Minimax-M3 MSA, DeepSeek 4 compressed state, GLM-DSA); DeepSeek 4.1 'Engram' n-gram lookup tables and per-layer embedding tables read row by row from disk; models with trained multi-token-prediction heads (MTP) used as their own drafter; separate draft models (plain, EAGLE-3, DFlash block-diffusion drafts and its DFlash2/DSpark/LiliCorr variants); encoder-only embedding and reranking models (BERT family), encoder-decoder (T5), diffusion language models (Dream, LLaDA); 'decision' models that answer typed questions from one forward pass; vision, audio and video input through a separate projector file (mmproj, libmtmd), and speech output (TTS, audio-generation stages). Weights are usually block-quantized (many GGUF quant types), some with Hadamard rotations stored as metadata."
+parts:
+  - id: "checkpoint-converter"
+    engine_name: "convert_hf_to_gguf.py / conversion/*.py / gguf-py"
+    does: "Turns a training-framework checkpoint (Hugging Face safetensors, PyTorch) into one GGUF file of renamed, reshaped and optionally down-cast tensors plus key-value metadata (architecture, hyperparameters, tokenizer, chat template)."
+    not: "It does not choose block-quantization types per tensor (that is the weight-quantizer); it only writes float or a few simple types."
+    runs: [offline]
+    takes: [{from: "model_files", what: "checkpoint tensors, config.json, tokenizer files; for EAGLE-3/DFlash drafts also the target model directory"}]
+    gives: [{to: "weight-quantizer", what: "GGUF file in f32/f16/bf16/q8_0"}, {to: "model-file-reader", what: "GGUF file with metadata and tensors"}, {to: "multimodal-encoder", what: "separate mmproj GGUF for vision/audio projectors"}]
+    owns_state: ["mapping from checkpoint tensor names to GGUF tensor names per architecture"]
+    exists_because: "the runtime reads only GGUF, a single self-describing file format, and every architecture names and lays out its tensors differently"
+    output_effect: numeric
+    output_effect_when: "when the output type is lower precision than the checkpoint (bf16 to f16, q8_0), compared with the original weights"
+    decisions:
+      - "which model class handles a given checkpoint architecture"
+      - "how tensors are renamed, split, merged or permuted for the runtime's kernels"
+      - "which tokenizer type and pre-tokenizer hash to record"
+      - "output data type and whether to split into shards"
+      - "whether to export MTP heads or a reduced draft vocabulary map"
+    when_things_go_wrong: ["fails on unknown architecture or unmapped tensor names", "lazy tensors avoid loading the whole checkpoint into RAM"]
+    must_never: ["write a tensor under a name the runtime does not expect for that architecture"]
+    evidence: ["convert_hf_to_gguf.py", "conversion/base.py:83-1810 (ModelBase.modify_tensors, prepare_tensors, write)", "conversion/ (124 per-family files)", "docs/speculative.md (--target-model-dir)"]
+    read: code
+  - id: "importance-calibrator"
+    engine_name: "llama-imatrix"
+    does: "Runs the model over calibration text and accumulates, per weight matrix column, the squared activations that reach it, saving them as an importance matrix."
+    not: "It does not quantize anything itself."
+    runs: [offline]
+    takes: [{from: "operator", what: "calibration text"}, {from: "model_files", what: "a GGUF model"}]
+    gives: [{to: "weight-quantizer", what: "importance matrix file"}]
+    owns_state: ["running sums of activation statistics per tensor"]
+    exists_because: "low-bit quantization loses less accuracy when rounding error is weighted by how much each input column matters"
+    output_effect: none
+    decisions: ["which text to calibrate on", "how many chunks and context length to use"]
+    when_things_go_wrong: ["tensors never activated (unused experts) get partial statistics, which the quantizer must handle"]
+    must_never: ["mix statistics from different models"]
+    evidence: ["tools/imatrix/", "common/imatrix-loader.cpp", "src/llama-quant.cpp:81-96 (remap_imatrix)"]
+    read: docs
+  - id: "weight-quantizer"
+    engine_name: "llama_model_quantize (llama-quantize)"
+    does: "Rewrites a GGUF model with each tensor converted to a block-quantized type chosen per tensor from the requested file type, layer position, tensor role and whether an importance matrix is present."
+    runs: [offline]
+    takes: [{from: "checkpoint-converter", what: "high-precision GGUF"}, {from: "importance-calibrator", what: "importance matrix"}, {from: "operator", what: "target file type, per-tensor type overrides"}]
+    gives: [{to: "model-file-reader", what: "quantized GGUF"}]
+    owns_state: ["per-run counters of which layer and tensor category is being quantized"]
+    exists_because: "the target machines (laptops, single GPUs) lack the memory and bandwidth for full-precision weights"
+    output_effect: changes_output
+    output_effect_when: "always, compared with the unquantized model; quality loss grows as bits per weight fall"
+    decisions:
+      - "type per tensor by role (attention V, FFN down, output, embeddings) and depth"
+      - "fallback type when a tensor's row length does not fit the block size"
+      - "whether a type requires an importance matrix"
+    when_things_go_wrong: ["falls back to a compatible type when rows are not block-aligned", "aborts on an importance matrix name mismatch"]
+    must_never: ["produce a type the row length cannot hold"]
+    evidence: ["src/llama-quant.cpp:459-800 (tensor_type_fallback, llama_tensor_get_type_impl)", "tools/quantize/"]
+    read: code
+  - id: "backend-registry"
+    engine_name: "ggml_backend_reg / ggml_backend_load_all"
+    does: "Discovers the available compute devices (CPU, CUDA, HIP, Metal, Vulkan, SYCL, OpenCL, CANN, RPC and others), loading backend libraries dynamically and choosing the best build for the host CPU."
+    runs: [startup]
+    takes: [{from: "os", what: "backend shared libraries and device drivers"}, {from: "operator", what: "--device list, environment variables"}]
+    gives: [{to: "weight-placer", what: "device list with free and total memory"}, {to: "memory-fit-planner", what: "device memory figures"}, {to: "backend-scheduler", what: "backend instances"}]
+    owns_state: ["registered backends and devices"]
+    exists_because: "one binary must run on very different machines and accelerators"
+    output_effect: none
+    decisions: ["which backend variant to load (CPU feature level scoring)", "which devices are allowed"]
+    when_things_go_wrong: ["skips backends that fail to load", "a model load fails if no CPU backend exists"]
+    must_never: ["leave the engine without a CPU device"]
+    evidence: ["ggml/src/ggml-backend-reg.cpp:480-600", "src/llama-model.cpp:1745-1748"]
+    read: code
+  - id: "model-file-reader"
+    engine_name: "gguf + llama_model_loader + llama_mmap"
+    does: "Parses GGUF metadata into hyperparameters and vocabulary, validates tensor bounds, and brings tensor bytes from disk into their assigned buffers by memory map, plain read, direct I/O or locked pages, across split files."
+    not: "It does not decide where tensors go (weight-placer) and does not read lazy table rows at run time (lazy-table-reader)."
+    runs: [startup]
+    takes: [{from: "model_files", what: "GGUF file(s)"}, {from: "operator", what: "load mode (mmap, mlock, direct I/O), key-value overrides"}, {from: "weight-placer", what: "buffer for each tensor"}]
+    gives: [{to: "weight-placer", what: "tensor list with shapes, types and file offsets"}, {to: "graph-builder", what: "hyperparameters and weight tensors"}, {to: "tokenizer", what: "vocabulary and merges"}, {to: "memory-composer", what: "hyperparameters per layer"}]
+    owns_state: ["file mappings and the byte ranges each buffer pins", "progress of the load"]
+    exists_because: "every engine needs it; memory mapping lets a model start without copying weights and lets the OS page cache hold them"
+    output_effect: none
+    decisions:
+      - "mmap vs read vs direct I/O vs mlock"
+      - "which byte ranges to prefetch and which to leave unfaulted (lazy ranges)"
+      - "whether to release mmap pages of tensors that were copied to a device"
+    when_things_go_wrong: ["throws if a tensor is missing or outside the file bounds ('model is corrupted or incomplete')", "load can be cancelled by the progress callback", "lazy mode AUTO falls back to OFF without mmap"]
+    must_never: ["read past the end of a tensor's data in the file"]
+    evidence: ["src/llama-model-loader.h:28-261", "src/llama-mmap.cpp:712-910", "include/llama.h:208-224", "ggml/src/gguf.cpp"]
+    read: code
+  - id: "memory-fit-planner"
+    engine_name: "common_fit_params (--fit)"
+    does: "Loads the model and context in a no-allocation dry run to measure memory per device, then adjusts unset parameters (layers on GPU, tensor split, which MoE weights stay on the host, context size) until the projection fits free device memory minus margins."
+    not: "It does not place tensors itself; it writes parameters the weight-placer then follows."
+    runs: [startup]
+    takes: [{from: "backend-registry", what: "free memory per device"}, {from: "operator", what: "parameters, margins, minimum context"}, {from: "compute-memory-planner", what: "measured compute buffer sizes from the dry run"}]
+    gives: [{to: "weight-placer", what: "n_gpu_layers, tensor split, tensor buffer overrides"}, {to: "kv-cache", what: "context size"}, {to: "model-router", what: "memory breakdown per instance"}]
+    owns_state: ["none kept after startup"]
+    exists_because: "users run models larger than their accelerator memory and cannot be expected to hand-tune placement"
+    output_effect: none
+    decisions:
+      - "which parameter to give up first (context size, layers, MoE experts to host)"
+      - "only parameters left at their defaults are changed"
+      - "how to account for a draft or MTP model sharing the devices"
+    when_things_go_wrong: ["returns FAILURE if nothing fits, ERROR on a hard failure", "not supported with tensor split mode"]
+    must_never: ["change a parameter the operator set explicitly"]
+    evidence: ["common/fit.h:1-80", "common/fit.cpp", "docs/multi-gpu.md (-fit)"]
+    read: code
+  - id: "weight-placer"
+    engine_name: "llama_model::load_tensors (buft lists, -ngl, -ts, -sm, -ot, -cmoe)"
+    does: "Assigns every weight tensor to a device and buffer type: whole layers to devices in proportion to free memory or a given split, input embedding on the CPU, pattern overrides (for example MoE experts to host), CPU repacked layouts, row-split buffers, and checks the device can run the ops that read it."
+    runs: [startup]
+    takes: [{from: "model-file-reader", what: "tensor list"}, {from: "memory-fit-planner", what: "layer count, split, overrides"}, {from: "backend-registry", what: "devices and their extra buffer types"}, {from: "operator", what: "split mode, main GPU, override patterns"}]
+    gives: [{to: "model-file-reader", what: "destination buffer per tensor"}, {to: "backend-scheduler", what: "where each weight lives (weights pin ops to their device)"}, {to: "moe-expert-cache", what: "which expert tensors stayed in host memory"}, {to: "tensor-split-device", what: "weights to slice in tensor mode"}]
+    owns_state: ["layer-to-device map", "buffer-type preference list per device"]
+    exists_because: "models often exceed one device; CPU, several GPUs and host-resident experts must be mixed"
+    output_effect: numeric
+    output_effect_when: "different devices and repacked kernels round differently, compared with an all-CPU or all-GPU run"
+    decisions:
+      - "how many layers go to accelerators and where the split points fall"
+      - "which buffer type to prefer per tensor (repacked CPU, host-pinned, device, row-split)"
+      - "keep input embeddings on the CPU"
+      - "which tensors match override patterns"
+      - "where generated helper tensors (Hadamard rotations) live"
+    when_things_go_wrong: ["falls back to the next buffer type when the device cannot run the op", "throws if tensor split mode is requested for an unsupported architecture"]
+    must_never: ["put a tensor on a buffer type whose device cannot execute the ops that read it"]
+    evidence: ["src/llama-model.cpp:1247-1350 (make_cpu_buft_list, make_gpu_buft_list)", "src/llama-model.cpp:1700-1800 (split points, layer devices)", "src/llama-model.cpp:2344-2420 (Hadamard placement)", "src/llama-model.cpp:402-403", "ggml/src/ggml-cpu/repack.cpp"]
+    read: code
+  - id: "lazy-table-reader"
+    engine_name: "TENSOR_READ_LAZY / llama_lazy_mode"
+    does: "Keeps very large lookup tables (per-layer embeddings, Engram n-gram tables) in the memory map and reads only the rows a batch needs, letting the OS page them in on demand."
+    not: "Not a weight cache with its own eviction; the OS page cache does the caching."
+    runs: [startup, per_step]
+    takes: [{from: "model-file-reader", what: "mapped byte ranges of marked tensors, left unfaulted"}, {from: "graph-builder", what: "row indices to gather"}]
+    gives: [{to: "graph-builder", what: "gathered table rows on the host"}]
+    owns_state: ["set of lazy byte ranges per file"]
+    exists_because: "some models carry lookup tables larger than RAM or VRAM whose rows are touched sparsely per token"
+    output_effect: none
+    decisions: ["OFF, AUTO (only marked tensors larger than 4 GiB) or ON", "which tensors an architecture marks as lazy"]
+    when_things_go_wrong: ["requires mmap; AUTO turns itself off without mmap", "slow disk turns into per-token latency"]
+    must_never: ["apply device offload to lazy tensors (they are gathered on the host)"]
+    evidence: ["src/llama-model-loader.h:70-116", "include/llama.h:220-224", "src/llama-mmap.cpp:712-760", "src/llama-model.cpp:1718-1723", "src/llama-hparams.h:395-396"]
+    read: code
+  - id: "moe-expert-cache"
+    engine_name: "llama_moe_cache (--moe-cache-mib, --moe-cache-cpu-share)"
+    does: "Keeps the most recently and frequently used experts of host-resident MoE layers in device slots, maps each selected expert to a slot per small batch, uploads misses, and optionally leaves a share of misses to be computed on the CPU."
+    not: "Not the bulk expert upload used for large batches (host-expert-streamer), though it serves hits to it."
+    runs: [startup, per_layer]
+    takes: [{from: "weight-placer", what: "which layers keep experts in host memory"}, {from: "graph-builder", what: "selected expert ids per token (router output)"}, {from: "backend-scheduler", what: "copy callback for slot maps"}, {from: "operator", what: "cache size, CPU share"}]
+    gives: [{to: "graph-builder", what: "slot lookup and cached expert views used in place of host experts"}, {to: "host-expert-streamer", what: "experts already resident on the device"}, {to: "telemetry", what: "hit, miss, CPU-computed counts"}]
+    owns_state: ["device banks of expert slots per device and layer group", "slot map per layer", "combined recency-frequency score and LRU lists per class", "fraction of a miss carried to the next plan"]
+    exists_because: "MoE models activate a few experts per token, with skewed reuse, and the full expert set does not fit the accelerator"
+    output_effect: numeric
+    output_effect_when: "when a miss is computed on the CPU instead of the device, compared with all experts on the device"
+    decisions:
+      - "budget split among GPUs and among layer groups"
+      - "victim choice by age scaled by frequency class"
+      - "which misses go to the CPU (lowest score) and how many"
+      - "batch size threshold above which the cache is not used for lookups"
+    when_things_go_wrong: ["a plan that selects more distinct experts than slots fails and the layer reads host experts", "disabled when size is 0"]
+    must_never: ["evict an expert selected by the current plan", "use a zero slot more than once per token"]
+    evidence: ["src/llama-moe-cache.h:1-80", "src/llama-moe-cache.cpp:21-620 (comments)", "docs/moe-cache.md", "scripts/moe-cache-tune.py"]
+    read: code
+  - id: "host-expert-streamer"
+    engine_name: "llama_context::sched_copy_experts"
+    does: "When a split on the GPU reads expert weights from host memory, uploads only the experts the batch actually selected, grouped into contiguous runs, copying cached ones device-to-device."
+    runs: [per_layer]
+    takes: [{from: "backend-scheduler", what: "copy callback for a host weight input of a split"}, {from: "moe-expert-cache", what: "experts already in device slots"}]
+    gives: [{to: "op-kernels", what: "device copy of the used experts"}]
+    owns_state: ["the last expert-id tensor read and the set of used experts"]
+    exists_because: "copying a whole host-resident expert tensor each step wastes link bandwidth when a batch uses a subset"
+    output_effect: none
+    decisions: ["group consecutive used experts into one transfer", "pad the last expert so device kernels read no garbage"]
+    when_things_go_wrong: ["falls back to the scheduler's whole-tensor copy when the split does not start with an expert matmul"]
+    must_never: ["leave uninitialized padding after the last copied expert (NaNs in CUDA MMQ)"]
+    evidence: ["src/llama-context.cpp:3159-3243", "ggml/src/ggml-backend.cpp:2094-2150"]
+    read: code
+  - id: "tensor-split-device"
+    engine_name: "meta backend (--split-mode tensor)"
+    does: "Presents several GPUs as one device whose buffers hold slices of each weight and KV tensor, and runs every op on all slices with cross-GPU reductions (NCCL/RCCL when built)."
+    not: "Not the default layer pipeline split, which is done by the weight-placer and backend-scheduler."
+    runs: [startup, per_layer]
+    takes: [{from: "weight-placer", what: "weights to slice"}, {from: "backend-scheduler", what: "graph splits to run"}]
+    gives: [{to: "op-kernels", what: "per-GPU sliced ops and reductions"}]
+    owns_state: ["slice layout of each tensor across the member devices"]
+    exists_because: "pipeline split serializes a single token through GPUs; tensor parallelism lowers per-token latency"
+    output_effect: numeric
+    output_effect_when: "reduction order differs from single-device sums"
+    decisions: ["which axis each tensor splits on", "proportions per GPU"]
+    when_things_go_wrong: ["hard error without flash attention or with quantized KV", "hard error for unsupported architectures (MoE/hybrid/recurrent list)", "warning and slower path without NCCL"]
+    must_never: ["run with a quantized KV cache"]
+    evidence: ["ggml/src/ggml-backend-meta.cpp (section headers only)", "docs/multi-gpu.md"]
+    read: docs
+  - id: "remote-device-rpc"
+    engine_name: "ggml-rpc backend + ggml-rpc-server"
+    does: "Exposes devices of other machines as local backend devices over TCP, forwarding buffer allocation, tensor transfers and graph compute, with an optional server-side cache of large tensors keyed by hash."
+    runs: [startup, per_step]
+    takes: [{from: "backend-scheduler", what: "graph splits and tensor copies for remote devices"}, {from: "operator", what: "server addresses"}]
+    gives: [{to: "backend-registry", what: "remote devices with their memory"}, {to: "backend-scheduler", what: "computed results"}]
+    owns_state: ["connections and remote buffer handles", "on the server, a disk cache of tensors by hash"]
+    exists_because: "a model too large for one machine can be spread over several machines' devices"
+    output_effect: none
+    decisions: ["which tensors to send by hash instead of by value", "transport"]
+    when_things_go_wrong: ["fragile and insecure by the project's own note; a lost connection fails the compute"]
+    must_never: ["be exposed on an open network (documented)"]
+    evidence: ["ggml/src/ggml-rpc/ggml-rpc.cpp:58-110 (command list incl. SET_TENSOR_HASH, GRAPH_RECOMPUTE, COMM_ALLREDUCE)", "tools/rpc/README.md"]
+    read: code
+  - id: "compute-memory-planner"
+    engine_name: "llama_context::sched_reserve / graph_reserve + ggml-alloc"
+    does: "Builds worst-case prompt and single-token graphs against a simulated full cache and reserves compute buffers on each backend so that later steps never allocate, reusing activation memory across graph nodes."
+    runs: [startup, on_demand]
+    takes: [{from: "graph-builder", what: "worst-case graphs"}, {from: "memory-composer", what: "simulated full memory context"}, {from: "backend-scheduler", what: "split assignment"}]
+    gives: [{to: "backend-scheduler", what: "sized compute buffers"}, {to: "memory-fit-planner", what: "compute buffer sizes (no-alloc mode)"}]
+    owns_state: ["compute buffer sizes per backend", "maximum graph node count"]
+    exists_because: "activations vary with batch shape; allocating per step would be slow and fragment device memory"
+    output_effect: none
+    decisions: ["which shapes count as worst case (n_seqs 1 vs many for some recurrent inputs)", "whether pipeline parallel copies are kept"]
+    when_things_go_wrong: ["retries without pipeline parallelism if the buffer allocation fails, then throws"]
+    must_never: ["let a later step's graph exceed the reserved buffers without re-reserving"]
+    evidence: ["src/llama-context.cpp:788-955, 3016-3078", "ggml/src/ggml-alloc.c"]
+    read: code
+  - id: "adapter-overlay"
+    engine_name: "llama_adapter_lora / aLoRA / llama_adapter_cvec"
+    does: "Applies low-rank adapters (with per-request scales, including activated LoRA that starts at an invocation token) and control vectors on top of base weights inside the graph."
+    runs: [startup, per_step]
+    takes: [{from: "model_files", what: "adapter GGUF files"}, {from: "continuous-batcher", what: "adapter set and scales for the batch"}]
+    gives: [{to: "graph-builder", what: "extra low-rank matmuls and per-layer added vectors"}]
+    owns_state: ["loaded adapter tensors", "active adapter set and scales of the context"]
+    exists_because: "one base model serves several fine-tunes without reloading weights"
+    output_effect: changes_output
+    output_effect_when: "whenever an adapter or control vector is active, compared with the base model"
+    decisions: ["which adapters are active", "scale per adapter"]
+    when_things_go_wrong: ["slots with different adapter sets are not batched together"]
+    must_never: ["batch sequences that need different adapter sets"]
+    evidence: ["src/llama-adapter.cpp", "src/llama-context.cpp:1758-1816", "src/llama-graph.h:1118-1140 (build_cvec, build_lora_mm)", "tools/server/README-dev.md (Batching)"]
+    read: code
+  - id: "tokenizer"
+    engine_name: "llama_vocab"
+    does: "Converts text to token ids and back with the model's tokenizer type (SPM, BPE, WordPiece, Unigram, RWKV, PLaMo) and pre-tokenizer rules, and classifies special and end-of-generation tokens."
+    runs: [per_request, per_step]
+    takes: [{from: "model-file-reader", what: "vocabulary, merges, token types"}, {from: "chat-template-renderer", what: "rendered prompt text"}]
+    gives: [{to: "request-slot", what: "prompt tokens; text pieces of generated tokens"}, {to: "grammar-constraint", what: "token pieces"}]
+    owns_state: ["vocabulary tables, caches of token pieces"]
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "a tokenization that differs from the training tokenizer changes the prompt the model sees"
+    decisions: ["whether to add BOS/EOS", "whether to parse special tokens in the input"]
+    when_things_go_wrong: ["unknown bytes go through byte fallback"]
+    must_never: ["split a special token when special parsing is on"]
+    evidence: ["src/llama-vocab.cpp", "include/llama.h:73-81"]
+    read: inferred
+  - id: "chat-template-renderer"
+    engine_name: "common_chat_templates_apply + common/jinja"
+    does: "Renders a chat message list, tools and options into the prompt text with the model's Jinja template, and derives the grammar, lazy triggers and preserved tokens needed to constrain tool-call output."
+    runs: [per_request]
+    takes: [{from: "http-front", what: "messages, tools, response format"}, {from: "model-file-reader", what: "chat template from metadata"}]
+    gives: [{to: "tokenizer", what: "prompt text"}, {to: "grammar-constraint", what: "grammar, lazy triggers"}, {to: "output-message-parser", what: "which output format to parse"}]
+    owns_state: ["parsed templates"]
+    exists_because: "chat models were trained on a specific message format; tool calling needs a format the client can parse back"
+    output_effect: changes_output
+    output_effect_when: "a different template rendering changes the prompt"
+    decisions: ["which format family a template belongs to", "whether tool calls get a lazy grammar"]
+    when_things_go_wrong: ["template errors are returned to the client"]
+    must_never: ["run in the inference thread (it lives in HTTP worker threads)"]
+    evidence: ["common/chat.h:300-395", "common/jinja/", "tools/server/README-dev.md (Thread Management)"]
+    read: code
+  - id: "output-message-parser"
+    engine_name: "common_chat_parse / common/parsers / chat-peg-parser"
+    does: "Parses generated text, incrementally while streaming, into reasoning content, visible content and tool calls per model format."
+    runs: [per_step]
+    takes: [{from: "request-slot", what: "generated text chunks"}, {from: "chat-template-renderer", what: "format"}]
+    gives: [{to: "http-front", what: "structured message deltas"}]
+    owns_state: ["partial-response parse state per request (task_result_state, in the HTTP layer)"]
+    exists_because: "each model family writes tool calls and thinking in its own markup"
+    output_effect: none
+    decisions: ["format-specific parser", "how to treat partial output"]
+    when_things_go_wrong: ["unparseable output falls back to plain content"]
+    must_never: ["block the inference thread"]
+    evidence: ["common/chat.h:394-395", "common/parsers/", "tools/server/README-dev.md (Example trace)"]
+    read: docs
+  - id: "multimodal-encoder"
+    engine_name: "libmtmd (mtmd_context, mtmd_tokenize, mtmd_encode; formerly clip)"
+    does: "Decodes and preprocesses images, audio and video frames, splits them into chunks with model-specific marker tokens and positions, runs the vision or audio encoder and projector, and returns embedding rows for the language model."
+    runs: [startup, per_request]
+    takes: [{from: "model_files", what: "mmproj GGUF"}, {from: "http-front", what: "image, audio, video bytes"}, {from: "backend-registry", what: "backends for its own scheduler"}]
+    gives: [{to: "continuous-batcher", what: "chunks of embedding rows with multi-axis positions"}, {to: "request-slot", what: "mixed text and media token list"}]
+    owns_state: ["projector weights", "its own backend scheduler and compute buffers", "a compute mutex so only one encode runs at a time"]
+    exists_because: "vision and audio models need an encoder that turns pixels or waveforms into token-like embeddings"
+    output_effect: changes_output
+    output_effect_when: "preprocessing choices (tiling, resizing, frame merging) change what the model sees"
+    decisions: ["tiling or slicing of large images", "merging consecutive video frames", "image token budget"]
+    when_things_go_wrong: ["context shift and chunk reuse are disabled when media is in the prompt"]
+    must_never: ["run two encodes at once on its shared backends"]
+    evidence: ["tools/mtmd/README-dev.md", "tools/mtmd/mtmd.h", "tools/server/server-context.cpp:877-1040 (encode_mtmd_chunk, add_mtmd_chunk)"]
+    read: docs
+  - id: "speech-output-generator"
+    engine_name: "mtmd audio generation / llama-tts / server TTS and realtime slots"
+    does: "Turns generated semantic tokens and hidden states into audio codes and then a waveform through extra stage models (code predictor, codec decoder), including a streaming realtime path."
+    runs: [per_step]
+    takes: [{from: "request-slot", what: "sampled tokens and hidden states"}]
+    gives: [{to: "http-front", what: "audio samples"}]
+    owns_state: ["per-sequence generation state on the encoder backends"]
+    exists_because: "speech models emit audio, not text"
+    output_effect: changes_output
+    output_effect_when: "always defines the audio output"
+    decisions: ["stage pipeline per model"]
+    when_things_go_wrong: ["TTS and realtime slots drive their own decode loop and never join the shared batch"]
+    must_never: ["enter the shared text batch"]
+    evidence: ["tools/mtmd/README-dev.md (Audio generation support)", "tools/server/server-context.cpp:3629-3704, 3706-3712"]
+    read: docs
+  - id: "batch-splitter"
+    engine_name: "llama_batch_allocr"
+    does: "Validates a batch (positions, sequence ids, outputs), fills defaults, and cuts it into micro-batches shaped for the memory type: simple splits, equal-length sequence sets, or one sequence set per micro-batch."
+    runs: [per_step]
+    takes: [{from: "decode-driver", what: "logical batch of tokens or embedding rows"}]
+    gives: [{to: "memory-composer", what: "micro-batches"}, {to: "decode-driver", what: "output order map"}]
+    owns_state: ["which tokens are used, output index order, per-sequence position ranges of the current micro-batch"]
+    exists_because: "the logical batch can exceed the physical batch, and recurrent memories need equal-length sequence groups"
+    output_effect: numeric
+    output_effect_when: "a different micro-batch size can change floating-point reduction order"
+    decisions: ["which split strategy the memory asks for", "how many trailing tokens of a sequence must stay together"]
+    when_things_go_wrong: ["returns failure on invalid sequence ids or non-increasing positions"]
+    must_never: ["split a sequence across micro-batches when non-causal attention needs it whole"]
+    evidence: ["src/llama-batch.h:160-270", "src/llama-context.cpp:2206-2230"]
+    read: code
+  - id: "kv-cache"
+    engine_name: "llama_kv_cache (llama_kv_cells)"
+    does: "Stores keys and values per layer in a fixed pool of cells, each tagged with a position and a set of sequence ids, finds cells for each micro-batch, writes new K/V by index, and supports remove, copy (shared cells), keep, shift and divide of positions per sequence."
+    not: "No page or block table: a cell can belong to many sequences at once, which is how shared prefixes are held once."
+    runs: [startup, per_step]
+    takes: [{from: "memory-composer", what: "micro-batch to place"}, {from: "request-slot", what: "sequence operations (remove tail, shift, copy)"}, {from: "operator", what: "context size, K/V data types, unified or per-sequence streams"}]
+    gives: [{to: "graph-builder", what: "K/V views, write indices, attention mask inputs, shift inputs"}, {to: "state-persistence", what: "serialized cells and data"}, {to: "draft-rollback", what: "removal of rejected positions"}]
+    owns_state: ["K/V tensors per layer", "cell positions and sequence membership bitsets", "per-stream head and used count", "pending shift flag"]
+    exists_because: "attention reads all earlier keys and values of a sequence"
+    output_effect: numeric
+    output_effect_when: "with a quantized K/V type (q8_0, q4_0...), compared with f16; Hadamard rotation of K/V reduces that error"
+    decisions:
+      - "K/V data types and whether to rotate before quantizing"
+      - "one shared stream for all sequences or one stream per sequence"
+      - "contiguous vs scattered cell placement"
+      - "whether position shifting (RoPE re-rotation) is allowed"
+      - "full-size or window-size cache for sliding-window layers"
+    when_things_go_wrong: ["no free cells: init_batch reports FAILED_PREPARE, the decode-driver retries after an optimize pass, then returns 1 to the caller"]
+    must_never: ["let a sequence attend to a cell it is not a member of", "keep cells of positions removed from a sequence visible"]
+    evidence: ["src/llama-kv-cache.h:16-302", "src/llama-kv-cells.h:78-260", "src/llama-kv-cache.cpp:86, 302-322 (rotation)", "include/llama.h:426"]
+    read: code
+  - id: "sparse-attention-cache"
+    engine_name: "llama_kv_cache_dsa / _msa / _dsv4 / llama_memory_hybrid_idx"
+    does: "Holds the extra per-token state that sparse or compressed attention needs (indexer keys for top-k token selection, compressed KV rows and scores, raw-window token history for Engram n-gram hashing), kept in lockstep with the main KV cells."
+    runs: [startup, per_step]
+    takes: [{from: "memory-composer", what: "micro-batches and the same sequence operations as the KV cache"}]
+    gives: [{to: "graph-builder", what: "indexer keys, compressed state, position-to-cell maps, token history"}]
+    owns_state: ["indexer K tensors", "compressed KV and score rows per ratio", "cell layout mirrored from the main cache"]
+    exists_because: "these architectures select or compress past tokens with learned scorers, which need their own cached inputs"
+    output_effect: none
+    decisions: ["compression ratio and overlap per layer", "mirror the main cache layout instead of searching its own cells"]
+    when_things_go_wrong: ["a failed state restore of one member is undone in the other (state_clear)"]
+    must_never: ["let its cell layout diverge from the paired KV cache"]
+    evidence: ["src/llama-kv-cache-dsv4.h:1-60, 236", "src/llama-kv-cache-msa.h:1-40", "src/llama-kv-cache.h:177-189", "src/llama-model.cpp:2975-3270"]
+    read: code
+  - id: "recurrent-state-store"
+    engine_name: "llama_memory_recurrent"
+    does: "Holds one fixed-size recurrent state (convolution and SSM/RWKV states) per sequence, plus a configurable number of earlier snapshots so the last few tokens can be rolled back."
+    runs: [startup, per_step]
+    takes: [{from: "memory-composer", what: "micro-batches of equal-length sequences"}, {from: "request-slot", what: "sequence operations"}]
+    gives: [{to: "graph-builder", what: "state tensors to read and write"}, {to: "draft-rollback", what: "rollback within n_rs_seq tokens"}]
+    owns_state: ["state cells per sequence", "1 + n_rs_seq snapshot groups"]
+    exists_because: "state-space and RWKV layers summarize all history in a fixed state that cannot be partially rewound"
+    output_effect: none
+    decisions: ["number of rollback snapshots", "state data types"]
+    when_things_go_wrong: ["removing positions beyond the snapshot depth is refused; callers fall back to full-state checkpoints"]
+    must_never: ["claim a partial rollback it has no snapshot for"]
+    evidence: ["src/llama-memory-recurrent.h:27-100", "include/llama.h:382, 581"]
+    read: code
+  - id: "memory-composer"
+    engine_name: "llama_model::create_memory, llama_kv_cache_iswa, llama_memory_hybrid(_iswa)"
+    does: "Chooses the per-sequence memory for an architecture (none, KV, iSWA pair, sparse-index KV, recurrent, or a hybrid that routes each layer to an attention or recurrent store) and presents it to the context through one interface."
+    runs: [startup, per_step]
+    takes: [{from: "model-file-reader", what: "architecture and per-layer hyperparameters"}, {from: "batch-splitter", what: "micro-batches"}, {from: "decode-driver", what: "init_batch, init_update requests"}]
+    gives: [{to: "kv-cache", what: "attention layers' work"}, {to: "recurrent-state-store", what: "recurrent layers' work"}, {to: "sparse-attention-cache", what: "indexer and compressed layers' work"}, {to: "decode-driver", what: "memory context with status and micro-batch iterator"}, {to: "compute-memory-planner", what: "simulated full memory"}]
+    owns_state: ["the layer filters that assign layers to stores"]
+    exists_because: "models mix attention, sliding-window, sparse and recurrent layers, each needing different state"
+    output_effect: none
+    decisions: ["memory type per architecture", "layer filter and layer reuse/sharing callbacks", "separate memory shape for an MTP draft context"]
+    when_things_go_wrong: ["combines member statuses; any failure fails the batch"]
+    must_never: ["apply a sequence operation to one member and not the other"]
+    evidence: ["src/llama-memory.h (llama_memory_i, llama_memory_context_i)", "src/llama-model.cpp:2940-3500", "src/llama-memory-hybrid.cpp", "src/llama-kv-cache-iswa.cpp"]
+    read: code
+  - id: "decode-driver"
+    engine_name: "llama_context::decode / process_ubatch (llama_process)"
+    does: "Runs one logical batch: applies pending cache shifts, gets a memory context for the micro-batches, reuses or rebuilds the graph per micro-batch, sets inputs, computes, copies logits, embeddings and sampled tokens out, and restores the caller's output order."
+    runs: [per_step]
+    takes: [{from: "continuous-batcher", what: "batch of tokens or embedding rows with positions, sequence ids, output flags"}, {from: "memory-composer", what: "memory context"}]
+    gives: [{to: "batch-splitter", what: "batch to split"}, {to: "graph-builder", what: "graph parameters when the previous graph cannot be reused"}, {to: "backend-scheduler", what: "graph to compute"}, {to: "sampler-chain", what: "logits rows"}, {to: "request-slot", what: "embeddings, pooled embeddings, rerank scores"}, {to: "telemetry", what: "token and timing counters"}]
+    owns_state: ["logits and embedding output buffers and output index map", "previous graph result for reuse", "lazy output swaps"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions:
+      - "whether the previous graph topology can be reused"
+      - "retry once after optimizing the cache when no slot is found"
+      - "all tokens output for embeddings and non-causal models"
+    when_things_go_wrong: ["returns 1 when the cache has no room, -1 for an invalid batch, -2/-3 on allocation or compute failure, 2 on abort", "on a failed micro-batch it removes that micro-batch's positions from memory"]
+    must_never: ["leave cache entries of a micro-batch whose compute failed"]
+    evidence: ["src/llama-context.cpp:2140-2617", "src/llama-context.cpp:1817-1892", "include/llama.h:308-311, 1090"]
+    read: code
+  - id: "graph-builder"
+    engine_name: "llama_model::build_graph, llm_graph_context, src/models/*.cpp"
+    does: "Builds the per-micro-batch computation graph of the architecture from shared primitives (embedding, RoPE, attention over the cache, FFN, MoE routing, recurrent scans, pooling, output head) as tensor operations."
+    runs: [per_step]
+    takes: [{from: "decode-driver", what: "graph parameters (micro-batch shape, memory context, graph type)"}, {from: "model-file-reader", what: "weights and hyperparameters"}, {from: "kv-cache", what: "K/V views and indices"}, {from: "recurrent-state-store", what: "state tensors"}, {from: "sparse-attention-cache", what: "indexer inputs"}, {from: "moe-expert-cache", what: "cached expert views and slot lookups"}, {from: "lazy-table-reader", what: "table rows"}, {from: "adapter-overlay", what: "adapter ops"}, {from: "backend-sampler", what: "sampling ops appended to the graph"}, {from: "hidden-state-bridge", what: "injected hidden-state rows"}]
+    gives: [{to: "backend-scheduler", what: "graph of tensor operations"}, {to: "compute-memory-planner", what: "worst-case graphs"}, {to: "moe-expert-cache", what: "router-selected expert ids"}]
+    owns_state: ["none across steps beyond the reusable graph object"]
+    exists_because: "the model's computation is expressed as a graph executed by a separate tensor library"
+    output_effect: none
+    decisions: ["which fused ops to use", "flash attention or not", "sliced attention per sequence (kv rows)"]
+    when_things_go_wrong: ["graph build failure returns an error status"]
+    must_never: ["change topology without invalidating graph reuse"]
+    evidence: ["src/llama-graph.h:121-420 (can_reuse), 1118-1471 (build_* primitives)", "src/models/ (182 files, not read)"]
+    read: code
+  - id: "backend-scheduler"
+    engine_name: "ggml_backend_sched"
+    does: "Assigns each graph node to a backend (following where weights live, offloading host-weight ops to an accelerator for big batches), splits the graph into per-backend pieces, copies inputs between backends, and runs the pieces with events, prefetch and multiple input copies for pipelining."
+    runs: [per_step]
+    takes: [{from: "graph-builder", what: "graph"}, {from: "compute-memory-planner", what: "compute buffers"}, {from: "weight-placer", what: "weight locations"}]
+    gives: [{to: "op-kernels", what: "sub-graphs per backend"}, {to: "host-expert-streamer", what: "copy callback for host weights"}, {to: "moe-expert-cache", what: "copy callback for slot maps"}, {to: "remote-device-rpc", what: "remote sub-graphs"}, {to: "tensor-split-device", what: "sub-graphs for the meta device"}, {to: "telemetry", what: "eval callback per node when debugging"}]
+    owns_state: ["node-to-backend assignment", "splits and their inputs", "per-backend input copies and events (up to 4 copies)"]
+    exists_because: "one model is spread over CPU and several accelerators, each with its own memory"
+    output_effect: numeric
+    output_effect_when: "op offload moves an op to a different device than its weights, compared with running it where the weights are"
+    decisions: ["op offload of host-weight ops", "pipeline parallel copies", "prefetch next split inputs to host"]
+    when_things_go_wrong: ["returns the backend's failure status", "falls back to synchronous copies when async is unsupported"]
+    must_never: ["overwrite an input a backend is still reading (waits on events)"]
+    evidence: ["ggml/src/ggml-backend.cpp:1171-1420, 1483-2032, 2094-2340"]
+    read: code
+  - id: "op-kernels"
+    engine_name: "ggml backends (ggml-cpu, ggml-cuda, ggml-metal, ggml-vulkan, ...)"
+    does: "Executes tensor operations on each device, including quantized matmuls, flash attention and fused ops; the CPU backend runs a thread pool and the CUDA backend captures and replays graphs."
+    runs: [per_layer]
+    takes: [{from: "backend-scheduler", what: "sub-graphs"}, {from: "tensor-split-device", what: "sliced ops"}, {from: "host-expert-streamer", what: "uploaded experts"}]
+    gives: [{to: "decode-driver", what: "output tensors"}]
+    owns_state: ["CPU thread pool", "captured CUDA graphs keyed by first node", "device streams"]
+    exists_because: "every engine needs it"
+    output_effect: numeric
+    output_effect_when: "different backends and kernels (MMQ vs cuBLAS, repacked CPU) differ in the last bits"
+    decisions: ["kernel per op, type and shape", "whether a graph can be captured or must be re-captured"]
+    when_things_go_wrong: ["unsupported ops are refused at scheduling time", "graph capture disabled after repeated topology changes"]
+    must_never: ["read a quantized block with the wrong layout"]
+    evidence: ["ggml/src/ggml-cpu/ggml-cpu.c:490-505", "ggml/src/ggml-cuda/ggml-cuda.cu:796-817, 3209-3290", "ggml/src/ (backend directories)"]
+    read: code
+  - id: "hidden-state-bridge"
+    engine_name: "layer_inp_dev / h_nextn_dev device buffers and events"
+    does: "Hands hidden-state rows of the target context (selected layer inputs, pre-head states) to a draft context on the device, ordering writer and reader with backend events instead of host copies."
+    runs: [per_step]
+    takes: [{from: "decode-driver", what: "hidden rows written by the target decode"}]
+    gives: [{to: "graph-builder", what: "rows injected into the draft context's input"}, {to: "drafter", what: "target features for EAGLE-3, DFlash and MTP"}]
+    owns_state: ["device buffers of hidden rows", "written/read events"]
+    exists_because: "feature-conditioned drafters read the target's hidden states every step; a host round trip would cost more than the draft"
+    output_effect: none
+    decisions: ["device or host extraction", "which layers' inputs to keep"]
+    when_things_go_wrong: ["a context that lacks the buffer refuses a batch with embedding or state rows"]
+    must_never: ["overwrite rows the reader has not consumed"]
+    evidence: ["src/llama-context.cpp:1435-1660, 2158-2168, 2284-2316, 2526-2545"]
+    read: code
+  - id: "sampler-chain"
+    engine_name: "llama_sampler_chain / common_sampler"
+    does: "Turns a logits row into one token by a configured chain (penalties, DRY, top-k, top-p, min-p, typical, XTC, temperature, mirostat, adaptive-p, logit bias, then a random or greedy pick) and records accepted tokens for history-based samplers."
+    runs: [per_step]
+    takes: [{from: "decode-driver", what: "logits row or backend-sampled candidates"}, {from: "request-slot", what: "sampling parameters and seed"}, {from: "grammar-constraint", what: "mask of allowed tokens"}, {from: "reasoning-budget", what: "forced or masked logits"}]
+    gives: [{to: "request-slot", what: "sampled token and probabilities"}, {to: "draft-verifier", what: "target distribution per position"}]
+    owns_state: ["previous tokens ring buffer", "RNG state", "mirostat and penalty state"]
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "always defines the chosen token"
+    decisions: ["sampler order", "apply grammar before the chain or only check the chosen token and resample"]
+    when_things_go_wrong: ["asserts when no token is selected"]
+    must_never: ["return a token the grammar rejects"]
+    evidence: ["include/llama.h:1391-1640", "common/sampling.cpp:112-190, 607-690", "src/llama-sampler.cpp"]
+    read: code
+  - id: "backend-sampler"
+    engine_name: "backend sampling (llama_sampler_i.backend_apply, --backend-sampling)"
+    does: "Appends supported samplers to the model graph so top-k, temperature, softmax and the random draw run on the device and only candidates or the chosen token come back to the host."
+    runs: [per_step]
+    takes: [{from: "request-slot", what: "sampler attached per sequence"}]
+    gives: [{to: "graph-builder", what: "sampling ops"}, {to: "sampler-chain", what: "sampled token or reduced candidate list"}]
+    owns_state: ["per-sequence sampler state mirrored for the graph"]
+    exists_because: "copying full vocabulary logits to the host each step is costly on large vocabularies"
+    output_effect: numeric
+    output_effect_when: "stochastic draws can pick different tokens than CPU sampling with the same seed; greedy matches"
+    decisions: ["which samplers can run on the backend", "outputs per sequence limit"]
+    when_things_go_wrong: ["unsupported samplers and device layouts fall back to CPU", "rejects batches with more outputs per sequence than reserved", "not with grammar or reasoning budget"]
+    must_never: ["be combined with a grammar"]
+    evidence: ["include/llama.h:1409-1450", "src/llama-context.cpp:2179-2201, 2500-2508", "common/sampling.cpp:622-640", "docs/speculative.md (Backend Sampling)"]
+    read: code
+  - id: "grammar-constraint"
+    engine_name: "llama_grammar (GBNF), json-schema-to-grammar, llguidance"
+    does: "Tracks a pushdown automaton over the GBNF grammar and masks every candidate token whose text cannot continue a valid parse; lazy grammars stay inactive until a trigger word, token or pattern appears."
+    runs: [per_request, per_step]
+    takes: [{from: "chat-template-renderer", what: "grammar and triggers for tools"}, {from: "http-front", what: "grammar or JSON schema"}, {from: "tokenizer", what: "token pieces"}]
+    gives: [{to: "sampler-chain", what: "allowed-token mask"}, {to: "draft-verifier", what: "mask for rejection sampling"}]
+    owns_state: ["parse stacks", "partial UTF-8 bytes", "trigger buffer of a lazy grammar"]
+    exists_because: "clients need JSON or tool-call output that always parses"
+    output_effect: changes_output
+    output_effect_when: "whenever the unconstrained choice would leave the grammar"
+    decisions: ["lazy vs always active", "trigger words, tokens and patterns", "native engine vs llguidance"]
+    when_things_go_wrong: ["throws on an unparseable grammar", "an empty stack set means the grammar is finished and only end tokens are allowed"]
+    must_never: ["allow a token that leads to no valid stack"]
+    evidence: ["src/llama-grammar.h:120-175", "src/llama-grammar.cpp:869, 1283-1700", "common/json-schema-to-grammar.cpp", "common/llguidance.cpp"]
+    read: code
+  - id: "reasoning-budget"
+    engine_name: "common_reasoning_budget sampler"
+    does: "Counts tokens inside a thinking block and, when the budget runs out, waits for a UTF-8 boundary and then forces the closing sequence token by token."
+    runs: [per_step]
+    takes: [{from: "request-slot", what: "budget, start, end and forced sequences"}]
+    gives: [{to: "sampler-chain", what: "forced token or passthrough"}]
+    owns_state: ["state IDLE, COUNTING, WAITING_UTF8, FORCING, DONE and remaining count"]
+    exists_because: "reasoning models can think for unbounded lengths"
+    output_effect: changes_output
+    output_effect_when: "when the budget is exhausted inside a reasoning block"
+    decisions: ["budget size", "which sequences start and end reasoning"]
+    when_things_go_wrong: ["cannot be used with backend sampling"]
+    must_never: ["cut a multi-byte character"]
+    evidence: ["common/reasoning-budget.h:1-50", "common/sampling.cpp:643-645"]
+    read: code
+  - id: "drafter"
+    engine_name: "common_speculative (draft-simple, draft-eagle3, draft-dflash/dflash2/dspark/lilicorr, draft-mtp, ngram-cache, ngram-simple, ngram-map-k, ngram-map-k4v, ngram-mod)"
+    does: "Proposes up to n draft tokens per generating sequence from one or more configured methods: a separate draft model, a target-conditioned draft (EAGLE-3, block-diffusion DFlash family, MTP heads), or n-gram lookups over history or a shared hash pool."
+    runs: [startup, per_step]
+    takes: [{from: "continuous-batcher", what: "draft requests per slot (last token, position, prompt, limits)"}, {from: "hidden-state-bridge", what: "target hidden states"}, {from: "decode-driver", what: "the verified batch, to catch the draft context up (process)"}, {from: "draft-verifier", what: "number accepted"}]
+    gives: [{to: "continuous-batcher", what: "draft tokens and, for rejection sampling, draft distributions"}, {to: "telemetry", what: "acceptance statistics per position"}]
+    owns_state: ["draft model context and its KV cache", "per-sequence carryover (pending hidden rows, deferred boundaries)", "n-gram maps and the shared n-gram hash pool", "acceptance counters"]
+    exists_because: "single-token decode is bandwidth bound; verifying several guessed tokens in one batch is nearly as cheap as one"
+    output_effect: none
+    decisions:
+      - "which method, and precedence of draftless over draft-model methods"
+      - "draft length limits and truncation at low confidence (p-min)"
+      - "greedy or probabilistic drafting"
+      - "whether a reduced draft vocabulary maps back via a table"
+    when_things_go_wrong: ["mismatched draft head type is not initialized", "incompatible vocabularies refuse speculation", "failed process() throws in the server"]
+    must_never: ["change what the target model outputs (only the verifier decides)"]
+    evidence: ["common/speculative.h:1-125", "common/speculative.cpp:179-220, 1793-1930, 2748-2760", "docs/speculative.md"]
+    read: code
+  - id: "draft-verifier"
+    engine_name: "common_sampler_sample_and_accept_n / _rejection"
+    does: "Samples the target at each draft position of the verification batch and accepts the longest matching prefix, or accepts each draft token with probability min(1, p/q) and draws a replacement from the residual, always emitting one more target token."
+    runs: [per_step]
+    takes: [{from: "sampler-chain", what: "target samples and distributions per position"}, {from: "drafter", what: "draft tokens and draft distributions"}, {from: "grammar-constraint", what: "mask"}]
+    gives: [{to: "request-slot", what: "accepted tokens"}, {to: "draft-rollback", what: "number of rejected positions"}, {to: "drafter", what: "number accepted"}]
+    owns_state: ["RNG for acceptance draws, independent of the draft"]
+    exists_because: "drafts are guesses; only target-consistent tokens may be committed"
+    output_effect: none
+    decisions: ["exact match vs rejection sampling", "synthetic acceptance for benchmarking replaces verification"]
+    when_things_go_wrong: ["stops accepting after an end-of-generation token inside the draft"]
+    must_never: ["accept a token the target would not produce (exact mode) or change the target distribution (rejection mode)", "synthetic acceptance produces invalid output by design"]
+    evidence: ["common/sampling.cpp:691-850", "tools/server/server-context.cpp:4826-4880"]
+    read: code
+  - id: "draft-rollback"
+    engine_name: "spec checkpoint (slot.spec_ckpt) and seq_rm"
+    does: "Removes the positions of rejected draft tokens from the target and draft memories, or, for memories that cannot drop a tail (recurrent beyond its snapshots), saves a state checkpoint before verification and restores it then replays the accepted tokens."
+    runs: [per_step]
+    takes: [{from: "draft-verifier", what: "accepted count"}, {from: "kv-cache", what: "tail removal"}, {from: "recurrent-state-store", what: "snapshot rollback"}, {from: "state-persistence", what: "partial sequence state save and load"}]
+    gives: [{to: "request-slot", what: "token list truncated to the accepted prefix"}, {to: "continuous-batcher", what: "replay of accepted tokens when a checkpoint was restored"}]
+    owns_state: ["per-slot checkpoint of target and draft sequence state with its position range", "sampler copy saved before verification"]
+    exists_because: "the memory has already absorbed the rejected tokens during verification"
+    output_effect: none
+    decisions: ["tail removal vs checkpoint restore, by memory kind and draft length vs snapshot depth"]
+    when_things_go_wrong: ["aborts if tail removal fails on the draft context"]
+    must_never: ["leave rejected tokens in memory"]
+    evidence: ["tools/server/server-context.cpp:3800-3900, 4855-4900"]
+    read: code
+  - id: "http-front"
+    engine_name: "server_http_context + server_routes (llama-server)"
+    does: "Accepts HTTP requests (completions, OpenAI and Anthropic compatible chat, embeddings, rerank, infill, tokenize, decisions, tools, slots, metrics), parses JSON into tasks in worker threads, and formats results or streams them as server-sent events."
+    runs: [per_request]
+    takes: [{from: "client", what: "HTTP requests"}, {from: "task-queue", what: "results"}, {from: "output-message-parser", what: "structured deltas"}]
+    gives: [{to: "task-queue", what: "tasks"}, {to: "chat-template-renderer", what: "messages and tools"}, {to: "client", what: "JSON or SSE responses"}, {to: "stream-replay-buffer", what: "SSE bytes when a conversation id is given"}]
+    owns_state: ["per-request response state in its thread"]
+    exists_because: "the engine is served to clients over a network API"
+    output_effect: none
+    decisions: ["API compatibility mapping", "which endpoints answer from cache while sleeping"]
+    when_things_go_wrong: ["errors become JSON errors; a client disconnect cancels the task unless a resumable stream is attached"]
+    must_never: ["pass raw JSON into the inference thread"]
+    evidence: ["tools/server/README-dev.md (Overview, Thread Management, Example trace)", "tools/server/server-http.cpp", "tools/server/server-context.cpp:5535-6200"]
+    read: docs
+  - id: "task-queue"
+    engine_name: "server_queue / server_response / server_response_reader"
+    does: "Moves tasks from HTTP threads to the single inference thread and results back, defers tasks that cannot start, lets metrics tasks run while a decode is in flight, and puts the server to sleep after an idle timeout."
+    runs: [background, per_request]
+    takes: [{from: "http-front", what: "tasks and cancellations"}, {from: "request-slot", what: "partial and final results"}]
+    gives: [{to: "continuous-batcher", what: "next task, deferred tasks"}, {to: "http-front", what: "results"}]
+    owns_state: ["task deque, deferred deque, unhandled deque", "sleeping flag and in-flight count"]
+    exists_because: "many HTTP threads feed one inference loop that owns the model context"
+    output_effect: none
+    decisions: ["defer vs start", "idle timeout for sleep", "which tasks run while yielding"]
+    when_things_go_wrong: ["on sleep the model and multimodal contexts are freed and reloaded on the next inference request"]
+    must_never: ["run two inference tasks on the context concurrently"]
+    evidence: ["tools/server/server-queue.h:18-60", "tools/server/README-dev.md (Sleep mode)"]
+    read: code
+  - id: "slot-scheduler"
+    engine_name: "server_slot_sched"
+    does: "Picks which slot a new task goes to: the requested slot, else the idle slot whose cached prompt shares the longest prefix above a similarity threshold, else an empty or least recently used slot, and says whether to swap prompt states through the prompt cache."
+    runs: [per_request]
+    takes: [{from: "task-queue", what: "task with prompt tokens"}, {from: "request-slot", what: "slot infos (busy, last used, cached prompt)"}]
+    gives: [{to: "request-slot", what: "chosen slot"}, {to: "prompt-cache", what: "save-then-load decision"}]
+    owns_state: ["none (decides only)"]
+    exists_because: "prefix reuse saves prompt processing, and slots are a fixed pool"
+    output_effect: none
+    decisions: ["prompt similarity threshold", "empty first, then least recently used"]
+    when_things_go_wrong: ["no free slot: the task is deferred"]
+    must_never: ["hand a busy slot a new task"]
+    evidence: ["tools/server/server-slot-sched.h:95-126", "tools/server/server-slot-sched.cpp:288-417"]
+    read: code
+  - id: "request-slot"
+    engine_name: "server_slot"
+    does: "Carries one request through prompt processing and generation on its own sequence id: tracks tokens in memory, the sampler, stop strings, limits (tokens, time, indentation, context), partial UTF-8, and emits partial and final results."
+    runs: [per_request, per_step]
+    takes: [{from: "slot-scheduler", what: "task"}, {from: "tokenizer", what: "prompt tokens and pieces"}, {from: "sampler-chain", what: "sampled tokens"}, {from: "draft-verifier", what: "accepted tokens"}, {from: "draft-rollback", what: "truncated token list"}, {from: "decode-driver", what: "embeddings and scores"}, {from: "multimodal-encoder", what: "media chunks"}]
+    gives: [{to: "continuous-batcher", what: "tokens to evaluate"}, {to: "kv-cache", what: "sequence operations"}, {to: "recurrent-state-store", what: "sequence operations"}, {to: "task-queue", what: "results"}, {to: "output-message-parser", what: "generated text"}, {to: "slot-scheduler", what: "slot info"}, {to: "speech-output-generator", what: "tokens for audio"}, {to: "sampler-chain", what: "sampling parameters"}, {to: "backend-sampler", what: "sampler for the sequence"}, {to: "reasoning-budget", what: "budget"}]
+    owns_state: ["state machine (idle, started, processing prompt, done prompt, generating, waiting for parent)", "tokens held in memory for the sequence", "draft, draft distributions, generation statistics"]
+    exists_because: "each concurrent request needs its own sequence state"
+    output_effect: changes_output
+    output_effect_when: "stop strings, limits and context-limit handling end or cut the output"
+    decisions: ["stop condition checks", "hold back text that may be the start of a stop string", "parent and child slots for n>1 completions sharing a prompt"]
+    when_things_go_wrong: ["prompt larger than context or physical batch: error and release", "context full without shift: stop with limit"]
+    must_never: ["send a partial stop string or a broken UTF-8 sequence"]
+    evidence: ["tools/server/server-context.cpp:260-870, 2068-2196, 2592-2640"]
+    read: code
+  - id: "continuous-batcher"
+    engine_name: "server_context::update_slots (pre_decode, decode, post_decode)"
+    does: "Each iteration builds one shared batch: applies context shift, asks the drafter for drafts, adds each generating slot's last token plus draft, then fills remaining room with prompt chunks of compatible slots, decodes in chunks of the logical batch size, and hands outputs to sampling and verification."
+    runs: [per_step]
+    takes: [{from: "task-queue", what: "new tasks"}, {from: "request-slot", what: "pending tokens and states"}, {from: "drafter", what: "drafts"}, {from: "multimodal-encoder", what: "embedding chunks"}, {from: "prompt-cache", what: "reusable prefix length"}, {from: "draft-rollback", what: "replay tokens"}]
+    gives: [{to: "decode-driver", what: "batch"}, {to: "drafter", what: "draft requests and the decoded batch"}, {to: "adapter-overlay", what: "adapter set for the batch"}, {to: "telemetry", what: "batch metrics"}]
+    owns_state: ["the shared batch and its slot-to-row map", "consecutive empty batch counter"]
+    exists_because: "requests arrive and finish at different times; batching decode and prompt chunks across them uses the device better"
+    output_effect: none
+    decisions:
+      - "generation tokens first, then prompt chunks up to the batch size"
+      - "only slots with the same adapter configuration share a batch"
+      - "context shift: how many tokens to keep and discard"
+      - "on 'no room' free idle slots' cache or halve the batch and retry"
+      - "how many prompt tokens can be skipped (common prefix, chunk reuse by shifting)"
+    when_things_go_wrong: ["cache full: retry with half the batch after trying to clear idle slots", "compute error: error all active slots, clear their prompts, throw", "aborts after repeated empty batches"]
+    must_never: ["batch slots with incompatible adapters", "shift context when media is present or the prompt is shared"]
+    evidence: ["tools/server/server-context.cpp:3483-3520, 3704-4100, 4577-4716", "tools/server/README-dev.md (Batching)"]
+    read: code
+  - id: "prompt-cache"
+    engine_name: "server_prompt_cache + server_prompt checkpoints (--cache-ram, --ctx-checkpoints)"
+    does: "Keeps serialized sequence states of earlier prompts (target and draft) in host RAM, plus snapshots taken at points within a prompt for SWA and recurrent models, and restores the best match so a new request processes only the new suffix."
+    not: "Not the in-device KV prefix sharing, which the kv-cache does by giving one cell many sequence ids."
+    runs: [per_request]
+    takes: [{from: "slot-scheduler", what: "save and load decision"}, {from: "state-persistence", what: "sequence state bytes"}, {from: "request-slot", what: "prompt tokens and positions"}]
+    gives: [{to: "state-persistence", what: "state to restore"}, {to: "continuous-batcher", what: "number of tokens to keep and next position"}]
+    owns_state: ["list of cached prompt states, oldest first", "checkpoints shared between cache and slot", "size and token limits"]
+    exists_because: "multi-turn chats resend long shared prefixes, and SWA or recurrent memories cannot be truncated to an arbitrary prefix"
+    output_effect: none
+    decisions: ["size and token limits and oldest-first eviction", "which checkpoint is usable for a given prefix and window", "minimum spacing between checkpoints"]
+    when_things_go_wrong: ["entries over the limit are skipped; fully contained prompts are removed"]
+    must_never: ["restore a checkpoint that would leave no token to evaluate (logits must be produced)"]
+    evidence: ["tools/server/server-slot-sched.h:1-90", "tools/server/server-slot-sched.cpp:9-282", "tools/server/server-context.cpp:2642-2715"]
+    read: code
+  - id: "state-persistence"
+    engine_name: "llama_state_* / llama_state_seq_* and slot save/restore"
+    does: "Serializes and restores the whole context or one sequence (memory cells and data, optionally only the partial-rollback part) to buffers or files, with slot checkpoints appended to slot files."
+    runs: [on_demand]
+    takes: [{from: "kv-cache", what: "serialized memory"}, {from: "prompt-cache", what: "state to restore"}, {from: "operator", what: "slot save directory"}]
+    gives: [{to: "prompt-cache", what: "state bytes"}, {to: "draft-rollback", what: "partial state save and load"}, {to: "storage", what: "slot files"}]
+    owns_state: ["none beyond the files written"]
+    exists_because: "states are expensive to recompute and must outlive a slot or process"
+    output_effect: none
+    decisions: ["full vs partial-only flags", "whether file save is enabled (off by default for security)"]
+    when_things_go_wrong: ["a size mismatch fails the restore; a failed member restore is undone"]
+    must_never: ["read or write files unless enabled"]
+    evidence: ["src/llama-context.cpp:3813-4116", "tools/server/server-context.cpp:2716-2930", "tools/server/README-dev.md (Scope of features)"]
+    read: code
+  - id: "stream-replay-buffer"
+    engine_name: "stream_session_manager (server-stream)"
+    does: "Keeps the SSE bytes of a generation tagged with a conversation id in a bounded ring buffer so a client can reattach after a disconnect, while generation continues."
+    runs: [per_request, background]
+    takes: [{from: "http-front", what: "SSE chunks"}]
+    gives: [{to: "client", what: "replayed and live bytes from an offset"}]
+    owns_state: ["one session per conversation id with a 4 MiB ring", "GC of completed sessions after a TTL"]
+    exists_because: "browser and mobile clients drop connections during long generations"
+    output_effect: none
+    decisions: ["ring cap, TTL, GC interval"]
+    when_things_go_wrong: ["offset below the dropped prefix returns 400"]
+    must_never: ["let a reader detaching stop the generation", "allow listing of live sessions"]
+    evidence: ["tools/server/README-dev.md (Resumable streaming)", "tools/server/server-stream.cpp"]
+    read: docs
+  - id: "model-router"
+    engine_name: "server_models + server_models_sched (router mode)"
+    does: "Routes requests to child server processes by model name, starting and stopping children on demand, limiting how many run, and unloading instances by measured device memory."
+    runs: [per_request, background]
+    takes: [{from: "client", what: "requests naming a model"}, {from: "memory-fit-planner", what: "memory breakdown of an instance (measure child)"}, {from: "os", what: "child process output and state messages"}]
+    gives: [{to: "http-front", what: "proxied requests to a child"}, {to: "os", what: "spawned and stopped processes"}]
+    owns_state: ["model list and instance states", "memory per instance", "conversation id to child map"]
+    exists_because: "one endpoint serves several models that do not all fit at once"
+    output_effect: none
+    decisions: ["which instance to unload", "maximum instances", "memory margin"]
+    when_things_go_wrong: ["child that does not exit after a timeout is killed"]
+    must_never: ["share model state between children (each is a process)"]
+    evidence: ["tools/server/server-models-sched.h:1-60", "tools/server/README-dev.md (Router mode)"]
+    read: code
+  - id: "decision-scorer"
+    engine_name: "server_decision_context (/v1/systemone)"
+    does: "Answers typed questions (choice, score, yes/no) about a given state by rendering each question, sometimes in several option orders, and reading the option-label logits of one forward pass, with no token generated."
+    runs: [per_request]
+    takes: [{from: "http-front", what: "state, questions, options, media"}, {from: "model-file-reader", what: "decision metadata (labels, temperatures, biases)"}]
+    gives: [{to: "continuous-batcher", what: "tasks grouped to share a common prefix"}, {to: "http-front", what: "calibrated option scores"}]
+    owns_state: ["per-model label tokens, temperatures, score biases"]
+    exists_because: "decision models are used as classifiers or judges; one pass is cheaper and calibrated"
+    output_effect: changes_output
+    output_effect_when: "defines the answer; order variants average out option-position bias"
+    decisions: ["number of order variants", "joint vs per-question prompts", "shared prefix grouping"]
+    when_things_go_wrong: ["question plus options longer than the batch is rejected"]
+    must_never: ["let request text be parsed as special tokens"]
+    evidence: ["tools/server/server-decision.h:1-198", "tools/server/server-context.cpp:2442-2530, 4050-4060"]
+    read: code
+  - id: "telemetry"
+    engine_name: "llama_perf_*, server /metrics, common_log, eval callback"
+    does: "Collects timing and token counters per context and per sampler, speculative acceptance statistics, MoE cache statistics, server Prometheus metrics, memory breakdowns, and logs through an asynchronous log thread."
+    runs: [background, per_step]
+    takes: [{from: "decode-driver", what: "timings and token counts"}, {from: "continuous-batcher", what: "batch metrics"}, {from: "drafter", what: "acceptance counts"}, {from: "moe-expert-cache", what: "hit and miss counts"}, {from: "backend-scheduler", what: "per-node tensors via eval callback"}]
+    gives: [{to: "operator", what: "metrics, logs, memory breakdown"}]
+    owns_state: ["counters and buckets", "log queue"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions: ["log verbosity", "whether eval callback forces per-node synchronization"]
+    when_things_go_wrong: ["discards log messages while the log worker is paused"]
+    must_never: ["change computed values"]
+    evidence: ["src/llama-context.cpp:4118-4195", "tools/server/server-task.cpp:1571-1633", "tools/server/server-context.cpp:5004-5090", "common/log.cpp:84-344"]
+    read: code
+absent:
+  - {job: "paged KV blocks with a block table", why: "the KV cache is a flat pool of cells, each carrying a position and a set of sequence ids; sharing is per cell, not per block"}
+  - {job: "preemption or swapping of a running request's KV to host", why: "slots run to completion; host-side prompt cache only stores idle slots' states for later reuse"}
+  - {job: "request priority or fairness scheduler", why: "tasks start in arrival order when a slot is free, otherwise they are deferred"}
+  - {job: "expert parallelism (experts of one layer spread over devices)", why: "experts follow their layer's device or stay on the host; the MoE cache replicates hot experts per device instead"}
+  - {job: "disaggregated prefill and decode on different machines", why: "one process does both; RPC only remotes devices, not phases"}
+  - {job: "beam search in serving", why: "the server does sampling and speculative decoding only"}
+  - {job: "online calibration at run time", why: "calibration (importance matrix, MoE cache tuning script) is offline"}
+outside_engine:
+  - {name: "tests/ and tools/server/tests", what: "C++ unit tests and pytest server tests"}
+  - {name: "tools/llama-bench, tools/batched-bench, tools/perplexity, benches/, tools/server/bench", what: "benchmarks and quality measurement"}
+  - {name: "ui/ (Llama Chat web app)", what: "SvelteKit chat client served by the server"}
+  - {name: "tools/server server-tools and server-mcp", what: "tool execution and MCP client features for the web UI (file and shell tools), not inference"}
+  - {name: "examples/ (simple, batched, lookahead, lookup, diffusion, training, android, swiftui)", what: "demonstration programs and client apps"}
+  - {name: "tools/cli, tools/completion", what: "interactive command-line front ends over the same library"}
+  - {name: "scripts/, ci/, cmake/, CMakeLists.txt, Makefile, flake.nix", what: "build bookkeeping, release and comparison scripts; scripts/moe-cache-tune.py replays cache logic offline"}
+  - {name: "ggml-opt / llama opt_* and examples/training", what: "training and fine-tuning loop, not inference"}
+  - {name: "tools/gguf-split, tools/export-lora, tools/cvector-generator", what: "file utilities for shards, merging adapters, building control vectors"}
+  - {name: "tools/connect, common/download.cpp, hf-cache", what: "model download and cache management"}
+  - {name: "AGENTS.md, CLAUDE.md, skills/", what: "contributor and tool instructions, not engine code"}
+surprises:
+  - "The KV cache has no blocks or block table: it is a flat cell pool where one cell can belong to many sequences (a bitset), so prefix sharing, unified vs per-sequence streams and position shifting all live in the cell metadata."
+  - "MoE experts are often deliberately kept in host memory; a device-side expert cache with frequency-class LRU and a tunable share of misses computed on the CPU, plus selective upload of only the used experts for big batches, replaces both full offload and expert parallelism."
+  - "Rollback of rejected drafts depends on the memory kind: attention caches drop a tail, recurrent stores keep a fixed number of snapshots, and beyond that the server saves and restores a full sequence-state checkpoint and replays accepted tokens."
+  - "Huge lookup tables (Engram n-gram tables, per-layer embeddings) are read row by row straight from the memory map on demand, with the OS page cache acting as the weight cache."
+  - "Sparse and compressed attention (DSA, MSA, DeepSeek 4) adds caches that must mirror the main KV cell layout exactly, so 'the KV cache' is several coupled stores."
+  - "Sampling can run inside the model graph on the device (backend sampling), but then grammar constraints and reasoning budgets are not allowed."
+  - "Drafting has a dozen interchangeable methods, several of which read the target's hidden states through device buffers synchronized by events; the server can even replace verification with synthetic acceptance for benchmarks."
+  - "Placement is decided by a dry-run fitter that loads everything with no allocation, measures, and rewrites unset parameters; the router uses the same measurement to unload whole server processes."
+  - "The server answers typed 'decision' questions from option-label logits in one pass, permuting option order across several prompts to cancel position bias."
+  - "Multimodal encoders run in a separate library with their own scheduler and a single compute lock, and media in a prompt disables context shift and chunk reuse."
+not_read: "The 182 per-architecture graph files in src/models (only the shared builder list in llama-graph.h); llama-vocab.cpp and unicode code; the body of llama-sampler.cpp; ggml-alloc.c; ggml-backend-meta.cpp beyond its section headers; backend kernels (CUDA, Metal, Vulkan, SYCL and others) beyond the CUDA graph entry points; ggml-rpc beyond its command list; the libmtmd encoder graphs, preprocessors and audio generation code; common/jinja, common/parsers and chat.cpp bodies; server-http, server-realtime, server-tools, server-mcp, server-models and server-stream bodies; tools/imatrix and tools/quantize mains; gguf-py; the web UI; tests; the .git directory and vendor/ code."

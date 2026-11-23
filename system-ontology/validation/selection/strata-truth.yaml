@@ -1,0 +1,167 @@
+# Written by tools/so_nodetypes_experiments.py truth. The node types Strata's working parts are instances of,
+# on each machine, from examples/specs/*.resolved.yaml and validation/reference-assignment.yaml.
+# `main` counts only the first type of a part that does two jobs.
+qwen-on-pc:
+  runs:
+  - calibration
+  - configuration
+  - draft-policy
+  - draft-proposal
+  - draft-verification
+  - engine-supervision
+  - expert-cache
+  - expert-dispatch
+  - expert-fetch
+  - expert-source
+  - graph-capture
+  - layer-compute
+  - memory-planning
+  - model-loading
+  - output-interpretation
+  - positional-state-store
+  - prefix-reuse
+  - prompt-preparation
+  - prompt-reading
+  - recurrent-state-store
+  - request-front
+  - residency-policy
+  - resource-governing
+  - row-source
+  - sampling
+  - secondary-compute
+  - sequence-lifecycle
+  - session-persistence
+  - state-tiering
+  - step-execution
+  - step-scheduler
+  - telemetry
+  main:
+  - calibration
+  - configuration
+  - draft-policy
+  - draft-proposal
+  - draft-verification
+  - engine-supervision
+  - expert-cache
+  - expert-dispatch
+  - expert-fetch
+  - expert-source
+  - graph-capture
+  - layer-compute
+  - memory-planning
+  - model-loading
+  - output-interpretation
+  - positional-state-store
+  - prefix-reuse
+  - prompt-preparation
+  - prompt-reading
+  - request-front
+  - residency-policy
+  - row-source
+  - sampling
+  - secondary-compute
+  - session-persistence
+  - step-execution
+  - step-scheduler
+  - telemetry
+  off_parts:
+    dflash2-drafter:
+      types: &id001
+      - draft-proposal
+      reason: Opt-in (--draft dflash2 --draft-model PACK), not loaded by default. For 12 GB NVIDIA cards the engine itself
+        says the MTP drafter measured faster (strata include/strata/core/draft_cap.hpp:27-28).
+    slot-scheduler:
+      types: &id002
+      - sequence-lifecycle
+      reason: Batch slots are off unless the configuration asks for them. The project's setup does not recommend them on
+        a 12 GB card, where the experts mostly run on the CPU (docs/BATCHING.md lines 152 to 157).
+    replica-router:
+      types: &id003
+      - replica-routing
+      reason: Opt-in, and it needs at least two groups of cards; this target has one GPU.
+qwen-on-spark:
+  runs:
+  - calibration
+  - configuration
+  - draft-policy
+  - draft-proposal
+  - draft-verification
+  - engine-supervision
+  - expert-cache
+  - expert-dispatch
+  - expert-source
+  - graph-capture
+  - layer-compute
+  - memory-planning
+  - model-loading
+  - output-interpretation
+  - positional-state-store
+  - prefix-reuse
+  - prompt-preparation
+  - prompt-reading
+  - recurrent-state-store
+  - request-front
+  - resource-governing
+  - row-source
+  - sampling
+  - sequence-lifecycle
+  - session-persistence
+  - state-tiering
+  - step-execution
+  - step-scheduler
+  - telemetry
+  main:
+  - calibration
+  - configuration
+  - draft-policy
+  - draft-proposal
+  - draft-verification
+  - engine-supervision
+  - expert-cache
+  - expert-dispatch
+  - expert-source
+  - graph-capture
+  - layer-compute
+  - memory-planning
+  - model-loading
+  - output-interpretation
+  - positional-state-store
+  - prefix-reuse
+  - prompt-preparation
+  - prompt-reading
+  - request-front
+  - row-source
+  - sampling
+  - session-persistence
+  - step-execution
+  - step-scheduler
+  - telemetry
+  off_parts:
+    adaptive-tier:
+      types:
+      - residency-policy
+      reason: Every expert is in the cache, so there is no absent expert to swap in.
+    host-to-device-transfer:
+      types:
+      - expert-fetch
+      reason: Every expert is in the cache after startup, so nothing is fetched for a window and nothing is swapped.
+    session-loop:
+      types:
+      - step-execution
+      reason: Runs only with the canonical Q2_0 pack; whether that pack is used on this target was not established.
+    cpu-expert-pool:
+      types:
+      - secondary-compute
+      reason: 'Taken from the earlier description, not from the token-path notes: all experts are resident on this target,
+        so no layer has CPU work. The pool is still built and its workers sleep.'
+    dflash2-drafter:
+      types: *id001
+      reason: Opt-in, not loaded by default. When loaded on this card class (compute capability 12.1) its window is capped
+        at 6 rows (strata include/strata/core/draft_cap.hpp:19-24).
+    slot-scheduler:
+      types: *id002
+      reason: Batch slots are off unless the configuration asks for them. Whether setup recommends them on this machine
+        was not established.
+    replica-router:
+      types: *id003
+      reason: Opt-in, and it needs at least two groups of cards; this target has one GPU.

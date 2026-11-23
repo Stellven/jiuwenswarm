@@ -1,0 +1,109 @@
+leftovers:
+- object: "sys/muse-on-spark"
+  field: "flows[swap-requests].description"
+  quote: "Experts to copy into the slots of experts that are leaving the cache"
+  kind: E
+  because: "Speaks of a background copy into freed slots, as in a memory-to-memory swap. The design has no second copy in memory: comp/muse/cache-policy decides 'for an expert that has just been read from storage, whether it enters the cache', and the summary says 'a routed expert that is not cached is read from storage for that step and may replace a less used one'."
+  severity: doubtful
+  fix: "reword: Missed experts the policy admitted, to be read from storage (or kept from the staging area) into the slots of experts that are leaving the cache"
+- object: "sys/muse-on-spark"
+  field: "flows[residency-updates].description"
+  quote: "an entering expert is marked resident after its copy lands"
+  kind: E
+  because: "Same carried 'copy' wording; comp/muse/cache-policy invariants[inv/read-ready] says 'An entering expert is marked resident only after its bytes have fully arrived' from a storage read."
+  severity: doubtful
+  fix: "reword: an entering expert is marked resident after its read from storage is complete"
+- object: "sys/muse-on-spark"
+  field: "flows[take-or-park].description"
+  quote: "Park the outgoing conversation; restore from the chosen parked entry."
+  kind: C
+  because: "Parking keeps another conversation's attention state in memory (comp/muse/parked-conversations needs fast_memory 'parked images'), while coverage says 'Not covered in the first version: ... more than one conversation in memory at a time'."
+  severity: doubtful
+  fix: "reword: Save the outgoing conversation to a session file on storage; restore the chosen saved conversation from storage."
+- object: "comp/muse/run-config-generator"
+  field: "needs_resources[cpu].purpose"
+  quote: "Probes of GPU, RAM, CPU and disk type"
+  kind: B
+  because: "Probing GPU and RAM as separate memories fits a machine with card memory; machine.yaml: 'CPU 与 GPU 共用同一个内存池，没有独立显存' (one unified pool, no separate GPU memory)."
+  severity: doubtful
+  fix: "reword: Probes of the GPU, the unified memory pool, CPU and disk type; negligible"
+- object: "comp/muse/expert-dispatch"
+  field: "decisions[wait-or-stage].text"
+  quote: "or is first admitted to the cache"
+  kind: E
+  because: "The same component lists under not_responsible_for 'Changing what the cache holds', and comp/muse/cache-policy is responsible to 'Decide, for an expert that has just been read from storage, whether it enters the cache'."
+  severity: doubtful
+  fix: "reword: Whether a missed expert is computed from the staging area, or computed from the cache slot the cache policy admitted it into once its read is complete."
+- object: "comp/muse/token-path"
+  field: "responsibility"
+  quote: "or one window of tokens"
+  kind: C
+  because: "A window of several tokens per step is the drafting path. Coverage: 'Not covered in the first version: ... drafting'; comp/muse/decode-loop decisions[tokens-per-step]: 'One in the first version.'"
+  severity: wrong
+  fix: "reword: Take one token through all 62 layers and the output head and produce a token choice."
+- object: "comp/muse/token-path"
+  field: "runs"
+  quote: "background"
+  kind: E
+  because: "None of the parts of the token path (decode-loop, layer-kernels, expert-router, kv-store, output-head, sampler) runs in background; their runs are startup, per_request, per_step and per_layer only."
+  severity: doubtful
+  fix: "drop"
+- object: "comp/muse/layer-kernels"
+  field: "needs_resources[accelerator].purpose"
+  quote: "residual read and write"
+  kind: A
+  because: "A distinct residual read/write step is not a feature model.yaml describes; its shared_blocks operation reads only 'shared_weights, token_embedding' and writes 'attention_kv'."
+  severity: doubtful
+  fix: "reword: attention, the other shared blocks of each layer, combine of expert rows, token embedding"
+- object: "comp/muse/expert-router"
+  field: "responsibility"
+  quote: "renormalised"
+  kind: A
+  because: "model.yaml gives only 'selects: {operation: expert_ffn, out_of: 256, pick: 8, per: \"token per layer\"}'; how the 8 weights are normalised is not stated."
+  severity: doubtful
+  fix: "reword: For each token in each layer, turn the feed-forward input into 256 logits and choose 8 experts with their weights, as the reference implementation computes them."
+- object: "comp/muse/expert-router"
+  field: "needs_resources[fast_memory].purpose"
+  quote: "logits, ids and weights per window row"
+  kind: C
+  because: "Window rows exist only with a draft window. Coverage: 'Not covered in the first version: ... drafting'; decode-loop: tokens-per-step 'One in the first version.'"
+  severity: wrong
+  fix: "reword: logits, ids and weights per token (one per step, one per prompt token in a chunk)"
+- object: "comp/muse/output-head"
+  field: "responsibility"
+  quote: "a final residual read, then the vocabulary projection"
+  kind: A
+  because: "model.yaml describes output_projection only: 'The projection to the vocabulary of 202,048 tokens.' A separate final residual read is not described."
+  severity: doubtful
+  fix: "reword: Turn the residual after the last layer into one row of vocabulary logits per position by the vocabulary projection (with whatever final normalisation the reference applies)."
+- object: "comp/muse/output-head"
+  field: "needs_resources[fast_memory].purpose"
+  quote: "one logits row of vocabulary size per window row"
+  kind: C
+  because: "Window rows exist only with a draft window. Coverage: 'Not covered in the first version: ... drafting'."
+  severity: wrong
+  fix: "reword: one logits row of vocabulary size per position whose logits are needed"
+- object: "comp/muse/request-runner"
+  field: "responsibility"
+  quote: "reasoning, content and tool-call events"
+  kind: A
+  because: "model.yaml describes no reasoning channel and no tool-call format (modality_out: text only); these event kinds come from the source model's output format."
+  severity: doubtful
+  fix: "reword: Drive one API request through one or more engine generations and turn the token ids into content events with a final finish record; further event kinds follow the published chat template once read."
+- object: "comp/muse/parked-conversations"
+  field: "responsibility"
+  quote: "Hold images of other conversations' attention state within a budget"
+  kind: C
+  because: "With needs_resources 'parked images; this memory is taken from the expert cache', this holds several conversations' state in memory. Coverage: 'Not covered in the first version: ... more than one conversation in memory at a time'; not_carried slot-scheduler: 'A second conversation needs its own attention state in memory, taken from the expert cache.'"
+  severity: wrong
+  fix: "drop (keep reuse of other conversations through comp/muse/session-files on storage), or reword: Keep other conversations' attention state on storage, find the one with the longest valid prefix for a prompt, and evict."
+- object: "comp/muse/telemetry"
+  field: "not_responsible_for[1]"
+  quote: "Explaining a failed GPU allocation at start"
+  kind: B
+  because: "Assumes a separate GPU memory whose allocation can fail apart from the budget; machine.yaml: 'CPU 与 GPU 共用同一个内存池，没有独立显存'."
+  severity: doubtful
+  fix: "reword: Explaining a failed allocation at start; that belongs with loading."
+checked:
+  components_read: 36
+  flows_read: 66

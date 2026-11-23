@@ -1,0 +1,97 @@
+kind: engine_spec
+id: spec/muse-spark-open-on-dgx-spark/target
+title: "First use case: a custom inference engine for Meta Muse Spark Open on NVIDIA DGX Spark"
+spec_level: target
+ontology_version: 0.6.1
+# What the scope page states is written with its source. What the scope page leaves undefined but an engine cannot be
+# judged without is written as a proposal (status: proposed) so that it can be confirmed or replaced. What only the
+# project can decide stays UNSET. Fields left to the factory are `open`.
+# On 2026-11-19 the bench owner answered what the bench runs now. Those answers are written as proposals with that
+# source: they say what is measured today, not what the project requires. Three things this file had written did
+# not match the kickoff page or the bench's practice and were corrected: the baseline, the memory budget and the
+# checkpoint.
+
+given:
+  model: model/muse-spark-open-ud-iq2-xxs   # the files the bench has run since 2026-11-16: a third party's conversion at about 2 bits per expert weight. The project has not confirmed it in writing. The model as published is model/muse-spark-open.
+  hardware: hw/dgx-spark
+  environment: env/dgx-spark-measured-20261119   # measured on the DGX Spark itself on 2026-11-19 (tools/spark_kit/probe.py)
+
+boundary:
+  form: {value: service, status: proposed, source: "bench owner, 2026-11-19: the baseline is an online service with an OpenAI-compatible interface"}
+  packaging: {value: container, resolution: required, source: "scope-slide#initial-scope"}
+
+interface:
+  input:  {modality: text, resolution: required, source: "scope-slide#initial-scope"}
+  output: {modality: text, resolution: required, source: "scope-slide#initial-scope"}
+  streaming: UNSET               # bench: not fixed in its configuration; whether first-token latency is measured on a stream was not verified
+
+execution: open
+state: open
+composition: open
+policy: open
+binding: open
+
+contract:
+  requirements:
+    - id: c-mem
+      quantity: memory_budget
+      kind: pass_fail
+      unit: GB
+      pool: mem0
+      accounting_boundary: "Everything the engine's container holds in the unified pool at any moment: allocations of the process on CPU and GPU, and page cache attributable to the files it reads. The operating system and other processes are outside."
+      candidates:
+        - {value: 128, unit: GB, unit_basis: decimal, pool: mem0, source: "kickoff page: the target, a working set of 128 GB of unified memory"}
+        - {value: 80, unit: GB, unit_basis: decimal, pool: mem0, source: "kickoff page: the reference configuration of Strata on DGX Spark, 80 GB of unified memory"}
+      source: "kickoff page; bench owner, 2026-11-19"
+      note: "The kickoff page names three figures. Its target is a working set of 128 GB of unified memory. 80 GB is the reference configuration of Strata on this machine. 12 GB is a feasibility target, which the bench proposes to read as the GPU working set. Until 2026-11-19 this file took 80 GB as the budget; the bench owner pointed out that this does not match the page. The machine reports 130.6 GB in all and about 127 GB allocatable, so a budget of 128 GB as written is more than it can give. What the bench measured for its baseline: a GPU working set of 21.6 GiB, and a peak resident size of about 107 GiB, most of it the mapped weight files. Which figure is the budget, and by which accounting, is the project's to say."
+    - id: c-context
+      quantity: context_length
+      kind: pass_fail
+      value: UNSET
+      unit: tokens
+      note: "The model allows about 1,000,000 tokens. The attention state for the offered context is taken from the same memory as the expert cache. The bench starts its server with a context of 20,480 tokens and has tested prompts of about 16,000 tokens with 128 output tokens; it says this is its own setting and not a requirement on the engine (bench owner, 2026-11-19)."
+    - id: c-quality
+      quantity: quality_score
+      kind: pass_fail
+      status: proposed
+      baseline: "llama.cpp with the Unsloth UD-IQ2_XXS conversion (about 226 GB, pinned by hash), the published tokenizer, temperature 0 (greedy), seed 1234. Set on 2026-11-16."
+      comparison: "The bench's tool can compare in two ways: a task score that drops by no more than the noise between two runs of the same configuration, and token probabilities by top-1 agreement and KL divergence with a lowest agreement that can be set. It does not compare token by token for identity. Which rule decides a pass is not set."
+      taskset: "GSM8K (5-shot, 50 questions, at most 256 output tokens); RULER niah_single_2 and qa_hotpot at 4K and 16K; a determinism test (3 questions, 3 runs each, 64 tokens); token probabilities (20 prompts, 64 tokens each)."
+      threshold: UNSET           # the bench records scores (GSM8K 0.94) and has no pass threshold
+      source: "bench owner, 2026-11-19. Until then this file named the published reference implementation with the NVFP4 weights as the baseline, which is not what is run."
+    - id: c-ttft
+      quantity: ttft
+      kind: report
+      status: proposed
+      timing_start: "The engine admits the request. Model load is excluded."
+      timing_end: "The first output token is produced by the engine."
+      workload: "Speed: a prompt of about 2,000 tokens after 0, 4,000 or 16,000 tokens of earlier context, 128 output tokens; one request at a time; new prompts only (prompt cache off; the measured share of reused prefix is 0.8%); up to 6 warm-up requests, discarded."
+      source: "bench owner, 2026-11-19"
+      note: "The bench records two figures: one timed by the client and one timed by the engine, which is this definition. Model load is recorded apart. Cold start is recorded apart as well: the first request is 2.44 times slower, and the server is ready 132 s after start."
+    - id: c-decode
+      quantity: decode_rate
+      kind: report
+      status: proposed
+      includes_first_token: false
+      workload: "Speed: a prompt of about 2,000 tokens after 0, 4,000 or 16,000 tokens of earlier context, 128 output tokens; one request at a time; new prompts only (prompt cache off; the measured share of reused prefix is 0.8%); up to 6 warm-up requests, discarded."
+      source: "bench owner, 2026-11-19"
+      note: "The bench takes the engine's own timing, apart from the prompt. Whether the first token is counted in it was not checked in the runtime's source."
+    - id: c-peak
+      quantity: peak_memory
+      kind: report
+      status: proposed
+      pool: mem0
+      accounting_boundary: "The same boundary as c-mem."
+      workload: "The peak over every phase of the whole bench run, not a load of its own."
+      source: "bench owner, 2026-11-19"
+      note: "What the bench records: the GPU working set (21.6 GiB), the process's resident size per phase (highest about 107 GiB, most of it mapped weight files, split into anonymous, shared and file-mapped), and the lowest available memory of the machine. Not covered: figures at container level (the baseline does not run in a container) and page cache that the process has not mapped. Its unit is GiB. The figure this requirement defines has not been computed."
+  allowed_transformations: UNSET # the baseline itself is already below NVFP4 (about 2 bits). What an engine may change relative to that baseline is not set: the comparison rule of c-quality is open
+  workload: {value: "Fixed values, not distributions. Speed: a prompt of about 2,000 tokens after 0, 4,000 or 16,000 tokens of earlier context, 128 output tokens; one request at a time; new prompts only (prompt cache off; the measured share of reused prefix is 0.8%); up to 6 warm-up requests, discarded. No workload with several turns of one conversation. Quality: the task set of c-quality.", status: proposed, source: "bench owner, 2026-11-19"}
+
+delivery:
+  model_checkpoint: {value: "Muse-Spark-Open-816B-A42B, Unsloth UD-IQ2_XXS conversion to GGUF: six files, 225.6 GB, pinned by hash", status: proposed, source: "bench owner, 2026-11-19: what the bench has run since 2026-11-16"}
+  deliverables:
+    - {item: reproducible_container, resolution: required}
+    - {item: clean_rebuild,          resolution: required}
+    - {item: benchmark_report,       resolution: required}
+    - {item: replayable_run_artifacts, resolution: required}

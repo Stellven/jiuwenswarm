@@ -1,0 +1,386 @@
+{
+  "system": "sys/muse-on-spark",
+  "spec": "spec/muse-spark-open-on-dgx-spark/target",
+  "environment": "env/dgx-spark-measured",
+  "per_expert_bytes": 25170110.887096774,
+  "per_token_expert_bytes": 12484375000.0,
+  "memory_ceiling_tok_per_s": 13.009679821295606,
+  "plans": [
+    {
+      "context": 8192,
+      "kv_case": "as wide as the hidden size",
+      "kv_bytes": 16642998272,
+      "cache_bytes": 52454279953.80645,
+      "feasible": true,
+      "experts_cached": 2083.9908170884005,
+      "share": 0.13129982466534781
+    },
+    {
+      "context": 8192,
+      "kv_case": "one eighth of that",
+      "kv_bytes": 2080374784.0,
+      "cache_bytes": 67016903441.80646,
+      "feasible": true,
+      "experts_cached": 2662.5589272299176,
+      "share": 0.16775194854019138
+    },
+    {
+      "context": 32768,
+      "kv_case": "as wide as the hidden size",
+      "kv_bytes": 66571993088,
+      "cache_bytes": 2525285137.806452,
+      "feasible": false,
+      "experts_cached": 100.32872517462829,
+      "share": 0.00632111423731277
+    },
+    {
+      "context": 32768,
+      "kv_case": "one eighth of that",
+      "kv_bytes": 8321499136.0,
+      "cache_bytes": 60775779089.80645,
+      "feasible": true,
+      "experts_cached": 2414.6011657406957,
+      "share": 0.152129609736687
+    },
+    {
+      "context": 131072,
+      "kv_case": "as wide as the hidden size",
+      "kv_bytes": 266287972352,
+      "cache_bytes": -197190694126.19354,
+      "feasible": false,
+      "experts_cached": 0.0,
+      "share": 0.0
+    },
+    {
+      "context": 131072,
+      "kv_case": "one eighth of that",
+      "kv_bytes": 33285996544.0,
+      "cache_bytes": 35811281681.80645,
+      "feasible": true,
+      "experts_cached": 1422.7701197838096,
+      "share": 0.08964025452266945
+    }
+  ],
+  "decode": [
+    {
+      "plan": "largest cache",
+      "skew": 0.0,
+      "hit": 0.16775194854019138,
+      "miss_bytes": 10390096767.443548,
+      "tok_per_s": [
+        0.4572623437817095,
+        0.4640957738824254
+      ]
+    },
+    {
+      "plan": "largest cache",
+      "skew": 0.8,
+      "hit": 0.5774117137401762,
+      "miss_bytes": 5275750636.274988,
+      "tok_per_s": [
+        0.9005353602827796,
+        0.9139931608679359
+      ]
+    },
+    {
+      "plan": "largest cache",
+      "skew": 1.2,
+      "hit": 0.8217122023963963,
+      "miss_bytes": 2225811723.20749,
+      "tok_per_s": [
+        2.1345021910270137,
+        2.1664006662033803
+      ]
+    },
+    {
+      "plan": "smallest cache",
+      "skew": 0.0,
+      "hit": 0.08964025452266945,
+      "miss_bytes": 11365272447.443548,
+      "tok_per_s": [
+        0.41802781428866387,
+        0.42427491486001623
+      ]
+    },
+    {
+      "plan": "smallest cache",
+      "skew": 0.8,
+      "hit": 0.46240454786483604,
+      "miss_bytes": 6711543222.749938,
+      "tok_per_s": [
+        0.7078848846410856,
+        0.7184636736980246
+      ]
+    },
+    {
+      "plan": "smallest cache",
+      "skew": 1.2,
+      "hit": 0.7434201010125574,
+      "miss_bytes": 3203239676.421354,
+      "tok_per_s": [
+        1.4831859242289975,
+        1.5053509843469217
+      ]
+    }
+  ],
+  "prefill": [
+    {
+      "prompt": 100,
+      "skew": 0.0,
+      "bytes": 319373500242.5597,
+      "seconds": [
+        67.22237428805718,
+        66.23257989269176
+      ]
+    },
+    {
+      "prompt": 100,
+      "skew": 1.2,
+      "bytes": 149587248551.83322,
+      "seconds": [
+        31.48542381642459,
+        31.02182674239594
+      ]
+    },
+    {
+      "prompt": 1000,
+      "skew": 0.0,
+      "bytes": 333957031249.9916,
+      "seconds": [
+        70.29194511681574,
+        69.25695380547316
+      ]
+    },
+    {
+      "prompt": 1000,
+      "skew": 1.2,
+      "bytes": 327993613833.2281,
+      "seconds": [
+        69.03675306950707,
+        68.02024343285527
+      ]
+    },
+    {
+      "prompt": 10000,
+      "skew": 0.0,
+      "bytes": 333957031250.0,
+      "seconds": [
+        70.29194511681752,
+        69.25695380547491
+      ]
+    },
+    {
+      "prompt": 10000,
+      "skew": 1.2,
+      "bytes": 333957031249.94403,
+      "seconds": [
+        70.29194511680573,
+        69.2569538054633
+      ]
+    }
+  ],
+  "required_hit_rate": {
+    "0.5": [
+      0.23888861076345436,
+      0.2275143929912391
+    ],
+    "1": [
+      0.6194443053817271,
+      0.6137571964956196
+    ],
+    "2": [
+      0.8097221526908636,
+      0.8068785982478097
+    ],
+    "5": [
+      0.9238888610763454,
+      0.9227514392991238
+    ]
+  },
+  "decode_ceiling_range": [
+    0.41802781428866387,
+    2.1664006662033803
+  ],
+  "ttft_floor_range_s": [
+    31.02182674239594,
+    70.29194511681752
+  ],
+  "target_spec_blocking_gaps": 12,
+  "all_from_storage_tok_per_s": 0.3805556946182728,
+  "backtest_reported_over_ceiling": [
+    0.8697790632971253,
+    1.0371329544018608
+  ],
+  "node_types_draft": "0.9",
+  "depends_on": [
+    {
+      "quantity": "Size of the expert weights, and how many a token uses",
+      "used_as": "399.5 GB; 8 of 256 in each of 62 layers (derived)",
+      "decided_by": "model"
+    },
+    {
+      "quantity": "Weights every token uses",
+      "used_as": "8.5 GB (derived)",
+      "decided_by": "model"
+    },
+    {
+      "quantity": "Attention state per token",
+      "used_as": "not known: between 0.25 and 2.03 MB",
+      "decided_by": "model"
+    },
+    {
+      "quantity": "How unevenly the experts are used",
+      "used_as": "not known: Zipf exponent 0,0.8,1.2",
+      "decided_by": "model"
+    },
+    {
+      "quantity": "Storage read rate",
+      "used_as": "measured for scattered ranges of one expert's size: 4.75 GB/s with 8 in flight (one token routes 8 experts in a layer), 4.82 GB/s at best with 32 in flight",
+      "decided_by": "machine"
+    },
+    {
+      "quantity": "Memory bandwidth",
+      "used_as": "273 GB/s (vendor_stated)",
+      "decided_by": "machine"
+    },
+    {
+      "quantity": "Storage capacity",
+      "used_as": "2015 GB (reported by the machine)",
+      "decided_by": "machine"
+    },
+    {
+      "quantity": "Memory budget",
+      "used_as": "80 GB of `mem0` (proposed)",
+      "decided_by": "target"
+    },
+    {
+      "quantity": "Context length",
+      "used_as": "not set: tabulated for 8192,32768,131072 tokens",
+      "decided_by": "target"
+    },
+    {
+      "quantity": "Memory left free",
+      "used_as": "2.0 GB",
+      "decided_by": "choice",
+      "node_type": "memory-planning",
+      "choice": "the reserve left free",
+      "components": [
+        "comp/muse/startup-memory-sizing"
+      ],
+      "settled_as": [
+        "Memory left free for the operating system and for allocations not priced in advance."
+      ]
+    },
+    {
+      "quantity": "Smallest cache the engine starts with",
+      "used_as": "the experts of one step, 12.5 GB",
+      "decided_by": "choice",
+      "node_type": "memory-planning",
+      "choice": "the least a cache may be and still work",
+      "components": [
+        "comp/muse/startup-memory-sizing"
+      ],
+      "settled_as": [
+        "The smallest cache the engine will start with: at least the experts one step can route, 8 times 62."
+      ]
+    },
+    {
+      "quantity": "Which experts the cache holds",
+      "used_as": "the most used of every layer, the best any rule can do in steady state",
+      "decided_by": "choice",
+      "node_type": "residency-policy",
+      "choice": null,
+      "components": [
+        "comp/muse/cache-policy"
+      ],
+      "settled_as": []
+    },
+    {
+      "quantity": "Staging area for experts being read",
+      "used_as": "16 experts, 0.40 GB",
+      "decided_by": "choice",
+      "node_type": "expert-fetch",
+      "choice": null,
+      "components": [
+        "comp/muse/storage-reader"
+      ],
+      "settled_as": []
+    },
+    {
+      "quantity": "When a missed expert's read is issued",
+      "used_as": "before the cached experts of the layer are computed, so that reads overlap fully with computation",
+      "decided_by": "choice",
+      "node_type": "expert-dispatch",
+      "choice": null,
+      "components": [
+        "comp/muse/expert-dispatch"
+      ],
+      "settled_as": []
+    },
+    {
+      "quantity": "How a prompt is cut",
+      "used_as": "one chunk, read one layer at a time",
+      "decided_by": "choice",
+      "node_type": "prompt-reading",
+      "choice": "chunk size",
+      "components": [
+        "comp/muse/prompt-path"
+      ],
+      "settled_as": [
+        "Tokens per chunk. Larger chunks amortise each expert read over more tokens but need more experts in memory at once."
+      ]
+    },
+    {
+      "quantity": "Precision of the stored weights",
+      "used_as": "as published, 4 bits; keeping the embedding table and the output head at 16 bits takes a further 25 GB",
+      "decided_by": "choice",
+      "node_type": "model-conversion",
+      "choice": "precision per kind of weight, and per layer where it differs",
+      "components": [
+        "comp/muse/preparation"
+      ],
+      "settled_as": []
+    }
+  ],
+  "changes_to_output": [
+    {
+      "lever": "Fewer bytes per expert, by a lower precision of the expert weights",
+      "node_type": "model-conversion",
+      "level": "approximate",
+      "type_reaches": [
+        "bit_exact",
+        "numeric",
+        "distribution_exact",
+        "approximate",
+        "defines"
+      ],
+      "in_design": true,
+      "allowed_by_target": null
+    },
+    {
+      "lever": "Omitting low-ranked routed experts that are not in the cache",
+      "node_type": "expert-dispatch",
+      "level": "approximate",
+      "type_reaches": [
+        "bit_exact",
+        "numeric",
+        "approximate"
+      ],
+      "in_design": true,
+      "allowed_by_target": null
+    },
+    {
+      "lever": "Drafting several tokens and checking them in one step",
+      "node_type": "draft-verification",
+      "level": "numeric",
+      "type_reaches": [
+        "bit_exact",
+        "numeric",
+        "distribution_exact",
+        "approximate"
+      ],
+      "in_design": false,
+      "allowed_by_target": null
+    }
+  ]
+}

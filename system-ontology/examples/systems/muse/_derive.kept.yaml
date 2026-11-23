@@ -1,0 +1,171 @@
+# The source's texts that this design keeps, each read against this engine's model, machine and scope.
+# tools/so_derive.py writes a text of the source only when it is listed here, and refuses when a pin no longer
+# matches the text. `because` says what the text rests on in this engine. Two kinds of reason appear: one that
+# follows from the model, the machine or the target, and one that is a choice of this design taken from the
+# source, which the model and the machine do not decide. The texts were read by an AI model, not by a person.
+# `python tools/so_derive.py examples/systems/muse --unread` prints the source's texts that are not listed.
+read_by: Claude (an AI model), 2026-11-18. Not read by a person.
+keep:
+  setup:
+    responsibility:
+      pin: 7f5d9bd104be
+      text: Decide the engine's options for one model on one machine, keep the person's own choices across rewrites, and
+        hand the engine process its final argument list and environment at every start.
+      because: 'A choice of this design taken from the source: the options are decided once for the model and the machine
+        and handed to the engine at each start. Nothing in the model or the machine bears on it.'
+    not_responsible_for:
+    - pin: 123ae1d5aaf9
+      text: Sizing memory pools inside the engine (startup memory sizing)
+      because: In this design memory is sized by the startup memory sizing component.
+    - pin: 6f5ad1cc4282
+      text: Starting the engine process (engine client)
+      because: In this design the engine client starts the engine process.
+  telemetry:
+    responsibility:
+      pin: b35856806f0b
+      text: Record what a run chose and what each request cost, and make it readable from outside without changing any token.
+      because: 'Holds for any engine: recording takes no part in computing a token. The target asks for measured speeds,
+        which need these records.'
+    not_responsible_for:
+    - pin: f3b90148e2a6
+      text: Liveness watchdogs. They are with the engine client.
+      because: In this design the engine client ends and restarts an engine process that has gone silent.
+  run-config-generator:
+    responsibility:
+      pin: 2ae081a9b48b
+      text: Produce a complete run configuration file for one model on this machine from machine facts and the person's
+        answers, and rewrite it without losing what the person added by hand.
+      because: 'A choice of this design taken from the source: one configuration file written from facts of the machine
+        and the person''s answers. The target names one model and one machine.'
+    needs_resources:
+    - pin: 4c581aa2cd98
+      text: 'Probes of the machine: GPU, memory, CPU and disk type; negligible'
+      because: DGX Spark has a GPU, one memory pool, a CPU and solid-state storage (hw/dgx-spark); these are what is probed.
+    - pin: ded671379993
+      text: The run configuration file, with a backup of the previous one
+      because: One file on storage; it follows from the choice of a configuration file.
+  launch-argument-resolver:
+    responsibility:
+      pin: a3fb974ab2de
+      text: Turn the stored run configuration into the argument list and environment the engine process actually receives,
+        at every launch and every engine start, so that standing choices kept outside the list cannot be undone by whoever
+        last rewrote it.
+      because: 'A choice of this design taken from the source: the engine is a separate process that receives an argument
+        list and an environment. Nothing in the model or the machine bears on it.'
+  expert-layout:
+    needs_resources:
+    - pin: 3f81031dc28a
+      text: the table of expert ranges in the prepared files
+      because: The preparation of this design writes each expert as one contiguous range of the prepared file, so a table
+        of ranges is what is read.
+    - pin: c800ae7f72fc
+      text: parsing
+      because: Reading that table is the only processor work of this part.
+  expert-cache:
+    invariants:
+    - id: inv/read-ready
+      pin: 9bae58a38070
+      text: A slot is reported as holding an expert only after that expert's bytes have fully arrived.
+      because: An expert reaches a slot by a read from storage that takes time (4.75 GB/s measured on this machine); a computation
+        that read the slot before the read ended would use wrong weights.
+    - id: inv/no-overwrite-while-read
+      pin: 313fb0427a47
+      text: A slot is not written while any launched computation may still read it.
+      because: Every miss replaces a cached expert here, so slots are rewritten often; a computation still reading a slot
+        would use wrong weights.
+  expert-router:
+    needs_resources:
+    - pin: d52aa8ee117e
+      text: logits, ids and weights per token
+      because: The model's router scores 256 experts and picks 8 with their weights for each token in each layer (model/muse-spark-open,
+        expert_router).
+  output-head:
+    needs_resources:
+    - pin: cfcfb0a4a8f8
+      text: the vocabulary projection
+      because: The model has a projection to its vocabulary (output_projection, output_head_weights).
+    - pin: c5e928ce377c
+      text: one logits row of vocabulary size per position
+      because: One row of 202,048 values for the position being generated (vocab_size).
+  serving:
+    responsibility:
+      pin: 1c68154b73f6
+      text: Turn each client request into prompt token ids for one resident engine process, and turn that process's token
+        lines back into a response.
+      because: 'A choice of this design taken from the source: a server process in front of one engine process. The first
+        version generates one conversation at a time on one machine.'
+  http-front:
+    needs_resources:
+    - pin: 65eb174854db
+      text: Connection handling and watching for a client that hangs up
+      because: Any front that sends a response as it is produced has to notice a client that leaves.
+  prompt-builder:
+    responsibility:
+      pin: 7c523f7656cc
+      text: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+      because: 'Holds for any engine with a context limit: the prompt must be the exact token ids, and a request that cannot
+        fit is refused. The decision fit-max-tokens of this component says what happens at the limit.'
+  request-runner:
+    needs_resources:
+    - pin: ce10737371b7
+      text: Per-token detokenizing and output parsing on the request's thread
+      because: Tokens become text one at a time as they are produced. That this happens on the request's thread is a choice
+        of this design taken from the source.
+  engine-client:
+    responsibility:
+      pin: b8e9e844a42a
+      text: 'Keep one engine child process resident and in step with the server: send each generation as one text command,
+        deliver its token lines to the caller, and end and restart a process that is dead, silent, frozen or fatally broken.'
+      because: 'A choice of this design taken from the source: the engine is a child process spoken to in text lines and
+        restarted when it fails. Nothing in the model or the machine bears on it.'
+  conversation-reuse:
+    responsibility:
+      pin: 9fff10eb9e11
+      text: Let a request that continues a conversation the engine has seen start from stored state instead of reading its
+        whole prompt again.
+      because: The first token of a new prompt is the costliest thing this engine does, because the prompt's experts are
+        read from storage; a continued conversation must not read its prefix again.
+  resume-decision:
+    needs_resources:
+    - pin: c2ce875970fe
+      text: Comparing token ids; linear in the prefix length
+      because: Stored state is valid for a prefix of token ids; finding the longest shared prefix is a comparison of ids.
+  session-files:
+    responsibility:
+      pin: 0b6c39499bbd
+      text: On an explicit command, write the session's current conversation to one file or read one back, refusing any
+        file that does not belong to this model, configuration and engine version before any state changes.
+      because: 'A choice of this design taken from the source: a session is saved and restored on command. Attention state
+        is the only model state here, and a file made for other weights or settings would give wrong output.'
+  engine-diagnostics:
+    needs_resources:
+    - pin: c20ad4c1a8cb
+      text: A JSON report at exit and a JSON manifest, each only when a path is given
+      because: 'A choice of this design taken from the source: the records are written as files when a path is given.'
+flows:
+  residency-lookup:
+    pin: e2fc367e1002
+    text: For each routed expert, the fast-memory slot holding it or that it is absent
+    because: The dispatch of this design computes the cached experts and reads the others, so it asks the cache where each
+      routed expert is.
+  prompt-state:
+    pin: 474b2a2cadd9
+    text: The model state left by reading the prompt, from which generation continues
+    because: The model's state is its attention keys and values (attention_kv); generation continues from what the prompt
+      left.
+  resume-point:
+    pin: b2b2b91ad1cb
+    text: How many prompt tokens the session already holds, so reading starts there
+    because: Reading starts after the prefix the session already holds; this is what conversation reuse is for.
+  run-config:
+    pin: a9639a24386a
+    text: 'The run configuration file: engine path, argument list, environment, the person''s own options and server keys'
+    because: It follows from the configuration file of this design; its contents are what a launch needs.
+  engine-argv:
+    pin: cad7d38106eb
+    text: The engine process's argument list and environment
+    because: It follows from the engine being a separate process started with arguments.
+  request-figures:
+    pin: eeb7f891d593
+    text: Usage with cached tokens and the timings object placed in the response
+    because: 'A choice of this design taken from the source: the server reports usage and timings in each response.'

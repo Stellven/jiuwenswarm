@@ -1,0 +1,262 @@
+# Written by tools/so_nodetypes_experiments.py selection.
+qwen-on-pc:
+  types: 44
+  types_every_reader_answered: 44
+  readers_agree: 40
+  readers_differ:
+    model-edit:
+      reader-a: 'no'
+      reader-b: open
+    session-persistence:
+      reader-a: 'no'
+      reader-b: open
+    output-constraint:
+      reader-a: 'no'
+      reader-b: open
+    scoring:
+      reader-a: 'no'
+      reader-b: open
+  counts:
+    reader-a:
+      open: 10
+      'yes': 26
+      'no': 8
+    reader-b:
+      open: 14
+      'yes': 26
+      'no': 4
+  reader-a_against_strata:
+    said_needed_and_strata_runs_it: 25
+    said_needed_but_strata_does_not_run_it:
+    - device-backend
+    said_not_needed_and_strata_does_not_run_it: 7
+    said_not_needed_but_strata_runs_it:
+    - session-persistence
+    left_open_and_strata_runs_it:
+    - draft-policy
+    - graph-capture
+    - prompt-reading
+    - resource-governing
+    - secondary-compute
+    - state-tiering
+    left_open_and_strata_does_not:
+    - device-communication
+    - model-conversion
+    - model-partitioning
+    - storage-reader
+    answer_is_strata: 32
+    answer_is_strata_main_types_only: 30
+    answered_needed_or_not_needed: 34
+    open: 10
+    no_answer: 0
+  reader-b_against_strata:
+    said_needed_and_strata_runs_it: 25
+    said_needed_but_strata_does_not_run_it:
+    - device-backend
+    said_not_needed_and_strata_does_not_run_it: 4
+    said_not_needed_but_strata_runs_it: []
+    left_open_and_strata_runs_it:
+    - draft-policy
+    - graph-capture
+    - prompt-reading
+    - resource-governing
+    - secondary-compute
+    - session-persistence
+    - state-tiering
+    left_open_and_strata_does_not:
+    - device-communication
+    - model-conversion
+    - model-edit
+    - model-partitioning
+    - output-constraint
+    - scoring
+    - storage-reader
+    answer_is_strata: 29
+    answer_is_strata_main_types_only: 27
+    answered_needed_or_not_needed: 30
+    open: 14
+    no_answer: 0
+qwen-on-spark:
+  types: 44
+  types_every_reader_answered: 44
+  readers_agree: 40
+  readers_differ:
+    model-edit:
+      reader-a: 'no'
+      reader-b: open
+    session-persistence:
+      reader-a: 'no'
+      reader-b: open
+    output-constraint:
+      reader-a: 'no'
+      reader-b: open
+    scoring:
+      reader-a: 'no'
+      reader-b: open
+  counts:
+    reader-a:
+      open: 5
+      'yes': 21
+      'no': 18
+    reader-b:
+      open: 9
+      'yes': 21
+      'no': 14
+  reader-a_against_strata:
+    said_needed_and_strata_runs_it: 20
+    said_needed_but_strata_does_not_run_it:
+    - device-backend
+    said_not_needed_and_strata_does_not_run_it: 13
+    said_not_needed_but_strata_runs_it:
+    - expert-cache
+    - expert-dispatch
+    - expert-source
+    - row-source
+    - session-persistence
+    left_open_and_strata_runs_it:
+    - draft-policy
+    - prompt-reading
+    - resource-governing
+    - state-tiering
+    left_open_and_strata_does_not:
+    - model-conversion
+    answer_is_strata: 33
+    answer_is_strata_main_types_only: 31
+    answered_needed_or_not_needed: 39
+    open: 5
+    no_answer: 0
+  reader-b_against_strata:
+    said_needed_and_strata_runs_it: 20
+    said_needed_but_strata_does_not_run_it:
+    - device-backend
+    said_not_needed_and_strata_does_not_run_it: 10
+    said_not_needed_but_strata_runs_it:
+    - expert-cache
+    - expert-dispatch
+    - expert-source
+    - row-source
+    left_open_and_strata_runs_it:
+    - draft-policy
+    - prompt-reading
+    - resource-governing
+    - session-persistence
+    - state-tiering
+    left_open_and_strata_does_not:
+    - model-conversion
+    - model-edit
+    - output-constraint
+    - scoring
+    answer_is_strata: 30
+    answer_is_strata_main_types_only: 28
+    answered_needed_or_not_needed: 35
+    open: 9
+    no_answer: 0
+muse-on-spark:
+  types: 44
+  types_every_reader_answered: 44
+  readers_agree: 42
+  readers_differ:
+    model-edit:
+      reader-a: 'no'
+      reader-b: open
+    session-persistence:
+      reader-a: 'no'
+      reader-b: open
+  counts:
+    reader-a:
+      open: 11
+      'yes': 23
+      'no': 10
+    reader-b:
+      open: 13
+      'yes': 23
+      'no': 8
+marks:
+- check: 'qwen-on-pc: the readers give each other the same answer (another reading of the mark: agreement between readers,
+    not with a known answer)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 40 of 44 (90.9%)
+  met: true
+  note: 0 types not answered by every reader count as not agreed
+  scoring: false
+- check: 'qwen-on-pc, reader-a: the answer is what Strata has (an open or missing answer agrees with nothing)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 32 of 44 (72.7%)
+  met: false
+  note: '10 open, 0 without an answer; among the 34 answered needed or not needed: 94.1%'
+  scoring: true
+- check: 'qwen-on-pc, reader-a: the same, counting only the main type of each part of Strata'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 30 of 44 (68.2%)
+  met: false
+  note: ''
+  scoring: false
+- check: 'qwen-on-pc, reader-b: the answer is what Strata has (an open or missing answer agrees with nothing)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 29 of 44 (65.9%)
+  met: false
+  note: '14 open, 0 without an answer; among the 30 answered needed or not needed: 96.7%'
+  scoring: true
+- check: 'qwen-on-pc, reader-b: the same, counting only the main type of each part of Strata'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 27 of 44 (61.4%)
+  met: false
+  note: ''
+  scoring: false
+- check: 'qwen-on-spark: the readers give each other the same answer (another reading of the mark: agreement between readers,
+    not with a known answer)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 40 of 44 (90.9%)
+  met: true
+  note: 0 types not answered by every reader count as not agreed
+  scoring: false
+- check: 'qwen-on-spark, reader-a: the answer is what Strata has (an open or missing answer agrees with nothing)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 33 of 44 (75%)
+  met: false
+  note: '5 open, 0 without an answer; among the 39 answered needed or not needed: 84.6%'
+  scoring: true
+- check: 'qwen-on-spark, reader-a: the same, counting only the main type of each part of Strata'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 31 of 44 (70.5%)
+  met: false
+  note: ''
+  scoring: false
+- check: 'qwen-on-spark, reader-b: the answer is what Strata has (an open or missing answer agrees with nothing)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 30 of 44 (68.2%)
+  met: false
+  note: '9 open, 0 without an answer; among the 35 answered needed or not needed: 85.7%'
+  scoring: true
+- check: 'qwen-on-spark, reader-b: the same, counting only the main type of each part of Strata'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 28 of 44 (63.6%)
+  met: false
+  note: ''
+  scoring: false
+- check: 'muse-on-spark: the readers give each other the same answer (another reading of the mark: agreement between readers,
+    not with a known answer)'
+  mark: sufficiency.selection_agrees_min
+  limit: at least 90%
+  figure: 42 of 44 (95.5%)
+  met: true
+  note: 0 types not answered by every reader count as not agreed
+  scoring: false
+- check: 'muse-on-spark: agreement with a known answer'
+  mark: null
+  limit: no mark was set for this check
+  figure: no engine exists for this case
+  met: null
+  note: ''
+  scoring: false
+problems: []

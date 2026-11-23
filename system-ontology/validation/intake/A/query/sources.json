@@ -1,0 +1,29 @@
+[
+  {
+    "id": "request",
+    "file": "request.txt",
+    "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+    "bytes": 241
+  },
+  {
+    "id": "target",
+    "file": "target.yaml",
+    "from": "examples/specs/muse-spark-open-on-dgx-spark.target.yaml",
+    "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+    "bytes": 4120
+  },
+  {
+    "id": "model",
+    "file": "model.yaml",
+    "from": "examples/given/model-muse-spark-open.yaml",
+    "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+    "bytes": 4841
+  },
+  {
+    "id": "machine",
+    "file": "machine.yaml",
+    "from": "examples/given/hw-dgx-spark.yaml",
+    "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+    "bytes": 2060
+  }
+]

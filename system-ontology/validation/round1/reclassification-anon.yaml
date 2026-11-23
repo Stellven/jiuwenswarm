@@ -1,0 +1,63 @@
+assignments:
+  - {item: "C01", node_type: "draft-policy", confidence: high, second_choice: null, reason: "per-round choice of draft source and window width"}
+  - {item: "C02", node_type: "decode-loop", confidence: high, second_choice: "expert-dispatch", reason: "runs a window through layers and head, hands off expert work"}
+  - {item: "C03", node_type: "multi-request-scheduler", confidence: high, second_choice: "engine-control", reason: "shares engine across processes and picks one per generation"}
+  - {item: "C04", node_type: "cache-policy", confidence: high, second_choice: null, reason: "changes cache contents from usage at intervals"}
+  - {item: "C05", node_type: "expert-cache", confidence: high, second_choice: null, reason: "holds experts in fast memory and answers residency"}
+  - {item: "C06", node_type: "request-front", confidence: high, second_choice: null, reason: "messages to exact prompt tokens"}
+  - {item: "C07", node_type: "engine-control", confidence: medium, second_choice: "request-front", reason: "keeps engine process alive and passes tokens back"}
+  - {item: "C08", node_type: "weight-loader", confidence: low, second_choice: "expert-source", reason: "provides expert layout geometry; no listed type is a layout index"}
+  - {item: "C09", node_type: "secondary-executor", confidence: high, second_choice: null, reason: "computes experts on CPU reading bytes in place"}
+  - {item: "C10", node_type: "decode-loop", confidence: low, second_choice: "layer-compute", reason: "recorded graph management; only decode-loop mentions recorded graphs"}
+  - {item: "C11", node_type: "drafter", confidence: high, second_choice: null, reason: "separate small model proposes drafts"}
+  - {item: "C12", node_type: "layer-compute", confidence: high, second_choice: null, reason: "final projection to vocabulary"}
+  - {item: "C13", node_type: "sampler", confidence: high, second_choice: null, reason: "logits to token by fixed chain"}
+  - {item: "C14", node_type: "drafter", confidence: high, second_choice: "attention-state-store", reason: "draft head producing drafts from hidden rows"}
+  - {item: "C15", node_type: "decode-loop", confidence: medium, second_choice: "expert-dispatch", reason: "launches layers in order for one token, integrates CPU expert results"}
+  - {item: "C16", node_type: "cache-policy", confidence: high, second_choice: null, reason: "eviction rule from decaying usage counts"}
+  - {item: "C17", node_type: "expert-transfer", confidence: medium, second_choice: "expert-source", reason: "copies expert from SSD into cache buffer"}
+  - {item: "C18", node_type: "attention-state-store", confidence: high, second_choice: null, reason: "holds attention K/V per position"}
+  - {item: "C19", node_type: "conversation-reuse", confidence: high, second_choice: null, reason: "keeps other conversations, longest prefix, evicts"}
+  - {item: "C20", node_type: "expert-transfer", confidence: high, second_choice: null, reason: "slow to fast copy in reliable order"}
+  - {item: "C21", node_type: "conversation-reuse", confidence: medium, second_choice: "attention-state-store", reason: "saves/restores session state to storage"}
+  - {item: "C22", node_type: "model-preparation", confidence: high, second_choice: null, reason: "offline file production, with precision change"}
+  - {item: "C23", node_type: "memory-planner", confidence: high, second_choice: null, reason: "budget division, cache gets remainder, refuses start"}
+  - {item: "C24", node_type: "multi-request-scheduler", confidence: low, second_choice: "expert-dispatch", reason: "splits work across machines; but it is per-token expert routing"}
+  - {item: "C25", node_type: "conversation-reuse", confidence: high, second_choice: null, reason: "longest computed prefix so only suffix is prefilled"}
+  - {item: "C26", node_type: "draft-verifier", confidence: high, second_choice: null, reason: "accept longest agreeing prefix and commit all state"}
+  - {item: "C27", node_type: "telemetry", confidence: high, second_choice: null, reason: "records choices and samples"}
+  - {item: "C28", node_type: "engine-control", confidence: high, second_choice: "multi-request-scheduler", reason: "one prompt read at a time, reports tokens and figures"}
+  - {item: "C29", node_type: "layer-compute", confidence: high, second_choice: "expert-dispatch", reason: "expert selection is part of layer compute"}
+  - {item: "C30", node_type: "weight-loader", confidence: high, second_choice: null, reason: "maps file, refuses unrunnable shape"}
+  - {item: "C31", node_type: "request-front", confidence: high, second_choice: null, reason: "accepts requests, returns output"}
+  - {item: "C32", node_type: "attention-state-store", confidence: high, second_choice: null, reason: "per-session attention state with valid-row counters"}
+  - {item: "C33", node_type: "table-reader", confidence: medium, second_choice: "memory-planner", reason: "table residency choice (prewarm page cache)"}
+  - {item: "C34", node_type: "table-reader", confidence: high, second_choice: null, reason: "delivers rows from SSD without holding table"}
+  - {item: "C35", node_type: "request-front", confidence: high, second_choice: "multi-request-scheduler", reason: "HTTP interface, failure statuses, cancellation"}
+  - {item: "C36", node_type: "configuration", confidence: high, second_choice: null, reason: "stored config to launch settings"}
+  - {item: "C37", node_type: "telemetry", confidence: high, second_choice: "request-front", reason: "per-request records and monitoring output"}
+  - {item: "C38", node_type: "drafter", confidence: high, second_choice: null, reason: "proposes following tokens with confidence"}
+  - {item: "C39", node_type: "weight-loader", confidence: high, second_choice: null, reason: "map file in place for GPU"}
+  - {item: "C40", node_type: "memory-planner", confidence: medium, second_choice: "configuration", reason: "startup memory placement decisions from memory readings"}
+  - {item: "C41", node_type: "request-front", confidence: medium, second_choice: "engine-control", reason: "token ids into response events"}
+  - {item: "C42", node_type: "expert-cache", confidence: high, second_choice: "expert-source", reason: "bounded resident set, answers presence"}
+  - {item: "C43", node_type: "conversation-reuse", confidence: high, second_choice: "attention-state-store", reason: "choose longest-prefix stored state per request"}
+  - {item: "C44", node_type: "prompt-reader", confidence: high, second_choice: null, reason: "chunked prompt pass building state"}
+  - {item: "C45", node_type: "draft-verifier", confidence: high, second_choice: null, reason: "checks drafts and leaves state at accepted prefix"}
+  - {item: "C46", node_type: "drafter", confidence: high, second_choice: null, reason: "repetition-based proposals"}
+  - {item: "C47", node_type: "configuration", confidence: high, second_choice: null, reason: "config from machine facts and operator answers"}
+  - {item: "C48", node_type: "layer-compute", confidence: high, second_choice: "attention-state-store", reason: "dense layer compute in fixed order"}
+  - {item: "C49", node_type: "memory-planner", confidence: high, second_choice: null, reason: "startup cache size from machine memory"}
+  - {item: "C50", node_type: "table-reader", confidence: high, second_choice: null, reason: "computes row keys and delivers rows per token"}
+  - {item: "C51", node_type: "configuration", confidence: medium, second_choice: "telemetry", reason: "settings measured on the machine"}
+  - {item: "C52", node_type: "expert-source", confidence: high, second_choice: null, reason: "all experts addressable for whole run from slow memory"}
+  - {item: "C53", node_type: "weight-loader", confidence: high, second_choice: null, reason: "uploads every-token tensors to device"}
+  - {item: "C54", node_type: "decode-loop", confidence: high, second_choice: "draft-policy", reason: "per-step token production, starts row reads"}
+  - {item: "C55", node_type: "draft-policy", confidence: high, second_choice: null, reason: "whether to draft each round"}
+  - {item: "C56", node_type: "conversation-reuse", confidence: medium, second_choice: "attention-state-store", reason: "snapshots enabling later rewind on same history"}
+  - {item: "C57", node_type: "expert-dispatch", confidence: high, second_choice: null, reason: "per-layer path per expert"}
+  - {item: "C58", node_type: "layer-compute", confidence: high, second_choice: null, reason: "model ops kernels per format"}
+  - {item: "C59", node_type: "expert-dispatch", confidence: medium, second_choice: "layer-compute", reason: "per-layer decision on how selected experts are computed"}
+  - {item: "C60", node_type: "weight-loader", confidence: high, second_choice: "model-preparation", reason: "places tensors in device memory, load-time re-encoding"}
+  - {item: "C61", node_type: "prompt-reader", confidence: high, second_choice: null, reason: "near-verbatim prompt-reader summary"}
+  - {item: "C62", node_type: "multi-request-scheduler", confidence: high, second_choice: "engine-control", reason: "slot admission and ordering across requests"}

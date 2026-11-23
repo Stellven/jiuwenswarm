@@ -1,0 +1,1417 @@
+kind: engine_spec
+id: spec/qwen-flash-on-pc/strata-like
+title: "Reference reconstruction: the spec as resolved by Strata's three mechanisms (a PC with 12 GB of GPU memory)"
+spec_level: resolved
+target_spec: spec/qwen-flash-on-pc/target
+mechanisms:
+- mech/hot-expert-residency
+- mech/work-based-prefill-split
+- mech/draft-then-verify
+- mech/route-tail-skip
+ontology_version: 0.6.1
+given:
+  model: model/qwen3.8-flash-125b-a6b
+  hardware: hw/pc-12g-64g
+  environment: UNSET
+boundary:
+  form:
+    value: offline_engine
+    status: assumed
+interface:
+  input:
+    modality: text
+    status: assumed
+  output:
+    modality: text
+    status: assumed
+  streaming:
+    value: true
+    status: assumed
+execution:
+  stages:
+  - id: load
+  - id: prefill
+    note: "processes a large block of prompt tokens at a time"
+  - id: draft
+    note: "the draft operation proposes up to 3 next tokens"
+  - id: verify
+    note: "the last confirmed token plus the drafts, through all layers in one pass"
+  - id: commit
+    note: "only the accepted prefix enters the model state"
+state:
+  states:
+  - id: attention_kv
+    of: attention_kv
+    scope: request
+    on_accept: keep
+    on_reject: invalidate
+    note: The window appends K and V for all rows. The commit graph contains no K/V operation. Cells of rejected rows stay
+      and are overwritten when those positions are processed again, before any query reads them (strata include/strata/core/verify.hpp:17-18;
+      src/core/verify.cpp:2918-3054). Owner is in the token path; the commit rule is recorded here.
+  - id: indexer_keys
+    of: indexer_keys
+    scope: request
+    on_accept: restore_then_append
+    on_reject: restore
+    note: The window snapshots each attention layer's key tail (the up to 3 keys of the incomplete 4-cell block) and appends
+      keys for all rows. The commit restores the tail from the snapshot and re-appends the kept rows' stored raw keys; rejected
+      rows carry position -1 and the append skips them (src/core/verify.cpp:1874-1898,2964-2990; src/kernels/cuda/native_qsa_indexer.cu:62,133-147).
+      Pooled block keys written by a rejected row are not restored by the commit; that they are rewritten before the next
+      block selection is inferred, not verified.
+  - id: gdn_state
+    of: gdn_state
+    scope: request
+    on_accept: advance_by_replay
+    on_reject: unchanged
+    note: 'Covers the recurrent state and the 3-entry convolution history of each recurrent layer. The window reads both
+      and writes neither. The commit re-runs the first kept rows from inputs the window stored (conv output, gate, beta
+      for the state; the layer''s input projection for the history, which becomes the last 3 of old history followed by
+      the kept rows) (src/core/verify.cpp:1668-1671,1730,1785-1786,2957-2962,3006-3013; src/kernels/cuda/verify_kernels.cu:81-96).
+      Exception: a one-row window advances both inside the window graph.'
+  - id: ple_history
+    of: ple_history
+    scope: request
+    on_accept: set_to_snapshot
+    on_reject: set_to_snapshot
+    note: The window advances the device history row by row and saves a snapshot after each row. The commit overwrites the
+      history with the snapshot after the last kept row, which discards the advances of rejected rows. The host-side pair
+      of previous token ids is shifted by each kept token only (src/core/verify.cpp:1573-1586,3033,3927-3931).
+  - id: expert_heat
+    scope: engine
+    note: Decayed usage counts per layer and expert. Counted for drafted tokens as well; not rolled back on rejection.
+  - id: residency_table
+    scope: engine
+    note: Which expert is in which fast-memory slot. After startup only the adaptive tier changes it. Not rolled back when
+      a draft is rejected.
+  - id: pending_swaps
+    scope: engine
+    note: Copies issued by the last adaptive-tier run that have not landed yet.
+  - id: captured_graphs
+    scope: engine
+    note: 'Handles of recorded graphs: per window size and variant, the commit graph, batch layouts with last-use ticks;
+      or per layer / per token on the session loop.'
+  - id: kv_residency_map
+    scope: request
+    note: 'Streamed layers only: page table (block to slot or absent), slot to block, slot epoch, reference bit, sweep hand,
+      miss lists, counters. Reset at the start of a sequence; the host copy is not cleared.'
+  - id: commit_stores
+    scope: request
+    on_accept: unchanged
+    on_reject: unchanged
+    note: 'Engine state valid from one verify window to its commit: per attention layer the indexer tail snapshot and the
+      rows'' raw keys; per recurrent layer the rows'' input projection, conv output, gate and beta; per row the n-gram history
+      snapshot; the commit record (rows kept, index of the last kept row, positions). Written by the window graph, read
+      by the commit graph, overwritten by the next window.'
+  - id: mtp_kv
+    of: mtp_kv
+    scope: request
+    on_accept: recompute
+    on_reject: invalidate
+    note: The MTP draft layer's own attention K/V. Not touched by the verifier's commit. In its next round the drafter writes
+      the cells of the accepted rows again from the window's real hidden rows and target tokens; cells written by draft
+      steps or belonging to rejected rows are left and rewritten before any read reaches them (src/core/mtp.cpp:1724-1731,1453,1091-1137).
+      Hashed and restored by conversation reuse.
+  - id: dflash2_context
+    scope: request
+    on_accept: advance
+    on_reject: unchanged
+    note: The DFlash2 drafter's ring of K/V for committed rows only (2064 slots per layer). The block's own keys stay outside
+      it, so a reject changes nothing (include/strata/core/dflash2.hpp:13-14).
+  - id: lookup_history
+    scope: request
+    on_accept: advance
+    on_reject: unchanged
+    note: Prompt and emitted tokens plus the trigram index. Reset per request. Drafts used for a chained proposal are added
+      without indexing and removed again.
+  - id: draft_estimates
+    scope: engine
+    note: 'The draft policy''s running estimates: round cost per window size and context bucket, mean committed tokens per
+      MTP window size, lookup and chained acceptance counts per match-length bucket, MTP acceptance counts per probability
+      bucket, the allowed-size mask. Lives for the engine process; a second copy holds the other drafter''s costs under
+      automatic drafter selection.'
+  - id: drafter_choice_stats
+    scope: engine
+    note: 'Per prompt-prefix hash: decode tokens per second with each neural drafter and how many requests used each. Only
+      under --draft auto with the learn rule.'
+  - id: staged_experts
+    scope: engine
+    note: Which missed experts sit in the staging area. Valid for one window; the next window starts with it empty.
+  - id: admission_counters
+    scope: engine
+    note: 'Reserved, rejected and timed-out inference calls, disconnect cancels and the draining flag; in the server process.
+      Owner: HTTP front.'
+  - id: prompt_encode_cache
+    scope: engine
+    note: 'The last few rendered prompts with their token ids and special-token boundaries; in the server process. Owner:
+      prompt builder.'
+  - id: engine_process_state
+    scope: engine
+    note: 'The child process handle, its line queues, the INFO facts, the context length, the last end-line figures, a generation
+      counter that changes at each restart, and the command to start it again. Owner: engine client.'
+  - id: live_conversation_record
+    scope: engine
+    on_accept: advance
+    on_reject: unchanged
+    note: 'The token ids and image keys the session currently holds, whether it is complete, and the steering flag it was
+      read with; in the engine process. Owner: engine command loop. Rewritten by the resume decision and by a session restore.'
+  - id: batch_slot_table
+    scope: batch
+    on_accept: advance
+    on_reject: unchanged
+    note: 'Per batch slot: active and stop flags, next token, position, produced count, the token ids its session holds,
+      whether it is an idle cache, its own checkpoints, and whether it holds a prompt read that gave way. Owner: engine
+      command loop.'
+  - id: slot_ledger
+    scope: batch
+    note: 'The server''s record of each slot: busy, claimed, releasing, the token ids it believes the slot holds, last use;
+      plus the lock on the prompt-reading channel and the waiting list. Owner: slot scheduler. Kept across engine restarts
+      for the waiting list; slot records are remade.'
+  - id: replica_index
+    scope: engine
+    note: 'Hashes of 64-token blocks each replica served, and per replica the requests in flight and routed. Owner: replica
+      router.'
+  - id: conversation_checkpoints
+    scope: engine
+    on_accept: unchanged
+    on_reject: unchanged
+    checkpoint:
+      interval: at the last turn token of each prompt, at the first turn token at or beyond 2048 tokens when reading from
+        0, and every 16384 freshly read tokens
+      identity:
+      - token ids of the prefix
+      - image keys below the prefix
+      - steering flag (control vector on or off)
+      stored_in: host memory
+    note: 'Up to 6 host copies of the running state (recurrent state and its convolution history, n-gram history, and per
+      attention layer the indexer tail, dead row and block position) at chosen prefix lengths of the live conversation,
+      with a use stamp and a pinned mark. No attention K/V. Owner: checkpoint chain.'
+  - id: parked_conversations
+    scope: engine
+    on_accept: unchanged
+    on_reject: unchanged
+    checkpoint:
+      interval: when the session switches to another conversation or rewinds, and before a batch slot is overwritten
+      identity:
+      - token ids of the prefix
+      - image keys below the prefix
+      - steering flag (control vector on or off)
+      - runtime geometry key and layer range
+      stored_in: host memory
+    note: 'Up to 4 whole-conversation images: an 18-integer geometry key, layer range, the live running state, the checkpoint
+      chain, the K/V of every attention layer and of the draft layer, and the steering flag. Owner: parked conversation
+      cache.'
+  - id: run_config
+    scope: engine
+    note: 'One JSON file per installed model: engine path, argument list, environment, server keys, the person''s own options,
+      what setup last wrote, and the origin of calibrated values. Owner: run configuration generator.'
+  - id: calibration_record
+    scope: engine
+    note: 'Per hardware key: the settings a calibration kept, environment entries, the measured rate and a date; in a settings
+      file. Owner: speed calibration.'
+  - id: tuning_presets
+    scope: engine
+    note: 'Preset files bound to hardware, engine and model identity, an index of the active one and a history of every
+      trial. Owner: speed calibration.'
+  - id: dispatch_counts
+    scope: engine
+    note: 'Process-wide counts per kernel variant, tensor type, shape and window scope, and launches per window width and
+      kind. Owner: engine diagnostics.'
+  - id: run_manifest_record
+    scope: engine
+    note: 'Engine choice, budgets, fast paths taken or declined with a reason, and tensor formats held, for the optional
+      manifest file. Owner: engine diagnostics.'
+  - id: request_history
+    scope: engine
+    note: 'The last 500 finished requests, totals since start, the live rate samples, latency histograms, the last 128 transition
+      events and 60 hardware samples per series; in the server process. Owner: server metrics.'
+  invariants:
+  - id: inv/read-ready
+    text: A copy is read only after it is marked readable.
+  - id: inv/no-overwrite-while-read
+    text: A slot is not overwritten while work that may read it is still in progress.
+  - id: inv/always-served
+    text: Every routed expert that is not omitted has at least one path that can compute it.
+  - id: inv/stable-source
+    text: An expert handed to the CPU has weights in slow memory that stay readable for the duration of its computation.
+  - id: inv/no-read-rejected
+    text: "State that belongs to a rejected suffix is not read as valid history."
+  - id: inv/commit-same-prefix
+    text: "All states are committed to the same accepted prefix."
+composition:
+  components:
+  - id: model-file-reader
+    component_ref: comp/strata/model-file-reader
+    uses:
+    - where: ssd0
+      purpose: the GGUF shards
+    - where: ram
+      purpose: whole-file read-only mapping while a shard is open
+      allocation: reclaimable_mapping
+      resolved_at: startup
+      note: 'Short-lived: each open in the startup code is a local object (inferred). backed_by ssd0.'
+    - where: cpu0
+      purpose: header parsing
+  - id: expert-layout
+    component_ref: comp/strata/expert-layout
+    uses:
+    - where: ssd0
+      purpose: native_experts.txt in the pack
+    - where: cpu0
+      purpose: parsing
+  - id: weight-loader
+    component_ref: comp/strata/weight-loader
+    implements:
+    - load
+    manages:
+    - data: shared_weights
+      pool: vram
+    uses:
+    - where: vram
+      purpose: one range holding the kept dense tensors in engine form
+      allocation: pinned
+      amount:
+        value: 4.522
+        unit: GB
+        unit_basis: binary
+        status: reported
+        source: include/strata/core/weights.hpp:17-18 (comment)
+        note: The whole canonical set. With --native about 2.7 GB of it is skipped (generate.cpp:5011-5012, comment); the
+          exact size is the index pool number computed at startup.
+      resolved_at: startup
+    - where: ram
+      purpose: two page-locked staging buffers
+      allocation: transient
+      amount:
+        value: 24
+        unit: MB
+        unit_basis: binary
+        status: reported
+        source: src/core/weights.cpp:27, 257-263
+      resolved_at: design
+    - where: ssd0
+      purpose: index.txt and the pack's data files
+    - where: cpu0
+      purpose: byte conversion on the main thread
+    - where: gpu0
+      purpose: destination of synchronous copies
+  - id: native-weight-loader
+    component_ref: comp/strata/native-weight-loader
+    implements:
+    - load
+    manages:
+    - data: shared_weights
+      pool: vram
+    uses:
+    - where: vram
+      purpose: one allocation per projection matrix, in 2 MiB granules
+      allocation: pinned
+      resolved_at: startup
+    - where: vram
+      purpose: the output head in GGUF form
+      allocation: pinned
+      amount:
+        value: 0.41
+        unit: GB
+        unit_basis: binary
+        status: reported
+        source: 'src/program/generate.cpp:5063, 8125 (comments: the Q5_K head of this model family)'
+      resolved_at: startup
+      note: Moved to ram, page-locked and GPU-mapped, by the sizing's last resort.
+    - where: ram
+      purpose: the token embedding in page-locked host memory, one row read by the GPU per token
+      allocation: pinned
+      resolved_at: startup
+    - where: gpu0
+      purpose: destination of the uploads
+  - id: startup-memory-sizing
+    component_ref: comp/strata/startup-memory-sizing
+    uses:
+    - where: vram
+      purpose: the reserve left free after loading
+      allocation: pinned
+      amount:
+        value: 700
+        unit: MB
+        unit_basis: binary
+        status: reported
+        source: src/program/generate.cpp:799
+      resolved_at: startup
+      note: 'Not an allocation: memory deliberately left unallocated. Lowered to as little as 300 MiB by the sizing ladder;
+        plus 256 MiB for unpriced late allocations.'
+    - where: cpu0
+      purpose: arithmetic on the main thread
+    - where: gpu0
+      purpose: free-memory readings and zeroing the opened cache
+  - id: host-memory-admission
+    component_ref: comp/strata/host-memory-admission
+    uses:
+    - where: ram
+      purpose: soft page-locked reserve, held while the arena registers
+      allocation: transient
+      amount:
+        value: 640
+        unit: MB
+        unit_basis: binary
+        status: reported
+        source: include/strata/core/pin_budget.hpp:89-97
+      resolved_at: startup
+      note: Windows CUDA only. On Linux nothing is reserved unless STRATA_PIN_RESERVE_MIB is set.
+    - where: ram
+      purpose: hard page-locked reserve, held until READY or the first refused guarded allocation
+      allocation: transient
+      amount:
+        value: 160
+        unit: MB
+        unit_basis: binary
+        status: reported
+        source: include/strata/core/pin_budget.hpp:127
+      resolved_at: startup
+      note: Windows CUDA only.
+    - where: cpu0
+      purpose: arithmetic
+  - id: expert-source
+    component_ref: comp/strata/expert-source
+    implements:
+    - load
+    manages:
+    - data: expert_weights
+      pool: ram
+    uses:
+    - where: ram
+      purpose: 'the arena: every routed expert plus one spare largest blob'
+      allocation: pinned
+      amount:
+        value: 33.97
+        unit: GB
+        unit_basis: decimal
+        status: reported
+        source: include/strata/core/pinned.hpp:3 (comment, the Q2_0 pack)
+        note: 'Computed at startup as the layout total plus one largest blob. Other packs per comments: 46.84 GiB (generate.cpp:7771),
+          about 51 GiB for IQ3_S (ple_residency.hpp:16). Which pack this target runs is not established here.'
+      resolved_at: startup
+      note: 'Kept resident best effort: registered with the GPU driver whole, or as a per-layer prefix with the rest locked
+        by the operating system; large pages take no lock. On a 64 GB Windows PC the driver was seen to refuse registration
+        at about half the RAM (pin_budget.hpp:3-7, comment).'
+    - where: ram
+      purpose: 'file-source mode: read-only mappings of experts.bin or the GGUF shards'
+      allocation: reclaimable_mapping
+      resolved_at: startup
+      note: Instead of the arena, with --mmap-experts or when RAM is short. backed_by ssd0.
+    - where: ssd0
+      purpose: experts.bin or the GGUF shards
+    - where: cpu0
+      purpose: 6 reader threads at startup, 16 when reading unbuffered
+    - where: gpu0
+      purpose: reads registered host memory in place
+  - id: expert_subsystem
+    component_ref: comp/strata/expert-subsystem
+  - id: expert_cache
+    component_ref: comp/strata/expert-cache
+    manages:
+    - data: expert_weights
+      pool: vram
+    observation_points:
+    - cache_hit_count
+    - cache_miss_count
+    note: The slot count is decided at startup from the free memory of this pool.
+  - id: expert_dispatch
+    component_ref: comp/strata/expert-dispatch
+    uses:
+    - where: gpu0
+      purpose: experts found in the cache and experts fetched for the window
+    observation_points:
+    - tail_skipped_count
+    - route_dump
+  - id: adaptive_tier
+    component_ref: comp/strata/adaptive-tier
+    uses:
+    - where: cpu0
+      purpose: choosing swaps on a thread beside the commit and the next draft
+    observation_points:
+    - swap_count
+    - swap_time
+  - id: host_to_device_transfer
+    component_ref: comp/strata/host-to-device-transfer
+    uses:
+    - where: ram
+      purpose: page-locked bounce slots for uploads from pageable memory
+      allocation: pinned
+      resolved_at: startup
+    manages:
+    - data: expert_weights
+      pool: vram
+    note: 'Manages the transient entry: the staging area for experts fetched for one window.'
+  - id: prompt_path
+    component_ref: comp/strata/prompt-path
+    implements:
+    - prefill
+    uses:
+    - where: gpu0
+      purpose: batched computation of a prompt chunk
+    - where: cpu0
+      purpose: experts few tokens route to, while sharing is armed
+    - where: vram
+      purpose: chunk buffers
+      allocation: transient
+    observation_points:
+    - per_object_time_cpu
+    - per_object_time_gpu
+    - tokens_per_object
+  - id: window-loop
+    component_ref: comp/strata/window-loop
+    implements:
+    - decode
+    - verify
+    uses:
+    - where: cpu0
+      purpose: 'the host thread: spin on the layer signal, run the pool callback'
+    - where: gpu0
+      purpose: the window graph
+    - where: vram
+      purpose: the window arena, sized at start for the largest window
+      amount: UNSET
+      resolved_at: startup
+    - where: ram
+      purpose: page-locked mapped staging
+      amount: UNSET
+      resolved_at: startup
+    note: The only per-token loop for native packs (the recommended IQ files).
+  - id: session-loop
+    component_ref: comp/strata/session-loop
+    implements:
+    - decode
+    uses:
+    - where: cpu0
+      purpose: the pinned host thread
+    - where: ram
+      purpose: page-locked staging for the expert rows
+      amount:
+        value: 102400
+        unit: B
+        status: derived
+        source: k x n_embd x 4 with k = 10 and n_embd = 2560; src/core/session.cpp:596
+      resolved_at: startup
+    - where: vram
+      purpose: the device copy of the expert rows
+      amount:
+        value: 102400
+        unit: B
+        status: derived
+        source: src/program/generate.cpp:5628-5630
+      resolved_at: startup
+    note: Active only with the canonical Q2_0 pack. With a native pack its graphs are never recorded and its body never
+      runs.
+  - id: layer-kernels
+    component_ref: comp/strata/layer-kernels
+    uses:
+    - where: gpu0
+      purpose: all dense per-layer work
+    - where: vram
+      purpose: the session arena without the key and value pages
+      amount: UNSET
+      resolved_at: startup
+      note: Formula in src/core/session.cpp:51-70. The position table alone is 64 MiB at a context of 262144, built once
+        and shared by the 12 attention layers.
+  - id: expert-router
+    component_ref: comp/strata/expert-router
+    uses:
+    - where: gpu0
+      purpose: projection and top-10
+  - id: window-graphs
+    component_ref: comp/strata/window-graphs
+    uses:
+    - where: vram
+      purpose: driver memory of the instantiated graphs
+      amount: UNSET
+      resolved_at: runtime
+      note: Not computed by the engine; graphs are freed and recorded again when instantiation runs out of memory.
+  - id: kv-store
+    component_ref: comp/strata/kv-store
+    manages:
+    - data: attention_kv
+      pool: vram
+    uses:
+    - where: vram
+      purpose: resident key and value pages of 12 attention layers
+      amount:
+        value: 12672
+        unit: B per context position
+        status: reported
+        source: include/strata/kernels/kv_q8.hpp:8
+        note: int8 format, all positions resident; 24576 in fp16. With streaming the count is the resident window, not the
+          context.
+      resolved_at: startup
+    - where: ram
+      purpose: 'streaming only: the authoritative copy of every page, page-locked'
+      amount:
+        value: 12672
+        unit: B per context position
+        status: derived
+        source: 4224 B per 4-position page per layer x 12 layers; src/kernels/cuda/kv_stream.cu:199-207
+      resolved_at: startup
+    note: The ram entry exists only with --kv-resident below the context. A host copy in ram exists only when key and value
+      streaming is switched on; it is off by default and is not listed.
+  - id: ngram-reader
+    component_ref: comp/strata/ngram-reader
+    uses:
+    - where: ssd0
+      purpose: the table, read 16 rows per token by unbuffered page reads
+      allocation: read_through
+      amount:
+        value: 28.8
+        unit: GB
+        unit_basis: decimal
+        status: reported
+        source: include/strata/kernels/ngram.hpp:8-10
+    - where: ram
+      purpose: row cache of 1048576 rows
+      amount:
+        value: 94
+        unit: MB
+        unit_basis: decimal
+        status: derived
+        source: 1048576 x 90 B
+      resolved_at: startup
+    - where: ram
+      purpose: read slab, 256 slots of two pages
+      amount:
+        value: 2
+        unit: MB
+        unit_basis: binary
+        status: derived
+        source: 256 x 8192 B; src/ngram/ple_reader.cpp:360
+      resolved_at: startup
+    - where: cpu0
+      purpose: the hash, one I/O worker thread, dequantisation
+    note: With 64 GB of host memory and an expert arena near 51 GiB the start-up rule does not admit the table into memory,
+      so the reads are direct (inferred from the rule and a comment at src/program/generate.cpp:5443-5445).
+    manages:
+    - data: ngram_table
+      pool: ssd0
+  - id: output-head
+    component_ref: comp/strata/output-head
+    uses:
+    - where: gpu0
+      purpose: final residual read and vocabulary projection
+  - id: sampler
+    component_ref: comp/strata/sampler
+    implements:
+    - decode
+    - verify
+    uses:
+    - where: gpu0
+      purpose: the pick
+  - id: cpu-expert-pool
+    component_ref: comp/strata/cpu-expert-pool
+    uses:
+    - where: cpu0
+      purpose: workers pinned one per physical core, plus the host thread
+      amount: UNSET
+      resolved_at: startup
+      note: Count from the plan in pool_plan.hpp; depends on the CPU found.
+    - where: ram
+      purpose: per-thread scratch and split buffers
+      amount: UNSET
+      resolved_at: startup
+  - id: mtp_drafter
+    component_ref: comp/strata/mtp-drafter
+    implements:
+    - draft
+    uses:
+    - where: vram
+      purpose: draft-layer weights, its 512 experts, its K/V ring, draft-head subset, draft logits, buffers and graphs
+      allocation: pinned
+      amount:
+        value: 0.9
+        unit: GB
+        unit_basis: decimal
+        status: reported
+        source: strata include/strata/core/mtp.hpp:47
+        note: about; the experts are 708 MB of it and can be lent to the prompt path in place
+      resolved_at: startup
+    - where: ram
+      purpose: pinned host copy of the draft K/V ring; pinned snapshot of the experts while lent
+      allocation: pinned
+      amount: UNSET
+      resolved_at: startup
+      note: If pinned memory is short the K/V stays whole in vram
+    - where: gpu0
+      purpose: catch-up rows and one draft-layer pass per drafted token on its own stream
+    - where: cpu0
+      purpose: one host thread spin-waits for each draft token and prefetches n-gram rows
+    - where: ssd0
+      purpose: draft-layer files read once at startup
+      allocation: read_through
+    observation_points:
+    - drafts_offered
+    - draft_time_ms
+    - draft_rounds
+  - id: dflash2_drafter
+    component_ref: comp/strata/dflash2-drafter
+    implements:
+    - draft
+    active: false
+    inactive_reason: Opt-in (--draft dflash2 --draft-model PACK), not loaded by default. For 12 GB NVIDIA cards the engine
+      itself says the MTP drafter measured faster (strata include/strata/core/draft_cap.hpp:27-28).
+    uses:
+    - where: vram
+      purpose: drafter pack, context ring, buffers and graphs when loaded
+      allocation: pinned
+      amount:
+        value: 0.8
+        unit: GB
+        unit_basis: decimal
+        status: reported
+        source: strata include/strata/core/dflash2.hpp:49
+        note: about
+      resolved_at: startup
+    - where: gpu0
+      purpose: one block forward pass per round when loaded
+  - id: lookup_drafter
+    component_ref: comp/strata/lookup-drafter
+    implements:
+    - draft
+    uses:
+    - where: ram
+      purpose: token history and trigram table for max_context + 4096 tokens
+      allocation: pinned
+      amount:
+        value: at least 68 bytes per token of capacity
+        status: derived
+        source: strata include/strata/spec/suffix_drafter.hpp:44-48; src/spec/suffix_drafter.cpp:18-25
+        note: slot size inferred from the struct layout
+      resolved_at: startup
+    - where: cpu0
+      purpose: index update per emitted token and one proposal per round
+  - id: draft_policy
+    component_ref: comp/strata/draft-policy
+    implements: []
+    uses:
+    - where: cpu0
+      purpose: a few comparisons per round and per draft step
+    observation_points:
+    - drafts_offered
+    - drafts_accepted
+    - round_time_ms
+    note: The cost-aware window is off on this target unless STRATA_SPEC_COST=1 is set (which cards get it by default was
+      not read).
+  - id: draft_verifier
+    component_ref: comp/strata/draft-verifier
+    implements:
+    - verify
+    - commit
+    uses:
+    - where: vram
+      purpose: commit stores for the widest window times the layers, the commit graph, a small buffer for draft distributions
+      allocation: pinned
+      amount: UNSET
+      resolved_at: startup
+    - where: gpu0
+      purpose: commit graph after each window of more than one row; acceptance kernels for sampled requests
+    - where: cpu0
+      purpose: accept loop
+    observation_points:
+    - drafts_accepted
+    - verify_time
+    - commit_time
+  - id: http-front
+    component_ref: comp/strata/http-front
+    uses:
+    - where: cpu0
+      purpose: One thread per connection and a disconnect watcher per inference request
+  - id: prompt-builder
+    component_ref: comp/strata/prompt-builder
+    uses:
+    - where: cpu0
+      purpose: Template rendering, BPE encoding and detokenizing in the server process
+    - where: ram
+      purpose: Vocabulary, merges and up to 4 kept prompts
+      allocation: pinned
+  - id: request-runner
+    component_ref: comp/strata/request-runner
+    uses:
+    - where: cpu0
+      purpose: Per-token parsing on the request's thread
+  - id: engine-client
+    component_ref: comp/strata/engine-client
+    uses:
+    - where: cpu0
+      purpose: One reader thread per engine process and the in-engine watchdog thread
+  - id: engine-command-loop
+    component_ref: comp/strata/engine-command-loop
+    implements:
+    - prefill
+    - verify
+    uses:
+    - where: cpu0
+      purpose: The command loop thread and the standard-input reader thread
+    - where: vram
+      purpose: One session state per batch slot, only when batch slots are configured
+      allocation: pinned
+      amount:
+        value: 0.56
+        unit: GB
+        unit_basis: binary
+        status: reported
+        source: strata docs/BATCHING.md lines 145 to 147
+        note: Per slot at a 32K context with 8-bit KV; zero with the default of no batch slots.
+  - id: slot-scheduler
+    component_ref: comp/strata/slot-scheduler
+    active: false
+    inactive_reason: Batch slots are off unless the configuration asks for them. The project's setup does not recommend
+      them on a 12 GB card, where the experts mostly run on the CPU (docs/BATCHING.md lines 152 to 157).
+  - id: replica-router
+    component_ref: comp/strata/replica-router
+    active: false
+    inactive_reason: Opt-in, and it needs at least two groups of cards; this target has one GPU.
+  - id: resume-decision
+    component_ref: comp/strata/resume-decision
+    implements:
+    - prefill
+    uses:
+    - where: cpu0
+      purpose: Token comparison on the engine's command loop thread
+  - id: checkpoint-chain
+    component_ref: comp/strata/checkpoint-chain
+    uses:
+    - where: ram
+      purpose: Up to 6 checkpoints of running state
+      allocation: pinned
+      amount:
+        value: 0.71
+        unit: GB
+        unit_basis: decimal
+        status: derived
+        source: 6 x about 118 MB per checkpoint; the per-checkpoint figure is from code comments (strata src/program/generate.cpp
+          lines 925 to 926)
+        note: Upper bound at the default capacity.
+    - where: gpu0
+      purpose: Device synchronise and copies at each save and restore
+    manages:
+    - data: conversation_checkpoints
+      pool: ram
+  - id: parked-conversations
+    component_ref: comp/strata/parked-conversations
+    uses:
+    - where: ram
+      purpose: Parked conversation images
+      allocation: elastic
+    - where: gpu0
+      purpose: Copies between device and host at a park and a restore
+    note: 'Budget computed at start: 40% of available host memory above a 2560 MiB floor, at most 8192 MiB, zero below 1024
+      MiB. Occupancy changes while running.'
+    manages:
+    - data: parked_conversations
+      pool: ram
+  - id: session-files
+    component_ref: comp/strata/session-files
+    uses:
+    - where: ssd0
+      purpose: Session files, written only on an explicit save
+      allocation: pinned
+    - where: ram
+      purpose: Buffers during a save or restore
+      allocation: transient
+    note: About the conversation's K/V plus running state per file; 4096 MiB of disk must remain free. Two checkpoint copies,
+      the live state and a 16 MiB buffer on a save.
+  - id: run-config-generator
+    component_ref: comp/strata/run-config-generator
+    uses:
+    - where: ssd0
+      purpose: The run configuration file and its backup
+      allocation: pinned
+    note: A small JSON file.
+  - id: launch-argument-resolver
+    component_ref: comp/strata/launch-argument-resolver
+    uses:
+    - where: cpu0
+      purpose: Negligible, at each launch and engine start
+    note: The start-time fit may lower the K/V window kept in VRAM for the one card.
+  - id: speed-calibration
+    component_ref: comp/strata/speed-calibration
+    uses:
+    - where: gpu0
+      purpose: The whole machine for 15 to 30 minutes when a calibration is run; never during serving
+    - where: ssd0
+      purpose: Calibration results and preset files
+      allocation: pinned
+    note: Runs only on request. Small JSON files.
+  - id: engine-diagnostics
+    component_ref: comp/strata/engine-diagnostics
+    uses:
+    - where: cpu0
+      purpose: Counting at each kernel choice and window launch
+    - where: ram
+      purpose: Count maps and the manifest record
+      allocation: pinned
+    note: Its file outputs and batch samples are off unless an environment variable is set. Grows with distinct choices,
+      not with tokens.
+  - id: server-metrics
+    component_ref: comp/strata/server-metrics
+    uses:
+    - where: cpu0
+      purpose: One sampler thread at one sample a second; work per scrape
+    - where: ram
+      purpose: 500 request rows, 128 events and 60 samples per hardware series
+      allocation: pinned
+    observation_points:
+    - timings.predicted_per_second
+    - timings.prompt_per_second
+    - vllm:time_to_first_token_seconds
+    - first_engine_token_s
+policy:
+  policies:
+  - id: expert-cache
+    controls:
+      aspect: binding
+      item: residency
+      data: expert_weights
+      pool: vram
+    signals:
+    - id: expert_heat
+      per:
+      - layer
+      - expert
+      update: raised by the number of tokens in the window that routed the expert
+      decay: multiplied by the decay after every run
+      note: Counted for drafted tokens as well; not rolled back when a draft is rejected.
+    actions:
+    - id: swap
+      steps: Per layer, pair the most used absent experts with the least used resident ones; keep pairs whose usage ratio
+        reaches the minimum gain; take the best pairs across all layers up to the swap limit; mark each leaving expert absent;
+        wait for work already launched; copy the entering expert into the same slot; mark it resident when the copy lands.
+    trigger: Every interval_windows verify windows; skipped while the previous run's copies are still in flight.
+    scope: engine
+    parameters:
+      interval_windows:
+        value: 4
+        status: reported
+        source: strata src/program/generate.cpp:887
+      max_swaps:
+        value: 96
+        status: reported
+        source: strata src/program/generate.cpp:923
+      decay:
+        value: 0.7
+        status: reported
+        source: strata src/program/generate.cpp:892
+      min_gain:
+        value: 1.5
+        status: reported
+        source: strata src/program/generate.cpp:895
+      min_usage:
+        value: 2
+        status: reported
+        source: strata src/program/generate.cpp:13158
+    budget:
+      derive:
+        fraction: 1.0
+        reserve:
+          value: 700
+          unit: MiB
+          unit_basis: binary
+          status: reported
+          source: engines/strata-notes/loading.md, startup sizing
+      resolved_at: startup
+      source: Free fast memory minus a reserve, divided by the largest expert; read again after opening and reduced if the
+        reserve was not left.
+  - id: prefill-cpu-share
+    controls:
+      aspect: binding
+      item: assignment
+      operation: expert_ffn
+      stage: prefill
+    signals:
+    - id: tokens_per_object
+      per:
+      - layer
+      - expert
+      update: counted for every layer of every chunk
+    - id: per_object_time_cpu
+      update: running average
+    - id: per_object_time_gpu
+      update: running average
+    actions:
+    - id: assign_to_cpu
+      steps: List the routed experts that are not in fast memory and whose weights the CPU can read in place, fewest tokens
+        first; take the pointers to their weights; hand the CPU its share of them; the accelerator computes the rest.
+    trigger: Every layer of every prompt chunk while sharing is armed. The share is the accelerator's time per expert over
+      the sum of both times, within the bounds. Sharing is disarmed for the following layers when the measured time with
+      sharing is not lower than without.
+    scope: request
+    parameters:
+      share_min:
+        value: 0.05
+        status: reported
+        source: strata src/prefill/prefill.cpp:4954
+      share_max:
+        value: 0.9
+        status: reported
+        source: strata src/prefill/prefill.cpp:4954
+  - id: draft-window
+    controls:
+      aspect: execution
+      item: stages
+      stage: verify
+      work: rows in the verify window when the MTP drafter drew the candidates
+    signals:
+    - id: draft_probability
+      per:
+      - draft step
+      update: Read from the drafter after each draft step
+      freshness: current step
+    - id: acceptance_by_probability
+      per:
+      - probability bucket (8 buckets of width 1/8)
+      update: After each MTP round, each draft that was reached adds 1 to its bucket's count, and 1 to its held count if
+        it was accepted
+      decay: counts multiplied by 0.995 per update
+      note: 'Read as (held + 4 x p) / (reached + 4): before data, a draft is as likely to hold as its own probability says'
+    - id: round_cost_ms
+      per:
+      - window size
+      - context bucket (below 6000, below 24000, longer positions)
+      update: Running mean of the first samples, then a moving average with weight 0.1; a sample is limited to twice the
+        known cost and the first sample of a size is replaced by the scaled guess when other sizes are known
+      freshness: one round behind
+      note: 'Wall time from before the verify window to after the next window''s draft: verify, commit, emit, next draft
+        and the adaptive-tier join. An unmeasured size is scaled from measured ones by a fixed shape table'
+    actions:
+    - id: keep_or_stop_chain
+      steps: 'After draft j: q = q x a(p_j); E = E + q; rows = j + 2. If E / cost(rows) beats the best so far by 1 + margin/3,
+        rows becomes the best width. If that width has fewer than 3 cost samples and q is at least 0.15, take it as the
+        best to probe it. Continue only if a row is left and one or two more equally likely drafts would beat the best by
+        the same factor, or the next width is unmeasured and still likely to be reached'
+    - id: set_window
+      steps: Verify the best width, clamped to 1 and the drafter's cap
+    - id: cut_at_probability_floor
+      steps: 'Without the cost-aware rule: the window is the drafter''s cap, ended before the first draft whose probability
+        is below the floor. For DFlash2: ended where the product of the selector''s probabilities falls below --draft-conf'
+    trigger: Every draft step of every round whose candidates the MTP chain drew, except the first window. The cost-aware
+      rule runs only with STRATA_SPEC_COST=1
+    scope: engine
+    prior:
+      note: 'Best value starts at 1 / cost(1): one row, one token. Acceptance starts from the draft''s own probability,
+        worth 4 observations. STRATA_SPEC_COST_TABLE can seed the cost table (each entry worth 6 samples) in the command-line
+        loop only'
+    parameters:
+      enabled:
+        value: false
+        status: reported
+        source: strata src/program/generate.cpp:14109
+        note: STRATA_SPEC_COST=1; a per-card default table may set it (src/core/nv_defaults.cpp:77-80)
+      margin:
+        value: 0.03
+        status: reported
+        source: strata include/strata/spec/draft_policy.hpp:35
+        note: the step rule uses margin / 3
+      cost_ema_weight:
+        value: 0.1
+        status: reported
+        source: strata src/spec/draft_policy.cpp:16
+      calibration_decay:
+        value: 0.995
+        status: reported
+        source: strata src/spec/draft_policy.cpp:18
+      prior_weight:
+        value: 4
+        status: reported
+        source: strata src/spec/draft_policy.cpp:23
+      probes_per_unmeasured_size:
+        value: 3
+        status: reported
+        source: strata src/spec/draft_policy.cpp:24
+      probe_reach_floor:
+        value: 0.15
+        status: reported
+        source: strata src/spec/draft_policy.cpp:268,275
+      max_drafts:
+        value: min(max_t - 1, S_mtp - 1, cells left); ceiling 7
+        status: reported
+        source: strata src/core/mtp.cpp:1731; src/program/generate.cpp:14097
+        note: Replaces the earlier fixed 3, which is only the value for --spec 4
+      spec_min_p:
+        value: 0.0
+        status: reported
+        source: strata src/program/generate.cpp:904
+  - id: draft-source
+    controls:
+      aspect: execution
+      item: stages
+      stage: draft
+      work: which source fills the verify window (neural drafts, a lookup proposal, or neural drafts plus a chained lookup
+        tail) and the window size
+    signals:
+    - id: lookup_acceptance
+      per:
+      - match-length bucket (below 6, below 12, below 24, 24 or more)
+      update: 'After a lookup window: accepted drafts added to the ok count; 1 added to the bad count if the window was
+        cut short'
+      decay: counts multiplied by 0.97 per lookup window
+      note: Priors 0.75, 0.88, 0.93, 0.96, each worth 4 observations. Chained drafts have their own counts with priors 0.45,
+        0.65, 0.8, 0.9, updated only when the chain was reached
+    - id: mtp_tokens_committed
+      per:
+      - window size
+      update: Moving average with weight 0.05 of accepted drafts plus 1
+      note: 'Before data: 1 + 0.7 x (size - 1)'
+    - id: round_cost_ms
+      per:
+      - window size
+      - context bucket
+      update: As in draft-window
+      freshness: one round behind; in gated mode a time is held until the committed position passes the last random counter
+        it depends on
+    - id: first_draft_agreement
+      update: Whether the lookup proposal's first token equals the neural drafter's first draft, each round
+    actions:
+    - id: take_lookup_window
+      steps: 'For k up to the proposal length: E(k) = 1 + q + .. + q^k, rate = E(k) / cost(k + 1). Take the best allowed
+        size if its rate beats the neural window''s (mean committed tokens / cost) by 1 + margin. Otherwise still take the
+        full size when its cost has fewer than 3 probes or has not been measured for 300 rounds, and q is at least 0.85'
+    - id: append_chain
+      steps: Keep the k chained tokens that maximise (E_mtp + p_mtp x (c + .. + c^k)) / cost(t + k) if that beats the neural
+        window alone by 1 + margin; probe an unmeasured or stale full size when p_mtp x c is at least 0.6
+    - id: drop_size
+      steps: A window size whose graph finds no GPU memory is removed from the allowed set for the rest of the process;
+        the round takes the next smaller allowed size
+    trigger: Every round after the first window that has a lookup proposal, when no neural drafter is loaded, or the proposal's
+      first token equals the neural first draft, or the request is in probabilistic mode
+    scope: engine
+    prior:
+      note: One policy object lives for the whole engine process and learns across requests. In probabilistic mode each
+        request uses a copy taken at its start that learns committed outcomes only
+    parameters:
+      margin:
+        value: 0.03
+        status: reported
+        source: strata include/strata/spec/draft_policy.hpp:35
+      lookup_decay:
+        value: 0.97
+        status: reported
+        source: strata src/spec/draft_policy.cpp:19
+      mtp_tokens_ema_weight:
+        value: 0.05
+        status: reported
+        source: strata src/spec/draft_policy.cpp:17
+      probes_per_unmeasured_size:
+        value: 3
+        status: reported
+        source: strata src/spec/draft_policy.cpp:24
+      stale_after_rounds:
+        value: 300
+        status: reported
+        source: strata src/spec/draft_policy.cpp:27
+      confident_lookup_rate:
+        value: 0.85
+        status: reported
+        source: strata src/spec/draft_policy.cpp:157,162
+      lookup_chain:
+        value: 0
+        status: reported
+        source: strata src/program/generate.cpp:982
+        note: off by default
+  - id: drafter-choice
+    controls:
+      aspect: execution
+      item: stages
+      stage: draft
+      work: which neural drafter (MTP or DFlash2) a request uses
+    signals:
+    - id: decode_tokens_per_second
+      per:
+      - drafter
+      - hash of prompt tokens 1 to 32
+      update: 'After a request of at least 48 generated tokens: 0.65 x old + 0.35 x new'
+    actions:
+    - id: pick_drafter
+      steps: 'Use the request''s own draft key if given; else the configured rule. Under the learn rule: try each drafter
+        twice, then use DFlash2 unless the MTP is more than 1% faster, and try the other one every 6th request when they
+        are within 4%, else every 12th. Swap in the policy object that holds that drafter''s learned costs'
+    trigger: Once per request, only when both drafters are loaded (--draft auto, serve, one card, no batch)
+    scope: request
+    parameters:
+      rule:
+        value: df2
+        status: reported
+        source: strata src/program/generate.cpp:1009
+      mtp_window_under_auto:
+        value: 4
+        status: reported
+        source: strata src/program/generate.cpp:1010,14094
+      min_tokens_to_learn:
+        value: 48
+        status: reported
+        source: strata src/program/generate.cpp:19447
+  - id: conversation-resume
+    controls:
+      aspect: execution
+      item: stages
+      stage: prefill
+      work: prompt tokens read again instead of restored from stored state
+    signals:
+    - id: stored-prefix-lengths
+      per:
+      - live session
+      - checkpoint
+      - idle batch slot
+      - parked conversation
+      update: Compared with the prompt's token ids, image keys and steering flag at each request
+      freshness: current
+    - id: nonfinite-pending
+      update: Set by a window whose logits were non-finite
+      freshness: from the previous request
+    actions:
+    - id: continue-live
+      steps: Keep the session; read from the end of the matched prefix.
+    - id: rewind-to-checkpoint
+      steps: Park the outgoing conversation if it would be lost; restore the checkpoint's running state; drop checkpoints
+        past it; read from there.
+    - id: take-parked
+      steps: Validate the parked image; park the outgoing conversation; restore the whole image; read from the matched point.
+    - id: borrow-parked
+      steps: Validate; copy only the K/V up to a shallower checkpoint and the checkpoints on the path; leave the entry parked.
+    - id: cold-read
+      steps: Zero the session, clear the chain and read from token 0.
+    trigger: Once per request, after the request line is parsed and before any prompt token is read
+    scope: request
+    parameters:
+      checkpoint_capacity:
+        value: 6
+        status: reported
+        source: strata src/program/generate.cpp lines 927 and 16327 to 16367
+      copy_stream_reserve_mib:
+        value: 64
+        status: reported
+        source: strata src/program/generate.cpp lines 927 and 16327 to 16367
+  - id: checkpoint-retention
+    controls:
+      aspect: binding
+      item: residency
+      data: conversation_checkpoints
+      pool: ram
+    signals:
+    - id: last-use
+      per:
+      - checkpoint
+      update: Advanced at creation, when a new checkpoint lands on the same length, and when a request resumes through it
+    - id: pinned
+      per:
+      - checkpoint
+      update: Set by the request key pin=N; at most one at a time
+    actions:
+    - id: drop-one
+      steps: 'When the chain exceeds its capacity: never the shortest; a non-newest tail checkpoint first; never a pinned
+        one unless all others are pinned; otherwise the least recently used.'
+    trigger: Inside every checkpoint save
+    scope: engine
+    parameters:
+      capacity:
+        value: 6
+        status: reported
+        source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines 35 to
+          119
+      periodic_interval_tokens:
+        value: 16384
+        status: reported
+        source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines 35 to
+          119
+      root_min_position_tokens:
+        value: 2048
+        status: reported
+        source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines 35 to
+          119
+      spread:
+        value: false
+        status: reported
+        source: strata src/program/generate.cpp lines 927, 947 and 952; include/strata/program/conv_cache.hpp lines 35 to
+          119
+    budget:
+      value: 0.71
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      source: 6 x about 118 MB; the per-checkpoint figure is from comments in strata src/program/generate.cpp
+  - id: parked-eviction
+    controls:
+      aspect: binding
+      item: residency
+      data: parked_conversations
+      pool: ram
+    signals:
+    - id: parked-bytes
+      update: Sum of image sizes
+    - id: host-memory-available
+      update: Read from the operating system and control-group limits at each park
+      freshness: current; unknown counts as refusal
+    - id: park-order
+      per:
+      - parked conversation
+      update: Least recently active first
+    actions:
+    - id: supersede
+      steps: Drop entries whose deepest checkpoint is contained in the incoming conversation's chain with the same steering
+        flag.
+    - id: evict-oldest
+      steps: Evict oldest first until the entry count and bytes fit; skip entries holding a pinned checkpoint and the entry
+        a borrow copies from.
+    - id: skip-park
+      steps: If only protected entries remain, or host memory would fall below the floor, do not park.
+    trigger: 'When a conversation is parked: on a switch or rewind, and before a batch slot is overwritten'
+    scope: engine
+    budget:
+      value: 8192
+      unit: MiB
+      unit_basis: binary
+      status: reported
+      note: The upper limit. The actual budget is 40 percent of the host memory still available above a 2560 MiB floor,
+        computed at start.
+      source: engines/strata-notes/serving.md
+    parameters:
+      entries:
+        value: 4
+        status: reported
+        source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines 70 to
+          78
+      cap_mib:
+        value: 8192
+        status: reported
+        source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines 70 to
+          78
+      min_tokens:
+        value: 0
+        status: reported
+        source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines 70 to
+          78
+      park_gain:
+        value: 0
+        status: reported
+        source: strata src/program/generate.cpp lines 929 to 939; include/strata/core/conversation_memory.hpp lines 70 to
+          78
+binding:
+  implementations:
+  - id: expert.gpu
+    of: expert_ffn
+    runs_on: gpu0
+    reads_from:
+    - vram
+    - ram
+  - id: expert.cpu
+    of: expert_ffn
+    runs_on: cpu0
+    reads_from:
+    - ram
+  - id: shared.gpu
+    of: shared_blocks
+    runs_on: gpu0
+    reads_from:
+    - vram
+  - id: mtp.gpu
+    of: mtp_draft
+    runs_on: gpu0
+    reads_from:
+    - vram
+  - id: ngram.cpu
+    of: ngram_lookup
+    runs_on: cpu0
+    reads_from:
+    - ram
+  residency:
+  - data: expert_weights
+    pool: ram
+    portion: all
+  - data: shared_weights
+    pool: vram
+    portion: all
+  - data: expert_weights
+    pool: vram
+    by_policy: expert-cache
+  - data: expert_weights
+    pool: vram
+    allocation: transient
+    capacity:
+      value: 0.25
+      unit: GB
+      unit_basis: decimal
+      status: assumed
+    note: "staging area for transient fetches over PCIe; the source of Strata has a capacity limit staging_cap, whose value was not read"
+  - data: ngram_table
+    pool: ssd0
+    portion: all
+    note: "only a few rows are read per token; they enter host RAM through the page cache of the operating system"
+  - data: attention_kv
+    pool: vram
+    portion: all
+    note: Sized at startup for the configured context length.
+  - data: conversation_checkpoints
+    pool: ram
+    by_policy: checkpoint-retention
+    note: At most 6 checkpoints of about 118 MB each, per code comments.
+  - data: parked_conversations
+    pool: ram
+    by_policy: parked-eviction
+    note: Budget computed at start from the host memory still available after the model is loaded.
+  assignment:
+  - operation: expert_ffn
+    when:
+      copy_ready_in: vram
+    use: expert.gpu
+    note: "cache hit"
+  - operation: expert_ffn
+    when:
+      all_ranks_at_least: 7
+    omit: true
+    because: mech/route-tail-skip
+    note: "tail skip; changes the output"
+  - operation: expert_ffn
+    when:
+      transient_fetch:
+        via: ram-to-vram
+        into: vram
+    use: expert.gpu
+    note: "some of the misses are sent to GPU memory for this computation only; the share is limited by the capacity of the staging area and by whether the weights are page-locked"
+  - operation: expert_ffn
+    otherwise: true
+    use: expert.cpu
+    note: "the rest are computed in place in host RAM by the CPU"
+  - operation: shared_blocks
+    otherwise: true
+    use: shared.gpu
+  - operation: mtp_draft
+    otherwise: true
+    use: mtp.gpu
+  - operation: ngram_lookup
+    otherwise: true
+    use: ngram.cpu
+contract:
+  requirements:
+  - id: c-mem
+    quantity: memory_budget
+    kind: pass_fail
+    status: reported
+    value: 12
+    unit: GB
+    unit_basis: decimal
+    pool: vram
+    accounting_boundary: gpu_allocator
+    source: 'ref-engines-slide#strata: fits a 12 GB gaming GPU'
+  - id: c-equiv
+    kind: behavior
+    text: "Apart from the permitted numeric differences, placement, caching and speculation must not change the output."
+    status: assumed
+  allowed_transformations:
+    value:
+    - placement
+    - caching
+    - scheduling
+    - numeric
+    - approximate
+    status: assumed
+  workload:
+    value: single_stream_text
+    status: assumed
+delivery:
+  model_checkpoint:
+    value: qwen3.8-flash-next-iq3_s
+    status: reported
+  image_digest: UNSET

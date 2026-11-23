@@ -1,0 +1,61 @@
+kind: hardware
+id: hw/dgx-spark
+compute_units:
+- id: cpu0
+  kind: cpu
+  properties:
+    core_count:
+      value: 20
+      status: vendor_stated
+    cores:
+      value: 10 Cortex-X925 + 10 Cortex-A725
+      status: vendor_stated
+    isa_family:
+      value: arm64
+      status: vendor_stated
+- id: gpu0
+  kind: gpu
+  properties:
+    architecture:
+      value: Blackwell
+      status: vendor_stated
+    soc:
+      value: GB10 Grace Blackwell
+      status: vendor_stated
+memory_pools:
+- id: mem0
+  kind: unified_ram
+  capacity_nominal:
+    value: 128
+    unit: GB
+    status: vendor_stated
+  properties:
+    type:
+      value: LPDDR5x coherent unified system memory
+      status: vendor_stated
+    bandwidth:
+      value: 273
+      unit: GB/s
+      status: vendor_stated
+- id: ssd0
+  kind: nvme
+  capacity_nominal:
+    value: 4
+    unit: TB
+    unit_basis: decimal
+    status: vendor_stated
+    note: 官网为"最高 4 TB"，实际容量取决于配置
+access_paths:
+- id: cpu0-mem0
+  kind: direct
+  unit: cpu0
+  pool: mem0
+- id: gpu0-mem0
+  kind: direct
+  unit: gpu0
+  pool: mem0
+  note: CPU 与 GPU 共用同一个内存池，没有独立显存
+- id: ssd0-to-mem0
+  kind: page_in
+  origin: ssd0
+  destination: mem0

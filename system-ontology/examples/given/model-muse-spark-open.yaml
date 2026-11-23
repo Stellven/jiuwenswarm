@@ -1,0 +1,99 @@
+kind: model
+id: model/muse-spark-open
+title: "Meta Muse Spark Open (816B parameters in total, 42B active per token)"
+default_status: vendor_stated
+note: "Structure figures are from Meta's model card (https://huggingface.co/meta-models/Muse-Spark-Open-816B-A42B) and release post (https://research.meta.ai/blog/muse-spark-open), read 2026-11-10. config.json needs a login and was not read. On 2026-11-19 the headers of the model files that are on the DGX Spark were read (a third party's conversion to GGUF, about 2 bits per expert weight): they give the parameter count of every tensor and the attention dimensions, and the sizes below are those counts at 4 bits. The published files themselves were not read. The card mentions no draft head, no always-on shared expert and no state other than attention; the files have none either."
+operations:
+  - id: expert_router
+    kind: selection
+    selects: {operation: expert_ffn, out_of: 256, pick: 8, per: "token per layer"}
+  - id: expert_ffn
+    kind: compute
+    reads: [expert_weights]
+  - id: shared_blocks
+    kind: compute
+    reads: [shared_weights, token_embedding]
+    writes: [attention_kv]
+  - id: output_projection
+    kind: compute
+    reads: [output_head_weights]
+    note: "The projection to the vocabulary of 202,048 tokens."
+  - id: perception_encoder
+    kind: compute
+    serves_modality: [image, video, audio]
+    reads: [encoder_weights]
+data:
+  # Parameter counts are read from the model files that are on the DGX Spark: a conversion to GGUF by a third party
+  # (Unsloth, UD-IQ2_XXS), of which only the headers were read (examples/given/records/muse-ud-iq2_xxs.header.json).
+  # Sizes are those counts at 4 bits, the precision of the published NVFP4 weights; the published files themselves
+  # were not read, so 4 bits for every tensor is an assumption.
+  - id: expert_weights
+    kind: weight
+    partitioned_by: [layer, expert]          # 62 layers x 256 = 15,872 experts
+    encoded_bits: 4
+    size:
+      value: 399.43
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      note: "798,863,917,056 parameters at 4 bits: in each of 62 layers three tensors of 4,096 x 4,096 x 256. One expert is 3 x 4,096 x 4,096 parameters, 25.17 MB at 4 bits. The experts work in a latent space of width 4,096, not at the hidden size."
+  - id: shared_weights
+    kind: weight
+    encoded_bits: 4
+    size:
+      value: 8.91
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      note: "17,817,304,320 parameters at 4 bits: every weight a token reads in full besides the experts and the two vocabulary tables listed below. Attention 13.52B, the projections into and out of the experts' latent space 4.16B, the router 0.13B, norms. In the conversion read on the Spark these tensors are stored at 6 to 8 bits and take 17.3 GB."
+  - id: token_embedding
+    kind: weight
+    encoded_bits: 4
+    size:
+      value: 0.83
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      note: "1,655,177,216 parameters at 4 bits: 202,048 rows of 8,192 values. A token reads one row."
+  - id: output_head_weights
+    kind: weight
+    encoded_bits: 4
+    size:
+      value: 0.83
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      note: "1,655,177,216 parameters at 4 bits. A tensor of its own in the files: it is not tied to the embedding table."
+  - id: encoder_weights
+    kind: weight
+    note: "The encoders for image, video and audio are not in the text-only files that were read; their size is not known."
+  - {id: attention_kv, kind: model_state, note: "Keys and values of 16 heads, 64 values each, per layer: 2,048 values per token per layer, 0.254 MB per token over 62 layers at 16 bits. 46 of the 62 layers attend only to the last 2,048 tokens; 16 layers attend to the whole context."}
+statements:
+  - {subject: model/muse-spark-open, property: params_total,            value: 816e9, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: params_active_per_token, value: 42e9,  status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: layers,                  value: 62,    status: vendor_stated, source: "hf-model-card#language-model"}
+  - {subject: model/muse-spark-open, property: hidden_dim,              value: 8192,  status: vendor_stated, source: "hf-model-card#language-model"}
+  - {subject: model/muse-spark-open, property: vocab_size,              value: 202048, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: context_length,          value: 1000000, status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: modality_in,             value: "text+image+video+audio", status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: modality_out,            value: text,  status: vendor_stated, source: "hf-model-card#overview"}
+  - {subject: model/muse-spark-open, property: weight_precisions,       value: "BF16, NVFP4", status: vendor_stated, source: "hf-model-card#weights"}
+  - {subject: model/muse-spark-open, property: checkpoint_format,       value: safetensors, status: vendor_stated, source: "hf-model-card#files"}
+  - {subject: model/muse-spark-open, property: vram_required, value: 700,  unit: GB, status: vendor_stated, source: "hf-model-card#weights", conditions: {precision: NVFP4}}
+  - {subject: model/muse-spark-open, property: vram_required, value: 2000, unit: GB, status: vendor_stated, source: "hf-model-card#weights", conditions: {precision: BF16}}
+  - {subject: model/muse-spark-open, property: license,                 value: "Muse Model License", status: vendor_stated, source: "hf-model-card#license"}
+  # Read from the headers of the model files on the DGX Spark, 2026-11-19. The card's figures above are kept as stated.
+  # Every tensor of the text-only files. The card says 816B. With 8 of 256 experts per layer, 46.1B are active per token; the card says 42B.
+  - {subject: model/muse-spark-open, property: params_counted,            value: 819991575808, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open, property: expert_width,              value: 4096, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open, property: attention_heads,           value: 128,  status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open, property: attention_kv_heads,        value: 16,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open, property: attention_key_length,      value: 64,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open, property: attention_value_length,    value: 64,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  # 62 layers x 16 heads x (64 + 64) values x 2 bytes: every layer keeping the token, at 16 bits.
+  - {subject: model/muse-spark-open, property: attention_state_per_token, value: 253952, unit: B, status: derived, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  - {subject: model/muse-spark-open, property: attention_window_tokens,   value: 2048, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  # Of 62. The 16 layers that attend to the whole context are every fourth one, from the second.
+  - {subject: model/muse-spark-open, property: attention_windowed_layers, value: 46,   status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}
+  # The card says 1,000,000.
+  - {subject: model/muse-spark-open, property: context_length_in_files,   value: 1048576, status: measured, source: "model files read on the DGX Spark, 2026-11-19 (records/muse-ud-iq2_xxs.header.json)"}

@@ -1,0 +1,331 @@
+# The node type of every node of this design, stated by reading the component's own text (its responsibility, and
+# its decisions, state and what it performs) in examples/systems/muse/components.yaml against the type definitions
+# of ontology/node-types.draft.yaml, draft 0.9 (sha256 a65acca0...). Read by `tools/so_nodetypes.py example
+# muse-on-spark`, which refuses a node with no entry here, a type the draft does not have, or a pin that no longer
+# matches the component's responsibility.
+#
+# The reading was done by Claude subagents on 2026-11-18, not by a person: one subagent wrote every entry, and a
+# second read all of them again against the component text and the type definitions, and corrected two
+# (`checked` says what was changed and why).
+#
+# Each entry:
+#   type, also            the node type, and further types where the component also does another type's job
+#   fit                   clean: its responsibility states the type's job as its own; partial: the nearest type, but
+#                         the component does more or less than the type says (`reason` says what); none: no type
+#                         describes it (`type: null`)
+#   quote                 the words of the responsibility the reading rests on, word for word
+#   basis                 one sentence: what in the component makes it that type
+#   responsibility_sha256 the pin: SHA-256 of the responsibility text as it was read (UTF-8, as stored)
+#   checked               present where the second reading changed the entry
+#   responsibility_read   that text, so that `tools/so_nodetypes.py repin muse-on-spark` can show old and new side by side
+#
+# What the component is derived from was not used as the answer. `tools/so_nodetypes.py suggest muse-on-spark` prints
+# the types of the source components as a suggestion; where a reading differs from it, `basis` or `reason` says why.
+design: muse-on-spark
+read_by: Claude subagents, 2026-11-18 (not a person)
+read_against: ontology/node-types.draft.yaml, draft 0.9
+nodes:
+  preparation:
+    type: model-conversion
+    fit: clean
+    quote: Offline, turn the model checkpoint the target names into the files the engine reads
+    basis: Producing offline, from the model checkpoint, the files the engine reads is the job of model-conversion; it re-arranges
+      bytes and changes no weight, which the type allows.
+    checked: On 2026-11-19 the responsibility was changed from 'the published checkpoint' to 'the model checkpoint the target
+      names', because the target now names a third party's conversion. The entry was read again against the new text by
+      Claude (the main session, not a subagent); type and fit were kept.
+    responsibility_sha256: df72f9bfeb23d3d83fb27f5cb7709cab8fc0a30281243219fc566207c8da49ac
+    responsibility_read: 'Offline, turn the model checkpoint the target names into the files the engine reads: the weights
+      every token uses in load order, and every expert as one contiguous block-aligned range with a table of where each
+      lies.'
+    repinned_on: '2026-11-19'
+  run-config-generator:
+    type: configuration
+    fit: clean
+    quote: Produce a complete run configuration file for one model on this machine from machine facts and the person's answers
+    basis: Turning the machine's facts and the person's answers into one complete set of settings is the configuration job;
+      keeping hand edits across rewrites is part of holding those settings.
+    responsibility_sha256: a6a67fb45a2134d8e441ca0e556950c326966978835b28a4aa94a9292f43906c
+    responsibility_read: Produce a complete run configuration file for one model on this machine from machine facts and
+      the person's answers, and rewrite it without losing what the person added by hand.
+  launch-argument-resolver:
+    type: configuration
+    fit: clean
+    quote: Turn the stored run configuration into the argument list and environment the engine process actually receives
+    basis: It turns the stored settings into the one set the engine process receives, which is the configuration job; it
+      decides nothing about memory, loading or steps.
+    responsibility_sha256: 825b72c64f89f87038177560de0ba85c2afe67f4f5dad740e1febd04079e1a0c
+    responsibility_read: Turn the stored run configuration into the argument list and environment the engine process actually
+      receives, at every launch and every engine start, so that standing choices kept outside the list cannot be undone
+      by whoever last rewrote it.
+  model-file-reader:
+    type: model-loading
+    fit: clean
+    quote: Open the prepared files read-only, expose their metadata and tensor directory unchanged, and refuse files whose
+      declared shape the compiled kernels cannot run
+    basis: Opening the model's files and checking they are something this engine can run is the first half of the model-loading
+      job, word for word.
+    responsibility_sha256: 6e9c84607b6ab89eb422b7673ab526185a9cf7594908d85910fa3e1cf40076bf
+    responsibility_read: Open the prepared files read-only, expose their metadata and tensor directory unchanged, and refuse
+      files whose declared shape the compiled kernels cannot run.
+  expert-layout:
+    type: model-loading
+    fit: clean
+    quote: Read the table of expert ranges once and answer, for the whole process, where each expert's bytes lie in the
+      prepared file and how long they are
+    basis: Reading from the model's files, once, where each expert's bytes lie is what model-loading gives as 'where selectively
+      used weights lie in the files'; expert-source takes that as its input and delivers the bytes, which this component
+      does not.
+    checked: The first reading gave expert-source, partial. On the check that reading was changed, because the draft lists
+      'where selectively used weights lie in the files' among what model-loading gives and among what expert-source takes.
+    responsibility_sha256: e921ff03fc1b05cf367627bb48460ee4645fe21abe4c150211857ea98e4963f5
+    responsibility_read: Read the table of expert ranges once and answer, for the whole process, where each expert's bytes
+      lie in the prepared file and how long they are.
+  weight-loader:
+    type: model-loading
+    fit: clean
+    quote: place the weights every token uses in fast memory
+    basis: Making the weights every token uses readable by the computation at startup is the model-loading job.
+    responsibility_sha256: 4e5d0f4c2473eb45d96f053f6b78dfabcc5323b544246754d47013368af4291c
+    responsibility_read: At startup, place the weights every token uses in fast memory and return a table from tensor name
+      to location.
+  startup-memory-sizing:
+    type: memory-planning
+    fit: clean
+    quote: Within the memory budget, price the weights every token uses, the attention state for the configured context,
+      the staging area and a reserve; give the expert cache what remains; and refuse to start when the cache would be below
+      its minimum
+    basis: Dividing the memory budget among resident weights, state, working space, reserve and cache, and refusing to start
+      below the minimum, is memory-planning word for word.
+    responsibility_sha256: ab6b10ecc8a81a9af982f9218313377da8fee7847e9d29c3e1ff67ece8f69bb4
+    responsibility_read: Within the memory budget, price the weights every token uses, the attention state for the configured
+      context, the staging area and a reserve; give the expert cache what remains; and refuse to start when the cache would
+      be below its minimum.
+  expert-source:
+    type: expert-source
+    fit: clean
+    quote: For any expert, give the range of the prepared file that holds it, and deliver its bytes into a buffer it is
+      handed
+    basis: Keeping every expert obtainable from storage, where all of them are held, is the expert-source job; its `not_responsible_for`
+      leaves keeping and choosing experts to others, as the type does.
+    responsibility_sha256: e3465b213550b638f5217459c0c1db7e9875ae78cdfd4149ad99ab1cba92a0f3
+    responsibility_read: For any expert, give the range of the prepared file that holds it, and deliver its bytes into a
+      buffer it is handed.
+  expert-cache:
+    type: expert-cache
+    fit: clean
+    quote: Hold as many experts in fast memory as its budget allows and answer, for any expert, whether it is there and
+      in which slot
+    basis: The responsibility is the expert-cache summary with experts for selectively used weights and slot for where.
+    responsibility_sha256: ac575090e312fd8ae041be413d891d54e4af8689cda04c18f27dfb71d5fd1226
+    responsibility_read: Hold as many experts in fast memory as its budget allows and answer, for any expert, whether it
+      is there and in which slot.
+  expert-dispatch:
+    type: expert-dispatch
+    also:
+    - layer-compute
+    fit: clean
+    quote: For one layer of one step, decide for every routed expert whether it is computed from the cache at once or after
+      a read from storage
+    basis: Deciding per layer and step how every selected block gets computed (from fast memory or after a fetch) is expert-dispatch.
+      The component also performs `expert_ffn`, the computation of the selected experts, which is layer-compute's job; that
+      is why layer-compute is a further type.
+    responsibility_sha256: 72c221532e5a9d20df0229e8eb734d5dfa23ffa78cea0ca0c5993349b1301e45
+    responsibility_read: For one layer of one step, decide for every routed expert whether it is computed from the cache
+      at once or after a read from storage, and issue the reads before the cached experts start computing.
+  cache-policy:
+    type: residency-policy
+    fit: clean
+    quote: Decide, for an expert that has just been read from storage, whether it enters the cache and which resident expert
+      leaves
+    basis: Deciding which selectively used weights are kept in the bounded fast cache, while running and from use, is residency-policy;
+      its decisions (admit rule, decay, per-layer share, starting contents) are that type's kind of choice.
+    responsibility_sha256: 3bc4e4cbe4aea7aa650cfb5d0a1a1e66de02ae4def4d5c2638672cb4e58b3f9b
+    responsibility_read: Decide, for an expert that has just been read from storage, whether it enters the cache and which
+      resident expert leaves, so that the cache holds the experts the current work uses most.
+  storage-reader:
+    type: expert-fetch
+    fit: clean
+    quote: Read the bytes of missed experts from storage into the staging area or a cache slot, several at a time, and report
+      each as ready only when it is complete
+    basis: 'Bringing absent experts into fast memory and reporting each ready only when complete, so the computation can
+      rely on it, is expert-fetch. Despite its name it is not the storage-reader type: only one kind of data (experts) is
+      read from storage in this design, and that type''s condition asks for several.'
+    responsibility_sha256: 8495daa3961301f1242ffc7c36634daa87fd9e49212b7f4b6e5851fa43f44c6e
+    responsibility_read: Read the bytes of missed experts from storage into the staging area or a cache slot, several at
+      a time, and report each as ready only when it is complete.
+  prompt-path:
+    type: prompt-reading
+    fit: clean
+    quote: Read the prompt in chunks, one layer at a time, reading each routed expert that is not cached once per chunk,
+      and leave behind the attention state that generation continues from
+    basis: Reading a prompt in chunks by a path of its own and leaving the state generation continues from is prompt-reading;
+      reading each uncached expert once per chunk is how this path reads it.
+    responsibility_sha256: 1f046f08c90b41472f6db985131d67895c364522a25f5912bf3f2099dfa3fc50
+    responsibility_read: Read the prompt in chunks, one layer at a time, reading each routed expert that is not cached once
+      per chunk, and leave behind the attention state that generation continues from.
+  decode-loop:
+    type: step-execution
+    fit: clean
+    quote: Take one token through the 62 layers and the output head
+    basis: Carrying one planned decode step through the model is step-execution; handing routing to the expert subsystem
+      and waiting for it is part of carrying the step.
+    responsibility_sha256: 4ec78b0249867dafbc0568d0f7598e81590826db79c1c624b55a8c3981b44b4b
+    responsibility_read: Take one token through the 62 layers and the output head, at each layer handing the routing to
+      the expert subsystem and waiting until every routed expert has been computed.
+  layer-kernels:
+    type: layer-compute
+    fit: clean
+    quote: Compute the part of each layer every token needs, in a fixed order
+    basis: Computing what the model defines for each layer is layer-compute. The suggestion also carries recurrent-state-store
+      and positional-state-store from Strata's kernels; nothing in this component's text holds state (it reads and writes
+      attention_kv, which kv-store owns, and the model has no recurrent state), so they are not carried.
+    responsibility_sha256: b7bf4fa72d8cdd4cdea796c413843c52b7e12f1a58864db64edb40381d4dc206
+    responsibility_read: Compute the part of each layer every token needs, in a fixed order.
+  expert-router:
+    type: layer-compute
+    fit: clean
+    quote: turn the feed-forward input into 256 logits and choose 8 experts with their weights
+    basis: Expert selection is named in the layer-compute summary as part of what the model defines.
+    responsibility_sha256: fa16b7600b22e8ad1d515a7639ee5ab2c5a285cf7131701b22bbe6630ca89dc3
+    responsibility_read: For each token in each layer, turn the feed-forward input into 256 logits and choose 8 experts
+      with their weights.
+  kv-store:
+    type: positional-state-store
+    fit: clean
+    quote: Hold the attention keys and values of every position up to the configured context length
+    basis: Holding the state the model keeps per position is positional-state-store. The suggestion also carries state-tiering
+      from Strata; nothing in this component's text moves state to a slower place, so it is not carried.
+    responsibility_sha256: d0a7e52df469193ce9822213c17359338f73a6d0d1af6a119047bc5d272b26c6
+    responsibility_read: Hold the attention keys and values of every position up to the configured context length, and truncate
+      them to a given position when asked.
+  output-head:
+    type: layer-compute
+    fit: clean
+    quote: Turn the residual after the last layer into one row of vocabulary logits per position
+    basis: The projection to the vocabulary is named in the layer-compute summary.
+    responsibility_sha256: 5346ca133861d9b961f89dab3324f1748028dbbccbdaac773903eed2154b86c9
+    responsibility_read: Turn the residual after the last layer into one row of vocabulary logits per position.
+  sampler:
+    type: sampling
+    fit: clean
+    quote: Turn the logits of the position being generated into one token id by a fixed chain
+    basis: Turning a position's logits into one token by a chain of steps is the sampling summary.
+    responsibility_sha256: 8dc0c0ca7db8836f5138809b749625ab6a878b6dad5d50fc1cd30b2647562c64
+    responsibility_read: 'Turn the logits of the position being generated into one token id by a fixed chain: logit bias,
+      penalties, top-k, top-p, min-p, temperature, pick.'
+  http-front:
+    type: request-front
+    fit: partial
+    quote: Accept client requests over HTTP
+    basis: Accepting requests over the protocol offered, answering them and dropping the work of a client that has gone
+      is request-front.
+    reason: It also bounds how many inference calls are pending and owns the admission counters. request-front does not
+      name admission, and no other type is that job at the door (resource-governing is about memory or power, sequence-lifecycle
+      about sequences inside the engine).
+    responsibility_sha256: 68f9e9c1d98a3f34da666bff581610a8806f059891121e8594d4011d483638cc
+    responsibility_read: Accept client requests over HTTP, bound how many inference calls are pending, answer every failure
+      class with a defined status code, and cancel a request whose client has hung up.
+  prompt-builder:
+    type: prompt-preparation
+    fit: clean
+    quote: Produce the exact prompt token ids and the token limit for a request from its messages
+    basis: Turning a request's messages and settings into the exact prompt tokens is prompt-preparation; its decisions (tokenizer,
+      chat template) are that type's kind of choice.
+    responsibility_sha256: c19c100d6269549395f677dd7b41d367c2877c32309a492bde60a44160feb177
+    responsibility_read: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse
+      the request.
+  request-runner:
+    type: output-interpretation
+    fit: partial
+    quote: turn the token ids into content events with a final finish record
+    basis: Turning produced tokens into what is returned, with the record of where the output ended, is output-interpretation.
+    reason: It also drives one API request through one or more engine generations, a job of the serving side that output-interpretation
+      does not name and that no single type describes.
+    responsibility_sha256: 771cf7fc82655449b38b6d91d1b38dfae3e87df7ce55f42675825a4829113ca1
+    responsibility_read: Drive one API request through one or more engine generations and turn the token ids into content
+      events with a final finish record.
+  engine-client:
+    type: engine-supervision
+    fit: clean
+    quote: Keep one engine child process resident and in step with the server
+    basis: Keeping the engine process running, carrying commands and token lines between it and the server, and ending and
+      restarting a process that is dead, silent or frozen is engine-supervision.
+    responsibility_sha256: d42f7c0d580fba81e41675f0f8397351a652f9a3bd4fda3c7d55cf92f6623202
+    responsibility_read: 'Keep one engine child process resident and in step with the server: send each generation as one
+      text command, deliver its token lines to the caller, and end and restart a process that is dead, silent, frozen or
+      fatally broken.'
+  engine-command-loop:
+    type: engine-supervision
+    also:
+    - sequence-lifecycle
+    fit: partial
+    quote: Inside the engine process, read one command at a time, run one prompt read and one generation at a time, and
+      report each generation's tokens and end figures as text lines
+    basis: Running the engine's process loop and the transport of its commands and results is engine-supervision; the step-scheduler
+      type's own `not` says a loop that does not decide what a step contains is engine supervision. It owns the live conversation
+      record, the record of the tokens whose state is live, which is sequence-lifecycle's.
+    reason: 'The suggested main type, step-scheduler, does not fit its text: with one generation at a time nothing decides
+      what a step contains or which sequences join it. Of sequence-lifecycle it has only the record; admitting, pausing
+      and releasing sequences are not in its text.'
+    responsibility_sha256: 68f97f43878fdbebfb1131007375aecec2fd6fdf1688577d65a84aa145fcd3cf
+    responsibility_read: Inside the engine process, read one command at a time, run one prompt read and one generation at
+      a time, and report each generation's tokens and end figures as text lines.
+  resume-decision:
+    type: prefix-reuse
+    fit: clean
+    quote: choose the stored state that shares the longest valid prefix with the prompt, make the session hold exactly that
+      state by truncating or restoring
+    basis: Finding stored state a request can continue from and making the sequence hold exactly that state is prefix-reuse
+      word for word.
+    responsibility_sha256: f6eda388af1c280befb5d1f9ea9b6ba0a001dd6d9bfd1809eaa9448e4c0ba017
+    responsibility_read: For each request, choose the stored state that shares the longest valid prefix with the prompt,
+      make the session hold exactly that state by truncating or restoring, and report the prefix length.
+  parked-conversations:
+    type: prefix-reuse
+    fit: clean
+    quote: Hold images of other conversations' attention state within a budget, find the one with the longest valid prefix
+      for a prompt, and evict
+    basis: Holding stored state for later reuse and finding the one a prompt can continue from is the store side of prefix-reuse.
+      Nothing in its text moves state to a slower place, so state-tiering does not apply.
+    responsibility_sha256: 1876a97cfdc1bb2fa70c7b0b43f3716075b3d319987215f3caa66c4e5e00c602
+    responsibility_read: Hold images of other conversations' attention state within a budget, find the one with the longest
+      valid prefix for a prompt, and evict.
+  session-files:
+    type: session-persistence
+    fit: clean
+    quote: On an explicit command, write the session's current conversation to one file or read one back
+    basis: Writing a sequence's whole state to a file and reading it back on request is session-persistence.
+    responsibility_sha256: 251cb049b28b9a79b23ba5c5f9f45a082c41dc5007e7c5136d92f267f86c4c32
+    responsibility_read: On an explicit command, write the session's current conversation to one file or read one back,
+      refusing any file that does not belong to this model, configuration and engine version before any state changes.
+  engine-diagnostics:
+    type: telemetry
+    also:
+    - calibration
+    fit: partial
+    quote: record what the run selected at start, count cache hits and storage reads per layer, and record how often each
+      expert is routed
+    basis: Recording what the run chose and what it did is telemetry. Recording how often each expert is routed gives the
+      expert usage profile it owns, which cache-policy may take as the starting contents of the cache; usage statistics
+      of selectively used weights recorded for other nodes is a form of calibration.
+    reason: The responsibility itself says only that the counts are recorded and written when asked, which is telemetry.
+      That the usage profile is input other nodes take as fixed (calibration) rests on the system level (the flow usage-profile-out,
+      'a file that a later start can load') and on cache-policy's decision starting-contents, not on this component's text;
+      and it is counted during ordinary runs, not offline, at startup or in an opt-in profiling run as calibration says.
+    checked: The first reading gave fit clean. On the check the fit was changed to partial for the reason above; the types
+      were kept.
+    responsibility_sha256: 42427be49ff601b5a5644394a2710dfbd0fcc13298c239a37f3144b0c0385dfe
+    responsibility_read: Inside the engine process, record what the run selected at start, count cache hits and storage
+      reads per layer, and record how often each expert is routed, writing each when asked.
+  server-metrics:
+    type: telemetry
+    fit: clean
+    quote: turn the engine's end-of-request figures and the server's own clocks into per-request records, running totals
+      and a live rate
+    basis: Recording what the run did, per request and in totals, in a form that can be reported against the requirements,
+      is telemetry.
+    responsibility_sha256: f4211edbcc37eb1bf2dc711f407c89ce008b4bbb75f41c4e5aaa3a3e6e684f92
+    responsibility_read: In the server process, turn the engine's end-of-request figures and the server's own clocks into
+      per-request records, running totals and a live rate, fill the usage and timings of each response, sample the machine
+      at intervals, and render all of it for outside monitors.

@@ -1,0 +1,404 @@
+kind: system
+id: sys/ds4
+title: "DwarfStar (ds4)"
+summary: "ds4 is a C engine written for a few large mixture-of-experts models. It keeps one copy of the model in memory the GPU reads directly, by mapping the model file and handing the same pages to the GPU. When the model does not fit, it keeps only recently and often selected experts in a bounded locked cache, reads the others from SSD at the moment they are selected, still computes them on the GPU, and hides the read time behind other computation. The Engram tables of DeepSeek V4.1 Flash stay on SSD and a few dozen rows are read per token. Optionally a draft module proposes several tokens that the full model checks in one pass. Session state is compact, so it is snapshotted, rolled back and checkpointed to disk for prefix reuse."
+product:
+  name: DwarfStar
+  revision: b3f5018
+  upstream: "https://github.com/antirez/ds4"
+  form: "A C engine written for a small set of model families. It accepts only GGUF files converted by the project itself."
+targets:
+  - model: model/deepseek-v4.1-flash
+    hardware: hw/dgx-spark
+    note: "The ds4 documentation says V4.1 Flash Q2 on DGX Spark needs SSD streaming. ds4 also supports five other model families and other hardware, which this description does not cover as targets."
+# Added 2026-11-19, not by the author of this description. The names its components use for stages, policies and
+# states were declared nowhere, which the checker reported as a notice when this description was written and now
+# reports as blocking. The lists below are exactly the names the components use.
+declares:
+  stages: [load, prefill, decode, draft, verify, commit]
+  policies: [dspark_pause, engram_prewarm, expert_cache_eviction, kv_checkpoint_retention]
+  states: [compressed_kv, compressor_pending, dspark_scheduler_window, dspark_window, engram_history, expert_cache_index,
+           expert_heat, indexer_rows, kv_checkpoint_store, kv_row_counters, raw_kv, session_token_list,
+           speculation_snapshots, weight_mapping_registration]
+components:
+  - comp/ds4/model-preparation
+  - comp/ds4/weight-mapping
+  - comp/ds4/memory-plan
+  - comp/ds4/api-server
+  - comp/ds4/prefix-reuse
+  - comp/ds4/prefill-driver
+  - comp/ds4/decode-loop
+  - comp/ds4/engram-row-reader
+  - comp/ds4/engram-prewarm
+  - comp/ds4/expert-subsystem
+  - comp/ds4/gpu-kernels
+  - comp/ds4/kv-state
+  - comp/ds4/speculation-subsystem
+  - comp/ds4/distributed-tp
+flows:
+  - id: prepared_model_file
+    sender: comp/ds4/model-preparation
+    receiver: external
+    carries:
+      content: weights
+      refs: [expert_weights]
+    description: "The offline conversion writes the GGUF file that the engine later reads as model_files."
+  - id: request_in
+    sender: external
+    receiver: comp/ds4/api-server
+    carries:
+      content: request
+    timing: per_request
+    description: "A client request. Clients usually resend the whole conversation."
+  - id: response_out
+    sender: comp/ds4/api-server
+    receiver: external
+    carries:
+      content: response
+    timing: per_request
+  - id: mapped_file
+    sender: model_files
+    receiver: comp/ds4/weight-mapping
+    carries:
+      content: weights
+      refs: [dense_weights]
+    timing: startup
+    description: "The model file is mapped into the process."
+  - id: device_visible_weights
+    sender: comp/ds4/weight-mapping
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: weights
+      refs: [dense_weights]
+    timing: startup
+    description: "The same mapped pages are registered for GPU access, without a second copy."
+  - id: non_expert_weight_size
+    sender: comp/ds4/weight-mapping
+    receiver: comp/ds4/memory-plan
+    carries:
+      content: signal
+    timing: startup
+    description: "Size of the non-expert weights, subtracted when the cache budget is computed."
+  - id: expert_cache_budget
+    sender: comp/ds4/memory-plan
+    receiver: comp/ds4/expert-cache
+    carries:
+      content: plan
+    timing: startup
+    description: "Number of cache slots and cache bytes."
+  - id: conversation_tokens
+    sender: comp/ds4/api-server
+    receiver: comp/ds4/prefix-reuse
+    carries:
+      content: tokens
+    timing: per_request
+  - id: restored_session_state
+    sender: comp/ds4/prefix-reuse
+    receiver: comp/ds4/kv-state
+    carries:
+      content: model_state
+      refs: [compressed_kv]
+    timing: per_request
+    description: "State of the longest matching prefix, from a live session or a disk checkpoint."
+  - id: session_state_to_checkpoint
+    sender: comp/ds4/kv-state
+    receiver: comp/ds4/prefix-reuse
+    carries:
+      content: model_state
+      refs: [compressed_kv]
+    timing: on_demand
+  - id: new_suffix_tokens
+    sender: comp/ds4/prefix-reuse
+    receiver: comp/ds4/prefill-driver
+    carries:
+      content: tokens
+    timing: per_request
+    description: "Only the tokens after the reused prefix are prefilled."
+  - id: prefill_chunks
+    sender: comp/ds4/prefill-driver
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: tokens
+    timing: per_request
+  - id: prefill_table_rows_wanted
+    sender: comp/ds4/prefill-driver
+    receiver: comp/ds4/engram-row-reader
+    carries:
+      content: tokens
+    timing: per_request
+  - id: prefill_expert_reads_wanted
+    sender: comp/ds4/prefill-driver
+    receiver: comp/ds4/expert-stream-reader
+    carries:
+      content: control
+    timing: per_request
+    description: "During prefill the experts of the next layer are read while the current layer computes."
+  - id: decode_token_in
+    sender: comp/ds4/decode-loop
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: tokens
+    timing: per_step
+  - id: decode_logits
+    sender: comp/ds4/gpu-kernels
+    receiver: comp/ds4/decode-loop
+    carries:
+      content: activations
+    timing: per_step
+  - id: decode_table_rows_wanted
+    sender: comp/ds4/decode-loop
+    receiver: comp/ds4/engram-row-reader
+    carries:
+      content: tokens
+    timing: per_step
+  - id: engram_rows_from_file
+    sender: model_files
+    receiver: comp/ds4/engram-row-reader
+    carries:
+      content: weights
+      refs: [engram_tables]
+    timing: per_step
+  - id: engram_rows
+    sender: comp/ds4/engram-row-reader
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: weights
+      refs: [engram_tables]
+    timing: per_step
+  - id: engram_table_prewarm_read
+    sender: model_files
+    receiver: comp/ds4/engram-prewarm
+    carries:
+      content: weights
+      refs: [engram_tables]
+    timing: background
+  - id: selected_expert_ids
+    sender: comp/ds4/gpu-kernels
+    receiver: comp/ds4/expert-split-dispatch
+    carries:
+      content: activations
+    timing: per_step
+    description: "The router result read back to the CPU. It happens once per layer within a step."
+  - id: experts_wanted
+    sender: comp/ds4/expert-split-dispatch
+    receiver: comp/ds4/expert-cache
+    carries:
+      content: control
+    timing: per_step
+  - id: expert_selected_signal
+    sender: comp/ds4/expert-cache
+    receiver: comp/ds4/expert-eviction
+    carries:
+      content: signal
+    timing: per_step
+    description: "Every selection of an expert, whether it hit or missed."
+  - id: victim_choice
+    sender: comp/ds4/expert-eviction
+    receiver: comp/ds4/expert-cache
+    carries:
+      content: control
+    timing: on_demand
+  - id: expert_read_request
+    sender: comp/ds4/expert-cache
+    receiver: comp/ds4/expert-stream-reader
+    carries:
+      content: control
+    timing: on_demand
+  - id: expert_bytes_from_file
+    sender: model_files
+    receiver: comp/ds4/expert-stream-reader
+    carries:
+      content: weights
+      refs: [expert_weights]
+    timing: on_demand
+  - id: expert_bytes_into_cache
+    sender: comp/ds4/expert-stream-reader
+    receiver: comp/ds4/expert-cache
+    carries:
+      content: weights
+      refs: [expert_weights]
+    timing: on_demand
+  - id: cached_expert_weights
+    sender: comp/ds4/expert-cache
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: weights
+      refs: [expert_weights]
+    timing: per_step
+  - id: expert_work_order
+    sender: comp/ds4/expert-split-dispatch
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: control
+    timing: per_step
+    description: "Which experts to compute first and which after their read completes. Down projection and sum are issued once."
+  - id: attention_state_rows
+    sender: comp/ds4/gpu-kernels
+    receiver: comp/ds4/kv-state
+    carries:
+      content: model_state
+      refs: [raw_kv]
+    timing: per_step
+  - id: attention_state_read
+    sender: comp/ds4/kv-state
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: model_state
+      refs: [compressed_kv]
+    timing: per_step
+  - id: draft_module_weights
+    sender: model_files
+    receiver: comp/ds4/dspark-drafter
+    carries:
+      content: weights
+      refs: [dspark_weights]
+    timing: startup
+    description: "The DSpark support file is a separate file from the main model file."
+  - id: draft_features
+    sender: comp/ds4/gpu-kernels
+    receiver: comp/ds4/dspark-drafter
+    carries:
+      content: activations
+    timing: per_step
+    description: "Features of recent positions that the draft module needs."
+  - id: draft_permission
+    sender: comp/ds4/dspark-scheduler
+    receiver: comp/ds4/dspark-drafter
+    carries:
+      content: control
+    timing: per_window
+  - id: drafted_tokens
+    sender: comp/ds4/dspark-drafter
+    receiver: comp/ds4/draft-verify-commit
+    carries:
+      content: tokens
+    timing: per_window
+  - id: verify_batch
+    sender: comp/ds4/draft-verify-commit
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: tokens
+    timing: per_window
+    description: "The last committed token plus the drafts, at most 6 rows."
+  - id: verify_logits
+    sender: comp/ds4/gpu-kernels
+    receiver: comp/ds4/draft-verify-commit
+    carries:
+      content: activations
+    timing: per_window
+  - id: accepted_prefix_commit
+    sender: comp/ds4/draft-verify-commit
+    receiver: comp/ds4/kv-state
+    carries:
+      content: control
+    timing: per_window
+  - id: accepted_tokens
+    sender: comp/ds4/draft-verify-commit
+    receiver: comp/ds4/decode-loop
+    carries:
+      content: tokens
+    timing: per_window
+  - id: acceptance_count
+    sender: comp/ds4/draft-verify-commit
+    receiver: comp/ds4/dspark-scheduler
+    carries:
+      content: signal
+    timing: per_window
+  - id: generated_tokens
+    sender: comp/ds4/decode-loop
+    receiver: comp/ds4/api-server
+    carries:
+      content: tokens
+    timing: per_step
+  - id: partial_results_to_peer_link
+    sender: comp/ds4/gpu-kernels
+    receiver: comp/ds4/distributed-tp
+    carries:
+      content: activations
+    timing: per_step
+  - id: partial_results_from_peer_link
+    sender: comp/ds4/distributed-tp
+    receiver: comp/ds4/gpu-kernels
+    carries:
+      content: activations
+    timing: per_step
+mechanisms:
+  - mech/hot-expert-residency
+  - mech/draft-then-verify
+  - mech/low-bit-expert-quantization
+uncatalogued_mechanisms:
+  - {family: single-copy-mapped-weights, summary: "On unified memory, map the model file and hand the same pages to the GPU, so the weights exist once instead of once for the file and once for the device."}
+  - {family: table-read-by-row, summary: "Leave a large lookup table on storage and read only the few dozen rows a token needs."}
+  - {family: read-latency-hidden-behind-compute, summary: "Start the storage read of a selected expert early and do other computation of the same layer while it arrives."}
+  - {family: compact-session-checkpoint, summary: "Keep session state small enough to snapshot, roll back and write to disk, so a request sharing a prefix with an earlier one continues from its checkpoint."}
+  - {family: expert-split-across-machines, summary: "Hold disjoint sets of experts on two machines and send each selected expert's work to the machine that holds it."}
+resource_expectations:
+  - holding: "Non-expert weights (attention, router, shared expert, output head), used through the mapped pages of the model file"
+    held_on: fast_memory
+    amount: UNSET
+    note: "The documentation gives 152 GiB for all resident weights at Q2 and does not split expert from non-expert."
+  - holding: "Expert cache: separately allocated and locked buffers, only in SSD streaming mode"
+    held_on: fast_memory
+    amount: UNSET
+    note: "Computed at startup: suggested working set times 80 percent, minus non-expert weights. No figure for this target is given."
+  - holding: "The model file with all experts"
+    held_on: storage
+    amount:
+      value: 341
+      unit: GiB
+      unit_basis: binary
+      status: reported
+      source: "ds4 docs/MODELS.md lines 54 to 64"
+      note: "Q2 file including the Engram tables."
+  - holding: "Engram tables, never resident, read by row"
+    held_on: storage
+    amount:
+      value: 189
+      unit: GiB
+      unit_basis: binary
+      status: reported
+      source: "ds4 docs/MODELS.md lines 54 to 64"
+  - holding: "DSpark draft support file"
+    held_on: UNSET
+    amount:
+      value: 8.04
+      unit: GiB
+      unit_basis: binary
+      status: reported
+      source: "ds4 docs/SPECULATIVE_DECODING.md lines 56 to 75"
+    note: "The notes do not say where the draft module is kept."
+  - holding: "Compressed attention state of the sessions"
+    held_on: fast_memory
+    amount: UNSET
+  - holding: "Session state checkpoint files"
+    held_on: storage
+    amount:
+      value: 4096
+      unit: MB
+      unit_basis: UNSET
+      status: reported
+      source: "ds4_kvstore.c lines 33 to 42 (default disk budget)"
+claims:
+  - text: "On DGX Spark with V4.1 Flash Q2, prefill of a 3241 token prompt rose from 49 to 54 tokens per second to 93 to 96 tokens per second."
+    status: reported
+    source: "ds4 docs/DGX_SPARK.md lines 45 to 52"
+    conditions:
+      model: "DeepSeek V4.1 Flash Q2"
+      hardware: "DGX Spark"
+      workload: "prefill of 3241 tokens, SSD streaming"
+    baseline: "The same engine with its earlier disk read strategy"
+  - text: "Keeping the Engram tables on disk saves 189 GiB of memory for V4.1 Flash. No speed comparison is given."
+    status: reported
+    source: "ds4 docs/MODELS.md lines 54 to 64"
+  - text: "SSD streaming is slower than resident mode. The documentation says to use resident mode when the model fits."
+    status: reported
+    source: "ds4 docs/SSD_STREAMING.md lines 5 to 8"
+  - text: "Speculative decoding can be slower. On hard to predict prose at temperature 1 it gave 18.81 tokens per second against 19.53 without it."
+    status: reported
+    source: "ds4 docs/DGX_SPARK.md lines 155 to 166"
+    conditions:
+      model: "DeepSeek V4 Flash Q2, resident"
+      hardware: "DGX Spark"
+      workload: "256 generated tokens, 4K context, median of three"
+    baseline: "Ordinary decoding on the same engine"
+coverage: "Written only from engines/ds4.md, which was itself written from reading the ds4 source at revision b3f5018 and its documentation, without building or running. This description covers DeepSeek V4.1 Flash on DGX Spark. It does not cover the other five model families, the Metal specific details beyond what the notes generalise, the ROCm path, the server and agent code, or session batching and the power option, which the notes list without detail."

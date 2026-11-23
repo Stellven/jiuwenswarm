@@ -1,0 +1,450 @@
+# Acceptance thresholds for the node types, fixed before the types are redone so that the result cannot be read
+# generously afterwards. tools/so_nodetypes_validate.py reports each measure against its threshold.
+#
+# First round, 2026-11-16, draft 0.1 (types induced from Strata and ds4 only):
+#   fit on engines not used for induction   30% clean, 15% no type      FAIL
+#   blind agreement on the induction engines 100%                        pass, but not informative on its own
+#   removed decisions covered by a choice    35% of real design choices  FAIL
+#   claims contradicted by an engine         several "no effect on output" claims, not counted  FAIL
+set_on: 2026-11-16
+
+generalisation:
+  method: "Leave one engine out. Node types are induced from four engines by a reader who has not seen the fifth; a second reader classifies the fifth engine's parts against them. Repeated for each engine."
+  clean_fit_min: 0.75          # share of the held-out engine's parts that are plainly an instance of one type
+  no_type_max: 0.05            # share with no type at all, after excluding parts that are outside an engine (see scope)
+  applies_to: every_fold       # each engine must pass, not the average
+
+agreement:
+  method: "Two independent readers classify every part of every engine from the definitions alone, with names and origins hidden."
+  same_type_min: 0.90          # share of parts on which both readers and the reference assignment agree
+
+decision_coverage:
+  method: "Every decision recorded in an engine inventory is matched against the choices of its part's node type."
+  covered_min: 0.80            # share of real design decisions plainly covered; engine-specific trivia excluded
+  not_covered_max: 0.05
+
+claims:
+  method: "Every invariant and every effect-on-output statement of a node type is checked against each engine that has an instance."
+  contradicted_max: 0          # a claim an engine contradicts must be reworded, conditioned or removed
+
+claims_note_2026_11_16: >
+  Changed after round 5, and therefore to be reported with the results. Up to draft 0.5 an effect-on-output statement was read as a closed list of causes per
+  node type, and any cause an engine showed that the type had not listed counted as a contradiction. Five rounds, each with fresh readers, kept finding
+  further causes (74, 41, 23, 17 contradictions), most of them one cross-cutting fact seen from several node types. From draft 0.6 the claim of a node type
+  is the set of levels it can reach; the cross-cutting causes are stated once as output principles. A reader records an unlisted cause at a listed level as
+  `new_causes`, not as a contradiction. The threshold stays 0. The summary reports contradictions and new causes side by side so that the count under the
+  earlier reading (their sum) stays visible.
+
+claims_note_2026_11_16_second: >
+  Round 6 (draft 0.6): 15 contradictions and 14 new causes. Twelve of the 15 were effects a node has only through another node (a cache size that decides what a
+  default omission skips, a capacity that bounds how many rows share a step). Listing these per node type does not close either: almost every node can reach
+  another node's level through something it decides. From draft 0.7 `effect_on_output` claims only what the node's own work does; what it decides for other
+  nodes is named in `affects_output_through` and governed by `output_principles`, and an unnamed indirect effect is recorded as a new cause. The threshold stays 0.
+  Both this note and the one above describe a change made after results were seen; the summary keeps contradictions and new causes side by side for that reason.
+
+sufficiency:
+  method: "A reader given only the node types, a model and a machine selects the node types and settles their choices."
+  selection_agrees_min: 0.90
+  choices_without_guidance_max: 0
+
+scope:
+  outside_an_engine:           # parts found in engine repositories that are not parts of the engine
+    - "benchmark, evaluation and quality harnesses"
+    - "desktop applications and other clients"
+    - "patch provenance and build bookkeeping of a fork"
+  note: "Such parts are recorded in the inventories and reported, and are not counted against the node types."
+
+held_out:
+  engine: "llama.cpp"
+  source: "https://github.com/ggml-org/llama.cpp, shallow copy of the default branch at 92192d3, downloaded 2026-11-16"
+  rule: "Its inventory is built by an independent reader and is not opened by whoever induces the node types until the types are frozen. It is used once, after freezing, with the generalisation thresholds above. A second use after any change to the types is no longer a held-out test and must be reported as such."
+  why_this_engine: "A general engine of a different lineage from the five used for induction: not written for one model, not a mixture-of-experts specialist, with its own serving, grammar constraint, speculative decoding, partial offload to an accelerator and other input kinds."
+
+frozen:
+  draft: "0.8"
+  on: 2026-11-16
+  sha256: "220495602ef48973f964d62569b8e590cced9a173664bd54c4739f2239cf3edb"
+  state: "Draft 0.8 answers the five contradictions round 7 found in draft 0.7 and was not checked again on the five engines before freezing."
+  disclosure: "Before freezing, the author of the node types saw the hand-back summary of the reader who built the held-out inventory (a flat state pool, an expert cache with a CPU share, a speech output part, among others) but did not open the inventory. Nothing was added to the types on that account."
+
+# ---------------------------------------------------------------------------------------------------------------
+# Added 2026-11-17, before any of the results below existed. The thin draft (0.9) keeps the 44 types of the frozen
+# draft 0.8 and removes detail. Three checks are run once each. No pass mark is set and no draft is revised to move
+# a number; what is reported is fixed here.
+thin_draft_2026_11_17:
+  why: "The only feedback on the node ontology was that it has too much detail. Drafts 0.2 to 0.8 added detail. The
+    held-out engine showed the division into types holds and the list of choices does not (50% of its decisions
+    plainly covered, against 93% on the five engines the list was written from)."
+  readers: "Claude subagents (model: opus), each alone in its own folder with only the files named. Not people."
+  choices:
+    question: "Which choices of draft 0.8 do engines decide independently, and which were copied from one engine?"
+    method: "For each of the six engines, one reader matches every recorded decision to at most one choice of its
+      part's node type (validation/choices/BRIEF.md). A choice counts for an engine when a decision plainly is it."
+    rule_for_the_thin_draft: "A choice stays in the node type when at least two of the six engines decide it. The
+      others are kept as examples with the engine they came from, outside the type."
+    reported:
+      - "The number of choices by the number of induction engines that decide them."
+      - "Whether being decided in two or more of the five induction engines predicts being decided in llama.cpp:
+        the share of such choices llama.cpp also decides, against the share for the rest. Only choices of types
+        llama.cpp has are counted. llama.cpp played no part in which choices are counted as recurring here."
+      - "The share of llama.cpp's decisions that plainly are a recurring choice."
+    limits: "One reader per engine, no second reader. Near-duplicate choices of one type split the count and make
+      recurrence look lower than it is."
+  classification:
+    question: "Does removing the choices and the per-cause lists make the types harder to tell apart?"
+    method: "Two readers see the thin types without any choices and classify the 287 parts of all six engines,
+      names removed (validation/round8/). Scored as in round 7: a part agrees when every reader gives a type the
+      reference accepts."
+    reported: ["agreement on the 240 parts of the induction engines, beside round 7's 239 of 240",
+               "agreement on the 47 parts of llama.cpp, whose reference came from its independent checker"]
+    limits: "The readers are a different model from rounds 2 to 7, so a drop cannot be put on the thinning alone."
+  selection:
+    question: "Given a model, a machine and a target, do the thin types say which nodes the engine needs?"
+    method: "Two readers see the thin types and the descriptions of a model, a machine and a target, and answer for
+      each type: needed, not needed, or open with the fact that would settle it. Three targets: Strata's model on
+      its PC, the same model on DGX Spark, Muse Spark Open on DGX Spark. For the first two the answer is compared
+      with the types Strata's working parts are instances of on that machine (validation/selection/strata-truth.yaml)."
+    reported: ["agreement between the two readers per target", "each reader against Strata on the two known targets",
+               "the facts readers needed and did not find"]
+    limits: "Strata runs some parts by choice, not by need; a type it runs is not always one the model and machine
+      require. The Muse target has no known answer."
+  results_2026_11_17:
+    choices: "863 decisions matched. Plainly a choice: Strata 78%, ds4 73%, HyperQwen 70%, NInfer 79%, Splash 76%,
+      llama.cpp 30%. Of the 505 choices, 81 are decided by two or more of the six engines, 322 by one, 102 by none
+      plainly. Decided in two or more of the five induction engines: llama.cpp also decides 14 of 66 (21%); the
+      rest: 22 of 387 (6%). llama.cpp decisions that plainly are such a choice: 14 of 121. Files:
+      validation/choices/map-*.yaml, recurrence.yaml."
+    classification: "Both readers and the reference agree on 238 of 240 parts of the induction engines (round 7:
+      239 of 240) and on 44 of 47 of llama.cpp. The two readers gave the same type for 283 of 287. Files:
+      validation/round8/."
+    selection: "The two readers gave the same answer for 44, 44 and 43 of 44 types. Strata's model on its PC:
+      Strata runs 25 of the 27 types both called needed, 1 of the 8 called not needed, 6 of the 9 left open. Moving
+      to DGX Spark Strata stops running expert-fetch, residency-policy and secondary-compute; both readers called
+      all three not needed there, and also expert-source, expert-cache and expert-dispatch, which Strata still
+      runs. Files: validation/selection/."
+    to_be_said_with_the_results:
+      - "The file the classification readers saw listed the open gaps, which describe the three llama.cpp parts
+        that have no type. This helped them answer `none` for those parts."
+      - "After the readers ran, draft 0.9 renamed three fields and four effect levels to agree with the dictionary,
+        dropped the kind of a choice, merged eight pairs of near-duplicate choices the mapping readers named (81
+        kept choices became 79), and reworded `needed_when` of model-conversion and row-source on what the
+        selection readers reported. None of this was checked again."
+      - "The mapping reader here was stricter than the checkers of rounds 2 to 7, who judged the same five
+        engines 93% covered against draft 0.7: one choice per decision, and doubt counted against."
+      - "The two selection readers are the same model reading the same files; their agreement with each other is
+        weak evidence. Their agreement with what Strata runs is the stronger result."
+  # One confirmation on the final draft 0.9, set before it was run: classification and selection each run once more,
+  # nothing in the draft changed afterwards whatever the result.
+  confirmation_2026_11_17:
+    draft: "ontology/node-types.draft.yaml, draft 0.9, sha256 a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"
+    what_the_readers_saw: "The final draft with its choices and seen_in and without open_gaps
+      (validation/round9/node-types.for-readers.yaml). New readers (model: opus), each alone in a new empty folder.
+      The parts were shuffled again under new item ids. The selection readers were told not to use seen_in."
+    classification:
+      first_run: "238 of 240 and 44 of 47; the two readers gave each other the same type for 283 of 287."
+      confirmation: "237 of 240 and 43 of 47; the two readers gave each other the same type for 285 of 287.
+        Neither reader answered `none` for any part: the three llama.cpp parts that have no type were each put in
+        the nearest type (layer-compute, output-interpretation, positional-state-store)."
+      files: validation/round9/
+    selection:
+      first_run: "Readers agreed with each other on 44, 44, 43 of 44. PC: both said needed 27 (Strata runs 25),
+        not needed 8 (1), open 9 (6). DGX Spark: needed 23 (21), not needed 17 (4), open 4 (4)."
+      confirmation: "Readers agreed with each other on 40, 40, 42 of 44; every difference is not needed against
+        open. PC: both said needed 26 (Strata runs 25), not needed 4 (0), open 10 (6). DGX Spark: needed 21 (20),
+        not needed 14 (4), open 5 (4). In both runs both readers called all three types Strata stops running on
+        DGX Spark not needed there."
+      changed_by_the_reworded_conditions: "model-conversion went from needed to open in all three cases (the files
+        do not say whether the checkpoint is read as published). row-source went from needed to not needed on DGX
+        Spark, where Strata still runs its table reader although the table fits in memory."
+      files: validation/selection-final/
+
+# ---------------------------------------------------------------------------------------------------------------
+# Added 2026-11-17 after the team said who reads the ontology first, and before the trial below was run.
+intake_trial_2026_11_17:
+  why: "The team: 'the first node is Intention Compiler. System Ontology will be part of query input, and all the
+    query prompts will go to Intention Compiler.' Nothing in the ontology was shaped for that reader. One trial, to
+    see what of the ontology an Intent pass takes up when it arrives inside a query."
+  what_is_run: "A query for the first use case is assembled: a three-sentence request written for this trial, and
+    ontology files as its context. Two variants. A: the target spec, the model and the machine. B: A plus the node
+    types (draft 0.9). For each variant one reader plays the Intent CC of the Intention Compiler, working from the
+    factory's own pages (docs/architecture/design-package/pipeline/intention-compiler.md,
+    reference/intent-and-requirements.md) and the Intent IR schema. Where the schema asks for a source span the
+    reader gives the exact quoted text and tools/so_intake_trial.py turns it into offsets. If an Intent comes out
+    `ready`, a second reader plays the Requirements CC on it and writes a Research Brief. If it comes out
+    `needs_clarification`, the Requirements pass is not run, as the design says."
+  reported:
+    - "Whether each Intent IR is valid against the factory's schema, and how many quotes were not found word for word."
+    - "Readiness, and the uncertainties with their blocking flag."
+    - "Of the requirements and stated fields of the target spec, how many an entry of the IR cites. Of its lines
+      that are not set, how many an uncertainty cites."
+    - "In variant B, which node types are cited and in which fields of the IR."
+    - "The size of each query."
+    - "For a Brief, when one is written: validity against the schema, and what of the ontology it carries on."
+  not_a_test_of: "The factory's Intention Compiler itself. The readers are Claude subagents (model: opus) following
+    the design pages, not the pinned model behind the real CC, and no check bundle, verifier or gate is run."
+  rule: "Run once. Nothing in the ontology is changed on the result without its owner's decision."
+  results:
+    queries: "A: request, target spec, model, machine, 11 KB. B: the same plus the node types, 59 KB."
+    intent: "Both Intent IRs are valid against the factory's schema; all quotes (110 and 73) are found word for word.
+      Both say `ready`, with 13 and 12 uncertainties, none blocking. Of the target spec: all 6 requirements and all 9
+      stated fields are cited in both; of its 12 lines that are not set, 9 and 8 are cited; of the 5 aspects left
+      open to the factory, 2 in both. In B none of the 44 node types is cited: the file appears once, as one context
+      entity, and once as an uncertainty about what it is for."
+    brief: "Both Research Briefs are valid against the factory's schema. A: 12 mandatory requirements, 7 constraints,
+      5 target metrics, 4 deliverables, 14 unresolved items of which 4 blocking (context length, quality task set and
+      threshold, allowed transformations, checkpoint). B: 15, 9, 4, 4, 15 unresolved of which 5 blocking (the same
+      four and the workload). No default was applied in either. In B the node types are bound as a reference
+      document and no requirement is drawn from them."
+    what_had_no_place: "Both Requirements readers report that the Brief has no field for facts about the model and
+      the machine (layers, experts per token, memory bandwidth), for the status of a statement (stated, proposed,
+      derived, not set), for a unit basis or an accounting boundary, or for a requirement that is reported and not
+      judged. These went into free text or stayed reachable only as attached reference documents. `domain_lane` is
+      fixed to scientific_research."
+    to_be_said_with_the_results:
+      - "The readers are Claude subagents following the design pages; this is not the factory's Intention Compiler.
+        No check bundle, verifier or gate was run."
+      - "The request text was written for this trial. Its last sentence tells the reader to take the attached files
+        as the statement of what is wanted; without it the readers might have used the files less."
+      - "The blocking flags of the Briefs follow a rule each Requirements reader derived from the word 'material' in
+        the design pages; the two readers differ on the workload."
+      - "Quotes were turned into spans by a program; the real Intent CC has to produce the spans itself."
+    files: validation/intake/
+  # Added 2026-11-18, before the run below: one more run, with the engine's own description.
+  second_run_2026_11_18:
+    why: "The first run attached the generic node types, which name no part of any one engine. The ontology asked
+      for is that of the inference engine itself, at system level and at component level. This run attaches
+      that: the two-level description of the Muse engine design."
+    what_is_run: "Variant C: the request, the target spec, the model, the machine, the system level of the Muse
+      design (examples/systems/muse/system.yaml) and its node level (examples/systems/muse/nodes.yaml). The generic
+      node types are not attached. The request text is changed in one place: it now says the files describe 'the
+      model, the machine, the target the engine is judged on, and the engine itself at two levels: the system as a
+      whole and its nodes'. The reader's instructions are word for word those of the first run. One reader plays
+      the Intent CC; if the Intent is `ready`, one reader plays the Requirements CC."
+    reported:
+      - "The same figures as for variants A and B, beside them."
+      - "Of the 29 nodes of the Muse design, how many an entry of the Intent IR cites, and in which fields."
+      - "Of the sections and the 68 flows of the system level, how many are cited."
+      - "For the Brief, when one is written: how many requirements, constraints and unresolved items, which are
+        blocking, and whether any requirement is drawn from the system level or the node level."
+    limits: "As for the first run. In addition: the request text was written for this run and tells the reader that
+      the files describe the engine itself; the Muse description says of itself that it is a proposed design of
+      which nothing has been built."
+    rule: "Run once. Nothing is changed on the result without the owner's decision."
+    results:
+      query: "C: request, target spec, model, machine, Muse system level, Muse node level, 53 KB."
+      intent: "Valid against the factory's schema; all 114 quotes found word for word. Readiness
+        `needs_clarification`, 13 uncertainties, 1 blocking. Entries: context 8, in_scope 7, out_of_scope 6,
+        constraints 7, preferences 3, user_targets 6. Target spec: 6 of 6 requirements and 9 of 9 stated fields
+        cited; 8 of its 12 lines that are not set."
+      blocking_item: "A conflict inside what was attached. The model description says each token uses 8 of 256
+        experts per layer. The Muse node `expert-router` says 512 logits and 10 experts
+        (examples/systems/muse/nodes.yaml, line 78) and the flow `routed-experts` says 10 expert ids per token
+        (examples/systems/muse/system.yaml, line 269). Both lines are in the files as stated. They come from the
+        Strata component the Muse node was carried over from as reused."
+      engine_description_taken_up: "Node level: 7 of 29 nodes cited, in in_scope (one entry naming the node level as
+        a whole), preferences and uncertainties; no node became a constraint or a target. System level: 3 of 68
+        flows cited, all by uncertainties; 8 of 15 sections cited (summary, product, targets, components, declares,
+        flows, derived_from, coverage). Characters cited: system 1,374 of 25,327; nodes 387 of 17,925."
+      other_inconsistencies_the_reader_named: "Non-blocking: flows that still mention drafts although drafting is
+        excluded; nodes that mention several cards and an n-gram table although the machine has one GPU and the
+        model no such table; a flow that loads every expert into an arena at startup although the summary keeps
+        experts on storage; an HTTP front in the design although the target leaves the engine's form unset."
+      requirements_pass: "Not run: the Intent is `needs_clarification`, and the method set before the run says the
+        Requirements pass is then not run."
+      to_be_said_with_the_results:
+        - "One reader, one run. A Claude subagent following the design pages, not the factory's Intention Compiler."
+        - "The request text of this run tells the reader the files describe the engine itself; that sentence was
+          written for the run."
+        - "Nothing in the Muse description was corrected after the run."
+
+# ---------------------------------------------------------------------------------------------------------------
+# Added 2026-11-18, after all the results above were known. Nothing in this entry was set in advance of a result.
+audit_2026_11_18:
+  written: "2026-11-18, after every result above was known."
+  found: "An audit of the scoring programs (rules-audit-2026-11-18, section C and finding B5) found that none of the
+    scorers behind section 6 of NODE-ONTOLOGY-revised.md could print a failure or exit with an error, and that the
+    marks set on 2026-11-16 at the top of this file were neither applied nor mentioned in section 6. The entry of
+    2026-11-17 above set no mark for the thin draft after the results of rounds 2 to 7 and of the held-out engine
+    were known."
+  changed_in_the_scorers:
+    - "so_nodetypes_experiments.py classify, selection and recurrence, and so_nodetypes_validate.py, set each figure
+      against the mark of 2026-11-16 that applies to it, print met or not met, and exit with 1 when a mark is not met
+      or a reader's file has a problem. A figure no mark applies to is printed with 'no mark was set for this check'."
+    - "A missing answer is never counted as agreement, between readers or with the key, and a part of the held-out
+      engine a reader did not answer stays in the denominator of the fit marks. A share that is not all of its total
+      is never printed as 100%."
+    - "so_nodetypes_validate.py reads every check file of a round, the held-out engine's included, compares typed
+      totals with the entries listed under them, prints how many parts a reader flags as outside an engine are left
+      out, and says per row when its mark was set and whether its reading changed later."
+    - "selection reports open answers, types with no needed_when, the figure with Strata's main types only, and
+      whether a reader's stated reason rests on a type Strata still runs."
+    - "Material for future selection readers no longer carries seen_in or the list of engines, and a removed name
+      leaves no trace; the stored inputs of the two runs were not rewritten. A run's reader instructions can now be
+      stored with it."
+    - "so_nodetypes.py doc writes section 6 from these scorers. A design's node types are read from its own
+      components (examples/systems/muse/node-assignment.yaml, read by Claude subagents), pinned to the text read; the
+      type of a design's component is no longer taken from the component it is derived from."
+    - "so_intake_trial.py score separates target items a quote singles out from items touched only by a quote that
+      spans several."
+  not_done: "No check was run again with new readers. Every figure below is computed from the answers stored on
+    2026-11-16 and 2026-11-17."
+  reading_fixed_after_the_results: "sufficiency.selection_agrees_min does not say what a selection must agree with.
+    It is read as agreement of each reader's answer with the types Strata has an active part for in the resolved
+    specs, an open answer agreeing with nothing. Agreement between the two readers is shown beside it."
+  against_the_marks_of_2026_11_16:
+    agreement: "Met. Every reader gives a type the key accepts: first run 238 of 240 and 44 of 47; confirmation 237
+      of 240 and 43 of 47. Counting only the key's main type: 236 of 240 and 41 of 47, then 236 of 240 and 40 of 47;
+      for llama.cpp that is 87.2% and 85.1%, not met."
+    generalisation: "Not met on draft 0.9. Parts a reader calls plainly one type, llama.cpp: first run 31 and 34 of
+      47, confirmation 30 and 30 of 47 (mark: 75%). No type: first run 4 and 1 of 47 (the first is 8.5%, not met),
+      confirmation 0 and 0. On draft 0.8 the two held-out readers met both marks (40 and 38 of 47 plainly one type;
+      0 and 1 with none). Holding out each engine in turn was never done; one engine was held out once."
+    decision_coverage: "Not met. Held-out checker on draft 0.8: 60 of 119 decisions plainly covered (50.4%), 30 of
+      119 not covered (25.2%). Mapping readers on the full-detail draft: five induction engines 563 of 709 (79.4%),
+      8 of 709 not covered (met); llama.cpp 36 of 118 (30.5%), 35 of 118 not covered (29.7%). By the choices draft
+      0.9 keeps: 217 of 709 and 26 of 118."
+    claims: "Not met on draft 0.8: the held-out checker found 6 claims llama.cpp contradicts. Draft 0.9 was not checked
+      for claims."
+    sufficiency: "Not met. Each reader's answer is what Strata has: first run 32 and 32 of 44 on the PC, 34 and 34 on
+      DGX Spark; confirmation 32 and 29 on the PC, 33 and 30 on DGX Spark. Shown beside, the two readers give the same
+      answer for 44, 44, 43 of 44 (first run) and 40, 40, 42 of 44 (confirmation). The half that asks a reader to
+      settle the choices was never tested."
+    in_all: "33 figures the marks apply to: 12 met, 21 not met. Three parts of the marks were never tested."
+
+# ---------------------------------------------------------------------------------------------------------------
+# Added 2026-11-18, after every result below was known. The assessment (tools/so_assess.py) and its back-test on
+# Strata (tools/so_backtest.py) had no entry in this file: nothing was stated before they were run.
+assessment_2026_11_18:
+  written: "after the results were known; this is a record, not a criterion set beforehand"
+  found_by_the_audit: "The back-test printed 'the right order of magnitude' whatever the figures were, compared tokens
+    per second with a figure per pass over the weights, and a reported speed was above the figure called a ceiling.
+    The assessment's figures did not depend on the design, and several of its conclusions were fixed sentences."
+  back_test_condition: "For the memory-bandwidth upper bound: every reported speed, divided by the fewest tokens per
+    pass the evidence states, is at or below the bound. Written into tools/so_backtest.py on 2026-11-18; the program
+    prints PASS or FAIL and exits with 1 on FAIL."
+  result: "runs/strata-backtest-02: PASS. Per pass the reported speeds are 0.29 to 0.46 times the bound. In tokens per
+    second they are 0.93 to 1.12 times it. The tokens per pass (2.4 to 3.2) are not stated for this machine."
+  not_compared_with_any_engine: "the storage part of the arithmetic, the cache and hit-rate estimates, the
+    first-token estimates"
+  assessment_run: "runs/muse-assessment-05. Its speed and first-token figures other than the memory-bandwidth bound
+    are estimates under the assumption that each token's choice of experts is independent of the previous token's;
+    they are not bounds."
+
+# Added 2026-11-19. A record, not a criterion.
+measurement_2026_11_19:
+  what: "The storage read rate of the DGX Spark was measured a second time, on the machine itself
+    (tools/spark_kit/probe.py, 17 seconds, a 16 GiB test file). The figures now use this measurement
+    (examples/given/env-dgx-spark-measured-20261119.yaml, runs/muse-assessment-06); the measurement of 2026-11-13 is
+    kept as it was."
+  rates_gb_per_s: {"2026-11-13": {sequential: 4.807, at_1: 4.583, at_8: 4.751, at_16: 4.790, at_32: 4.822},
+                   "2026-11-19": {sequential: 4.338, at_1: 4.339, at_8: 4.773, at_16: 4.630, at_32: 4.761}}
+  effect: "Decode estimates 0.42 to 1.08 tokens per second (0.42 to 1.09 with the first measurement); first token
+    48 to 70 seconds, unchanged."
+  to_be_said: "Two single runs of one probe, six days apart. Another account's job was starting on the machine about
+    the time of the second."
+
+# Added 2026-11-19, before any result of the bench team was read. On the DGX Spark the bench team keeps the Muse
+# model as a third party's conversion to about 2 bits per expert weight (225.6 GB) and runs it with another
+# runtime. I read only the headers of those files; I did not open the team's results.
+bench_comparison_2026_11_19:
+  what_is_compared: "The memory-bandwidth upper bound for that file on that machine (runs/muse-ud-iq2-xxs-01), against
+    the decode speed the bench team measures for it."
+  figure: "10.9 tokens per second: 273 GB/s over the 25.1 GB one token surely reads (6.44 GB of experts, 17.31 GB of
+    other weights, the output head of 1.36 GB, one row of the embedding table)."
+  condition: "For one sequence and one token per pass, a measured decode speed is at or below 10.9 tokens per second.
+    A higher measured speed means the bound is wrong: the sizes, the bandwidth, or what a token is taken to read."
+  cannot_fail_on: "A low speed. An upper bound is not contradicted by a slow run, and computation is not counted."
+  not_comparable_as_they_stand: "The estimates of that run (0.84 to 2.83 tokens per second, first token 20 to 31
+    seconds) are for an engine that keeps to the target's 80 GB and holds the most used experts. A runtime that maps
+    the files and lets the operating system keep what fits of them in up to 127 GB is not that engine. The reference
+    point, every routed expert read from storage, is 0.74 tokens per second; it is not a bound."
+  would_be_worth_recording: "From such a run: how often each expert of each layer is routed. That gives the
+    unevenness of use, which the estimates vary between 0 and 0.899 because nobody has measured it."
+
+# Added 2026-11-19. A record of what the bench owner answered, not a criterion.
+bench_owner_answers_2026_11_19:
+  what: "The bench owner answered the questions on the target's unset items and pointed out three things the target
+    had written that did not match: the baseline (it is llama.cpp with the UD-IQ2_XXS files, not the published
+    reference with NVFP4), the memory budget (the kickoff page's target is a 128 GB working set; 80 GB is the
+    Strata-Spark reference configuration; 12 GB is a feasibility target), and the checkpoint (in practice the GGUF)."
+  recorded_in: "examples/specs/muse-spark-open-on-dgx-spark.target.yaml, each item as a proposal with its source"
+  effect: "Blocking items of the target: 12 before, 7 after. The figures are now for the files the bench runs, for
+    each candidate budget: runs/muse-assessment-08-budget-80 and -128."
+  not_given_in_the_answer: "A measured decode speed or first-token time. The comparison of
+    bench_comparison_2026_11_19 is therefore still open."
+
+# Added 2026-11-19, after the runs. A record of observations, not a criterion set beforehand.
+intake_real_2026_11_19:
+  what: "The factory's released Intent (m1-8) and Requirements (m1-9) stages were run on the stored queries A, B and C
+    and on a new query D, through the repository's portable capsule runtime, with the product's fixed model and
+    reasoning effort. The earlier intake trials had been played by stand-in readers."
+  files: "validation/intake/real-2026-11-19/ (README.md says what was run and what it is not)"
+  observed:
+    - "Every Intent says needs_clarification, with every or nearly every uncertainty blocking. The stand-in readers
+      had called A and B ready. In A the ten blocking uncertainties are the target's UNSET items (7) and its
+      proposals (3)."
+    - "B: none of the 44 node types is used; the file is one entry of context."
+    - "C: six of ten uncertainties draw on the engine description, among them the 8-of-256 against 10-of-512
+      conflict; its coverage sentence became a mandatory requirement of the Brief. No node became a constraint or a
+      target."
+    - "D: the Intent was rejected twice by the check of quotation positions (a quotation ending beyond the end of
+      the file)."
+    - "The model's quotations mostly start at 0 and end at a round number; the check verifies only that a position
+      lies inside the file."
+  limits: "One run per query (D twice). Not the product: no gates, no run store, one call per stage, worker and
+    verifier the same model."
+
+# Added 2026-11-20, after the runs. The condition of bench_comparison_2026_11_19 was written before any result;
+# everything else here is a record of observations.
+measured_2026_11_20:
+  what: "The model files the bench runs (Unsloth UD-IQ2_XXS, six files in ~/ifbench on the DGX Spark, read only),
+    served by a llama-server of my own in the bench's configuration (-c 20480 -np 1 --load-mode mmap -ngl 999
+    --cpu-moe -b 2048 -ub 2048), then with --moe-cache-mib 16384 and 49152. Each run: 2 warm-up requests, then 4
+    requests of 2,042 to 2,398 prompt tokens and 128 output tokens, prompt cache off, seed 1234. The bench team's own
+    server, idle since their run ended, was stopped first, after its owner said the run had ended; its command line is kept on the
+    Spark in logs/bench-llama-server-cmdline.txt."
+  files: "runs/muse-measured-2026-11-20/ (per run: the evidence file of tools/spark_kit/measure.py, the server's log,
+    its metrics and the run record; probe/: three storage probes of the day). `python tools/so_measured.py` prints
+    the comparison; METHOD-assessment.md, section 'What the machine measured', says what it means."
+  condition_of_2026_11_19: "Holds. Decode 1.05 to 1.12 tokens per second in the control run, 0.41 to 0.48 and 0.68 to
+    0.72 with the two caches: all below 10.9. The condition could not fail on a slow run, as it says itself."
+  observed:
+    - "First token after 234 to 366 s in the control run, against estimates of 20 to 31 s (80 GB) and 12 to 21 s
+      (128 GB). The estimates count one reading of the experts and no computing. They do not hold for this baseline."
+    - "Decode of the control run is inside the estimates for 80 GB and 6% under the low end of those for 128 GB; the
+      process held 91.9 GiB of mapped files and 21.4 GiB on the GPU."
+    - "A GPU cache with 8.3% of the experts held 52.8% of those the decode steps asked for; one with 25.0% held
+      79.0%. Independent choices allow at most 52.3% and 71.9%. Successive tokens reuse experts: the assumption the
+      decode estimates rest on does not hold."
+    - "Both cache runs decode slower than the control run."
+    - "The server allocates 4,096 bytes of attention state per token per layer, the figure derived from the model
+      files. Three storage probes on the idle machine: 4.44 to 4.81 GB/s for ranges of 25.2 MB, 4.28 to 5.04 GB/s for
+      ranges of 12.98 MB."
+  seen_before_this_was_written: "All of it. Only the condition of 2026-11-19 was fixed beforehand."
+  limits: "One runtime, which is the bench's baseline and not an engine built to the Muse design. One prompt length,
+    four requests a run, one run per setting. What the first-token time is spent on was not separated, nor why the
+    cache runs decode slower. The hit counts are the server's, over all decode steps of a run, warm-up included."
+
+# Added 2026-11-20, after the run. The pass condition of the back-test is the one written on 2026-11-18.
+strata_measured_2026_11_20:
+  what: "Strata on the DGX Spark, built there from the project's source (revision 504b143, engine 0.1.59.1, text
+    only), with the Qwen3.8-Flash-Next IQ3_S pack and the run configuration its own setup writes for this machine.
+    One start; per prompt length 2 warm-up requests, then 4 requests, temperature 0, one at a time."
+  files: "runs/strata-measured-2026-11-20/iq3s; examples/knowledge/evidence-strata-on-spark-measured-20261120.yaml;
+    runs/strata-backtest-03-measured"
+  observed:
+    - "Decode 52.9 to 60.6 tokens per second on prompts of 2,034 to 2,616 tokens with 128 tokens out, 57.0 to 58.6 on
+      prompts of 4,480 to 5,394 tokens with 256 out (the engine's own line per request). First token after 1.80 to
+      2.12 s and 2.96 to 3.41 s (timed by the client). Ready 63 s after start."
+    - "Every expert in the cache: 24,576 of 24,576 slots, 46.84 GiB, as the project's document says."
+    - "Accepted drafts per request: 71 to 83 of 128 tokens, 151 to 157 of 256. Taking every pass to give one token of
+      the model besides the drafts it accepts, a pass yields 2.25 to 2.84 tokens; the project's document says 2.4 to
+      3.2, not for this machine."
+  back_test: "PASS under the condition of 2026-11-18: per pass 0.43 to 0.62 times the bound of 43.5. In tokens per
+    second the speeds are 1.22 to 1.39 times the bound, which shows nothing, as before."
+  differs_from_the_project: "The project's table gives 45.2 to 48.5 tokens per second for this pack (a release build
+    of 27 October 2026, 256-token answers on prompts of 4K, 16K and 32K). Mine are higher. The cause was not looked
+    for."
+  limits: "One start of the engine, two prompt lengths, four requests each. The tokens per pass are derived from the
+    accepted drafts under the stated reading of the engine's line, not printed by the engine. Strata holds every
+    expert in memory here, so this run says nothing about reading experts from storage."

@@ -1,0 +1,128 @@
+engine: splash
+# Verdicts per decision (decision -> verdict), for every part; totals below are the sums of these.
+verdicts:
+  model-installer: {type: model-conversion, covered: 3}
+  model-inspection: {type: model-loading, covered: 2}
+  weight-layout-planner: {type: model-loading, covered: 3}
+  weight-image-loader: {type: model-loading, covered: 2, loosely: 1}
+  device-probe: {type: configuration, covered: 2}
+  configuration: {type: configuration, loosely: 1}
+  weight-residency: {type: resource-governing, covered: 3}
+  memory-governor: {type: resource-governing, covered: 3, not_covered: 1}
+  memory-ledger: {type: resource-governing, covered: 4}
+  streamed-parts-planner: {type: memory-planning, covered: 3}
+  memory-plan: {type: memory-planning, covered: 3}
+  bootstrap-sequencer: {type: engine-supervision, covered: 2}
+  engine-supervisor: {type: engine-supervision, covered: 3}
+  native-loop: {type: engine-supervision, covered: 3}
+  ane-ffn-calibrator: {type: calibration, covered: 2, loosely: 1}
+  ane-ffn-split: {type: secondary-compute, covered: 3}
+  kernel-selector: {type: device-backend, covered: 4}
+  metal-command-backend: {type: device-backend, covered: 4}
+  target-forward: {type: layer-compute, covered: 2, engine_specific: 1}
+  block-sparse-indexer: {type: layer-compute, engine_specific: 1}
+  vision-encoder: {type: modality-encoding, covered: 2}
+  image-embedding-cache: {type: modality-encoding, covered: 2}
+  image-preparation: {type: media-preparation, covered: 1}
+  document-renderer: {type: media-preparation, covered: 1}
+  expert-store: {type: expert-cache, covered: 2, loosely: 1}
+  slot-recycler: {type: residency-policy, covered: 1, loosely: 1}
+  expert-loader: {type: expert-fetch, covered: 1, loosely: 1}
+  expert-read-ahead: {type: expert-fetch, covered: 2}
+  ssd-reader-pool: {type: storage-reader, covered: 2}
+  ple-row-store: {type: row-source, covered: 1, loosely: 1}
+  kv-page-pool: {type: "state-pool (also positional-state-store)", covered: 4}
+  gdn-state-cells: {type: recurrent-state-store, covered: 2}
+  draft-state: {type: positional-state-store, covered: 2}
+  prefix-block-cache: {type: prefix-reuse, covered: 3}
+  composite-state-cache: {type: prefix-reuse, covered: 3, loosely: 1}
+  ssd-cache-tier: {type: state-tiering, covered: 3, loosely: 1}
+  write-behind: {type: state-tiering, covered: 1, loosely: 2}
+  kv-spill-controller: {type: state-tiering, covered: 2, loosely: 1}
+  spilled-kv-reader: {type: state-tiering, covered: 2}
+  prefill-runner: {type: prompt-reading, covered: 2, loosely: 1}
+  draft-proposer: {type: draft-proposal, covered: 2}
+  verify-row-budget: {type: draft-policy, covered: 2, loosely: 1}
+  token-selector: {type: sampling, covered: 1, loosely: 1}
+  acceptance-commit: {type: draft-verification, covered: 1}
+  thinking-budget: {type: output-constraint, loosely: 1}
+  grammar-constraint: {type: output-constraint, covered: 3}
+  request-scheduler: {type: step-scheduler, covered: 2, loosely: 1, not_covered: 1}
+  lane-admission: {type: sequence-lifecycle, covered: 5}
+  http-front: {type: request-front, covered: 3}
+  prompt-builder: {type: prompt-preparation, covered: 2}
+  output-parser: {type: output-interpretation, loosely: 1}
+  option-scoring: {type: scoring, covered: 1}
+  telemetry: {type: telemetry, covered: 1, loosely: 1}
+decision_coverage:
+  totals: {decisions: 136, covered: 113, loosely: 19, not_covered: 2, engine_specific: 2}
+  per_type:
+    - {type: "model-conversion", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 8, covered: 7, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "resource-governing", decisions: 11, covered: 10, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "memory-planning", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 8, covered: 8, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 8, covered: 8, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 4, covered: 2, loosely: 0, not_covered: 0, engine_specific: 2}
+    - {type: "modality-encoding", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "storage-reader", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "recurrent-state-store", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 7, covered: 6, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 12, covered: 8, loosely: 4, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "weight-image-loader", type: "model-loading", decision: "repack on GPU through a fixed staging buffer", nearest_choice: "whether weights are re-encoded at load and how (which device does the re-encoding is not named)"}
+    - {part: "configuration", type: "configuration", decision: "defaults for each flag (decode share, idle release, KV and state formats, verify rows, cache quota and writes, ANE)", nearest_choice: "which settings that change output are on by default, and in which profile (most of these defaults do not change output)"}
+    - {part: "ane-ffn-calibrator", type: "calibration", decision: "the minimum predicted gain to enable the split", nearest_choice: "the rule that accepts or rejects a measured result"}
+    - {part: "expert-store", type: "expert-cache", decision: "a size used by only one block holds all its experts in its floor", nearest_choice: "whether it arranges, compacts or pins what it holds by size"}
+    - {part: "slot-recycler", type: "residency-policy", decision: "scans leave no ghosts and move no hits", nearest_choice: "the replacement rule (whether bulk scans count as use is not named)"}
+    - {part: "expert-loader", type: "expert-fetch", decision: "one round for decode, half the staging per round for prefill", nearest_choice: "staging area and how many fetches at once"}
+    - {part: "ple-row-store", type: "row-source", decision: "prefetch as a hint", nearest_choice: "prefetching rows for coming or drafted tokens (the mechanism, hint or binding read, is not named)"}
+    - {part: "composite-state-cache", type: "prefix-reuse", decision: "retire rolling checkpoints once a newer one is published", nearest_choice: "what earns stored state its retention: recency, cost to rebuild, or actual reuse"}
+    - {part: "ssd-cache-tier", type: "state-tiering", decision: "share of writes in flight per kind (reclaim, copy ahead, write-through)", nearest_choice: "share of writes in flight per kind of state (here the kinds are purposes of a write, not kinds of state)"}
+    - {part: "write-behind", type: "state-tiering", decision: "minimum depth and delay before copying", nearest_choice: "copying ahead of need"}
+    - {part: "write-behind", type: "state-tiering", decision: "copy on a temporary tier only under demand", nearest_choice: "copying ahead of need"}
+    - {part: "kv-spill-controller", type: "state-tiering", decision: "keep dense history, tail window and in-flight prefill groups in fast memory", nearest_choice: "which kinds of state the slower tier holds"}
+    - {part: "prefill-runner", type: "prompt-reading", decision: "abandon a paused command for higher-priority work (nothing committed)", nearest_choice: "what state is kept when reading is interrupted or cancelled"}
+    - {part: "verify-row-budget", type: "draft-policy", decision: "refit interval, label window, decay, prior strength", nearest_choice: "how fresh the signals it decides from must be"}
+    - {part: "token-selector", type: "sampling", decision: "sampling policy per lane", nearest_choice: "the chain of steps and their order"}
+    - {part: "thinking-budget", type: "output-constraint", decision: "where in the checked rows the forced end starts", nearest_choice: "how it applies to proposed tokens that are not yet accepted"}
+    - {part: "request-scheduler", type: "step-scheduler", decision: "contended prefill cut rows from measured time with a floor", nearest_choice: "sequences and rows per step"}
+    - {part: "output-parser", type: "output-interpretation", decision: "hold text that may begin a stop string", nearest_choice: "stop conditions and their order"}
+    - {part: "telemetry", type: "telemetry", decision: "log only transitions", nearest_choice: "what is recorded by default and what on request"}
+  not_covered:
+    - {part: "memory-governor", type: "resource-governing", decision: "pool growth admitted on its net change when cache funds it", kind: "policy", missing_choice: "whether a holder's growth that displaces reclaimable cache is charged at its net change or at its full size"}
+    - {part: "request-scheduler", type: "step-scheduler", decision: "group commands run in layer passes", kind: "policy", missing_choice: "whether prompt chunks of several sequences are grouped into one step that runs layer by layer"}
+contradictions:
+  - {part: "prefill-runner", type: "prompt-reading", claim: "Unless an approximate path that was explicitly turned on is taken, the state it leaves is the state of that prompt up to rounding ... whatever the chunking.", evidence: "The W8A8 Neural Engine share of dense FFN prefill (ane-ffn-split, inventory changes_output) is on by default; server/serve_options.py:755-766 offers only --disable-ane, default False. The approximate path is taken without being explicitly turned on.", fix: "Unless an approximate path is in effect that was turned on explicitly or as a recorded default that can be turned off, the state it leaves is the state of that prompt up to rounding, whatever the chunking."}
+  - {part: "memory-governor", type: "resource-governing", claim: "A soft figure is exceeded only on the operator's explicit choice and with a warning.", evidence: "The host margin is a soft figure the engine sets itself; floor work always passes the host rule and in-service work passes as an exempt claim once nothing in place meets it (runtime/engine/MemoryGovernor.hpp:294-305), with no operator choice.", fix: "A soft figure is exceeded only by classes of work the engine states in advance, or on the operator's explicit choice."}
+  - {part: "thinking-budget", type: "output-constraint", claim: "effect_on_output: defines, when: always, by design", evidence: "Output changes only whenever the budget runs out before the model ends thinking (inventory output_effect_when); below the budget the output is that of the unconstrained model.", fix: "defines, when the rule forbids or forces a token the model would otherwise have produced; exact otherwise."}
+  - {part: "document-renderer", type: "media-preparation", claim: "effect_on_output: defines, when how media is resized or cut decides the model's input", evidence: "Correction (round4): server/documents.py:133-153 extracts page text as well as rendering pages at a chosen scale; text extraction is neither resizing nor cutting.", fix: "defines, when how media is converted (text extracted, pages rendered), resized or cut decides the model's input."}
+  - {part: "weight-image-loader", type: "model-loading", claim: "effect_on_output cases: exact when weights are used as stored or re-encoded without changing their values; resampled when it reduces weights used only for proposals under sampling", evidence: "It quantizes the BF16 draft to 4 bits at load; under greedy decoding this leaves the target's output unchanged, a case none of the listed conditions covers (model-conversion lists it, model-loading does not).", fix: "exact: weights are used as stored, re-encoded without changing their values, or reduced only for proposals under greedy decoding."}
+relaxations: []
+wrong_assignments: []
+inventory_errors:
+  - {part: "ane-ffn-split", field: "output_effect_when", recorded: "when the split runs (27B prefill with --ane on and a calibrated gain)", source_shows: "The split is on by default for dense models; the server offers only --disable-ane (default False), which passes --ane off to the engine (server/serve_options.py:755-766)."}
+  - {part: "draft-proposer", field: "output_effect", recorded: "none (while output_effect_when says sampled lanes see different tokens)", source_shows: "Sampled acceptance u*q < p uses the draft's probabilities (runtime/metal/kernels/decode/sampling.metal:1460-1510, recorded under acceptance-commit as changes_output), so under sampling the proposal changes the draw: changes_output for sampled lanes."}

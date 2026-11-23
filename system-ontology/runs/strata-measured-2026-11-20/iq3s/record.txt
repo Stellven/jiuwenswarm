@@ -1,0 +1,14 @@
+name: iq3s
+started: 2026-11-20T14:12:57-05:00
+command: .venv/bin/python serve/server.py --engine strata --config strata-iq3_s.json --host 127.0.0.1 --port 8190
+engine: {"version": "0.1.59.1", "source": "spark/build_engine.sh", "platform": "linux-aarch64", "archs": "121", "ptx": true, "cuda": "13.0", "portable": true}
+source revision: 504b143342a9fe1aa8320a7b31e11f5c0ac265c3
+memory before start: MemTotal: 130.6 GB; MemFree: 13.2 GB; MemAvailable: 126.8 GB; Cached: 113.6 GB; 
+ready after: 63 s
+memory when ready: MemTotal: 130.6 GB; MemFree: 2.1 GB; MemAvailable: 64.6 GB; Cached: 65.4 GB; 
+process when ready: 38.35 GiB resident in the server and the engine
+gpu when ready: 406560, 54315 MiB;
+measure 2k exit: 0; memory: MemTotal: 130.6 GB; MemFree: 1.0 GB; MemAvailable: 62.9 GB; Cached: 64.6 GB; ; gpu: 406560, 54503 MiB;
+measure 4k exit: 0; memory: MemTotal: 130.6 GB; MemFree: 0.9 GB; MemAvailable: 62.8 GB; Cached: 64.7 GB; ; gpu: 406560, 54503 MiB;; 40.08 GiB resident in the server and the engine
+server stopped: 2026-11-20T14:15:19-05:00; still running: 0; memory after stop: MemTotal: 130.6 GB; MemFree: 64.9 GB; MemAvailable: 126.9 GB; Cached: 62.4 GB; 
+FINISHED

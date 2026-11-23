@@ -1,0 +1,60 @@
+# Hardware description written by spark_kit/probe.py. Whether the GPU has memory of its own is judged by whether nvidia-smi reports a memory size.
+{
+  "kind": "hardware",
+  "id": "hw/local-laptop",
+  "title": "Machine found by probe.py: Windows-11-10.0.26300-SP0",
+  "compute_units": [
+    {
+      "id": "cpu0",
+      "kind": "cpu"
+    },
+    {
+      "id": "gpu0",
+      "kind": "gpu"
+    }
+  ],
+  "memory_pools": [
+    {
+      "id": "mem0",
+      "kind": "unified_ram",
+      "capacity_nominal": {
+        "value": 33.78,
+        "unit": "GB",
+        "unit_basis": "decimal",
+        "status": "measured",
+        "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+      }
+    },
+    {
+      "id": "ssd0",
+      "kind": "nvme",
+      "capacity_nominal": {
+        "value": 647.3,
+        "unit": "GB",
+        "unit_basis": "decimal",
+        "status": "measured",
+        "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+      }
+    }
+  ],
+  "access_paths": [
+    {
+      "id": "cpu0-mem0",
+      "kind": "direct",
+      "unit": "cpu0",
+      "pool": "mem0"
+    },
+    {
+      "id": "gpu0-mem0",
+      "kind": "direct",
+      "unit": "gpu0",
+      "pool": "mem0"
+    },
+    {
+      "id": "ssd0-to-mem0",
+      "kind": "page_in",
+      "origin": "ssd0",
+      "destination": "mem0"
+    }
+  ]
+}

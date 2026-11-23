@@ -1,0 +1,88 @@
+engine: ninfer
+# Decisions of a part with an `also` type are counted under its first (assigned) type; the choices of both were used.
+decision_coverage:
+  totals: {decisions: 104, covered: 98, loosely: 6, not_covered: 0, engine_specific: 0}
+  per_type:
+    - {type: "model-conversion", decisions: 9, covered: 9, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 8, covered: 7, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 0, covered: 0, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "shard-materializer", type: "model-loading", decision: "whether a slice can be expressed value-preservingly, else the format rejects it", nearest_choice: "whether weights are re-encoded at load and how"}
+    - {part: "startup-memory-planner", type: "memory-planning", decision: "how much headroom planning may consume versus what must stay free after initialization", nearest_choice: "the reserve left free"}
+    - {part: "model-session", type: "sequence-lifecycle", decision: "full permit before verify that covers the later commit peak", nearest_choice: "a sequence's state allocated up front or grown on demand"}
+    - {part: "rank-program", type: "step-execution", decision: "where host handoffs split device work (grammar mask, CPU experts, final acceptance)", nearest_choice: "cutting a step into parts so that work on two devices overlaps"}
+    - {part: "context-resource-manager", type: "prefix-reuse", decision: "attention-owner rank chosen by load balance, then longest local prefix", nearest_choice: "which device restored state is placed on"}
+    - {part: "media-preparer", type: "media-preparation", decision: "preprocess cache capacity and live payload budget", nearest_choice: "caching of prepared media and its key"}
+  not_covered: []
+contradictions:
+  - part: "checkpoint-converter"
+    type: "model-conversion"
+    claim: "effect_on_output: exact when it only re-arranges bytes ...; approximate when it changes the precision or vocabulary of what the full model computes"
+    evidence: "Importing an already-encoded NVFP4 checkpoint keeps the codes but rounds 1/multiplier to an FP32 divisor (inventory output_effect_when). That is a last-bit change of values against the imported source, neither a pure re-arrangement nor a change of precision; no listed case covers it."
+    fix: "Add: rounding, when it re-expresses stored scales or other values in another floating-point form without changing the stored precision."
+  - part: "context-resource-manager"
+    type: "prefix-reuse"
+    claim: "effect_on_output: rounding when the stored state was produced under other rounding than a fresh read: reduced width, other chunk boundaries, another batch path, or computation placed on other devices"
+    evidence: "Activation precision of AllowA4 projections depends on the step's token count (corrections for layer-compute, chunked-prefill, request-scheduler). A checkpoint captured from decode or verify rows (16-bit activations) or from a different chunking differs in precision, not last bits, from a fresh chunked read (4-bit activations), and choosing restore over recompute is this node's own choice."
+    fix: "Add: approximate, when the stored state was produced at another activation precision than a fresh read would use, because the precision follows the width of the step that produced it."
+  - part: "causal-scorer"
+    type: "scoring"
+    claim: "A score is computed by the same model and arithmetic as generation."
+    evidence: "Scoring reads the given sequence in prefill-width chunks; generation produces a token's logits in decode or verify rounds of few rows. With AllowA4 permits the activation precision follows the row count (corrections for layer-compute and chunked-prefill), so the arithmetic of a scored position differs in precision from the arithmetic that generated it."
+    fix: "A score is computed by the same model, weights and kernels as generation; where precision depends on the width of a step, the width the score was computed at is stated."
+relaxations:
+  - part: "expert-priority-table"
+    type: "calibration"
+    rule: "A recorded result is used only where its validity key matches the model, machine and build."
+    how: "The compiled-in ranking applies whenever the architecture geometry (hidden size, layers, experts, top-k) matches; any other model or fine-tune of the same shape receives it, and the machine and build are not part of the key. The type's relaxed text names missing driver versions or no key, not a key of shape only."
+wrong_assignments:
+  - part: "context-pool"
+    assigned: "state-pool"
+    better: "state-pool, also positional-state-store"
+    why: "It holds every request's paged KV planes in the stored encoding, and no other ninfer part is assigned positional-state-store although the engine plainly keeps per-position attention state. The primary type is right; the second job is unassigned."
+  - part: "state-commit"
+    assigned: "draft-verification"
+    better: "draft-verification, also recurrent-state-store"
+    why: "It owns the transition records from which GDN/KDA recurrent state is replayed from the unchanged start state, which is the recurrent-state-store form 'a commit deferred until acceptance is known'; no ninfer part is assigned recurrent-state-store although the models have large fixed-size recurrent state."
+inventory_errors:
+  - part: "context-resource-manager"
+    field: "output_effect"
+    recorded: "numeric; a restored prefix was read with different chunk boundaries than a fresh read"
+    source_shows: "Activation precision of AllowA4 projections follows the step's token count (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; tools/convert/official_recipes.py AllowA4 permits; src/models/common/bindings.cpp 43-55), so state captured at another step width differs in precision; the level is changes_output, as already corrected for chunked-prefill."
+  - part: "media-preparer"
+    field: "output_effect"
+    recorded: "none"
+    source_shows: "It selects which source frames of a video are used and permits a truncated tail after a minimum frame count, and resizes and orders patches by the processing plan (src/media/decode/decode.h 30-37, 77-91; src/product/media_acquire/acquire.h), so it decides the model's input: changes_output."

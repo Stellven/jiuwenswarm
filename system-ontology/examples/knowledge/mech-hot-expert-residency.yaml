@@ -1,0 +1,142 @@
+kind: mechanism
+id: mech/hot-expert-residency
+family: partial-residency-of-selected-weights
+summary: "When the weights of the selected objects do not fit in the fast place, keep only the often-used ones there and leave the rest in the slow place"
+equivalence: bit_exact          # changes only where it is computed and where it is read from; the approximations each engine adds are separate mechanisms
+because:
+  - id: sparse
+    predicate: sparse_selection
+    args: {max_pick_ratio: 0.5}
+    text: "The model selects only some of the objects each time"
+  - id: partitioned
+    predicate: selected_data_partitioned
+    text: "The weights of the selected objects can be stored and read separately"
+  - id: exceeds
+    predicate: selected_data_exceeds_direct_pool
+    text: "These weights do not fit in the fast memory pool the compute unit uses directly"
+  - id: slower
+    predicate: slower_pool_can_hold
+    text: "A slower memory pool with enough capacity holds all the weights"
+  - id: split_units
+    predicate: units_with_distinct_direct_pools
+    essential: false
+    text: "Different compute units directly use different memory pools"
+    effect_if_fails: "The fast and the slow place are then not two memory pools but the cache in memory and the SSD (or reclaimable file pages); an object not found in the cache must first be read into memory"
+  - id: skew
+    predicate: measured_property
+    args: {property: selection_frequency_skew}
+    text: "The objects are not selected equally often"
+    measure: "Run the model on the target workload, record which objects the routing of each layer selects each time, and count how often each object is used. Strata has a switch that writes out the routing record (STRATA_ROUTE_DUMP); ds4 and NInfer use a table of often-used objects counted offline"
+do:
+  - {aspect: binding, item: residency,  text: "A policy decides which weights of the selected objects are kept in the fast memory pool"}
+  - {aspect: binding, item: assignment, text: "Use the fast implementation when a readable copy is there; otherwise use the slower implementation or path"}
+  - {aspect: policy,  item: policies,   text: "Decides which objects are kept in the fast memory pool"}
+needs:
+  invariants:
+    - {id: inv/read-ready,              text: "A copy is read only after it is marked readable"}
+    - {id: inv/no-overwrite-while-read, text: "A slot is not overwritten while a read of it is still in progress"}
+    - {id: inv/always-served,           text: "Every selected object has at least one usable implementation"}
+  observation_points: [cache_hit_count, cache_miss_count, swap_time]
+expect:
+  - {quantity: peak_memory, direction: decrease, where: fast_pool}
+  - {quantity: decode_rate, direction: uncertain}
+cost:
+  - "Takes up space in the fast memory pool"
+  - "A miss needs a transfer or a read from storage"
+  - "Recent use counts do not always predict future use"
+validate_by: "Compare with the same engine with everything kept in the fast memory pool (when it fits) or with this policy turned off; measure end-to-end speed, hit rate, the share of time spent on transfers or reading from storage, and whether the output is the same"
+
+# What four MoE engines do. The preconditions (because) are the same; they differ in binding and policy.
+variants:
+  - id: memory-cache-over-ssd
+    summary: "All objects stay on the SSD and some are cached in memory; an object not found in the cache is read into memory and still computed by the same compute unit; reading from storage overlaps with computing the objects already in memory"
+    seen_in:
+      - {engine: ds4, source: "engines/ds4.md mechanism 3 (streaming expert cache on SSD)", note: "evicts by use count and halves the counts every 16 tokens; starts from a built-in table of often-used objects counted offline"}
+      - {engine: Strata, source: "strata docs/DGX_SPARK_LINUX.md:84-86", note: "DeepSeek-V4.1-Flash on DGX Spark; objects not found in the cache are computed by the CPU from file pages"}
+      - {engine: Splash, source: "engines/splash.md mechanism 7", note: "ARC algorithm; a guaranteed 85% plus elastic blocks; the implementation was not read"}
+    applies_when:
+      - {predicate: units_with_distinct_direct_pools, expect: fails}
+    template:
+      execution:
+        overlaps:
+          - {hidden: "reading $data that was not found in the cache from $slow_pool", behind: "computing the objects already kept in the fast memory pool"}
+      state:
+        states:
+          - {id: heat_of_$data, scope: engine, note: "use count of each object, read and written by the cache policy"}
+      policy:
+        policies:
+          - id: cache-$data
+            controls: {aspect: binding, item: residency, data: $data, pool: $fast_pool}
+            signals:
+              - {id: heat, update: "add 1 when selected", decay: "decays at regular intervals"}
+            actions:
+              - {id: evict_and_load, steps: "evict the kept object with the lowest use count and read in the selected object", via: $path_slow_to_fast}
+            trigger: "on every miss"
+            budget:
+              derive: {fraction: 0.8}
+              resolved_at: startup
+              source: "the default fraction of ds4; Strata uses the memory that can be given up minus 6 GiB"
+            prior: {workload_profile_property: selection_frequency_skew, note: "when an offline profile exists, it is used as the starting content"}
+      binding:
+        residency:
+          - {data: $data, pool: $slow_pool, portion: all}
+          - {data: $data, pool: $fast_pool, by_policy: cache-$data}
+          - data: $data
+            pool: $fast_pool
+            allocation: transient
+            capacity: {value: 1, unit: GB, unit_basis: decimal, status: assumed}
+            note: "staging area that objects not found in the cache are read into"
+        assignment:
+          - {operation: $operation, when: {copy_ready_in: $fast_pool}, use: $impl_fast}
+          - operation: $operation
+            otherwise: true
+            when: {transient_fetch: {via: $path_slow_to_fast, into: $fast_pool}}
+            use: $impl_fast
+  - id: fast-pool-cache-slow-pool-compute
+    summary: "All objects stay in the slow memory pool and some are cached in the fast memory pool; an object not found in the cache is computed in place by the compute unit that uses the slow memory pool directly"
+    seen_in:
+      - {engine: Strata, source: "strata-how-it-works.md section 4", note: "replaces at runtime by use count, once every 4 rounds, at most 96 pairs"}
+      - {engine: NInfer, source: "engines/ninfer.md mechanism 1", note: "filled once at startup from an offline priority table and not replaced while running; with many tokens it switches to streaming whole layers into GPU memory"}
+    applies_when:
+      - {predicate: units_with_distinct_direct_pools, expect: holds}
+    template:
+      state:
+        states:
+          - {id: heat_of_$data, scope: engine, note: "use count of each object, read and written by the cache policy"}
+      policy:
+        policies:
+          - id: cache-$data
+            controls: {aspect: binding, item: residency, data: $data, pool: $fast_pool}
+            signals:
+              - {id: heat, update: "add 1 when selected", decay: "multiplied by a decay factor after each adjustment"}
+            actions:
+              - {id: swap, steps: "first mark the object being replaced as not in the cache, wait until the computations already issued have finished, then copy the new weights into the same slot", via: $path_slow_to_fast}
+            trigger: "every few rounds; only pairs whose use counts differ by at least the threshold are swapped"
+            budget:
+              derive: {fraction: 0.8}
+              resolved_at: startup
+              source: "the fraction is a placeholder; Strata makes the cache size a configurable budget"
+      binding:
+        residency:
+          - {data: $data, pool: $slow_pool, portion: all}
+          - {data: $data, pool: $fast_pool, by_policy: cache-$data}
+        assignment:
+          - {operation: $operation, when: {copy_ready_in: $fast_pool}, use: $impl_fast}
+          - {operation: $operation, otherwise: true, use: $impl_slow}
+
+claims:
+  - text: "Fits in 12 GB of GPU memory"
+    status: reported
+    source: ref-engines-slide#strata
+    conditions: {model: qwen3.8-flash-next, hardware: cpu+gpu}
+    baseline: "not stated in the figure"
+  - text: "DeepSeek V4.1 Flash Q2 on DGX Spark: reading a 3,241-token prompt went from 49–54 to 93–96 tok/s"
+    status: reported
+    source: "ds4 docs/DGX_SPARK.md:45-52 (via engines/ds4.md)"
+    conditions: {model: deepseek-v4.1-flash-q2, hardware: dgx-spark}
+    baseline: "the earlier policy of the same engine for reading from storage"
+  - text: "DeepSeek-V4.1-Flash 2.00 bpw on DGX Spark: 13 to 18 tok/s in short chats"
+    status: reported
+    source: "strata docs/DGX_SPARK_LINUX.md:105-107"
+    conditions: {model: deepseek-v4.1-flash-2.00bpw, hardware: dgx-spark}
+    baseline: "not stated"

@@ -1,0 +1,618 @@
+# How the Muse engine's description is derived from existing engines. tools/so_derive.py reads this file and writes
+# system.yaml and components.yaml. Strata is the main source: every one of its leaf components is either carried
+# here or listed under not_carried with the reason.
+id_prefix: comp/muse
+top_level_order: [preparation, setup, loading, serving, conversation-reuse, prompt-path, token-path, expert-subsystem, telemetry]
+
+system:
+  id: sys/muse-on-spark
+  title: "Engine for Muse Spark Open on DGX Spark (proposed)"
+  summary: "A proposed engine for a mixture-of-experts model whose expert weights are larger than the machine's memory: 206 GB in the model files the bench runs, against 128 GB. Each token uses 8 of 256 experts in each of 62 layers. The weights every token needs stay in memory. All experts stay on storage in a file prepared so that one expert is one contiguous read. A cache in memory holds the most used experts; a routed expert that is not cached is read from storage for that step and may replace a less used one. Reading is started as soon as routing is known and overlaps with the computation of the experts already in memory. The design is taken from Strata component by component, with the storage path taken from ds4, and nothing of it has been built."
+  product:
+    name: "Muse engine (working name)"
+    form: "A design derived from the descriptions of Strata and ds4. No implementation exists."
+  targets:
+    - model: model/muse-spark-open-ud-iq2-xxs
+      hardware: hw/dgx-spark
+      input_modalities: [text]
+      note: "Text in, text out. The perception encoder for image, video and audio is not loaded in the first version."
+  mechanisms:
+    - mech/hot-expert-residency
+  uncatalogued_mechanisms:
+    - {family: read-latency-hidden-behind-compute, summary: "Start the storage read of a missed expert as soon as routing is known, and compute the cached experts of the same layer while it arrives."}
+    - {family: one-expert-one-read, summary: "Prepare the weight file offline so that each expert is one contiguous, block-aligned range, readable without parsing."}
+    - {family: layer-major-prompt-reading, summary: "Read a prompt chunk one layer at a time, so that an expert routed by many tokens of the chunk is read from storage once."}
+  resource_expectations:
+    - holding: "Weights every token uses: attention, router, embedding table, output head"
+      held_on: fast_memory
+      amount: {value: 19.6, unit: GB, unit_basis: decimal, status: measured, source: "model/muse-spark-open-ud-iq2-xxs: shared_weights 17.31 GB, token_embedding 0.93 GB, output_head_weights 1.36 GB", note: "As stored in the model files the bench runs, at 4.5 to 8 bits. At the 4 bits of the published weights these 21.1B parameters would take 10.6 GB."}
+    - holding: "Attention keys and values for the configured context length"
+      held_on: fast_memory
+      amount: UNSET
+      note: "0.254 MB per token at 16 bits when every layer keeps every token: 8.3 GB at 32,768 tokens. 46 of the 62 layers attend only to the last 2,048 tokens; an engine that keeps no more than that for them needs 2.5 GB at 32,768 tokens. The amount is open because the context length is."
+    - holding: "Expert cache: what remains of the memory budget"
+      held_on: fast_memory
+      note: "12.98 MB per expert in the model files the bench runs, so each GB holds about 77 experts of 15,872. At the 4 bits of the published weights an expert is 25.17 MB."
+    - holding: "Every expert"
+      held_on: storage
+      amount: {value: 205.96, unit: GB, unit_basis: decimal, status: measured, source: "model/muse-spark-open-ud-iq2-xxs, expert_weights", note: "399.43 GB at the 4 bits of the published weights."}
+  claims: []
+  coverage: "A design, not a description of something built. Each component names the existing component it was adapted from. Every text here comes from one of two places: it was written for this engine in the derivation list, or it is the source's text and the derivation's list of kept texts names it as read against this engine, with the reason. The derivation writes no other text of the source and changes none by itself. Of a source component an adapted component also takes the title, the role, the timings, the state and the names of what it performs, without the names this engine does not have. The kept texts were read by Claude, an AI model, and not by a person. Word patterns for the source model's numbers and features, the source machine's kinds of memory, the source engine's name and implementation identifiers are looked for in every text; they find the usual wordings and nothing else. Not covered in the first version: image, video and audio input; drafting; generating more than one conversation at the same time; more than one machine. The state of earlier conversations may be kept for reuse, within a memory budget that may be zero."
+
+sources:
+  - system: sys/strata
+    main_source: true
+    consulted_for: "The decomposition as a whole: loading, serving, conversation reuse, the per-token path, the expert subsystem and telemetry."
+  - system: sys/ds4
+    consulted_for: "The storage path: offline preparation of the weight file, reading experts from storage on demand, eviction."
+
+# Words that belong to a source engine, its model or its machine and that the descriptions of the models cannot tell
+# by themselves. Nothing this file produces may contain them (tools/so_leftovers.py, rule `declared`).
+source_only_terms:
+  - {term: GGUF, why: "the file format of the source engine's weights; this engine reads a file prepared for it"}
+  - {term: shard, why: "the source engine's weight files come in shards"}
+  - {term: shards, why: "the source engine's weight files come in shards"}
+  - {term: pack, why: "the source engine's name for its weight file sets"}
+  - {term: packs, why: "the source engine's name for its weight file sets"}
+  - {term: recurrent, why: "the source model has recurrent layers; the model card of this engine's model states no state other than attention"}
+  - {term: hyper-connection, why: "a feature of the source model"}
+  - {term: hyper-connections, why: "a feature of the source model"}
+  - {term: shared expert, why: "the source model has an expert every token uses; the model card of this engine's model names none"}
+  - {term: cards, why: "the source engine runs on several GPUs; this machine has one"}
+  - {term: per card, why: "the source engine runs on several GPUs; this machine has one"}
+  - {term: each card, why: "the source engine runs on several GPUs; this machine has one"}
+  - {term: VRAM, why: "the source engine's first machine has separate GPU memory; this machine has one memory pool for CPU and GPU"}
+  - {term: page-locked, why: "host memory locked for copies to a separate GPU memory; this machine has one memory pool"}
+  - {term: verify window, why: "a window of drafted tokens checked together; drafting is not in the first version"}
+  - {term: batch slot, why: "one of several conversations generated at the same time; the first version generates one at a time"}
+  - {term: batch slots, why: "one of several conversations generated at the same time; the first version generates one at a time"}
+  - {term: window, why: "the source computes several tokens of one conversation as a window; this engine produces one token per step"}
+  - {term: windows, why: "the source computes several tokens of one conversation as a window; this engine produces one token per step"}
+
+# A unit of work the source engine has and this one has not, with the unit used here instead.
+timings:
+  per_window: per_step     # the source works on a window of several tokens at a time; this engine produces one token per step
+
+declares:
+  stages: [load, prefill, decode]
+  states:
+    - attention_kv
+    - expert_heat
+    - residency_table
+    - staged_experts
+    - expert_usage_profile
+    - admission_counters
+    - prompt_encode_cache
+    - engine_process_state
+    - live_conversation_record
+    - parked_conversations
+    - run_config
+    - dispatch_counts
+    - run_manifest_record
+    - request_history
+  policies: [expert-cache, conversation-resume, parked-eviction]
+
+carry:
+  # ---- preparation (from ds4)
+  - from: comp/ds4/model-preparation
+    as: adapted
+    id: preparation
+    adaptation: "ds4 converts to its own GGUF layout. Here the input is the model checkpoint the target names, and the output is a file in which each of the 15,872 experts is one contiguous block-aligned range, plus a table of those ranges."
+    remove: [calls, equivalence, decisions, invariants, performs, state, policies, mechanisms]
+    set:
+      title: "Model preparation"
+      responsibility: "Offline, turn the model checkpoint the target names into the files the engine reads: the weights every token uses in load order, and every expert as one contiguous block-aligned range with a table of where each lies."
+      not_responsible_for: ["Changing any weight value; it re-arranges bytes only", "Anything at run time"]
+      runs: [offline]
+      needs_resources:
+        - {resource: storage, purpose: "the model checkpoint and the prepared files, each about as large as the model's weights"}
+        - {resource: cpu, purpose: "copying and aligning"}
+      decisions:
+        - {id: block-alignment, text: "The alignment of each expert's range, so that it can be read without passing through the page cache.", resolved_at: design}
+        - {id: expert-order, text: "The order of experts in the file. Layer by layer is the default; ordering by measured use would shorten seeks for the experts read most.", resolved_at: design}
+      equivalence: bit_exact
+
+  # ---- setup
+  - from: comp/strata/setup
+    as: adapted
+    adaptation: "Two parts here, not three: the part that calibrates speed is postponed."
+  - from: comp/strata/run-config-generator
+    as: adapted
+    adaptation: "The source's choices about its lookup table and about its draft layer are not carried: this model has neither. One run configuration, not one per installed model."
+    rewrite:
+      - {old: "One JSON file per installed model, with a backup of the previous one", new: "The run configuration file, with a backup of the previous one"}
+      - {old: "Probes of GPU, RAM, CPU and disk type; negligible", new: "Probes of the machine: GPU, memory, CPU and disk type; negligible"}
+  - from: comp/strata/launch-argument-resolver
+    as: adapted
+    adaptation: "The source's choices about a draft model and about several GPUs are not carried: the first version has no drafting, and this machine has one GPU."
+
+  # ---- loading
+  - from: comp/strata/loading
+    as: adapted
+    adaptation: "The parts change: one loader instead of two, no host memory admission. It reads the files prepared for this engine, not the source's two file sets, and nothing it does changes a weight."
+    set:
+      responsibility: "Put the weights every token uses into memory, lay out the expert cache, and size every memory consumer before the first token from what the machine reports free at that moment. The experts themselves stay on storage."
+      needs_resources:
+        - {resource: storage, purpose: "the prepared files"}
+        - {resource: fast_memory, purpose: "the weights every token uses"}
+        - {resource: cpu, purpose: "parsing, sizing arithmetic"}
+      equivalence:
+        - {level: bit_exact, relative_to: "the bytes of the prepared files", holds_when: "by design: weights are copied unchanged"}
+  - from: comp/strata/model-file-reader
+    as: adapted
+    adaptation: "Reads the prepared files and their header instead of GGUF shards, and checks Muse's geometry (62 layers, 256 experts, 8 per token, hidden size 8,192)."
+    remove: [calls, equivalence]
+    set:
+      needs_resources:
+        - {resource: storage, purpose: "the prepared files"}
+        - {resource: cpu, purpose: "header parsing"}
+      title: "Model file reader and geometry check"
+      responsibility: "Open the prepared files read-only, expose their metadata and tensor directory unchanged, and refuse files whose declared shape the compiled kernels cannot run."
+      decisions:
+        - {id: required-geometry, text: "The layer count, experts per layer, experts per token and hidden size the kernels are compiled for.", resolved_at: design}
+  - from: comp/strata/expert-layout
+    as: adapted
+    adaptation: "Reads the range table written by model preparation instead of Strata's layout file. One range per expert, not three tensors per layer."
+    remove: [calls, equivalence]
+    rewrite:
+      - {old: "native_experts.txt in the pack directory", new: "the table of expert ranges in the prepared files"}
+    set:
+      responsibility: "Read the table of expert ranges once and answer, for the whole process, where each expert's bytes lie in the prepared file and how long they are."
+      decisions:
+        - {id: layout-version, text: "The version of the range table this engine accepts.", resolved_at: design}
+  - from: comp/strata/weight-loader
+    as: adapted
+    adaptation: "Loads only the weights every token uses. Experts are never loaded at startup. No byte transforms: the prepared file is already in the form the kernels read."
+    remove: [calls, equivalence]
+    set:
+      title: "Weight loader"
+      responsibility: "At startup, place the weights every token uses in fast memory and return a table from tensor name to location."
+      needs_resources:
+        - {resource: fast_memory, purpose: "the weights every token uses"}
+        - {resource: storage, purpose: "the prepared files"}
+        - {resource: cpu, purpose: "reading"}
+      decisions:
+        - {id: head-precision, text: "Whether the embedding table and output head are kept at 4 or 16 bits. For each of the two tables this moves about 2.5 GB between these weights and the expert cache: 202,048 rows of 8,192 values, 12 bits more per value.", resolved_at: startup}
+  - from: comp/strata/startup-memory-sizing
+    as: adapted
+    adaptation: "One memory pool instead of card memory and host memory. The attention state for the configured context is priced first because it can be tens of GB; there is no step that moves the output head to host memory."
+    remove: [calls, equivalence]
+    set:
+      responsibility: "Within the memory budget, price the weights every token uses, the attention state for the configured context, the staging area and a reserve; give the expert cache what remains; and refuse to start when the cache would be below its minimum."
+      needs_resources:
+        - {resource: cpu, purpose: "arithmetic at startup"}
+      decisions:
+        - {id: memory-budget, text: "The total the engine may hold in the unified pool. Fixed by the request.", resolved_at: startup}
+        - {id: reserve, text: "Memory left free for the operating system and for allocations not priced in advance.", resolved_at: startup}
+        - {id: context-length, text: "The longest context the engine offers. With the attention state's size per token it sets how much memory the cache loses.", resolved_at: startup}
+        - {id: min-cache, text: "The smallest cache the engine will start with: at least the experts one step can route, 8 times 62.", resolved_at: design}
+        - {id: reserve-recheck, text: "After allocating, read free memory again and shrink the cache if the reserve was not really left.", resolved_at: startup}
+
+  # ---- expert subsystem
+  - from: comp/strata/expert-subsystem
+    as: adapted
+    adaptation: "The slow copy of the experts is on storage, not in host memory, and only a fraction is cached. There is no CPU path."
+    set:
+      responsibility: "For every layer of every step, have each routed expert computed from memory, reading it from storage first when it is not cached, and keep the cache filled with the experts in most use."
+      runs: [startup, per_layer, on_demand]
+  - from: comp/strata/expert-source
+    as: adapted
+    also_from:
+      - {component: comp/ds4/expert-stream-reader, took: "That an expert's bytes are read from the model file on storage when asked for. The main source keeps every expert in memory."}
+    adaptation: "Strata makes every expert addressable in host memory. Here no copy in memory is possible, so the source answers only where an expert lies on storage and hands out its bytes on request."
+    remove: [calls, equivalence, implements_stages]
+    set:
+      responsibility: "For any expert, give the range of the prepared file that holds it, and deliver its bytes into a buffer it is handed."
+      not_responsible_for: ["Keeping any expert in memory; the cache does that", "Deciding which experts to read"]
+      runs: [startup, on_demand]
+      needs_resources:
+        - {resource: storage, purpose: "the prepared file holding every expert"}
+        - {resource: cpu, purpose: "issuing reads"}
+      decisions:
+        - {id: read-mode, text: "Whether reads bypass the operating system's page cache. Bypassing keeps the page cache from taking memory the budget does not count.", resolved_at: startup}
+        - {id: read-concurrency, text: "How many expert reads may be in flight at once.", resolved_at: startup}
+      invariants:
+        - {id: inv/whole-expert, text: "A delivered expert is complete; a short read is an error, never a partly filled buffer reported as ready."}
+  - from: comp/strata/expert-cache
+    as: adapted
+    also_from:
+      - {component: comp/ds4/expert-cache, took: "That the cache holds a bounded set of experts and answers whether a selected expert is in it. The main source's cache on this machine holds every expert."}
+    adaptation: "Strata's cache on this machine holds every expert. Here it holds only a part of them, because the experts are larger than the memory budget, so a slot must be released for an incoming expert; releasing is still decided by the policy component, not by the cache."
+    set:
+      responsibility: "Hold as many experts in fast memory as its budget allows and answer, for any expert, whether it is there and in which slot."
+      needs_resources:
+        - {resource: fast_memory, purpose: "one slot per cached expert", note: "takes what remains of the memory budget after the weights every token uses, the attention state, the staging area and the reserve"}
+      decisions:
+        - {id: slot-count, text: "How many slots the cache has. Decided at startup from the memory budget; see startup memory sizing.", resolved_at: startup}
+  - from: comp/strata/expert-dispatch
+    as: adapted
+    also_from:
+      - {component: comp/ds4/expert-split-dispatch, took: "The split of a layer's selected experts into those already in memory and those just read from storage."}
+    adaptation: "Two paths instead of five: cached, or read from storage for this step. No CPU path, no second accelerator. Omitting low-ranked experts is not part of the first version because it changes output."
+    remove: [calls]
+    set:
+      responsibility: "For one layer of one step, decide for every routed expert whether it is computed from the cache at once or after a read from storage, and issue the reads before the cached experts start computing."
+      not_responsible_for: ["Changing what the cache holds", "Summing the experts' outputs"]
+      state: {reads: [residency_table], writes: [expert_heat]}
+      needs_resources:
+        - {resource: accelerator, purpose: "every routed expert"}
+        - {resource: fast_memory, purpose: "the staging area for experts read for this step only"}
+      decisions:
+        - {id: wait-or-stage, text: "Whether a missed expert is computed from the staging area and then dropped, or is computed after the cache policy has admitted it to the cache.", resolved_at: runtime}
+      invariants:
+        - {id: inv/always-served, text: "Every routed expert is computed exactly once in the step that routed it."}
+        - {id: inv/reads-first, text: "The reads of a layer's missed experts are issued before the layer's cached experts are computed, so the two overlap."}
+      equivalence: bit_exact
+      mechanisms: [mech/hot-expert-residency]
+  - from: comp/strata/adaptive-tier
+    as: adapted
+    id: cache-policy
+    also_from:
+      - {component: comp/ds4/expert-eviction, took: "Choosing which cached expert leaves from a decaying count of how often each was selected."}
+    adaptation: "Strata swaps a bounded number of experts every few windows from memory to memory. Here every miss already brings the expert in from storage, so the question is which resident expert it replaces, if any. The usage counts and their decay are kept."
+    remove: [calls]
+    set:
+      title: "Cache policy"
+      responsibility: "Decide, for an expert that has just been read from storage, whether it enters the cache and which resident expert leaves, so that the cache holds the experts the current work uses most."
+      state: {owns: [expert_heat], reads: [residency_table], writes: [residency_table]}
+      runs: [per_layer, background]
+      needs_resources:
+        - {resource: cpu, purpose: "choosing what leaves"}
+      decisions:
+        - {id: admit-rule, text: "The condition under which a missed expert enters the cache: always, or only when its usage count exceeds that of the least used resident expert of the layer.", resolved_at: design}
+        - {id: decay, text: "How fast usage counts fade.", resolved_at: design}
+        - {id: per-layer-share, text: "Whether every layer has the same number of slots or slots move to the layers with the most misses.", resolved_at: runtime}
+        - {id: starting-contents, text: "What the cache holds before any request: nothing, or the experts a recorded usage profile ranks highest.", resolved_at: startup}
+      invariants:
+        - {id: inv/read-ready, text: "An entering expert is marked resident only after its bytes have fully arrived."}
+        - {id: inv/no-overwrite-while-read, text: "A slot is not overwritten while a computation that may read it is in progress."}
+      equivalence: bit_exact
+      mechanisms: [mech/hot-expert-residency]
+  - from: comp/strata/host-to-device-transfer
+    as: adapted
+    id: storage-reader
+    also_from:
+      - {component: comp/ds4/expert-stream-reader, took: "Reading an expert's bytes from storage into a cache slot, several reads at a time."}
+    adaptation: "Strata copies from host memory to card memory. Here the copy is a read from storage into the unified pool, far slower per byte (4.77 GB/s measured on the target machine, against 273 GB/s of memory bandwidth), so its queueing and its overlap with computation decide the engine's speed."
+    remove: [calls, decisions]
+    set:
+      title: "Storage reader"
+      responsibility: "Read the bytes of missed experts from storage into the staging area or a cache slot, several at a time, and report each as ready only when it is complete."
+      needs_resources:
+        - {resource: storage, purpose: "the prepared file"}
+        - {resource: fast_memory, purpose: "the staging area and destination slots"}
+        - {resource: cpu, purpose: "issuing and completing reads"}
+      decisions:
+        - {id: staging-size, text: "How many experts can be staged for one step. At least the 8 one token can route in a layer.", resolved_at: startup}
+        - {id: read-ahead, text: "Whether experts of the next layers are read before their routing is known, from the usage counts.", resolved_at: runtime}
+      invariants:
+        - {id: inv/ordered-read, text: "A read is complete before the computation that uses its destination starts."}
+      observation_points: [read_bytes, read_time, reads_in_flight]
+
+  # ---- prompt path
+  - from: comp/strata/prompt-path
+    as: adapted
+    also_from:
+      - {component: comp/ds4/prefill-driver, took: "Reading a prompt chunk by chunk, one layer at a time."}
+    adaptation: "No CPU share: there is no second copy of the experts for the CPU to read. The chunk size becomes the main choice, because the tokens of a large chunk together route to most of a layer's 256 experts, which is up to 3.3 GB read from storage per layer."
+    remove: [calls, policies]
+    set:
+      responsibility: "Read the prompt in chunks, one layer at a time, reading each routed expert that is not cached once per chunk, and leave behind the attention state that generation continues from."
+      state: {writes: [attention_kv], reads: [residency_table]}
+      needs_resources:
+        - {resource: accelerator, purpose: "batched computation of a chunk, one layer at a time"}
+        - {resource: fast_memory, purpose: "chunk buffers and the experts of the layer being read"}
+      decisions:
+        - {id: chunk-size, text: "Tokens per chunk. Larger chunks amortise each expert read over more tokens but need more experts in memory at once.", resolved_at: startup}
+        - {id: borrow-cache, text: "Whether the prompt path may use cache slots for a layer's experts while it reads, and whether it restores the cache afterwards.", resolved_at: startup}
+        - {id: feeds-usage, text: "Whether the experts a prompt routes count toward the usage that decides the cache's contents for generation.", resolved_at: design}
+      equivalence:
+        - {level: numeric, holds_when: "compared with reading the same prompt one token at a time", note: "Batched kernels may round differently; to be measured."}
+      mechanisms: []
+
+  # ---- token path
+  - from: comp/strata/token-path
+    as: adapted
+    adaptation: "One loop instead of two, no lookup table reader, no recorded graphs in the first version. One token per step, where the source takes a window of several."
+    set:
+      responsibility: "Take one token through all 62 layers and the output head and produce a token choice."
+  - from: comp/strata/window-loop
+    as: adapted
+    id: decode-loop
+    also_from:
+      - {component: comp/ds4/decode-loop, took: "One output token per step in a fixed order of work. Its drafted round is not taken."}
+    adaptation: "One token per step in the first version, with no draft window. A layer may have to wait for a storage read, so the step is driven layer by layer and not as one replayed graph."
+    remove: [calls, equivalence]
+    set:
+      title: "Decode loop"
+      responsibility: "Take one token through the 62 layers and the output head, at each layer handing the routing to the expert subsystem and waiting until every routed expert has been computed."
+      runs: [per_step, per_layer]
+      implements_stages: [decode]
+      state: {writes: [attention_kv]}
+      needs_resources:
+        - {resource: accelerator, purpose: "all layer computation"}
+        - {resource: cpu, purpose: "driving the step and the hand-off at each layer"}
+      decisions:
+        - {id: tokens-per-step, text: "How many tokens are computed in one step: one in the first version.", resolved_at: design}
+        - {id: layer-timeout, text: "How long a layer may wait for storage before the step is reported as failed.", resolved_at: design}
+  - from: comp/strata/layer-kernels
+    as: adapted
+    adaptation: "Muse's card names attention state only, so the recurrent state, the indexer keys and the lookup history that Strata's kernels own do not exist here."
+    remove: [calls, decisions]
+    set:
+      responsibility: "Compute the part of each layer every token needs, in a fixed order."
+      state: {reads: [attention_kv], writes: [attention_kv]}
+      needs_resources:
+        - {resource: accelerator, purpose: "the blocks every token uses, combine of expert rows, token embedding"}
+        - {resource: fast_memory, purpose: "the working buffers of one step"}
+  - from: comp/strata/expert-router
+    as: adapted
+    adaptation: "The router of this model picks 8 of 256 experts per token per layer, where the source's picks 10 of 512. The source's choice of kernel, its recorded graph and its two optional routing biases, which read the residency table, belong to that implementation and are not carried."
+    remove: [state]
+    rewrite:
+      - {old: "logits, ids and weights per window row", new: "logits, ids and weights per token"}
+    set:
+      responsibility: "For each token in each layer, turn the feed-forward input into 256 logits and choose 8 experts with their weights."
+      equivalence:
+        - {level: bit_exact, relative_to: "the reference router contract", holds_when: "by design; to be shown by this component's parity check against the reference"}
+  - from: comp/strata/kv-store
+    as: adapted
+    adaptation: "Only attention keys and values. The model allows a context of about one million tokens, which cannot be held beside the weights and the cache; the configured context length is bounded by the memory budget. 46 of the model's 62 layers attend only to the last 2,048 tokens: whether the store drops older state for those layers is an open choice of this design. Moving old keys and values out of memory is not part of the first version."
+    remove: [calls, decisions, policies]
+    set:
+      responsibility: "Hold the attention keys and values of every position up to the configured context length, and truncate them to a given position when asked."
+      state: {owns: [attention_kv]}
+      needs_resources:
+        - {resource: fast_memory, purpose: "keys and values for the configured context"}
+        - {resource: accelerator, purpose: "attention reads them in place"}
+      decisions:
+        - {id: kv-format, text: "The precision keys and values are kept at.", resolved_at: startup}
+        - {id: context-length, text: "The longest context held. Set together with startup memory sizing.", resolved_at: startup}
+  - from: comp/strata/output-head
+    as: adapted
+    adaptation: "The source's choice between two head kernels by weight file format belongs to that implementation and is not carried. One row of logits per position, where the source has one per row of a window. The model description names only the projection to the vocabulary."
+    rewrite:
+      - {old: "one logits row of vocabulary size per window row", new: "one logits row of vocabulary size per position"}
+      - {old: "the final residual read and the vocabulary projection", new: "the vocabulary projection"}
+    set:
+      responsibility: "Turn the residual after the last layer into one row of vocabulary logits per position."
+  - from: comp/strata/sampler
+    as: adapted
+    adaptation: "No drafting in the first version: the stage that checks drafted tokens, the choices about drafted rows and the equivalence cases that depend on how drafts are accepted are not carried. The source's alternative sampler kernels are not carried."
+    remove: [equivalence]
+    set:
+      responsibility: "Turn the logits of the position being generated into one token id by a fixed chain: logit bias, penalties, top-k, top-p, min-p, temperature, pick."
+      needs_resources:
+        - {resource: accelerator, purpose: "the pick over the vocabulary"}
+        - {resource: fast_memory, purpose: "scratch for the pick"}
+
+  # ---- serving
+  - from: comp/strata/serving
+    as: adapted
+    adaptation: "One conversation is generated at a time; no slot scheduler and no replica router."
+  - from: comp/strata/http-front
+    as: adapted
+    adaptation: "One conversation at a time: what the source says about its slot scheduler is not carried. Which request dialects the front offers is open until the form of the engine is decided."
+    rewrite:
+      - {old: "One thread per connection and one watcher thread per inference request", new: "Connection handling and watching for a client that hangs up"}
+    set:
+      responsibility: "Accept client requests over HTTP, bound how many inference calls are pending, answer every failure class with a defined status code, and cancel a request whose client has hung up."
+  - from: comp/strata/prompt-builder
+    as: adapted
+    adaptation: "Muse's vocabulary of 202,048 tokens and its chat template. Text only in the first version. The kind of tokenizer is the published one's, not the source model's."
+    remove: [calls]
+    set:
+      needs_resources:
+        - {resource: cpu, purpose: "Template rendering, encoding with the published tokenizer and incremental decoding, in the server process"}
+        - {resource: fast_memory, purpose: "The tokenizer's tables and the few most recent rendered prompts with their ids, in the one memory pool of this machine"}
+      decisions:
+        - {id: tokenizer-implementation, text: "The tokenizer used; it must reproduce the reference tokenizer exactly.", resolved_at: design}
+        - {id: chat-template, text: "The template that turns messages into one prompt.", resolved_at: design}
+        - {id: fit-max-tokens, text: "What happens when prompt plus requested output exceed the configured context: refuse, or shorten the output limit.", resolved_at: design}
+  - from: comp/strata/request-runner
+    as: adapted
+    adaptation: "One conversation at a time: what concerns several conversations generated at the same time is not carried. The model description names no reasoning or tool-call format, so the events are content events."
+    set:
+      responsibility: "Drive one API request through one or more engine generations and turn the token ids into content events with a final finish record."
+  - from: comp/strata/engine-client
+    as: adapted
+    adaptation: "The source's command-line transport flag, its second start without a draft model and its query for free memory on a separate GPU memory are not carried."
+  - from: comp/strata/engine-command-loop
+    as: adapted
+    adaptation: "No batch slots: one prompt read or one generation at a time."
+    remove: [calls, decisions, equivalence]
+    set:
+      title: "Engine command loop"
+      responsibility: "Inside the engine process, read one command at a time, run one prompt read and one generation at a time, and report each generation's tokens and end figures as text lines."
+      runs: [startup, per_request, per_step]
+      implements_stages: [prefill, decode]
+      state: {owns: [live_conversation_record], reads: [parked_conversations]}
+      needs_resources:
+        - {resource: cpu, purpose: "The command loop thread and one thread reading standard input"}
+
+  # ---- conversation reuse
+  - from: comp/strata/conversation-reuse
+    as: adapted
+    adaptation: "A stored conversation is matched by token ids only: this engine serves text, and the source's image keys and steering flag do not exist here."
+  - from: comp/strata/resume-decision
+    as: adapted
+    adaptation: "With attention state only, going back to an earlier point is a truncation of keys and values; no chain of checkpoints is needed."
+    remove: [calls, decisions]
+    set:
+      responsibility: "For each request, choose the stored state that shares the longest valid prefix with the prompt, make the session hold exactly that state by truncating or restoring, and report the prefix length."
+      state: {reads: [parked_conversations], writes: [live_conversation_record, parked_conversations]}
+  - from: comp/strata/parked-conversations
+    as: adapted
+    adaptation: "An image is keys and values only. On one memory pool a parked image takes memory directly from the expert cache, so the budget is a trade against cache size, not a separate host memory budget."
+    remove: [calls, decisions]
+    set:
+      responsibility: "Hold images of other conversations' attention state within a budget, find the one with the longest valid prefix for a prompt, and evict."
+      state: {owns: [parked_conversations], reads: [attention_kv], writes: [attention_kv]}
+      needs_resources:
+        - {resource: fast_memory, purpose: "parked images; this memory is taken from the expert cache"}
+      decisions:
+        - {id: budget, text: "How much memory parked images may take. Zero is a valid first setting.", resolved_at: startup}
+        - {id: park-to-storage, text: "Whether an image is written to storage instead of being kept in memory.", resolved_at: startup}
+  - from: comp/strata/session-files
+    as: adapted
+    adaptation: "A session file holds this model's state only, the attention keys and values. The source's other kinds of state and its checkpoints do not exist here, and what concerns several conversations generated at the same time is not carried."
+    set:
+      needs_resources:
+        - {resource: storage, purpose: "One file per saved session: the conversation's token record and its attention keys and values"}
+        - {resource: fast_memory, purpose: "A write buffer on a save; about the payload plus a buffer on a read. This machine has one memory pool, so the buffer is taken from the same memory as the expert cache"}
+
+  # ---- telemetry
+  - from: comp/strata/telemetry
+    as: adapted
+    adaptation: "The work the source does once per window is done once per step here. The source's note about a failed GPU allocation is not carried."
+  - from: comp/strata/engine-diagnostics
+    as: adapted
+    adaptation: "It must also record how often each expert of each layer is routed. That distribution is the quantity the speed of this engine depends on most, and it has not been measured for this model."
+    remove: [calls, decisions]
+    set:
+      responsibility: "Inside the engine process, record what the run selected at start, count cache hits and storage reads per layer, and record how often each expert is routed, writing each when asked."
+      state: {owns: [dispatch_counts, run_manifest_record, expert_usage_profile]}
+      runs: [startup, per_step, on_demand]
+      observation_points: [cache_hit_count, cache_miss_count, expert_usage_profile, run_manifest]
+  - from: comp/strata/server-metrics
+    as: adapted
+    adaptation: "No drafting in the first version, so the counts of drafted tokens are not carried. The sizes of its histories are open choices."
+    set:
+      responsibility: "In the server process, turn the engine's end-of-request figures and the server's own clocks into per-request records, running totals and a live rate, fill the usage and timings of each response, sample the machine at intervals, and render all of it for outside monitors."
+      needs_resources:
+        - {resource: cpu, purpose: "Work per finished request, per reading of the machine and per request from a monitor"}
+        - {resource: fast_memory, purpose: "Bounded histories of finished requests, transition events and hardware samples, in the one memory pool of this machine"}
+
+not_carried:
+  - {component: comp/strata/native-weight-loader, why: does_not_apply, note: "It serves tensors Strata keeps in GGUF form. Muse's prepared files have one form and one loader."}
+  - {component: comp/strata/host-memory-admission, why: does_not_apply, note: "It admits a page-locked host copy of every expert and of the lookup table. Muse's experts are larger than the machine's memory (206 GB against 128 GB) and the model has no lookup table."}
+  - {component: comp/strata/cpu-expert-pool, why: does_not_apply, note: "It computes experts the GPU cannot reach. On one memory pool the GPU reads every expert that is in memory, and an expert that is not in memory is on storage, where the CPU has no advantage."}
+  - {component: comp/strata/session-loop, why: does_not_apply, note: "It exists for one of Strata's weight packs only."}
+  - {component: comp/strata/ngram-reader, why: does_not_apply, note: "The model card names no lookup table."}
+  - {component: comp/strata/mtp-drafter, why: does_not_apply, note: "The model card names no draft head."}
+  - {component: comp/strata/dflash2-drafter, why: does_not_apply, note: "A separate drafter model trained for Strata's model."}
+  - {component: comp/strata/checkpoint-chain, why: does_not_apply, note: "It exists to go back in recurrent state that cannot be truncated. Muse's card names attention state only."}
+  - {component: comp/strata/replica-router, why: does_not_apply, note: "One machine: there is no second engine to route a request to."}
+  - {component: comp/strata/lookup-drafter, why: postponed, note: "It needs nothing from the model, but a window of drafted tokens routes more experts per step. Whether that pays depends on the cost of a miss and on the acceptance rate, neither measured."}
+  - {component: comp/strata/draft-policy, why: postponed, note: "Postponed with the lookup drafter."}
+  - {component: comp/strata/draft-verifier, why: postponed, note: "Postponed with the lookup drafter."}
+  - {component: comp/strata/window-graphs, why: postponed, note: "Replaying one recorded graph per step assumes no wait inside a layer. Here a layer may wait for storage. To be revisited when the miss rate is measured."}
+  - {component: comp/strata/slot-scheduler, why: postponed, note: "A second conversation needs its own attention state in memory, taken from the expert cache."}
+  - {component: comp/strata/speed-calibration, why: postponed, note: "Its presets were measured on Strata's weight packs. It needs first measurements of this engine."}
+
+flows:
+  drop: [gguf-shards-read, gguf-tensor-bytes, prompt-buffer-plan, expert-bytes-to-fast-memory,
+         gpu-readable-experts,    # the source lets the GPU read experts in place from host memory it registers; here an expert is read from storage
+         batch-samples]           # samples of several conversations run at once; the first version runs one
+  # Flows carried from the main source whose text or name still spoke of that engine, said again for this one.
+  set:
+    client-response: {description: "The response to the client: tokens as they are produced or one body at the end, with usage and timings."}
+    messages-to-prompt: {description: "Messages and template arguments in one internal form."}
+    generation-call: {description: "Prompt token ids, output limit, sampling settings and a cancel event for one engine generation."}
+    metrics-out: {description: "The records, totals and rates, rendered for outside monitors when they ask."}
+    diagnostic-files: {description: "The counts report at exit and the run manifest, each only when asked for."}
+    model-geometry: {description: "Layer count, widths, expert count and experts per token read from the metadata of the prepared files and checked against the compiled shapes; every later size is computed from it."}
+    expert-layout-file: {description: "The table of expert ranges in the prepared files: for each expert, where its bytes lie and how long they are."}
+    expert-layout-to-source: {description: "For each expert, the offset and length of its range in the prepared file, and the total bytes."}
+    pack-dense-read: {id: shared-weights-read, description: "The weights every token uses, read from the prepared files."}
+    dense-weights-in-vram: {id: shared-weights-in-memory, description: "Where the weights every token uses lie in memory, by name."}
+    expert-cache-size: {description: "Number of slots and the byte size of a slot."}
+    expert-bytes-from-files: {timing: on_demand, description: "The bytes of a requested expert, one contiguous range of the prepared file, read from storage when asked for."}
+    engine-commands: {description: "Text lines on the engine's standard input: generate with settings and prompt token ids, stop, report memory, save and restore."}
+    engine-token-lines: {description: "One line per produced token id."}
+    operator-memory-settings: {description: "Command-line flags and environment: context length, expert cache size or auto, reserve, prompt chunk."}
+    device-free-memory: {id: free-memory, description: "Free memory of the machine's one memory pool as the operating system reports it, read before the cache is sized and again after its slots are written."}
+    expert-bytes-to-upload: {id: expert-ranges-to-read, description: "The ranges of the prepared file to be read: cache fill, replacements, the prompt path's staging."}
+    accelerator-expert-plan: {description: "Which routed experts are computed this layer, from cache slots or from the staging area."}
+    window-inputs: {id: step-inputs, timing: per_step, description: "The token id and its position for this step."}
+    routed-experts: {description: "8 expert ids and weights per token, read by the combine of expert rows."}
+    window-layer-handoff: {id: layer-handoff, description: "When a layer's routing is known: its feed-forward input and routed ids, handed to expert dispatch."}
+    kv-pages-for-attention: {description: "The keys and values an attention step reads."}
+    kv-append: {description: "The new position's keys and values of each attention layer, written into the store."}
+    tokens-to-runner: {timing: per_step, description: "Token ids as they arrive, with a heartbeat after a set time of quiet."}
+    prompt-to-read: {description: "The prompt token ids of one generation, to be read from the resume point."}
+    take-or-park: {description: "Park the outgoing conversation; restore from the chosen parked entry."}
+    gpu-busy: {description: "Whether the GPU is working, read by the frozen-engine check."}
+    swap-requests: {description: "Experts to read into the slots of experts that are leaving the cache."}
+    residency-updates: {description: "A leaving expert is marked absent before its slot is overwritten; an entering expert is marked resident after its bytes have fully arrived."}
+    expert-layout-to-sizing: {description: "The largest expert range, the unit the expert cache's slots are counted in."}
+    window-fetch-request: {id: step-fetch-request, description: "Missed experts to read into the staging area for this step only."}
+    expert-usage: {description: "How many tokens of the step or of the prompt chunk routed each expert."}
+    final-residual-to-head: {description: "The residual after the last layer, one per position."}
+    logits-to-sampler: {description: "One row of vocabulary logits per position."}
+    client-request: {description: "A client request over HTTP: messages, sampling fields and an output limit."}
+    prompt-ids: {description: "The prompt token ids and the output limit fitted to the context."}
+    response-events: {description: "Content events, pings and one finish record."}
+    session-file-in: {description: "A session file read back and validated before the live state is written."}
+    hardware-readings: {description: "GPU utilisation, temperature and power from the vendor library, and CPU, memory and disk readings from the operating system."}
+    engine-stat-lines: {description: "A line at start; per request, prompt progress, a line when a conversation is resumed, and an end line with counts, prompt and decode milliseconds, reused tokens and expert cache hits."}
+    parked-restore: {description: "A parked conversation's attention keys and values and its token record, copied back into the live conversation."}
+    session-file-out: {description: "One session file on storage: the conversation's token record and every attention layer's keys and values."}
+    operator-choices: {description: "The person's setup answers and options: model, context length, format of the attention state, reserve."}
+    memory-options: {description: "Context length, format of the attention state, memory reserve and expert cache request, as engine arguments."}
+  add:
+    - {id: model-checkpoint, sender: external, receiver: preparation, carries: {content: weights, refs: [expert_weights, shared_weights]}, timing: offline, description: "The model checkpoint the target names, read once"}
+    - {id: prepared-files, sender: preparation, receiver: model_files, carries: {content: weights, refs: [expert_weights, shared_weights]}, timing: offline, description: "The files the engine reads: weights every token uses, and every expert as one range"}
+    - {id: prepared-header, sender: model_files, receiver: model-file-reader, carries: {content: plan}, timing: startup, description: "Metadata and tensor directory of the prepared files"}
+    - {id: head-weights, sender: weight-loader, receiver: output-head, carries: {content: weights, refs: [output_head_weights]}, timing: startup, description: "Where the output head's weights lie in fast memory"}
+    - {id: context-plan, sender: startup-memory-sizing, receiver: kv-store, carries: {content: plan}, timing: startup, description: "The context length the attention state is sized for"}
+    - {id: chunk-plan, sender: startup-memory-sizing, receiver: prompt-path, carries: {content: plan}, timing: startup, description: "The chunk size and the memory the prompt path may use"}
+    - {id: read-requests, sender: storage-reader, receiver: expert-source, carries: {content: control, refs: [expert_weights]}, timing: on_demand, description: "Which experts to deliver and into which buffers"}
+    - {id: staged-experts-ready, sender: storage-reader, receiver: expert-dispatch, carries: {content: engine_state, refs: [staged_experts]}, timing: per_layer, description: "Which missed experts of this layer have arrived"}
+    - {id: fetched-experts-to-cache, sender: storage-reader, receiver: expert-cache, carries: {content: weights, refs: [expert_weights]}, timing: on_demand, description: "The bytes of an expert the cache policy admitted"}
+    - {id: prompt-layer-handoff, sender: prompt-path, receiver: expert-dispatch, carries: {content: activations}, timing: per_layer, description: "For one layer of one chunk, the routing of every token and the activations"}
+    - {id: generate, sender: engine-command-loop, receiver: decode-loop, carries: {content: control}, timing: per_request, description: "Start generating from the current attention state, with the sampling settings and the token limit"}
+    - {id: picked-token, sender: sampler, receiver: decode-loop, carries: {content: tokens}, timing: per_step, description: "The token chosen for this step; it is the input of the next"}
+    - {id: emitted-tokens, sender: decode-loop, receiver: engine-command-loop, carries: {content: tokens}, timing: per_step, description: "Each generated token as it is produced"}
+    - {id: truncate-to-prefix, sender: resume-decision, receiver: kv-store, carries: {content: control, refs: [attention_kv]}, timing: per_request, description: "Cut the attention state back to the shared prefix"}
+    - {id: routing-counts, sender: expert-dispatch, receiver: engine-diagnostics, carries: {content: signal, refs: [expert_usage_profile]}, timing: per_layer, description: "Which experts were routed, and which were found in the cache"}
+    - {id: usage-profile-out, sender: engine-diagnostics, receiver: external, carries: {content: metrics, refs: [expert_usage_profile]}, timing: on_demand, description: "The recorded usage of every expert, written as a file that a later start can load"}
+
+# How each proposed component will be checked on its own, before the engine is checked as a whole.
+verification:
+  preparation:
+    - {method: parity_with_reference, checks: "Every tensor read back from the prepared files is byte-identical to the same tensor in the model checkpoint.", against: "the model checkpoint the target names"}
+  model-file-reader:
+    - {method: unit_test, checks: "A file with a wrong layer count, expert count or hidden size is refused with the field named."}
+  expert-layout:
+    - {method: unit_test, checks: "Every one of the 15,872 ranges is inside the file, block-aligned and non-overlapping."}
+  weight-loader:
+    - {method: parity_with_reference, checks: "A checksum of each loaded tensor equals the checksum recorded at preparation.", against: "checksums written by model preparation"}
+  startup-memory-sizing:
+    - {method: unit_test, checks: "For a table of budgets and context lengths, the cache size plus everything priced never exceeds the budget, and a budget too small for the minimum cache is refused."}
+    - {method: measurement, checks: "Peak memory of a running engine stays within the budget under the fixed workload."}
+  expert-source:
+    - {method: parity_with_reference, checks: "The bytes delivered for a sample of experts equal the bytes of the model checkpoint.", against: "the model checkpoint the target names"}
+    - {method: measurement, checks: "Time to deliver one expert, alone and with the configured number of reads in flight."}
+  expert-cache:
+    - {method: invariant_test, checks: "A lookup during an admission never returns the expert being admitted.", invariants: [inv/read-ready]}
+  expert-dispatch:
+    - {method: parity_with_reference, checks: "With a cache of any size, including the minimum, the engine's output tokens equal those of a run with every expert in memory, on a model small enough to hold.", against: "the same engine with all experts resident"}
+    - {method: invariant_test, checks: "Every routed expert of a step is computed exactly once.", invariants: [inv/always-served]}
+  cache-policy:
+    - {method: invariant_test, checks: "A slot is never overwritten while a computation reads it, under injected slow reads.", invariants: [inv/no-overwrite-while-read]}
+    - {method: measurement, checks: "Hit rate on a recorded routing trace, replayed without running the model."}
+  storage-reader:
+    - {method: invariant_test, checks: "No computation starts on a destination before its read is complete, under injected slow and short reads.", invariants: [inv/ordered-read]}
+    - {method: measurement, checks: "Bytes per second delivered at the configured concurrency, against the storage device's measured rate."}
+  prompt-path:
+    - {method: parity_with_reference, checks: "The attention state after reading a prompt in chunks matches reading it one token at a time, within a stated numeric tolerance.", against: "the decode loop fed the same prompt"}
+    - {method: measurement, checks: "Seconds per chunk and bytes read from storage per chunk, by chunk size."}
+  decode-loop:
+    - {method: parity_with_reference, checks: "Next-token outputs equal the reference implementation's on a fixed prompt set under greedy sampling.", against: "the baseline the target names, on the same model files"}
+  layer-kernels:
+    - {method: parity_with_reference, checks: "Each kernel's output on recorded inputs matches the reference within a stated tolerance.", against: "the baseline the target names"}
+  expert-router:
+    - {method: parity_with_reference, checks: "The 8 experts chosen per token per layer equal the reference's on a fixed prompt set.", against: "the baseline the target names"}
+  kv-store:
+    - {method: unit_test, checks: "After truncating to a position and continuing, the state equals that of a run that never went past the position."}
+  output-head:
+    - {method: parity_with_reference, checks: "Logits on recorded final activations match the reference within a stated tolerance.", against: "the baseline the target names"}
+  sampler:
+    - {method: unit_test, checks: "With a fixed seed and fixed logits, the chain returns the same token as a plain implementation of each step."}
+  prompt-builder:
+    - {method: parity_with_reference, checks: "Token ids for a fixed set of conversations equal the reference tokenizer's.", against: "the tokenizer published with the model"}
+  resume-decision:
+    - {method: parity_with_reference, checks: "Output after resuming from a shared prefix equals output after reading the whole prompt.", against: "the same engine without reuse"}
+  engine-diagnostics:
+    - {method: unit_test, checks: "The recorded usage counts sum to 8 times 62 times the number of tokens processed."}

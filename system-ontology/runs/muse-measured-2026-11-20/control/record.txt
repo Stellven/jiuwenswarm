@@ -1,0 +1,14 @@
+name: control
+started: 2026-11-20T09:36:40-05:00
+command: /home/<spark-user>/llama.cpp/build/bin/llama-server -m /home/<spark-user>/ifbench/models/muse/UD-IQ2_XXS/Muse-Spark-Open-816B-A42B-UD-IQ2_XXS-00001-of-00006.gguf --alias muse-own --host 127.0.0.1 --port 8189 -c 20480 -np 1 --metrics --slots --jinja --log-verbosity 4 --load-mode mmap -ngl 999 --cpu-moe -b 2048 -ub 2048 
+memory before start: MemTotal: 130.6 GB; MemFree: 55.1 GB; MemAvailable: 126.5 GB; Cached: 71.9 GB; 
+ready after: 121 s
+memory when ready: MemTotal: 130.6 GB; MemFree: 1.1 GB; MemAvailable: 103.4 GB; Cached: 103.3 GB; 
+process when ready: Rss: 92.42 GiB; Pss: 92.42 GiB; Pss_Anon: 0.13 GiB; Pss_File: 91.94 GiB; Shared_Clean: 0.00 GiB; Private_Clean: 91.94 GiB; Anonymous: 0.13 GiB; 
+gpu when ready: 355595, 21940 MiB;
+measure.py exit: 0
+memory after: MemTotal: 130.6 GB; MemFree: 1.0 GB; MemAvailable: 103.3 GB; Cached: 103.3 GB; 
+process after: Rss: 94.16 GiB; Pss: 94.16 GiB; Pss_Anon: 0.02 GiB; Pss_File: 94.14 GiB; Shared_Clean: 0.00 GiB; Private_Clean: 94.13 GiB; Anonymous: 0.02 GiB; 
+gpu after: 355595, 22056 MiB;
+server stopped: 2026-11-20T10:20:18-05:00; memory after stop: MemTotal: 130.6 GB; MemFree: 25.1 GB; MemAvailable: 127.4 GB; Cached: 103.0 GB; 
+FINISHED

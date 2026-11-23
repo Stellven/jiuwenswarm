@@ -1,0 +1,128 @@
+engine: hyperqwen
+decision_coverage:
+  totals: {decisions: 125, covered: 42, loosely: 33, not_covered: 33, engine_specific: 17}
+  per_type:
+    - {type: "model-conversion", decisions: 14, covered: 5, loosely: 4, not_covered: 4, engine_specific: 1}
+    - {type: "calibration", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "configuration", decisions: 9, covered: 3, loosely: 5, not_covered: 0, engine_specific: 1}
+    - {type: "graph-capture", decisions: 6, covered: 4, loosely: 0, not_covered: 2, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 2, loosely: 0, not_covered: 2, engine_specific: 0}
+    - {type: "memory-planning", decisions: 7, covered: 2, loosely: 2, not_covered: 2, engine_specific: 1}
+    - {type: "state-pool", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "recurrent-state-store", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "positional-state-store", decisions: 7, covered: 1, loosely: 2, not_covered: 4, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 3, covered: 0, loosely: 1, not_covered: 1, engine_specific: 1}
+    - {type: "request-front", decisions: 8, covered: 4, loosely: 2, not_covered: 1, engine_specific: 1}
+    - {type: "prompt-preparation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 5, covered: 1, loosely: 2, not_covered: 2, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 0, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "layer-compute", decisions: 13, covered: 1, loosely: 3, not_covered: 6, engine_specific: 3}
+    - {type: "modality-encoding", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 0, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "output-constraint", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "draft-proposal", decisions: 14, covered: 4, loosely: 3, not_covered: 6, engine_specific: 1}
+    - {type: "draft-policy", decisions: 4, covered: 0, loosely: 2, not_covered: 2, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "model-partitioning", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "telemetry", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+  per_part_judgement:
+    # C covered, L loosely, N not_covered, E engine_specific, in the inventory's decision order
+    model-dir-publisher: "L C E"
+    offline-weight-requantizer: "C C N"
+    draft-vocab-builder: "L N N N"
+    gptq-requantizer: "C C L"
+    chat-template-rewriter: "L"
+    calibration-data-capture: "C L E"
+    launch-profile-resolver: "L C L L L E L"
+    correctness-pins: "C C"
+    compile-and-warmup: "N C N"
+    graph-capture: "C C C"
+    weight-loader: "C N C N"
+    memory-budget-planner: "L L C"
+    pool-layout-planner: "N N C E"
+    paged-block-pool: "C N"
+    recurrent-state-store: "C L E"
+    attention-kv-store: "C L"
+    kvarn-staging-quantizer: "N N N L N"
+    prefix-cache: "C C L C"
+    kv-offload-tier: "N L E"
+    api-server: "N L C L"
+    access-guard: "C E C C"
+    prompt-renderer: "C"
+    output-parser: "C"
+    engine-core-loop: "N"
+    request-scheduler: "C L L N"
+    model-runner: "E L"
+    token-embedding: "N N"
+    linear-gemm: "C L E"
+    gdn-recurrence-compute: "N E"
+    full-attention-compute: "N L L"
+    verify-attention: "N E N"
+    output-head: "(no decisions)"
+    image-encoder: "L L C"
+    sampler: "L E"
+    grammar-constraint: "C E"
+    mtp-drafter: "C N L C"
+    dflash2-drafter: "C L E N"
+    context-lookup-proposer: "N N N N"
+    drafter-free-chains: "C L"
+    verify-length-controller: "N L L N"
+    draft-acceptance: "C E"
+    tensor-parallel: "E C"
+    telemetry: "C C"
+    stall-watchdog: "C E"
+  not_covered_examples:
+    - {type: "model-conversion", part: "offline-weight-requantizer", decision: "read whole shards or stream a single huge shard", missing_choice: "memory used while converting: whole files in memory or streamed piece by piece", kind: "sizing"}
+    - {type: "model-conversion", part: "draft-vocab-builder", decision: "which corpus the token counts come from", missing_choice: "the data a derived piece is selected or fitted from", kind: "policy"}
+    - {type: "model-conversion", part: "draft-vocab-builder", decision: "which extra scripts are appended under what row budget", missing_choice: "the rule that decides what a derived shortlist contains beyond the measured ranking", kind: "policy"}
+    - {type: "model-conversion", part: "draft-vocab-builder", decision: "only whole-UTF-8 rows are eligible", missing_choice: "which entries are eligible for a derived shortlist at all", kind: "policy"}
+    - {type: "graph-capture", part: "compile-and-warmup", decision: "which knobs enter the compile cache key and which are runtime-only", missing_choice: "the key that decides whether a stored compiled artifact may be reused", kind: "policy"}
+    - {type: "graph-capture", part: "compile-and-warmup", decision: "which kernels must not specialise on batch size", missing_choice: "which step dimensions compiled kernels may be specialised on", kind: "policy"}
+    - {type: "model-loading", part: "weight-loader", decision: "accept asymmetric zero-point int4 weights on the int8-activation path", missing_choice: "which stored weight encodings each kernel path accepts", kind: "policy"}
+    - {type: "model-loading", part: "weight-loader", decision: "load a bf16 drafter beside a quantized target", missing_choice: "whether parts of the model in different precisions may be loaded together", kind: "policy"}
+    - {type: "memory-planning", part: "pool-layout-planner", decision: "group size when the smallest bucket is the drafter's sliding-window layers", missing_choice: "page geometry shared by kinds of state with different sizes (common page, grouping, padding)", kind: "sizing"}
+    - {type: "memory-planning", part: "pool-layout-planner", decision: "promote a draft layer's block to a divisor of the primary block", missing_choice: "how per-kind block sizes are reconciled with a common page and the scheduler's granularity", kind: "sizing"}
+    - {type: "state-pool", part: "paged-block-pool", decision: "free sliding-window blocks behind the window", missing_choice: "whether pages that fall out of the model's attention window are released before the sequence ends", kind: "policy"}
+    - {type: "positional-state-store", part: "kvarn-staging-quantizer", decision: "flush a finished request's full block but discard a partial one", missing_choice: "when state held in a staging precision is converted to its stored format, and what is dropped instead", kind: "timing"}
+    - {type: "positional-state-store", part: "kvarn-staging-quantizer", decision: "keep retired sinks resident; evict oldest first when slots run dry", missing_choice: "which positions are kept at higher precision than the stored format, and their eviction order", kind: "policy"}
+    - {type: "positional-state-store", part: "kvarn-staging-quantizer", decision: "drop, never flush, anything held for a page another group now owns", missing_choice: "what is done with pending writes for a page that has changed owner", kind: "failure"}
+    - {type: "positional-state-store", part: "kvarn-staging-quantizer", decision: "size of the staging pool as a share of memory", missing_choice: "size of a staging area for state not yet in its stored format", kind: "sizing"}
+    - {type: "state-tiering", part: "kv-offload-tier", decision: "which groups count as draft attention", missing_choice: "which kinds of state the slower tier holds and how its blocks are sized per kind", kind: "policy"}
+    - {type: "request-front", part: "api-server", decision: "accept a model name equal to the served name, the root path or its basename", missing_choice: "which names a request may use to address the served model", kind: "policy"}
+    - {type: "step-scheduler", part: "engine-core-loop", decision: "async scheduling overlaps planning of step N+1 with execution of step N", missing_choice: "whether the next step is planned while the current one runs", kind: "timing"}
+    - {type: "step-scheduler", part: "request-scheduler", decision: "synchronous scheduling when the worker must choose the draft count", missing_choice: "whether the next step is planned while the current one runs, and when overlap is given up", kind: "timing"}
+    - {type: "layer-compute", part: "token-embedding", decision: "keep the table in host memory (opt-in)", missing_choice: "where a weight the computation reads lives (the type's own 'not' excludes this, though the part decides it)", kind: "placement"}
+    - {type: "layer-compute", part: "token-embedding", decision: "skip host placement for tied embeddings and an unquantised table", missing_choice: "conditions under which a weight may be read from slower memory", kind: "placement"}
+    - {type: "layer-compute", part: "gdn-recurrence-compute", decision: "kernel per compute capability", missing_choice: "kernel variant per device class and step shape", kind: "policy"}
+    - {type: "layer-compute", part: "full-attention-compute", decision: "backend per KV format and card", missing_choice: "kernel variant per stored-state format and device class", kind: "policy"}
+    - {type: "layer-compute", part: "verify-attention", decision: "query-row tile size by row count and register budget", missing_choice: "kernel variant or tiling per device class and step shape", kind: "policy"}
+    - {type: "layer-compute", part: "verify-attention", decision: "scratch capacity in tokens, shared by builders of one geometry", missing_choice: "working space a kernel may hold and how it is shared", kind: "sizing"}
+    - {type: "draft-proposal", part: "mtp-drafter", decision: "use the truncated head when the id list exists", missing_choice: "the vocabulary a proposer may propose from", kind: "policy"}
+    - {type: "draft-proposal", part: "dflash2-drafter", decision: "refuse a target context whose length plus lookahead exceeds the drafter's positional capacity", missing_choice: "what is done when the proposer cannot cover the target's context length", kind: "failure"}
+    - {type: "draft-proposal", part: "context-lookup-proposer", decision: "minimum and maximum match length, ties broken by recency", missing_choice: "how a lookup source matches earlier text: match lengths and tie rule", kind: "threshold"}
+    - {type: "draft-proposal", part: "context-lookup-proposer", decision: "head positions: a strong match alone, a shorter one only if the drafter agrees", missing_choice: "the rule for combining several proposal sources at each position", kind: "precedence"}
+    - {type: "draft-proposal", part: "context-lookup-proposer", decision: "tail positions: lower threshold, consistent with the head", missing_choice: "the rule for combining several proposal sources at each position, per region of the block", kind: "threshold"}
+    - {type: "draft-proposal", part: "context-lookup-proposer", decision: "search distance", missing_choice: "how far back a lookup source searches", kind: "sizing"}
+    - {type: "draft-policy", part: "verify-length-controller", decision: "unanimity across the batch", missing_choice: "how per-sequence decisions are combined when sequences share a step", kind: "policy"}
+    - {type: "draft-policy", part: "verify-length-controller", decision: "read the flags one step stale rather than synchronise", missing_choice: "how fresh the signals it decides from must be", kind: "timing"}
+contradictions:
+  - {type: "configuration", claim: "A combination known to give wrong output is not started.", part: "correctness-pins", evidence: "decision 'Whether an explicit operator override is honoured'; failure 'fp16 dtype with a speculator: refuses to boot unless overridden'; must_never 'let the adaptive verify length run on KVarN with prefix caching and a block over 8 unless explicitly asked'. The engine does start known-corrupting combinations on explicit request.", fix: "A combination known to give wrong output is not started unless the operator explicitly overrides it, and the override is recorded with the run's settings."}
+  - {type: "memory-planning", claim: "Everything it prices plus what it hands out never exceeds the budget.", part: "memory-budget-planner", evidence: "'Pin by bytes for fixed-context profiles'; failure 'pool pinned too full: first real batch OOMs on Linux, or silently spills to system RAM and slows 3-28x under WSL2'; must_never only forbids allocating scratch outside the measured window 'without saying so'. An operator-pinned size is not checked against the budget.", fix: "Condition the rule on computed sizes, or require that an operator-pinned size is checked against the measured budget (or reported as unchecked) before the pool is allocated."}
+  - {type: "graph-capture", claim: "effect_on_output lists only none (intended) and numeric (different kernel variant or buffer layout)", part: "graph-capture", evidence: "output_effect changes_output: 'FULL capture of the verify step with a prefix-cache hit corrupted one prompt length in 128 on the huge-context profile, compared with PIECEWISE'.", fix: "Add a case changes_output: when a recorded graph mishandles a case the unrecorded path handles (a defect), with the obligation that such combinations are refused at configuration."}
+  - {type: "model-conversion", claim: "changes_output when it changes precision, cuts the vocabulary, or rewrites the template", part: "draft-vocab-builder", evidence: "draft-vocab-builder cuts a vocabulary yet output_effect is none ('the target still scores the full vocabulary'); offline-weight-requantizer 'the MTP module's precision changes only acceptance, not output'; gptq-requantizer 'drafter quantization changes only acceptance'. The none case 'it only re-arranges bytes' does not describe this part either.", fix: "Condition on the target: changes_output when it changes the precision or vocabulary of what the full model computes, or rewrites the template; none when it only re-arranges bytes or changes derived pieces that are only proposals (draft head, draft vocabulary), which affect acceptance rate, not output."}
+  - {type: "prefix-reuse", claim: "effect_on_output lists only none and numeric", part: "prefix-cache", evidence: "output_effect changes_output: 'Greedy text can differ between a hit and a miss (different chunking and rounding), compared with a cold prefill.'", fix: "Either state in the effect vocabulary that numeric differences may flip greedy tokens (so such parts stay numeric), or add changes_output to prefix-reuse when a hit takes a differently chunked or rounded path than a cold read."}
+  - {type: "step-scheduler", claim: "effect_on_output lists only none (one sequence at a time) and numeric (which sequences share a step)", part: "request-scheduler", evidence: "output_effect changes_output: 'Batch composition and chunk boundaries change rounding, so greedy text can depend on which other requests are in flight.'", fix: "Same vocabulary decision as prefix-reuse: say that numeric covers rounding that can flip greedy text, or add a changes_output case when batch composition decides greedy tokens."}
+  - {type: "draft-policy", claim: "changes_output only when its decision depends on timing; otherwise none or numeric", part: "verify-length-controller", evidence: "output_effect_when: 'Changing the block length changes rounding and so greedy text ... with KVarN and a prefix hit it corrupted the second turn (root cause open), hence pinned off there.' The corruption is neither rounding nor timing.", fix: "Add a case: changes_output when a block length it chooses interacts with a lossy state format or reused state to corrupt output (defect class, must be pinned off by configuration); and clarify whether rounding-induced greedy flips are numeric."}
+  - {type: "layer-compute", claim: "effect_on_output: numeric always (only case listed)", part: "linear-gemm", evidence: "output_effect changes_output: 'With int8 activations on the selected layers (reported perplexity +0.9 to +3.7 percent by layer set) compared with W4A16.'", fix: "Add a case changes_output: when activation precision is reduced or the model's arithmetic is deliberately changed (the type's own last choice already says such a change changes output)."}
+  - {type: "layer-compute", claim: "effect_on_output: numeric always (only case listed)", part: "full-attention-compute", evidence: "output_effect changes_output: 'int8-QK prefill kernel ... and sparse LSA (exact only below about 4.6k tokens) compared with FA2.'", fix: "Add changes_output when a kernel reduces precision or approximates the model's operation (sparse attention, low-precision dot products)."}
+  - {type: "layer-compute", claim: "effect_on_output: numeric always (only case listed)", part: "output-head", evidence: "output_effect changes_output: 'Quantised head compared with bf16 (see offline-weight-requantizer, gptq-requantizer).'", fix: "Add changes_output when it computes from weights whose precision was reduced by conversion, or state that the reference for layer-compute is the converted model, not the published one."}
+  - {type: "layer-compute", claim: "The order of operations the model defines is not changed.", part: "verify-attention", evidence: "'splitting each request's KV into segments with online-softmax partials and a combine'; output_effect_when 'Different floating-point summation order compared with FA2'.", fix: "Restrict the rule to the model's order of layers and operations; reduction order inside an operation may differ and is numeric."}
+  - {type: "prompt-preparation", claim: "changes_output always: the template and tokenizer define the model's input", part: "prompt-renderer", evidence: "output_effect none for the part that applies the template and tokenizer; the template change is attributed to chat-template-rewriter (changes_output, offline).", fix: "none when it applies the model's own (or the prepared) template and tokenizer exactly; changes_output when it alters the template, truncates, or tokenizes differently from the model's tokenizer."}
+  - {type: "output-interpretation", claim: "changes_output when it decides where the returned output stops and how it is divided", part: "output-parser", evidence: "The part divides output into reasoning, content and tool calls, yet output_effect is none; failure 'wrong parser: tool calls come back as plain content with no error'.", fix: "none when it only re-labels and splits the exact generated text; changes_output when it truncates, repairs or drops text, or when the parser does not match the model's format."}
+  - {type: "sampling", claim: "changes_output always: it defines the output, given the logits (only case listed)", part: "sampler", evidence: "output_effect numeric: 'Sort-free top-k and multi-block softmax compared with full sort; exact up to floating point.'", fix: "Keep changes_output for the sampling chain's settings, and add numeric when an implementation of the same chain differs from the reference only in floating point."}
+wrong_assignments:
+  - {part: "drafter-free-chains", assigned: "draft-proposal", better: "draft-policy", why: "It proposes nothing of its own (it reuses the lookup's match); its job is deciding per step to skip the drafter's forward and which source supplies the block, which is draft-policy's 'whether to draft, from which source'. Its decisions (entry on a fresh match, exit on first miss, single request and greedy only) are pause/resume and source-selection rules."}
+  - {part: "pool-layout-planner", assigned: "memory-planning", better: "state-pool", why: "Three of its four decisions are page geometry across kinds of state (group size, block promotion, null block), which is state-pool's 'page size and how the pool is split between kinds of state'; memory-planning's choices cover none of them. Only the charging of recurrent pages for async batches is a memory-planning setting. If startup-time layout must stay in memory-planning, memory-planning needs a page-geometry choice."}

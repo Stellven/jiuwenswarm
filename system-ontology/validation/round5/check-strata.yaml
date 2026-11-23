@@ -1,0 +1,309 @@
+engine: strata
+notes: Judged with validation/inventory/strata.corrections.yaml. expert-dispatch gains a decision (the conditional default
+  of the tail skip) and http-front gains the who-may-call decision; the lookup-skip decision recorded under dflash2-drafter
+  is counted under draft-policy, where the correction places it. Decisions of parts with an also type were compared with the
+  choices of all their types; per_type counts them under the assigned type.
+decision_coverage:
+  totals:
+    decisions: 255
+    covered: 231
+    loosely: 16
+    not_covered: 0
+    engine_specific: 8
+  per_type:
+  - type: expert-cache
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-dispatch
+    decisions: 4
+    covered: 3
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-reading
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 18
+    covered: 14
+    loosely: 1
+    not_covered: 0
+    engine_specific: 3
+  - type: memory-planning
+    decisions: 22
+    covered: 20
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-source
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: request-front
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 8
+    covered: 6
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: replica-routing
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 18
+    covered: 16
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: session-persistence
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: configuration
+    decisions: 17
+    covered: 13
+    loosely: 3
+    not_covered: 0
+    engine_specific: 1
+  - type: calibration
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: telemetry
+    decisions: 12
+    covered: 12
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 17
+    covered: 16
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-policy
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 6
+    covered: 3
+    loosely: 2
+    not_covered: 0
+    engine_specific: 1
+  - type: step-execution
+    decisions: 9
+    covered: 8
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 10
+    covered: 8
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: graph-capture
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: positional-state-store
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 6
+    covered: 4
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: sampling
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: secondary-compute
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: expert-dispatch
+    type: expert-dispatch
+    decision: the conditions under which omitting low-ranked misses is on by default (share of blocks already cached, block
+      format), stated at start (added by the correction)
+    nearest_choice: whether low-ranked selections may be omitted
+  - part: expert-layout
+    type: model-loading
+    decision: native per-layer layout table when its file exists, else the canonical layout with one blob size
+    nearest_choice: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept
+      it
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: lowest value the reserve is lowered to so that the minimum cache fits
+    nearest_choice: the order in which things are given up when memory is short, and when starting is refused
+  - part: host-memory-admission
+    type: memory-planning
+    decision: the engine may replace the arena by the file source on its own unless the operator fixed RAM reads by hand,
+      named a shared arena or disabled the fallback
+    nearest_choice: an operator's explicit size against the computed one
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: how often a prompt read in progress gives way to a waiting request whose prompt is at most half as long
+    nearest_choice: the order in which waiting prompts are read, and whether several are read together
+  - part: parked-conversations
+    type: prefix-reuse
+    decision: 'the host memory the store may take: given, or computed once at start as a share of available memory with a
+      cap and a floor'
+    nearest_choice: how many are kept and where
+  - part: run-config-generator
+    type: configuration
+    decision: the speculative window and confidence floor written by default
+    nearest_choice: rules that derive a setting's default from other settings and machine facts
+  - part: run-config-generator
+    type: configuration
+    decision: an option differing from what setup last wrote counts as the person's and is kept, except options setup re-decides
+    nearest_choice: operator values, presets, measured values and defaults
+  - part: launch-argument-resolver
+    type: configuration
+    decision: one drafter is chosen per run and the drafter options are rewritten to match
+    nearest_choice: 'how a known-bad combination is handled: refused, or one member replaced'
+  - part: lookup-drafter
+    type: draft-proposal
+    decision: most recent end positions kept per trigram
+    nearest_choice: how a lookup source matches earlier text, and how far back it searches
+  - part: draft-verifier
+    type: draft-verification
+    decision: the exact gated rule runs only in a stated set of configurations; elsewhere an older rule runs with a warning
+      that its distribution is off
+    nearest_choice: the acceptance rule under sampling
+  - part: draft-verifier
+    type: draft-verification
+    decision: the commit graph is launched without waiting; every reader elsewhere waits for it first
+    nearest_choice: commit at once or with the next step
+  - part: window-loop
+    type: step-execution
+    decision: 'per window: the graph variant in which the device plans each layer alone when every block of the stage is resident,
+      else the variant in which the host serves each layer'
+    nearest_choice: one step as a whole, or driven layer by layer
+  - part: layer-kernels
+    type: layer-compute
+    decision: order of operations within a layer, including where routing is published to the host and where the shared expert
+      and the combine run
+    nearest_choice: how independent operations are ordered to overlap with work on another device
+  - part: layer-kernels
+    type: layer-compute
+    decision: order of operations within an attention mixer, including appending to the stores and making selected blocks
+      resident before attention
+    nearest_choice: how independent operations are ordered to overlap with work on another device
+  - part: ngram-reader
+    type: row-source
+    decision: in direct mode, a periodic read of one random page keeps storage awake until a time after the last request
+    nearest_choice: warming the table in the background and when to stop
+  not_covered: []
+contradictions:
+- part: window-loop
+  type: step-execution
+  claim: 'effect_on_output: exact when one sequence per step, or kernels that treat each row independently'
+  evidence: 'With one sequence the width of the verify window changes a row''s arithmetic: draft-verifier records numeric
+    for a greedy request with a native IQ pack and experts on the CPU, because the grouped CPU kernels round differently by
+    window width; mtp-drafter and lookup-drafter record that the number of drafts sets that width. One sequence per step is
+    not enough for exact.'
+  fix: exact when every row's arithmetic is independent of how many rows the step holds; rounding when sequences sharing a
+    step, or the number of rows of one sequence's step, change the arithmetic of a row
+- part: startup-memory-sizing
+  type: memory-planning
+  claim: 'effect_on_output: rounding when what it places where decides which device computes something'
+  evidence: Its last-resort ladder gives the prompt path its own buffers at 1024, 512 or 256 tokens, which sets the prompt
+    chunk; docs/RESEARCH_RUNS.md:60 says a change of chunking changes the rounding and docs/MESSAGE_BOUNDARY_CACHE.md:65 that
+    chunk geometry can change floating-point results. No listed case covers a size that changes how the computation is cut.
+  fix: rounding when what it places where decides which device computes something, or a size it sets (such as the prompt chunk)
+    changes how the computation is cut
+- part: checkpoint-chain
+  type: prefix-reuse
+  claim: 'effect_on_output: rounding when the stored state was produced under other rounding than a fresh read: reduced width,
+    other chunk boundaries, another batch path, or computation placed on other devices'
+  evidence: The inventory records numeric when a checkpoint cut ends a prompt part and so changes the chunking of the prompt
+    read; that changes the output of the request that stores the checkpoint, with no reuse involved. The listed cases cover
+    only the effect of reusing a state.
+  fix: 'add: rounding when where it places a restore point splits the prompt read and so changes the chunking of the request
+    that stores it'
+relaxations: []
+wrong_assignments: []
+inventory_errors:
+- part: startup-memory-sizing
+  field: output_effect_when
+  recorded: bit_exact when the sizing only moves where bytes are read from (output head on host, smaller prompt chunks); inferred
+  source_shows: A smaller prompt chunk changes the chunking and with it the rounding (docs/RESEARCH_RUNS.md:60, docs/MESSAGE_BOUNDARY_CACHE.md:65).
+    Smaller chunks are numeric, not bit_exact.
+- part: host-memory-admission
+  field: output_effect
+  recorded: none; bit_exact for arena or file source, per the startup message, not verified
+  source_shows: A missed expert is fetched to the GPU only when its source bytes are page-locked (src/core/expert_source.cpp:5056-5063,
+    d.src->pinned); otherwise it stays with the CPU. Choosing the file source instead of the registered arena moves uncached
+    experts from GPU to CPU computation, which the inventory's expert-source entry records as numeric. The choice is numeric,
+    not none.

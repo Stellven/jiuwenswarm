@@ -1,0 +1,236 @@
+engine: splash
+basis: "notes (splash.md, all sections) plus source: top-level layout of runtime/, server/, install/, app/; file headers of runtime/model/ExpertStore.hpp, SparseRowStore.hpp, GgufPreparation.hpp, VerifyBudget.hpp; runtime/engine/Scheduler.hpp, MemoryGovernor.hpp, WeightResidency.hpp, WriteBehind.hpp, ThermalState.hpp, Bootstrap.hpp, MemoryAudit.hpp; runtime/metal/CommandWatchdog.hpp; server/backend.py, constraints.py, supervision.py, metrics.py, serve_record.py, documents.py; install/assembly.py, families.py. Nothing built or run."
+parts:
+  - name: "installer and model assembly"
+    what_it_does: "Downloads the target and its paired DFlash2 draft, checks the model family, derives config and tokenizer files from a GGUF, and publishes an immutable assembly directory of links plus metadata."
+    evidence: "install/assembly.py, install/families.py, install/hub.py; notes section 8 (no converted copy is written to disk)"
+    node_type: model-preparation
+    fit: partial
+    note: "It is offline and changes no weight, but it writes no prepared weight files and produces no layout plan: the reformatting into the kernel layout happens at load time inside the weight loader. Its real outputs are identity (hashes), derived tokenizer/chat-template files and the target-draft pairing, which the type has no port for."
+  - name: "weight loader and image writer"
+    what_it_does: "At startup reads the GGUF/MLX source with F_NOCACHE, repacks every tensor into the kernel block layout (MDGG image) in Metal memory, quantizes the BF16 draft to 4 bit, and checks the source was not rewritten."
+    evidence: "runtime/model/GgufPreparation.hpp, WeightSource.cpp, QwenTargetLoader.cpp, WeightImages.cpp; notes sections 5, 8, 13.10"
+    node_type: weight-loader
+    fit: partial
+    note: "Fits the summary, but it also performs the layout conversion the type assigns to model-preparation, and it loads a second model (the draft) with a lossy re-encoding. The type assumes one model's weights."
+  - name: "idle weight release and restore"
+    what_it_does: "After 10 minutes idle frees the whole weight image (and expert chunks), and on the next request rebuilds it from the source files by re-running the loader's write path."
+    evidence: "runtime/engine/WeightResidency.hpp; notes section 8"
+    node_type: weight-loader
+    fit: partial
+    note: "weight-loader is startup-only by its ports; here loading is a repeatable run-time operation triggered by requests, with its own failure mode (restore fails for want of memory, request fails retryably)."
+  - name: "device capability probe"
+    what_it_does: "Detects GPU class (Apple9 or Apple10), planned core count and unified memory, and refuses unsupported machines."
+    evidence: "runtime/metal/DeviceCapabilities.hpp/.cpp; notes section 5"
+    node_type: configuration
+    fit: clean
+  - name: "kernel calibration and selection"
+    what_it_does: "Per operator and step, picks the kernel variant (staged tile, register tile, prefill tile) and the input-split count from GPU class, core count, quant format, lane count, row count and shape, using a measured per-GPU table and a wave-law cost model."
+    evidence: "runtime/ops/KernelCalibration.hpp, KernelSelection.cpp; notes section 5"
+    node_type: none
+    fit: none
+    note: "layer-compute lists 'kernel variants per precision' only as a static choice. Here selection is a run-time decision per step with device facts and batch width as inputs, and it changes output numerics (summation order depends on split and batch width). No type owns device-specific dispatch decisions."
+  - name: "memory plan"
+    what_it_does: "At startup computes the Metal budget (recommended working set minus margin), places floors (weights, workspace, one lane's state, KV runway, minimum expert chunk), then divides the rest by priority between guaranteed KV, full expert residency, PLE table and KV/state; context length is a result."
+    evidence: "runtime/engine/MemoryPlan.hpp, StreamedMemoryPlan.hpp; notes section 8"
+    node_type: memory-planner
+    fit: clean
+  - name: "memory governor and ledger"
+    what_it_does: "At run time admits every allocation against the ledger, reads macOS memory pressure and host free pages, reclaims in a fixed class order (free prefixes, rebuildable caches, prefixes needing an SSD write, KV spill, elastic expert chunks, in-use items), and makes requests wait up to 30 s."
+    evidence: "runtime/engine/MemoryGovernor.hpp, MemoryLedger.hpp, ReclaimClass.hpp, MemoryControl.hpp; notes section 8"
+    node_type: none
+    fit: none
+    note: "memory-planner is startup-only and its invariant is a static sum. Nothing in the types arbitrates memory at run time across heterogeneous holders (prefix cache, state checkpoints, expert chunks, KV, weights) or reacts to an external OS pressure signal."
+  - name: "memory audit"
+    what_it_does: "Checks measured allocations per category against the plan and the backend's own accounting, flagging overruns of the hard budget or reserve."
+    evidence: "runtime/engine/MemoryAudit.hpp"
+    node_type: telemetry
+    fit: partial
+    note: "It records, as telemetry does, but its purpose is checking the planner's invariant at run time; telemetry has no input from the memory planner or allocator."
+  - name: "metal backend and command submission"
+    what_it_does: "Encodes command buffers, declares per-encoder residency through GPU address tables, runs host steps inside commands with shared events, enforces the 5 s event limit and the command watchdog, and keeps the GPU awake between short host steps."
+    evidence: "runtime/metal/MetalBackend.mm, CommandGraph.hpp, Residency.hpp, CommandWatchdog.hpp; notes sections 6, 11, 13.11"
+    node_type: none
+    fit: none
+    note: "No type for the device/command layer. Its decisions (per-command residency instead of queue residency, keep-awake spin, watchdog timeouts) have large performance effects and failure semantics that belong to none of decode-loop, layer-compute or engine-control."
+  - name: "decode cycle"
+    what_it_does: "Each cycle takes the draft's 8 rows (anchor plus 7 proposals) for up to 4 lanes through every target layer in one command buffer, pausing at host steps for streamed experts, and returns retained tokens."
+    evidence: "runtime/model/Runtime.cpp; ExecutionGeometry.h; notes sections 4, 11"
+    node_type: decode-loop
+    fit: clean
+  - name: "target model layers"
+    what_it_does: "Computes the hybrid layers (3 GDN linear-attention layers per full-attention layer), MoE routing and experts, hyper-connections and sparse block-indexed attention for Flash-Next, and the vocabulary projection, with kernels reading quantized weights directly."
+    evidence: "runtime/model/Qwen3_8.hpp, Qwen3_6Moe.hpp, Qwen4Exp.hpp, Flint.hpp, QwenTarget.cpp; runtime/ops/*; notes sections 2, 5"
+    node_type: layer-compute
+    fit: clean
+  - name: "vision encoder and document preparation"
+    what_it_does: "Renders PDF pages to text and images, and encodes images with the vision tower into embeddings placed into the prompt."
+    evidence: "runtime/model/QwenVision.cpp, VisionLoader.cpp, runtime/ops/Vision.cpp; server/documents.py, images.py; notes section 8 (--language-only)"
+    node_type: none
+    fit: none
+    note: "Every type assumes the prompt is tokens. A modality encoder that turns non-text input into embeddings, with its own weights and memory share (disabling it raises the context from 53K to 82K tokens), has no type."
+  - name: "chunked prefill"
+    what_it_does: "Reads the prompt in chunks of up to 2048 rows (grouped up to 4 chunks per layer when experts stream), sliced into passes of at most 500 ms so decode steps interleave, and publishes state checkpoints every 4096 tokens and at the replay point."
+    evidence: "runtime/engine/Engine.hpp, Scheduler.hpp; notes sections 7, 10, 11"
+    node_type: prompt-reader
+    fit: partial
+    note: "Its output includes cache checkpoints for the prefix cache (no port to conversation-reuse), and it is preemptible and time-sliced against decode, which the type does not allow for."
+  - name: "ANE FFN split"
+    what_it_does: "During 27B prefill gives a calibrated share of each dense FFN's intermediate channels to the Neural Engine (W8A8), sums its partial down-projection with the GPU's, persists the calibration per Mac/model/OS/build, and trips permanently off on failure, timeout, non-finite values or no gain."
+    evidence: "runtime/ane/Program.mm, Handoff.mm; runtime/ops/AneFfn.hpp, AneFfnCalibration.cpp; runtime/engine/AneFfnStartup.cpp; notes section 9"
+    node_type: secondary-executor
+    fit: partial
+    note: "It is a second device computing part of the model, but not experts and not 'from weights that device can read where they lie': it splits one dense operation by channel share, uses its own int8 weights, and changes output beyond last bits (W8A8, KL ~1e-4). The type's applies_when (separate memories) is false on unified memory, yet the part exists. Calibration, persistence and circuit breaker have no home."
+  - name: "sampler and acceptance kernel"
+    what_it_does: "On the GPU, turns each of the 8 rows' logits into a token (greedy or sampled, with an optional grammar mask) and in the same kernel applies the acceptance rule and computes retained = min(accepted+1, budget), truncating at stop tokens."
+    evidence: "runtime/metal/kernels/decode/sampling.metal; runtime/ops/Sampling.cpp, StopTokens.hpp; notes section 4"
+    node_type: sampler
+    fit: partial
+    note: "Sampling and draft verification are one kernel, so sampler and draft-verifier are not separate parts here. It also takes a token mask from the grammar constraint, which the type has no port for."
+  - name: "grammar and tool-call constraint"
+    what_it_does: "Builds per-request llguidance matchers from JSON schemas or tool definitions and computes next-token bitmasks, including masks over the drafted rows, that the engine waits for (phase WaitingMask) before sampling."
+    evidence: "server/constraints.py, tool_schema.py, schema_validation.py; runtime/engine/Scheduler.hpp (Phase::WaitingMask)"
+    node_type: none
+    fit: none
+    note: "Neither sampler nor request-front covers an output constraint that changes which token is chosen, runs off-engine per step, and interacts with drafting (masks for speculative rows)."
+  - name: "DFlash2 draft model"
+    what_it_does: "A separately trained 5-layer non-causal draft per model family that reads target layers 5/19/33/47/61, reuses the target's vocabulary projection, and proposes 7 tokens per cycle; it keeps a ring KV and a compressed context window."
+    evidence: "runtime/model/DFlashDraft.hpp, DraftCheckpoint.cpp, DraftContextPlan.cpp; runtime/ops/DraftAttention.cpp, DraftSelector.cpp; notes section 4"
+    node_type: drafter
+    fit: partial
+    note: "Fits the summary, but the type declares no state; this drafter has per-lane state (ring KV and window) that must be committed after verification and saved/restored with the prefix cache, and it shares weights with the target."
+  - name: "verify budget"
+    what_it_does: "For MoE targets chooses how many of the 8 rows to verify each cycle, from an online-fitted acceptance model on draft confidence and a wall-clock cost model refit every 64 cycles, with forced full checks every 32 cycles."
+    evidence: "runtime/model/VerifyBudget.hpp; Runtime.cpp; notes section 4"
+    node_type: draft-policy
+    fit: partial
+    note: "It never decides whether or from which source to draft (always drafts, one source); it decides verify width. Its 'effect_on_output: none' is false: by reading wall clock it makes greedy MoE output non-reproducible between runs, because row count changes which experts share tiles."
+  - name: "acceptance commit across state kinds"
+    what_it_does: "Advances the KV logical length by retained, records pendingRows and swaps the two GDN state slots (folding the taped rows at the start of the next cycle), commits target layer outputs into the draft ring, and rewrites auxiliary state (indexer keys, PLE history)."
+    evidence: "runtime/ops/GDN.hpp, runtime/model/QwenState.hpp/.cpp, Runtime.cpp, QwenTarget.hpp; notes section 4"
+    node_type: draft-verifier
+    fit: partial
+    note: "Its invariant holds, but commit is not a single event to the attention-state-store: there are four state kinds, and the recurrent commit is deferred to the next step (valid state = slot + tape + pendingRows)."
+  - name: "paged INT8 KV pool"
+    what_it_does: "Stores attention K/V in 32-token pages inside ~128 MiB extents allocated on demand, INT8 with per-token-per-head scales by default, read by kernels through per-request page tables; pages may be Full, Index-only or Slim."
+    evidence: "runtime/ops/PagedKv.hpp, PagedAttention.hpp, PageStorage.cpp; runtime/engine/KvPool.cpp; notes section 6"
+    node_type: attention-state-store
+    fit: clean
+  - name: "GDN recurrent state slots"
+    what_it_does: "Holds per-lane fixed-size linear-attention state in two slots plus a tape of the step's layer inputs."
+    evidence: "runtime/model/QwenState.hpp, StateLayout.hpp; runtime/ops/GDN.hpp; notes sections 2, 4"
+    node_type: attention-state-store
+    fit: partial
+    note: "The summary ('state for every position up to the context length', 'cut back to a given position') assumes per-position KV. Recurrent state is fixed-size, cannot be truncated to an arbitrary position, and can only be restored from a checkpoint."
+  - name: "KV spill to SSD for sparse attention"
+    what_it_does: "For Flash-Next keeps only each page's block index in memory, the K/V on SSD, and reads back the blocks the indexer selects during decode."
+    evidence: "runtime/model/SpilledKvReads.cpp, KvHistoryStream.cpp; runtime/ops/BlockIndexer.cpp; notes section 10"
+    node_type: attention-state-store
+    fit: partial
+    note: "Allowed as a choice ('whether old state may leave fast memory'), but the store then needs storage and per-step reads driven by a selection made in layer-compute, much like a table-reader; its resources list only fast_memory."
+  - name: "prefix cache with state checkpoints"
+    what_it_does: "Addresses 32-token blocks by chained hash, shares physical KV pages across requests, stores composite state (GDN plus draft window) at checkpoints, and resumes a request only at the deepest block that has both KV and a checkpoint; cache identity includes KV format, state precision, YaRN and model fingerprint."
+    evidence: "runtime/engine/Cache.cpp, KvCache.hpp, StateCache.cpp, Capture.hpp, CacheRecency.hpp; notes section 7"
+    node_type: conversation-reuse
+    fit: partial
+    note: "Fits the purpose, but it is a cross-request block cache rather than per-conversation parking, it needs an alignment rule between state kinds, and its invariant (output equals a full re-read) is false with --state-format bf16, where chunk boundaries change state bits."
+  - name: "SSD cache tier and write-behind"
+    what_it_does: "Writes evicted KV pages and state checkpoints to a per-session SSD tier sized from volume free space, pre-writes recovery points when memory is short, honours a write-volume budget, and reads them back on a hit."
+    evidence: "runtime/engine/WriteBehind.hpp, KvPageTier.cpp, CacheDirectory.cpp, DiskSpace.cpp; runtime/model/SlotFile.cpp; notes section 7"
+    node_type: conversation-reuse
+    fit: partial
+    note: "conversation-reuse lists storage only as a peer for saved sessions. A tier with its own capacity that tracks external free space, a wear budget, and asynchronous write-behind is a second component inside it."
+  - name: "expert source files and SSD readers"
+    what_it_does: "Keeps all experts in the source files and reads them with F_NOCACHE on a shared pool of SSD reader threads, retrying once and checking sources unchanged."
+    evidence: "runtime/model/ExpertStore.hpp, SsdReaders.cpp, WeightSource.cpp; notes section 10"
+    node_type: expert-source
+    fit: clean
+  - name: "expert slot store"
+    what_it_does: "Holds experts in slots in a floor chunk plus ~1 GiB elastic chunks, gives the last elastic chunk back under memory pressure and grows back when memory allows."
+    evidence: "runtime/model/ExpertStore.hpp, ElasticPool.hpp, ExpertChunkLayout.hpp; StreamedMemoryPlan.hpp; notes section 10"
+    node_type: expert-cache
+    fit: partial
+    note: "Its size is not fixed at startup: it shrinks and grows at run time under the memory governor, a control input the type lacks (cache_size is a startup port only)."
+  - name: "ARC slot recycler"
+    what_it_does: "Chooses which expert slot to recycle by adaptive replacement, keeping experts decode routes repeatedly and recycling a long prefill's loads first."
+    evidence: "runtime/model/SlotRecycler.hpp; notes section 10"
+    node_type: cache-policy
+    fit: clean
+  - name: "expert load host step"
+    what_it_does: "After routing in each streamed layer, a host step inside the command claims slots for non-resident routed experts, stages their rows, and a GPU repack kernel moves them into slots before the expert kernels run."
+    evidence: "runtime/model/ExpertStore.hpp (load rounds, moe_expert_load), runtime/ops/MoE.cpp; notes section 10"
+    node_type: expert-dispatch
+    fit: partial
+    note: "Only one path exists (fetch into a slot, then compute on the GPU); no secondary device and no omission. Dispatch and transfer are one mechanism, so expert-dispatch and expert-transfer are hard to separate here."
+  - name: "expert read-ahead"
+    what_it_does: "While the GPU runs, reads ahead the experts the next layer's router picks from this layer's input, most likely first, into the free half of the staging."
+    evidence: "runtime/model/ExpertStore.hpp; notes section 10"
+    node_type: expert-transfer
+    fit: clean
+  - name: "PLE row store"
+    what_it_does: "Keeps the 28.8 GB n-gram embedding table in the GGUF and stages the rows each command needs from a bounded host cache, read on SSD readers."
+    evidence: "runtime/model/SparseRowStore.hpp, runtime/ops/NgramEmbedding.cpp; notes section 10"
+    node_type: table-reader
+    fit: clean
+  - name: "lane scheduler"
+    what_it_does: "Admits up to 4 lanes, orders by priority with an overdue rule, owes decode a share of prefill time, lets requests wait without a lane for another's prefix, and tracks phases including waiting for resources or masks."
+    evidence: "runtime/engine/Scheduler.hpp/.cpp; notes section 11"
+    node_type: multi-request-scheduler
+    fit: partial
+    note: "Fits, but its invariant ('output does not depend on other conversations') is false: batch width changes kernel splits and thus greedy output. It also schedules prefill against decode in time, which the type does not mention."
+  - name: "native engine process"
+    what_it_does: "The engine process that receives requests over a protocol from the server, runs bootstrap stages (resource assembly, model creation, warmup), drives the scheduler and runtime, and reports status."
+    evidence: "runtime/main.mm, runtime/engine/Engine.cpp, NativeRuntime.cpp, Protocol.cpp, Bootstrap.hpp, FdTransport.cpp"
+    node_type: engine-control
+    fit: partial
+    note: "The type says 'one request at a time' and 'at most one prompt read at a time'; Splash drives up to 4 lanes and can group several prefill chunks. With a multi-request scheduler present, engine-control's per-request framing does not hold."
+  - name: "server backend and supervision"
+    what_it_does: "In the Python server, submits and cancels native requests, owns completions, probes liveness, relaunches the engine with backoff and quarantines requests that keep crashing it."
+    evidence: "server/backend.py, supervision.py, runtime.py, crash_trace.py"
+    node_type: engine-control
+    fit: clean
+  - name: "HTTP front, chat templates and tokenization"
+    what_it_does: "Serves the HTTP API dialects and chat page, applies the family's chat template and thinking/tool-call format, tokenizes, detokenizes streaming output and applies stop strings."
+    evidence: "server/server.py, frontend.py, dialects/, chat_format.py, chat_templates.py, tokenization.py, output.py"
+    node_type: request-front
+    fit: clean
+  - name: "configuration and launch options"
+    what_it_does: "Turns serve options and machine facts into engine arguments, reports which options each family can use, and writes a serve record the desktop app follows."
+    evidence: "server/serve_options.py, serve_record.py; runtime/engine/NativeArguments.cpp; install/families.py option_report; install/launcher.py"
+    node_type: configuration
+    fit: clean
+  - name: "status, metrics and thermal reporting"
+    what_it_does: "Exposes /status and Prometheus metrics (latency histograms, cache, expert store, weights, memory), and reports the macOS thermal state without acting on it."
+    evidence: "server/metrics.py, latency.py, diagnostics.py; runtime/engine/Status.cpp, RuntimeMetrics.hpp, ThermalState.hpp; runtime/model/ExpertStoreStats.hpp"
+    node_type: telemetry
+    fit: clean
+  - name: "desktop app"
+    what_it_does: "A Swift macOS app that launches the server, follows its serve record and offers models and options."
+    evidence: "app/Sources; server/serve_record.py"
+    node_type: none
+    fit: none
+    note: "An operator front-end and process launcher; arguably outside the engine. Closest are configuration and request-front, neither of which covers launching and following the server process."
+unclear_types:
+  - {type: model-preparation, problem: "Assumes conversion produces files on disk. Splash converts at load into memory and keeps no prepared copy, so the same job lands in weight-loader; the boundary should be the job (format conversion), not the time it runs."}
+  - {type: weight-loader, problem: "Ports are all 'startup'. Splash re-runs loading at run time after idle release; the type has no notion of rebuildable residency."}
+  - {type: attention-state-store, problem: "Summary assumes per-position state truncatable to any position. Hybrid models also have fixed-size recurrent state (GDN) that is snapshot/restore-only and committed lazily; also draft-model state and auxiliary state (indexer keys, PLE history)."}
+  - {type: draft-policy, problem: "Defined as whether/which source/how many to draft. Splash's policy decides how many drafted rows to verify; and the claim effect_on_output none fails when the policy reads wall clock in an MoE model."}
+  - {type: sampler, problem: "Sampler and draft-verifier are the same GPU kernel in Splash; the separation is logical only. Also lacks a constraint-mask input."}
+  - {type: expert-dispatch, problem: "Hard to tell from expert-transfer when there is a single path (always fetch into slot then compute); in Splash both are one host-step mechanism."}
+  - {type: engine-control, problem: "'One request at a time' and 'at most one prompt read at a time' are only true of single-stream engines; with a scheduler, engine-control's role is unclear versus multi-request-scheduler."}
+  - {type: secondary-executor, problem: "Tied to experts and to separate memories. Splash's second device (ANE) computes a channel share of a dense FFN on unified memory with its own precision; applies_when misses it."}
+  - {type: multi-request-scheduler, problem: "Invariant 'output does not depend on other conversations' is contradicted by batch-width-dependent kernel splits; should be stated as intended or with a tolerance, as its effect_on_output already hints."}
+  - {type: conversation-reuse, problem: "Invariant of equal output fails under lower-precision stored state; and summary assumes per-conversation parking while Splash has a cross-request block cache plus an SSD tier."}
+missing_or_wrong:
+  - {kind: missing, proposal: memory-governor, summary: "Run-time admission of allocations against the budget, reaction to OS memory pressure, and ordered reclaim across heterogeneous holders (prefix cache, checkpoints, KV, expert chunks, weights).", parts: ["memory governor and ledger", "expert slot store", "idle weight release and restore"]}
+  - {kind: missing, proposal: kernel-selection, summary: "Choose kernel variant and work split per op per step from device class, core count, format, batch width and shape, from a calibration table or cost model; owns the device-dependence of output numerics.", parts: ["kernel calibration and selection", "device capability probe"]}
+  - {kind: missing, proposal: device-backend, summary: "Command encoding and submission, per-command residency, host steps inside commands, GPU keep-awake, watchdogs and API time limits.", parts: ["metal backend and command submission"]}
+  - {kind: missing, proposal: output-constraint, summary: "Per-request grammar or schema matcher producing token masks for the sampler and for drafted rows.", parts: ["grammar and tool-call constraint"]}
+  - {kind: missing, proposal: input-encoder, summary: "Turn non-text inputs (images, PDF pages) into embeddings placed in the prompt, with its own weights and memory share.", parts: ["vision encoder and document preparation"]}
+  - {kind: missing, proposal: cache-storage-tier, summary: "Persist evicted cache entries (KV pages, state checkpoints) to SSD with write-behind, capacity tracking external free space, and a write-wear budget.", parts: ["SSD cache tier and write-behind"]}
+  - {kind: split, type: attention-state-store, why: "Per-position KV (pageable, truncatable) and fixed-size recurrent state (snapshot/restore, deferred commit) have different invariants and different reuse rules; Splash's prefix cache must align both."}
+  - {kind: split, type: secondary-executor, why: "Generalise to a 'split executor' that gives any operation (experts or a channel share of a dense layer) to another compute unit, with calibration, its own precision, a merge point and a circuit breaker; the expert-specific case becomes one instance."}
+  - {kind: merge, types: ["expert-dispatch", "expert-transfer"], why: "In Splash they are one host-step mechanism with one path; separate types only pay off when there are several compute paths (as in Strata). Consider keeping dispatch only where alternatives exist."}
+  - {kind: merge, types: ["sampler", "draft-verifier"], why: "Splash computes token choice and acceptance in one kernel; at least the types should say they may be fused, and the verifier's commit role belongs with the state stores."}
+  - {kind: missing, proposal: "calibration-record (or a 'learned state' facet on policies)", summary: "Measurements taken on the target machine at startup or online and persisted (ANE share keyed by Mac/model/OS/build; verify-budget fits), which act as policy parameters and are invalidated by failures.", parts: ["ANE FFN split", "verify budget", "kernel calibration and selection"]}
+unused_types: []

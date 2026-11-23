@@ -1,0 +1,152 @@
+engine: ds4
+# Verdict of every decision, in the order the inventory lists them (c covered, l loosely, n not_covered, e engine_specific).
+# Counted under the assigned type; for image-input-encoder the two media decisions are covered by the `also` type
+# media-preparation.
+per_part:
+  offline-converter-quantizer: {type: model-conversion, verdicts: [c, c, c, c]}
+  imatrix-collector: {type: calibration, verdicts: [l]}
+  expert-locality-profiler: {type: calibration, verdicts: [c, e]}
+  engine-option-validator: {type: configuration, verdicts: [c, c, c]}
+  model-loader: {type: model-loading, verdicts: [l, c]}
+  weight-binder: {type: model-loading, verdicts: [c, c, c]}
+  memory-admission-guard: {type: memory-planning, verdicts: [c, c, c]}
+  ssd-cache-planner: {type: memory-planning, verdicts: [c, c, l]}
+  multi-gpu-placer: {type: model-partitioning, verdicts: [c, c, c, c]}
+  network-tensor-parallel: {type: model-partitioning, verdicts: [c, c, c]}
+  pipeline-parallel: {type: model-partitioning, verdicts: [c, c, c]}
+  routed-expert-cache: {type: expert-cache, verdicts: [l, c, c]}
+  expert-eviction-policy: {type: residency-policy, verdicts: [l, c, c, c]}
+  expert-cache-preloader: {type: residency-policy, verdicts: [l, c]}
+  expert-ssd-reader: {type: expert-fetch, verdicts: [c, c]}
+  prefill-layer-pagein: {type: expert-fetch, verdicts: [c, c]}
+  resident-missing-split: {type: expert-dispatch, verdicts: [c, c]}
+  engram-row-reader: {type: row-source, verdicts: [c, c, c]}
+  engram-prewarm: {type: row-source, verdicts: [l, c]}
+  ngram-row-reader: {type: row-source, verdicts: [l]}
+  tokenizer-and-chat-renderer: {type: prompt-preparation, verdicts: [c, c, c]}
+  image-input-encoder: {type: modality-encoding, verdicts: [c, c, c]}
+  session-timeline: {type: sequence-lifecycle, verdicts: [c, c, c]}
+  slot-router: {type: sequence-lifecycle, verdicts: [c, c, c]}
+  compressed-attention-state: {type: positional-state-store, verdicts: [e, c, c]}
+  dense-attention-cache: {type: positional-state-store, verdicts: [c]}
+  recurrent-layer-state: {type: recurrent-state-store, verdicts: [c]}
+  prompt-prefill-driver: {type: prompt-reading, verdicts: [c, c]}
+  decode-step: {type: step-execution, verdicts: [c]}
+  session-batch-executor: {type: step-execution, verdicts: [c, c]}
+  gpu-backend: {type: device-backend, verdicts: [c, c, l]}
+  hyper-connection-mixer: {type: layer-compute, verdicts: [e]}
+  attention-compute: {type: layer-compute, verdicts: [e]}
+  linear-attention-compute: {type: layer-compute, verdicts: []}
+  engram-lookup-compute: {type: layer-compute, verdicts: []}
+  expert-router: {type: layer-compute, verdicts: [e, e]}
+  routed-expert-ffn: {type: layer-compute, verdicts: [c]}
+  shared-and-dense-ffn: {type: layer-compute, verdicts: [c]}
+  output-head: {type: layer-compute, verdicts: [c]}
+  directional-steering: {type: model-edit, verdicts: [c, e, c]}
+  power-throttle: {type: resource-governing, verdicts: [c, e]}
+  token-sampler: {type: sampling, verdicts: [c, c, c]}
+  tool-call-sampling-mode: {type: sampling, verdicts: [l, c]}
+  dspark-drafter: {type: draft-proposal, verdicts: [c, c, c]}
+  builtin-mtp-drafter: {type: draft-proposal, verdicts: [c, c]}
+  dspark-scheduler: {type: draft-policy, verdicts: [c, l, n, c]}
+  draft-verify-commit: {type: draft-verification, verdicts: [c, c]}
+  session-payload-serializer: {type: session-persistence, verdicts: [c, c, l]}
+  disk-kv-checkpoint-store: {type: prefix-reuse, verdicts: [c, c, c, c]}
+  http-api-server: {type: request-front, verdicts: [c, c, c]}
+  tool-call-codec: {type: output-interpretation, verdicts: [c]}
+  server-generation-loop: {type: output-interpretation, verdicts: [c, c]}
+  request-scheduler: {type: step-scheduler, verdicts: [c, c, c, c]}
+  cross-gpu-transfer: {type: device-communication, verdicts: [c]}
+  logging-and-trace: {type: telemetry, verdicts: [c]}
+decision_coverage:
+  totals: {decisions: 124, covered: 103, loosely: 12, not_covered: 1, engine_specific: 8}
+  per_type:
+    - {type: "model-conversion", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "configuration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 5, covered: 4, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 10, covered: 10, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 4, covered: 3, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 7, covered: 3, loosely: 0, not_covered: 0, engine_specific: 4}
+    - {type: "model-edit", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "resource-governing", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "sampling", decisions: 5, covered: 4, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "session-persistence", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: imatrix-collector, type: calibration, decision: "minimum samples per expert before an entry counts as covered", nearest_choice: "the rule that accepts or rejects a measured result"}
+    - {part: model-loader, type: model-loading, decision: "shared mapping for GPU backends, private mapping for the CPU backend", nearest_choice: "map the file in place or copy into memory"}
+    - {part: ssd-cache-planner, type: memory-planning, decision: "a user-given cache size is a target, not a guarantee", nearest_choice: "a hard limit against a soft figure that may be exceeded with a warning"}
+    - {part: routed-expert-cache, type: expert-cache, decision: "cache buffers locked in memory; a lock failure lowers the effective limit", nearest_choice: "what is done when the cache cannot be allocated at its planned size"}
+    - {part: expert-eviction-policy, type: residency-policy, decision: "heat counts every selection, misses as well as hits", nearest_choice: "the replacement rule"}
+    - {part: expert-cache-preloader, type: residency-policy, decision: "preload cap in automatic mode", nearest_choice: "what the cache holds before any request"}
+    - {part: engram-prewarm, type: row-source, decision: "warm only when model, runtime, table and a reserve fit physical memory", nearest_choice: "warming the table in the background and when to stop"}
+    - {part: ngram-row-reader, type: row-source, decision: "prefetch only for chunks above a size and within a buffer cap", nearest_choice: "prefetching rows for coming or drafted tokens"}
+    - {part: gpu-backend, type: device-backend, decision: "prefill workspace shared between sessions in server batch mode", nearest_choice: "scratch and command buffers"}
+    - {part: tool-call-sampling-mode, type: sampling, decision: "which tag sets count as structure", nearest_choice: "whether settings change per position, for example greedy on structure and sampled on content"}
+    - {part: dspark-scheduler, type: draft-policy, decision: "longer pauses after rounds with no draft", nearest_choice: "when drafting pauses and resumes"}
+    - {part: session-payload-serializer, type: session-persistence, decision: "under tensor parallelism load only tokens and re-prefill", nearest_choice: "in which configurations saving and restoring is offered"}
+  not_covered:
+    - {part: dspark-scheduler, type: draft-policy, decision: "time-based judgement off by default (count-only decisions)", kind: policy, missing_choice: "whether its decisions may use measured elapsed time or only counts, given that time-based decisions make runs irreproducible"}
+contradictions:
+  - part: engram-row-reader
+    type: row-source
+    claim: "state: row cache"
+    evidence: "The reader keeps only the last-tokens history the row numbers are hashed from; it reads through an uncached descriptor (F_NOCACHE / no read-ahead) and has no row cache of its own; any caching is the OS page cache filled by engram-prewarm (ds4_engram.c 110, 154, 380-384). ngram-row-reader likewise keeps only n-gram history."
+    fix: "state: the recent-token history row numbers are computed from, and a row cache where the engine keeps one"
+  - part: disk-kv-checkpoint-store
+    type: prefix-reuse
+    claim: "state: the index of stored prefixes"
+    evidence: "No index is kept; the checkpoint directory is rescanned on every lookup and each file header carries model id, quant bits, context and hit counts (inventory decisions; ds4_kvstore.c)."
+    fix: "state: the stored states with what each is valid for and its retention score, and an index of them where one is kept"
+  - part: power-throttle
+    type: resource-governing
+    claim: "takes: requests for memory, what the system reports about pressure; gives: grants and refusals, requests to holders to give memory back; state: what each holder has and what is reserved"
+    evidence: "The part takes only an operator percentage and its own measured work times, gives nothing but sleeps inserted after layers and tokens, and keeps a smoothed per-layer prefill time and decode token time (ds4.c 17955-17994)."
+    fix: "takes, gives and state stated per form: for memory, requests, pressure, grants and holdings; for duty cycle, the target level and measured work, inserted idle time, and the smoothed work measure"
+  - part: http-api-server
+    type: request-front
+    claim: "must: A request is not accepted from a caller who is not allowed."
+    evidence: "ds4-server has no authentication or caller check of any kind (no key, token or Authorization handling in ds4_server.c); it binds 127.0.0.1 by default and with --host accepts every caller that can reach the port."
+    fix: "must: A request is accepted only from callers the deployment allows; where the engine itself has no caller check, it says so and relies on where it listens."
+  - part: http-api-server
+    type: request-front
+    claim: "state: connections and stored responses"
+    evidence: "Durable response state is rejected; clients must replay input, so no responses are stored."
+    fix: "state: connections, and stored responses where the engine offers them"
+  - part: session-timeline
+    type: sequence-lifecycle
+    claim: "must: The record of committed tokens always matches the state held for the sequence."
+    evidence: "On any failure the session is only flagged invalid and its token list no longer describes the state; the guarantee kept is that validity is never claimed for a token list whose state was not fully computed, and the caller re-syncs from tokens."
+    fix: "must: The record of committed tokens matches the state held for the sequence, or the sequence is marked invalid and its state is not read until rebuilt."
+  - part: session-payload-serializer
+    type: session-persistence
+    claim: "summary: Write a sequence's whole state to a file and read it back, on request."
+    evidence: "Payloads are written and loaded automatically by the disk checkpoint store when slots are repurposed, on cold and continued stores, and on prefix hits, not only on an explicit save request."
+    fix: "summary: Write a sequence's whole state to a file and read it back, on request or when a store of reusable state asks for it."
+relaxations: []
+wrong_assignments:
+  - {part: slot-router, assigned: sequence-lifecycle, better: "sequence-lifecycle, with prefix-reuse as an also type", why: "Its main job is choosing the slot whose live state is the longest reusable prefix through ordered reuse tiers, and falling back to the disk store; that is prefix-reuse's job (which store is used when several hold a match), which the reference does not record as a second type."}
+inventory_errors:
+  - {part: pipeline-parallel, field: output_effect, recorded: "numeric, when activations are sent as f16 or fp8 instead of f32", source_shows: "ds4_distributed.c 790-793, 949-955: the 8-bit wire format is FP8 E4M3, a lossy reduction beyond last bits, so the effect is changes_output for 8 bits (f16 alone is numeric); default is 32 bits (line 65)."}

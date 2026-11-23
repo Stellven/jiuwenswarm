@@ -1,0 +1,356 @@
+# Independent check of node types draft 0.6 against the Splash inventory (round6).
+# kv-page-pool's decisions are counted once, under state-pool, and judged against the choices of state-pool and
+# positional-state-store (its `also` type). engine_specific: target-forward's router weighting and
+# block-sparse-indexer's top-block count are fixed by the model, not by whoever builds the engine.
+# No relaxation of a `should` rule beyond what the types already state was found: the calibration key covers
+# shapes, device, OS, build and allowed units; the persistent SSD cache namespace includes the state layout and
+# format (runtime/engine/RuntimeResources.mm:1117, CacheDirectory.hpp:15-17); operator memory sizes are checked
+# against the budget and part minimums; the serve record records resolved settings.
+engine: splash
+decision_coverage:
+  totals:
+    decisions: 136
+    covered: 120
+    loosely: 13
+    not_covered: 1
+    engine_specific: 2
+  per_type:
+  - type: calibration
+    decisions: 3
+    covered: 2
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: configuration
+    decisions: 3
+    covered: 2
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: device-backend
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-policy
+    decisions: 3
+    covered: 2
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-cache
+    decisions: 3
+    covered: 1
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 4
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 2
+  - type: media-preparation
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: memory-planning
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: modality-encoding
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-conversion
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 8
+    covered: 7
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: output-constraint
+    decisions: 4
+    covered: 3
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 1
+    covered: 0
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: positional-state-store
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 7
+    covered: 6
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-reading
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: recurrent-state-store
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: request-front
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: resource-governing
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: sampling
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: scoring
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: secondary-compute
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: state-pool
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: state-tiering
+    decisions: 12
+    covered: 10
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: storage-reader
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: telemetry
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: weight-image-loader
+    type: model-loading
+    decision: repack on GPU through a fixed staging buffer
+    nearest_choice: staging buffers and reader threads used while loading (nothing names which device does the re-encoding)
+  - part: expert-store
+    type: expert-cache
+    decision: release one chunk, or all to floor under critical pressure
+    nearest_choice: which part is released or regrown first under memory pressure (how much is released at each pressure level
+      is not named)
+  - part: expert-store
+    type: expert-cache
+    decision: a size used by only one block holds all its experts in its floor
+    nearest_choice: whether it arranges, compacts or pins what it holds by size
+  - part: ple-row-store
+    type: row-source
+    decision: prefetch as a hint
+    nearest_choice: prefetching rows for coming or drafted tokens (that a prefetch is best-effort and its failed rows are
+      dropped is not named)
+  - part: composite-state-cache
+    type: prefix-reuse
+    decision: retire rolling checkpoints once a newer one is published
+    nearest_choice: 'what earns stored state its retention: recency, cost to rebuild, or actual reuse'
+  - part: write-behind
+    type: state-tiering
+    decision: minimum depth and delay before copying
+    nearest_choice: copying ahead of need
+  - part: kv-spill-controller
+    type: state-tiering
+    decision: keep dense history, tail window and in-flight prefill groups Full
+    nearest_choice: what leaves first
+  - part: verify-row-budget
+    type: draft-policy
+    decision: refit interval, label window, decay, prior strength
+    nearest_choice: how fresh the signals it decides from must be
+  - part: token-selector
+    type: sampling
+    decision: sampling policy per lane
+    nearest_choice: the chain of steps and their order
+  - part: thinking-budget
+    type: output-constraint
+    decision: where in the 8 rows the end starts
+    nearest_choice: how it applies to proposed tokens that are not yet accepted
+  - part: output-parser
+    type: output-interpretation
+    decision: hold text that may begin a stop string
+    nearest_choice: stop conditions and their order (holding partial matches is the type's must rule, not a choice)
+  - part: configuration
+    type: configuration
+    decision: defaults for each flag (decode share, idle release, KV and state formats, verify rows, cache disk quota and
+      writes, ANE on/off)
+    nearest_choice: which settings that change output are on by default, and in which profile (defaults of settings that do
+      not change output are not named)
+  - part: telemetry
+    type: telemetry
+    decision: log only transitions
+    nearest_choice: what is recorded by default and what on request
+  not_covered:
+  - part: ane-ffn-calibrator
+    type: calibration
+    decision: the minimum predicted gain to enable the split
+    kind: threshold
+    missing_choice: the least gain a measured result must predict before the setting it supports is turned on
+contradictions:
+- part: slot-recycler
+  type: residency-policy
+  claim: 'state: use counts, the ranking, or the current role of each region (and takes: how often each is used, a ranking
+    made offline, or the size of the coming work)'
+  evidence: 'The part is adaptive replacement (ARC): it keeps a recently-once list, a recently-again list, two ghost lists
+    of evicted keys and an adaptive target share, and takes hits, misses and whether a load is a scan. It keeps no use counts
+    (inventory slot-recycler owns_state; runtime/model/SlotRecycler.hpp:11, 67-79, 110-137).'
+  fix: 'state: the use history it decides from (use counts, or recency lists with remembered evictions and an adaptive split
+    between them), the ranking, or the current role of each region'
+- part: option-scoring
+  type: scoring
+  claim: 'effect_on_output: exact; rounding when the scored sequence is read in steps of another width than generation uses
+    (no defines)'
+  evidence: 'The part renders its own fixed prompt shape (a fixed system instruction plus one JSON user payload, thinking
+    disabled) around the caller''s question and returns a softmax over the option slots only (server/dialects/scoring.py:24-31,
+    56-60). The probabilities returned are decided by that prompt by design: the defines level, which the type does not list.'
+  fix: 'add effect: defines, when: it renders its own prompt around the given text or options, or normalises the returned
+    probabilities over the given options only'
+- part: memory-ledger
+  type: resource-governing
+  claim: 'effect_on_output: exact (the only level listed, with no condition)'
+  evidence: 'The ledger''s reclaim order takes, as its own victims, a Resident lane''s KV by converting the lane to Spill,
+    the paused prefill command (which reruns later) and units in use (inventory memory-ledger decisions; runtime/engine/MemoryLedger.hpp:79-81,
+    146-153). Conversion to Spill bounds the request''s output by the SSD tier''s active-KV quota and ends it there (corrections:
+    kv-spill-controller changes_output), and evicting cached states decides whether a later request restores stored state
+    or recomputes it, which the type of calibration itself counts as rounding. So by its own choice of victim it reaches rounding
+    and defines.'
+  fix: exact in itself; rounding when what it reclaims decides whether a sequence's state is later restored or recomputed,
+    or abandons work that is rerun with another cut; defines when its reclaim moves a sequence to a slower tier whose capacity
+    then ends that sequence's output
+new_causes:
+- part: request-scheduler
+  type: step-scheduler
+  level: approximate
+  cause: the number of rows it puts in a prompt chunk decides whether the chunk reaches a row threshold measured at startup,
+    above which part of each dense block is computed on a second device at lower precision; neither the weights nor the kernel
+    tier select it
+  evidence: ane-ffn-calibrator picks the least chunk rows; the split runs only for rows >= minimumRows (runtime/ops/AneFfn.cpp:470-474);
+    the split computes W8A8 on the Neural Engine (ane-ffn-split, on by default per corrections); request-scheduler sizes contended
+    prefill cuts from measured time
+- part: lane-admission
+  type: sequence-lifecycle
+  level: rounding
+  cause: a paused sequence that is released and later resumed recomputes its generated history by the prompt-reading path,
+    with other kernels and cuts than the decode steps that first produced it
+  evidence: 'lane-admission suspends lower-ranked lanes which later replay from cache; runtime/engine/Engine.hpp:701-705:
+    generated history that a resumed lane replays is its own; kernel-selector chooses a different tile for prefill rows'
+relaxations: []
+wrong_assignments: []
+inventory_errors:
+- part: lane-admission
+  field: output_effect
+  recorded: none
+  source_shows: 'A suspended request resumes by replaying its generated history through prefill (runtime/engine/Engine.hpp:695-707),
+    so the continuation is computed from recomputed state with prefill kernels and cuts, not the decode steps'' state: numeric.'
+- part: option-scoring
+  field: output_effect
+  recorded: none
+  source_shows: 'server/dialects/scoring.py:24-31, 56-60: it renders a fixed system instruction and JSON payload of its own
+    and softmaxes over the option slots, so the returned probabilities are decided here (changes_output).'
+- part: memory-ledger
+  field: output_effect
+  recorded: none
+  source_shows: 'runtime/engine/MemoryLedger.hpp:79-81, 146-153: one of its victim kinds is the conversion of a Resident lane
+    to Spill, after which the request''s output is bounded by the SSD quota (changes_output for that request).'

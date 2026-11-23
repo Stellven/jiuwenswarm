@@ -1,0 +1,871 @@
+note: Draft node types of an inference engine. A node type describes a kind of engine part, independent of any engine.
+families:
+- id: weight-access
+  title: Weight access
+- id: expert-store
+  title: Expert store
+- id: execution
+  title: Execution
+- id: memory-state
+  title: Memory and state
+- id: speculation
+  title: Speculation
+- id: serving
+  title: Serving
+- id: operations
+  title: Operations
+types:
+- id: model-preparation
+  family: weight-access
+  summary: Offline, turn the published checkpoint into the files the engine reads.
+  not: It changes no weight value, and does nothing at run time.
+  inputs:
+  - name: checkpoint
+    carries: weights
+    peer: model_files
+    when: offline
+  outputs:
+  - name: prepared_files
+    carries: weights
+    peer: model_files
+    when: offline
+  - name: layout
+    carries: plan
+    peer: weight-loader
+    when: startup
+  needs:
+    resources:
+    - storage
+    - cpu
+  invariants:
+  - Every tensor read back from the prepared files equals the same tensor in the checkpoint.
+  effect_on_output: none
+  choices:
+  - file layout and alignment
+  - order of experts in the file
+  - whether precision is changed here (then it does affect output)
+- id: weight-loader
+  family: weight-access
+  summary: At startup, open the model files, check they match what the kernels expect, and place the weights every token uses
+    where the computation reads them.
+  not: It does not load selectively used weights such as experts; the expert store does that.
+  inputs:
+  - name: model_files
+    carries: weights
+    peer: model_files
+    when: startup
+  - name: layout
+    carries: plan
+    peer: model-preparation
+    when: startup
+  - name: placement
+    carries: plan
+    peer: memory-planner
+    when: startup
+  outputs:
+  - name: resident_weights
+    carries: weights
+    peer: layer-compute
+    when: startup
+  - name: geometry
+    carries: plan
+    peer: memory-planner
+    when: startup
+  - name: expert_layout
+    carries: plan
+    peer: expert-source
+    when: startup
+  needs:
+    resources:
+    - storage
+    - fast_memory
+    - cpu
+  invariants:
+  - A file whose declared shape the kernels cannot run is refused, not loaded.
+  effect_on_output: none, unless it re-encodes weights while loading
+  choices:
+  - copy into memory or map the file in place
+  - which tensors go to fast memory
+  - re-encoding at load time
+- id: table-reader
+  family: weight-access
+  summary: Serve the rows of a large lookup table that each token needs, without holding the whole table in fast memory.
+  applies_when: The model has a table of which a token reads a few rows.
+  inputs:
+  - name: row_keys
+    carries: tokens
+    peer: decode-loop
+    when: per_step
+  - name: table
+    carries: weights
+    peer: storage
+    when: on_demand
+  outputs:
+  - name: rows
+    carries: weights
+    peer: layer-compute
+    when: per_step
+  needs:
+    resources:
+    - storage
+    - slow_memory
+    - cpu
+  invariants:
+  - The rows delivered for a token are the rows that token's keys name.
+  effect_on_output: none
+  choices:
+  - keep the table on storage, mapped, or locked in memory
+  - prefetch rows for drafted tokens
+- id: expert-source
+  family: expert-store
+  summary: Make every expert's weights obtainable for the whole run from the slow place where all of them are kept.
+  applies_when: The model selects a few of many experts per token.
+  not: It does not decide which experts are kept in fast memory.
+  inputs:
+  - name: expert_layout
+    carries: plan
+    peer: weight-loader
+    when: startup
+  - name: expert_files
+    carries: weights
+    peer: model_files
+    when: on_demand
+  outputs:
+  - name: expert_bytes
+    carries: weights
+    peer:
+    - expert-transfer
+    - secondary-executor
+    when: on_demand
+  needs:
+    resources:
+    - storage
+    - slow_memory
+    - cpu
+  invariants:
+  - A delivered expert is complete; a partial read is an error, never reported as ready.
+  effect_on_output: none
+  choices:
+  - 'where the full set lives: slow memory or storage'
+  - read through the page cache or around it
+  - how many reads may be in flight
+- id: expert-cache
+  family: expert-store
+  summary: Hold as many experts in fast memory as the budget allows, and answer for any expert whether it is there and where.
+  applies_when: Not all experts fit in fast memory, or a copy in fast memory is faster to compute from.
+  not: It does not choose its own contents; the cache policy does.
+  inputs:
+  - name: cache_size
+    carries: plan
+    peer: memory-planner
+    when: startup
+  - name: incoming_experts
+    carries: weights
+    peer: expert-transfer
+    when: on_demand
+  - name: residency_changes
+    carries: control
+    peer: cache-policy
+    when: on_demand
+  outputs:
+  - name: residency
+    carries: engine_state
+    peer: expert-dispatch
+    when: per_layer
+  needs:
+    resources:
+    - fast_memory
+  state:
+  - residency_table
+  invariants:
+  - An expert is reported present only after its weights have fully arrived.
+  - A slot is not overwritten while a computation may still read it.
+  effect_on_output: none
+  choices:
+  - size
+  - fixed slots or sized by expert
+  - starting contents
+- id: cache-policy
+  family: expert-store
+  summary: Decide which experts the cache holds, from how often each is used, and change its contents while the engine runs.
+  inputs:
+  - name: usage
+    carries: signal
+    peer: expert-dispatch
+    when: per_layer
+  outputs:
+  - name: residency_changes
+    carries: control
+    peer: expert-cache
+    when: on_demand
+  - name: fetch_requests
+    carries: control
+    peer: expert-transfer
+    when: on_demand
+  needs:
+    resources:
+    - cpu
+  state:
+  - expert_heat
+  invariants:
+  - A change of contents never makes an expert unavailable to a computation already started.
+  effect_on_output: none in itself; it can change which device computes an expert
+  choices:
+  - 'when it acts: on a miss, or at intervals'
+  - admission and eviction rule
+  - how fast usage counts fade
+  - limit on changes per round
+- id: expert-dispatch
+  family: expert-store
+  summary: 'For each layer of each step, decide how every selected expert gets computed: from the cache, after a fetch, by
+    another device, or not at all.'
+  inputs:
+  - name: routing
+    carries: activations
+    peer:
+    - decode-loop
+    - prompt-reader
+    when: per_layer
+  - name: residency
+    carries: engine_state
+    peer: expert-cache
+    when: per_layer
+  - name: ready
+    carries: engine_state
+    peer: expert-transfer
+    when: per_layer
+  outputs:
+  - name: compute_plan
+    carries: plan
+    peer: layer-compute
+    when: per_layer
+  - name: work
+    carries: plan
+    peer: secondary-executor
+    when: per_layer
+  - name: fetch_requests
+    carries: control
+    peer: expert-transfer
+    when: on_demand
+  - name: usage
+    carries: signal
+    peer: cache-policy
+    when: per_layer
+  - name: counters
+    carries: signal
+    peer: telemetry
+    when: per_layer
+  needs:
+    resources:
+    - cpu
+  invariants:
+  - Every selected expert that is not deliberately omitted is computed exactly once in the step that selected it.
+  effect_on_output: none, unless it omits experts, which changes output and needs permission
+  choices:
+  - order in which the paths are tried
+  - whether low-ranked experts may be omitted
+  - share of misses fetched now against left to a slower device
+- id: expert-transfer
+  family: expert-store
+  summary: Move expert weights from the slow place to fast memory, in an order the computation that follows can rely on.
+  inputs:
+  - name: fetch_requests
+    carries: control
+    peer:
+    - expert-dispatch
+    - cache-policy
+    when: on_demand
+  - name: expert_bytes
+    carries: weights
+    peer: expert-source
+    when: on_demand
+  outputs:
+  - name: incoming_experts
+    carries: weights
+    peer: expert-cache
+    when: on_demand
+  - name: ready
+    carries: engine_state
+    peer: expert-dispatch
+    when: per_layer
+  needs:
+    resources:
+    - fast_memory
+    - slow_memory
+    - cpu
+  state:
+  - staged_experts
+  invariants:
+  - A transfer is complete before the computation that uses its destination starts.
+  effect_on_output: none
+  choices:
+  - size of the staging area
+  - how many transfers at once
+  - whether to fetch ahead of routing
+- id: decode-loop
+  family: execution
+  summary: Take the next token or window of tokens through every layer and the output head, handing each layer's routing to
+    the expert store and waiting for its result.
+  inputs:
+  - name: start
+    carries: control
+    peer: engine-control
+    when: per_request
+  - name: next_tokens
+    carries: tokens
+    peer: sampler
+    when: per_step
+  - name: window
+    carries: tokens
+    peer: draft-policy
+    when: per_step
+  outputs:
+  - name: layer_inputs
+    carries: tokens
+    peer: layer-compute
+    when: per_step
+  - name: routing
+    carries: activations
+    peer: expert-dispatch
+    when: per_layer
+  - name: row_keys
+    carries: tokens
+    peer: table-reader
+    when: per_step
+  - name: produced_tokens
+    carries: tokens
+    peer: engine-control
+    when: per_step
+  needs:
+    resources:
+    - accelerator
+    - cpu
+  invariants:
+  - A step ends only when every layer's selected experts have been computed.
+  effect_on_output: none
+  choices:
+  - tokens per step
+  - one recorded graph per step, or driven layer by layer
+  - how long a layer may wait
+- id: layer-compute
+  family: execution
+  summary: 'Compute what the model defines for a layer: attention and the other blocks every token uses, expert selection,
+    the selected experts, and the final projection to the vocabulary.'
+  inputs:
+  - name: layer_inputs
+    carries: tokens
+    peer: decode-loop
+    when: per_step
+  - name: resident_weights
+    carries: weights
+    peer: weight-loader
+    when: startup
+  - name: compute_plan
+    carries: plan
+    peer: expert-dispatch
+    when: per_layer
+  - name: past_state
+    carries: model_state
+    peer: attention-state-store
+    when: per_layer
+  - name: rows
+    carries: weights
+    peer: table-reader
+    when: per_step
+  - name: expert_results
+    carries: activations
+    peer: secondary-executor
+    when: per_layer
+  outputs:
+  - name: new_state
+    carries: model_state
+    peer: attention-state-store
+    when: per_layer
+  - name: logits
+    carries: activations
+    peer: sampler
+    when: per_step
+  - name: context
+    carries: activations
+    peer: drafter
+    when: per_step
+  needs:
+    resources:
+    - accelerator
+    - fast_memory
+  invariants:
+  - The order of operations inside a layer is fixed.
+  effect_on_output: this is the model's arithmetic; its agreement with the reference implementation is what correctness means
+  choices:
+  - kernel variants per precision
+  - which operations are fused
+- id: secondary-executor
+  family: execution
+  summary: Compute selected experts on a second device, from weights that device can read where they lie.
+  applies_when: Two devices read different memory, so that moving weights to the main device costs more than computing them
+    in place.
+  inputs:
+  - name: work
+    carries: plan
+    peer: expert-dispatch
+    when: per_layer
+  - name: expert_bytes
+    carries: weights
+    peer: expert-source
+    when: on_demand
+  outputs:
+  - name: expert_results
+    carries: activations
+    peer: layer-compute
+    when: per_layer
+  needs:
+    resources:
+    - cpu
+    - slow_memory
+  invariants:
+  - Weights handed to it stay readable for the whole of the computation.
+  effect_on_output: may differ in the last bits from the main device
+  choices:
+  - number of workers
+  - batch limit per expert
+- id: prompt-reader
+  family: execution
+  summary: Read the prompt in chunks, faster than token by token, and leave behind the model state that generation continues
+    from.
+  inputs:
+  - name: prompt_tokens
+    carries: tokens
+    peer: engine-control
+    when: per_request
+  - name: start_point
+    carries: plan
+    peer: conversation-reuse
+    when: per_request
+  outputs:
+  - name: routing
+    carries: activations
+    peer: expert-dispatch
+    when: per_layer
+  - name: prompt_state
+    carries: model_state
+    peer: attention-state-store
+    when: per_request
+  needs:
+    resources:
+    - accelerator
+    - fast_memory
+  invariants:
+  - The state it leaves equals, within a stated tolerance, the state of reading the same prompt one token at a time.
+  effect_on_output: 'numeric: batched kernels may round differently'
+  choices:
+  - chunk size
+  - whether it may borrow cache memory while it runs
+  - whether prompt routing counts toward cache usage
+- id: sampler
+  family: execution
+  summary: Turn each position's logits into one token by a fixed chain of steps.
+  inputs:
+  - name: logits
+    carries: activations
+    peer: layer-compute
+    when: per_step
+  - name: settings
+    carries: plan
+    peer: engine-control
+    when: per_request
+  outputs:
+  - name: next_tokens
+    carries: tokens
+    peer: decode-loop
+    when: per_step
+  - name: checked
+    carries: tokens
+    peer: draft-verifier
+    when: per_step
+  needs:
+    resources:
+    - accelerator
+  invariants:
+  - With a fixed seed and fixed logits it returns the same token.
+  effect_on_output: it defines the output, given the logits
+  choices:
+  - 'where it runs: inside the computation graph or outside'
+- id: memory-planner
+  family: memory-state
+  summary: At startup, divide the memory budget between resident weights, session state, reserves and the expert cache, and
+    refuse to start when the minimum does not fit.
+  inputs:
+  - name: budget
+    carries: plan
+    peer: configuration
+    when: startup
+  - name: geometry
+    carries: plan
+    peer: weight-loader
+    when: startup
+  - name: free_memory
+    carries: signal
+    peer: os
+    when: startup
+  outputs:
+  - name: cache_size
+    carries: plan
+    peer: expert-cache
+    when: startup
+  - name: context_plan
+    carries: plan
+    peer: attention-state-store
+    when: startup
+  - name: placement
+    carries: plan
+    peer: weight-loader
+    when: startup
+  needs:
+    resources:
+    - cpu
+  invariants:
+  - Everything it prices plus the cache never exceeds the budget.
+  effect_on_output: none
+  choices:
+  - reserve
+  - what is priced before the cache
+  - what to give up first when memory is short
+- id: attention-state-store
+  family: memory-state
+  summary: Hold the model's per-sequence state for every position up to the offered context length, and cut it back to a given
+    position when asked.
+  inputs:
+  - name: context_plan
+    carries: plan
+    peer: memory-planner
+    when: startup
+  - name: new_state
+    carries: model_state
+    peer: layer-compute
+    when: per_layer
+  - name: truncate
+    carries: control
+    peer: conversation-reuse
+    when: per_request
+  - name: prompt_state
+    carries: model_state
+    peer: prompt-reader
+    when: per_request
+  - name: commit
+    carries: control
+    peer: draft-verifier
+    when: per_step
+  outputs:
+  - name: past_state
+    carries: model_state
+    peer: layer-compute
+    when: per_layer
+  needs:
+    resources:
+    - fast_memory
+  state:
+  - attention_kv
+  invariants:
+  - State of a position past the valid length is never read as history.
+  effect_on_output: none, unless it stores state at lower precision
+  choices:
+  - precision of stored state
+  - whether old state may leave fast memory
+- id: conversation-reuse
+  family: memory-state
+  summary: Keep the state of earlier conversations so that a request sharing a prefix with one of them continues from it and
+    is not read again.
+  inputs:
+  - name: prompt_tokens
+    carries: tokens
+    peer: engine-control
+    when: per_request
+  outputs:
+  - name: start_point
+    carries: plan
+    peer: prompt-reader
+    when: per_request
+  - name: truncate
+    carries: control
+    peer: attention-state-store
+    when: per_request
+  - name: saved_sessions
+    carries: model_state
+    peer: storage
+    when: on_demand
+  needs:
+    resources:
+    - fast_memory
+    - slow_memory
+    - storage
+  state:
+  - parked_conversations
+  invariants:
+  - Output after resuming from a shared prefix equals output after reading the whole prompt.
+  effect_on_output: none
+  choices:
+  - how many conversations are kept, and where
+  - how a reusable prefix is recognised
+  - what is evicted first
+- id: drafter
+  family: speculation
+  summary: Cheaply propose the next few tokens for the full model to check.
+  applies_when: 'A cheap source of proposals exists: a draft head of the model, a separate small model, or repetition in the
+    text.'
+  inputs:
+  - name: context
+    carries: activations
+    peer: layer-compute
+    when: per_step
+  - name: draft_limit
+    carries: plan
+    peer: draft-policy
+    when: per_step
+  outputs:
+  - name: drafts
+    carries: tokens
+    peer: draft-policy
+    when: per_step
+  needs:
+    resources:
+    - accelerator
+    - fast_memory
+  invariants:
+  - A draft is never emitted to the client before the full model has accepted it.
+  effect_on_output: none
+  choices:
+  - source of drafts
+  - how many per round
+- id: draft-policy
+  family: speculation
+  summary: Decide each round whether to draft, from which source, and how many tokens to send for checking.
+  inputs:
+  - name: drafts
+    carries: tokens
+    peer: drafter
+    when: per_step
+  - name: accepted
+    carries: signal
+    peer: draft-verifier
+    when: per_step
+  outputs:
+  - name: window
+    carries: tokens
+    peer: decode-loop
+    when: per_step
+  - name: draft_limit
+    carries: plan
+    peer: drafter
+    when: per_step
+  needs:
+    resources:
+    - cpu
+  state:
+  - draft_estimates
+  invariants:
+  - It changes how much work a step does, never which tokens are accepted.
+  effect_on_output: none
+  choices:
+  - 'what it optimises: tokens per pass, or tokens per second given the cost of a pass'
+  - window size limits
+- id: draft-verifier
+  family: speculation
+  summary: Accept the longest prefix of drafted tokens the full model agrees with, and make every piece of state reflect exactly
+    that prefix.
+  inputs:
+  - name: checked
+    carries: tokens
+    peer: sampler
+    when: per_step
+  outputs:
+  - name: accepted
+    carries: signal
+    peer: draft-policy
+    when: per_step
+  - name: commit
+    carries: control
+    peer: attention-state-store
+    when: per_step
+  needs:
+    resources:
+    - accelerator
+  invariants:
+  - All state is committed to the same accepted prefix.
+  - State of a rejected token is never read as history.
+  effect_on_output: none under greedy decoding; under sampling it depends on the acceptance rule
+  choices:
+  - acceptance rule under sampling
+- id: request-front
+  family: serving
+  summary: Accept a client request, turn its messages into the exact prompt tokens, and return generated tokens as a response.
+  inputs:
+  - name: request
+    carries: request
+    peer: client
+    when: per_request
+  - name: tokens_back
+    carries: tokens
+    peer: engine-control
+    when: per_step
+  outputs:
+  - name: prompt_tokens
+    carries: tokens
+    peer: engine-control
+    when: per_request
+  - name: requests
+    carries: control
+    peer: multi-request-scheduler
+    when: per_request
+  - name: response
+    carries: response
+    peer: client
+    when: per_request
+  needs:
+    resources:
+    - cpu
+  invariants:
+  - Token ids for a conversation equal the reference tokenizer's.
+  effect_on_output: the tokenizer and chat template are part of what the output is compared on
+  choices:
+  - interface offered
+  - what happens when prompt plus output exceed the context
+- id: engine-control
+  family: serving
+  summary: 'Drive the engine for one request at a time: start a prompt read, start generation, pass tokens back, and keep
+    the engine process alive.'
+  inputs:
+  - name: prompt_tokens
+    carries: tokens
+    peer: request-front
+    when: per_request
+  - name: produced_tokens
+    carries: tokens
+    peer: decode-loop
+    when: per_step
+  - name: admitted
+    carries: control
+    peer: multi-request-scheduler
+    when: per_request
+  - name: run_settings
+    carries: plan
+    peer: configuration
+    when: startup
+  outputs:
+  - name: prompt_tokens
+    carries: tokens
+    peer:
+    - prompt-reader
+    - conversation-reuse
+    when: per_request
+  - name: start
+    carries: control
+    peer: decode-loop
+    when: per_request
+  - name: settings
+    carries: plan
+    peer: sampler
+    when: per_request
+  - name: tokens_back
+    carries: tokens
+    peer: request-front
+    when: per_step
+  - name: figures
+    carries: metrics
+    peer: telemetry
+    when: per_request
+  needs:
+    resources:
+    - cpu
+  state:
+  - live_conversation_record
+  invariants:
+  - At most one prompt read runs at a time.
+  effect_on_output: none
+  choices:
+  - in-process or a separate engine process
+  - what happens when the engine fails
+- id: multi-request-scheduler
+  family: serving
+  summary: Share the engine between several requests or several machines.
+  applies_when: More than one conversation is served at once, or the engine spans machines.
+  inputs:
+  - name: requests
+    carries: control
+    peer: request-front
+    when: per_request
+  outputs:
+  - name: admitted
+    carries: control
+    peer: engine-control
+    when: per_request
+  needs:
+    resources:
+    - cpu
+    - fast_memory
+  state:
+  - slot_ledger
+  invariants:
+  - A conversation's output does not depend on which other conversations share the engine.
+  effect_on_output: none intended; batching may change rounding
+  choices:
+  - how many conversations at once
+  - admission rule
+  - how work is split across machines
+- id: configuration
+  family: operations
+  summary: Turn the operator's choices and the machine's facts into the settings every other node starts with.
+  inputs:
+  - name: operator_choices
+    carries: control
+    peer: operator
+    when: startup
+  outputs:
+  - name: budget
+    carries: plan
+    peer: memory-planner
+    when: startup
+  - name: run_settings
+    carries: plan
+    peer: engine-control
+    when: startup
+  needs:
+    resources:
+    - cpu
+    - storage
+  state:
+  - run_config
+  invariants:
+  - The settings a run used can be recovered afterwards.
+  effect_on_output: none in itself; it selects among settings that can
+  choices:
+  - which settings are measured on the machine and which are fixed
+- id: telemetry
+  family: operations
+  summary: Record what the run chose and what it did, in a form that can be attached to the requirements the engine is judged
+    on.
+  inputs:
+  - name: counters
+    carries: signal
+    peer: expert-dispatch
+    when: per_layer
+  - name: figures
+    carries: metrics
+    peer: engine-control
+    when: per_request
+  outputs:
+  - name: metrics
+    carries: metrics
+    peer: client
+    when: on_demand
+  needs:
+    resources:
+    - cpu
+    - storage
+  state:
+  - run_record
+  invariants:
+  - Recording does not change what the engine computes.
+  effect_on_output: none
+  choices:
+  - what is recorded by default
+  - whether expert usage is recorded

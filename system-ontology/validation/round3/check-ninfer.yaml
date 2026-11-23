@@ -1,0 +1,96 @@
+engine: ninfer
+decision_coverage:
+  totals: {decisions: 104, covered: 69, loosely: 22, not_covered: 13, engine_specific: 0}
+  per_type:
+    - {type: "model-conversion", decisions: 9, covered: 8, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 5, covered: 4, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "residency-policy", decisions: 6, covered: 2, loosely: 0, not_covered: 4, engine_specific: 0}
+    - {type: "configuration", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 1, covered: 0, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 7, covered: 4, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 0, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "layer-compute", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 4, covered: 3, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 2, covered: 0, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "output-constraint", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 3, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "state-tiering", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 0, covered: 0, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "checkpoint-converter", type: "model-conversion", decision: "which architecture constants must match before a recipe applies", nearest_choice: "what happens to a conversion that is interrupted or does not match its source"}
+    - {part: "shard-materializer", type: "model-loading", decision: "whether a slice can be expressed value-preservingly, else the format rejects it", nearest_choice: "whether weights are re-encoded at load and how"}
+    - {part: "partition-planner", type: "model-partitioning", decision: "where the PLE table lives (device shards on two machines, disk otherwise)", nearest_choice: "which devices may hold a part of the model"}
+    - {part: "startup-memory-planner", type: "memory-planning", decision: "bounded correction of automatic capacity after an over-budget preparation; explicit capacity kept", nearest_choice: "the order in which things are given up when memory is short, and when starting is refused"}
+    - {part: "execution-graphs", type: "graph-capture", decision: "context-length buckets for child graphs", nearest_choice: "which step shapes are recorded ahead and which on first use"}
+    - {part: "hybrid-moe-dispatch", type: "expert-dispatch", decision: "GPU subset versus CPU complement per layer from a snapshot of ready experts", nearest_choice: "the share of misses fetched now against left to another device"}
+    - {part: "ple-row-source", type: "row-source", decision: "disk path or device-shard path by deployment", nearest_choice: "the table on storage, mapped, or locked in memory"}
+    - {part: "engine-control-loop", type: "step-scheduler", decision: "order within a cycle: control span, then decode, then one prefill chunk", nearest_choice: "how a long prompt yields to generation in progress"}
+    - {part: "request-scheduler", type: "step-scheduler", decision: "service quantum 1 s, up to 4 s when restore work was expensive", nearest_choice: "order and fairness between sequences"}
+    - {part: "model-session", type: "sequence-lifecycle", decision: "full permit before verify that covers the later commit peak", nearest_choice: "a sequence's state allocated up front or grown on demand"}
+    - {part: "executor", type: "device-backend", decision: "number of compute and context frames", nearest_choice: "scratch and command buffers"}
+    - {part: "rank-program", type: "step-execution", decision: "where host handoffs split device work (grammar mask, CPU experts, final acceptance)", nearest_choice: "cutting a step into parts so that work on two devices overlaps"}
+    - {part: "layer-compute", type: "layer-compute", decision: "KV encoding", nearest_choice: "kernel variant per device class, step shape and stored-state format"}
+    - {part: "output-interpreter", type: "output-interpretation", decision: "reasoning and tool formats per model family", nearest_choice: "how tool calls are parsed, repaired or retried"}
+    - {part: "grammar-constraint", type: "output-constraint", decision: "which constraint languages compose for a request", nearest_choice: "which rules are offered"}
+    - {part: "context-resource-manager", type: "prefix-reuse", decision: "retention value only from real cross-request adoption", nearest_choice: "what is evicted first"}
+    - {part: "context-resource-manager", type: "prefix-reuse", decision: "attention-owner rank: balanced load first, then longest local prefix", nearest_choice: "which device restored state is placed on"}
+    - {part: "prompt-preparer", type: "prompt-preparation", decision: "where restore points may sit (not inside media)", nearest_choice: "keeping the start of the prompt stable so that stored state can be reused"}
+    - {part: "vision-encoder", type: "modality-encoding", decision: "which complete units fit the window in one execution", nearest_choice: "memory window for the encoder"}
+    - {part: "responses-store", type: "request-front", decision: "record and byte limits of stored responses", nearest_choice: "whether earlier responses are stored for later requests to refer to"}
+    - {part: "rank-launcher", type: "engine-supervision", decision: "message encoding by fields only; no cross-version compatibility", nearest_choice: "the transport between the serving side and the engine"}
+    - {part: "collective-communication", type: "device-communication", decision: "policy override (native, NCCL, automatic)", nearest_choice: "the transport"}
+  not_covered:
+    - {part: "context-cost-calibrator", type: "calibration", decision: "form of the fitted cost model for transfers and recompute", kind: "policy", missing_choice: "the form of the model fitted to the measurements"}
+    - {part: "expert-residency-planner", type: "residency-policy", decision: "balanced per-layer byte share for the fixed region, largest that leaves each window room", kind: "sizing", missing_choice: "how cache capacity is divided between layers and between fixed and reusable regions"}
+    - {part: "expert-residency-planner", type: "residency-policy", decision: "two streaming windows first, one if two do not fit", kind: "sizing", missing_choice: "how many streaming windows the reusable region holds, and the fallback when they do not fit"}
+    - {part: "expert-residency-planner", type: "residency-policy", decision: "CPU workers min(16, cores - 1) unless given", kind: "sizing", missing_choice: "workers given to the second device that computes absent blocks"}
+    - {part: "expert-residency-planner", type: "residency-policy", decision: "upload slots at least 3, enough for two largest banks", kind: "sizing", missing_choice: "number of upload slots sized from the largest blocks"}
+    - {part: "shard-materializer", type: "model-loading", decision: "how reads are aligned and deduplicated when several destinations share a source", kind: "policy", missing_choice: "how file reads are aligned and shared when several destinations need the same bytes"}
+    - {part: "expert-cache", type: "expert-cache", decision: "bound on concurrently open uses", kind: "sizing", missing_choice: "how many uses of cached blocks may be open at once"}
+    - {part: "engine-control-loop", type: "step-scheduler", decision: "when to re-run admission (queue or capacity change, deadline)", kind: "timing", missing_choice: "when waiting work is reconsidered for admission"}
+    - {part: "rank-program", type: "step-execution", decision: "graph replay or eager per unit kind", kind: "policy", missing_choice: "which kinds of step are replayed from a recorded graph and which are launched directly"}
+    - {part: "state-commit", type: "draft-verification", decision: "commit by graph replay or eager", kind: "policy", missing_choice: "whether the commit runs from a recorded graph or is launched directly"}
+    - {part: "output-interpreter", type: "output-interpretation", decision: "thinking budget", kind: "threshold", missing_choice: "a budget on the reasoning part and what is done when it is reached"}
+    - {part: "context-directory", type: "state-pool", decision: "logical references versus execution borrows", kind: "policy", missing_choice: "whether holders that keep content and in-flight readers of its address are counted separately"}
+    - {part: "context-transfer", type: "state-tiering", decision: "chunk size and staging per slot", kind: "sizing", missing_choice: "chunking and staging of copies between tiers"}
+contradictions:
+  - {part: "draft-head-builder", type: "model-conversion", claim: "effect exact when: it only re-arranges bytes, or changes only pieces used for proposals that the full model checks", evidence: "acceptance under sampling accepts draft i with probability p_i(draft_i) and samples the first rejection from p with the draft removed (include/ninfer/ops/speculative_accept.h 22-44; inventory draft-acceptance output_effect_when); a different draft head gives different proposals and so a different realised token sequence for the same seed", fix: "exact when it only re-arranges bytes, or changes proposal-only pieces under greedy decoding; resampled when it changes proposal-only pieces and acceptance under sampling uses the proposals"}
+  - {part: "context-cost-calibrator", type: "calibration", claim: "effect_on_output: exact in itself; rounding only when its results set a split between devices", evidence: "its cost presets decide whether the resource manager restores a checkpoint or recomputes the prefix; the inventory records that a restored prefix was read with other chunk boundaries than a fresh read (context-resource-manager output_effect_when)", fix: "add: rounding when its results choose between restoring stored state and recomputing it"}
+  - {part: "offload-mode-switch", type: "residency-policy", claim: "summary: Decide which selectively used weights are kept in fast memory, at startup from a ranking or while running from use.", evidence: "it changes the reusable region while running from the token count of each execution, not from use (inventory not: 'reacts to work size, not to which experts were used'); none of the three forms covers it", fix: "...at startup from a ranking, or while running from use or from the size of the work; add a form 'switched by work size between extra cache and streaming windows'"}
+  - {part: "offload-mode-switch", type: "residency-policy", claim: "takes: how often each is used, or a ranking made offline", evidence: "takes the token count of the execution and the planner's layouts and thresholds", fix: "how often each is used, a ranking made offline, or the size of the coming work"}
+  - {part: "offload-mode-switch", type: "residency-policy", claim: "state: use counts or the ranking", evidence: "owns the current region mode and refill progress", fix: "use counts, the ranking, or the current role of each region and its refill progress"}
+  - {part: "executor", type: "device-backend", claim: "summary: choose the kernel variant for this device and step shape, submit, and retire completed work", evidence: "the executor accepts units into frames, passes them to rank programs and delivers result, commit and retirement events; kernel variants are chosen by registered shape profiles in the ops (layer-compute decisions)", fix: "Submit a step's work to the devices and report results and retirement in order; the kernel variant is chosen here or by the computation"}
+  - {part: "vision-encoder", type: "modality-encoding", claim: "state: cache of encoded media", evidence: "keeps features only in a window lease until the matching text spans consume them; no cache of encoded media (src/models/common/vision has no cache)", fix: "encoded media held until consumed, and a cache of it where one exists"}
+  - {part: "rank-launcher", type: "engine-supervision", claim: "summary: ... notice when it stalls or fails, and restart it", evidence: "on failure it stops submission and kills the remaining processes; any uncaught error fails all requests and stops the worker; no restart path exists in src", fix: "...notice when it stalls or fails, and restart it or stop it with every request ended"}
+relaxations:
+  - {part: "context-cost-calibrator", type: "calibration", rule: "A recorded result is used only where its validity key matches the model, machine and build.", how: "the preset key is the hardware class and the model's prefill signature; the CUDA driver and runtime versions are recorded in the report but not part of the key (bench/context_cost/context_cost_bench.cpp 357-497)"}
+  - {part: "chunked-prefill", type: "prompt-reading", rule: "Where chunk boundaries change stored state, the chunking is part of the key under which that state is reused.", how: "checkpoints taken at chunk ends or semantic boundaries are reused without chunking in the key; the engine states no bitwise claim between a restored prefix and a fresh read"}
+wrong_assignments:
+  - {part: "expert-residency-planner", assigned: "residency-policy", better: "memory-planning", why: "it divides the remaining device bytes into fixed region, windows and extra cache, sizes CPU workers and upload slots, and refuses startup when nothing fits; which experts are held follows the priority table, so residency-policy is at most a second job"}
+inventory_errors:
+  - {part: "draft-head-builder", field: "output_effect", recorded: "none; changes only the acceptance rate", source_shows: "sampled acceptance draws depend on the proposals, so a different head changes the realised tokens under sampling (resampled) (include/ninfer/ops/speculative_accept.h 22-44)"}
+  - {part: "mtp-drafter", field: "output_effect", recorded: "none; changes only how many tokens are accepted per round", source_shows: "under sampling the accepted draft and the correction draw depend on the proposal (include/ninfer/ops/speculative_accept.h 22-44); greedy results follow the verify block shape"}
+  - {part: "block-drafter", field: "output_effect", recorded: "none; changes acceptance rate only", source_shows: "under sampling acceptance is min(1, p/q) and rejection resamples max(p-q,0), so the drawn tokens depend on q and the proposals (include/ninfer/ops/speculative_accept.h 60-67)"}
+  - {part: "http-api", field: "does", recorded: "no mention of caller authorisation", source_shows: "an optional API key is checked as a Bearer or x-api-key header on every route except /health and OPTIONS (src/serve/http_server.cpp 164-191, 358-365)"}

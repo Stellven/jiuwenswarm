@@ -1,0 +1,1029 @@
+# Assembled by tools/so_assemble.py from _parts/. Edit the fragments, not this file.
+kind: system
+id: sys/strata
+title: Strata
+summary: Strata is an engine written for one mixture-of-experts model whose expert weights do not fit the fast memory of
+  a consumer machine. Each token uses 10 of 512 experts in each of 48 layers. The engine keeps the weights every token needs
+  and the most used experts in fast memory, keeps every expert in slow memory where the CPU computes the ones that are not
+  in fast memory, moves experts between the two as usage changes, reads a lookup table from storage a few rows per token,
+  and has the full model check several drafted tokens in one pass. A serving layer in front of the engine process holds
+  conversations so that a continued conversation is not read again.
+product:
+  name: Strata
+  revision: 504b143342a9fe1aa8320a7b31e11f5c0ac265c3
+  upstream: https://github.com/Niko1221/Strata
+  form: Written from scratch in C++ and CUDA, with a Python serving layer that drives the engine process.
+targets:
+- model: model/qwen3.8-flash-125b-a6b
+  hardware: hw/pc-12g-64g
+  spec: spec/qwen-flash-on-pc/strata-like
+  note: A discrete GPU with 12 GB of its own memory and 64 GB of host memory. The configuration the component descriptions
+    were read for.
+- model: model/qwen3.8-flash-125b-a6b
+  hardware: hw/dgx-spark
+  spec: spec/qwen-flash-on-dgx-spark/strata-like
+  note: One memory pool shared by CPU and GPU. Described from the project's document for this machine and from the code
+    paths it names; nothing was run there.
+mechanisms:
+- mech/hot-expert-residency
+- mech/work-based-prefill-split
+- mech/draft-then-verify
+- mech/route-tail-skip
+resource_expectations:
+- holding: Weights every token uses, session state for the configured context, and the drafter
+  held_on: fast_memory
+  note: Sized first. What remains, less a reserve, goes to the expert cache.
+- holding: 'Expert cache: the most used experts, one per slot'
+  held_on: fast_memory
+  note: Slot count is decided at startup from free memory and reduced if the reserve was not really left. The project's
+    document says each extra GB holds about 700 more experts.
+- holding: Every expert, 24,576 of them
+  held_on: slow_memory
+  amount:
+    value: 50.3
+    unit: GB
+    unit_basis: decimal
+    status: reported
+    source: strata docs/DGX_SPARK_LINUX.md:75 (IQ3_S)
+- holding: Lookup table read by row
+  held_on: storage
+  amount:
+    value: 28.8
+    unit: GB
+    unit_basis: decimal
+    status: reported
+    source: strata docs/HOW_IT_WORKS.md:31
+claims:
+- text: Drafting and verifying yields 2.4 to 3.2 tokens per pass on average, 1.6 to 1.8 times sooner
+  status: reported
+  source: strata docs/HOW_IT_WORKS.md:41-43
+  baseline: token-by-token decoding; the document does not give the measurement conditions
+- text: Long prompts are read at over 1,000 tokens per second
+  status: reported
+  source: strata docs/HOW_IT_WORKS.md:50-51
+  baseline: not stated
+components:
+- comp/strata/setup
+- comp/strata/loading
+- comp/strata/serving
+- comp/strata/conversation-reuse
+- comp/strata/prompt-path
+- comp/strata/token-path
+- comp/strata/expert-subsystem
+- comp/strata/speculation
+- comp/strata/telemetry
+declares:
+  stages:
+  - load
+  - prefill
+  - draft
+  - verify
+  - commit
+  - decode
+  states:
+  - attention_kv
+  - indexer_keys
+  - gdn_state
+  - ple_history
+  - expert_heat
+  - residency_table
+  - pending_swaps
+  - staged_experts
+  - captured_graphs
+  - kv_residency_map
+  - mtp_kv
+  - lookup_history
+  - draft_estimates
+  - drafter_choice_stats
+  - commit_stores
+  - dflash2_context
+  - admission_counters
+  - prompt_encode_cache
+  - engine_process_state
+  - live_conversation_record
+  - batch_slot_table
+  - slot_ledger
+  - replica_index
+  - conversation_checkpoints
+  - parked_conversations
+  - run_config
+  - calibration_record
+  - tuning_presets
+  - dispatch_counts
+  - run_manifest_record
+  - request_history
+  policies:
+  - expert-cache
+  - prefill-cpu-share
+  - draft-window
+  - kv-residency
+  - draft-source
+  - drafter-choice
+  - conversation-resume
+  - checkpoint-retention
+  - parked-eviction
+  - slot-admission
+  - batch-window-composition
+  - replica-routing
+flows:
+- id: gguf-shards-read
+  sender: model_files
+  receiver: comp/strata/model-file-reader
+  carries:
+    content: weights
+    refs:
+    - shared_weights
+    - expert_weights
+  timing: startup
+  description: 'The GGUF shards, mapped read-only: header, metadata, tensor directory and tensor bytes.'
+- id: model-geometry
+  sender: comp/strata/model-file-reader
+  receiver: comp/strata/startup-memory-sizing
+  carries:
+    content: plan
+  timing: startup
+  description: Layer count, widths, expert count and experts per token read from the metadata shard and checked against
+    the compiled shapes; every later size is computed from it. The same record is passed to the session, the expert source
+    and the expert cache.
+- id: gguf-tensor-bytes
+  sender: comp/strata/model-file-reader
+  receiver: comp/strata/native-weight-loader
+  carries:
+    content: weights
+    refs:
+    - shared_weights
+  timing: startup
+  description: Pointers into the mapping for the projections, the output head and the token embedding, uploaded unchanged.
+- id: expert-layout-file
+  sender: model_files
+  receiver: comp/strata/expert-layout
+  carries:
+    content: plan
+  timing: startup
+  description: 'The pack''s native_experts.txt: per-layer blob size and formats, and the file and offset of each layer''s
+    gate, up and down tensors.'
+- id: expert-layout-to-source
+  sender: comp/strata/expert-layout
+  receiver: comp/strata/expert-source
+  carries:
+    content: plan
+  timing: startup
+  description: Blob size and offset per layer, total bytes, and the GGUF spans the arena is filled from.
+- id: expert-layout-to-sizing
+  sender: comp/strata/expert-layout
+  receiver: comp/strata/startup-memory-sizing
+  carries:
+    content: plan
+  timing: startup
+  description: The largest blob and each layer's blob size, the unit the expert cache's slots are counted in.
+- id: expert-layout-to-admission
+  sender: comp/strata/expert-layout
+  receiver: comp/strata/host-memory-admission
+  carries:
+    content: plan
+  timing: startup
+  description: Total bytes of all routed experts, the arena size the n-gram table is priced against.
+- id: pack-dense-read
+  sender: model_files
+  receiver: comp/strata/weight-loader
+  carries:
+    content: weights
+    refs:
+    - shared_weights
+  timing: startup
+  description: The pack's index.txt and data files (dense.bin, embd.bin, extra.bin), read in 8 MiB chunks.
+- id: natively-served-names
+  sender: comp/strata/native-weight-loader
+  receiver: comp/strata/weight-loader
+  carries:
+    content: plan
+  timing: startup
+  description: The names of the tensors the native loaders will serve, so the pack loader skips them and its device range
+    is sized without them.
+- id: weight-table-to-native
+  sender: comp/strata/weight-loader
+  receiver: comp/strata/native-weight-loader
+  carries:
+    content: engine_state
+  timing: startup
+  description: The name-to-location table; the native loader checks each projection against its row and attaches the GGUF-form
+    pointer to it.
+- id: dense-weights-in-vram
+  sender: comp/strata/weight-loader
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: weights
+    refs:
+    - shared_weights
+  timing: startup
+  description: Device locations of the dense tensors in engine form, by name.
+- id: native-projections-in-vram
+  sender: comp/strata/native-weight-loader
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: weights
+    refs:
+    - shared_weights
+  timing: startup
+  description: Device locations of the per-layer projections in GGUF block form, and the token embedding where the GPU reads
+    one row per token.
+- id: native-head-weights
+  sender: comp/strata/native-weight-loader
+  receiver: comp/strata/output-head
+  carries:
+    content: weights
+    refs:
+    - shared_weights
+  timing: startup
+  description: The output projection in GGUF block form, on the card or in page-locked host memory.
+- id: operator-memory-settings
+  sender: external
+  receiver: comp/strata/startup-memory-sizing
+  carries:
+    content: plan
+  timing: startup
+  description: 'Command-line flags and environment: context length, expert cache size or auto, reserve, prompt chunk, pipeline
+    windows.'
+- id: device-free-memory
+  sender: external
+  receiver: comp/strata/startup-memory-sizing
+  carries:
+    content: signal
+  timing: startup
+  description: Free device memory as the driver reports it, read before the cache is sized and again after its slots are
+    written.
+- id: expert-cache-size
+  sender: comp/strata/startup-memory-sizing
+  receiver: comp/strata/expert-cache
+  carries:
+    content: plan
+  timing: startup
+  description: Number of slots, and for a native pack the byte size of each slot in profile order.
+- id: prompt-buffer-plan
+  sender: comp/strata/startup-memory-sizing
+  receiver: comp/strata/prompt-path
+  carries:
+    content: plan
+  timing: startup
+  description: Whether the prompt path borrows cache slots or keeps its own buffers, its chunk size, and how many slots
+    a loan leaves in the cache.
+- id: head-to-host
+  sender: comp/strata/startup-memory-sizing
+  receiver: comp/strata/native-weight-loader
+  carries:
+    content: control
+  timing: startup
+  description: 'Last resort when the cache has no slot: move the output head from the card to page-locked host memory.'
+- id: host-memory-readings
+  sender: external
+  receiver: comp/strata/host-memory-admission
+  carries:
+    content: signal
+  timing: startup
+  description: Available RAM, the tightest cgroup limit, and the operator's --ram-keep-gib and --ple-io settings.
+- id: ngram-residency-decision
+  sender: comp/strata/host-memory-admission
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: plan
+  timing: startup
+  description: Whether the n-gram table is mapped and locked in RAM or read directly from storage; and later, an instruction
+    to give the lock back when the arena or the conversation cache needs the RAM.
+- id: arena-admission-settings
+  sender: comp/strata/host-memory-admission
+  receiver: comp/strata/expert-source
+  carries:
+    content: plan
+  timing: startup
+  description: Whether reading from the file source instead is allowed, the RAM to keep free, the headroom under a hard
+    limit, and the budget of the reduced RAM copy.
+- id: arena-outcome
+  sender: comp/strata/expert-source
+  receiver: comp/strata/host-memory-admission
+  carries:
+    content: signal
+  timing: startup
+  description: Whether RAM was short, and how many bytes of the arena the GPU driver registered (used for the page-locked
+    reserve's release and its hint).
+- id: expert-bytes-from-files
+  sender: model_files
+  receiver: comp/strata/expert-source
+  carries:
+    content: weights
+    refs:
+    - expert_weights
+  timing: startup
+  description: Every routed expert, read into the arena from the GGUF shards or experts.bin. In file-source mode the files
+    are mapped instead and read on demand.
+- id: expert-bytes-in-host-memory
+  sender: comp/strata/expert-source
+  receiver: comp/strata/cpu-expert-pool
+  carries:
+    content: weights
+    refs:
+    - expert_weights
+  timing: per_layer
+  description: Pointers to the blobs of the experts the CPU computes.
+- id: expert-bytes-to-upload
+  sender: comp/strata/expert-source
+  receiver: comp/strata/host-to-device-transfer
+  carries:
+    content: weights
+    refs:
+    - expert_weights
+  timing: on_demand
+  description: Pointers to blobs to be copied into device memory (cache fill, swaps, the prompt path's staging).
+- id: gpu-readable-experts
+  sender: comp/strata/expert-source
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: signal
+  timing: per_layer
+  description: For an expert or a layer, whether its bytes are registered with the GPU driver and at which address the GPU
+    reads them in place.
+- id: residency-lookup
+  sender: comp/strata/expert-cache
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: engine_state
+    refs:
+    - residency_table
+  timing: per_layer
+  description: For each routed expert, the fast-memory slot holding it or that it is absent
+- id: accelerator-expert-plan
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: plan
+    refs:
+    - expert_ffn
+  timing: per_layer
+  description: Which routed experts the accelerator computes this layer, from cache slots or from the staging area; published
+    before CPU work starts
+- id: cpu-expert-work
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/cpu-expert-pool
+  carries:
+    content: plan
+    refs:
+    - expert_ffn
+  timing: per_layer
+  description: The routed experts left to the CPU for this layer of this window
+- id: window-fetch-request
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/host-to-device-transfer
+  carries:
+    content: control
+    refs:
+    - expert_weights
+  timing: per_layer
+  description: Missed experts to copy into the staging area for this window only
+- id: expert-usage
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/adaptive-tier
+  carries:
+    content: signal
+    refs:
+    - expert_heat
+  timing: per_layer
+  description: How many tokens of the window routed each expert
+- id: swap-requests
+  sender: comp/strata/adaptive-tier
+  receiver: comp/strata/host-to-device-transfer
+  carries:
+    content: control
+    refs:
+    - pending_swaps
+  timing: background
+  description: Experts to copy into the slots of experts that are leaving the cache
+- id: residency-updates
+  sender: comp/strata/adaptive-tier
+  receiver: comp/strata/expert-cache
+  carries:
+    content: engine_state
+    refs:
+    - residency_table
+  timing: background
+  description: A leaving expert is marked absent before its slot is overwritten; an entering expert is marked resident after
+    its copy lands
+- id: expert-bytes-to-fast-memory
+  sender: comp/strata/host-to-device-transfer
+  receiver: comp/strata/expert-cache
+  carries:
+    content: weights
+    refs:
+    - expert_weights
+  timing: on_demand
+  description: Expert bytes copied from slow memory into a cache slot or the staging area
+- id: prompt-state
+  sender: comp/strata/prompt-path
+  receiver: comp/strata/kv-store
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: per_request
+  description: The model state left by reading the prompt, from which generation continues
+- id: prompt-cpu-experts
+  sender: comp/strata/prompt-path
+  receiver: comp/strata/cpu-expert-pool
+  carries:
+    content: plan
+    refs:
+    - expert_ffn
+  timing: per_layer
+  description: Experts of a prompt chunk that few tokens route to, handed to the CPU when sharing is armed
+- id: window-tokens-to-ngram-reader
+  sender: comp/strata/window-loop
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: tokens
+  timing: per_window
+  description: The window's token ids and the two tokens before it, hashed to 16 row numbers per token; rows are prefetched
+    before the launch and gathered while layer 0 runs.
+- id: ngram-rows-from-file
+  sender: model_files
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: weights
+    refs:
+    - ngram_table
+  timing: on_demand
+  description: '16 table rows per token: direct page reads from storage, or reads of the table held in memory when the start-up
+    rule admitted it.'
+- id: ngram-rows-to-layer-1
+  sender: comp/strata/ngram-reader
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: weights
+    refs:
+    - ngram_table
+  timing: per_window
+  description: 2560 floats per token, written to mapped host staging and copied to the device before the layer-1 block reads
+    them. On the session loop the same once per step.
+- id: window-inputs
+  sender: comp/strata/window-loop
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: tokens
+  timing: per_window
+  description: Token ids, per-row step counts and positions, written to fixed mapped buffers the graph copies from.
+- id: launch-window-graph
+  sender: comp/strata/window-loop
+  receiver: comp/strata/window-graphs
+  carries:
+    content: control
+  timing: per_window
+  description: Record the graph for this window size and variant if it does not exist, then hand back its handle for one
+    launch.
+- id: routed-experts
+  sender: comp/strata/expert-router
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: activations
+  timing: per_layer
+  description: 10 expert ids and weights per token, in device memory; read by the publish kernel, the device-side resident
+    plan and the combine.
+- id: window-layer-handoff
+  sender: comp/strata/window-loop
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: activations
+  timing: per_layer
+  description: 'When a layer signals: the feed-forward input of each row and its routed ids from mapped memory, with the
+    buffer the unweighted expert rows are to be written into. Only in the doorbell graph; in the zero-doorbell graph the
+    device plans from the residency table and the host is not asked.'
+- id: session-layer-handoff
+  sender: comp/strata/session-loop
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: activations
+  timing: per_layer
+  description: 'Canonical pack only: one token''s feed-forward input, routed ids and weights from the doorbell, with the
+    page-locked buffer for the expert rows.'
+- id: cpu-expert-rows
+  sender: comp/strata/cpu-expert-pool
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: activations
+  timing: per_layer
+  description: Unweighted expert outputs, one row of n_embd floats per token and rank, in page-locked mapped host memory;
+    rows that belong to the GPU are zero. The device copies them, adds its own rows and the combine kernel applies the router
+    weights.
+- id: kv-pages-for-attention
+  sender: comp/strata/kv-store
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+  timing: per_layer
+  description: The pools and page table an attention step reads, with the selected blocks made resident first when streaming
+    is on.
+- id: kv-append
+  sender: comp/strata/layer-kernels
+  receiver: comp/strata/kv-store
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+  timing: per_layer
+  description: The new position's keys and values of each attention layer; written to the host copy always and to the fast-memory
+    slot only if its block is resident.
+- id: final-residual-to-head
+  sender: comp/strata/layer-kernels
+  receiver: comp/strata/output-head
+  carries:
+    content: activations
+  timing: per_window
+  description: The residual stack after the last layer, one per window row.
+- id: logits-to-sampler
+  sender: comp/strata/output-head
+  receiver: comp/strata/sampler
+  carries:
+    content: activations
+  timing: per_window
+  description: One row of vocabulary logits per window row, in device memory.
+- id: picks-to-verifier
+  sender: comp/strata/sampler
+  receiver: comp/strata/draft-verifier
+  carries:
+    content: tokens
+  timing: per_window
+  description: One token id per window row, read by the host from mapped memory after the window has finished.
+- id: mtp-drafts
+  sender: comp/strata/mtp-drafter
+  receiver: comp/strata/draft-policy
+  carries:
+    content: tokens
+  timing: per_window
+  description: Draft tokens for the next window with one probability each, and how many were drafted
+- id: dflash2-drafts
+  sender: comp/strata/dflash2-drafter
+  receiver: comp/strata/draft-policy
+  carries:
+    content: tokens
+  timing: per_window
+  description: Seven draft tokens with the selector's probabilities. Only when this drafter is loaded and is the request's
+    drafter
+- id: lookup-proposal
+  sender: comp/strata/lookup-drafter
+  receiver: comp/strata/draft-policy
+  carries:
+    content: tokens
+  timing: per_window
+  description: The tokens that followed an earlier occurrence of the current ending, and the match length; also the chained
+    proposal after the neural drafts when the lookup chain is on
+- id: chain-continue
+  sender: comp/strata/draft-policy
+  receiver: comp/strata/mtp-drafter
+  carries:
+    content: control
+  timing: per_window
+  description: After each draft step, whether to compute another draft. Only with the cost-aware window; otherwise the drafter
+    runs to its cap or to the probability floor
+- id: draft-cap
+  sender: comp/strata/draft-policy
+  receiver: comp/strata/mtp-drafter
+  carries:
+    content: plan
+  timing: per_request
+  description: The most drafts per round for this request (narrower for MTP requests under automatic drafter selection;
+    lowered near the context end in gated mode)
+- id: verify-window
+  sender: comp/strata/draft-policy
+  receiver: comp/strata/window-loop
+  carries:
+    content: tokens
+  timing: per_window
+  description: 'The window to verify: the last accepted token followed by the chosen drafts, at the chosen width'
+- id: draft-distributions
+  sender: comp/strata/mtp-drafter
+  receiver: comp/strata/draft-verifier
+  carries:
+    content: activations
+  timing: per_window
+  description: For each MTP draft, the distribution it was sampled from (up to 64 token and probability pairs), or the gated
+    measure built from it. Only with STRATA_SPEC_PROB=1 on a sampled request
+- id: ngram-prefetch
+  sender: comp/strata/mtp-drafter
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: control
+  timing: per_window
+  description: Prefetch the n-gram table rows of the drafted tokens so the next verify window finds them warm
+- id: accepted-count
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/draft-policy
+  carries:
+    content: signal
+  timing: per_window
+  description: How many drafts were accepted in the window; the policy pairs it with the round's wall time
+- id: accepted-rows-to-mtp
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/mtp-drafter
+  carries:
+    content: tokens
+  timing: per_window
+  description: The window's target tokens, its position and the last accepted row, from which the drafter catches up its
+    own K/V and drafts again
+- id: accepted-rows-to-dflash2
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/dflash2-drafter
+  carries:
+    content: tokens
+  timing: per_window
+  description: The committed rows and their position, so the drafter's context ring holds committed rows only
+- id: accepted-tokens-to-lookup
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/lookup-drafter
+  carries:
+    content: tokens
+  timing: per_window
+  description: Emitted tokens appended to the lookup history. In the code the host loop makes the call, not the verifier
+    class
+- id: accepted-tokens
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/session-loop
+  carries:
+    content: tokens
+  timing: per_window
+  description: The accepted prefix plus the one target token after it; the last one becomes the next window's first row
+- id: commit-prefix
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/window-graphs
+  carries:
+    content: control
+  timing: per_window
+  description: Launch the commit graph with the number of rows to keep and their positions (rejected rows carry position
+    -1). Not sent after a one-row window, which commits itself
+- id: client-request
+  sender: external
+  receiver: comp/strata/http-front
+  carries:
+    content: request
+  timing: per_request
+  description: 'An HTTP request in OpenAI or Anthropic form: messages, tools, sampling fields and an output limit'
+- id: client-response
+  sender: comp/strata/http-front
+  receiver: external
+  carries:
+    content: response
+  timing: per_window
+  description: A server-sent event stream or one JSON body, with usage and timings at the end
+- id: messages-to-prompt
+  sender: comp/strata/http-front
+  receiver: comp/strata/prompt-builder
+  carries:
+    content: request
+  timing: per_request
+  description: Messages, tools and template arguments in one internal form
+- id: prompt-ids
+  sender: comp/strata/prompt-builder
+  receiver: comp/strata/request-runner
+  carries:
+    content: tokens
+  timing: per_request
+  description: The prompt token ids, the thinking flag and the output limit fitted to the context
+- id: generation-call
+  sender: comp/strata/request-runner
+  receiver: comp/strata/engine-client
+  carries:
+    content: tokens
+  timing: per_request
+  description: Prompt token ids, output limit, sampling settings and a cancel event for one engine generation; a request
+    may make several
+- id: generation-to-replica
+  sender: comp/strata/replica-router
+  receiver: comp/strata/engine-client
+  carries:
+    content: control
+  timing: per_request
+  description: 'With replicas on: the generation handed to the chosen engine process'
+- id: generation-to-slots
+  sender: comp/strata/engine-client
+  receiver: comp/strata/slot-scheduler
+  carries:
+    content: control
+  timing: per_request
+  description: 'With batch slots on: the generation handed to the scheduler, which decides solo or slot'
+- id: engine-commands
+  sender: comp/strata/engine-client
+  receiver: comp/strata/engine-command-loop
+  carries:
+    content: control
+  timing: per_request
+  description: 'Text lines on the engine''s standard input: GEN with keys and prompt ids, STOP, VRAM, SAVE and RESTORE'
+- id: slot-commands
+  sender: comp/strata/slot-scheduler
+  receiver: comp/strata/engine-command-loop
+  carries:
+    content: control
+  timing: per_request
+  description: 'Text lines naming a slot: BGEN with the prompt ids, BSTOP, BYIELD and the opt-in BCO'
+- id: engine-token-lines
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/engine-client
+  carries:
+    content: tokens
+  timing: per_window
+  description: T <id> lines on the solo path, several per verify window when drafts are accepted
+- id: slot-token-lines
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/slot-scheduler
+  carries:
+    content: tokens
+  timing: per_window
+  description: BT <slot> <id> lines, routed to the slot's own queue, then BDONE; BADM and YIELDED on the control lines
+- id: engine-stat-lines
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/server-metrics
+  carries:
+    content: metrics
+  timing: per_request
+  description: INFO at start; per request PP progress, RESUME and a DONE line with counts, prompt and decode milliseconds,
+    drafts, reused tokens and expert cache hits
+- id: tokens-to-runner
+  sender: comp/strata/engine-client
+  receiver: comp/strata/request-runner
+  carries:
+    content: tokens
+  timing: per_window
+  description: Token ids as they arrive, with a heartbeat every 10 s of quiet
+- id: response-events
+  sender: comp/strata/request-runner
+  receiver: comp/strata/http-front
+  carries:
+    content: response
+  timing: per_window
+  description: Reasoning, content and tool-call events, pings and one finish record
+- id: prompt-to-read
+  sender: comp/strata/engine-command-loop
+  receiver: comp/strata/prompt-path
+  carries:
+    content: tokens
+  timing: per_request
+  description: The prompt token ids of one GEN or BGEN, to be read from the resume point
+- id: resume-point
+  sender: comp/strata/resume-decision
+  receiver: comp/strata/prompt-path
+  carries:
+    content: plan
+  timing: per_request
+  description: How many prompt tokens the session already holds, so reading starts there
+- id: rewind-to-checkpoint
+  sender: comp/strata/resume-decision
+  receiver: comp/strata/checkpoint-chain
+  carries:
+    content: control
+  timing: per_request
+  description: Restore the chosen checkpoint and drop the ones past it
+- id: take-or-park
+  sender: comp/strata/resume-decision
+  receiver: comp/strata/parked-conversations
+  carries:
+    content: control
+  timing: per_request
+  description: Park the outgoing conversation; take or borrow from the chosen parked entry
+- id: checkpoint-restore
+  sender: comp/strata/checkpoint-chain
+  receiver: comp/strata/session-loop
+  carries:
+    content: model_state
+    refs:
+    - gdn_state
+    - ple_history
+    - indexer_keys
+  timing: on_demand
+  description: Running state copied back to the device at a rewind
+- id: parked-restore
+  sender: comp/strata/parked-conversations
+  receiver: comp/strata/kv-store
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: on_demand
+  description: A parked conversation's K/V, indexer rows and running state copied back to the device
+- id: session-file-out
+  sender: comp/strata/session-files
+  receiver: external
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: on_demand
+  description: 'One session file on storage: live running state, one checkpoint, every attention layer''s K/V and the draft
+    layer''s K/V'
+- id: session-file-in
+  sender: external
+  receiver: comp/strata/session-files
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: on_demand
+  description: A session file read back and validated before any device write
+- id: operator-choices
+  sender: external
+  receiver: comp/strata/run-config-generator
+  carries:
+    content: control
+  timing: offline
+  description: 'The person''s setup answers and options: model, context length, KV format, cards, reserve'
+- id: run-config
+  sender: comp/strata/run-config-generator
+  receiver: comp/strata/launch-argument-resolver
+  carries:
+    content: plan
+  timing: startup
+  description: 'The run configuration file: engine path, argument list, environment, the person''s own options and server
+    keys'
+- id: measured-settings
+  sender: comp/strata/speed-calibration
+  receiver: comp/strata/run-config-generator
+  carries:
+    content: plan
+  timing: offline
+  description: Settings a calibration kept for this hardware key, written into the argument list
+- id: preset-overlay
+  sender: comp/strata/speed-calibration
+  receiver: comp/strata/launch-argument-resolver
+  carries:
+    content: plan
+  timing: startup
+  description: The active tuning preset's arguments, environment and per-request values, applied over the configuration
+    if still valid
+- id: calibration-generations
+  sender: comp/strata/speed-calibration
+  receiver: comp/strata/engine-client
+  carries:
+    content: control
+  timing: offline
+  description: Engine starts and generations made by the calibration to time candidates
+- id: engine-argv
+  sender: comp/strata/launch-argument-resolver
+  receiver: comp/strata/engine-client
+  carries:
+    content: plan
+  timing: startup
+  description: The engine process's argument list and environment
+- id: memory-options
+  sender: comp/strata/launch-argument-resolver
+  receiver: comp/strata/startup-memory-sizing
+  carries:
+    content: plan
+  timing: startup
+  description: Context length, KV format and resident window, VRAM reserve, resident budget, expert cache request and batch
+    slot count, as engine arguments
+- id: drafter-options
+  sender: comp/strata/launch-argument-resolver
+  receiver: comp/strata/draft-policy
+  carries:
+    content: plan
+  timing: startup
+  description: The drafter chosen for the run, the speculative window and the confidence floor, as engine arguments
+- id: request-figures
+  sender: comp/strata/server-metrics
+  receiver: comp/strata/http-front
+  carries:
+    content: metrics
+  timing: per_request
+  description: Usage with cached tokens and the timings object placed in the response
+- id: metrics-out
+  sender: comp/strata/server-metrics
+  receiver: external
+  carries:
+    content: metrics
+  timing: on_demand
+  description: JSON and Prometheus text on the metrics and status endpoints
+- id: hardware-readings
+  sender: external
+  receiver: comp/strata/server-metrics
+  carries:
+    content: signal
+  timing: background
+  description: GPU utilisation, memory, temperature and power from the vendor library, and CPU, RAM and disk readings from
+    the operating system, once a second
+- id: gpu-busy
+  sender: comp/strata/server-metrics
+  receiver: comp/strata/engine-client
+  carries:
+    content: signal
+  timing: background
+  description: Whether the GPU is working (utilisation of 10% or more), read by the frozen-engine check
+- id: diagnostic-files
+  sender: comp/strata/engine-diagnostics
+  receiver: external
+  carries:
+    content: metrics
+  timing: on_demand
+  description: The dispatch count report at exit and the run manifest, each only when an environment variable names a file
+- id: batch-samples
+  sender: comp/strata/engine-diagnostics
+  receiver: comp/strata/server-metrics
+  carries:
+    content: metrics
+  timing: background
+  description: BSTAT and PSTAT lines, at most one a second, when batch telemetry is on
+uncatalogued_mechanisms:
+- family: degrade-before-refuse-startup-sizing
+  summary: Each memory consumer is sized in a fixed order from the free memory actually left, and a shortage walks a fixed
+    ladder (smaller loan, lower reserve, own smaller prompt buffers, output head moved to host memory, cache reopened smaller)
+    before the start is ended.
+- family: touch-then-recheck-reserve
+  summary: After a large device allocation its memory is written, free memory is read again, and the allocation is shrunk
+    until the intended reserve is really left, because the free figure read before the allocation can be too high.
+- family: gpu-readable-host-weights
+  summary: Weights kept in host memory are registered with the GPU driver before they are written, so the GPU can read a
+    selected piece in place over the bus without a staging copy; what cannot be registered is kept resident by an operating-system
+    lock.
+- family: page-locked-headroom
+  summary: A small amount of page-locked memory is held back while a large region registers and released afterwards, so
+    later small page-locked buffers do not fail on a platform with a ceiling on such memory.
+- family: serve-weights-in-file-encoding
+  summary: Tensors are uploaded in the block encoding the model file already uses and computed on by kernels for that encoding,
+    and the engine-form copy of the same tensor is not loaded.
+- family: lossless-load-time-reencoding
+  summary: A tensor stored in a wider container than its values need is narrowed at load by an exact transform, and a plane
+    the kernels want wider is widened exactly, so the on-disk form and the in-memory form can differ without changing any
+    value.
+- family: fall-back-to-file-source-when-ram-short
+  summary: When host memory cannot hold all expert weights after a bounded wait, the engine reads them from their files
+    through the page cache, with a copy of the hottest ones in the RAM that is available, instead of refusing or loading
+    into a shortage.
+- family: recorded-graph-replay
+  summary: Record the fixed device work of a layer, a token or a whole window once and replay it with one driver call, passing
+    everything that changes per token through fixed-address buffers; the stated gain is removed launch overhead.
+- family: in-graph-host-handoff
+  summary: A kernel inside the recorded graph publishes a layer's activations and routed ids to mapped host memory and a
+    later kernel waits on a flag the host writes, so the CPU computes its experts while the GPU continues and the host makes
+    no driver call per layer.
+- family: kv-streaming
+  summary: Keep the authoritative attention keys and values in page-locked host memory and only a window of pages in fast
+    memory; before each attention step a device kernel makes the selected blocks resident with a clock sweep. Frees fast
+    memory for more experts.
+- family: table-residency-by-startup-rule
+  summary: Hold a large lookup table locked in host memory only when it fits beside everything still to be allocated plus
+    a headroom; otherwise read a few rows per token directly from storage, hidden behind other work.
+- family: residency-biased-routing
+  summary: 'Opt-in: bias the expert selection towards experts already resident in fast memory. Changes the output.'
+- family: lookup-drafting
+  summary: Draft the tokens that followed the longest earlier occurrence of the current ending of prompt plus output, found
+    through a trigram index, optionally chained after the neural drafts in the same window.
+- family: cost-aware-draft-window
+  summary: Choose the verify window width step by step from each draft's calibrated chance of holding and the measured wall
+    time of each window width, maximising expected committed tokens per millisecond.
+- family: speculative-rejection-sampling
+  summary: For sampled requests, sample the draft from the drafter's distribution q and accept it with probability min(1,
+    p/q), else resample from the positive part of p minus q, so each output token keeps the target distribution p; with
+    a confidence gate handled as a masked proposal measure.
+- family: coupled-draft-sampling
+  summary: Sample the draft with the target's own sampler chain and the same position-keyed uniform, so an exact-match check
+    accepts it more often without changing the text.
+- family: block-drafter-from-hidden-taps
+  summary: A small separate model reads the target's hidden states at a few layers for committed rows and drafts a block
+    of tokens in one pass.
+- family: prefix-state-checkpoints
+  summary: Keep host copies of the small running state at turn boundaries and fixed intervals of the current conversation,
+    relying on the positional K/V staying in place, so a later request that shares a prefix rewinds instead of re-reading.
+- family: parked-conversation-cache
+  summary: When the session switches conversation, copy the outgoing conversation's whole state including K/V to host memory
+    within a budget tied to free memory, and restore or borrow from it when a prompt matches by tokens, pictures and steering
+    flag.
+- family: multi-sequence-batch-windows
+  summary: Keep several sequences open in one engine, each with its own session state, and carry one row of each through
+    the same window so shared weights are read once per window; a lone request stays on the single-sequence path with drafts
+    and is moved into a slot when a second arrives.
+- family: cooperative-prompt-read-preemption
+  summary: A long prompt read gives way at a chunk boundary to a waiting request with a much shorter prompt; the part read
+    waits in a slot and continues afterwards with the same chunks, and decoding slots get a share of time between a prompt's
+    chunks.
+- family: cache-affinity-request-routing
+  summary: Send a request to the slot or engine process that already holds the longest start of its prompt, weighed against
+    load, so a conversation's next turn returns to where its state is.
+- family: incremental-prompt-tokenization
+  summary: Reuse the token ids of an earlier prompt up to the last special-token boundary both texts share and encode only
+    the rest, which is exact because encoding never crosses a special-token match.
+- family: measured-per-machine-settings
+  summary: On demand, time a bounded set of engine settings on the machine at hand with the real engine, keep a value only
+    if it beats the default by more than noise, and bind the result to a hardware identity so it is not applied elsewhere.
+- family: engine-process-supervision
+  summary: Run the engine as a child process on a line protocol, detect silence, a frozen process and fatal device errors
+    with separate limits, and restart it between requests with a cap on repeated fatal errors.
+coverage: 'Written from the source at the revision above and from the project''s own documents; nothing was built or run.
+  Each component states what was read in code, what only in a header comment or a document, and what was not read. Covered:
+  the CUDA path for Qwen3.8-Flash-Next and the Python serving layer. Not covered: the HIP, SYCL and Metal backends, the
+  other model engines in the same repository, kernel numerics, and vision input. Facts with file and line are in engines/strata-notes/.'

@@ -1,0 +1,24 @@
+# The configurable part of the checking rules. The rule logic is in tools/so_check.py; this file holds the tables it reads.
+ontology_version: 0.6.1
+
+# How a gap (UNSET) is handled: the paths are matched from top to bottom and the first match applies.
+gap_policy:
+  - {path: "given.environment*",          blocking: false, owner: one experiment can supply it}
+  - {path: "given.model*",                blocking: true,  owner: the owner of the model source}
+  - {path: "given.hardware*",             blocking: true,  owner: the owner of the hardware source}
+  - {path: "contract.requirements.*",     blocking: true,  owner: the project and the bench owner}
+  - {path: "contract.workload*",          blocking: true,  owner: the bench owner}
+  - {path: "delivery.image_digest",       blocking: false, owner: filled in after the build}
+  - {path: "*",                           blocking: true,  owner: the project}
+
+# Kinds of memory pool shared with the operating system: a budget equal to the nominal capacity is judged infeasible
+os_shared_pool_kinds: [unified_ram, host_ram]
+
+# Status, from least trusted to most trusted
+status_rank: [assumed, simulated, derived, proposed, reported, vendor_stated, measured]
+
+# Relative difference allowed between two values of the same property at the same status
+value_tolerance: 0.01
+
+# For memory these units can be read as decimal or as binary, so unit_basis must be declared
+ambiguous_byte_units: [KB, MB, GB, TB]

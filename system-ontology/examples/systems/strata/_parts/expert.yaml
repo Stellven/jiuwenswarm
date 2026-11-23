@@ -1,0 +1,326 @@
+# Fragment for the system description: expert subsystem and prompt path. No `kind`, so the loader ignores it.
+flows:
+- id: residency-lookup
+  sender: comp/strata/expert-cache
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: engine_state
+    refs:
+    - residency_table
+  timing: per_layer
+  description: For each routed expert, the fast-memory slot holding it or that it is absent
+- id: accelerator-expert-plan
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: plan
+    refs:
+    - expert_ffn
+  timing: per_layer
+  description: Which routed experts the accelerator computes this layer, from cache slots or from the staging area;
+    published before CPU work starts
+- id: cpu-expert-work
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/cpu-expert-pool
+  carries:
+    content: plan
+    refs:
+    - expert_ffn
+  timing: per_layer
+  description: The routed experts left to the CPU for this layer of this window
+- id: window-fetch-request
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/host-to-device-transfer
+  carries:
+    content: control
+    refs:
+    - expert_weights
+  timing: per_layer
+  description: Missed experts to copy into the staging area for this window only
+- id: expert-usage
+  sender: comp/strata/expert-dispatch
+  receiver: comp/strata/adaptive-tier
+  carries:
+    content: signal
+    refs:
+    - expert_heat
+  timing: per_layer
+  description: How many tokens of the window routed each expert
+- id: swap-requests
+  sender: comp/strata/adaptive-tier
+  receiver: comp/strata/host-to-device-transfer
+  carries:
+    content: control
+    refs:
+    - pending_swaps
+  timing: background
+  description: Experts to copy into the slots of experts that are leaving the cache
+- id: residency-updates
+  sender: comp/strata/adaptive-tier
+  receiver: comp/strata/expert-cache
+  carries:
+    content: engine_state
+    refs:
+    - residency_table
+  timing: background
+  description: A leaving expert is marked absent before its slot is overwritten; an entering expert is marked resident
+    after its copy lands
+- id: expert-bytes-to-fast-memory
+  sender: comp/strata/host-to-device-transfer
+  receiver: comp/strata/expert-cache
+  carries:
+    content: weights
+    refs:
+    - expert_weights
+  timing: on_demand
+  description: Expert bytes copied from slow memory into a cache slot or the staging area
+- id: prompt-state
+  sender: comp/strata/prompt-path
+  receiver: comp/strata/kv-store
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+    - indexer_keys
+    - gdn_state
+    - ple_history
+  timing: per_request
+  description: The model state left by reading the prompt, from which generation continues
+- id: prompt-cpu-experts
+  sender: comp/strata/prompt-path
+  receiver: comp/strata/cpu-expert-pool
+  carries:
+    content: plan
+    refs:
+    - expert_ffn
+  timing: per_layer
+  description: Experts of a prompt chunk that few tokens route to, handed to the CPU when sharing is armed
+policies:
+- id: expert-cache
+  controls:
+    aspect: binding
+    item: residency
+    data: expert_weights
+  signals:
+  - id: expert_heat
+    per:
+    - layer
+    - expert
+    update: raised by the number of tokens in the window that routed the expert
+    decay: multiplied by the decay after every run
+    note: Counted for drafted tokens as well; not rolled back when a draft is rejected.
+  actions:
+  - id: swap
+    steps: Per layer, pair the most used absent experts with the least used resident ones; keep pairs whose usage
+      ratio reaches the minimum gain; take the best pairs across all layers up to the swap limit; mark each leaving
+      expert absent; wait for work already launched; copy the entering expert into the same slot; mark it resident
+      when the copy lands.
+  trigger: Every interval_windows verify windows; skipped while the previous run's copies are still in flight.
+  scope: engine
+  parameters:
+    interval_windows:
+      value: 4
+      status: reported
+      source: strata src/program/generate.cpp:887
+    max_swaps:
+      value: 96
+      status: reported
+      source: strata src/program/generate.cpp:923
+    decay:
+      value: 0.7
+      status: reported
+      source: strata src/program/generate.cpp:892
+    min_gain:
+      value: 1.5
+      status: reported
+      source: strata src/program/generate.cpp:895
+    min_usage:
+      value: 2
+      status: reported
+      source: strata src/program/generate.cpp:13158
+- id: prefill-cpu-share
+  controls:
+    aspect: binding
+    item: assignment
+    operation: expert_ffn
+    stage: prefill
+  signals:
+  - id: tokens_per_object
+    per:
+    - layer
+    - expert
+    update: counted for every layer of every chunk
+  - id: per_object_time_cpu
+    update: running average
+  - id: per_object_time_gpu
+    update: running average
+  actions:
+  - id: assign_to_cpu
+    steps: List the routed experts that are not in fast memory and whose weights the CPU can read in place, fewest
+      tokens first; take the pointers to their weights; hand the CPU its share of them; the accelerator computes
+      the rest.
+  trigger: Every layer of every prompt chunk while sharing is armed. The share is the accelerator's time per expert
+    over the sum of both times, within the bounds. Sharing is disarmed for the following layers when the measured
+    time with sharing is not lower than without.
+  scope: request
+  parameters:
+    share_min:
+      value: 0.05
+      status: reported
+      source: strata src/prefill/prefill.cpp:4954
+    share_max:
+      value: 0.9
+      status: reported
+      source: strata src/prefill/prefill.cpp:4954
+states:
+- id: residency_table
+  scope: engine
+  note: Which expert is in which fast-memory slot. After startup only the adaptive tier changes it. Not rolled back
+    when a draft is rejected.
+- id: expert_heat
+  scope: engine
+  note: Decayed usage counts per layer and expert. Counted for drafted tokens as well; not rolled back on rejection.
+- id: pending_swaps
+  scope: engine
+  note: Copies issued by the last adaptive-tier run that have not landed yet.
+- id: staged_experts
+  scope: engine
+  note: Which missed experts sit in the staging area. Valid for one window; the next window starts with it empty.
+composition_pc:
+- id: expert_subsystem
+  component_ref: comp/strata/expert-subsystem
+- id: expert_cache
+  component_ref: comp/strata/expert-cache
+  manages:
+  - data: expert_weights
+    pool: vram
+  observation_points:
+  - cache_hit_count
+  - cache_miss_count
+  note: The slot count is decided at startup from the free memory of this pool.
+- id: expert_dispatch
+  component_ref: comp/strata/expert-dispatch
+  uses:
+  - where: gpu0
+    purpose: experts found in the cache and experts fetched for the window
+  observation_points:
+  - tail_skipped_count
+  - route_dump
+- id: adaptive_tier
+  component_ref: comp/strata/adaptive-tier
+  uses:
+  - where: cpu0
+    purpose: choosing swaps on a thread beside the commit and the next draft
+  observation_points:
+  - swap_count
+  - swap_time
+- id: host_to_device_transfer
+  component_ref: comp/strata/host-to-device-transfer
+  uses:
+  - where: ram
+    purpose: page-locked bounce slots for uploads from pageable memory
+    allocation: pinned
+    resolved_at: startup
+  manages:
+  - data: expert_weights
+    pool: vram
+  note: 'Manages the transient entry: the staging area for experts fetched for one window.'
+- id: prompt_path
+  component_ref: comp/strata/prompt-path
+  implements:
+  - prefill
+  uses:
+  - where: gpu0
+    purpose: batched computation of a prompt chunk
+  - where: cpu0
+    purpose: experts few tokens route to, while sharing is armed
+  - where: vram
+    purpose: chunk buffers
+    allocation: transient
+  observation_points:
+  - per_object_time_cpu
+  - per_object_time_gpu
+  - tokens_per_object
+composition_spark:
+- id: expert_subsystem
+  component_ref: comp/strata/expert-subsystem
+- id: expert_cache
+  component_ref: comp/strata/expert-cache
+  manages:
+  - data: expert_weights
+    pool: mem0
+  observation_points:
+  - cache_hit_count
+  - cache_miss_count
+  note: Holds all 24,576 experts on this machine (46.84 GiB for IQ3_S, strata docs/DGX_SPARK_LINUX.md:76). It uses the model file's mapped pages in place; there is no second copy.
+- id: expert_dispatch
+  component_ref: comp/strata/expert-dispatch
+  uses:
+  - where: gpu0
+    purpose: experts found in the cache and experts fetched for the window
+  observation_points:
+  - tail_skipped_count
+  - route_dump
+  note: Every routed expert is found in the cache here, so only the first path of the order is taken.
+- id: adaptive_tier
+  component_ref: comp/strata/adaptive-tier
+  observation_points:
+  - swap_count
+  - swap_time
+  active: false
+  inactive_reason: Every expert is in the cache, so there is no absent expert to swap in.
+- id: host_to_device_transfer
+  component_ref: comp/strata/host-to-device-transfer
+  active: false
+  inactive_reason: Every expert is in the cache after startup, so nothing is fetched for a window and nothing is
+    swapped.
+- id: prompt_path
+  component_ref: comp/strata/prompt-path
+  implements:
+  - prefill
+  uses:
+  - where: gpu0
+    purpose: batched computation of a prompt chunk
+  - where: mem0
+    purpose: chunk buffers
+    allocation: transient
+  observation_points:
+  - per_object_time_cpu
+  - per_object_time_gpu
+  - tokens_per_object
+  note: With every expert in fast memory there is no candidate for the CPU, so the CPU share stays at zero.
+notes:
+- The expert cache's own implementation file and the pinned ring's implementation were not read; both are described
+  from their callers.
+- A second accelerator (peer) appears in the dispatch order and in the prompt path. It is described as a decision
+  of the dispatch, not as a component, because neither target has one.
+- On DGX Spark the project's document reports the cache holding all 24,576 experts; the adaptive tier and the host-to-device
+  transfer are marked inactive from that statement, not from a run.
+invariants:
+- id: inv/read-ready
+  text: A copy is read only after it is marked readable.
+- id: inv/no-overwrite-while-read
+  text: A slot is not overwritten while work that may read it is still in progress.
+- id: inv/always-served
+  text: Every routed expert that is not omitted has at least one path that can compute it.
+- id: inv/stable-source
+  text: An expert handed to the CPU has weights in slow memory that stay readable for the duration of its computation.
+declares:
+  states:
+  - staged_experts
+policy_target_pc:
+- id: expert-cache
+  controls:
+    pool: vram
+  budget:
+    derive:
+      fraction: 1.0
+      reserve:
+        value: 700
+        unit: MiB
+        unit_basis: binary
+        status: reported
+        source: engines/strata-notes/loading.md, startup sizing
+    resolved_at: startup
+    source: Free fast memory minus a reserve, divided by the largest expert; read again after opening and reduced
+      if the reserve was not left.

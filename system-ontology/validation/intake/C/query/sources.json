@@ -1,0 +1,43 @@
+[
+  {
+    "id": "request",
+    "file": "request.txt",
+    "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+    "bytes": 312
+  },
+  {
+    "id": "target",
+    "file": "target.yaml",
+    "from": "examples/specs/muse-spark-open-on-dgx-spark.target.yaml",
+    "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+    "bytes": 4120
+  },
+  {
+    "id": "model",
+    "file": "model.yaml",
+    "from": "examples/given/model-muse-spark-open.yaml",
+    "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+    "bytes": 4841
+  },
+  {
+    "id": "machine",
+    "file": "machine.yaml",
+    "from": "examples/given/hw-dgx-spark.yaml",
+    "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+    "bytes": 2060
+  },
+  {
+    "id": "system",
+    "file": "system.yaml",
+    "from": "examples/systems/muse/system.yaml",
+    "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+    "bytes": 25327
+  },
+  {
+    "id": "nodes",
+    "file": "nodes.yaml",
+    "from": "examples/systems/muse/nodes.yaml",
+    "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+    "bytes": 17925
+  }
+]

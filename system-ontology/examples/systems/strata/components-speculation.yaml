@@ -1,0 +1,473 @@
+# Strata, speculation area. Written from engines/strata-notes/speculation.md (commit 504b143, CUDA path,
+# Qwen3.8-Flash-Next). File references are relative to the Strata checkout.
+kind: component
+id: comp/strata/speculation
+system: sys/strata
+title: "Speculation"
+role: subsystem
+parts:
+  - comp/strata/mtp-drafter
+  - comp/strata/dflash2-drafter
+  - comp/strata/lookup-drafter
+  - comp/strata/draft-policy
+  - comp/strata/draft-verifier
+responsibility: "Propose several next tokens cheaply, have the full model check them in one window, and make exactly the accepted prefix permanent."
+not_responsible_for:
+  - "Running the verify window through the 48 layers (token path)"
+  - "Sampling a target token from logits when no draft is judged (sampler)"
+runs: [startup, per_request, per_window]
+implements_stages: [draft, verify, commit]
+decisions:
+  - id: speculation-on
+    text: "Whether speculative decoding runs at all, and the widest verify window."
+    value: {value: 0, status: reported, source: "src/program/generate.cpp:853", note: "--spec N; 0 means plain decode on non-Metal builds. What setup or the launcher passes was not read."}
+    resolved_at: startup
+  - id: lookup-window-bump
+    text: "With the lookup drafter on and --spec at least 2, the neural drafter keeps the given --spec as its widest window and lookup windows may be 2 rows wider, up to 8; in serve on one GPU with the 8-row build and no batch, DFlash2 or lookup chain, lookup windows may reach 12 rows."
+    value: {value: 12, status: reported, source: "src/program/generate.cpp:4324-4349; include/strata/core/lookup_default.hpp:23-28"}
+    resolved_at: startup
+invariants:
+  - id: inv/commit-same-prefix
+    text: "Every kind of main-session state is committed to the same accepted prefix."
+mechanisms: [mech/draft-then-verify]
+equivalence:
+  - level: bit_exact
+    relative_to: "token-by-token greedy decoding"
+    holds_when: "greedy request, and every row's logits do not depend on the window width or on where an expert was computed"
+    note: "Header claim (include/strata/core/verify.hpp:4-8). See comp/strata/draft-verifier for the documented exceptions."
+  - level: numeric
+    relative_to: "token-by-token greedy decoding"
+    holds_when: "native IQ pack with experts computed on the CPU in the default mode, or adaptive-tier swaps landing during decode"
+    note: "docs/DETAILS.md:603-605 and src/program/generate.cpp:19054-19056. The CPU pool kernels were not read."
+  - level: distribution_exact
+    relative_to: "the target model's post-chain sampling distribution"
+    holds_when: "STRATA_SPEC_PROB=1 on a sampled request and the gated rule is usable, or STRATA_SPEC_PROB_GATE=top"
+    note: "Claimed by include/strata/core/spec_prob.hpp:8-9. docs/DETAILS.md:601 says no model-level distribution run is published."
+sources:
+  - {ref: "src/program/generate.cpp:18937-19444", basis: code}
+  - {ref: "include/strata/core/verify.hpp:1-21", basis: header_comment}
+not_read: "The CLI loop (src/program/generate.cpp:20784-21225) except a few lines; the pipelined and batch serve paths."
+---
+kind: component
+id: comp/strata/mtp-drafter
+system: sys/strata
+parent: comp/strata/speculation
+title: "MTP drafter"
+role: drafter
+responsibility: "From the verify window's final hidden rows and the tokens that followed them, produce draft tokens with a probability each, and keep the draft layer's own attention K/V complete for every accepted position."
+not_responsible_for:
+  - "Deciding any emitted token"
+  - "The main session's K/V, indexer keys, recurrent state or n-gram history"
+  - "Choosing the verify window width (draft policy)"
+runs: [startup, per_request, per_window]
+implements_stages: [draft]
+performs: [mtp_draft]
+state:
+  owns: [mtp_kv]
+  reads: [ple_history]
+needs_resources:
+  - {resource: fast_memory, purpose: "draft-layer dense weights, its 512 routed experts, its own K/V, the draft-head subset of the main output head, draft logits, scratch buffers and captured graphs"}
+  - {resource: slow_memory, purpose: "pinned host copy of the draft K/V when it is kept as a ring; pinned snapshot of the experts while they are lent to the prompt path"}
+  - {resource: accelerator, purpose: "catch-up rows and one draft-layer pass per drafted token, on its own stream"}
+  - {resource: cpu, purpose: "one host thread spin-waits on mapped memory for each draft token and prefetches n-gram rows", note: "src/core/mtp.cpp:1788-1800"}
+  - {resource: storage, purpose: "draft-layer files read once at startup: dense.txt, dense.bin, experts.bin, draft_vocab.bin"}
+decisions:
+  - id: max-rows
+    text: "Rows the drafter's graphs hold."
+    value: {value: "min(--spec, 8)", status: reported, source: "src/program/generate.cpp:7184; src/core/mtp.cpp:285"}
+    resolved_at: startup
+  - id: drafts-per-round
+    text: "Most drafts in one round: the smallest of rows minus 1, the configured cap, and the cells left in the context."
+    value: {value: "min(max_t - 1, max_drafts, max_cells - (p + a))", status: reported, source: "src/core/mtp.cpp:1731", note: "Hard ceiling 7. With --spec 4 it is 3."}
+    resolved_at: runtime
+  - id: max-drafts
+    text: "Configured cap on drafts per round."
+    value: {value: "S_mtp - 1", status: reported, source: "src/program/generate.cpp:14097-14099", note: "S_mtp is --mtp-max-t or the --spec the user gave. Lowered temporarily near the context end in gated mode (generate.cpp:3181-3198)."}
+    resolved_at: startup
+  - id: chain-early-stop
+    text: "When the draft chain stops before the cap: at the first draft whose probability is below --spec-min-p, or when the draft policy's cost rule says so."
+    value: {value: 0.0, status: reported, source: "src/program/generate.cpp:904; src/core/mtp.cpp:1842", note: "0.0 means never stop early."}
+    resolved_at: startup
+  - id: attention-window
+    text: "How many of the latest cells the draft layer attends to."
+    value: {value: 32768, unit: cells, status: reported, source: "src/program/generate.cpp:878"}
+    resolved_at: startup
+  - id: catch-up-scope
+    text: "Which rows of the verified window get their draft K/V written: accepted rows only, or all rows (STRATA_MTP_CATCHUP_ALL=1)."
+    value: {value: "accepted rows only", status: reported, source: "src/core/mtp.cpp:70-77,1726"}
+    resolved_at: startup
+  - id: draft-vocabulary
+    text: "The token subset the draft head covers. Drafts can only be tokens in the subset."
+    value: {value: "<mtp dir>/draft_vocab.bin", status: reported, source: "src/core/mtp.cpp:796-798", note: "--mtp-draft-vocab FILE overrides; STRATA_MTP_FULL_HEAD=1 uses the whole head."}
+    resolved_at: startup
+  - id: kv-as-ring
+    text: "Whether the draft K/V is a ring of window + 4 x rows + 64 cells over a pinned host copy, or fully resident when pinned memory is short."
+    value: {value: "ring when the window is smaller than the context", status: reported, source: "src/core/mtp.cpp:384-403"}
+    resolved_at: startup
+  - id: sampled-drafting
+    text: "Whether drafts are sampled with the request's sampler chain instead of taken as the argmax."
+    value: {value: false, status: reported, source: "include/strata/core/coupled_draft.hpp:57-79; src/core/mtp.cpp:712-717", note: "STRATA_SPEC_COUPLED or STRATA_SPEC_PROB; per request it also needs temperature above 0 and at least STRATA_SPEC_MIN_TEMP."}
+    resolved_at: runtime
+invariants:
+  - id: inv/draft-kv-accepted-complete
+    text: "Before a draft is made at a cell, the draft K/V of every accepted cell before it has been written from real hidden rows and real tokens."
+  - id: inv/draft-kv-write-before-read
+    text: "A draft K/V cell written by a draft step or for a rejected row is never rolled back; it is rewritten before any later read reaches it."
+  - id: inv/no-draft-while-experts-lent
+    text: "No draft or catch-up pass runs while the draft layer's experts are lent to the prompt path."
+calls:
+  - {name: load, takes: "draft-layer directory, model geometry, session, row count, attention window", returns: "success or an error text", does: "Reads the draft-layer weights and allocates its K/V and buffers."}
+  - {name: bind, takes: "main weight table, main output head, the verifier's final-row buffer", returns: "success or an error text", does: "Attaches the main embedding and head and gathers the draft-head subset."}
+  - {name: prefill, takes: "hidden rows, the tokens after them, count, first cell", returns: "success or an error text", does: "Writes draft K/V for those cells without drafting."}
+  - {name: draft, takes: "window size, the verifier's target tokens, window position, last accepted row, probability floor", returns: "draft tokens, their probabilities, how many, and the budget used", does: "Catches the draft K/V up over the accepted rows, then drafts from the last accepted row."}
+  - {name: draft_first, takes: "one hidden row, one token, its cell", returns: "draft tokens and probabilities", does: "Drafts the first round from a single cell."}
+  - {name: set_chain_rule, takes: "a callback given each draft's index and probability", does: "Lets the caller stop the chain after any step."}
+verification:
+  - {method: none_found, checks: "No parity or unit test executable for the draft layer was found in the CMake files searched.", source: "cmake/strata_gpu_engine.cmake; cmake/backends/cpu.cmake"}
+  - {method: measurement, checks: "Offline probe of greedy draft acceptance at steps 1 to 3.", source: "include/strata/core/mtp.hpp:3-4 (cites tools/mtp_probe.py; the script was not read)"}
+  - {method: unit_test, checks: "Counter and history arithmetic of coupled draft sampling.", source: "src/core/coupled_draft_test.cpp (name and CMake entry only)"}
+observation_points: [drafts_offered, draft_time_ms, draft_rounds]
+equivalence:
+  - level: bit_exact
+    relative_to: "the output without this drafter"
+    holds_when: "the verifier's result for a token does not depend on which window it was verified in, and STRATA_ROUTE_RESIDENT_MTP is off"
+    note: "A drafter only proposes (include/strata/core/mtp.hpp:13-14)."
+  - level: numeric
+    relative_to: "the output without this drafter"
+    holds_when: "the verifier's arithmetic depends on window width (see comp/strata/draft-verifier), since the number of drafts sets the width"
+  - level: distribution_exact
+    relative_to: "the target model's sampling distribution"
+    holds_when: "STRATA_SPEC_PROB=1 on a sampled request: the draft is one of the random draws that fix the token"
+claims:
+  - {text: "Greedy drafts are accepted at rates 0.89, 0.86 and 0.85 at draft steps 1 to 3.", status: reported, source: "include/strata/core/mtp.hpp:3-4"}
+costs:
+  - {text: "About 0.9 GB of GPU memory in total; the 512 draft-layer experts are 708 MB of it.", status: reported, source: "include/strata/core/mtp.hpp:19,47"}
+mechanisms: [mech/draft-then-verify]
+sources:
+  - {ref: "src/core/mtp.cpp:267-475,629-863,1023-1144,1432-1494,1702-1914", basis: code}
+  - {ref: "include/strata/core/mtp.hpp:1-377", basis: header_comment}
+  - {ref: "src/program/generate.cpp:7184-7185,14097-14118,19367-19369", basis: code}
+not_read: "record_rest (attention, experts, head, top probability), prefill body, chain_launch and chain_poll for pipelined windows, experts_lend and experts_reclaim, the 4-bit copies, tools/mtp_probe.py and tools/mtp_rt.py."
+---
+kind: component
+id: comp/strata/dflash2-drafter
+system: sys/strata
+parent: comp/strata/speculation
+title: "DFlash2 block drafter"
+role: drafter
+responsibility: "Produce 7 draft tokens in one forward pass of a separate 5-layer drafter model that reads the target model's hidden states at five layers, and keep its context ring to committed rows only."
+not_responsible_for:
+  - "Deciding any emitted token"
+  - "Choosing whether a request uses it or the MTP drafter (draft policy)"
+runs: [startup, per_window]
+implements_stages: [draft]
+performs: [dflash2_draft]
+state:
+  owns: [dflash2_context]
+needs_resources:
+  - {resource: fast_memory, purpose: "drafter pack, context ring of 2064 K/V slots per layer, buffers and graphs", note: "about 0.8 GB (include/strata/core/dflash2.hpp:49)"}
+  - {resource: accelerator, purpose: "one block forward pass per round"}
+  - {resource: storage, purpose: "the drafter pack read once at startup"}
+decisions:
+  - id: enabled
+    text: "Whether this drafter is loaded."
+    value: {value: false, status: reported, source: "src/program/generate.cpp:997-1001,7188-7197", note: "Opt-in: --draft dflash2 --draft-model PACK. Needs a native pack, --spec at least 2 and a draft vocabulary; not with pipelined windows."}
+    resolved_at: startup
+  - id: window-cap
+    text: "Widest verify window for this drafter by card class: 8 for unified-memory cards, 8 for compute capability 12.0 with at least 48 GB, 6 for other capability 12, no cap otherwise."
+    value: {value: "8, 8, 6 or none", status: reported, source: "include/strata/core/draft_cap.hpp:8-24"}
+    resolved_at: startup
+  - id: confidence-cut
+    text: "The window ends where the product of the selector's probabilities falls below --draft-conf."
+    value: {value: 0.0, status: reported, source: "src/program/generate.cpp:1006; include/strata/spec/window_rule.hpp:65-69", note: "0.0 means off."}
+    resolved_at: startup
+  - id: skip-draft-for-long-lookup
+    text: "Skip the draft round when the lookup match is at least this many tokens."
+    value: {value: 0, unit: tokens, status: reported, source: "include/strata/spec/window_rule.hpp:41-55", note: "STRATA_DF2_LOOKUP_SKIP; 0 means off on non-Metal builds."}
+    resolved_at: startup
+invariants:
+  - id: inv/dflash2-ring-committed-only
+    text: "The context ring holds only committed rows, so a rejected draft leaves nothing to roll back."
+calls:
+  - {name: load, takes: "pack path, device", returns: "success or an error text", does: "Reads the pack and allocates the ring and buffers."}
+  - {name: draft, takes: "the hidden-state taps of the committed rows, their count and position, the anchor token", returns: "7 draft tokens and their probabilities", does: "Adds the committed rows to the ring and drafts one block."}
+  - {name: context, takes: "the taps of committed rows, their count and position", does: "Adds committed rows to the ring without drafting."}
+verification:
+  - {method: parity_with_reference, checks: "Named dflash2_parity and dflash2_q4_parity; contents not read.", source: "cmake/strata_gpu_engine.cmake:452-455"}
+  - {method: unit_test, checks: "The ring log and rebuild against an uninterrupted update sequence.", source: "cmake/strata_gpu_engine.cmake:458 (src/core/dflash2_ring_test.cpp, not read)"}
+equivalence:
+  - level: bit_exact
+    relative_to: "the output without this drafter"
+    holds_when: "the verifier's result for a token does not depend on which window it was verified in"
+  - level: numeric
+    relative_to: "the output without this drafter"
+    holds_when: "the verifier's arithmetic depends on window width"
+    note: "include/strata/core/draft_cap.hpp:17 records a greedy output that differs by window width on one unified-memory pack (a HIP card)."
+mechanisms: [mech/draft-then-verify]
+sources:
+  - {ref: "include/strata/core/dflash2.hpp:1-80", basis: header_comment}
+  - {ref: "src/program/generate.cpp:7188-7197,18945-18960,19316-19330,19357-19364", basis: code}
+  - {ref: "cmake/strata_gpu_engine.cmake:12-13", basis: code}
+not_read: "src/core/dflash2.cpp, its kernels and its tests. Only the header and the call sites were read."
+---
+kind: component
+id: comp/strata/lookup-drafter
+system: sys/strata
+parent: comp/strata/speculation
+title: "Lookup (suffix) drafter"
+role: drafter
+responsibility: "Propose the tokens that followed the longest earlier occurrence of the text's current ending, with the match length, using no model weights."
+not_responsible_for:
+  - "Judging whether the proposal is worth verifying (draft policy)"
+  - "Deciding any emitted token"
+runs: [per_request, per_window]
+implements_stages: [draft]
+state:
+  owns: [lookup_history]
+needs_resources:
+  - {resource: slow_memory, purpose: "token history and a fixed-size hash table of trigram end positions, allocated up front for the whole context"}
+  - {resource: cpu, purpose: "index update per emitted token and one proposal per round, on the main host thread"}
+decisions:
+  - id: min-match
+    text: "Shortest match that produces a proposal."
+    value: {value: 3, unit: tokens, status: reported, source: "src/spec/suffix_drafter.cpp:19; src/program/generate.cpp:976", note: "max(3, --suffix-draft). --suffix-draft 0 turns the drafter off."}
+    resolved_at: startup
+  - id: max-match
+    text: "Longest match length counted."
+    value: {value: 64, unit: tokens, status: reported, source: "src/program/generate.cpp:14100"}
+    resolved_at: startup
+  - id: candidates-per-trigram
+    text: "Most recent end positions kept per trigram."
+    value: {value: 4, status: reported, source: "include/strata/spec/suffix_drafter.hpp:21"}
+    resolved_at: design
+  - id: table-capacity
+    text: "History tokens the index is sized for."
+    value: {value: "max_context + 4096", unit: tokens, status: reported, source: "src/program/generate.cpp:14100"}
+    resolved_at: startup
+  - id: lookup-chain
+    text: "Tokens a lookup may append after the neural drafts in the same window, and the shortest match it extends on."
+    value: {value: 0, status: reported, source: "src/program/generate.cpp:982-983,3650-3651", note: "--lookup-chain 0..7, 0 means off; --lookup-chain-min default 3."}
+    resolved_at: startup
+invariants:
+  - id: inv/lookup-match-verified-by-tokens
+    text: "A candidate's match length is computed by comparing actual tokens, so a hash collision cannot produce a false match."
+  - id: inv/lookup-history-committed-only
+    text: "The indexed history holds only the prompt and emitted tokens; unverified drafts used for a chained proposal are removed after the proposal."
+calls:
+  - {name: reset, does: "Clears the history and the index for a new request."}
+  - {name: append, takes: "tokens", does: "Adds tokens to the history and indexes their trigrams."}
+  - {name: propose, takes: "the most tokens wanted", returns: "the proposed tokens, their count and the match length", does: "Returns nothing when no match reaches the minimum length."}
+  - {name: propose_after, takes: "unverified draft tokens and the most tokens wanted", returns: "the proposed tokens and their count", does: "Proposes what follows the history extended by the drafts, leaving the history unchanged."}
+  - {name: propose_from_sources, takes: "the context tail, how many of its tokens are unverified, the most tokens wanted, the minimum match", returns: "the proposal with the longest match and which source gave it", does: "Asks the request's own text and then every registered extra source; ties keep the earlier source."}
+verification:
+  - {method: unit_test, checks: "The suffix drafter's calls.", source: "src/spec/suffix_drafter_test.cpp (cmake/backends/cpu.cmake:54)"}
+  - {method: none_found, checks: "No dedicated test of the draft-source registry was found."}
+equivalence:
+  - level: bit_exact
+    relative_to: "the output without this drafter"
+    holds_when: "the verifier's result for a token does not depend on which window it was verified in"
+  - level: numeric
+    relative_to: "the output without this drafter"
+    holds_when: "the verifier's arithmetic depends on window width; lookup windows are the widest (up to 12 rows)"
+costs:
+  - {text: "At least 64 bytes of table plus 4 bytes of history per token of capacity, allocated at construction.", status: derived, source: "include/strata/spec/suffix_drafter.hpp:44-48; src/spec/suffix_drafter.cpp:18-25", conditions: {note: "Slot size of 32 bytes inferred from the struct layout. The header comment says about 20 bytes per token."}}
+mechanisms: [mech/draft-then-verify]
+sources:
+  - {ref: "src/spec/suffix_drafter.cpp:1-98", basis: code}
+  - {ref: "src/spec/draft_source.cpp:1-36", basis: code}
+  - {ref: "include/strata/spec/suffix_drafter.hpp:1-59", basis: code}
+  - {ref: "include/strata/spec/draft_source.hpp:1-62", basis: code}
+  - {ref: "src/program/generate.cpp:18122-18125,18985-18999,19021-19037,19344", basis: code}
+not_read: "Whether suffix_drafter_test.cpp covers propose_after."
+---
+kind: component
+id: comp/strata/draft-policy
+system: sys/strata
+parent: comp/strata/speculation
+title: "Draft policy"
+role: speculation_controller
+responsibility: "Choose, for each round, where the verify window's drafts come from and how wide the window is, so that committed tokens per measured millisecond is highest; and under automatic drafter selection, which neural drafter a request uses."
+not_responsible_for:
+  - "Accepting or rejecting tokens"
+  - "Comparing against decoding without drafts: its baseline is the neural drafter's window"
+  - "Producing drafts"
+runs: [startup, per_request, per_window]
+state:
+  owns: [draft_estimates, drafter_choice_stats]
+needs_resources:
+  - {resource: cpu, purpose: "a few arithmetic comparisons per round on the main host thread"}
+policies: [draft-window, draft-source, drafter-choice]
+decisions:
+  - id: margin
+    text: "How much better a lookup or chained window must be than the neural drafter's window to be taken. The cost-aware window uses a third of it."
+    value: {value: 0.03, status: reported, source: "include/strata/spec/draft_policy.hpp:35; src/spec/draft_policy.cpp:153,263"}
+    resolved_at: design
+  - id: cost-aware-window
+    text: "Whether the MTP window width is chosen step by step from each draft's probability and the measured cost of each width."
+    value: {value: false, status: reported, source: "src/program/generate.cpp:14109; src/core/nv_defaults.cpp:77-80", note: "STRATA_SPEC_COST=1. A per-card default table sets it unless the user did; which cards was not read."}
+    resolved_at: startup
+  - id: allowed-window-sizes
+    text: "Which window sizes a lookup or chained window may use. A size whose window graph finds no GPU memory is dropped for the rest of the process."
+    value: {value: "all sizes up to the widest window, narrowed by flags", status: reported, source: "src/program/generate.cpp:1315-1335,14119-14139"}
+    resolved_at: runtime
+  - id: lookup-needs-agreement
+    text: "When a neural drafter is loaded, a lookup window is considered only if its first token equals the neural drafter's first draft. Not required in probabilistic mode."
+    value: {value: true, status: reported, source: "src/program/generate.cpp:18996"}
+    resolved_at: design
+  - id: probability-floor
+    text: "Without the cost-aware window, the MTP window ends before the first draft whose probability is below --spec-min-p."
+    value: {value: 0.0, status: reported, source: "include/strata/spec/window_rule.hpp:61-64; src/program/generate.cpp:904"}
+    resolved_at: startup
+  - id: drafter-rule
+    text: "Under --draft auto, the drafter of a request that names none: df2, mtp or learn."
+    value: {value: "df2", status: reported, source: "src/program/generate.cpp:1009,15927-15942"}
+    resolved_at: startup
+invariants:
+  - id: inv/window-size-allowed
+    text: "A chosen window size is never outside the allowed set or above the widest window; size 1 is always allowed."
+  - id: inv/no-choice-from-own-draws
+    text: "In gated probabilistic mode, a request's source choice uses only committed outcomes and round times whose random draws are all committed; it never looks at the current draw or its width."
+calls:
+  - {name: choose, takes: "the neural window size, the lookup proposal length, its match length", returns: "lookup or not, and the window size", does: "Takes the lookup window only when its expected tokens per millisecond beats the neural window by the margin, or to probe an unmeasured or stale size for a confident match."}
+  - {name: chain, takes: "the neural window size, the probability that all its drafts hold, chained tokens available, match length", returns: "how many chained tokens to append", does: "Keeps the chained tokens that pay at the measured window costs."}
+  - {name: keep_draft, takes: "chain state, draft index, its probability, the widest window", returns: "whether to compute another draft; the best width so far is left in the chain state", does: "Cost-aware window: tracks the width with the best expected tokens per millisecond."}
+  - {name: observe, takes: "source, window size, accepted count, match length, round time", does: "Updates the cost of that size and the acceptance estimates. Variants exist for chained rounds, draft probabilities and gated mode."}
+  - {name: set_context, takes: "the position of the next round", does: "Selects the cost table of that context length."}
+  - {name: choose_window, takes: "the active source, the cost rule's kept width, the draft probabilities, the caps", returns: "the window size before any lookup choice", does: "Applies the rule of the source that drew this round's candidates."}
+verification:
+  - {method: unit_test, checks: "Learning from accepted and rejected lookups, probing unmeasured sizes, stale re-probing, chaining, gated copies, size masks.", source: "src/spec/draft_policy_test.cpp (cmake/backends/cpu.cmake:60)", invariants: [inv/window-size-allowed]}
+  - {method: unit_test, checks: "Which rule picks the window and whose distributions judge it, by active draft source.", source: "src/spec/window_rule_test.cpp"}
+  - {method: unit_test, checks: "DFlash2 window cap by card class; draft vocabulary resolution; loop start position.", source: "src/core/draft_cap_test.cpp; src/spec/draft_vocab_test.cpp; src/spec/spec_start_test.cpp"}
+  - {method: none_found, checks: "No test of the cost-aware step rule (keep_draft) was seen in the check list read; not confirmed absent."}
+  - {method: none_found, checks: "No test of the per-request drafter choice (the learn rule) was found."}
+observation_points: [drafts_offered, drafts_accepted, round_time_ms, cost_table_text]
+equivalence:
+  - level: bit_exact
+    relative_to: "the output with any other choice of source and window width"
+    holds_when: "the verifier's result for a token does not depend on which window it was verified in"
+    note: "Header claim: the output is unchanged (include/strata/spec/draft_policy.hpp:15,95)."
+  - level: numeric
+    relative_to: "the output with any other choice of source and window width"
+    holds_when: "the verifier's arithmetic depends on window width; the policy's choices use wall-clock times and are not reproducible run to run"
+  - level: distribution_exact
+    relative_to: "the target model's sampling distribution"
+    holds_when: "STRATA_SPEC_PROB=1 with the gated rule usable: timing and current draws are kept out of the request's choices"
+    note: "src/program/generate.cpp:3152-3176,18131-18133."
+claims:
+  - {text: "The cost-aware window gave decode +4.7% on DGX Spark.", status: reported, source: "docs/DGX_SPARK_LINUX.md:125"}
+mechanisms: [mech/draft-then-verify]
+sources:
+  - {ref: "src/spec/draft_policy.cpp:1-332", basis: code}
+  - {ref: "include/strata/spec/draft_policy.hpp:1-135", basis: code}
+  - {ref: "include/strata/spec/window_rule.hpp:1-75", basis: code}
+  - {ref: "include/strata/core/draft_cap.hpp:1-30", basis: code}
+  - {ref: "src/program/generate.cpp:14091-14139,15904-15945,18962-19040,19414-19453", basis: code}
+not_read: "src/core/nv_defaults.cpp selection logic; the test bodies beyond their check messages; STRATA_SPEC_T_CYCLE."
+---
+kind: component
+id: comp/strata/draft-verifier
+system: sys/strata
+parent: comp/strata/speculation
+title: "Draft verifier"
+role: draft_verifier
+responsibility: "Given the full model's target token for every row of a window, accept the longest prefix of drafts that agree, and make exactly that prefix permanent in indexer keys, recurrent state, convolution history and n-gram history."
+not_responsible_for:
+  - "Running the window through the layers and producing logits (token path)"
+  - "The attention K/V: the commit does nothing to it"
+  - "The MTP drafter's own K/V: the drafter catches itself up"
+  - "Choosing the window (draft policy)"
+runs: [per_window]
+implements_stages: [verify, commit]
+state:
+  owns: [commit_stores]
+  reads: [attention_kv]
+  writes: [indexer_keys, gdn_state, ple_history]
+needs_resources:
+  - {resource: fast_memory, purpose: "per-window stores the commit replays from: the indexer tail snapshot and raw keys, the recurrent layers' stored inputs, the n-gram history snapshot per row; the captured commit graph; a small buffer for draft distributions"}
+  - {resource: accelerator, purpose: "the commit graph on the verifier's stream; the acceptance kernels for sampled requests"}
+  - {resource: cpu, purpose: "the accept loop and the host-side previous-token update"}
+decisions:
+  - id: accept-rule
+    text: "How a draft is judged. Greedy: equal to the row's argmax. Sampled, default: equal to the row's sample drawn from a random stream keyed by seed and position. Sampled with STRATA_SPEC_PROB=1: accepted with probability min(1, p/q), else replaced by a sample from the positive part of p minus q."
+    value: {value: "exact match", status: reported, source: "src/program/generate.cpp:19258-19259; src/core/verify.cpp:3594-3642; include/strata/core/spec_prob.hpp:127-158"}
+    resolved_at: runtime
+  - id: probabilistic-gate
+    text: "Under STRATA_SPEC_PROB=1, which confidence gate: pick (masked, not renormalised draft measure with a no-candidate tail) or top (gate on the largest probability before the draw)."
+    value: {value: "pick", status: reported, source: "include/strata/core/spec_prob.hpp:45-51; include/strata/core/gated_proposal.hpp:70-127"}
+    resolved_at: startup
+  - id: gated-rule-usable
+    text: "The pick gate's exact rule is used only with serial decode on one device, no lookup chain, no adaptive swaps, no PCIe share, no cost-aware window, no DFlash2, a window of at most 8 rows. Otherwise the older rule runs and the engine warns that its distribution is off when the gate fails."
+    value: {value: "checked per request", status: reported, source: "src/program/generate.cpp:3156-3176,17894-17897"}
+    resolved_at: runtime
+  - id: one-token-self-commit
+    text: "A one-row window advances the state inside the window graph and no commit graph is launched."
+    value: {value: true, status: reported, source: "src/core/verify.cpp:495-508,1359,3886-3888", note: "STRATA_ONE_TOKEN_COMMIT; on for CUDA."}
+    resolved_at: startup
+  - id: async-commit
+    text: "The commit graph is launched without waiting; anything that reads the session from elsewhere waits for it first."
+    value: {value: true, status: reported, source: "src/core/verify.cpp:3911-3925; src/program/generate.cpp:5682", note: "On for single-GPU sessions; STRATA_COMMIT_SYNC forces the wait."}
+    resolved_at: startup
+  - id: batched-commit
+    text: "All recurrent layers commit in two launches and all attention layers' indexer restore and re-append in one."
+    value: {value: true, status: reported, source: "src/core/verify.cpp:2938-2990", note: "STRATA_COMMIT_BATCH."}
+    resolved_at: startup
+invariants:
+  - id: inv/commit-same-prefix
+    text: "Every kind of main-session state is committed to the same accepted prefix."
+  - id: inv/no-read-rejected
+    text: "Attention K/V written for a rejected position is never read as history; it is overwritten when that position is processed again."
+  - id: inv/accept-iff-target-agrees
+    text: "In exact-match mode a draft is accepted exactly when it equals the target token the full model produced for the row before it, given the accepted tokens before it."
+  - id: inv/commit-count-in-range
+    text: "The number of rows kept is at least 1 and at most the rows of the last window."
+  - id: inv/session-read-after-commit
+    text: "No reader on another stream or the host sees the session before the last commit graph has finished."
+  - id: inv/gated-errors-never-fall-back
+    text: "An invalid gated proposal or an empty residual fails the window; it never falls back to an ordinary sample."
+calls:
+  - {name: commit, takes: "the number of rows to keep", returns: "success or an error text", does: "Makes the first rows of the last window permanent in every committed state and advances the previous-token pair."}
+  - {name: wait_commit, returns: "success or an error text", does: "Waits for the last commit graph when commit did not."}
+  - {name: set_spec_q, takes: "the drafter's distribution rows and how many rows have one", does: "For the next window only, judges those drafts by rejection sampling instead of exact match."}
+  - {name: set_spec_proposal, takes: "the gated measure rows and their count", does: "For the next window only, judges offers against the gated measure; a count equal to the window size marks a no-candidate tail."}
+verification:
+  - {method: parity_with_reference, checks: "Window and commit kernels against the single-token kernels, bitwise, on random inputs including special values.", against: "single-token kernels", source: "src/kernels/verify_parity.cpp (cmake/strata_gpu_engine.cmake:1081-1084)"}
+  - {method: parity_with_reference, checks: "Batched recurrent-state commit equals the per-layer commit, bitwise.", against: "per-layer commit", source: "src/kernels/gdn_parity.cpp:559-618", invariants: [inv/commit-same-prefix]}
+  - {method: parity_with_reference, checks: "Batched indexer key append and the layered tail restore plus append equal the single append.", against: "single-key append", source: "src/kernels/qsa_parity.cpp:1431-1496"}
+  - {method: parity_with_reference, checks: "GPU acceptance kernels against the host reference, token for token, for the rejection rule and the gated rule.", against: "include/strata/core/spec_prob.hpp host functions", source: "src/kernels/spec_verify_parity.cpp; src/kernels/spec_proposal_parity.cpp"}
+  - {method: unit_test, checks: "Exact enumeration of the acceptance rule over a two-token vocabulary for each gate; the gated packet builder; the host rejection rule.", source: "src/core/spec_admission_test.cpp; src/core/gated_proposal_test.cpp; src/core/spec_prob_test.cpp"}
+  - {method: end_to_end_only, checks: "Exactness run with drafts from a token file or with every Nth draft corrupted (--spec-oracle, --spec-corrupt). No registered test uses them.", source: "src/program/generate.cpp:848-849"}
+observation_points: [drafts_accepted, commit_time, spec_windows]
+equivalence:
+  - level: bit_exact
+    relative_to: "token-by-token greedy decoding"
+    holds_when: "greedy request; all of a row's arithmetic is independent of window width and of where each expert was computed"
+    note: "Header claim (include/strata/core/verify.hpp:4-8); the GPU kernels are parity-tested bitwise."
+  - level: numeric
+    relative_to: "token-by-token greedy decoding"
+    holds_when: "default mode with a native IQ pack and experts computed on the CPU (grouped kernels round differently by window width), or adaptive-tier swaps changing where an expert runs"
+    note: "docs/DETAILS.md:603-605; src/program/generate.cpp:19054-19056,19230. The CPU pool kernels were not read."
+  - level: bit_exact
+    relative_to: "token-by-token sampled decoding with the same seed"
+    holds_when: "sampled request in the default exact-match mode or with coupled drafting, under the same arithmetic conditions as the greedy case"
+    note: "The target sample is keyed by seed and position (src/core/verify.cpp:3594-3605). docs/DETAILS.md:572 says sampled output is not reproducible run to run with the default adaptive tier."
+  - level: distribution_exact
+    relative_to: "the target model's post-chain sampling distribution"
+    holds_when: "STRATA_SPEC_PROB=1, sampled request, and either the gated rule is usable or STRATA_SPEC_PROB_GATE=top"
+    note: "Not the same tokens as non-speculative sampling with that seed. No model-level distribution run is published (docs/DETAILS.md:601)."
+  - level: approximate
+    relative_to: "the target model's post-chain sampling distribution"
+    holds_when: "STRATA_SPEC_PROB=1 with the pick gate where the gated rule is not usable"
+    note: "The engine prints that the older rule's distribution is off when the gate fails (src/program/generate.cpp:3172-3173)."
+costs:
+  - {text: "A window of T tokens reads the dense weights once; the experts the CPU must compute are the union over the window, 1.75, 2.4 and 3.05 times one token's for T of 2, 3 and 4.", status: reported, source: "include/strata/core/verify.hpp:10-11"}
+mechanisms: [mech/draft-then-verify]
+sources:
+  - {ref: "src/core/verify.cpp:2918-3054,3876-3948", basis: code}
+  - {ref: "src/core/verify.cpp:1540-1590,1660-1790,1869-1898,3594-3650", basis: code}
+  - {ref: "src/kernels/cuda/native_qsa_indexer.cu:49-147", basis: code}
+  - {ref: "src/kernels/cuda/verify_kernels.cu:81-96,638-644", basis: code}
+  - {ref: "include/strata/core/spec_prob.hpp:1-160", basis: code}
+  - {ref: "include/strata/core/gated_proposal.hpp:1-128", basis: code}
+  - {ref: "src/program/generate.cpp:3152-3233,19225-19335", basis: code}
+  - {ref: "include/strata/core/verify.hpp:1-21,147-230", basis: header_comment}
+not_read: "Batch, pipelined and deferred commit paths; the window graph beyond the cited lines, including the order of indexer append and block selection; the CPU pool functions; the GPU acceptance kernels beyond their header comments; STRATA_SPEC_GUMBEL."

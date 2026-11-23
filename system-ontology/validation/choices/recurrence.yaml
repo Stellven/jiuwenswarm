@@ -1,0 +1,4718 @@
+# Written by tools/so_nodetypes_experiments.py recurrence from validation/choices/map-*.yaml.
+# engines: the engines with a decision that plainly is this choice. induction: how many of the five the
+# types were drawn from. held_out: whether llama.cpp has one.
+engines_mapped:
+- strata
+- ds4
+- hyperqwen
+- ninfer
+- splash
+- llama-cpp
+decisions:
+  strata:
+    covered: 198
+    loosely: 41
+    engine_specific: 11
+    none: 3
+  ds4:
+    covered: 91
+    loosely: 23
+    engine_specific: 10
+  hyperqwen:
+    covered: 88
+    loosely: 25
+    none: 2
+    engine_specific: 10
+  ninfer:
+    covered: 82
+    loosely: 21
+    none: 1
+  splash:
+    covered: 104
+    loosely: 28
+    none: 2
+    engine_specific: 2
+  llama-cpp:
+    loosely: 47
+    none: 35
+    covered: 36
+    engine_specific: 3
+choices:
+- id: model-conversion#01
+  kind: format
+  what: file layout, alignment and ordering of weights
+  engines:
+  - ds4
+  loosely_only:
+  - ninfer
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#02
+  kind: format
+  what: precision per kind of weight
+  engines:
+  - ds4
+  - hyperqwen
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#03
+  kind: policy
+  what: which derived pieces are built (draft head, shortlist vocabulary, extra copies)
+  engines:
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: model-conversion#04
+  kind: policy
+  what: whether conversion is one step or resumable stages
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#05
+  kind: failure
+  what: what happens to a conversion that is interrupted or does not match its source
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#06
+  kind: precedence
+  what: which source wins when several checkpoints supply the same tensor
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#07
+  kind: sizing
+  what: 'memory used while converting: whole files or piece by piece'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#08
+  kind: policy
+  what: the data a derived piece is selected or fitted from, and what is eligible for it
+  engines:
+  - hyperqwen
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#09
+  kind: format
+  what: which reduced activation precisions each weight permits at run time, recorded with the weight
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#10
+  kind: policy
+  what: which revision of the published sources is used, and whether it is pinned
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#11
+  kind: sizing
+  what: the size of a derived piece
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#12
+  kind: policy
+  what: 'how a derived template is corrected: which inputs it accepts and what each maps to'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#13
+  kind: policy
+  what: which optional parts of the published model are included
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#14
+  kind: policy
+  what: precision per layer as well as per kind of weight
+  engines:
+  - ds4
+  - hyperqwen
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: model-conversion#15
+  kind: format
+  what: whether a tensor's stored shape is padded for the kernels
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#16
+  kind: timing
+  what: the order of writes, and which write marks the conversion complete
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#17
+  kind: policy
+  what: which source formats and architecture constants a recipe accepts
+  engines:
+  - hyperqwen
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#18
+  kind: policy
+  what: which separately trained pieces are paired with which model
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-conversion#19
+  kind: policy
+  what: whether files are rewritten in place, and how the originals are kept
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#01
+  kind: policy
+  what: what is measured and on which prompts
+  engines:
+  - strata
+  - hyperqwen
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: calibration#02
+  kind: policy
+  what: the rule that accepts or rejects a measured result
+  engines:
+  - strata
+  - ninfer
+  loosely_only:
+  - ds4
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: calibration#03
+  kind: timing
+  what: offline, at install, or at every start
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#04
+  kind: precedence
+  what: when a recorded result is trusted over a default or an operator setting
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: calibration#05
+  kind: failure
+  what: what is used when no valid record exists
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: calibration#06
+  kind: threshold
+  what: when a stored record is considered stale
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#07
+  kind: sizing
+  what: time budget of a measurement run
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#08
+  kind: policy
+  what: which settings a measurement may choose on its own, by their effect on output
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#09
+  kind: policy
+  what: the key that states which model, machine and build a result is valid for
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#10
+  kind: policy
+  what: how measured counts are turned into a ranking
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#11
+  kind: policy
+  what: the form of the model fitted to the measurements
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#12
+  kind: policy
+  what: whether a negative result is recorded and reused
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#13
+  kind: sizing
+  what: how much data a measurement collects
+  engines:
+  - hyperqwen
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: calibration#14
+  kind: threshold
+  what: the noise tolerated when a result is accepted
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#15
+  kind: policy
+  what: which capacities or settings a profile simulates
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#16
+  kind: policy
+  what: whether a measurement runs the serving path or a slower instrumented path that exposes internal values
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: calibration#17
+  kind: threshold
+  what: the least gain a measured result must predict before the setting it supports is turned on
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#01
+  kind: placement
+  what: map the file in place or copy into memory
+  engines:
+  - ds4
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: model-loading#02
+  kind: placement
+  what: which tensors go to which memory or device
+  engines:
+  - strata
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: model-loading#03
+  kind: format
+  what: whether weights are re-encoded at load and how
+  engines:
+  - strata
+  - hyperqwen
+  - splash
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#04
+  kind: timing
+  what: what is loaded at start and what on first use
+  engines: []
+  loosely_only:
+  - ds4
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#05
+  kind: failure
+  what: what is done when a file is the wrong version, incomplete or of an unsupported shape
+  engines:
+  - strata
+  - ds4
+  loosely_only:
+  - ninfer
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#06
+  kind: sizing
+  what: staging buffers and reader threads used while loading
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only:
+  - splash
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#07
+  kind: format
+  what: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept it
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#08
+  kind: precedence
+  what: a load option turned on from what the files carry against an operator value
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#09
+  kind: placement
+  what: whether resident weights are locked in memory
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#10
+  kind: policy
+  what: which optional parts of the model are loaded at all
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#11
+  kind: policy
+  what: whether parts in different precisions may be loaded together
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#12
+  kind: policy
+  what: reading files through the operating system's cache or around it
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#13
+  kind: policy
+  what: whether the model's positional range is extended beyond its trained length
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#14
+  kind: policy
+  what: how file reads are aligned and shared when several destinations need the same bytes
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#15
+  kind: policy
+  what: how the model's architecture is recognised from its files and matched to what the kernels support
+  engines:
+  - splash
+  loosely_only:
+  - strata
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#16
+  kind: policy
+  what: which metadata must be present, and which falls back to built-in values
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-loading#17
+  kind: policy
+  what: which parts are left out at load to be streamed later
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#01
+  kind: sizing
+  what: the reserve left free
+  engines:
+  - strata
+  - ds4
+  - splash
+  loosely_only:
+  - ninfer
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#02
+  kind: sizing
+  what: what is priced before caches get the remainder
+  engines:
+  - strata
+  loosely_only:
+  - splash
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#03
+  kind: policy
+  what: how the remainder is split between cache, state and concurrency
+  engines: []
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#04
+  kind: failure
+  what: the order in which things are given up when memory is short, and when starting is refused
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: memory-planning#05
+  kind: timing
+  what: whether free memory is read again after allocating
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#06
+  kind: precedence
+  what: an operator's explicit size against the computed one
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only:
+  - ds4
+  - hyperqwen
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: memory-planning#07
+  kind: policy
+  what: whether a figure is measured by a trial run or computed
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#08
+  kind: policy
+  what: whether memories that share one physical capacity are accounted as one budget or separately
+  engines:
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#09
+  kind: sizing
+  what: capacity planned per device or pooled across devices
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#10
+  kind: sizing
+  what: workers given to a second compute device, and what is left free
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#11
+  kind: policy
+  what: a hard limit against a soft figure that may be exceeded with a warning
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#12
+  kind: sizing
+  what: whether a cache's share is counted in uniform units or in bytes of blocks of different sizes
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#13
+  kind: sizing
+  what: how cache capacity is divided between layers, and between fixed and reusable regions
+  engines:
+  - ninfer
+  loosely_only:
+  - strata
+  - splash
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#14
+  kind: sizing
+  what: staging slots and streaming space, sized from the largest blocks, and what is used when they do not fit
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#15
+  kind: policy
+  what: which large parts stream instead of staying resident, and whether alternative sets are compared
+  engines:
+  - splash
+  loosely_only:
+  - strata
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#16
+  kind: sizing
+  what: the least a cache may be and still work
+  engines:
+  - strata
+  - ds4
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#17
+  kind: failure
+  what: whether a failed allocation is retried smaller, and by how much
+  engines:
+  - strata
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#18
+  kind: timing
+  what: when memory is locked or held back during startup, and when it is released
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#19
+  kind: policy
+  what: what bounds the context length
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#20
+  kind: policy
+  what: 'how a figure is measured: after which warm-up and from which counter'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: memory-planning#21
+  kind: failure
+  what: what is assumed when a figure cannot be read
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#01
+  kind: policy
+  what: which step shapes are recorded ahead and which on first use
+  engines:
+  - hyperqwen
+  - ninfer
+  loosely_only:
+  - strata
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#02
+  kind: sizing
+  what: the memory recorded graphs may take
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#03
+  kind: timing
+  what: recorded at startup or lazily
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#04
+  kind: failure
+  what: what is done when recording runs out of memory
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#05
+  kind: policy
+  what: where a graph must be split so that host work can run between its parts
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#06
+  kind: policy
+  what: the key that decides whether a stored compiled artifact may be reused
+  engines:
+  - hyperqwen
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#07
+  kind: policy
+  what: which step dimensions compiled kernels may be specialised on
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#08
+  kind: sizing
+  what: upper bound on the number of recorded layouts
+  engines:
+  - strata
+  loosely_only:
+  - hyperqwen
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#09
+  kind: policy
+  what: whole-step or piecewise recording, per profile
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: graph-capture#10
+  kind: sizing
+  what: ranges of context length that graphs are recorded for
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#01
+  kind: format
+  what: kernel variant per weight precision
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#02
+  kind: policy
+  what: which operations are fused
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: layer-compute#03
+  kind: policy
+  what: activation precision inside kernels
+  engines:
+  - hyperqwen
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#04
+  kind: policy
+  what: any deliberate change to the model's arithmetic (it changes output and needs permission)
+  engines:
+  - strata
+  loosely_only:
+  - hyperqwen
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#05
+  kind: policy
+  what: kernel variant per device class, step shape and stored-state format
+  engines:
+  - hyperqwen
+  loosely_only:
+  - strata
+  - ninfer
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#06
+  kind: timing
+  what: how independent operations are ordered to overlap with work on another device
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#07
+  kind: sizing
+  what: working space a kernel may hold, allocated ahead or during steps
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#08
+  kind: failure
+  what: whether results are checked for non-finite values, and what is done then
+  engines: []
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#09
+  kind: placement
+  what: how a block's computation is divided when the model is split over devices
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#10
+  kind: placement
+  what: conditions under which a weight may be read from slower memory
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#11
+  kind: policy
+  what: which rows of a step are carried through every part of the model
+  engines: []
+  loosely_only:
+  - splash
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#12
+  kind: format
+  what: precision and layout in which the computation writes the per-position state it appends
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: layer-compute#13
+  kind: format
+  what: the order of heads or channels the kernels compute in, where it differs from the published order
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#01
+  kind: policy
+  what: how a kernel variant is chosen per device and step shape
+  engines:
+  - splash
+  - llama-cpp
+  loosely_only:
+  - ds4
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: device-backend#02
+  kind: timing
+  what: where a step is split so host work can run inside it
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#03
+  kind: sizing
+  what: scratch and command buffers
+  engines: []
+  loosely_only:
+  - ds4
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#04
+  kind: failure
+  what: what is done when a submission fails or does not complete
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#05
+  kind: placement
+  what: devices driven in the engine's process or through worker processes
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#06
+  kind: placement
+  what: how the memory a submission may touch is declared to the device and kept resident for it
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#07
+  kind: sizing
+  what: frames or command buffers in flight
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#08
+  kind: policy
+  what: kernel variant per stored tensor format
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: device-backend#09
+  kind: policy
+  what: whether the device is kept busy through short host steps
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#01
+  kind: sizing
+  what: number of workers
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#02
+  kind: policy
+  what: how work is cut into jobs
+  engines:
+  - strata
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#03
+  kind: threshold
+  what: when a share is too small or too large to hand over
+  engines: []
+  loosely_only:
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#04
+  kind: failure
+  what: what is done when it hangs or falls behind
+  engines:
+  - strata
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#05
+  kind: timing
+  what: how idle workers wait
+  engines:
+  - strata
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#06
+  kind: placement
+  what: how work is placed across the memory nodes of the second device
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#07
+  kind: format
+  what: kernel variant per instruction set of the second device
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#08
+  kind: policy
+  what: whether the calling thread takes jobs itself
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#09
+  kind: sizing
+  what: the size of the program or job a share uses
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: secondary-compute#10
+  kind: threshold
+  what: when the second device is stopped for lack of gain
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-edit#01
+  kind: policy
+  what: which edits are offered and where in the model they apply
+  engines:
+  - ds4
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-edit#02
+  kind: threshold
+  what: the range of strength allowed
+  engines: []
+  loosely_only:
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-edit#03
+  kind: precedence
+  what: a per-request edit against an engine-wide one
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-edit#04
+  kind: policy
+  what: whether an edited sequence may share a batched step with others
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#01
+  kind: policy
+  what: one step as a whole, or driven layer by layer
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#02
+  kind: sizing
+  what: sequences and rows per step
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#03
+  kind: threshold
+  what: how long a layer may wait for something it needs
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#04
+  kind: failure
+  what: what is done when a step cannot complete
+  engines: []
+  loosely_only:
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#05
+  kind: policy
+  what: multi-row or per-row kernels for the rows of a step
+  engines:
+  - strata
+  loosely_only:
+  - ds4
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#06
+  kind: timing
+  what: cutting a step into parts so that work on two devices overlaps
+  engines:
+  - strata
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#07
+  kind: timing
+  what: when side inputs a layer needs are gathered within the step
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#08
+  kind: policy
+  what: whether proposing runs inside the same step as the token it follows
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#09
+  kind: policy
+  what: the conditions a sequence must meet to share a batched path, and what is done otherwise
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#10
+  kind: policy
+  what: which kinds of step are replayed from a recorded graph and which are launched directly
+  engines:
+  - strata
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#11
+  kind: timing
+  what: how long the host waits for a device signal before it checks for a fault
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#12
+  kind: sizing
+  what: how many proposed rows are passed on for checking
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-execution#13
+  kind: timing
+  what: 'how host-side inputs of consecutive steps are kept apart: a barrier before reuse, or one buffer per step in flight'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-reading#01
+  kind: sizing
+  what: chunk size
+  engines:
+  - strata
+  - ds4
+  - ninfer
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#02
+  kind: timing
+  what: how it shares the device with generation in progress
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#03
+  kind: policy
+  what: whether it may borrow memory held by caches
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#04
+  kind: policy
+  what: whether what it selects counts toward cache usage
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#05
+  kind: timing
+  what: state snapshots taken on the way
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#06
+  kind: failure
+  what: what is done when a chunk does not fit
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#07
+  kind: policy
+  what: how the work of a chunk is shared with a second device, and when sharing is abandoned
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#08
+  kind: failure
+  what: what state is kept when reading is interrupted or cancelled
+  engines:
+  - ds4
+  loosely_only:
+  - splash
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#09
+  kind: policy
+  what: whether an approximate path may be taken for part of the prompt
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#10
+  kind: policy
+  what: whether chunks of several sequences are read together, layer by layer
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: prompt-reading#11
+  kind: sizing
+  what: passes over the layers per chunk
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: media-preparation#01
+  kind: threshold
+  what: limits on size, time and where media may be fetched from
+  engines:
+  - ds4
+  - ninfer
+  - splash
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: media-preparation#02
+  kind: policy
+  what: how media is resized, cut or sampled to fit the model
+  engines:
+  - llama-cpp
+  loosely_only: []
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: media-preparation#03
+  kind: policy
+  what: caching of prepared media and its key
+  engines: []
+  loosely_only:
+  - ninfer
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: media-preparation#04
+  kind: failure
+  what: what is done with media that is too large, malformed or of an unsupported kind
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: media-preparation#05
+  kind: policy
+  what: whether untrusted formats are handled in an isolated process
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: media-preparation#06
+  kind: policy
+  what: 'which sources of media are accepted: inline data, remote fetch, local files'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#01
+  kind: sizing
+  what: memory window for the encoder
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#02
+  kind: policy
+  what: whether encoder weights stay resident
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#03
+  kind: policy
+  what: caching of encoded media and its key
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#04
+  kind: placement
+  what: how encoding work is split across devices
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#05
+  kind: policy
+  what: whether state that contains encoded media may be stored or reused
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#06
+  kind: threshold
+  what: the largest input the encoder accepts, and how many embedding rows one prompt may carry
+  engines:
+  - hyperqwen
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#07
+  kind: placement
+  what: how encoder weights that are not resident are brought to the device
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#08
+  kind: policy
+  what: whether the encoder is loaded at all, and whether its working memory is built only when media waits
+  engines:
+  - hyperqwen
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#09
+  kind: policy
+  what: which complete units are encoded in one execution
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: modality-encoding#10
+  kind: policy
+  what: what the cache of encoded media evicts first and what it must keep
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-source#01
+  kind: placement
+  what: 'where the full set lives: host memory, mapped file, or storage'
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#02
+  kind: policy
+  what: read through the page cache or around it
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#03
+  kind: sizing
+  what: memory locked for the full set
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#04
+  kind: failure
+  what: what is used when the preferred place cannot hold the full set
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#05
+  kind: sizing
+  what: workers used to fill the full set at startup
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#06
+  kind: placement
+  what: how much of the full set is made directly readable by a device, and which part first
+  engines:
+  - strata
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#07
+  kind: policy
+  what: page size of the memory holding the full set, and what is used when large pages cannot be had
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#08
+  kind: format
+  what: which stored copy or encoding the full set is filled from
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#09
+  kind: timing
+  what: how long to wait for memory another process is still releasing
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-source#10
+  kind: threshold
+  what: when a shortfall is still accepted because reclaimable memory covers it
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: expert-cache#01
+  kind: sizing
+  what: total size and whether it can grow or shrink while running
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#02
+  kind: format
+  what: fixed slots or sized per block
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#03
+  kind: placement
+  what: one region or several with different roles
+  engines: []
+  loosely_only:
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#04
+  kind: failure
+  what: what is done when it is full and nothing can be released
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#05
+  kind: policy
+  what: the key that identifies a cached block
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#06
+  kind: failure
+  what: what is done when the cache cannot be allocated at its planned size
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#07
+  kind: policy
+  what: whether it arranges, compacts or pins what it holds by size
+  engines: []
+  loosely_only:
+  - splash
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#08
+  kind: sizing
+  what: how many uses of cached blocks may be open at once
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-cache#09
+  kind: policy
+  what: which part is released or regrown first under memory pressure
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#01
+  kind: policy
+  what: fixed from an offline ranking, or adjusted from use while running
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#02
+  kind: policy
+  what: the replacement rule
+  engines:
+  - llama-cpp
+  loosely_only:
+  - ds4
+  - splash
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: residency-policy#03
+  kind: timing
+  what: on every miss or at intervals
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#04
+  kind: threshold
+  what: the gain a change must bring, and a limit on changes per round
+  engines:
+  - strata
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#05
+  kind: policy
+  what: what the cache holds before any request
+  engines: []
+  loosely_only:
+  - ds4
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#06
+  kind: policy
+  what: whether a region changes role with load
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#07
+  kind: failure
+  what: what is done when every candidate for replacement is still in use
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#08
+  kind: failure
+  what: which ranking is used when no recorded ranking matches the model
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#09
+  kind: policy
+  what: how use counts age, so that recent use outweighs old use
+  engines:
+  - strata
+  - ds4
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#10
+  kind: threshold
+  what: the least use that qualifies a block to enter
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#11
+  kind: policy
+  what: whether warming at startup is used at all, per model
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: residency-policy#12
+  kind: timing
+  what: what event changes the role of a region, such as the size of the coming work
+  engines:
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#01
+  kind: sizing
+  what: staging area and how many fetches at once
+  engines:
+  - strata
+  loosely_only:
+  - ninfer
+  - splash
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#02
+  kind: timing
+  what: whether it fetches ahead of selection, and from what prediction
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#03
+  kind: timing
+  what: how fetching overlaps with computation
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#04
+  kind: policy
+  what: one reader shared with other reads or its own
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#05
+  kind: failure
+  what: what is done when a read fails or is short
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#06
+  kind: precedence
+  what: fetches the current computation needs over those made ahead
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#07
+  kind: policy
+  what: how outstanding reads are ordered and joined
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#08
+  kind: policy
+  what: 'the mechanism used: explicit read, a hint to the operating system, or touching a mapping'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#09
+  kind: format
+  what: blocks copied as stored or transformed on the way
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#10
+  kind: policy
+  what: copies made one by one or batched
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: expert-fetch#11
+  kind: sizing
+  what: piece size of reads made ahead of need
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-fetch#12
+  kind: placement
+  what: which part of the stored set is warmed ahead, and which is skipped because it is already resident
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-dispatch#01
+  kind: policy
+  what: the order in which the ways are tried
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-dispatch#02
+  kind: policy
+  what: whether low-ranked selections may be omitted
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-dispatch#03
+  kind: threshold
+  what: the share of misses fetched now against left to another device
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: expert-dispatch#04
+  kind: timing
+  what: computing resident blocks while absent ones arrive
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: expert-dispatch#05
+  kind: threshold
+  what: when computing resident blocks ahead of absent ones is switched on
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-dispatch#06
+  kind: policy
+  what: whether the split is decided from a snapshot of what is ready at the start of the layer
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: expert-dispatch#07
+  kind: threshold
+  what: the share of selected blocks already in fast memory above which omitting low-ranked selections is off by default,
+    and the weight formats for which it is never on
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: row-source#01
+  kind: placement
+  what: the table on storage, mapped, or locked in memory
+  engines:
+  - strata
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#02
+  kind: sizing
+  what: row cache
+  engines:
+  - strata
+  - ninfer
+  - splash
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: row-source#03
+  kind: timing
+  what: prefetching rows for coming or drafted tokens
+  engines: []
+  loosely_only:
+  - ds4
+  - splash
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: row-source#04
+  kind: policy
+  what: warming the table in the background and when to stop
+  engines:
+  - strata
+  - ds4
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: row-source#05
+  kind: failure
+  what: what is done when a row read fails
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: row-source#06
+  kind: sizing
+  what: reads in flight at once
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#07
+  kind: policy
+  what: reads through the operating system's cache or around it
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#08
+  kind: policy
+  what: how row reads for many tokens are batched, deduplicated and ordered
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#09
+  kind: precedence
+  what: rows needed now over rows fetched ahead
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#10
+  kind: threshold
+  what: the read speed below which another read mode is used
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#11
+  kind: timing
+  what: when row reads start relative to the layer that uses them
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#12
+  kind: sizing
+  what: warming threads, and how often memory pressure is checked
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: row-source#13
+  kind: placement
+  what: the table on storage or divided across devices, by deployment
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: storage-reader#01
+  kind: sizing
+  what: number of reader threads
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: storage-reader#02
+  kind: precedence
+  what: reads the step waits for over reads ahead of need, and reads over writes on one device
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: storage-reader#03
+  kind: failure
+  what: how a failed read is reported and retried
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: positional-state-store#01
+  kind: format
+  what: precision and layout of stored state
+  engines:
+  - strata
+  - ds4
+  - hyperqwen
+  - splash
+  - llama-cpp
+  loosely_only: []
+  induction: 4
+  held_out: true
+  type_in_held_out: true
+- id: positional-state-store#02
+  kind: sizing
+  what: page size and growth
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#03
+  kind: policy
+  what: whether going back is by truncation, and when it is not possible
+  engines: []
+  loosely_only:
+  - ds4
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#04
+  kind: failure
+  what: what is done when a sequence outgrows its allowance
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#05
+  kind: placement
+  what: how many positions stay in fast memory, and the least that must
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#06
+  kind: placement
+  what: where a secondary model's per-position state is kept
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#07
+  kind: timing
+  what: when state held in a staging precision is converted to its stored format
+  engines: []
+  loosely_only:
+  - hyperqwen
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#08
+  kind: policy
+  what: which positions are kept at higher precision than the stored format
+  engines: []
+  loosely_only:
+  - hyperqwen
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#09
+  kind: failure
+  what: what is done with pending writes for memory that has changed owner
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#10
+  kind: sizing
+  what: a staging area for state not yet in its stored format
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#11
+  kind: format
+  what: how pages of different sizes are presented to the kernels
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#12
+  kind: policy
+  what: whether derived per-position state is kept for reuse, or only the inputs it is recomputed from
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: positional-state-store#13
+  kind: timing
+  what: when derived per-position state is rebuilt after a restore
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: recurrent-state-store#01
+  kind: policy
+  what: 'how rejected steps are undone: snapshots, one slot per draft position, or late commit'
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: recurrent-state-store#02
+  kind: sizing
+  what: how many snapshots are kept
+  engines:
+  - llama-cpp
+  loosely_only: []
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: recurrent-state-store#03
+  kind: format
+  what: precision of stored state
+  engines:
+  - hyperqwen
+  - splash
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: recurrent-state-store#04
+  kind: timing
+  what: when a snapshot is taken
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: recurrent-state-store#05
+  kind: placement
+  what: state held per sequence or drawn from a shared pool
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: recurrent-state-store#06
+  kind: timing
+  what: when state is copied across a block boundary while a prompt is read
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#01
+  kind: sizing
+  what: page size and how the pool is split between kinds of state
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#02
+  kind: policy
+  what: sharing and copy-on-write
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#03
+  kind: policy
+  what: the order in which free pages are reused
+  engines:
+  - hyperqwen
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#04
+  kind: failure
+  what: what is done when the pool is exhausted
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#05
+  kind: sizing
+  what: page geometry shared by kinds of state of different sizes
+  engines:
+  - hyperqwen
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#06
+  kind: policy
+  what: whether pages that fall out of the model's view are released before the sequence ends
+  engines:
+  - hyperqwen
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#07
+  kind: threshold
+  what: when fragmented space is compacted and emptied memory returned
+  engines:
+  - ninfer
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#08
+  kind: policy
+  what: whether holders of content and in-flight readers of its address are counted separately
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#09
+  kind: format
+  what: precision and layout of the state the pages hold, where the pool fixes it
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#10
+  kind: sizing
+  what: 'what the pool is charged for beyond live sequences: batches in flight, speculative scratch, checkpoints'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-pool#11
+  kind: sizing
+  what: target size of a contiguous run of pages
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#01
+  kind: placement
+  what: 'the slower tier: host memory, storage, another device'
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#02
+  kind: policy
+  what: what leaves first
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#03
+  kind: timing
+  what: copying ahead of need
+  engines: []
+  loosely_only:
+  - splash
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#04
+  kind: sizing
+  what: the tier's size and write budget
+  engines:
+  - ninfer
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#05
+  kind: failure
+  what: what is done when the tier is full or a read fails
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#06
+  kind: policy
+  what: which kinds of state the slower tier holds
+  engines: []
+  loosely_only:
+  - hyperqwen
+  - splash
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#07
+  kind: failure
+  what: whether the slower tier survives a restart, and when a persisted tier is discarded
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#08
+  kind: sizing
+  what: the fast-memory cache for state read back
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#09
+  kind: policy
+  what: which pieces of different kinds of state are kept together so that a restored state is usable
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#10
+  kind: sizing
+  what: chunking and staging of copies between tiers
+  engines:
+  - ninfer
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#11
+  kind: timing
+  what: whether copying to the slower tier yields to work waiting for memory
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#12
+  kind: timing
+  what: what event moves a sequence's state to the slower tier, and which sequences start there
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#13
+  kind: sizing
+  what: share of writes in flight per kind of state
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: state-tiering#14
+  kind: policy
+  what: whether state not in use is dropped when the write budget is spent
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#01
+  kind: policy
+  what: the key that decides whether stored state may be reused
+  engines:
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#02
+  kind: policy
+  what: where restore points exist when state cannot be truncated
+  engines:
+  - strata
+  - ds4
+  - hyperqwen
+  - ninfer
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 5
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#03
+  kind: sizing
+  what: how many are kept and where
+  engines:
+  - strata
+  loosely_only:
+  - splash
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#04
+  kind: policy
+  what: what is evicted first
+  engines:
+  - strata
+  - ninfer
+  - splash
+  - llama-cpp
+  loosely_only: []
+  induction: 3
+  held_out: true
+  type_in_held_out: true
+- id: prefix-reuse#05
+  kind: threshold
+  what: when restoring is refused in favour of reading again
+  engines:
+  - strata
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#06
+  kind: policy
+  what: whether a hit takes the stored state or copies it
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#07
+  kind: precedence
+  what: which store is used when several hold a match
+  engines:
+  - strata
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#08
+  kind: timing
+  what: when state is stored for later reuse
+  engines:
+  - strata
+  - splash
+  loosely_only:
+  - ds4
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#09
+  kind: policy
+  what: storing all of a sequence's state or only what changed
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#10
+  kind: placement
+  what: which device restored state is placed on
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#11
+  kind: policy
+  what: whether stored state is trimmed to what later steps can still read
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#12
+  kind: threshold
+  what: memory that must stay free on the tier holding stored state after a store or restore
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#13
+  kind: policy
+  what: how the memory available to the store is measured, and when a store is refused
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#14
+  kind: policy
+  what: whether stored prefixes are found through a kept index or by scanning the store
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#15
+  kind: policy
+  what: whether a request may pin stored state against eviction
+  engines:
+  - strata
+  loosely_only:
+  - hyperqwen
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#16
+  kind: sizing
+  what: the unit in which prefixes are hashed
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#17
+  kind: policy
+  what: 'what earns stored state its retention: recency, cost to rebuild, or actual reuse'
+  engines:
+  - ds4
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#18
+  kind: policy
+  what: 'how stored state is organised: independent entries, a chain, or a tree whose resident part stays connected'
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prefix-reuse#19
+  kind: placement
+  what: which device owns a sequence's state when that work is divided between devices by sequence, weighed against where
+    reusable state already lies
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#01
+  kind: format
+  what: what the file contains and its version
+  engines:
+  - strata
+  loosely_only:
+  - ds4
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#02
+  kind: failure
+  what: what is done with a file that does not match
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#03
+  kind: sizing
+  what: storage space that must remain free after a write
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#04
+  kind: failure
+  what: what is given up, and for how long a save is retried, when memory is short
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#05
+  kind: policy
+  what: in which configurations saving and restoring is offered
+  engines:
+  - strata
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#06
+  kind: policy
+  what: what forms the identity a file is checked against
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: session-persistence#07
+  kind: policy
+  what: whether a restore loads the saved state or only the tokens and recomputes the state from them
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#01
+  kind: policy
+  what: the source of proposals
+  engines:
+  - llama-cpp
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: draft-proposal#02
+  kind: sizing
+  what: how many per round
+  engines:
+  - strata
+  - hyperqwen
+  - ninfer
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#03
+  kind: threshold
+  what: when a chain of proposals stops
+  engines:
+  - strata
+  - ds4
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: draft-proposal#04
+  kind: policy
+  what: greedy or sampled proposals
+  engines:
+  - strata
+  - hyperqwen
+  - splash
+  - llama-cpp
+  loosely_only: []
+  induction: 3
+  held_out: true
+  type_in_held_out: true
+- id: draft-proposal#05
+  kind: policy
+  what: how its own state is kept in step after checking
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#06
+  kind: policy
+  what: the set of tokens proposals are restricted to, and whether a cheaper reduced output head is used
+  engines:
+  - strata
+  - hyperqwen
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 3
+  held_out: true
+  type_in_held_out: true
+- id: draft-proposal#07
+  kind: sizing
+  what: how much context and history the proposer's own state covers
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#08
+  kind: placement
+  what: where the proposer's own state is kept
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#09
+  kind: failure
+  what: what the proposer needs before it may propose, and what is done when it cannot cover the context
+  engines:
+  - ds4
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#10
+  kind: timing
+  what: how the proposer's state is built while the prompt is read
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#11
+  kind: threshold
+  what: how a lookup source matches earlier text, and how far back it searches
+  engines:
+  - hyperqwen
+  loosely_only:
+  - strata
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#12
+  kind: precedence
+  what: how several sources are combined at each position
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#13
+  kind: sizing
+  what: candidates kept per proposed position
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#14
+  kind: policy
+  what: whether proposing is offered in modes that require output equal to non-speculative decoding
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#15
+  kind: sizing
+  what: rows the proposer's recorded graphs hold
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#16
+  kind: policy
+  what: how the proposed block relates to the block length the proposer was trained on
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#17
+  kind: threshold
+  what: the shortest match a lookup extends on, and how many tokens it may append
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: draft-proposal#18
+  kind: policy
+  what: whether the number proposed adapts to recent acceptance
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-policy#01
+  kind: policy
+  what: what it optimises
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#02
+  kind: threshold
+  what: when drafting pauses and resumes
+  engines:
+  - ds4
+  loosely_only:
+  - hyperqwen
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#03
+  kind: timing
+  what: how often it re-decides
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#04
+  kind: sizing
+  what: limits on the round
+  engines: []
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#05
+  kind: policy
+  what: the rule for choosing among sources
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#06
+  kind: policy
+  what: whether the proposer is skipped when another source suffices
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#07
+  kind: policy
+  what: decisions per sequence or jointly across sequences sharing a step
+  engines:
+  - hyperqwen
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#08
+  kind: timing
+  what: how fresh the signals it decides from must be
+  engines:
+  - hyperqwen
+  loosely_only:
+  - splash
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#09
+  kind: policy
+  what: whether it departs from its estimate to explore
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#10
+  kind: threshold
+  what: the probability below which a round ends
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#11
+  kind: policy
+  what: whether the round's width is chosen from each proposal's probability and the measured cost of each width
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#12
+  kind: policy
+  what: 'in which modes drafting is offered: single request only, greedy only'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#13
+  kind: timing
+  what: whether its estimates persist across requests
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#14
+  kind: threshold
+  what: how many qualifying steps enter and leave a mode
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#15
+  kind: policy
+  what: whether its decisions may use measured time or only counts, since decisions from timing make runs differ
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-policy#16
+  kind: threshold
+  what: a context length below which the larger round is taken whatever the other signals say
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: draft-verification#01
+  kind: policy
+  what: the acceptance rule under sampling
+  engines:
+  - strata
+  - ds4
+  - ninfer
+  - llama-cpp
+  loosely_only:
+  - hyperqwen
+  induction: 3
+  held_out: true
+  type_in_held_out: true
+- id: draft-verification#02
+  kind: policy
+  what: how each kind of state is committed or undone
+  engines:
+  - llama-cpp
+  loosely_only:
+  - ninfer
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: draft-verification#03
+  kind: timing
+  what: commit at once or with the next step
+  engines: []
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: draft-verification#04
+  kind: policy
+  what: who may shorten the accepted prefix afterwards (stop conditions, limits)
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: draft-verification#05
+  kind: policy
+  what: how the random draws for acceptance and correction are keyed
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-verification#06
+  kind: policy
+  what: whether the commit runs from a recorded graph or directly
+  engines:
+  - ninfer
+  loosely_only:
+  - strata
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-verification#07
+  kind: policy
+  what: 'how a corrected token is evaluated: in the same step or as an ordinary next step'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-verification#08
+  kind: policy
+  what: whether a stop or last permitted token is returned without a further check by the full model
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: draft-verification#09
+  kind: policy
+  what: which step dimensions the acceptance kernels may be specialised on
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#01
+  kind: policy
+  what: the chain of steps and their order
+  engines:
+  - llama-cpp
+  loosely_only:
+  - splash
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: sampling#02
+  kind: policy
+  what: 'where it runs: with the computation or outside it'
+  engines:
+  - strata
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#03
+  kind: policy
+  what: the source of randomness and what it is keyed on
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#04
+  kind: sizing
+  what: limits on candidates considered
+  engines:
+  - ds4
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: sampling#05
+  kind: precedence
+  what: default settings against the request's
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#06
+  kind: policy
+  what: whether settings change per position, for example greedy on structure and sampled on content
+  engines: []
+  loosely_only:
+  - ds4
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: sampling#07
+  kind: policy
+  what: which tokens penalties count
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#08
+  kind: policy
+  what: how ties are broken
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#09
+  kind: policy
+  what: how the draw is formed when speculation needs a residual distribution
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#10
+  kind: policy
+  what: what is done with accepted proposed tokens when the per-position settings change inside them
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sampling#11
+  kind: policy
+  what: the kernel used for the sampling arithmetic, and how it changes with the number of rows
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: sampling#12
+  kind: failure
+  what: how non-finite logits are handled
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: sampling#13
+  kind: policy
+  what: the default values of the settings
+  engines:
+  - strata
+  - ds4
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: output-constraint#01
+  kind: policy
+  what: which rules are offered
+  engines: []
+  loosely_only:
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: output-constraint#02
+  kind: timing
+  what: where the mask is computed relative to the step
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-constraint#03
+  kind: policy
+  what: how it applies to proposed tokens that are not yet accepted
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-constraint#04
+  kind: failure
+  what: what is done when the rule leaves no legal token
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: output-constraint#05
+  kind: sizing
+  what: caching of compiled rules, its key and budget
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-constraint#06
+  kind: policy
+  what: which requests a rule is applied to, and which constraint languages may be combined
+  engines:
+  - hyperqwen
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#01
+  kind: policy
+  what: stop conditions and their order
+  engines:
+  - llama-cpp
+  loosely_only:
+  - splash
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: output-interpretation#02
+  kind: policy
+  what: how tool calls are parsed, repaired or retried
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#03
+  kind: threshold
+  what: guards against degenerate output
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#04
+  kind: policy
+  what: how the generation is driven and continued for one request
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#05
+  kind: failure
+  what: what is returned when parsing fails
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#06
+  kind: precedence
+  what: which source of a generation setting wins
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#07
+  kind: policy
+  what: how requests take turns when the engine serves one at a time
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#08
+  kind: policy
+  what: what happens to held state when output is cut by a stop condition
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#09
+  kind: policy
+  what: which generation features are used when several requests are served together
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#10
+  kind: threshold
+  what: a budget on the reasoning part, and what is done when it is reached
+  engines:
+  - strata
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: output-interpretation#11
+  kind: failure
+  what: whether a generation that fails before anything was returned is run again
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: output-interpretation#12
+  kind: format
+  what: reasoning and tool formats per model family
+  engines:
+  - hyperqwen
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: output-interpretation#13
+  kind: timing
+  what: keep-alive for a response stream with nothing to send
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#01
+  kind: policy
+  what: protocols offered
+  engines:
+  - llama-cpp
+  loosely_only:
+  - hyperqwen
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: request-front#02
+  kind: policy
+  what: who is allowed and how
+  engines:
+  - hyperqwen
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: request-front#03
+  kind: sizing
+  what: limits on connections, body size and queue
+  engines:
+  - strata
+  - ds4
+  - splash
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: request-front#04
+  kind: failure
+  what: what is done on disconnect, timeout or overload
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#05
+  kind: policy
+  what: whether earlier responses are stored for later requests to refer to
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#06
+  kind: policy
+  what: the names a request may use for the served model
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#07
+  kind: policy
+  what: which per-request controls a caller may set
+  engines:
+  - splash
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#08
+  kind: timing
+  what: keep-alive for a response stream with nothing to send
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#09
+  kind: timing
+  what: how often a closed connection is looked for
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#10
+  kind: policy
+  what: 'what the engine exposes about itself: health, metrics, or nothing'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#11
+  kind: policy
+  what: what is exposed by default when no credential is set
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: request-front#12
+  kind: sizing
+  what: limits on stored responses
+  engines:
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#01
+  kind: policy
+  what: the template used and how it is corrected
+  engines:
+  - strata
+  - hyperqwen
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#02
+  kind: policy
+  what: what happens when prompt plus output exceed the context
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#03
+  kind: sizing
+  what: caches of rendered or tokenized prompts
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#04
+  kind: policy
+  what: keeping the start of the prompt stable so that stored state can be reused
+  engines:
+  - strata
+  - ds4
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#05
+  kind: precedence
+  what: defaults against the request's settings
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#06
+  kind: policy
+  what: which tokenizer implementation is used, and how it is held to the reference tokenizer's output
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#07
+  kind: policy
+  what: whether the prompt is tokenized whole or in pieces joined at a reuse boundary
+  engines:
+  - strata
+  - ds4
+  - splash
+  loosely_only: []
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#08
+  kind: threshold
+  what: tokens kept free between prompt plus output and the context length
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#09
+  kind: policy
+  what: what an absent output limit means
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#10
+  kind: policy
+  what: which earlier content is dropped from history when rendering
+  engines:
+  - ds4
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: prompt-preparation#11
+  kind: policy
+  what: where restore points may be placed in the prompt
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#01
+  kind: policy
+  what: whether prompt reading and generation share a step
+  engines:
+  - ds4
+  - ninfer
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#02
+  kind: policy
+  what: order and fairness between sequences
+  engines: []
+  loosely_only:
+  - ninfer
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#03
+  kind: sizing
+  what: sequences and rows per step
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#04
+  kind: timing
+  what: how a long prompt yields to generation in progress
+  engines:
+  - strata
+  - splash
+  loosely_only:
+  - ds4
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#05
+  kind: policy
+  what: which sequence is paused when resources run short
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#06
+  kind: threshold
+  what: when a sequence is overdue
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#07
+  kind: timing
+  what: how long a step waits to gather sequences
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#08
+  kind: sizing
+  what: limit on waiting work
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#09
+  kind: timing
+  what: whether the next step is planned while the current one runs
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#10
+  kind: timing
+  what: how the loop waits when idle, and where housekeeping runs
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#11
+  kind: policy
+  what: how sequences are grouped to flow through devices a model is split over
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#12
+  kind: timing
+  what: what is saved on a clean stop
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#13
+  kind: timing
+  what: when waiting work is reconsidered for admission
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#14
+  kind: policy
+  what: the order of work within one cycle
+  engines:
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: step-scheduler#15
+  kind: sizing
+  what: the time slice a sequence gets before others are considered
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#16
+  kind: policy
+  what: 'what admission is counted in: sequences or memory pages'
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#17
+  kind: failure
+  what: whether a sequence is paused and recomputed when shared memory is full
+  engines:
+  - hyperqwen
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#18
+  kind: threshold
+  what: the fewest sequences for which batching is used
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: step-scheduler#19
+  kind: policy
+  what: whether prompt chunks of several sequences are grouped into one step that runs layer by layer
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#01
+  kind: policy
+  what: 'how a request is matched to a place: a slot or a lane'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#02
+  kind: policy
+  what: admission when resources are short
+  engines:
+  - llama-cpp
+  loosely_only: []
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: sequence-lifecycle#03
+  kind: policy
+  what: 'how a paused sequence is kept: in place, copied out, or released and replayed'
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#04
+  kind: sizing
+  what: how many sequences at once
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#05
+  kind: failure
+  what: what is done with a sequence whose state has become invalid
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#06
+  kind: policy
+  what: the order in which waiting prompts are read, and whether several are read together
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#07
+  kind: sizing
+  what: a sequence's state allocated up front or grown on demand
+  engines:
+  - ds4
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#08
+  kind: threshold
+  what: how long a sequence may wait for resources before it fails
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#09
+  kind: policy
+  what: whether a request waits for state another request is producing
+  engines:
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#10
+  kind: policy
+  what: 'how a sequence is taken back to an earlier position: truncation, restoring a snapshot, or rebuilding from its tokens'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#11
+  kind: precedence
+  what: which running sequence gives way when resources run short, and which place is repurposed first
+  engines:
+  - ds4
+  - splash
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: sequence-lifecycle#12
+  kind: policy
+  what: how a request's coming output is estimated for admission
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#13
+  kind: failure
+  what: retries on another place after a refusal, and how long a refused place is avoided
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#14
+  kind: timing
+  what: how long a place is held for an engine that has gone silent
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: sequence-lifecycle#15
+  kind: policy
+  what: when a sequence moves between a shared path and a solo path
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: replica-routing#01
+  kind: policy
+  what: 'how a request is matched to a copy: least loaded, or the one holding reusable state'
+  engines: []
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: replica-routing#02
+  kind: placement
+  what: whether copies share one host copy of the weights
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: replica-routing#03
+  kind: failure
+  what: how often a failed copy is restarted and what happens to its requests
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: replica-routing#04
+  kind: sizing
+  what: how many copies run
+  engines:
+  - llama-cpp
+  loosely_only:
+  - strata
+  induction: 0
+  held_out: true
+  type_in_held_out: true
+- id: replica-routing#05
+  kind: policy
+  what: how it tracks what state each copy holds
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#01
+  kind: policy
+  what: the engine in the serving process or in its own
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#02
+  kind: timing
+  what: the stages of a start and what is retried
+  engines:
+  - strata
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#03
+  kind: threshold
+  what: when the engine counts as stalled or failed
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#04
+  kind: failure
+  what: restart, and what happens to requests in flight
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#05
+  kind: timing
+  what: when an idle engine is unloaded
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: engine-supervision#06
+  kind: failure
+  what: whether a failed start is retried with a reduced configuration, and what is dropped first
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#07
+  kind: failure
+  what: how a request suspected of causing failures is identified and refused
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#08
+  kind: policy
+  what: the transport between the serving side and the engine
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#09
+  kind: policy
+  what: whether request settings are rewritten on the way to the engine, and how values the engine does not support are
+    handled
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#10
+  kind: policy
+  what: whether the stall monitor is independent of the loop it watches
+  engines:
+  - hyperqwen
+  loosely_only:
+  - strata
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#11
+  kind: policy
+  what: where warm-up gets its memory, and whether it may take memory serving will need
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#12
+  kind: timing
+  what: where the process loop runs housekeeping between steps
+  engines: []
+  loosely_only:
+  - splash
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#13
+  kind: timing
+  what: what is saved on a clean stop, and within what time
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#14
+  kind: threshold
+  what: after how many failures in what time the engine is not started again, and the wait between restarts
+  engines:
+  - strata
+  - splash
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#15
+  kind: failure
+  what: which failures are treated as permanent and which as caused by memory
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#16
+  kind: sizing
+  what: limit on input waiting at the transport
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#17
+  kind: format
+  what: message encoding of the transport, and whether versions must match
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: engine-supervision#18
+  kind: timing
+  what: whether the process loop prepares the next step while the current one runs on the device
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: scoring#01
+  kind: policy
+  what: whether scoring shares the engine with generation or runs alone
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: scoring#02
+  kind: sizing
+  what: limits on what can be scored
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: scoring#03
+  kind: policy
+  what: which options can be scored in one step
+  engines:
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#01
+  kind: policy
+  what: split by layers, by parts of each layer, or by selectively used weights
+  engines:
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#02
+  kind: sizing
+  what: per-device budgets
+  engines: []
+  loosely_only:
+  - hyperqwen
+  - llama-cpp
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#03
+  kind: failure
+  what: what is done when a device or link is lost
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#04
+  kind: policy
+  what: which devices may hold a part of the model
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#05
+  kind: failure
+  what: what the parts must agree on before they run together
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#06
+  kind: timing
+  what: where the parts synchronise on control events such as cancellation
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#07
+  kind: policy
+  what: how work outside the layers is divided between the parts
+  engines: []
+  loosely_only:
+  - ninfer
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#08
+  kind: format
+  what: precision of activations exchanged
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#09
+  kind: sizing
+  what: how much may be in flight between stages
+  engines:
+  - ds4
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#10
+  kind: placement
+  what: which parts are replicated on every device instead of split
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#11
+  kind: policy
+  what: which other engine features may be combined with splitting the model, and which are refused
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#12
+  kind: policy
+  what: how parts are packed onto devices within their budgets
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#13
+  kind: policy
+  what: for which models and device counts each kind of split is offered
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#14
+  kind: policy
+  what: 'how speculation is divided: who proposes, who checks, and how a commit is applied across the parts'
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: model-partitioning#15
+  kind: placement
+  what: where auxiliary tables live under each deployment
+  engines:
+  - ninfer
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: device-communication#01
+  kind: policy
+  what: the transport
+  engines:
+  - ds4
+  - ninfer
+  - llama-cpp
+  loosely_only: []
+  induction: 2
+  held_out: true
+  type_in_held_out: true
+- id: device-communication#02
+  kind: sizing
+  what: buffers registered for transfer
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: device-communication#03
+  kind: failure
+  what: what is done when a transfer fails or a peer falls out of step
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: device-communication#04
+  kind: policy
+  what: whether the transport is chosen automatically or fixed by the operator
+  engines:
+  - ninfer
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#01
+  kind: precedence
+  what: operator values, presets, measured values and defaults
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only: []
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: configuration#02
+  kind: policy
+  what: which combinations are refused
+  engines:
+  - ds4
+  loosely_only:
+  - ninfer
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#03
+  kind: policy
+  what: whether an operator value is a hard limit or a target
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: configuration#04
+  kind: policy
+  what: which settings are fixed per machine class
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#05
+  kind: policy
+  what: rules that derive a setting's default from other settings and machine facts
+  engines:
+  - strata
+  - hyperqwen
+  loosely_only:
+  - ds4
+  - ninfer
+  induction: 2
+  held_out: false
+  type_in_held_out: true
+- id: configuration#06
+  kind: policy
+  what: whether and where the resolved settings are recorded
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: configuration#07
+  kind: policy
+  what: which settings that change output are on by default, and in which profile
+  engines: []
+  loosely_only:
+  - hyperqwen
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: configuration#08
+  kind: failure
+  what: what is assumed when a fact about the machine cannot be read
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#09
+  kind: policy
+  what: named profiles and what each fixes
+  engines:
+  - hyperqwen
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#10
+  kind: policy
+  what: 'how a known-bad combination is handled: refused, or one member replaced'
+  engines:
+  - hyperqwen
+  loosely_only:
+  - strata
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#11
+  kind: policy
+  what: the conditions under which a recorded calibration is applied
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#12
+  kind: policy
+  what: how machine facts are mapped to a machine class
+  engines:
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#13
+  kind: policy
+  what: which settings are left to the engine's own rule
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: configuration#14
+  kind: placement
+  what: which of the machine's devices the engine may use, and how they are identified to it
+  engines:
+  - strata
+  - llama-cpp
+  loosely_only: []
+  induction: 1
+  held_out: true
+  type_in_held_out: true
+- id: resource-governing#01
+  kind: policy
+  what: the order in which holders give up memory
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#02
+  kind: threshold
+  what: the pressure levels that trigger reclaim
+  engines: []
+  loosely_only:
+  - splash
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#03
+  kind: timing
+  what: releasing large holdings when idle and restoring them
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#04
+  kind: policy
+  what: who may wait for memory and who is refused
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#05
+  kind: policy
+  what: limiting duty cycle
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#06
+  kind: policy
+  what: how free memory and pressure are estimated from what the system reports
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#07
+  kind: timing
+  what: when holders that gave memory back may grow again
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#08
+  kind: threshold
+  what: the duty cycle allowed and the window it is averaged over
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#09
+  kind: precedence
+  what: the order in which competing claims for memory are served, and what each class of claim may take
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#10
+  kind: timing
+  what: how fast released holdings are restored, and when a restore is abandoned
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#11
+  kind: policy
+  what: how measured work is smoothed when duty cycle is limited
+  engines:
+  - ds4
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: resource-governing#12
+  kind: policy
+  what: whether growth that displaces reclaimable cache is charged at its net change or at its full size
+  engines:
+  - splash
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: false
+- id: telemetry#01
+  kind: policy
+  what: what is recorded by default and what on request
+  engines:
+  - strata
+  - ds4
+  - hyperqwen
+  loosely_only:
+  - ninfer
+  - llama-cpp
+  induction: 3
+  held_out: false
+  type_in_held_out: true
+- id: telemetry#02
+  kind: policy
+  what: where records go
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: telemetry#03
+  kind: threshold
+  what: when something is reported as abnormal
+  engines: []
+  loosely_only: []
+  induction: 0
+  held_out: false
+  type_in_held_out: true
+- id: telemetry#04
+  kind: format
+  what: 'how each reported rate and latency is defined: which clock, interval and sample'
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: telemetry#05
+  kind: sizing
+  what: sampling interval and how much history is kept
+  engines:
+  - strata
+  loosely_only: []
+  induction: 1
+  held_out: false
+  type_in_held_out: true
+- id: telemetry#06
+  kind: policy
+  what: whether reading status may affect the engine's decisions
+  engines:
+  - splash
+  loosely_only:
+  - llama-cpp
+  induction: 1
+  held_out: false
+  type_in_held_out: true

@@ -1,0 +1,124 @@
+engine: ninfer
+decision_coverage:
+  totals: {decisions: 104, covered: 59, loosely: 21, not_covered: 22, engine_specific: 2}
+  per_type:
+    - {type: "model-conversion", decisions: 9, covered: 6, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "residency-policy", decisions: 4, covered: 2, loosely: 0, not_covered: 2, engine_specific: 0}
+    - {type: "configuration", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "memory-planning", decisions: 8, covered: 3, loosely: 2, not_covered: 3, engine_specific: 0}
+    - {type: "graph-capture", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 1, covered: 0, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "expert-fetch", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "row-source", decisions: 3, covered: 1, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 7, covered: 5, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 0, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 2, loosely: 0, not_covered: 2, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "draft-verification", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 2, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "state-tiering", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 6, covered: 3, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "scoring", decisions: 0, covered: 0, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 4, covered: 3, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "request-front", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 1, covered: 0, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "device-communication", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  # Per-decision judgments (part: decision -> verdict), for traceability.
+  # checkpoint-converter: format per role C; source per role C (precedence); parent merge order C (layout); activation permit NC; conv relayout C; recipe geometry match L (failure on mismatch)
+  # draft-head-builder: full vs shortlist and rows C (derived pieces); forced special tokens L; draft head format C
+  # context-cost-calibrator: cost model form L (what is measured); acceptance limits C; preset key NC
+  # expert-priority-table: rank estimator NC; geometry applicability with identity fallback NC
+  # offload-mode-switch: streaming when T over threshold C (region changes role with load); refill pace C (limit on changes per round)
+  # configuration: options a model accepts C; per-model defaults L
+  # model-definition-loader: which optional components bound NC
+  # shard-materializer: location per parent C; read alignment and dedup L (staging); value-preserving slice or reject C (re-encode at load)
+  # partition-planner: TP/EP mode C; replicated vs communicated NC; head split by vocabulary C; PLE table location L
+  # startup-memory-planner: headroom C; device/host vs unified accounting NC; per-rank never summed NC; bounded correction with explicit kept C
+  # expert-residency-planner: balanced fixed share L; two windows then one C (give-up order); CPU workers NC; upload slots L
+  # execution-graphs: variants C; context buckets C; separate sections C
+  # host-expert-store: registered vs ordinary banks C (locked memory)
+  # expert-cache: open-use bound (layers + 8) ES
+  # expert-uploader: batch size and count C; required before prefetch NC
+  # hybrid-moe-dispatch: GPU subset vs CPU complement C; large vs small T C
+  # cpu-expert-team: ISA variant NC; awake/sleep thresholds C; token block and column limits C
+  # ple-row-source: disk vs device shards L; cache size, I/O depth, slots C; prefetch vs required priority NC
+  # engine-control-loop: order within a cycle C; when admission re-runs L; spin vs 1 ms idle wait NC
+  # request-scheduler: bypass allowance C; service quantum C; youngest victim C; prefill and decode separate C
+  # model-session: pause action C; full permit before verify L
+  # executor: frame counts C; local vs distributed workers NC
+  # rank-program: graph or eager per unit L; host handoff split points L
+  # layer-compute: kernel variant C; activation precision C; KV encoding NC
+  # chunked-prefill: chunk size C; checkpoint interval and snapping C
+  # mtp-drafter: draft count C; full or optimized head NC
+  # block-drafter: block width C; full or indexed head NC
+  # sampler: candidate cap C; tie rule NC
+  # draft-acceptance: rule per draft kind C; RNG purposes NC
+  # state-commit: graph or eager commit L; rebuild draft history only when more than one accepted C
+  # output-interpreter: reasoning and tool formats C; thinking budget L
+  # grammar-constraint: composed languages C
+  # context-pool: size classes and alignment C; when to compact NC
+  # context-directory: logical references vs execution borrows L; copy only conflicting tail pages C
+  # context-transfer: chunk and staging per slot L; host tier size C
+  # context-resource-manager: rank sources by cost L; cross-rank copy only if cheaper than measured recompute C; victim order C; retention from real adoption L; checkpoint interval C; ADP owner rank NC
+  # prompt-preparer: history and template corrections C; restore points not inside media L
+  # media-preparer: limits C; cache capacity and live budget C
+  # vision-encoder: units fitting the window C; rank-major split NC
+  # http-api: accepted protocol fields C
+  # responses-store: record and byte limits L
+  # rank-launcher: field-only message encoding, no cross-version compatibility ES
+  # collective-communication: backend per collective C; override policy C
+  # observability: timing on or off, unmeasured as missing C
+  not_covered_examples:
+    - {type: "model-conversion", part: "checkpoint-converter", decision: "which activation permit (A16Only, AllowA8, AllowA4) each use of a weight carries", missing_choice: "which reduced activation precisions each use of a weight permits at run time, recorded with the weight", kind: "format"}
+    - {type: "calibration", part: "context-cost-calibrator", decision: "how a preset is keyed (hardware class, prefill signature hash)", missing_choice: "what a recorded result is keyed on to state the model, machine and build it is valid for", kind: "policy"}
+    - {type: "residency-policy", part: "expert-priority-table", decision: "which estimator turned routing counts into ranks", missing_choice: "how measured usage counts are turned into a ranking", kind: "policy"}
+    - {type: "residency-policy", part: "expert-priority-table", decision: "the geometry under which the default table applies, otherwise identity order", missing_choice: "which ranking is used when no recorded ranking matches the model", kind: "failure"}
+    - {type: "model-loading", part: "model-definition-loader", decision: "which optional components and resources are bound", missing_choice: "which optional parts of the model (draft layer, vision tower, extra heads) are loaded at all", kind: "policy"}
+    - {type: "model-partitioning", part: "partition-planner", decision: "which parts are replicated instead of communicated", missing_choice: "which parts are replicated on every device instead of split and combined", kind: "placement"}
+    - {type: "memory-planning", part: "startup-memory-planner", decision: "separate device and host accounting on discrete GPUs; one budget on shared memory", missing_choice: "whether memories that share one physical capacity are accounted as one budget or separately", kind: "policy"}
+    - {type: "memory-planning", part: "startup-memory-planner", decision: "per-rank capacity, never the sum over machines", missing_choice: "whether capacity is planned per device or pooled across devices", kind: "sizing"}
+    - {type: "memory-planning", part: "expert-residency-planner", decision: "CPU workers min(16, cores - 1) unless given", missing_choice: "how many workers a second compute device is given, and which cores stay free", kind: "sizing"}
+    - {type: "expert-fetch", part: "expert-uploader", decision: "required uploads before prefetch; prefetch must not block current-layer data", missing_choice: "priority of fetches the current computation needs over speculative ones", kind: "precedence"}
+    - {type: "secondary-compute", part: "cpu-expert-team", decision: "instruction set variant (AVX2/FMA, AVX-512, AVX-512 BF16), forceable by switches", missing_choice: "kernel variant per instruction set of the second device, and who may force it", kind: "format"}
+    - {type: "row-source", part: "ple-row-source", decision: "prefetch of known input versus required window priority", missing_choice: "priority of rows needed now over rows prefetched ahead", kind: "precedence"}
+    - {type: "step-scheduler", part: "engine-control-loop", decision: "spin-yield while work is outstanding versus 1 ms wait when idle", missing_choice: "how the loop waits when it has nothing to submit", kind: "timing"}
+    - {type: "device-backend", part: "executor", decision: "local in-process versus distributed workers", missing_choice: "whether devices are driven in-process or through separate worker processes", kind: "placement"}
+    - {type: "layer-compute", part: "layer-compute", decision: "KV encoding (bf16, int8, fp8, nvfp4, k8v4)", missing_choice: "the encoding in which computed per-position state is written (or move this decision to the state store and drop it from the part)", kind: "format"}
+    - {type: "draft-proposal", part: "mtp-drafter", decision: "full main head or optimized draft head", missing_choice: "whether the proposer uses a cheaper reduced output head (lower precision or vocabulary shortlist)", kind: "policy"}
+    - {type: "draft-proposal", part: "block-drafter", decision: "full or indexed draft head", missing_choice: "whether the proposer uses a cheaper reduced output head (lower precision or vocabulary shortlist)", kind: "policy"}
+    - {type: "sampling", part: "sampler", decision: "tie rule (lower token ID wins)", missing_choice: "how ties between equally ranked candidates are broken", kind: "policy"}
+    - {type: "draft-verification", part: "draft-acceptance", decision: "RNG purposes for accept, correction and bonus", missing_choice: "how the random draws for acceptance, correction and bonus tokens are keyed", kind: "policy"}
+    - {type: "state-pool", part: "context-pool", decision: "when compaction is worth doing", missing_choice: "when and how fragmented pool space is compacted", kind: "threshold"}
+    - {type: "prefix-reuse", part: "context-resource-manager", decision: "ADP: balanced when peak load at most 1.5 x minimum; among balanced, longest local prefix", missing_choice: "which device a restored sequence's state is placed on when several could hold it", kind: "placement"}
+    - {type: "modality-encoding", part: "vision-encoder", decision: "rank-major split of units across ranks (weights replicated)", missing_choice: "how encoding work is split across devices", kind: "placement"}
+contradictions:
+  - {type: "model-conversion", claim: "effect_on_output: changes_output when it changes precision, cuts the vocabulary, or rewrites the template", part: "draft-head-builder", evidence: "builds a 4-bit (q4_g64) draft head over a frequency shortlist of the vocabulary, yet output_effect is none: 'changes only the acceptance rate; the target distribution and committed output rule are unchanged'", fix: "condition the case on the piece being used for output: changes_output when it changes precision, vocabulary or template of what the target computes; none when the changed piece only feeds proposals that are verified"}
+  - {type: "calibration", claim: "must_never: A recorded result is never used for a model, machine or build other than the one it was measured on.", part: "context-cost-calibrator", evidence: "cost coefficients reach the resource manager 'via the preset file named in configuration, or compiled-in defaults copied from earlier runs' - measured results from other runs used on machines where nothing was measured", fix: "allow an explicit, labelled fallback: a recorded result is never used for another model, machine or build as if it were measured there; a default derived from other measurements is used only when no valid record exists and is marked as a default"}
+  - {type: "model-loading", claim: "effect_on_output: numeric when weights are re-encoded while loading", part: "shard-materializer", evidence: "refines block-FP8 scale blocks at load ('repeats scale words and keeps represented values'), and output_effect is none", fix: "numeric only when re-encoding changes represented values; none when it is value-preserving"}
+  - {type: "memory-planning", claim: "must_never: Everything it prices plus what it hands out never exceeds the budget.", part: "startup-memory-planner", evidence: "decision 'bounded correction of automatic capacity after an over-budget preparation'; when_things_go_wrong 'tightens the runtime limit and retries automatic capacity once over budget' - a plan is allowed to come out over budget and is corrected afterwards", fix: "the engine never starts serving with a plan over budget; a preparation found over budget is corrected or refused before the first request"}
+  - {type: "expert-cache", claim: "must_never: A block is reported present only after its bytes have fully arrived.", part: "expert-cache", evidence: "the part's own rule is 'publish an expert before all its bytes are submitted in order', i.e. publication follows submission on an ordered stream, not arrival; consumers acquire with generation numbers on their stream", fix: "a block is reported present only when every reader of it is ordered after the arrival of all its bytes (by completion or by stream ordering)"}
+  - {type: "step-scheduler", claim: "effect_on_output: none when one sequence at a time; numeric when which sequences share a step changes rounding", part: "engine-control-loop, request-scheduler", evidence: "concurrency batched up to 8 requests sharing one execution, yet both parts state output_effect none with no condition; layer-compute says accumulator order varies by batch shape", fix: "either the inventory understates (should be numeric), or the type needs a case 'none when the batch composition does not change any row's arithmetic (row-independent kernels)'; resolve which, the two do not agree now"}
+  - {type: "step-execution", claim: "effect_on_output: none when one sequence per step; numeric when several sequences share a step", part: "rank-program", evidence: "carries batched decode and verify rounds for several lanes, output_effect none with no condition", fix: "same as step-scheduler: add a row-independence condition for none, or record the part as numeric"}
+  - {type: "step-execution", claim: "must_never: A step ends only when every part of its work is complete.", part: "rank-program", evidence: "executor (driving rank-program) exists because 'results become readable before device work ends, and memory may be reused only after true device retirement'; ResultReady is delivered before DeviceRetired", fix: "split the rule: a step's results are used only after the work that produces them is complete; its memory is reused only after all of its device work has retired"}
+  - {type: "layer-compute", claim: "effect_on_output: numeric always (only last bits differ)", part: "layer-compute", evidence: "output_effect_when: 'activations may be quantized to 4 or 8 bits where a weight use allows it' - a deliberate precision reduction, more than last-bit differences; the type's own choice says a deliberate change 'changes output'", fix: "add a case changes_output when activations are computed at reduced precision or the arithmetic is deliberately changed"}
+  - {type: "layer-compute", claim: "must_never: The order of operations the model defines is not changed.", part: "layer-compute", evidence: "'private accumulator order varies by kernel, batch shape and chunking'", fix: "scope the rule: the sequence of operations the model defines is not changed; the order of accumulation inside one operation may vary"}
+  - {type: "prompt-reading", claim: "must_never: The state it leaves is the state of that prompt, whatever the chunking.", part: "chunked-prefill", evidence: "output_effect_when: 'state after chunked reading can differ in the last bits from a different chunking or from token-by-token reading' (the type's own effect case says the same)", fix: "the state it leaves is the state of that prompt up to rounding, whatever the chunking"}
+  - {type: "draft-verification", claim: "effect_on_output: changes_output only when an acceptance rule does not preserve the sampling distribution", part: "draft-acceptance", evidence: "output_effect changes_output: 'under sampling, the token sequence differs from non-speculative sampling with the same seed while the distribution is preserved'", fix: "add a case: changes_output under sampling even with a distribution-preserving rule, because the drawn tokens differ from non-speculative sampling with the same seed"}
+  - {type: "prefix-reuse", claim: "effect_on_output: numeric when state is stored at reduced precision, or batched and unbatched paths round differently", part: "context-resource-manager", evidence: "output_effect numeric because 'a restored prefix was read with different chunk boundaries than a fresh read'", fix: "add the condition: or the stored state was produced with different chunk boundaries than a fresh read would use"}
+wrong_assignments:
+  - {part: "expert-priority-table", assigned: "residency-policy", better: "calibration", why: "it is a recorded offline ranking from routing-count measurement, with a geometry check deciding whether the record applies; it decides no entry or exit itself (expert-residency-planner and offload-mode-switch do), and residency-policy's must_never about changing contents does not apply to it. Both of its decisions are calibration choices (what is measured and how; what is used when no valid record exists)."}
+  - {part: "expert-residency-planner", assigned: "memory-planning", better: "residency-policy", why: "its core job is choosing the fixed expert set per layer from the ranking and whether the reusable region holds extra experts or windows (residency-policy forms 'fixed at startup from an offline ranking', 'whether a region changes role with load'); memory-planning's own startup-memory-planner explicitly does not size the expert cache. It also fixes the CPU worker count (secondary-compute) and the dispatch threshold (expert-dispatch), so it is a composite; memory-planning covers only its byte budgeting."}

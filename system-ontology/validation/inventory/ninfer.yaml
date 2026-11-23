@@ -1,0 +1,1123 @@
+engine: "NInfer"
+revision: "13ebb92f6f1d56b676e5300cb19555b2ba24053a"
+basis: "Read in code: tools/convert (pipeline.py, proposal.py, official_recipes.py qwen3_8_flash_next, methods.py and methods_csf.py outlines, quantization/ outlines); bench/context_cost/context_cost_bench.cpp (calibration report and preset writing); src/runtime/engine (scheduler.h whole, engine_schedule.inl begin_cycle/advance_cycle/worker_loop/try_admit_one/reclaim/pause_resident, engine_execution.inl commit_pending, generation_budget.h, startup_memory.h, context_capacity.cpp comments, context_cache/capture_policy.cpp, context_cost_defaults.cpp); src/runtime/executor (contract.h, executor.h, local_executor.h outline); src/core (decode_graph.h, expert_cache.h and expert_cache.cpp checks, context_pool.h, gdn_replay_records.h, cpu/executor.h, io/read_queue.h); src/models/common (graph_preparation.cpp, moe/offload/plan.cpp, context/directory.h, transfer.h, snapshot.h, recovery.h, checkpoint_store.h comments); src/models/qwen4_exp (program/device_graphs.cpp whole, program/commit.cpp whole, program/mtp.cpp draft_forward, program/planning.cpp options, parallel/expert_priority.cpp header, ple/disk/row_reader.h, ple/disk/prepare.h, ple/upload.h, ple/hash.h); src/models/qwen3_5/execution/draft.cpp outline (DFlash/DFlash2); src/distributed (communication.h, communication/selection.cpp, communication/native/rdma.h and protocol.h, bootstrap.h, transport.h comments); kernels: src/ops/moe/kernels/cpu/nvfp4/launch.cpp, src/ops/linear_attention/gated_delta_net/replay/fold_io.cuh opening, directory listings of src/ops families and linear/nvfp4 kernels; include/ninfer/ops speculative_accept.h and sampling.h contracts; src/text/grammar.h; src/models/common/frontend/output_session.h; src/serve (http_server.cpp routes, generation_service.h, openai_responses_store.h, openai_responses_state.cpp opening, metrics.cpp); src/product/media_acquire/acquire.h; src/media/decode/decode.h limits. Read in documents only (all of each): docs/maintainer engine-architecture, expert-weight-cache, context-management, speculative-decoding, distributed-execution, weights-and-loading, frontend, observability, qwen4_exp-model, op-development (first half), glm5next-model (first half). Earlier notes engines/ninfer.md used as a guide; their code-checked claims for offload resources.cpp, execution.cpp, resource_manager.h, placement_policy.cpp, qwen4_exp/parallel/plan.cpp and storage.cpp were relied on with their line numbers, not all re-read. Not read: most kernel bodies, GLM5Next code, Qwen3.5 programs other than draft.cpp, directory.cpp, context_pool.cpp, resource_manager.h body, distributed_executor.h body, tokenizer/jinja code, vision tower code, dashboard."
+concurrency: batched
+models: "Qwen3.5 dense (Qwen3.6-27B, Qwen3.8-27B) and Qwen3.5 MoE (Qwen3.6-35B-A3B), Qwen4Exp (Qwen3.8-Flash-Next) and GLM5Next (GLM-5.3-Flash). One engine instance serves one model, up to 8 concurrent requests. Unusual: hybrid recurrent plus attention layers (GDN or KDA linear attention with large fixed-size recurrent state, plus QSA sparse attention or Kpool sparse MLA that compress index keys every 4 tokens and pick top-K blocks); mixture of experts with 512 experts and top-10 routing (Flash Next); a per-layer embedding (PLE) lookup table of about 2.5 million rows per shard x 128 shards addressed by hashes of 2- and 3-token n-grams; four-stream gated residual (HC / mHC) mixing; a built-in MTP draft layer with its own attention and MoE; external block draft models (DFlash, DFlash2) for the 27B and GLM; vision tower (images and video). Weights are stored per role in NVFP4, block FP8, 8-bit, NF4 or BF16 and consumed encoded."
+parts:
+  - id: "checkpoint-converter"
+    engine_name: "tools/convert (Model, Recipe, official recipes, ArtifactWriter)"
+    does: "Turns a published checkpoint (or several, e.g. a base BF16 checkpoint plus an NVIDIA NVFP4 one) into a .ninfer v3 artifact: maps source tensors to logical roles, picks a storage format and encoding method per role, merges and orders parent matrices, records per-use activation permits and auxiliary divisors, and writes framed object files plus a conversion report."
+    not: "Not a loader and not a runtime quantizer; the engine never re-encodes weights at load except value-preserving scale-block refinement."
+    runs: [offline]
+    takes:
+      - {from: "outside:model_files", what: "source safetensors checkpoints (BF16 base, NVIDIA ModelOpt NVFP4 / FP8 block, compressed-tensors), config, tokenizer and template resources"}
+      - {from: "outside:operator", what: "recipe name, output path, device, chunk size, source cache size"}
+    gives:
+      - {to: "outside:storage", what: ".ninfer artifact (entry file plus continuation volumes) with objects, bindings, uses, resources, provenance; and a .conversion.json report"}
+    owns_state: ["the mapping from source tensor names to logical parameters and object layouts for one conversion"]
+    exists_because: "the engine's kernels read only its own encoded formats and layouts, and the published checkpoints are in other formats and orders"
+    output_effect: changes_output
+    output_effect_when: "against the source BF16 model: every quantized role (NVFP4 experts, Q8 projections, block FP8 MTP experts, NF4 PLE table) changes values; imported NVFP4 keeps codes but rounds 1/multiplier to an FP32 divisor"
+    decisions:
+      - "which storage format and encoding method each logical role gets (import encoded, grouped absmax, row/block FP8 maxabs, stored-scale MSE search for NF4, direct cast)"
+      - "which source checkpoint supplies each role when several are given"
+      - "how parent matrices are merged and ordered so that history-only computation can borrow a contiguous prefix (K, V, index-K first)"
+      - "which activation permit (A16Only, AllowA8, AllowA4) each use of a weight carries"
+      - "how convolution weights are re-laid out (tap outside, channel contiguous)"
+      - "which architecture constants must match before a recipe applies"
+    when_things_go_wrong: ["refuses to overwrite an existing output or report", "raises with the parameter, method and format named when a job fails", "rejects a source whose expert tensors are incomplete or whose activation multipliers differ within a layer", "rejects a recipe when the config does not match its expected geometry"]
+    must_never: ["change token-ID row order of the vocabulary", "silently drop a source tensor that the recipe claims to cover"]
+    evidence: ["tools/convert/pipeline.py 29-156", "tools/convert/official_recipes.py 189-392", "tools/convert/methods.py (method list 205-471)", "tools/convert/quantization/", "tools/artifact/writer.py", "docs/maintainer/weights-and-loading.md 6-63"]
+    read: code
+
+  - id: "draft-head-builder"
+    engine_name: "proposal head (tools/convert/proposal.py), optimized draft head"
+    does: "Generates an extra 4-bit (q4_g64) copy of the main output head for draft use only, either over the full vocabulary or over a shortlist of the most frequent tokens chosen from an offline token-frequency ranking, storing the shortlist's token-ID map."
+    not: "Not the verification head; the target always verifies with the main head."
+    runs: [offline]
+    takes:
+      - {from: "outside:model_files", what: "main output head source"}
+      - {from: "outside:storage", what: "token frequency counts (tools/freq_corpus/fixtures/ranking/ranking.train.counts.i64)"}
+    gives:
+      - {to: "checkpoint-converter", what: "proposal/head parameter (and proposal/token_ids for the indexed domain) added to the recipe"}
+    owns_state: []
+    exists_because: "drafting multiplies by the full vocabulary head every draft step; a cheaper head speeds drafting while verification keeps the target exact"
+    output_effect: none
+    output_effect_when: "changes only the acceptance rate; the target distribution and committed output rule are unchanged"
+    decisions:
+      - "full vocabulary or frequency-indexed shortlist, and how many rows"
+      - "which special tokens are forced into the shortlist"
+      - "which storage format the draft head uses"
+    when_things_go_wrong: ["rejects a ranking file that is not whole int64 vocabulary rows", "rejects a second proposal head", "requires an explicit source when the main head is split across sources"]
+    must_never: ["change the target vocabulary or the main head"]
+    evidence: ["tools/convert/proposal.py 14-121", "docs/maintainer/weights-and-loading.md 35-36", "src/models/qwen3_5/execution/draft.cpp 473-488 (remap_ids_inplace for indexed proposals)"]
+    read: code
+
+  - id: "context-cost-calibrator"
+    engine_name: "ninfer_context_cost_bench (bench/context_cost)"
+    does: "Measures device-to-host, host-to-device and device-to-device context copy times and prefill recomputation times on the actual machine and model, fits the cost model, accepts or rejects the fit on held-out error and ordering, and writes a machine/model cost preset JSON."
+    not: "Not a benchmark of serving throughput; its output is a policy input to restore-source choice."
+    runs: [offline]
+    takes:
+      - {from: "outside:operator", what: "artifact path, corpus, repetitions, chunk size"}
+      - {from: "outside:os", what: "GPU identity, driver and runtime versions"}
+    gives:
+      - {to: "outside:storage", what: "calibration report and an upserted preset keyed by hardware class and model prefill signature"}
+      - {to: "context-resource-manager", what: "transfer and recompute cost coefficients (via the preset file named in configuration, or compiled-in defaults copied from earlier runs)"}
+    owns_state: []
+    exists_because: "the right restore source (copy a checkpoint or recompute) depends on this machine's copy bandwidth and this model's prefill speed"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "cost model form: max(batch + copies x per-copy, bytes x per-byte) for transfers; chunk, token, attention-pair, vision-item and patch terms for recompute"
+      - "acceptance limits on p95 relative error and ordering significance"
+      - "how a preset is keyed (hardware class string, prefill signature hash)"
+    when_things_go_wrong: ["exits non-zero and writes no preset when the fit is rejected"]
+    must_never: ["overwrite a preset with a rejected fit"]
+    evidence: ["bench/context_cost/context_cost_bench.cpp 360-505", "src/runtime/engine/context_cache/context_cost_defaults.cpp 1-86"]
+    read: code
+
+  - id: "expert-priority-table"
+    engine_name: "kFlashNextExpertPriority, default_expert_priority (and Qwen3.6-35B-A3B moe_priority.cpp)"
+    does: "Supplies, compiled into the binary, a per-layer ranking of all experts from highest to lowest cache priority, derived from an offline routing-count calibration over 128 tasks in nine domains, with a geometry check that decides whether the table applies."
+    not: "Not a run-time usage counter; nothing updates it while serving. The program that produced it is not in the repository."
+    runs: [startup]
+    takes:
+      - {from: "outside:operator", what: "optional explicit priority override in options"}
+    gives:
+      - {to: "expert-residency-planner", what: "per-layer expert order for fixed and extra cache contents"}
+      - {to: "partition-planner", what: "per-layer expert order whose even/odd ranks split experts between two ranks under EP2"}
+    owns_state: ["the static ranking tables"]
+    exists_because: "expert use is skewed and stable across requests, so one offline ranking predicts which experts are worth keeping on the GPU"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "which estimator turned routing counts into ranks"
+      - "the geometry (hidden size, layers, experts, top-k) under which the default table applies; otherwise identity order"
+    when_things_go_wrong: ["rejects an override that does not cover every layer or is not a permutation"]
+    must_never: ["change routing; it only chooses copies and placement"]
+    evidence: ["src/models/qwen4_exp/parallel/expert_priority.cpp 8-12 and table", "src/models/qwen4_exp/program/planning.cpp 30-52", "src/models/common/moe/offload/plan.cpp 228-234", "src/models/qwen3_5/program/planning/moe_priority.cpp 8"]
+    read: code
+
+  - id: "configuration"
+    engine_name: "product/config (TOML schema, CLI options, EngineOptions)"
+    does: "Turns the TOML file, command-line options and environment variables into one validated set of startup options (model, max concurrency, max context, prefill chunk, KV encoding, speculative backend and draft count, proposal head, CUDA graph on/off, context cache sizes and cost presets, vision, sampling defaults, server and logging)."
+    not: "Does not interpret parallel strategy or storage formats; model preparation validates what its model supports."
+    runs: [startup]
+    takes:
+      - {from: "outside:operator", what: "ninfer.toml sections [model] [engine] [context_cache] [speculative] [vision] [media] [generation] [server] [logging] [observability], CLI flags, NINFER_* environment variables (VRAM budget, CUDA sync mode, expert offload, indexer precision)"}
+    gives:
+      - {to: "startup-memory-planner", what: "budgets and capacity requests"}
+      - {to: "model-definition-loader", what: "artifact path and selected components"}
+      - {to: "rank-program", what: "max concurrency, max context, prefill chunk, draft count, KV encoding, graph mode"}
+      - {to: "context-resource-manager", what: "host cache size, cost preset path"}
+      - {to: "http-api", what: "server address, responses store limits"}
+    owns_state: ["the normalized startup option set"]
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "KV encoding, sampling defaults and draft head choice change outputs compared with the defaults"
+    decisions:
+      - "which options a model accepts (e.g. Qwen4Exp MTP draft count 1 to 5, chunk a multiple of 128, scoring requires one lane)"
+      - "defaults per model (prefill chunk 4096 for Qwen4Exp, GLM and offload, else 1024)"
+    when_things_go_wrong: ["rejects options the selected model does not support before loading"]
+    must_never: ["let a later layer reinterpret a default differently from the engine's normalized value"]
+    evidence: ["src/product/config/", "ninfer.example.toml", "src/models/qwen4_exp/program/planning.cpp 55-77", "docs/startup-configuration.md"]
+    read: code
+
+  - id: "model-definition-loader"
+    engine_name: "artifact Reader, Binder, ModelDefinition"
+    does: "Opens the artifact's directory and files, checks framing, reads resources (tokenizer, template, PLE hash controls), and binds logical parameters with their shapes, uses and activation permits for the selected components into a device-free model definition."
+    not: "Does not read weight payloads or place anything on a device."
+    runs: [startup]
+    takes:
+      - {from: "outside:model_files", what: ".ninfer entry and continuation files"}
+      - {from: "configuration", what: "artifact path and selected optional components (MTP, vision, proposal head)"}
+    gives:
+      - {to: "partition-planner", what: "global config and bindings"}
+      - {to: "shard-materializer", what: "object ranges and codec descriptions"}
+      - {to: "prompt-preparer", what: "tokenizer, template, generation and processor resources"}
+    owns_state: ["the cold artifact directory and lazily opened file handles"]
+    exists_because: "the artifact stores encoded objects and bindings, not an executable graph; the native model code needs logical parameters"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "which optional components and resources are bound"
+    when_things_go_wrong: ["rejects framing or length mismatches against the directory", "reports missing bindings for a selected component"]
+    must_never: ["let checkpoint names or quantization metadata choose the execution architecture"]
+    evidence: ["src/artifact/reader.h 21-46", "src/artifact/binder.h 28-29", "docs/maintainer/weights-and-loading.md 6-40"]
+    read: code
+
+  - id: "partition-planner"
+    engine_name: "ParallelPlan (models/*/parallel/plan.cpp, models/common/parallel*.cpp)"
+    does: "Derives from the global config and bindings how one model is split across ranks: which heads, intermediate columns, experts and vocabulary rows each rank holds, what is replicated (router, indexer, embedding, residual mixing), where results must be reduced or gathered, and a 64-bit topology identity."
+    not: "Not request placement and not data parallelism; there is one model copy split across ranks."
+    runs: [startup]
+    takes:
+      - {from: "model-definition-loader", what: "global config and bindings"}
+      - {from: "expert-priority-table", what: "expert order for EP2 parity split"}
+      - {from: "configuration", what: "rank count, TP and EP degree"}
+    gives:
+      - {to: "shard-materializer", what: "per-rank rectangular selections of each logical parameter"}
+      - {to: "collective-communication", what: "communication roles and required collective shapes"}
+      - {to: "layer-compute", what: "local geometry (local heads, local vocabulary, local experts)"}
+      - {to: "context-directory", what: "per-rank state placement"}
+    owns_state: ["the immutable partition plan and its topology hash"]
+    exists_because: "GLM (178 GiB) and Flash Next (101 GiB) do not fit one DGX Spark, so one model must be split across two machines"
+    output_effect: numeric
+    output_effect_when: "compared with one rank: reductions split sums into halves and add them in a different order"
+    decisions:
+      - "TP only, or TP2 with EP1 (each expert's intermediate halved) or EP2 (whole experts alternate by priority rank)"
+      - "which parts are replicated instead of communicated"
+      - "how the output head is split (by vocabulary)"
+      - "where the PLE table lives (device shards on two Sparks, disk otherwise)"
+    when_things_go_wrong: ["rejects any combination other than one rank or TP2 with EP1/EP2 for Qwen4Exp"]
+    must_never: ["renormalize routing coefficients over a local expert subset", "cut a merged parent in half instead of slicing by role", "let replicated discrete decisions (router, indexer top-K) differ between ranks"]
+    evidence: ["src/models/qwen4_exp/parallel/plan.cpp 8-182 (per earlier notes)", "docs/maintainer/distributed-execution.md 15-25", "docs/maintainer/qwen4_exp-model.md 71-91"]
+    read: code
+
+  - id: "shard-materializer"
+    engine_name: "Materializer, EncodedSlice, Placement, FileBacking, ModelShard"
+    does: "Reads exactly this rank's encoded rectangles of each parameter from the artifact files through bounded staging and builds stable backing on the device, in ordinary host memory, in CUDA-registered host memory, or left as file backing, then holds them as the rank's immutable weights."
+    not: "Does not re-quantize; refining block-FP8 scale blocks repeats scale words and keeps represented values."
+    runs: [startup]
+    takes:
+      - {from: "outside:model_files", what: "encoded object bytes"}
+      - {from: "model-definition-loader", what: "object ranges and codecs"}
+      - {from: "partition-planner", what: "per-rank selections"}
+      - {from: "startup-memory-planner", what: "device and host budgets"}
+    gives:
+      - {to: "layer-compute", what: "parameter views of resident weights"}
+      - {to: "host-expert-store", what: "main routed experts in registered host memory (RTX 5090 offload)"}
+      - {to: "ple-row-source", what: "PLE table as file backing (disk path) or device shards (two Sparks)"}
+    owns_state: ["the rank's weight backings and their registration lifetimes"]
+    exists_because: "each rank needs only its slice, and the full model does not fit one device"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "which location each parent goes to (device, registered host, ordinary host, file)"
+      - "how reads are aligned and deduplicated when several destinations share a source"
+      - "whether a slice can be expressed value-preservingly, else the format rejects it"
+    when_things_go_wrong: ["rejects a slice its format cannot express exactly", "reports metadata and binding errors from the owning module"]
+    must_never: ["load the full model onto a device and cut it afterwards", "release a backing before its consumers and registration end"]
+    evidence: ["src/artifact/materializer.h", "src/artifact/encoded_slice.h 18-50", "src/artifact/placement.h 18-76", "src/artifact/backing.h 9-39", "docs/maintainer/weights-and-loading.md 65-91"]
+    read: code
+
+  - id: "startup-memory-planner"
+    engine_name: "StartupMemoryBudget, context capacity solver, graph calibration"
+    does: "Prices fixed weights, workspace, transition records, vision window, communication and allocator metadata per rank, measures graph capture growth by capturing, releasing and recapturing, and sizes the shared context backing from what remains, keeping planning headroom, a mandatory host reservation and a final whole-instance check apart."
+    not: "Does not size the expert cache; the expert residency planner uses what is left after it."
+    runs: [startup]
+    takes:
+      - {from: "configuration", what: "VRAM budget, explicit capacities, host reservation"}
+      - {from: "rank-program", what: "record layouts, required working set, execution resource needs"}
+      - {from: "execution-graphs", what: "measured capture and rebuild memory growth"}
+      - {from: "outside:os", what: "device memory snapshots"}
+    gives:
+      - {to: "context-pool", what: "context backing capacity per rank and domain"}
+      - {to: "expert-residency-planner", what: "remaining device bytes"}
+    owns_state: ["initial memory snapshot, limit, headroom and host reservation"]
+    exists_because: "the engine must prove at startup that the minimum legal working set of a request fits, on machines where host and device may share one physical memory"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "how much headroom planning may consume versus what must stay free after initialization"
+      - "separate device and host accounting on discrete GPUs; one physical budget on shared-memory Spark"
+      - "per-rank capacity; never use the sum over machines"
+      - "bounded correction of automatic capacity after an over-budget preparation; explicit capacity kept"
+    when_things_go_wrong: ["fails startup with the owning module's reason when the minimum working set does not fit", "tightens the runtime limit and retries automatic capacity once over budget"]
+    must_never: ["double-charge memory retained by the driver after graph release", "count the same bytes twice (expert ready bytes, registered host ranges, vision sub-windows are parts of their parents)"]
+    evidence: ["src/runtime/engine/startup_memory.h 8-37", "src/runtime/engine/context_capacity.cpp 158-159", "src/models/common/graph_preparation.cpp 24-46", "docs/maintainer/engine-architecture.md 42-69"]
+    read: code
+
+  - id: "expert-residency-planner"
+    engine_name: "moe::offload resolve_plan / plan_cache"
+    does: "At startup jointly solves, from the remaining device bytes, the per-layer fixed expert set, the reusable region, whether it holds two streaming windows or one, the small-T extra-cache target, the CPU worker count and the CPU/GPU split threshold per layer; refuses to run if no solution exists."
+    not: "Does not change cache contents while serving."
+    runs: [startup]
+    takes:
+      - {from: "startup-memory-planner", what: "available device bytes"}
+      - {from: "expert-priority-table", what: "per-layer expert order"}
+      - {from: "outside:os", what: "CPU topology"}
+      - {from: "configuration", what: "requested CPU workers, expert offload switch"}
+    gives:
+      - {to: "expert-cache", what: "capacity, fixed bytes, fixed layout, extra layout, window regions, upload slot count"}
+      - {to: "offload-mode-switch", what: "per-layer fixed, cache and stream layouts and window count"}
+      - {to: "hybrid-moe-dispatch", what: "per-layer token threshold (64 x workers / 15, clamped 1 to 64)"}
+      - {to: "cpu-expert-team", what: "worker CPUs and the caller CPU left free"}
+    owns_state: ["the offload plan"]
+    exists_because: "the routed experts of Flash Next (about 63 GiB) do not fit a 32 GiB RTX 5090 while only 10 of 512 experts per layer are used per token"
+    output_effect: numeric
+    output_effect_when: "which experts are resident decides which run on GPU versus CPU in small-T steps, and the two paths round differently"
+    decisions:
+      - "balanced per-layer byte share for the fixed region, largest that still leaves each window room for the worst layer's missing experts"
+      - "two windows first, one window if two do not fit"
+      - "CPU workers min(16, cores - 1) unless given"
+      - "upload slots at least 3, enough for two largest banks in 96 MiB batches"
+    when_things_go_wrong: ["returns no plan, so startup fails, when even one window cannot fit"]
+    must_never: ["move fixed entries after startup"]
+    evidence: ["src/models/common/moe/offload/plan.cpp 10-16, 120-283", "docs/maintainer/expert-weight-cache.md 21-40"]
+    read: code
+
+  - id: "execution-graphs"
+    engine_name: "DecodeGraphDefinition / Executable / Section, DeviceGraphs, GraphPreparation"
+    does: "Captures at startup one outer CUDA graph per batch size and round type (plain decode, draft plus verify), separate decision graphs and commit graphs, and per-context-length-bucket child graphs for the sparse attention layers and draft steps; at run time swaps child nodes when the visible length crosses a bucket, toggles the head and draft-readback sections, and replays."
+    not: "Not a different computation: eager and graph runs call the same body; prefill, replay and the vision encoder never use graphs."
+    runs: [startup, per_step]
+    takes:
+      - {from: "rank-program", what: "stable buffers, frames, execution tables and the step body"}
+      - {from: "configuration", what: "graph on/off, max concurrency, max context, draft count"}
+    gives:
+      - {to: "rank-program", what: "graph launches for a decode or verify round"}
+      - {to: "startup-memory-planner", what: "warmup, capture and rebuild memory growth"}
+    owns_state: ["instantiated graphs, installed child bucket per round, enabled sections"]
+    exists_because: "a decode step launches thousands of small kernels; host launch cost dominates without a recorded graph"
+    output_effect: none
+    output_effect_when: "same math composition as eager; the project does not claim bitwise equality in words"
+    decisions:
+      - "which variants to capture (batch size 1..max concurrency, with or without verify)"
+      - "context buckets: 128, 512, 2048, 8192, 32768, 131072 below the maximum, plus the maximum"
+      - "which sections are separate so host work (grammar masks, CPU experts, final acceptance) can sit between them"
+    when_things_go_wrong: ["throws if the visible length exceeds the largest bucket"]
+    must_never: ["change addresses of buffers or execution tables a graph references during its lifetime", "acquire or re-lay-out the expert cache inside capture", "outlive the backings it borrows"]
+    evidence: ["src/core/decode_graph.h 1-95", "src/models/qwen4_exp/program/device_graphs.cpp 13-223", "src/models/qwen4_exp/program/graphs.cpp 13-22", "src/models/common/graph_preparation.cpp", "docs/maintainer/engine-architecture.md 110-122"]
+    read: code
+
+  - id: "host-expert-store"
+    engine_name: "Host expert bank (registered WeightBank in ModelShard)"
+    does: "Holds every main routed expert of the model in host memory registered with CUDA, so the same bytes can be copied asynchronously to the GPU and read in place by CPU workers."
+    not: "Not a cache; it is the complete source, and evicting a GPU copy needs no write-back."
+    runs: [startup, on_demand]
+    takes:
+      - {from: "shard-materializer", what: "encoded expert banks"}
+    gives:
+      - {to: "expert-uploader", what: "encoded expert bytes for upload"}
+      - {to: "cpu-expert-team", what: "encoded expert weights read in place"}
+    owns_state: ["all main routed expert weights and their registration"]
+    exists_because: "the RTX 5090 has 32 GiB of device memory and large separate host memory; the experts fit only in host memory"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "which banks are registered for transfer versus kept ordinary"
+    when_things_go_wrong: []
+    must_never: ["release the host source before consumers and registration end"]
+    evidence: ["docs/maintainer/expert-weight-cache.md 9-19", "docs/maintainer/weights-and-loading.md 83-87", "src/core/weight_bank.h"]
+    read: docs
+
+  - id: "expert-cache"
+    engine_name: "ExpertCache"
+    does: "Keeps the device-side index of which experts are published in which slots of the fixed and reusable regions, lets consumers acquire and release sets of experts with generation numbers on their stream, and rebuilds a reusable region only after its readers have retired."
+    not: "Does not decide what to hold; it executes placements given to it and does no math or conversion."
+    runs: [startup, per_layer]
+    takes:
+      - {from: "expert-residency-planner", what: "capacity, fixed placements, region layouts"}
+      - {from: "offload-mode-switch", what: "region replacements and required/prefetch requests"}
+      - {from: "expert-uploader", what: "completion of uploaded expert bytes"}
+    gives:
+      - {to: "hybrid-moe-dispatch", what: "ready expert set snapshot and device views of acquired experts"}
+      - {to: "layer-compute", what: "device views of experts for full-layer GPU MoE"}
+    owns_state: ["slot placements, published flags, open uses and their generations, the device offset/divisor index"]
+    exists_because: "experts are larger than device memory, so device copies must be tracked and protected while kernels read them"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "bound on concurrently open uses (layers + 8)"
+    when_things_go_wrong: ["acquire returns nothing while weights are unpublished or the bounded use ring is occupied", "throws when called during graph capture", "throws if a replacement cuts through a placement or would drop an expert with an open reader"]
+    must_never: ["publish an expert before all its bytes are submitted in order", "rewrite a slot before the last device-side reader has retired", "be rolled back by prefix restore, pause or draft rejection"]
+    evidence: ["src/core/expert_cache.h 100-134", "src/core/expert_cache.cpp 20-30, 344-433, 696-767", "docs/maintainer/expert-weight-cache.md 42-55"]
+    read: code
+
+  - id: "expert-uploader"
+    engine_name: "ExpertCache::progress (upload batches and slots)"
+    does: "Moves encoded expert bytes from host to device in bounded batches (up to 96 MiB and 4096 copies per batch, a fixed number of in-flight upload slots), merging contiguous runs, and in streaming mode fills the other window with the next layer's missing experts while the current layer computes."
+    not: "Not a decision about which experts to hold."
+    runs: [per_layer, background]
+    takes:
+      - {from: "host-expert-store", what: "encoded expert bytes"}
+      - {from: "expert-cache", what: "pending required and prefetch placements"}
+    gives:
+      - {to: "expert-cache", what: "uploaded bytes and their completion events"}
+    owns_state: ["upload slots, pinned descriptors and in-flight batches"]
+    exists_because: "host-to-device copies are slow and must overlap computation without unbounded staging"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "batch size and count per progress call (budget)"
+      - "required uploads before prefetch; a new prefetch must not block current-layer data"
+    when_things_go_wrong: ["returns without waiting on the GPU when slots are busy", "a submitted DMA cannot be cancelled; failures end real consumers before releasing sources"]
+    must_never: ["reuse a pinned descriptor before its transfer completes"]
+    evidence: ["src/core/expert_cache.h 24-31, 60-81", "src/models/common/moe/offload/resources.cpp 302-337 (per earlier notes)", "docs/maintainer/expert-weight-cache.md 46-55"]
+    read: code
+
+  - id: "offload-mode-switch"
+    engine_name: "moe::offload Resources"
+    does: "For each execution decides from its token count whether any layer needs full-layer streaming, switches the reusable region between extra-cache layout and window layout, and after returning to small T refills the extra cache in small batches."
+    not: "Not a usage-driven replacement policy; it reacts to work size, not to which experts were used."
+    runs: [per_step]
+    takes:
+      - {from: "rank-program", what: "tokens in this execution"}
+      - {from: "expert-residency-planner", what: "layouts and thresholds"}
+    gives:
+      - {to: "expert-cache", what: "region replacements and prefetch targets"}
+    owns_state: ["current region mode and refill progress"]
+    exists_because: "with many tokens nearly every expert of a layer is selected, so streaming whole layers beats splitting with the CPU; with few tokens CPU help beats uploads"
+    output_effect: numeric
+    output_effect_when: "after a switch back to small T the ready set is smaller until refill finishes, so more experts run on CPU and rounding differs"
+    decisions:
+      - "streaming needed when T exceeds a layer's threshold"
+      - "refill pace (at most 8 MiB, one batch per call)"
+    when_things_go_wrong: ["experts not yet ready are computed on CPU instead"]
+    must_never: ["move the fixed region"]
+    evidence: ["src/models/common/moe/offload/resources.cpp 334-337, 385-396 (per earlier notes)", "docs/maintainer/expert-weight-cache.md 30-37"]
+    read: code
+
+  - id: "hybrid-moe-dispatch"
+    engine_name: "moe::offload execution"
+    does: "Per MoE layer, takes one global top-k routing, splits (token, expert) pairs between GPU and CPU by a mask built from a snapshot of ready experts (or streams the whole layer for large T), skips the CPU side when it has no pairs, and adds the FP32 partial sums before one rounding to BF16."
+    not: "Never omits a selected expert and never renormalizes coefficients over a subset."
+    runs: [per_layer]
+    takes:
+      - {from: "layer-compute", what: "router ids and coefficients, hidden states"}
+      - {from: "expert-cache", what: "ready set and acquired device views"}
+      - {from: "expert-residency-planner", what: "per-layer threshold"}
+    gives:
+      - {to: "cpu-expert-team", what: "hidden states, routes and CPU mask"}
+      - {to: "layer-compute", what: "combined expert output"}
+    owns_state: ["the bridge buffers for this layer's CPU inputs and partial sums"]
+    exists_because: "experts not on the GPU still have to be computed for every token that selects them"
+    output_effect: numeric
+    output_effect_when: "compared with the fused all-GPU path: separate FP32 partial sums are added in a different order; depends on which experts are ready at that moment"
+    decisions:
+      - "GPU subset versus CPU complement per layer from the ready snapshot"
+      - "large T versus small T by threshold"
+    when_things_go_wrong: ["throws if a cache borrow or layout change is attempted inside graph capture"]
+    must_never: ["add shared expert or residual twice", "overwrite bridge buffers while the previous layer's CPU results are still being read"]
+    evidence: ["src/models/common/moe/offload/execution.cpp 99-120, 194-269 (per earlier notes)", "include/ninfer/ops/moe.h 197-247", "docs/maintainer/expert-weight-cache.md 13-16, 57-68"]
+    read: code
+
+  - id: "cpu-expert-team"
+    engine_name: "CpuExecutor and moe_cpu kernels (nvfp4, groupwise_int; AVX2, AVX-512, AVX-512 BF16)"
+    does: "A fixed team of pinned CPU threads computes the experts assigned to the CPU directly from encoded host weights, grouping (token, expert) pairs per expert, and returns FP32 partial sums; the team is kept polling or put to sleep by how many layers used it recently."
+    not: "Never calls CUDA; the GPU-side program decides when inputs are ready and merges results."
+    runs: [per_layer]
+    takes:
+      - {from: "hybrid-moe-dispatch", what: "hidden states, routes, mask"}
+      - {from: "host-expert-store", what: "encoded weights in place"}
+      - {from: "expert-residency-planner", what: "worker CPUs"}
+    gives:
+      - {to: "hybrid-moe-dispatch", what: "FP32 partial sums"}
+    owns_state: ["worker threads, barriers, awake/asleep state"]
+    exists_because: "the host has many cores with vector units and the experts already live in host memory; computing in place avoids a PCIe upload"
+    output_effect: numeric
+    output_effect_when: "CPU arithmetic order differs from GPU kernels"
+    decisions:
+      - "instruction set variant (AVX2/FMA, AVX-512, AVX-512 BF16; forced by NINFER_MOE_CPU_* switches)"
+      - "keep awake when at least 1/4 of layers used CPU, sleep below 1/8"
+      - "token block and per-task column limits"
+    when_things_go_wrong: ["no CPU available is a startup error"]
+    must_never: ["call CUDA from a worker", "let exceptions escape a worker"]
+    evidence: ["src/core/cpu/executor.h 16-77", "src/ops/moe/kernels/cpu/nvfp4/launch.cpp", "src/models/common/moe/offload/resources.cpp 366-374 (per earlier notes)"]
+    read: code
+
+  - id: "ple-row-source"
+    engine_name: "PLE disk RowReader / DirectReadQueue / prepare / UploadSlots, or device PLE shards"
+    does: "Produces the per-layer embedding rows each token needs: hashes the token's 2- and 3-gram history into 16 row IDs, reads those NF4 rows from the model file with io_uring and O_DIRECT through a row cache (merging requests for the same page), decodes them to exact BF16 on a CPU worker and uploads them through slots; on two Sparks it looks rows up in device shards and merges the words across ranks."
+    not: "Not request state; only the PLE convolution history and token frontier are restored."
+    runs: [per_step, background]
+    takes:
+      - {from: "shard-materializer", what: "file backing or device shards of the PLE table"}
+      - {from: "rank-program", what: "token IDs of the coming execution (known prefixes may be prepared early)"}
+    gives:
+      - {to: "layer-compute", what: "BF16 embedding rows with a ready event"}
+    owns_state: ["row cache, in-flight reads, prepared windows and upload slots"]
+    exists_because: "the PLE table (about 2.5 million rows x 128 shards) is too large to keep on the device of one machine and only a few rows per token are needed"
+    output_effect: none
+    output_effect_when: "lookup must reproduce exact BF16 words whichever source is used"
+    decisions:
+      - "disk path or device-shard path (by deployment)"
+      - "row cache size, I/O depth, number of window slots"
+      - "prefetch of known input versus required window priority"
+    when_things_go_wrong: ["returns no slot when all are busy (caller waits)", "I/O errors come back as completion errors", "teardown terminates rather than free buffers still being written"]
+    must_never: ["reuse an upload slot before the last GPU consumer retires", "let the table's location change what the main model consumes"]
+    evidence: ["src/models/qwen4_exp/ple/disk/row_reader.h 9-40", "src/models/qwen4_exp/ple/disk/prepare.h 27-58", "src/models/qwen4_exp/ple/hash.h 7-10", "src/models/qwen4_exp/ple/upload.h 17-52", "src/core/io/read_queue.h 28-52", "docs/maintainer/qwen4_exp-model.md 55-69"]
+    read: code
+
+  - id: "engine-control-loop"
+    engine_name: "EngineCore worker_loop / begin_cycle / advance_cycle"
+    does: "The single control thread that polls execution events, then each cycle settles finished and cancelled requests, advances the service turn, admits or restores requests, reserves units, and submits at most one control batch, one decode batch and one prefill chunk."
+    not: "Not the fairness rules themselves (request-scheduler) and not device execution (executor)."
+    runs: [per_step]
+    takes:
+      - {from: "http-api", what: "prepared requests through a FIFO, cancellations"}
+      - {from: "executor", what: "decision-needed, result-ready, commit and retirement events"}
+      - {from: "request-scheduler", what: "memberships, admission candidates, preemption victims"}
+    gives:
+      - {to: "model-session", what: "start binding, start control/decode/prefill, commit decisions, pause"}
+      - {to: "output-interpreter", what: "candidate tokens to preview and commit"}
+      - {to: "observability", what: "runtime statistics and request lifecycle"}
+    owns_state: ["request slots (lanes), pending and paused queues, the cycle step, the current admission decision"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "order within a cycle: control span, then decode, then one prefill chunk"
+      - "when to re-run admission (queue or capacity change, deadline)"
+      - "spin-yield while work is outstanding versus 1 ms wait when idle"
+    when_things_go_wrong: ["any uncaught error fails all requests and stops the worker", "rejects a single request whose plan fails without touching device state"]
+    must_never: ["let ingress, output or network threads touch model storage directly", "publish a token whose model state was not committed"]
+    evidence: ["src/runtime/engine/engine_schedule.inl 1016-1260", "src/runtime/engine/engine_execution.inl 6-254", "docs/maintainer/engine-architecture.md 71-87"]
+    read: code
+
+  - id: "request-scheduler"
+    engine_name: "Scheduler"
+    does: "Decides batch membership and fairness: which lanes join a control or decode round, which lane gets the next prefill chunk (round robin), which waiting requests are admission candidates (FIFO with a bounded bypass allowance), who owns progress under memory pressure (service turns of 1 to 4 seconds), and which resident request is paused as a victim (the youngest)."
+    not: "Holds no physical reservations; native stores own them."
+    runs: [per_step]
+    takes:
+      - {from: "engine-control-loop", what: "slots, queues, served time, pressure signals"}
+    gives:
+      - {to: "engine-control-loop", what: "round memberships with per-row token budgets, admission candidates, progress owner, preemption victim"}
+    owns_state: ["prefill cursor, admission scan list, service order, pressure flag, service and recovery time"]
+    exists_because: "up to 8 requests share one model execution and one memory pool"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "FIFO bypass allowance equal to the concurrency"
+      - "service quantum 1 s, up to 4 s when restore work was expensive"
+      - "victim is the youngest resident not owning progress"
+      - "decode rounds and prefill chunks are separate executions, not mixed in one batch"
+    when_things_go_wrong: ["throws on inconsistent state (decode-ready without budget, ragged control spans)"]
+    must_never: ["let replay or waiting for a grant consume a service turn", "admit a younger request more often than the bypass allowance over an older one"]
+    evidence: ["src/runtime/engine/scheduler.h 19-320", "docs/maintainer/context-management.md 75-86"]
+    read: code
+
+  - id: "model-session"
+    engine_name: "native model Session (e.g. qwen4_exp/session)"
+    does: "Keeps each sequence's token ledger and main/draft frontiers, turns a request into a complete work demand (reads, writes, growth, copy-on-write tails, speculative peak, commit objects), binds sequences to lanes and restore sources, and runs generation transactions: plan, submit, decide, commit or discard, pause and resume."
+    not: "Not the physical allocator (context-pool) or the identity store (context-directory)."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "engine-control-loop", what: "binding, unit and commit requests"}
+      - {from: "context-directory", what: "reservations and assessments"}
+      - {from: "context-resource-manager", what: "chosen restore source"}
+      - {from: "prompt-preparer", what: "PreparedPrompt tokens, positions, media, identity"}
+    gives:
+      - {to: "executor", what: "work with frozen sequence, residency and batch row mapping; commit and discard"}
+      - {to: "context-directory", what: "demands and context transactions"}
+      - {to: "engine-control-loop", what: "pending batches, commit results, capture readiness, pause options"}
+    owns_state: ["token ledger, main and backend frontiers, current transaction per sequence, recovery targets"]
+    exists_because: "recurrent state and KV must stay consistent with exactly the committed tokens across speculation, pause and restore"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "pause action per request: keep on device, host snapshot, relocate, or release and replay"
+      - "full permit before verify that covers the later commit peak"
+    when_things_go_wrong: ["a failed reservation leaves no half permit", "unrecoverable device, communication or ledger errors fail the instance"]
+    must_never: ["compete for commit space after acceptance has happened", "splice independently recomputed state and KV into one checkpoint because tokens match"]
+    evidence: ["src/models/qwen4_exp/session/ (session.cpp, commit.cpp, checkpoints.cpp, reclaim.cpp listed)", "src/runtime/contract/placement.h 14-19", "docs/maintainer/engine-architecture.md 22-31, 77-87", "docs/maintainer/context-management.md 62-73"]
+    read: docs
+
+  - id: "executor"
+    engine_name: "Executor (LocalExecutor, DistributedExecutor)"
+    does: "Accepts a unit of work into a reserved frame, hands it to the rank program(s), passes host decision inputs (grammar masks) into the running ticket, delivers result-ready, commit receipts and device retirement in order, and frees frames only when every participating rank's last consumer has retired."
+    not: "Does not choose requests, sources or pages."
+    runs: [per_step]
+    takes:
+      - {from: "model-session", what: "work, commits, discards"}
+      - {from: "grammar-constraint", what: "decision inputs (token masks) per ticket"}
+      - {from: "rank-program", what: "results, decision requests, retirement observations"}
+    gives:
+      - {to: "rank-program", what: "work and commit commands (in process, or over the control connection)"}
+      - {to: "engine-control-loop", what: "DecisionNeeded, DecisionConsumed, ResultReady, DeviceRetired, ExecutionFailed events"}
+      - {to: "observability", what: "execution samples and per-rank observations"}
+    owns_state: ["compute and context frames, tickets with epoch and generation, command sequence, per-flight phase"]
+    exists_because: "results become readable before device work ends, and memory may be reused only after true device retirement"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "number of compute and context frames"
+      - "local in-process versus distributed workers"
+    when_things_go_wrong: ["late results whose ticket or generation does not match are rejected", "on failure stops submission, drains consumers and keeps the first cause"]
+    must_never: ["let ordinary work block completion of existing tickets", "retire a frame before all participants finish"]
+    evidence: ["src/runtime/executor/contract.h 13-142", "src/runtime/executor/executor.h 9-80", "src/runtime/executor/local_executor.h 12-277", "docs/maintainer/engine-architecture.md 89-108"]
+    read: code
+
+  - id: "rank-program"
+    engine_name: "RankProgram (RankProgramImpl)"
+    does: "On each rank, owns the context backing bindings, frames, workspace, fixed I/O buffers and graphs, and carries out one unit (prefill chunk, control span, decode round, draft-plus-verify round, commit, context action) by running the model's layer sequence, sampling or acceptance, and readback."
+    not: "Not the math of each layer (layer-compute) and not the logical frontier (model-session)."
+    runs: [per_step]
+    takes:
+      - {from: "executor", what: "work and commit commands"}
+      - {from: "execution-graphs", what: "graph launches"}
+      - {from: "ple-row-source", what: "PLE rows"}
+    gives:
+      - {to: "layer-compute", what: "batched inputs and state offsets"}
+      - {to: "executor", what: "results, decision requests, retirement"}
+      - {to: "offload-mode-switch", what: "tokens per execution"}
+      - {to: "startup-memory-planner", what: "record layouts, working set, workspace peak"}
+    owns_state: ["workspace arena, persistent I/O buffers, sampling frames, execution table rows, transition record buffers"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "graph replay or eager per unit kind"
+      - "where host handoffs split device work (grammar mask, CPU experts, final acceptance)"
+    when_things_go_wrong: ["device errors fail the instance"]
+    must_never: ["destroy graphs, events or registered views after the backings they borrow"]
+    evidence: ["src/models/qwen4_exp/program/ (program.cpp, resources.cpp, execution.cpp, dispatch.cpp listed)", "src/models/qwen4_exp/program/device_graphs.cpp 33-98", "docs/maintainer/engine-architecture.md 30-40"]
+    read: code
+
+  - id: "layer-compute"
+    engine_name: "native model execution and Ops (src/models/*/execution, src/ops)"
+    does: "Computes the model as written natively per architecture: embedding, four-stream gated residual mixing, GDN or KDA linear attention with causal convolution (writing transition records during verify), QSA or Kpool sparse attention with compressed index keys and top-K block selection, router, routed and shared experts, PLE, KV append in the chosen encoding, final mixing and output head, using kernels that read encoded weights directly."
+    not: "Holds no request policy; does not query the directory or pick victims."
+    runs: [per_layer]
+    takes:
+      - {from: "rank-program", what: "batched inputs, positions, state and page offsets"}
+      - {from: "shard-materializer", what: "resident weight views"}
+      - {from: "expert-cache", what: "expert views for full-GPU MoE"}
+      - {from: "hybrid-moe-dispatch", what: "combined expert output in offload mode"}
+      - {from: "ple-row-source", what: "PLE rows"}
+      - {from: "context-pool", what: "KV pages and state images through offset tables"}
+      - {from: "partition-planner", what: "local geometry"}
+      - {from: "collective-communication", what: "reduced and gathered results across ranks"}
+    gives:
+      - {to: "sampler", what: "logits"}
+      - {to: "draft-acceptance", what: "target logits and argmax over K+1 columns"}
+      - {to: "state-commit", what: "transition records, staged QSA tail, PLE conv records, conditioning features"}
+      - {to: "mtp-drafter", what: "conditioning features (four-stream residual before the final mixer)"}
+      - {to: "hybrid-moe-dispatch", what: "routes and hidden states"}
+    owns_state: []
+    exists_because: "the model defines it"
+    output_effect: numeric
+    output_effect_when: "against the source model: activations may be quantized to 4 or 8 bits where a weight use allows it; private accumulator order varies by kernel, batch shape and chunking"
+    decisions:
+      - "kernel variant per format, geometry, extent and GPU target (sm_120a or sm_121a), chosen by registered shape profiles"
+      - "activation precision per use within the permit (A16, A8, A4)"
+      - "KV encoding (bf16, int8, fp8, nvfp4, k8v4)"
+    when_things_go_wrong: ["an op rejects geometries it has no registered implementation for", "no hidden device allocation; scratch comes from caller workspace with a capacity query"]
+    must_never: ["re-evaluate projections at commit width for replay", "add index scores to attention logits"]
+    evidence: ["src/models/qwen4_exp/execution/ (gdn.cpp, qsa.cpp, ple.cpp, text.cpp listed)", "src/ops/ family listing (linear 594 files, softmax_attention 170, moe 166, linear_attention 144)", "src/ops/linear/kernels/nvfp4/ (a4 quantize, a16 and a4 MMA)", "include/ninfer/kv_cache_format.h 41-87", "docs/maintainer/qwen4_exp-model.md 8-31", "docs/maintainer/op-development.md 1-60"]
+    read: code
+
+  - id: "chunked-prefill"
+    engine_name: "Prefill / Replay units"
+    does: "Reads a prompt (or replays a paused request's committed tokens) in chunks of a fixed size without graphs, splitting media and math segments inside the model, and offers optional full checkpoints at chunk ends or semantic boundaries near every 8192 tokens."
+    not: "Not token-by-token reading; its reference is its own chunked math precision."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "model-session", what: "next chunk of tokens and media"}
+      - {from: "vision-encoder", what: "media features for spans"}
+    gives:
+      - {to: "layer-compute", what: "chunk inputs"}
+      - {to: "context-resource-manager", what: "capture-ready positions"}
+    owns_state: []
+    exists_because: "long prompts must be read with bounded workspace and interleaved with decoding of other requests"
+    output_effect: numeric
+    output_effect_when: "state after chunked reading can differ in the last bits from a different chunking or from token-by-token reading"
+    decisions:
+      - "chunk size (4096 or 1024 by model/path; multiple of 128)"
+      - "checkpoint interval and the quarter-interval window for snapping to a semantic boundary"
+    when_things_go_wrong: ["optional captures are skipped when space is short"]
+    must_never: ["count replay work as new output or sample again during replay"]
+    evidence: ["src/models/qwen4_exp/program/planning.cpp 72-75", "src/runtime/engine/context_cache/capture_policy.cpp 8-29", "src/runtime/engine/scheduler.h 127-143", "docs/maintainer/speculative-decoding.md 56-62"]
+    read: code
+
+  - id: "mtp-drafter"
+    engine_name: "MTP proposal (qwen4_exp/program/mtp.cpp)"
+    does: "Runs the model's built-in MTP layer K times (1 to 5) from the saved conditioning and its own history, taking the argmax of the (optionally 4-bit) draft head each step, to propose K tokens."
+    not: "Does not decide acceptance; its history is rebuilt on commit, not truncated."
+    runs: [per_step]
+    takes:
+      - {from: "layer-compute", what: "conditioning features"}
+      - {from: "context-pool", what: "MTP history pages and tail state"}
+    gives:
+      - {to: "draft-acceptance", what: "K proposed token IDs (one-hot proposals)"}
+      - {to: "grammar-constraint", what: "proposals read back for lookahead masks"}
+    owns_state: ["temporary draft tail for this round (frame)"]
+    exists_because: "the model ships a cheap draft layer; verifying K+1 positions reads weights once"
+    output_effect: none
+    output_effect_when: "changes only how many tokens are accepted per round"
+    decisions:
+      - "draft count, fixed at startup"
+      - "full main head or optimized draft head"
+    when_things_go_wrong: []
+    must_never: ["treat recursively drafted hidden states as the real ones on commit"]
+    evidence: ["src/models/qwen4_exp/program/mtp.cpp 90-118", "src/models/qwen4_exp/program/device_graphs.cpp 42-57", "docs/maintainer/speculative-decoding.md 21-44"]
+    read: code
+
+  - id: "block-drafter"
+    engine_name: "DFlash, DFlash2 (qwen3_5/execution/draft.cpp)"
+    does: "An external draft model conditioned on target residual features proposes up to 15 tokens at once with one non-causal masked-block attention pass (sliding-window local layers in cyclic KV, full layers in paged history); DFlash2 adds a dynamic grouped convolution and a candidate-path selector and keeps its actual proposal distribution q."
+    not: "Not step-by-step drafting; shortening the block may change every proposal."
+    runs: [per_step]
+    takes:
+      - {from: "layer-compute", what: "target residual features of selected layers"}
+      - {from: "context-pool", what: "draft context KV (cyclic and paged)"}
+    gives:
+      - {to: "draft-acceptance", what: "proposed tokens, and q for DFlash2"}
+    owns_state: ["query block, candidate paths and proposal probabilities for this round"]
+    exists_because: "dense 27B and GLM targets have external block draft models that propose many tokens per pass"
+    output_effect: none
+    output_effect_when: "changes acceptance rate only"
+    decisions:
+      - "block width (1 to 15 drafts, fixed at startup)"
+      - "full or indexed draft head"
+    when_things_go_wrong: []
+    must_never: ["replace DFlash2's q by per-column argmax or softmax"]
+    evidence: ["src/models/qwen3_5/execution/draft.cpp 38-518", "docs/maintainer/speculative-decoding.md 69-87"]
+    read: code
+
+  - id: "sampler"
+    engine_name: "ops sample, increment_token_counts"
+    does: "Turns logits into a token per row with per-request temperature, top-k (at most 20 candidates), top-p, min-p and presence/frequency penalties, using counter-based random keys of (request seed, logical position, purpose)."
+    not: "Keeps no mutable RNG; committed token counts are updated only by the commit path."
+    runs: [per_step]
+    takes:
+      - {from: "layer-compute", what: "logits"}
+      - {from: "grammar-constraint", what: "token mask"}
+      - {from: "http-api", what: "per-request sampling settings"}
+    gives:
+      - {to: "output-interpreter", what: "candidate token"}
+    owns_state: ["per-request committed token counts for penalties (count slots)"]
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "by design, per sampling settings"
+    decisions:
+      - "candidate cap of 20 before top-p/min-p"
+      - "tie rule (lower token ID wins)"
+    when_things_go_wrong: ["an empty legal set from the grammar ends the request as a constraint dead end"]
+    must_never: ["depend on the row's position in the batch"]
+    evidence: ["include/ninfer/ops/sampling.h 60-100", "src/ops/sampling/", "src/runtime/contract/sampling.cpp"]
+    read: code
+
+  - id: "draft-acceptance"
+    engine_name: "speculative_accept_greedy_drafts / sparse_drafts"
+    does: "Given target logits for K+1 columns and the drafts, licenses a prefix: greedy rows accept the longest match with the penalty-adjusted argmax plus one correction or bonus token; sampled rows accept with p(draft) (one-hot drafts) or min(1, p/q) (DFlash2) and resample the first rejection from the residual."
+    not: "Does not commit; the frontend may shorten the licensed prefix and the commit applies it."
+    runs: [per_step]
+    takes:
+      - {from: "layer-compute", what: "target logits and argmax"}
+      - {from: "mtp-drafter", what: "drafts"}
+      - {from: "block-drafter", what: "drafts and q"}
+      - {from: "grammar-constraint", what: "masks per position"}
+    gives:
+      - {to: "output-interpreter", what: "licensed tokens and licensed count per row"}
+    owns_state: []
+    exists_because: "drafted tokens must not change the target distribution"
+    output_effect: changes_output
+    output_effect_when: "under sampling, the token sequence differs from non-speculative sampling with the same seed while the distribution is preserved; greedy matches the target argmax of the verify batch shape"
+    decisions:
+      - "acceptance rule per draft kind (one-hot or sparse q)"
+      - "RNG purposes for accept, correction and bonus"
+    when_things_go_wrong: []
+    must_never: ["clip q by the target mask to fake a different proposal", "update counts or committed state"]
+    evidence: ["include/ninfer/ops/speculative_accept.h 22-67", "docs/maintainer/speculative-decoding.md 6-19"]
+    read: code
+
+  - id: "state-commit"
+    engine_name: "commit_verify / execute_mtp_commit, ReplaySSM fold (GdnReplayFoldPlan, KDA fold)"
+    does: "After the final accepted count m is known, writes every kind of per-sequence state for the committed prefix into the destination state record: replays m GDN/KDA transition records from the unchanged start state S0, extracts QSA raw index tail and PLE convolution history, scatters conditioning and continuation hidden, rebuilds MTP history from the real backbone features when more than one token is accepted, and adds accepted tokens to penalty counts; does nothing when m is zero."
+    not: "Not acceptance; it consumes the count chosen after frontend trimming."
+    runs: [per_step]
+    takes:
+      - {from: "layer-compute", what: "transition records, staged tails, conditioning, sample hidden"}
+      - {from: "model-session", what: "accepted count and source/destination state offsets per row"}
+    gives:
+      - {to: "context-pool", what: "updated state image at the destination, valid KV prefix, rebuilt MTP history"}
+      - {to: "sampler", what: "updated token counts"}
+    owns_state: ["the transition records of the current verify round until fold and last consumer finish"]
+    exists_because: "recurrent state is large; storing one start state plus compact per-position inputs and replaying the accepted prefix is cheaper than saving K+1 full states"
+    output_effect: none
+    output_effect_when: "fold result is bit-identical to the snapshot of the same physical verify block from the same S0, not to token-by-token decoding"
+    decisions:
+      - "commit by graph replay or eager"
+      - "rebuild draft history only when more than one token accepted"
+    when_things_go_wrong: []
+    must_never: ["read rejected records", "advance state when zero tokens are accepted", "re-run projections at commit width", "truncate the draft cache instead of rebuilding it"]
+    evidence: ["src/models/qwen4_exp/program/commit.cpp 9-127", "src/core/gdn_replay_records.h", "include/ninfer/ops/gdn_replay.h 15-45", "src/ops/linear_attention/gated_delta_net/replay/fold_io.cuh (shares transition.cuh with the recurrence)", "docs/maintainer/speculative-decoding.md 46-67"]
+    read: code
+
+  - id: "output-interpreter"
+    engine_name: "OutputSession"
+    does: "Per request, previews candidate tokens against EOS, stop strings, output budget and cancellation to pick the actually adopted prefix, then on commit detokenizes, separates thinking from content, parses tool calls, supplies forced control tokens (e.g. template closings) and emits protocol-neutral output events; discards a preview without side effects."
+    not: "Does not change prompt identity or model math."
+    runs: [per_step]
+    takes:
+      - {from: "sampler", what: "candidate tokens"}
+      - {from: "draft-acceptance", what: "licensed tokens"}
+      - {from: "engine-control-loop", what: "remaining budget"}
+    gives:
+      - {to: "engine-control-loop", what: "accepted count, finish reason, continuation (decode or forced control span)"}
+      - {to: "http-api", what: "published text, reasoning, tool-call events"}
+      - {to: "grammar-constraint", what: "committed tokens"}
+    owns_state: ["detokenizer, thinking/content state, tool decoder, stop matcher, preview transaction"]
+    exists_because: "generation may stop mid-round, and outputs must not be published unless the model state supports them"
+    output_effect: changes_output
+    output_effect_when: "trims generation at stop conditions and inserts forced control tokens"
+    decisions:
+      - "reasoning and tool formats per model family"
+      - "thinking budget"
+    when_things_go_wrong: ["incomplete tool call at length stop is reported distinctly", "output errors fail only that request"]
+    must_never: ["publish output before the model commit is accepted"]
+    evidence: ["src/models/common/frontend/output_session.h 40-108", "src/runtime/engine/engine_execution.inl 75-89, 207", "docs/maintainer/frontend.md 37-49"]
+    read: code
+
+  - id: "grammar-constraint"
+    engine_name: "GrammarSession (XGrammar CPU core), JSON schema, tool grammars"
+    does: "Holds a per-request grammar matcher (JSON schema, tool-call languages, model output framing) on the host, builds legal-token bitmasks for the target position and for draft lookahead positions, supplies them to the running ticket, and advances only on committed tokens."
+    not: "Compiling grammars happens at preparation, outside the engine lock."
+    runs: [per_request, per_step]
+    takes:
+      - {from: "http-api", what: "response format, schema, tool definitions"}
+      - {from: "mtp-drafter", what: "drafts for lookahead"}
+      - {from: "output-interpreter", what: "committed tokens"}
+    gives:
+      - {to: "executor", what: "mask words as decision input"}
+      - {to: "sampler", what: "mask"}
+      - {to: "draft-acceptance", what: "masks per position"}
+    owns_state: ["matcher state with lookahead/accept/confirm/discard transaction"]
+    exists_because: "structured output and tool calls must be valid by construction"
+    output_effect: changes_output
+    output_effect_when: "restricts the target distribution to legal tokens"
+    decisions:
+      - "which constraint languages compose for a request"
+    when_things_go_wrong: ["preparation errors, empty legal set and internal contract errors are reported separately; empty set ends the request"]
+    must_never: ["consume old output again during replay", "redefine proposal probabilities"]
+    evidence: ["src/text/grammar.h 22-70", "src/text/json_schema.cpp", "src/runtime/executor/contract.h 71-94", "docs/maintainer/frontend.md 51-66"]
+    read: code
+
+  - id: "context-pool"
+    engine_name: "ContextPool, PagedKV, StateImage, CyclicKVCache"
+    does: "One startup-sized byte backing per rank and domain holds every request's paged KV planes and fixed-size state images (main, MTP and draft histories alike) in a few record size classes; it places records, tracks real allocatability, and compacts blocks by moving records and patching device offset tables."
+    not: "Does not know request identity, references or which content to keep."
+    runs: [startup, per_step, on_demand]
+    takes:
+      - {from: "startup-memory-planner", what: "capacity"}
+      - {from: "context-directory", what: "reservations and maintenance plans"}
+      - {from: "state-commit", what: "state and KV writes"}
+    gives:
+      - {to: "layer-compute", what: "KV pages and state fields through I64 byte-offset tables"}
+      - {to: "context-directory", what: "assessments of what fits and occupancy"}
+    owns_state: ["record placements, block classes, free blocks, pending moves"]
+    exists_because: "KV grows per token while recurrent state is fixed-size per position; sharing one backing avoids fixed per-request quotas"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "record size classes and alignment"
+      - "when compaction is worth doing"
+    when_things_go_wrong: ["enough free bytes may still not fit a request; admission uses placement, not totals", "a begun move cannot be cancelled; it completes first"]
+    must_never: ["move records while address borrows are live", "change model math or page span to fit block geometry"]
+    evidence: ["src/core/context_pool.h 130-215", "src/core/paged_kv_cache.h 74-143", "src/core/state_image.h 12-38", "src/core/cyclic_kv_cache.h 7", "docs/maintainer/context-management.md 6-25, 49-60"]
+    read: code
+
+  - id: "context-directory"
+    engine_name: "ContextDirectory, ContextTransaction, CheckpointStore, recovery forest"
+    does: "Keeps logical identity of states, histories and pages (content version, coverage, references, copy-on-write branching of shared tail pages, reservations, address borrows), evaluates a demand jointly across ranks and domains, and runs context transactions that copy, map, wait for retirement and then publish."
+    not: "Does not rank sources or choose victims; resource manager does."
+    runs: [per_step, on_demand]
+    takes:
+      - {from: "model-session", what: "demands and transactions"}
+      - {from: "partition-planner", what: "per-rank placement"}
+    gives:
+      - {to: "context-pool", what: "reservations and moves"}
+      - {to: "context-transfer", what: "copy and mapping actions"}
+      - {to: "context-resource-manager", what: "release sets and measured freed bytes"}
+    owns_state: ["object identities, references, coverage, reservations, checkpoint records and identity forest"]
+    exists_because: "requests share prefixes of KV and need recurrent checkpoints, so content outlives requests and needs reference counting"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "logical references versus execution borrows"
+      - "copy only conflicting tail pages on write"
+    when_things_go_wrong: ["a failed reservation leaves nothing half-held", "cancellation does not end committed DMA or source borrows early"]
+    must_never: ["release a record that still has a consumer", "let unadopted speculative bytes become restorable content", "use an input digest as proof; verify tokens, positions, media and execution identity"]
+    evidence: ["src/models/common/context/directory.h 16-293", "src/models/common/context/checkpoint_store.h 23-24", "src/models/common/context/recovery.h 18-29", "docs/maintainer/context-management.md 27-47, 130-141"]
+    read: code
+
+  - id: "context-transfer"
+    engine_name: "context transfer slots, snapshot, Device/Host demotion"
+    does: "Moves context records between device memory, a pinned host tier (RTX 5090, default 8 GiB plus 8 state images; zero on Spark) and peer ranks in bounded chunks on a transfer stream, for demotion, restore, pause snapshots and attention-owner changes."
+    not: "Does not decide what moves."
+    runs: [on_demand, background]
+    takes:
+      - {from: "context-directory", what: "copy and mapping actions"}
+    gives:
+      - {to: "context-pool", what: "copied records and patched mappings"}
+      - {to: "collective-communication", what: "peer copies"}
+    owns_state: ["per-slot staging, pinned mapping storage and events", "the host-side context backing"]
+    exists_because: "device memory is small; on discrete GPUs the host is a cheaper second tier"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "chunk size and staging per slot"
+      - "host tier size (must be zero on shared-memory targets)"
+    when_things_go_wrong: ["a non-zero host cache on a shared-memory target is a startup error"]
+    must_never: ["release source, destination or staging before the copy completes"]
+    evidence: ["src/models/common/context/transfer.h 20-45", "src/models/common/context/snapshot.h 17-18", "src/models/common/context/storage.cpp 57-71 (per earlier notes)"]
+    read: code
+
+  - id: "context-resource-manager"
+    engine_name: "ResourceManager (context_cache), capture policy, placement policy"
+    does: "Indexes reusable prefixes and checkpoints, ranks restore sources for a new or paused request (device, host, other rank, or recompute) by modelled transfer plus recompute time, decides which optional checkpoints to save, chooses reclaim and demotion victims by loss per freed byte, and for GLM attention data parallelism picks the attention-owner rank."
+    not: "Does not hold content; the directory does. Cost decides preference only; exact match and coverage decide availability."
+    runs: [per_request, on_demand]
+    takes:
+      - {from: "context-cost-calibrator", what: "cost presets"}
+      - {from: "context-directory", what: "release sets, freed bytes, coverage"}
+      - {from: "chunked-prefill", what: "capture-ready positions"}
+      - {from: "prompt-preparer", what: "input identity and candidate restore points"}
+    gives:
+      - {to: "model-session", what: "chosen source and placement"}
+      - {to: "engine-control-loop", what: "reclaim progress (changed, transferring, deferred, blocked)"}
+    owns_state: ["prefix index, retention value, waiting references and source leases"]
+    exists_because: "recurrent state can be restored only at saved checkpoints, and copying versus recomputing has very different costs per machine"
+    output_effect: numeric
+    output_effect_when: "a restored prefix was read with different chunk boundaries than a fresh read; no bitwise claim versus reading the whole prompt"
+    decisions:
+      - "sort sources by transfer + recompute time, ties by fewer bytes then more reused tokens"
+      - "cross-rank copy only when recompute cost was measured and it is cheaper"
+      - "victims: unwaited before waited, never-reused before reused, then lowest loss per freed byte"
+      - "retention value only from real cross-request adoption"
+      - "checkpoint interval 8192 tokens snapped to semantic boundaries"
+      - "ADP: balanced when peak load at most 1.5 x minimum; among balanced, longest local prefix"
+    when_things_go_wrong: ["falls back to the next source when one is revoked or invalid", "deferred when capacity may free up from resident progress"]
+    must_never: ["let optional capture borrow the rights of necessary execution", "let aliases deleted together serve as each other's fallback"]
+    evidence: ["src/runtime/engine/context_cache/resource_manager.h 186-241, 1474-1506 (per earlier notes)", "src/runtime/engine/context_cache/context_cost.cpp 353-362", "src/runtime/engine/context_cache/capture_policy.cpp 8-29", "src/runtime/engine/context_cache/placement_policy.cpp 20-71", "src/runtime/engine/engine_schedule.inl 289-349, 587-640", "docs/maintainer/context-management.md 88-128"]
+    read: code
+
+  - id: "causal-scorer"
+    engine_name: "CausalScoring purpose (causal_score_core.h)"
+    does: "Scores a given token sequence (log-probabilities) with the same model and execution base in a serial single-lane lifecycle with temporary context, outside generation scheduling and prefix retention."
+    not: "Not generation."
+    runs: [per_request]
+    takes:
+      - {from: "outside:client", what: "text to score (perplexity app)"}
+    gives:
+      - {to: "outside:client", what: "per-token scores"}
+    owns_state: ["temporary context of the scored sequence"]
+    exists_because: "perplexity evaluation of the converted weights uses the engine's own kernels"
+    output_effect: none
+    output_effect_when: ""
+    decisions: []
+    when_things_go_wrong: ["rejects multi-lane, vision or speculative options"]
+    must_never: ["enter the prefix cache"]
+    evidence: ["src/runtime/engine/causal_score_core.h", "src/models/qwen4_exp/program/planning.cpp 68-71", "docs/maintainer/engine-architecture.md 132-133"]
+    read: code
+
+  - id: "prompt-preparer"
+    engine_name: "Frontend (Tokenizer, Jinja chat template, PreparedPrompt, prefix identity)"
+    does: "Turns a protocol-neutral prompt (turns, tools, media references) into a PreparedPrompt: renders the model's chat template, tokenizes with the artifact's BPE description, lays out media placeholder spans and positions, and produces an input identity and candidate restore points for prefix reuse."
+    not: "Does not fetch remote media (media-preparer) or touch model storage."
+    runs: [per_request]
+    takes:
+      - {from: "http-api", what: "turns, tools, settings"}
+      - {from: "model-definition-loader", what: "tokenizer and template resources"}
+      - {from: "media-preparer", what: "preprocessed media and its identity"}
+    gives:
+      - {to: "model-session", what: "PreparedPrompt"}
+      - {to: "context-resource-manager", what: "input identity and restore candidates"}
+    owns_state: []
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "template and thinking options change the prompt the model sees"
+    decisions:
+      - "history thinking removal, tool history normalization, template closings"
+      - "where restore points may sit (not inside media)"
+    when_things_go_wrong: ["rejects invalid tool history"]
+    must_never: ["treat identical placeholder tokens as proof that images are identical"]
+    evidence: ["src/text/tokenizer.cpp", "src/text/jinja.cpp", "src/models/common/qwen/frontend/", "src/models/common/qwen/prefix_identity.h", "docs/maintainer/frontend.md 6-35"]
+    read: docs
+
+  - id: "media-preparer"
+    engine_name: "media_acquire, media decode, image_transform, MediaPreprocessCache"
+    does: "Fetches image and video bytes from files or URLs under size, time, redirect and private-network limits, decodes them, runs the model processor (sampling, resize, patch order), and caches preprocessed results by content and processing plan with a live-memory budget and single-flight."
+    not: "Does not run the vision encoder."
+    runs: [per_request]
+    takes:
+      - {from: "http-api", what: "media references"}
+      - {from: "outside:storage", what: "local files under a media root"}
+      - {from: "outside:client", what: "remote URLs"}
+    gives:
+      - {to: "prompt-preparer", what: "patches, spans and media identity"}
+      - {to: "vision-encoder", what: "patch payloads"}
+    owns_state: ["preprocess cache entries and live payload budget"]
+    exists_because: "the served models accept images and video"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "limits (256 MiB bytes, timeouts, video pixels, frames and duration)"
+      - "cache capacity and live budget"
+    when_things_go_wrong: ["budget exceeded, remote unavailable, timeout, deadline and cancel are distinct errors"]
+    must_never: ["charge cached and request-held copies of the same payload twice"]
+    evidence: ["src/product/media_acquire/acquire.h 7-47", "src/media/decode/decode.h 33-90", "src/models/common/frontend/media_cache.h", "docs/maintainer/frontend.md 68-84"]
+    read: code
+
+  - id: "vision-encoder"
+    engine_name: "Vision tower, Vision window (models/common/vision, qwen/vision, glm5next/vision)"
+    does: "Runs the vision tower eagerly on independently encodable media units chosen to fit a separate vision memory window, borrowing scratch from the program workspace, and keeps features until the matching text spans have consumed them."
+    not: "Not part of decode; requests in decode no longer hold vision activations."
+    runs: [per_request]
+    takes:
+      - {from: "media-preparer", what: "patch payloads"}
+    gives:
+      - {to: "chunked-prefill", what: "media features for prompt spans"}
+    owns_state: ["vision feature window lease"]
+    exists_because: "image and video inputs must become embeddings in model space"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "which complete units fit the window in one execution"
+      - "rank-major split of units across ranks (weights replicated)"
+    when_things_go_wrong: ["stops before a unit that would exceed the window"]
+    must_never: ["cut an attention segment to fit the budget", "release the window while a reader is in flight"]
+    evidence: ["src/models/common/vision/window.h 13-66", "src/models/common/vision/resources.h 28-34", "docs/maintainer/frontend.md 77-84"]
+    read: code
+
+  - id: "http-api"
+    engine_name: "HttpServer, GenerationService, OpenAI chat / responses and Anthropic messages adapters"
+    does: "Serves /v1/chat/completions, /v1/responses (with input_tokens, compact, cancel, get, delete), /v1/messages and count_tokens, /v1/models, /health and /metrics over HTTP with streaming, validating and translating each protocol into one generation request, establishing admission before committing a streaming response, and settling cancellation on client disconnect."
+    not: "Does not parse model-native tool tags; the output interpreter does."
+    runs: [per_request]
+    takes:
+      - {from: "outside:client", what: "HTTP requests"}
+      - {from: "output-interpreter", what: "output events"}
+      - {from: "responses-store", what: "previous response context"}
+      - {from: "configuration", what: "server settings"}
+    gives:
+      - {to: "prompt-preparer", what: "protocol-neutral prompt"}
+      - {to: "engine-control-loop", what: "submitted requests and cancellations"}
+      - {to: "responses-store", what: "stored responses"}
+      - {to: "outside:client", what: "JSON or SSE responses"}
+    owns_state: ["per-connection request lifetimes"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "which protocol fields are accepted or rejected (e.g. audio history rejected)"
+    when_things_go_wrong: ["maps engine request errors to one HTTP error contract", "binds the address before model loading"]
+    must_never: ["produce two contradictory settlements for one request"]
+    evidence: ["src/serve/http_server.cpp 432-490", "src/serve/http_server.h 28-43", "src/serve/generation_service.h 3-129", "src/serve/openai_chat_request.cpp 471-472"]
+    read: code
+
+  - id: "responses-store"
+    engine_name: "OpenAIResponsesStore"
+    does: "Keeps stored Responses objects and their previous_response_id conversation DAG in process memory, bounded by record count and bytes with LRU eviction, and flattens a stored context when a continuation is submitted."
+    not: "Owns no model state; its session key is only a lookup and retention hint to the engine."
+    runs: [per_request]
+    takes:
+      - {from: "http-api", what: "responses to store and IDs to look up"}
+    gives:
+      - {to: "http-api", what: "flattened prior turns"}
+    owns_state: ["stored responses, context nodes with shared parents, LRU order"]
+    exists_because: "the Responses protocol lets clients continue from a server-held previous response"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "record and byte limits"
+    when_things_go_wrong: ["unknown previous_response_id returns 404 response_not_found"]
+    must_never: []
+    evidence: ["src/serve/openai_responses_store.h 3-77", "src/serve/openai_responses_state.cpp 12-19"]
+    read: code
+
+  - id: "rank-launcher"
+    engine_name: "ExecutionGroup, bootstrap, Transport, worker app"
+    does: "Starts worker processes for other ranks (posix_spawn locally, non-interactive SSH remotely), hands each its rank, node, device and environment before CUDA initialization, keeps one persistent control connection per worker for commands and results, and runs the worker loop that executes the coordinator's plan."
+    not: "Workers never reselect requests, sources or pages."
+    runs: [startup, per_step]
+    takes:
+      - {from: "configuration", what: "nodes, devices, rank count"}
+      - {from: "executor", what: "encoded work and commit messages"}
+    gives:
+      - {to: "executor", what: "rank results, retirement and preparation reports"}
+    owns_state: ["worker processes and control connections"]
+    exists_because: "a model split across two machines needs a process per GPU coordinated by one scheduler"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "message encoding by fields only (no pointers); no cross-version compatibility"
+    when_things_go_wrong: ["collects every rank's preparation result before any collective phase", "keeps the worker's original load error over later connection-closed noise", "on failure stops submission and kills remaining processes without waiting for an impossible collective"]
+    must_never: ["let one side enter a collective after the other failed preparation"]
+    evidence: ["src/distributed/bootstrap.h 9-34", "src/distributed/transport.h 81-93", "src/runtime/executor/rank_worker.h", "apps/worker/main.cpp", "docs/maintainer/distributed-execution.md 6-46"]
+    read: code
+
+  - id: "collective-communication"
+    engine_name: "CommunicationContext, Group (NCCL backend, native RDMA backend)"
+    does: "Prepares communication groups and runs the all-reduce, all-gather, reduce-scatter and peer transfers the model's partition requires, choosing per collective shape between NCCL and a native backend over InfiniBand verbs with device-visible signals (preferred on two-rank Spark)."
+    not: "Does not interpret layer order or cache value."
+    runs: [startup, per_layer]
+    takes:
+      - {from: "partition-planner", what: "required collective operations, dtypes and count ranges"}
+      - {from: "layer-compute", what: "local contributions"}
+      - {from: "context-transfer", what: "peer context copies"}
+    gives:
+      - {to: "layer-compute", what: "reduced or gathered results"}
+    owns_state: ["communicators, RDMA queue pairs and registered buffers, signal slots, frozen routing table"]
+    exists_because: "the model is split across two machines"
+    output_effect: numeric
+    output_effect_when: "reduction order differs from a single-rank sum; no FP32 forced"
+    decisions:
+      - "backend per collective and count range (native or NCCL), agreed by all members before connecting"
+      - "policy override (native, NCCL, automatic)"
+    when_things_go_wrong: ["checks agreement before any backend connection or device work", "on failure aborts communication"]
+    must_never: ["skip a scheduled collective because one side has no local expert or attention row", "differ in order, count or dtype between ranks"]
+    evidence: ["src/distributed/communication.h 18-139", "src/distributed/communication/selection.cpp 10-60", "src/distributed/communication/native/rdma.h", "src/distributed/communication/native/protocol.h", "docs/maintainer/distributed-execution.md 64-78"]
+    read: code
+
+  - id: "observability"
+    engine_name: "runtime/observability, include/ninfer/observability, product/logging, serve/metrics"
+    does: "Records request lifecycle (TTFT, queue wait, preemptions), execution samples per unit, GPU stream intervals, host work, speculative counters per draft position, resource allocations, expert and PLE upload bytes and per-rank snapshots, and exposes them as Prometheus metrics, JSONL and pretty logs, measurement windows and startup progress."
+    not: "Never derives facts by parsing logs or by model name."
+    runs: [per_step, background]
+    takes:
+      - {from: "engine-control-loop", what: "lifecycle and scheduling transitions"}
+      - {from: "executor", what: "execution samples and rank observations"}
+    gives:
+      - {to: "http-api", what: "/metrics text"}
+      - {to: "outside:operator", what: "logs and startup progress"}
+    owns_state: ["cumulative statistics, measurement window"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    output_effect_when: ""
+    decisions:
+      - "timing on or off; unmeasured is reported as missing, not zero"
+    when_things_go_wrong: ["log callback exceptions do not change engine results"]
+    must_never: ["log prompts, generated content, media or credentials", "add overlapping intervals into wall time"]
+    evidence: ["src/runtime/observability/", "include/ninfer/observability/", "src/runtime/executor/executor.h 48-72", "src/serve/metrics.cpp 58", "docs/maintainer/observability.md"]
+    read: code
+
+absent:
+  - {job: "audio input", why: "no audio decoder or encoder; assistant audio history is rejected by the chat adapter"}
+  - {job: "run-time draft length adaptation", why: "draft count is fixed at startup per configuration; acceptance is only measured"}
+  - {job: "usage-driven expert cache replacement", why: "cache contents come from the offline priority table; run-time changes follow work size only"}
+  - {job: "data-parallel replicas and pipeline parallelism", why: "one centrally scheduled model copy split by TP/EP; DP is described as a separate future concept"}
+  - {job: "KV or state offload to disk", why: "the second tier is pinned host memory on RTX 5090 only; disk is used only for the PLE table"}
+  - {job: "mixing prefill and decode of different requests in one batch", why: "prefill chunks and decode rounds are separate executions in one cycle"}
+  - {job: "serving several models or adapters in one engine", why: "one engine serves one model; no LoRA or adapter path"}
+  - {job: "on-the-fly weight quantization at load", why: "all weight encodings are fixed by the converter; load only slices value-preservingly"}
+  - {job: "the expert priority calibration program", why: "only its resulting tables are in the repository"}
+outside_engine:
+  - {name: "apps/cli", what: "command-line client driving the same Engine entry"}
+  - {name: "apps/perplexity", what: "perplexity evaluation app using the causal scoring purpose"}
+  - {name: "bench/", what: "C++ benchmarks for ops, models, distributed, inference, and the context-cost calibrator's measurement harness"}
+  - {name: "eval/", what: "Python task-accuracy evaluation harness and configs"}
+  - {name: "tests/", what: "unit and real-model tests"}
+  - {name: "dashboard/", what: "separate TypeScript web dashboard reading engine metrics"}
+  - {name: "tools/bench, tools/smoke, tools/streaming_http, tools/ninfer_serve", what: "serving benchmarks, smoke tests, HTTP streaming clients, Python client helpers"}
+  - {name: "tools/freq_corpus", what: "token frequency ranking fixtures consumed by the draft head builder"}
+  - {name: "tools/upgrade_ninfer_v2_to_v3.py, tools/artifact/inspect.py", what: "artifact format upgrade and inspection"}
+  - {name: "tools/hbm_bandwidth_probe.cu", what: "memory bandwidth probe"}
+  - {name: "cmake/, CMakePresets.json, Dockerfile, third_party/", what: "build system with per-machine targets (RTX 5090 sm_120a, DGX Spark sm_121a), container, vendored libraries (XGrammar, httplib, NCCL bindings)"}
+  - {name: "model-cards/", what: "published model descriptions"}
+surprises:
+  - "The engine binary is compiled for one machine class (NINFER_TARGET_SPARK or RTX 5090) and kernels register fixed shape profiles per model (e.g. fold geometry 48 layers x 16/48 heads); support is a property of model x machine, not a generic dispatch."
+  - "Speculative commit is a separate multi-store transaction after acceptance and after frontend trimming: recurrent state is replayed from compact transition records into a destination record, the draft layer's history is rebuilt from real backbone features, and its bitwise reference is the same verify block, not plain decoding."
+  - "The reusable part of the GPU expert cache changes role with batch size: extra resident experts when few tokens, two per-layer streaming windows when many; what is resident is fixed from an offline calibrated table, never from run-time use."
+  - "MoE layers can be split between GPU and a pinned CPU thread team computing directly on encoded host weights, with the split decided per layer from a snapshot of ready experts; outputs depend numerically on cache readiness."
+  - "Recurrent state can only be restored at saved checkpoints, so prefix reuse is a cost-ranked choice among device, host, peer-rank checkpoints and recomputation, using calibrated per-machine cost presets."
+  - "Prefill and decode never share a batch; each control cycle submits at most one forced-control span, one decode round and one prefill chunk."
+  - "A per-layer embedding table larger than device memory is read row by row from the model file on disk with io_uring each step, keyed by token n-gram hashes."
+  - "Two-machine collectives default to a hand-written RDMA verbs backend, not NCCL, on two-rank Spark."
+  - "Sampling top-k is capped at 20 candidates, and randomness is keyed by (seed, logical position, purpose), independent of batch row."
+  - "Memory planning measures CUDA graph capture growth by capturing, releasing and re-capturing before sizing the context pool, and keeps three different headroom notions."
+not_read: "Most kernel bodies under src/ops (only CPU NVFP4 MoE launch and the GDN fold access header were opened); all GLM5Next model code (KDA, Kpool MLA, mHC) beyond its document; Qwen3.5 programs other than draft.cpp; src/models/common/context/directory.cpp, context_pool.cpp and resource_manager.h body (relied on earlier notes' line-checked claims for resource_manager.h, placement_policy.cpp, offload resources.cpp and execution.cpp, qwen4_exp parallel plan.cpp, storage.cpp); distributed_executor.h and wire protocol bodies; tokenizer, Jinja and tool parser code; vision tower math; dashboard; tests; docs/designs, docs/serving.md, docs/weight-conversion.md beyond grep, build-system.md."

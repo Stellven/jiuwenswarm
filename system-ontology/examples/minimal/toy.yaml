@@ -1,0 +1,132 @@
+# A complete small example: an invented engine with two components. It is embedded in the field reference
+# and is checked like any other description. Nothing here describes a real engine.
+kind: hardware
+id: hw/toy-box
+title: "A machine with one unified memory pool"
+compute_units:
+  - {id: cpu0, kind: cpu}
+  - {id: gpu0, kind: gpu}
+memory_pools:
+  - id: mem0
+    kind: unified_ram
+    capacity_nominal: {value: 16, unit: GB, unit_basis: decimal, status: vendor_stated, source: "toy data sheet, memory row"}
+  - id: ssd0
+    kind: nvme
+    capacity_nominal: {value: 256, unit: GB, unit_basis: decimal, status: vendor_stated, source: "toy data sheet, storage row"}
+access_paths:
+  - {id: cpu0-mem0, kind: direct, unit: cpu0, pool: mem0}
+  - {id: gpu0-mem0, kind: direct, unit: gpu0, pool: mem0}
+  - {id: ssd0-to-mem0, kind: page_in, origin: ssd0, destination: mem0}
+---
+kind: model
+id: model/toy
+title: "A small model with a few experts per layer"
+default_status: assumed
+operations:
+  - id: expert_router
+    kind: selection
+    selects: {operation: expert_ffn, out_of: 8, pick: 2, per: "token per layer"}
+  - id: expert_ffn
+    kind: compute
+    reads: [expert_weights]
+  - id: shared_blocks
+    kind: compute
+    reads: [shared_weights]
+    writes: [attention_kv]
+data:
+  - id: expert_weights
+    kind: weight
+    partitioned_by: [layer, expert]
+    size: {value: 24, unit: GB, unit_basis: decimal, status: assumed}
+    encoded_bits: 4
+  - {id: shared_weights, kind: weight, size: {value: 2, unit: GB, unit_basis: decimal, status: assumed}, encoded_bits: 8}
+  - {id: attention_kv, kind: model_state}
+statements:
+  - {subject: model/toy, property: layers, value: 4, status: assumed}
+---
+kind: system
+id: sys/toy
+title: "Toy engine"
+summary: "Keeps the most used experts in memory and reads the others from storage when a token selects them."
+product: {name: Toy, form: "invented for this example"}
+targets:
+  - {model: model/toy, hardware: hw/toy-box}
+components: [comp/toy/expert-cache, comp/toy/forward-pass]
+declares:
+  stages: [load, decode]
+  states: [attention_kv, expert_heat]
+  policies: [cache-experts]
+flows:
+  - id: expert-bytes-from-disk
+    sender: model_files
+    receiver: comp/toy/expert-cache
+    carries: {content: weights, refs: [expert_weights]}
+    timing: on_demand
+    description: "The weights of an expert that is selected but not cached"
+  - id: cached-experts
+    sender: comp/toy/expert-cache
+    receiver: comp/toy/forward-pass
+    carries: {content: weights, refs: [expert_weights]}
+    timing: per_step
+    description: "The weights of the experts this step selected"
+  - id: selected-experts
+    sender: comp/toy/forward-pass
+    receiver: comp/toy/expert-cache
+    carries: {content: signal}
+    timing: per_step
+    description: "Which experts each token selected, used to count usage"
+  - id: tokens-out
+    sender: comp/toy/forward-pass
+    receiver: external
+    carries: {content: tokens}
+    timing: per_step
+    description: "Generated token ids"
+mechanisms: [mech/hot-expert-residency]
+coverage: "Invented. There is no source."
+---
+kind: component
+id: comp/toy/expert-cache
+system: sys/toy
+title: "Expert cache"
+role: cache
+responsibility: "Keep the most used experts in memory and supply any selected expert's weights before they are needed."
+not_responsible_for:
+  - "Computing experts"
+runs: [startup, per_step]
+state:
+  owns: [expert_heat]
+needs_resources:
+  - {resource: fast_memory, purpose: "cached experts"}
+  - {resource: storage, purpose: "all experts"}
+policies: [cache-experts]
+decisions:
+  - {id: cache-size, text: "How much memory the cache may take.", resolved_at: startup}
+invariants:
+  - {id: inv/read-ready, text: "An expert is reported as cached only after its weights have fully arrived."}
+calls:
+  - {name: lookup, takes: "layer and expert number", returns: "where the weights are, or that they are absent", does: "Never reports an expert whose weights are still arriving."}
+verification:
+  - {method: invariant_test, checks: "A lookup during a load never returns the expert being loaded.", invariants: [inv/read-ready]}
+equivalence: bit_exact
+mechanisms: [mech/hot-expert-residency]
+sources:
+  - {ref: "invented for this example", basis: docs}
+---
+kind: component
+id: comp/toy/forward-pass
+system: sys/toy
+title: "Forward pass"
+role: host_loop
+responsibility: "Take one token through every layer and produce the next token."
+runs: [per_step]
+implements_stages: [load, decode]
+performs: [expert_router, expert_ffn, shared_blocks]
+state:
+  owns: [attention_kv]
+needs_resources:
+  - {resource: accelerator, purpose: "all layer computation"}
+verification:
+  - {method: parity_with_reference, checks: "Same next token as a plain reference implementation on a fixed prompt set.", against: "reference implementation"}
+equivalence: bit_exact
+sources:
+  - {ref: "invented for this example", basis: docs}

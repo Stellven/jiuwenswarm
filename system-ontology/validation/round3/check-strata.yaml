@@ -1,0 +1,542 @@
+# Independent check of node-types draft 0.3 against the Strata inventory (validation/CHECK-BRIEF.md).
+# Verdicts per decision, in inventory order, for parts: expert-cache, expert-dispatch, adaptive-tier, host-to-device-transfer, prompt-path, model-file-reader, expert-layout, weight-loader, native-weight-loader, startup-memory-sizing, host-memory-admission, expert-source, http-front, prompt-builder, request-runner, engine-client, engine-command-loop, slot-scheduler, replica-router, resume-decision, checkpoint-chain, parked-conversations, session-files, run-config-generator, launch-argument-resolver, speed-calibration, engine-diagnostics, server-metrics, mtp-drafter, dflash2-drafter, lookup-drafter, draft-policy, draft-verifier, window-loop, session-loop, layer-kernels, expert-router, output-head, window-graphs, kv-store, ngram-reader, sampler, cpu-expert-pool
+engine: strata
+decision_coverage:
+  totals:
+    decisions: 253
+    covered: 194
+    loosely: 38
+    not_covered: 9
+    engine_specific: 12
+  per_type:
+  - type: expert-cache
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-dispatch
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 5
+    covered: 3
+    loosely: 1
+    not_covered: 1
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-reading
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 18
+    covered: 11
+    loosely: 3
+    not_covered: 0
+    engine_specific: 4
+  - type: memory-planning
+    decisions: 22
+    covered: 13
+    loosely: 8
+    not_covered: 1
+    engine_specific: 0
+  - type: expert-source
+    decisions: 11
+    covered: 8
+    loosely: 2
+    not_covered: 1
+    engine_specific: 0
+  - type: request-front
+    decisions: 5
+    covered: 4
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 7
+    covered: 4
+    loosely: 2
+    not_covered: 1
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 7
+    covered: 5
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 11
+    covered: 9
+    loosely: 1
+    not_covered: 1
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 6
+    covered: 5
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 8
+    covered: 4
+    loosely: 3
+    not_covered: 0
+    engine_specific: 1
+  - type: replica-routing
+    decisions: 5
+    covered: 3
+    loosely: 1
+    not_covered: 1
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 18
+    covered: 14
+    loosely: 1
+    not_covered: 2
+    engine_specific: 1
+  - type: session-persistence
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: configuration
+    decisions: 17
+    covered: 13
+    loosely: 3
+    not_covered: 0
+    engine_specific: 1
+  - type: calibration
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: telemetry
+    decisions: 12
+    covered: 12
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 18
+    covered: 15
+    loosely: 2
+    not_covered: 1
+    engine_specific: 0
+  - type: draft-policy
+    decisions: 6
+    covered: 4
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 6
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 1
+  - type: step-execution
+    decisions: 9
+    covered: 7
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 10
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 2
+  - type: graph-capture
+    decisions: 3
+    covered: 2
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: positional-state-store
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 6
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 1
+  - type: sampling
+    decisions: 5
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 1
+  - type: secondary-compute
+    decisions: 7
+    covered: 6
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: adaptive-tier
+    type: residency-policy
+    decision: an expert may enter only if its use count reaches a minimum
+    nearest_choice: the gain a change must bring, and a limit on changes per round
+  - part: host-to-device-transfer
+    type: expert-fetch
+    decision: residency swaps copied one by one or as one batched copy
+    nearest_choice: how outstanding reads are ordered and joined
+  - part: model-file-reader
+    type: model-loading
+    decision: six metadata keys required; any other missing key keeps the compiled value
+    nearest_choice: what is done when a file is the wrong version, incomplete or of an unsupported shape
+  - part: model-file-reader
+    type: model-loading
+    decision: only expert count, experts per token and vocabulary size may differ from the compiled geometry
+    nearest_choice: what is done when a file is the wrong version, incomplete or of an unsupported shape
+  - part: expert-layout
+    type: model-loading
+    decision: native per-layer layout when its table file exists, else the canonical single-size layout
+    nearest_choice: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept
+      it
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: least working cache (slots for the smallest prompt chunk plus what a loan leaves)
+    nearest_choice: the order in which things are given up when memory is short, and when starting is refused
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: slots a loan to the prompt path leaves in the cache
+    nearest_choice: how the remainder is split between cache, state and concurrency
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: an automatic cache that cannot be allocated is retried at three quarters of its size
+    nearest_choice: the order in which things are given up when memory is short, and when starting is refused
+  - part: host-memory-admission
+    type: memory-planning
+    decision: the lookup table is locked in RAM only if RAM holds it plus the whole expert arena plus a headroom; unknown
+      figures admit nothing
+    nearest_choice: what is priced before caches get the remainder
+  - part: host-memory-admission
+    type: memory-planning
+    decision: the engine may swap the arena for the file source on its own unless the operator chose RAM or named a shared
+      arena
+    nearest_choice: an operator's explicit size against the computed one
+  - part: host-memory-admission
+    type: memory-planning
+    decision: page-locked memory held back while the arena registers and released right after
+    nearest_choice: the reserve left free
+  - part: host-memory-admission
+    type: memory-planning
+    decision: page-locked memory held until ready or until a guarded allocation is refused
+    nearest_choice: the reserve left free
+  - part: host-memory-admission
+    type: memory-planning
+    decision: a reserve that cannot be had is halved down to a floor, then skipped
+    nearest_choice: the order in which things are given up when memory is short, and when starting is refused
+  - part: expert-source
+    type: expert-source
+    decision: how long to wait for RAM an exiting program still holds before falling back
+    nearest_choice: what is used when the preferred place cannot hold the full set
+  - part: expert-source
+    type: expert-source
+    decision: a short arena still loads when a huge-page pool or free plus droppable file pages cover the need
+    nearest_choice: what is used when the preferred place cannot hold the full set
+  - part: http-front
+    type: request-front
+    decision: how often a watcher checks whether the client closed its socket
+    nearest_choice: what is done on disconnect, timeout or overload
+  - part: prompt-builder
+    type: prompt-preparation
+    decision: tokens kept free between prompt plus output and the context length
+    nearest_choice: what happens when prompt plus output exceed the context
+  - part: prompt-builder
+    type: prompt-preparation
+    decision: an absent, zero or negative output limit means the rest of the context
+    nearest_choice: defaults against the request's settings
+  - part: request-runner
+    type: output-interpretation
+    decision: with thinking on and no budget, close the thinking early so the answer keeps a share of the limit
+    nearest_choice: how the generation is driven and continued for one request
+  - part: request-runner
+    type: output-interpretation
+    decision: 'non-finite logits before any token was sent: the same request is sent once more'
+    nearest_choice: how the generation is driven and continued for one request
+  - part: engine-client
+    type: engine-supervision
+    decision: after a number of fatal device errors within a window the engine is not started again until the window passes
+    nearest_choice: restart, and what happens to requests in flight
+  - part: engine-command-loop
+    type: step-scheduler
+    decision: as many slot sessions as can be allocated; fewer than two turns batching off
+    nearest_choice: sequences and rows per step
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: how often a request left alone in a slot returns to the solo path, and the fewest tokens it must still be allowed
+    nearest_choice: 'how a request is matched to a place: a slot or a lane'
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: retries on another slot after a refusal, and how long a refused slot is kept out of the picks
+    nearest_choice: admission when resources are short
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: how long the control lines or a slot are held for a silent engine before it is ended
+    nearest_choice: how long a sequence may wait for resources before it fails
+  - part: replica-router
+    type: replica-routing
+    decision: hashes of fixed-size token blocks kept to track what each copy holds
+    nearest_choice: 'how a request is matched to a copy: least loaded, or the one holding reusable state'
+  - part: checkpoint-chain
+    type: prefix-reuse
+    decision: a request may pin one restore point, which is then exempt from eviction
+    nearest_choice: what is evicted first
+  - part: run-config-generator
+    type: configuration
+    decision: the expert cache size is left to the engine's automatic rule
+    nearest_choice: operator values, presets, measured values and defaults
+  - part: launch-argument-resolver
+    type: configuration
+    decision: a calibration record is applied only if model name, context length and image setting equal the configuration's
+    nearest_choice: operator values, presets, measured values and defaults
+  - part: launch-argument-resolver
+    type: configuration
+    decision: one drafter per run, and the drafter options rewritten to match it
+    nearest_choice: rules that derive a setting's default from other settings and machine facts
+  - part: mtp-drafter
+    type: draft-proposal
+    decision: rows the drafter's recorded graphs hold
+    nearest_choice: how many per round
+  - part: lookup-drafter
+    type: draft-proposal
+    decision: tokens a lookup may append after the neural drafts in the same window, and the shortest match it extends on
+    nearest_choice: how several sources are combined at each position
+  - part: draft-policy
+    type: draft-policy
+    decision: whether the window width is chosen step by step from each draft's probability and the measured cost of each
+      width
+    nearest_choice: what it optimises
+  - part: draft-policy
+    type: draft-policy
+    decision: without the cost-aware window, the window ends before the first draft below a probability floor
+    nearest_choice: limits on the round
+  - part: window-loop
+    type: step-execution
+    decision: how long the host waits for a layer signal before one driver call to flush and check for a fault
+    nearest_choice: how long a layer may wait for something it needs
+  - part: session-loop
+    type: step-execution
+    decision: how long a late layer signal waits before one driver call
+    nearest_choice: how long a layer may wait for something it needs
+  - part: window-graphs
+    type: graph-capture
+    decision: upper bound on the number of recorded batch layouts
+    nearest_choice: the memory recorded graphs may take
+  - part: cpu-expert-pool
+    type: secondary-compute
+    decision: the calling thread claims jobs itself during a batch
+    nearest_choice: number of workers
+  not_covered:
+  - part: adaptive-tier
+    type: residency-policy
+    decision: every use count is multiplied by a decay factor after each run
+    kind: policy
+    missing_choice: how use counts age, so that recent use outweighs old use
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: with a per-layer profile the uniform slot count becomes a byte budget filled with slots of each layer's own
+      block size
+    kind: sizing
+    missing_choice: whether a cache's share is counted in uniform units or in bytes of blocks of different sizes
+  - part: expert-source
+    type: expert-source
+    decision: the full set is filled from the published model files or from the engine's own repacked file
+    kind: format
+    missing_choice: which stored copy or encoding of the selectively used weights the full set is filled from
+  - part: prompt-builder
+    type: prompt-preparation
+    decision: which tokenizer runs (the engine's own reimplementation built from the tokenizer files)
+    kind: policy
+    missing_choice: which tokenizer implementation is used, and how it is held to the reference tokenizer's output
+  - part: engine-client
+    type: engine-supervision
+    decision: a top-k outside the engine's supported range is sent as the largest supported value
+    kind: policy
+    missing_choice: how request settings outside what the engine supports are clamped or refused
+  - part: replica-router
+    type: replica-routing
+    decision: whether several copies run at all
+    kind: sizing
+    missing_choice: how many copies run
+  - part: parked-conversations
+    type: prefix-reuse
+    decision: host memory that must stay available after a park, a session save or a restore
+    kind: threshold
+    missing_choice: memory that must stay free on the tier holding stored state after a store or restore
+  - part: parked-conversations
+    type: prefix-reuse
+    decision: an allocation is admitted only above a memory floor measured from system, control-group and operator figures;
+      an unreadable figure refuses
+    kind: policy
+    missing_choice: how the memory available to the store is measured, and when a store is refused for lack of it
+  - part: dflash2-drafter
+    type: draft-proposal
+    decision: skip the draft round when the lookup match is at least a given length
+    kind: policy
+    missing_choice: whether the proposer is skipped when another source suffices (named only under draft-policy)
+contradictions:
+- part: expert-dispatch
+  type: expert-dispatch
+  claim: 'effect_on_output level ''approximate'': ''a deliberate change to the computation ... it needs the requester''s permission''
+    (case ''approximate when it omits selected blocks'')'
+  evidence: The tail skip that omits low-ranked missed experts is on by default on the CUDA serving path (inventory output_effect_when);
+    docs/QUANTS.md:158 'STRATA_ROUTE_TAIL_SKIP=7, the default since 0.1.42'. No request asks for it.
+  fix: approximate when it omits selected blocks; an engine may enable this by default, in which case the omission is recorded
+    with the run's settings and can be turned off
+- part: native-weight-loader
+  type: model-loading
+  claim: 'effect_on_output: exact when weights are used as stored, rounding only when re-encoding changes floating-point width'
+  evidence: Choosing the stored GGUF block form over the pack form (both loaded unchanged) switches the head and projections
+    to other kernels; output_effect numeric 'when native head or native projections in use'.
+  fix: 'add: rounding when it chooses among stored encodings of a tensor, which selects other kernels'
+- part: startup-memory-sizing
+  type: memory-planning
+  claim: 'gives: ''the context length and concurrency the engine can offer'''
+  evidence: Context length and batch slot count arrive as engine arguments from launch-argument-resolver; this part only sizes
+    the expert cache and prompt buffers from the remainder and never derives either.
+  fix: 'gives: the context length and concurrency the engine can offer, or the check that the requested ones fit'
+- part: prompt-path
+  type: prompt-reading
+  claim: 'must: ''The state it leaves is the state of that prompt up to rounding, whatever the chunking.'''
+  evidence: 'output_effect_when: approximate when the optional approximate late-layer read is on; the type itself lists that
+    approximate case and choice, so the must rule is not kept in that mode.'
+  fix: Unless an approximate path the requester turned on is taken, the state it leaves is the state of that prompt up to
+    rounding, whatever the chunking.
+- part: expert-router
+  type: layer-compute
+  claim: 'must: ''The sequence of layers and operations the model defines is kept; only the order of accumulation inside one
+    operation may vary.'''
+  evidence: 'STRATA_ROUTE_PRIOR re-picks the 10 experts with a residency bonus and STRATA_ROUTE_RESIDENT swaps a tail expert
+    for a resident one: the model''s selection is changed, which the type''s own choice ''any deliberate change to the model''s
+    arithmetic'' allows.'
+  fix: Unless a deliberate change the requester turned on is in effect, the sequence of layers and operations the model defines
+    is kept; only the order of accumulation inside one operation may vary.
+- part: resume-decision
+  type: prefix-reuse
+  claim: 'effect_on_output: rounding when ''state is stored at reduced width, was produced with other chunk boundaries, or
+    batched and unbatched paths round differently'''
+  evidence: 'output_effect_when: numeric also when the expert placement differs between the stored state and a cold read (experts
+    computed on the CPU or the GPU round differently); no listed case covers it.'
+  fix: 'rounding when the stored state was produced under other rounding than a cold read: reduced width, other chunk boundaries,
+    another batch path, or computation placed on other devices'
+- part: engine-client
+  type: engine-supervision
+  claim: 'effect_on_output: exact (only case)'
+  evidence: Its own choice rewrites a requested top_k outside 1..64 to 64 before sending (serve/server.py:1659), which changes
+    the sampled distribution.
+  fix: 'exact, unless it rewrites request settings it passes to the engine: defines'
+- part: ngram-reader
+  type: row-source
+  claim: 'state: ''row cache and the token history the row numbers are computed from'''
+  evidence: owns_state is empty; the two-token history is advanced by the driver and the window commit and is ple_history
+    owned by layer-kernels; the reader is handed the window's tokens and the two before them.
+  fix: 'state: row cache; takes: the recent tokens the row numbers are computed from'
+- part: draft-policy
+  type: draft-policy
+  claim: 'must: ''It changes how much is checked, never the rule by which a token is accepted.'''
+  evidence: The exact gated acceptance rule runs only without the cost-aware window, without the lookup chain, without DFlash2
+    and with windows of at most 8 rows; otherwise the verifier falls back to the older rule and warns the distribution is
+    off (draft-verifier decision 3).
+  fix: Its per-round choices never change the acceptance rule; a mode of the policy that forces another acceptance rule is
+    stated with that mode.
+- part: draft-policy
+  type: draft-policy
+  claim: 'effect_on_output: exact or rounding only'
+  evidence: 'output_effect_when: distribution_exact when STRATA_SPEC_PROB=1 with the gated rule; under probabilistic acceptance
+    the width and source change the draws but not the distribution.'
+  fix: 'add: resampled when acceptance under sampling uses the proposal, so the chosen source and width change the draw but
+    not the distribution'
+- part: draft-verifier
+  type: draft-verification
+  claim: 'effect_on_output: exact ''when greedy decoding with exact agreement''; under sampling only resampled or approximate'
+  evidence: 'Sampled requests in the default exact-match mode are bit_exact: each row''s draw is keyed by seed and absolute
+    position, and a draft is accepted only when it equals that draw.'
+  fix: exact when greedy, or when sampling draws each position from a stream keyed independently of the proposal and a proposal
+    is accepted only when it equals that draw
+- part: run-config-generator
+  type: configuration
+  claim: 'effect_on_output level ''approximate'' (case ''it turns on a setting that changes output''): ''it needs the requester''s
+    permission'''
+  evidence: Setup writes 8-bit integer K/V by default for any context above 8192 unless the person chooses otherwise; the
+    lossy format is the default, not an opt-in.
+  fix: approximate when it turns on a setting that changes output, by default or on request; a default that changes output
+    is recorded as such
+relaxations:
+- part: prompt-path
+  type: prompt-reading
+  rule: Where chunk boundaries change stored state, the chunking is part of the key under which that state is reused.
+  how: 'Resume points and checkpoints change the chunking of the prompt read (resume-decision, checkpoint-chain: numeric),
+    but the reuse key is token ids, image keys and the steering flag only.'
+- part: speed-calibration
+  type: calibration
+  rule: A recorded result is used only where its validity key matches the model, machine and build.
+  how: A preset is still applied, with a re-check only offered, when the engine's tuning epoch, the driver or the preset's
+    age changed.
+- part: startup-memory-sizing
+  type: memory-planning
+  rule: A size the operator fixes by hand is checked against what was measured, or reported as unchecked.
+  how: An explicit --expert-cache N is kept as asked; the after-allocation re-read of free memory against the reserve applies
+    only to the automatic cache, so an explicit size is checked only by whether the allocation succeeds.
+wrong_assignments:
+- part: layer-kernels
+  assigned: layer-compute
+  better: recurrent-state-store (as also)
+  why: It alone owns the recurrent state, the convolution/lookup history and the indexer keys (owns_state gdn_state, ple_history,
+    indexer_keys); layer-compute has no state, so the second job is uncounted.
+- part: engine-command-loop
+  assigned: step-scheduler
+  better: sequence-lifecycle (as also)
+  why: Besides composing windows it owns the live conversation record and the batch slot table, the record of committed tokens
+    and places that sequence-lifecycle owns.
+- part: host-memory-admission
+  assigned: memory-planning
+  better: resource-governing (as also)
+  why: It also runs on demand and tells the lookup-table reader to give its lock back when the arena or the conversation cache
+    needs RAM, which is reclaim while running.
+inventory_errors:
+- part: prompt-builder
+  field: output_effect
+  recorded: none
+  source_shows: The opt-in effort_position puts a non-default reasoning effort in an injected system turn and the effort sentence
+    of the first system message can be replaced (serve/server.py:270, 4745, 5745-5778); a shipped template replaces a missing
+    pack template. The prompt changes, so not none.
+- part: engine-client
+  field: output_effect
+  recorded: none
+  source_shows: 'keys += top_k={tk if 1 <= tk <= 64 else 64} (serve/server.py:1659): a requested top_k of 0 or above 64 is
+    sent as 64, changing sampled output.'
+- part: dflash2-drafter
+  field: decisions
+  recorded: Skip the draft round when the lookup match is at least this many tokens.
+  source_shows: The skip is decided by the draft-policy rule skip_draft_for_lookup in include/strata/spec/window_rule.hpp,
+    called from the host loop (src/program/generate.cpp:18893-18905, 20899-20913); it belongs to draft-policy.
+- part: http-front
+  field: decisions
+  recorded: five admission and timeout decisions; nothing on who may call
+  source_shows: An API key (Bearer or x-api-key), allowed host names and CORS origins gate /v1/* (serve/server.py:7605-7744,
+    9906-9911); the who-is-allowed decision is missing.
+- part: output-head
+  field: output_effect
+  recorded: numeric (not established)
+  source_shows: On the pack path the mixed activation is quantised to 8-bit q8_K before the vocabulary projection (src/core/layer.cpp:1425);
+    that is a reduced activation precision, not last-bit rounding.

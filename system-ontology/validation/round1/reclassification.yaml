@@ -1,0 +1,80 @@
+assignments:
+  - {component: "comp/strata/http-front", node_type: "request-front", confidence: medium, second_choice: "multi-request-scheduler", reason: "accepts client requests and returns responses; pending-call bound and cancellation look like admission"}
+  - {component: "comp/ds4/api-server", node_type: "request-front", confidence: high, second_choice: null, reason: "accepts requests, returns output"}
+  - {component: "comp/strata/host-memory-admission", node_type: "memory-planner", confidence: medium, second_choice: "configuration", reason: "startup division of host memory between table, arena and reserve"}
+  - {component: "comp/ds4/kv-state", node_type: "attention-state-store", confidence: high, second_choice: null, reason: "per-session attention state with valid-row counters"}
+  - {component: "comp/ds4/engram-prewarm", node_type: "table-reader", confidence: medium, second_choice: null, reason: "serves table rows faster by warming the page cache; a choice within table-reader rather than its own type"}
+  - {component: "comp/ds4/expert-cache", node_type: "expert-cache", confidence: high, second_choice: null, reason: "bounded expert set in fast memory, answers presence and location"}
+  - {component: "comp/strata/lookup-drafter", node_type: "drafter", confidence: high, second_choice: null, reason: "cheap proposals from repetition in the text"}
+  - {component: "comp/strata/engine-command-loop", node_type: "engine-control", confidence: medium, second_choice: "multi-request-scheduler", reason: "drives the engine per command, one prompt read at a time, passes tokens back; batch slots add sharing"}
+  - {component: "comp/strata/expert-cache", node_type: "expert-cache", confidence: high, second_choice: null, reason: "fixed expert slots, answers presence and slot"}
+  - {component: "comp/strata/resume-decision", node_type: "conversation-reuse", confidence: high, second_choice: "attention-state-store", reason: "chooses longest shared prefix state and sets the start point"}
+  - {component: "comp/strata/launch-argument-resolver", node_type: "configuration", confidence: high, second_choice: "engine-control", reason: "turns stored run configuration into the settings the engine starts with"}
+  - {component: "comp/strata/expert-source", node_type: "expert-source", confidence: high, second_choice: null, reason: "makes all expert bytes obtainable for the whole run"}
+  - {component: "comp/strata/native-weight-loader", node_type: "weight-loader", confidence: high, second_choice: null, reason: "places every-token tensors in device memory at startup"}
+  - {component: "comp/strata/dflash2-drafter", node_type: "drafter", confidence: high, second_choice: null, reason: "separate small model proposes drafts"}
+  - {component: "comp/ds4/distributed-tp", node_type: "multi-request-scheduler", confidence: low, second_choice: "expert-dispatch", reason: "only type that covers an engine spanning machines, but this is expert parallelism, not request sharing"}
+  - {component: "comp/ds4/expert-eviction", node_type: "cache-policy", confidence: high, second_choice: null, reason: "decaying usage counts drive eviction"}
+  - {component: "comp/strata/parked-conversations", node_type: "conversation-reuse", confidence: high, second_choice: null, reason: "keeps earlier conversations' state and finds longest prefix"}
+  - {component: "comp/strata/output-head", node_type: "layer-compute", confidence: high, second_choice: null, reason: "final projection to the vocabulary is part of layer-compute"}
+  - {component: "comp/strata/session-files", node_type: "conversation-reuse", confidence: medium, second_choice: "attention-state-store", reason: "saved_sessions to storage; but explicit save/load is not prefix reuse"}
+  - {component: "comp/ds4/prefill-driver", node_type: "prompt-reader", confidence: high, second_choice: null, reason: "chunked prompt read building session state"}
+  - {component: "comp/strata/replica-router", node_type: "multi-request-scheduler", confidence: high, second_choice: null, reason: "shares several engine processes as one engine"}
+  - {component: "comp/strata/draft-policy", node_type: "draft-policy", confidence: high, second_choice: null, reason: "chooses draft source and window width per round"}
+  - {component: "comp/strata/mtp-drafter", node_type: "drafter", confidence: high, second_choice: null, reason: "draft head of the model"}
+  - {component: "comp/ds4/model-preparation", node_type: "model-preparation", confidence: high, second_choice: null, reason: "offline conversion to engine-readable files (with precision change, a listed choice)"}
+  - {component: "comp/ds4/prefix-reuse", node_type: "conversation-reuse", confidence: high, second_choice: null, reason: "longest computed prefix in memory or on disk"}
+  - {component: "comp/ds4/dspark-drafter", node_type: "drafter", confidence: high, second_choice: null, reason: "proposes following tokens with confidence"}
+  - {component: "comp/strata/cpu-expert-pool", node_type: "secondary-executor", confidence: high, second_choice: null, reason: "computes experts on CPU reading bytes in place"}
+  - {component: "comp/strata/kv-store", node_type: "attention-state-store", confidence: high, second_choice: null, reason: "holds K/V for every position; streaming is the 'old state may leave fast memory' choice"}
+  - {component: "comp/strata/slot-scheduler", node_type: "multi-request-scheduler", confidence: high, second_choice: "engine-control", reason: "admission and slot assignment across requests"}
+  - {component: "comp/strata/expert-dispatch", node_type: "expert-dispatch", confidence: high, second_choice: null, reason: "per-layer path choice for every routed expert"}
+  - {component: "comp/strata/ngram-reader", node_type: "table-reader", confidence: high, second_choice: null, reason: "delivers the table rows a token's keys name"}
+  - {component: "comp/strata/window-loop", node_type: "decode-loop", confidence: high, second_choice: null, reason: "runs a window through layers and head, serving expert work per layer"}
+  - {component: "comp/ds4/dspark-scheduler", node_type: "draft-policy", confidence: high, second_choice: null, reason: "decides each round whether to draft"}
+  - {component: "comp/ds4/engram-row-reader", node_type: "table-reader", confidence: high, second_choice: null, reason: "row reads from SSD without holding the table"}
+  - {component: "comp/strata/request-runner", node_type: "request-front", confidence: medium, second_choice: "engine-control", reason: "turns generated tokens into the response events; also drives generations"}
+  - {component: "comp/strata/weight-loader", node_type: "weight-loader", confidence: high, second_choice: null, reason: "places resident tensors in device memory at startup"}
+  - {component: "comp/strata/expert-router", node_type: "layer-compute", confidence: high, second_choice: "expert-dispatch", reason: "expert selection is listed in layer-compute"}
+  - {component: "comp/ds4/decode-loop", node_type: "decode-loop", confidence: high, second_choice: null, reason: "one token per step in fixed order of work"}
+  - {component: "comp/ds4/weight-mapping", node_type: "weight-loader", confidence: high, second_choice: null, reason: "map the file in place for the GPU"}
+  - {component: "comp/strata/layer-kernels", node_type: "layer-compute", confidence: high, second_choice: "attention-state-store", reason: "every-token part of each layer in fixed order; also owns state addresses"}
+  - {component: "comp/ds4/memory-plan", node_type: "memory-planner", confidence: high, second_choice: null, reason: "startup expert cache sizing"}
+  - {component: "comp/strata/engine-client", node_type: "engine-control", confidence: high, second_choice: null, reason: "keeps engine process alive and passes generations and tokens"}
+  - {component: "comp/ds4/expert-stream-reader", node_type: "expert-transfer", confidence: medium, second_choice: "expert-source", reason: "moves expert bytes from SSD into a cache buffer"}
+  - {component: "comp/strata/engine-diagnostics", node_type: "telemetry", confidence: high, second_choice: null, reason: "records what the run chose and did"}
+  - {component: "comp/strata/server-metrics", node_type: "telemetry", confidence: high, second_choice: "request-front", reason: "per-request records and exporters; also fills response usage"}
+  - {component: "comp/strata/model-file-reader", node_type: "weight-loader", confidence: medium, second_choice: null, reason: "opens model files and refuses unrunnable shapes (weight-loader invariant), but does not place weights"}
+  - {component: "comp/strata/adaptive-tier", node_type: "cache-policy", confidence: high, second_choice: null, reason: "changes cache contents at intervals from usage"}
+  - {component: "comp/strata/prompt-builder", node_type: "request-front", confidence: high, second_choice: null, reason: "messages to exact prompt tokens"}
+  - {component: "comp/strata/draft-verifier", node_type: "draft-verifier", confidence: high, second_choice: null, reason: "accept longest agreeing prefix and commit all state"}
+  - {component: "comp/ds4/gpu-kernels", node_type: "layer-compute", confidence: high, second_choice: null, reason: "all model operations, kernel variants per format"}
+  - {component: "comp/strata/window-graphs", node_type: "decode-loop", confidence: low, second_choice: "none", reason: "recorded graph is a decode-loop choice; graph memory management has no type"}
+  - {component: "comp/strata/run-config-generator", node_type: "configuration", confidence: high, second_choice: null, reason: "machine facts plus operator answers into run configuration"}
+  - {component: "comp/strata/expert-layout", node_type: "weight-loader", confidence: low, second_choice: "expert-source", reason: "produces the expert_layout plan weight-loader outputs; could be part of expert-source"}
+  - {component: "comp/strata/session-loop", node_type: "decode-loop", confidence: medium, second_choice: "layer-compute", reason: "per-token layer launch interleaved with CPU expert work"}
+  - {component: "comp/ds4/expert-split-dispatch", node_type: "expert-dispatch", confidence: high, second_choice: null, reason: "per-layer choice of how selected experts are computed"}
+  - {component: "comp/strata/prompt-path", node_type: "prompt-reader", confidence: high, second_choice: null, reason: "chunked prompt read leaving model state"}
+  - {component: "comp/strata/host-to-device-transfer", node_type: "expert-transfer", confidence: high, second_choice: null, reason: "slow to fast memory in a reliable order"}
+  - {component: "comp/strata/sampler", node_type: "sampler", confidence: high, second_choice: null, reason: "fixed chain from logits to token"}
+  - {component: "comp/strata/speed-calibration", node_type: "configuration", confidence: medium, second_choice: "telemetry", reason: "settings measured on the machine and stored for later starts"}
+  - {component: "comp/strata/startup-memory-sizing", node_type: "memory-planner", confidence: high, second_choice: null, reason: "startup budget split with reserve and refusal"}
+  - {component: "comp/ds4/draft-verify-commit", node_type: "draft-verifier", confidence: high, second_choice: null, reason: "check drafts and leave state at accepted prefix"}
+  - {component: "comp/strata/checkpoint-chain", node_type: "conversation-reuse", confidence: medium, second_choice: "attention-state-store", reason: "snapshots for rewinding a later request; but within the current conversation, not earlier ones"}
+hard_to_tell_apart:
+  - {types: ["request-front", "engine-control"], why: "both pass tokens back and drive a request; components that run a request through generations and build response events straddle the line"}
+  - {types: ["engine-control", "multi-request-scheduler"], why: "engine-control keeps a live record and starts generations; once batch slots exist, the command loop also shares the engine between requests"}
+  - {types: ["conversation-reuse", "attention-state-store"], why: "truncation, snapshots of the current conversation and explicit session save/load are state management that both definitions partly cover"}
+  - {types: ["decode-loop", "layer-compute"], why: "a loop that launches layers in order and interleaves expert work is both 'taking tokens through every layer' and 'computing the layer'; recorded graphs are a choice of both"}
+  - {types: ["expert-transfer", "expert-source"], why: "a reader that copies expert bytes from storage into a cache buffer both makes experts obtainable from the slow place and moves them into fast memory"}
+  - {types: ["layer-compute", "expert-dispatch"], why: "layer-compute includes expert selection, while expert-dispatch consumes 'routing'; a router could be read as the start of dispatch"}
+  - {types: ["memory-planner", "configuration"], why: "startup decisions from machine memory readings fit 'machine facts into settings' as well as budget division"}
+  - {types: ["weight-loader", "expert-source"], why: "weight-loader outputs expert_layout, but a component whose only job is the expert layout table belongs equally to the expert store"}
+definitions_that_need_work:
+  - {type: "multi-request-scheduler", problem: "conflates sharing among requests with an engine spanning machines; expert/tensor parallelism across two machines processing the same token has no clear home"}
+  - {type: "conversation-reuse", problem: "says 'earlier conversations' but components also keep checkpoints within the current conversation and save/load sessions to files on command; scope unclear"}
+  - {type: "weight-loader", problem: "bundles file opening/validation, placement and expert-layout production; a pure file reader with the architecture guard does not place weights"}
+  - {type: "decode-loop", problem: "recorded-graph lifecycle (record, keep, free, re-record under memory pressure) is only a choice here; no type owns it"}
+  - {type: "table-reader", problem: "does not mention background prewarming of the table into the page cache; unclear whether a prewarm helper is part of it"}
+  - {type: "configuration", problem: "unclear whether on-machine speed measurement/tuning and launch-time argument resolution belong here or are separate operations nodes"}
+  - {type: "request-front", problem: "admission bound and client-disconnect cancellation are not mentioned; overlaps with multi-request-scheduler admission"}

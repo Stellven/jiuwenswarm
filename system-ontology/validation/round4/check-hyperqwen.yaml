@@ -1,0 +1,65 @@
+engine: hyperqwen
+decision_coverage:
+  totals: {decisions: 125, covered: 92, loosely: 19, not_covered: 4, engine_specific: 10}
+  per_type:
+    - {type: "model-conversion", decisions: 14, covered: 10, loosely: 3, not_covered: 1, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "configuration", decisions: 9, covered: 6, loosely: 3, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 6, covered: 5, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "positional-state-store", decisions: 7, covered: 4, loosely: 3, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "request-front", decisions: 8, covered: 5, loosely: 1, not_covered: 0, engine_specific: 2}
+    - {type: "prompt-preparation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "layer-compute", decisions: 13, covered: 9, loosely: 2, not_covered: 0, engine_specific: 2}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "draft-proposal", decisions: 12, covered: 10, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "draft-policy", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 0, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "model-partitioning", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "offline-weight-requantizer", type: "model-conversion", decision: "Bit width per tensor group and group size", nearest_choice: "precision per kind of weight (bit width yes; quantisation group size is not named)"}
+    - {part: "draft-vocab-builder", type: "model-conversion", decision: "Which extra scripts are appended and under what row budget", nearest_choice: "the data a derived piece is selected or fitted from, and what is eligible for it (forced inclusion beyond the counted data and its budget not named)"}
+    - {part: "gptq-requantizer", type: "model-conversion", decision: "Bits and group size; no act-order so the kernel needs no index", nearest_choice: "precision per kind of weight (quantisation method options constrained by the run-time kernel not named)"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "Drafter kind and number of draft tokens", nearest_choice: "named profiles and what each fixes"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "Pin the pool by bytes or by utilisation; skip the pin under tensor parallelism", nearest_choice: "whether an operator value is a hard limit or a target"}
+    - {part: "launch-profile-resolver", type: "configuration", decision: "Prefix caching on with align-mode recurrent state, and the snapshot retention interval", nearest_choice: "rules that derive a setting's default from other settings and machine facts"}
+    - {part: "compile-and-warmup", type: "graph-capture", decision: "Which kernel rungs and spec-shaped dummy verifies to run at boot", nearest_choice: "which step shapes are recorded ahead and which on first use (names recording, not warm-up compilation)"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "Flush a finished request's full block but discard a partial one", nearest_choice: "when state held in a staging precision is converted to its stored format"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "Keep retired sinks resident; evict oldest first only when slots run dry", nearest_choice: "which positions are kept at higher precision than the stored format (eviction of the staging area not named)"}
+    - {part: "kvarn-staging-quantizer", type: "positional-state-store", decision: "Draft passes after the first only allocate slots, never flush", nearest_choice: "when state held in a staging precision is converted to its stored format (not tied to positions that may still be rejected)"}
+    - {part: "kv-offload-tier", type: "state-tiering", decision: "Which groups count as draft attention", nearest_choice: "which kinds of state the slower tier holds"}
+    - {part: "access-guard", type: "request-front", decision: "Let only a real CORS preflight skip the token", nearest_choice: "who is allowed and how"}
+    - {part: "full-attention-compute", type: "layer-compute", decision: "int8-QK prefill only for one-request chunks over 16 tokens on the exact geometry with bf16 KV", nearest_choice: "activation precision inside kernels (the conditions gating a reduced-precision kernel per step are not named)"}
+    - {part: "full-attention-compute", type: "layer-compute", decision: "Sparse attention budget when sparse attention is on", nearest_choice: "any deliberate change to the model's arithmetic (its size or budget is not named)"}
+    - {part: "sampler", type: "sampling", decision: "One top-k instead of a full-vocabulary sort when every request's top-k is small", nearest_choice: "the kernel used for the sampling arithmetic, and how it changes with the number of rows (changes with the settings, not rows)"}
+    - {part: "mtp-drafter", type: "draft-proposal", decision: "Draft from the target's top-k/top-p support; optional draft temperature scale", nearest_choice: "the set of tokens proposals are restricted to (proposal temperature not named)"}
+    - {part: "verify-length-controller", type: "draft-policy", decision: "Take the long block unconditionally below a context length", nearest_choice: "whether the round's width is chosen from each proposal's probability and the measured cost of each width"}
+    - {part: "draft-acceptance", type: "draft-verification", decision: "Draft sample method must be probabilistic so q is passed", nearest_choice: "the acceptance rule under sampling"}
+    - {part: "tensor-parallel", type: "model-partitioning", decision: "Allocator without expandable segments so graph buffers can be exported between processes", nearest_choice: "which other engine features may be combined with splitting the model, and which are refused"}
+  not_covered:
+    - {part: "model-dir-publisher", type: "model-conversion", decision: "Backup suffix per step so steps sharing a shard keep separate pristine copies", kind: "policy", missing_choice: "whether conversion rewrites files in place, and whether and how pristine originals are kept per step"}
+    - {part: "calibration-data-capture", type: "calibration", decision: "Run eagerly so module hooks see inputs", kind: "policy", missing_choice: "whether a measurement runs the optimised serving path or a slower instrumented path that exposes internal values"}
+    - {part: "engine-core-loop", type: "engine-supervision", decision: "Async scheduling overlaps planning of the next step with execution of the current one", kind: "timing", missing_choice: "whether the process loop prepares the next step while the current one runs on the device"}
+    - {part: "model-runner", type: "step-execution", decision: "Keep a blocking read as the barrier between steps under async scheduling", kind: "timing", missing_choice: "how host-side input buffers of consecutive steps are kept apart: a barrier before reuse, or one buffer per step in flight"}
+contradictions:
+  - {part: "recurrent-state-store", type: "recurrent-state-store", claim: "with what is needed to go back: snapshots, a second copy, or a commit deferred until acceptance is known", evidence: "Rollback uses one state slot per draft position, written during the verify block; the next step continues from the slot of the accepted index. None of the three named means.", fix: "with what is needed to go back: snapshots, a second copy, one slot per proposed position, or a commit deferred until acceptance is known"}
+  - {part: "verify-length-controller", type: "draft-policy", claim: "state: estimates of acceptance and cost", evidence: "Owns only the previous step's want flag, a sticky countdown and a pinned copy of the lookup flags; it keeps no estimate of acceptance or cost.", fix: "state: the signals it decides from: estimates of acceptance and cost, or mode flags and countdowns"}
+  - {part: "drafter-free-chains", type: "draft-policy", claim: "state: estimates of acceptance and cost", evidence: "Owns a host-side engaged-or-not state machine; entry and exit are by match and first miss, no estimate.", fix: "state: the signals it decides from: estimates of acceptance and cost, or the current mode and what ends it"}
+  - {part: "kv-offload-tier", type: "state-tiering", claim: "Move per-sequence state out of fast memory to a slower place and back, so that more sequences or longer contexts fit.", evidence: "It copies blocks already evicted from the pool and restores them on a later prefix hit or after preemption; its purpose is to avoid recomputation, not to let more sequences or longer contexts fit.", fix: "Move per-sequence state out of fast memory to a slower place and back, so that more sequences or longer contexts fit, or so that state evicted from fast memory is restored instead of recomputed."}
+relaxations:
+  - {part: "memory-budget-planner", type: "memory-planning", rule: "A size the operator fixes by hand is checked against what was measured, or reported as unchecked.", how: "An operator-pinned pool is not checked; besides an out-of-memory on the first batch, on one platform the over-full pool silently spills to system memory and runs several times slower with no error, which the relaxed text does not mention."}
+wrong_assignments: []
+inventory_errors:
+  - {part: "image-encoder", field: "output_effect", recorded: "none", source_shows: "The launcher passes an image processor size limit (longest_edge 2,097,152 pixels, launcher_common.sh:169-173), so larger images are resized down before encoding; the pixel cap decides the model's input, which is changes_output (defines), not none."}

@@ -1,0 +1,525 @@
+# Strata, token-path area: system-level parts to merge. No `kind`, so the loader ignores this file.
+flows:
+- id: window-tokens-to-ngram-reader
+  sender: comp/strata/window-loop
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: tokens
+  timing: per_window
+  description: The window's token ids and the two tokens before it, hashed to 16 row numbers per token; rows are
+    prefetched before the launch and gathered while layer 0 runs.
+- id: ngram-rows-from-file
+  sender: model_files
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: weights
+    refs:
+    - ngram_table
+  timing: on_demand
+  description: '16 table rows per token: direct page reads from storage, or reads of the table held in memory when
+    the start-up rule admitted it.'
+- id: ngram-rows-to-layer-1
+  sender: comp/strata/ngram-reader
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: weights
+    refs:
+    - ngram_table
+  timing: per_window
+  description: 2560 floats per token, written to mapped host staging and copied to the device before the layer-1
+    block reads them. On the session loop the same once per step.
+- id: window-inputs
+  sender: comp/strata/window-loop
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: tokens
+  timing: per_window
+  description: Token ids, per-row step counts and positions, written to fixed mapped buffers the graph copies from.
+- id: launch-window-graph
+  sender: comp/strata/window-loop
+  receiver: comp/strata/window-graphs
+  carries:
+    content: control
+  timing: per_window
+  description: Record the graph for this window size and variant if it does not exist, then hand back its handle
+    for one launch.
+- id: routed-experts
+  sender: comp/strata/expert-router
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: activations
+  timing: per_layer
+  description: 10 expert ids and weights per token, in device memory; read by the publish kernel, the device-side
+    resident plan and the combine.
+- id: window-layer-handoff
+  sender: comp/strata/window-loop
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: activations
+  timing: per_layer
+  description: 'When a layer signals: the feed-forward input of each row and its routed ids from mapped memory,
+    with the buffer the unweighted expert rows are to be written into. Only in the doorbell graph; in the zero-doorbell
+    graph the device plans from the residency table and the host is not asked.'
+- id: session-layer-handoff
+  sender: comp/strata/session-loop
+  receiver: comp/strata/expert-dispatch
+  carries:
+    content: activations
+  timing: per_layer
+  description: 'Canonical pack only: one token''s feed-forward input, routed ids and weights from the doorbell,
+    with the page-locked buffer for the expert rows.'
+- id: cpu-expert-rows
+  sender: comp/strata/cpu-expert-pool
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: activations
+  timing: per_layer
+  description: Unweighted expert outputs, one row of n_embd floats per token and rank, in page-locked mapped host
+    memory; rows that belong to the GPU are zero. The device copies them, adds its own rows and the combine kernel
+    applies the router weights.
+- id: kv-pages-for-attention
+  sender: comp/strata/kv-store
+  receiver: comp/strata/layer-kernels
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+  timing: per_layer
+  description: The pools and page table an attention step reads, with the selected blocks made resident first when
+    streaming is on.
+- id: kv-append
+  sender: comp/strata/layer-kernels
+  receiver: comp/strata/kv-store
+  carries:
+    content: model_state
+    refs:
+    - attention_kv
+  timing: per_layer
+  description: The new position's keys and values of each attention layer; written to the host copy always and to
+    the fast-memory slot only if its block is resident.
+- id: final-residual-to-head
+  sender: comp/strata/layer-kernels
+  receiver: comp/strata/output-head
+  carries:
+    content: activations
+  timing: per_window
+  description: The residual stack after the last layer, one per window row.
+- id: logits-to-sampler
+  sender: comp/strata/output-head
+  receiver: comp/strata/sampler
+  carries:
+    content: activations
+  timing: per_window
+  description: One row of vocabulary logits per window row, in device memory.
+- id: picks-to-verifier
+  sender: comp/strata/sampler
+  receiver: comp/strata/draft-verifier
+  carries:
+    content: tokens
+  timing: per_window
+  description: One token id per window row, read by the host from mapped memory after the window has finished.
+declares:
+  stages:
+  - decode
+  states:
+  - captured_graphs
+  - kv_residency_map
+  policies:
+  - kv-residency
+policies: []
+states:
+- id: attention_kv
+  of: attention_kv
+  scope: request
+  on_accept: keep
+  on_reject: invalidate
+  note: Cells past the accepted prefix are overwritten when those positions are processed again, before any query
+    reads them. From the header comment of include/strata/core/verify.hpp:13-18.
+- id: indexer_keys
+  of: indexer_keys
+  scope: request
+  on_accept: restore_then_append
+  on_reject: restore_then_append
+  note: The key tail is restored from a snapshot and the accepted keys appended again. Same header comment.
+- id: gdn_state
+  of: gdn_state
+  scope: request
+  on_accept: advance_by_replay
+  on_reject: unchanged
+  note: The window leaves the recurrent state and convolution history untouched; commit replays the accepted tokens
+    from inputs the window stored. A one-token window advances the state in its own graph.
+- id: ple_history
+  of: ple_history
+  scope: request
+  on_accept: set_to_snapshot
+  on_reject: set_to_snapshot
+  note: Set to the snapshot taken after the last accepted token. The two-token window used by the hash is host state
+    advanced by the driver and by commit.
+- id: captured_graphs
+  scope: engine
+  note: 'Handles of recorded graphs: per window size and variant, the commit graph, batch layouts with last-use
+    ticks; or per layer / per token on the session loop.'
+- id: kv_residency_map
+  scope: request
+  note: 'Streamed layers only: page table (block to slot or absent), slot to block, slot epoch, reference bit, sweep
+    hand, miss lists, counters. Reset at the start of a sequence; the host copy is not cleared.'
+composition_pc:
+- id: window-loop
+  component_ref: comp/strata/window-loop
+  implements:
+  - decode
+  - verify
+  uses:
+  - where: cpu0
+    purpose: 'the host thread: spin on the layer signal, run the pool callback'
+  - where: gpu0
+    purpose: the window graph
+  - where: vram
+    purpose: the window arena, sized at start for the largest window
+    amount: UNSET
+    resolved_at: startup
+  - where: ram
+    purpose: page-locked mapped staging
+    amount: UNSET
+    resolved_at: startup
+  note: The only per-token loop for native packs (the recommended IQ files).
+- id: session-loop
+  component_ref: comp/strata/session-loop
+  implements:
+  - decode
+  uses:
+  - where: cpu0
+    purpose: the pinned host thread
+  - where: ram
+    purpose: page-locked staging for the expert rows
+    amount:
+      value: 102400
+      unit: B
+      status: derived
+      source: k x n_embd x 4 with k = 10 and n_embd = 2560; src/core/session.cpp:596
+    resolved_at: startup
+  - where: vram
+    purpose: the device copy of the expert rows
+    amount:
+      value: 102400
+      unit: B
+      status: derived
+      source: src/program/generate.cpp:5628-5630
+    resolved_at: startup
+  note: Active only with the canonical Q2_0 pack. With a native pack its graphs are never recorded and its body
+    never runs.
+- id: layer-kernels
+  component_ref: comp/strata/layer-kernels
+  uses:
+  - where: gpu0
+    purpose: all dense per-layer work
+  - where: vram
+    purpose: the session arena without the key and value pages
+    amount: UNSET
+    resolved_at: startup
+    note: Formula in src/core/session.cpp:51-70. The position table alone is 64 MiB at a context of 262144, built
+      once and shared by the 12 attention layers.
+- id: expert-router
+  component_ref: comp/strata/expert-router
+  uses:
+  - where: gpu0
+    purpose: projection and top-10
+- id: window-graphs
+  component_ref: comp/strata/window-graphs
+  uses:
+  - where: vram
+    purpose: driver memory of the instantiated graphs
+    amount: UNSET
+    resolved_at: runtime
+    note: Not computed by the engine; graphs are freed and recorded again when instantiation runs out of memory.
+- id: kv-store
+  component_ref: comp/strata/kv-store
+  manages:
+  - data: attention_kv
+    pool: vram
+  uses:
+  - where: vram
+    purpose: resident key and value pages of 12 attention layers
+    amount:
+      value: 12672
+      unit: B per context position
+      status: reported
+      source: include/strata/kernels/kv_q8.hpp:8
+      note: int8 format, all positions resident; 24576 in fp16. With streaming the count is the resident window,
+        not the context.
+    resolved_at: startup
+  - where: ram
+    purpose: 'streaming only: the authoritative copy of every page, page-locked'
+    amount:
+      value: 12672
+      unit: B per context position
+      status: derived
+      source: 4224 B per 4-position page per layer x 12 layers; src/kernels/cuda/kv_stream.cu:199-207
+    resolved_at: startup
+  note: The ram entry exists only with --kv-resident below the context. A host copy in ram exists only when key
+    and value streaming is switched on; it is off by default and is not listed.
+- id: ngram-reader
+  component_ref: comp/strata/ngram-reader
+  uses:
+  - where: ssd0
+    purpose: the table, read 16 rows per token by unbuffered page reads
+    allocation: read_through
+    amount:
+      value: 28.8
+      unit: GB
+      unit_basis: decimal
+      status: reported
+      source: include/strata/kernels/ngram.hpp:8-10
+  - where: ram
+    purpose: row cache of 1048576 rows
+    amount:
+      value: 94
+      unit: MB
+      unit_basis: decimal
+      status: derived
+      source: 1048576 x 90 B
+    resolved_at: startup
+  - where: ram
+    purpose: read slab, 256 slots of two pages
+    amount:
+      value: 2
+      unit: MB
+      unit_basis: binary
+      status: derived
+      source: 256 x 8192 B; src/ngram/ple_reader.cpp:360
+    resolved_at: startup
+  - where: cpu0
+    purpose: the hash, one I/O worker thread, dequantisation
+  note: With 64 GB of host memory and an expert arena near 51 GiB the start-up rule does not admit the table into
+    memory, so the reads are direct (inferred from the rule and a comment at src/program/generate.cpp:5443-5445).
+  manages:
+  - data: ngram_table
+    pool: ssd0
+- id: output-head
+  component_ref: comp/strata/output-head
+  uses:
+  - where: gpu0
+    purpose: final residual read and vocabulary projection
+- id: sampler
+  component_ref: comp/strata/sampler
+  implements:
+  - decode
+  - verify
+  uses:
+  - where: gpu0
+    purpose: the pick
+- id: cpu-expert-pool
+  component_ref: comp/strata/cpu-expert-pool
+  uses:
+  - where: cpu0
+    purpose: workers pinned one per physical core, plus the host thread
+    amount: UNSET
+    resolved_at: startup
+    note: Count from the plan in pool_plan.hpp; depends on the CPU found.
+  - where: ram
+    purpose: per-thread scratch and split buffers
+    amount: UNSET
+    resolved_at: startup
+composition_spark:
+- id: window-loop
+  component_ref: comp/strata/window-loop
+  implements:
+  - decode
+  - verify
+  uses:
+  - where: cpu0
+    purpose: the host thread
+  - where: gpu0
+    purpose: the window graph
+  - where: mem0
+    purpose: the window arena and mapped staging
+    amount: UNSET
+    resolved_at: startup
+  note: When every expert is resident the zero-doorbell graph runs and the host serves no layer.
+- id: session-loop
+  component_ref: comp/strata/session-loop
+  active: false
+  inactive_reason: Runs only with the canonical Q2_0 pack; whether that pack is used on this target was not established.
+- id: layer-kernels
+  component_ref: comp/strata/layer-kernels
+  uses:
+  - where: gpu0
+    purpose: all dense per-layer work
+  - where: mem0
+    purpose: the session arena
+    amount: UNSET
+    resolved_at: startup
+- id: expert-router
+  component_ref: comp/strata/expert-router
+  uses:
+  - where: gpu0
+    purpose: projection and top-10
+- id: window-graphs
+  component_ref: comp/strata/window-graphs
+  uses:
+  - where: mem0
+    purpose: driver memory of the instantiated graphs
+    amount: UNSET
+    resolved_at: runtime
+- id: kv-store
+  component_ref: comp/strata/kv-store
+  manages:
+  - data: attention_kv
+    pool: mem0
+  note: 'Not read for this target: whether streaming is ever configured on unified memory, where a host copy would
+    share the pool.'
+- id: ngram-reader
+  component_ref: comp/strata/ngram-reader
+  uses:
+  - where: ssd0
+    purpose: the table when read direct
+    allocation: read_through
+  - where: mem0
+    purpose: the table locked in memory when the start-up rule admits it
+    amount: UNSET
+    resolved_at: startup
+  note: Which mode results on this target was not established.
+  manages:
+  - data: ngram_table
+    pool: mem0
+- id: output-head
+  component_ref: comp/strata/output-head
+  uses:
+  - where: gpu0
+    purpose: final residual read and vocabulary projection
+- id: sampler
+  component_ref: comp/strata/sampler
+  implements:
+  - decode
+  - verify
+  uses:
+  - where: gpu0
+    purpose: the pick
+- id: cpu-expert-pool
+  component_ref: comp/strata/cpu-expert-pool
+  active: false
+  inactive_reason: 'Taken from the earlier description, not from the token-path notes: all experts are resident
+    on this target, so no layer has CPU work. The pool is still built and its workers sleep.'
+model_additions:
+- id: output_projection
+  kind: compute
+  reads:
+  - shared_weights
+  note: model.operations entry. The final residual read and the vocabulary projection are a separate step from the
+    layers, run by comp/strata/output-head. Until it exists that component lists shared_blocks.
+- id: token_embedding
+  kind: compute
+  reads:
+  - shared_weights
+  note: model.operations entry. One column of the embedding table per token, broadcast to the residual streams;
+    folded into comp/strata/layer-kernels.
+- id: token_pick
+  kind: selection
+  note: model.operations entry, if the sampler is to satisfy the leaf rule by performing an operation. Not a selection
+    in the ontology's sense (it does not decide which operations run), so the kind does not fit; see notes.
+uncatalogued_mechanisms:
+- family: recorded-graph-replay
+  summary: Record the fixed device work of a layer, a token or a whole window once and replay it with one driver
+    call, passing everything that changes per token through fixed-address buffers; the stated gain is removed launch
+    overhead.
+- family: in-graph-host-handoff
+  summary: A kernel inside the recorded graph publishes a layer's activations and routed ids to mapped host memory
+    and a later kernel waits on a flag the host writes, so the CPU computes its experts while the GPU continues
+    and the host makes no driver call per layer.
+- family: kv-streaming
+  summary: Keep the authoritative attention keys and values in page-locked host memory and only a window of pages
+    in fast memory; before each attention step a device kernel makes the selected blocks resident with a clock sweep.
+    Frees fast memory for more experts.
+- family: table-residency-by-startup-rule
+  summary: Hold a large lookup table locked in host memory only when it fits beside everything still to be allocated
+    plus a headroom; otherwise read a few rows per token directly from storage, hidden behind other work.
+- family: residency-biased-routing
+  summary: 'Opt-in: bias the expert selection towards experts already resident in fast memory. Changes the output.'
+notes:
+- 'Two per-token paths. Native packs (a pack folder with native_experts.txt: IQ2_XS, IQ3_XXS, IQ3_S, NVFP4, Unsloth)
+  use only comp/strata/window-loop, with a one-token window for plain decoding. The canonical Q2_0 pack (no native_experts.txt)
+  uses comp/strata/session-loop for the prompt tail and the first generated token and then, when a draft window
+  is set, also the window loop.'
+- 'Dead code, not a component: the GraphRegistry and CapturedGraph classes (include/strata/core/graph.hpp, src/core/graph.cpp)
+  are compiled into the core library but no engine source calls them, and their test file is not in the checkout.
+  comp/strata/window-graphs describes the recording that is actually used.'
+- 'Measurement-only code folded into session-loop and not described: session_replay, session_replay_full, the split-stage
+  replays and the extra per-layer graphs recorded under --gpu-stages.'
+- 'Units folded into others: the doorbell handoff (mapped signal and flag words) into the two loops; the session
+  state arena and the token embedding into layer-kernels; the host-side adapters that build CPU jobs (expert_source.cpp)
+  are expert dispatch''s and are cited by cpu-expert-pool only for what the pool receives.'
+- 'comp/strata/window-loop and comp/strata/draft-verifier are the same C++ class (Verifier). The split used here:
+  run and its per-layer serving are the window loop; commit and the accept decision are the draft verifier. Both
+  list the verify stage.'
+- 'State ownership chosen here: kv-store owns attention_kv; layer-kernels owns gdn_state, indexer_keys and ple_history
+  (their storage lives in the session arena). The draft verifier''s commit writes all four. If the speculation area
+  claims any of these as owner, one side must change to writes.'
+- 'comp/strata/sampler meets the leaf rule only weakly: it owns no state, runs no policy and the model description
+  has no operation for choosing a token. It is given the decode and verify stages. A model operation for the pick
+  would fix this, but none of the three operation kinds fits.'
+- The decode stage is declared here because the session loop and a one-token window are plain decoding with no draft;
+  the declared stages had no name for it.
+- comp/strata/output-head lists shared_blocks because the model description has no operation for the vocabulary
+  projection (see model_additions).
+- 'Flows not declared here because the sender is in another area: window tokens from the draft verifier to the window
+  loop; CPU jobs from expert dispatch to the CPU pool; expert bytes from the expert source to the CPU pool; dense
+  weights to layer-kernels, expert-router and output-head; the key and value sizing plan to kv-store; the table-residency
+  decision is made inside ngram-reader''s own start-up code using a rule, not received as a plan.'
+- 'Cross-area couplings with no flow declared: with --kv-grow the key and value store takes memory chunks from the
+  expert cache as the context grows (driver code not read); the two opt-in routing switches make the expert router
+  read the expert cache''s residency table (listed as state.reads).'
+- The kv-residency policy names pool vram because a policy entry needs a pool; on a unified-memory target the entry
+  would need a different pool or would not apply.
+- 'Format: timing has no value for work done once per token on the session loop other than per_step, and none for
+  per window row; per_window and per_step were used. Format: equivalence needs a level even where none was established;
+  such cases are written with a note saying UNSET in substance. Format: needs_resources cannot say page-locked or
+  device-mapped, which is the property that matters for the staging buffers and the key and value host copy; it
+  is written in the purpose text. Format: a decision''s value cannot hold a formula, so the CPU worker count and
+  the session size are given in text only.'
+- 'Not established and left out: fast memory held per recorded graph; behaviour after a key and value resolve overflow;
+  whether CPU-computed and GPU-computed experts are bitwise equal; the instruction set each pack requires on the
+  CPU.'
+optional_policies:
+- id: kv-residency
+  controls:
+    aspect: binding
+    item: residency
+    data: attention_kv
+    pool: vram
+  signals:
+  - id: slot-reference-bit
+    per:
+    - attention layer
+    - slot
+    update: set when a resolve call finds the slot's block selected
+    decay: cleared when the sweep hand passes the slot
+    freshness: the current call
+  - id: slot-epoch
+    per:
+    - attention layer
+    - slot
+    update: set to the call's epoch for every slot the call uses or fills
+    note: A slot stamped with the current epoch is never taken in that call.
+  actions:
+  - id: admit-missed-block
+    steps: Claim the missing block once; sweep from the hand for a slot that is empty or has no reference bit and
+      is not used by this call; mark the slot's old block absent; point the page table at the slot; copy the block
+      from the host copy into the slot. All on the device, before the attention kernel in stream order.
+    via: the device reading page-locked mapped host memory
+  trigger: Every attention step of a streamed layer, inside the recorded graph. Never when every position is resident
+    (the default).
+  scope: request
+  parameters:
+    resident_window_positions:
+      value: 0
+      status: reported
+      source: src/program/generate.cpp:671
+      note: 0 = no streaming; setup writes 32768 for contexts of 65536 or more
+    resident_window_floor_positions:
+      value: 4096
+      status: reported
+      source: src/core/layer.cpp:771-785
+    sweep_limit:
+      value: 3 x slots per call
+      status: reported
+      source: src/kernels/cuda/kv_stream.cu:120

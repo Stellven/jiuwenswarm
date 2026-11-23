@@ -1,0 +1,51 @@
+kind: mechanism
+id: mech/low-bit-expert-quantization
+family: per-role-weight-precision
+summary: "Requantize only the weights of the selected objects to fewer bits and keep the rest at higher precision"
+equivalence:
+  level: approximate
+  relative_to: "the original precision of the chosen checkpoint"
+  holds_when: "changes the output in every case"
+because:
+  - id: sparse
+    predicate: sparse_selection
+    args: {max_pick_ratio: 0.5}
+    text: "The model selects only some of the objects each time, and the weights of these objects make up most of the model"
+  - id: exceeds
+    predicate: selected_data_exceeds_direct_pool
+    text: "These weights do not fit in the fast memory pool"
+  - id: quality
+    predicate: measured_property
+    args: {property: quality_under_low_bit_experts}
+    text: "There is a measured result under the quality standard of this task"
+    measure: "On the quality baseline and task set of the task, compare the results at the original precision with those after low-bit quantization"
+do:
+  - {aspect: binding, item: precision, text: "The weights of the selected objects use fewer bits"}
+needs:
+  observation_points: []
+expect:
+  - {quantity: peak_memory, direction: decrease}
+  - {quantity: decode_rate, direction: increase}
+cost:
+  - "Changes the output of the model; the quality threshold has to allow it"
+  - "The whole model has to be requantized offline; the result is a new weight file"
+validate_by: "Compare on the quality baseline of the task; also measure memory use and decode rate"
+variants:
+  - id: experts-2bit
+    summary: "The weights of the selected objects are quantized to about 2 bits"
+    seen_in:
+      - {engine: ds4, source: "engines/ds4.md mechanism 2", note: "gate/up of the experts use IQ2_XXS, down uses Q2_K, the rest Q8; the recipe appears only in the documents"}
+      - {engine: Strata, source: "strata docs/DGX_SPARK_LINUX.md:26", note: "the DeepSeek-V4.1-Flash 2.00 bpw package"}
+    template:
+      binding:
+        precision:
+          - {data: $data, bits: 2, note: "needs offline requantization; the publisher of Muse provides only BF16 and NVFP4"}
+      delivery:
+        offline_prepared:
+          - {item: "low-bit quantized $data", made_from: "the checkpoint from the publisher", resolution: open}
+claims:
+  - text: "DeepSeek V4 Flash takes about 45 GiB per host at Q2 and about 77 GiB at MXFP4"
+    status: reported
+    source: "ds4 docs/DGX_SPARK.md:77 (via engines/ds4.md)"
+    conditions: {model: deepseek-v4-flash, hardware: "two dgx-spark"}
+    baseline: "the same model at MXFP4"

@@ -1,0 +1,62 @@
+# Measured environment description written by spark_kit/probe.py. The content is JSON, which is also valid YAML.
+{
+  "kind": "environment",
+  "id": "env/local-laptop",
+  "hardware": "hw/local-laptop",
+  "software": {
+    "os": {
+      "value": "Windows-11-10.0.26300-SP0",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+    },
+    "python": {
+      "value": "3.12.10",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+    },
+    "machine": {
+      "value": "AMD64",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+    },
+    "cpu_count": {
+      "value": 22,
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+    },
+    "ssd_read_not_measured": {
+      "value": "reading that bypasses the page cache is implemented only on Linux; not measured on this platform",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+    }
+  },
+  "allocatable": [
+    {
+      "pool": "mem0",
+      "value": 11.04,
+      "unit": "GB",
+      "unit_basis": "decimal",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00; total and available physical memory from GlobalMemoryStatusEx; the value at the moment of the probe, which the memory use of other processes changes"
+    }
+  ],
+  "statements": [
+    {
+      "subject": "mem0",
+      "property": "capacity_reported_by_os",
+      "value": 33.78,
+      "unit": "GB",
+      "unit_basis": "decimal",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00"
+    },
+    {
+      "subject": "mem0",
+      "property": "copy_bandwidth_single_thread",
+      "value": 3.76,
+      "unit": "GB/s",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-10T23:12:36-05:00; Python bytes() copy of 0 GiB, fastest of three"
+    }
+  ]
+}

@@ -1,0 +1,402 @@
+{
+  "schema_version": "1.0.0",
+  "request_ref": {
+    "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+    "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+  },
+  "interpretation": {
+    "problem": null,
+    "desired_change": {
+      "id": "intent.desired-change",
+      "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+            "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+          },
+          "start": 0,
+          "end": 87
+        }
+      ]
+    },
+    "requested_result": {
+      "id": "intent.requested-result",
+      "text": "A custom inference engine implementing the supplied System Ontology description, delivered as a reproducible container with a clean rebuild, benchmark report and replayable run artifacts.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+            "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+          },
+          "start": 0,
+          "end": 87
+        },
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 9000
+        }
+      ]
+    }
+  },
+  "context": [
+    {
+      "id": "context.supplied-material",
+      "name": "Attached System Ontology files",
+      "role": "The user asserts that the model, machine, evaluation target, system design and node design are supplied and adopts them as the statement of what is wanted.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+            "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+          },
+          "start": 88,
+          "end": 305
+        }
+      ]
+    },
+    {
+      "id": "context.target",
+      "name": "spec/muse-spark-open-on-dgx-spark/target",
+      "role": "Evaluation and delivery specification. Its proposed bench settings describe current measurement practice and do not establish project requirements; UNSET fields remain unresolved and open fields remain implementation choices.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 2000
+        }
+      ]
+    },
+    {
+      "id": "context.model",
+      "name": "model/muse-spark-open-ud-iq2-xxs",
+      "role": "Description of the third-party UD-IQ2_XXS conversion loaded by the baseline, with vendor-stated model facts and measurements of the stored tensors distinguished. Permission to use this lower precision is unresolved.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:c037c02cc836afbb0f7ff9939784cc2eacee89e6d482c64602b10a6bd4573246",
+            "sha256": "c037c02cc836afbb0f7ff9939784cc2eacee89e6d482c64602b10a6bd4573246"
+          },
+          "start": 0,
+          "end": 1600
+        }
+      ]
+    },
+    {
+      "id": "context.hardware",
+      "name": "hw/dgx-spark",
+      "role": "Description of the NVIDIA DGX Spark 128 GB configuration, with one unified memory pool shared by CPU and GPU.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+            "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+          },
+          "start": 0,
+          "end": 1800
+        }
+      ]
+    },
+    {
+      "id": "context.system-design",
+      "name": "sys/muse-on-spark",
+      "role": "Supplied proposed system design derived from Strata and ds4; no implementation exists. Its derivation, omitted-component reasons, postponements and coverage limitations remain supplied design data.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f",
+            "sha256": "b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f"
+          },
+          "start": 0,
+          "end": 1000
+        }
+      ]
+    },
+    {
+      "id": "context.node-design",
+      "name": "muse-on-spark node-level design",
+      "role": "Supplied node responsibilities, settled choices and type assignments. Partial-fit reasons and types without a part remain design data rather than instructions to add components.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:e7ae54481a54e89210a2a313f7ca5250ff4104aa6e6ed87d3687d9cf072cad36",
+            "sha256": "e7ae54481a54e89210a2a313f7ca5250ff4104aa6e6ed87d3687d9cf072cad36"
+          },
+          "start": 0,
+          "end": 800
+        }
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "scope.supplied-design",
+      "text": "Implement the supplied engine design at system and node levels, including preparation, setup, loading, serving, conversation reuse, prompt processing, token generation, the expert subsystem and telemetry.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f",
+            "sha256": "b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f"
+          },
+          "start": 0,
+          "end": 4000
+        }
+      ]
+    },
+    {
+      "id": "scope.expert-storage-design",
+      "text": "Follow the supplied design of resident shared weights, storage-backed experts, an in-memory expert cache, contiguous prepared expert ranges, overlapping missed-expert reads with cached-expert computation, and layer-major prompt chunks.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f",
+            "sha256": "b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f"
+          },
+          "start": 0,
+          "end": 2000
+        }
+      ]
+    },
+    {
+      "id": "scope.reporting",
+      "text": "Report time to first token, decode rate and peak memory; the supplied bench definitions and workloads are proposals rather than confirmed project acceptance rules.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 8000
+        }
+      ]
+    }
+  ],
+  "out_of_scope": [
+    {
+      "id": "exclusion.nontext-input",
+      "text": "The first version does not load the perception encoder or serve image, video or audio input.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f",
+            "sha256": "b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f"
+          },
+          "start": 0,
+          "end": 1400
+        }
+      ]
+    },
+    {
+      "id": "exclusion.first-version-capabilities",
+      "text": "Drafting, generating more than one conversation at the same time, and using more than one machine are excluded from the first version. Keeping earlier conversation state for reuse is permitted within a budget that may be zero.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f",
+            "sha256": "b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f"
+          },
+          "start": 0,
+          "end": 20000
+        }
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "id": "constraint.hardware",
+      "text": "The engine must run on NVIDIA DGX Spark.",
+      "category": "hardware",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+            "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+          },
+          "start": 0,
+          "end": 87
+        }
+      ]
+    },
+    {
+      "id": "constraint.packaging-and-interface",
+      "text": "Container packaging, text input and text output are required. Service form and an OpenAI-compatible interface are proposed bench context, and streaming is UNSET.",
+      "category": "delivery_and_interface",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 2100
+        }
+      ]
+    },
+    {
+      "id": "constraint.memory-accounting",
+      "text": "The stated memory accounting boundary includes everything the engine container holds in the unified pool at any moment: CPU and GPU process allocations and page cache attributable to files it reads. The operating system and other processes are outside that boundary. The applicable budget and final accounting choice remain unresolved.",
+      "category": "resource_accounting",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 4500
+        }
+      ]
+    },
+    {
+      "id": "constraint.quality-status",
+      "text": "Do not treat the proposed llama.cpp UD-IQ2_XXS baseline, its task set, its measured scores or its comparison options as a confirmed quality pass rule. The quality threshold, deciding comparison and allowed transformations are unset.",
+      "category": "evaluation",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 9000
+        }
+      ]
+    }
+  ],
+  "preferences": [],
+  "user_targets": [
+    {
+      "id": "target.memory",
+      "metric": "memory_budget",
+      "target_text": "The kickoff target is a working set of 128 GB of unified memory. The 80 GB figure describes Strata's reference configuration; 12 GB is a feasibility target that the bench proposes interpreting as GPU working set. These figures do not establish one resolved engine budget, and the stated 128 GB target exceeds the approximately 127 GB reported allocatable.",
+      "source_spans": [
+        {
+          "source_ref": {
+            "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+            "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+          },
+          "start": 0,
+          "end": 4500
+        }
+      ]
+    }
+  ],
+  "context_refs": [
+    {
+      "id": "blob:7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781",
+      "sha256": "7b87e5eaf41c98d79e421c32b6a642881dccc539a6b0027ebbc52887c42c6781"
+    },
+    {
+      "id": "blob:c037c02cc836afbb0f7ff9939784cc2eacee89e6d482c64602b10a6bd4573246",
+      "sha256": "c037c02cc836afbb0f7ff9939784cc2eacee89e6d482c64602b10a6bd4573246"
+    },
+    {
+      "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+      "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+    },
+    {
+      "id": "blob:b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f",
+      "sha256": "b08eb486d771c2520724c495c064f252e0ef77084ef649631917968c7f00155f"
+    },
+    {
+      "id": "blob:e7ae54481a54e89210a2a313f7ca5250ff4104aa6e6ed87d3687d9cf072cad36",
+      "sha256": "e7ae54481a54e89210a2a313f7ca5250ff4104aa6e6ed87d3687d9cf072cad36"
+    }
+  ],
+  "uncertainties": [
+    {
+      "id": "uncertainty.memory-budget",
+      "kind": "ambiguous",
+      "description": "The engine's governing memory budget and final accounting rule are not selected. The source distinguishes a 128 GB working-set target, an 80 GB Strata reference configuration and a 12 GB feasibility target; they govern different objects and cannot be merged into one limit.",
+      "affected_fields": [
+        "constraints",
+        "user_targets",
+        "interpretation.requested_result"
+      ],
+      "blocking": true,
+      "clarification": "Specify the engine memory limit, its unit basis and accounting boundary, and the role of the 12 GB feasibility target."
+    },
+    {
+      "id": "uncertainty.memory-feasibility",
+      "kind": "conflicting",
+      "description": "The stated 128 GB working-set target exceeds the approximately 127 GB reported allocatable on the machine. The sources do not resolve how that target is to be applied on this hardware.",
+      "affected_fields": [
+        "user_targets",
+        "constraints"
+      ],
+      "blocking": true,
+      "clarification": "Resolve the 128 GB target against the reported allocatable capacity without silently substituting another budget."
+    },
+    {
+      "id": "uncertainty.context-length",
+      "kind": "missing",
+      "description": "The required supported context length is UNSET. The model's maximum context and the bench's current server and prompt lengths are explicitly not an engine requirement.",
+      "affected_fields": [
+        "constraints",
+        "interpretation.requested_result"
+      ],
+      "blocking": true,
+      "clarification": "Specify the required context length in tokens."
+    },
+    {
+      "id": "uncertainty.quality-acceptance",
+      "kind": "missing",
+      "description": "No quality pass rule or threshold is established. The proposed task-score comparison and token-probability comparisons do not select which measurement decides acceptance or its permitted degradation.",
+      "affected_fields": [
+        "constraints",
+        "user_targets",
+        "interpretation.requested_result"
+      ],
+      "blocking": true,
+      "clarification": "Specify the accepted quality baseline, evaluation task set, deciding comparison rule and pass threshold."
+    },
+    {
+      "id": "uncertainty.checkpoint-and-transformations",
+      "kind": "ambiguous",
+      "description": "The bench uses a third-party UD-IQ2_XXS conversion, while the published model has different weight precisions. The conversion is proposed rather than confirmed, and allowed transformations relative to the baseline are UNSET.",
+      "affected_fields": [
+        "context",
+        "in_scope",
+        "constraints"
+      ],
+      "blocking": true,
+      "clarification": "Confirm the required checkpoint and whether the UD-IQ2_XXS conversion and any further model transformations are permitted."
+    },
+    {
+      "id": "uncertainty.evaluation-workload",
+      "kind": "missing",
+      "description": "The reported speed and quality workloads are bench proposals describing current practice rather than confirmed project requirements. The workload under which the engine is to be judged remains unconfirmed.",
+      "affected_fields": [
+        "in_scope",
+        "constraints",
+        "interpretation.requested_result"
+      ],
+      "blocking": true,
+      "clarification": "Confirm or replace the proposed evaluation workloads and reporting definitions, including streaming treatment for first-token latency and whether decode timing counts the first token."
+    },
+    {
+      "id": "uncertainty.design-weight-basis",
+      "kind": "ambiguous",
+      "description": "The proposed system describes expert weights as about three times machine memory, while its current resource expectations distinguish the smaller UD-IQ2_XXS expert weights from the published-weight sizes. The checkpoint decision determines which resource assumptions govern implementation.",
+      "affected_fields": [
+        "context",
+        "in_scope",
+        "constraints"
+      ],
+      "blocking": true,
+      "clarification": "Identify which checkpoint's weight sizes govern the supplied engine design and reconcile the introductory memory-size assumption with that choice."
+    }
+  ],
+  "readiness": {
+    "status": "needs_clarification",
+    "reason": "The requested engine and supplied design are identifiable, but the memory budget and capacity conflict, required context length, quality acceptance rule, checkpoint permissions and governing evaluation workload remain unresolved."
+  }
+}

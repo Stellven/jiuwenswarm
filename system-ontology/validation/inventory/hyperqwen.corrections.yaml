@@ -1,0 +1,32 @@
+# Entries of the inventory that a later reader found wrong and confirmed against the engine's source.
+# The inventory itself is left as first written; read it together with this file.
+engine: hyperqwen
+corrections:
+- part: gptq-requantizer
+  field: decisions
+  recorded: Width of the DFlash2 fc projection
+  source_shows: The choice is the bit width of the fc projection (--fc-bits 4|8|16, default int4 GPTQ), not its dimension
+    (drafter/quant_dflash2.py:5,9,29,59)
+  found_in: round3
+- part: context-lookup-proposer
+  field: output_effect
+  recorded: none
+  source_shows: Its own output_effect_when says greedy text may flip on near ties because block length changes rounding,
+    which is the 'numeric' level of the inventory brief (patches/dflash2-lookup-drafting.patch, as cited)
+  found_in: round3
+- part: image-encoder
+  field: output_effect
+  recorded: none
+  source_shows: The launcher passes an image processor size limit (longest_edge 2,097,152 pixels, launcher_common.sh:169-173),
+    so larger images are resized down before encoding; the pixel cap decides the model's input, which is changes_output
+    (defines), not none.
+  found_in: round4
+- part: gptq-requantizer
+  field: when_things_go_wrong
+  recorded: '[] (and must_never [])'
+  source_shows: 'The scripts write the variant directory in place with no temporary name: shard by save_file, then the index,
+    then config.json last (drafter/gptq_lm_head.py:73-110, drafter/quant_dflash2.py:93-117); an interrupted run leaves a
+    partial directory that is rejected at load only because config.json is written last or a truncated shard fails its header.
+    The served copy is fetched prebuilt through temp file and rename (prepare/fetch_fast_variant.py:9,22-23). Each script
+    also prints a round-trip error.'
+  found_in: round7

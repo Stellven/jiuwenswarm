@@ -1,0 +1,6 @@
+# Records whose bytes are pinned by a checksum are stored exactly as they are and never converted
+# between line-ending conventions: a converted file no longer matches its checksum, and character
+# positions recorded against it point somewhere else.
+ontology/node-types.draft.yaml -text
+validation/heldout/node-types.draft-0.8.yaml -text
+validation/intake/*/query/* -text

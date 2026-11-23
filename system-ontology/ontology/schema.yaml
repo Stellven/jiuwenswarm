@@ -1,0 +1,1061 @@
+# System Ontology 0.6.1 draft — structure definitions
+#
+# Machine-readable definitions (JSON Schema, one per file kind). The human-readable field reference
+# (schema-reference.md) and the dictionary (dictionary.md) are generated from this directory by tools/so_docs.py.
+# Where they disagree, this file wins.
+#
+# Conventions
+#   - Every description file has `kind` and `id` at the top level. `kind` selects the definition below.
+#   - Identifiers are lower case.
+#   - A field that is not defined here is a structural error, unless a definition says otherwise.
+#   - Write UNSET where a value is needed but no source has provided it. Write open where the factory may choose.
+#     Never leave a needed value blank and never guess.
+#   - Every field has exactly one meaning. Each word used as a field name or enumerated value is defined in
+#     dictionary.yaml or described here at the place it appears.
+ontology_version: 0.6.1
+
+defs:
+  status:
+    description: "How a fact is known, from least to most reliable. assumed: taken for the sake of proceeding. simulated: computed by a model of the system. derived: computed by the author from other stated facts. proposed: a requirement put forward but not decided. reported: stated by a paper, a project's documents or its code. vendor_stated: stated officially by the maker. measured: observed by us with the conditions recorded."
+    enum: [assumed, simulated, derived, proposed, reported, vendor_stated, measured]
+
+  resolution:
+    description: "Who fixes a field of an engine spec: required (the requester), open (the factory may choose), resolved (the factory has chosen)."
+    enum: [required, open, resolved]
+
+  cell:
+    description: "A value. Written bare (number, text, true/false), or as an object that also carries unit, how it is known, where it comes from, and who fixes it."
+    anyOf:
+      - type: [number, string, boolean]
+      - type: object
+        required: [value]
+        properties:
+          value: {description: "The value itself."}
+          unit: {type: string, description: "Unit of the value, for example GB or GB/s."}
+          unit_basis: {enum: [decimal, binary, UNSET], description: "Whether a byte unit is decimal (10^9) or binary (2^30)."}
+          status: {$ref: "#/defs/status"}
+          resolution: {$ref: "#/defs/resolution"}
+          source: {type: string, description: "Where the value comes from, precise enough to find it again."}
+          note: {type: string, description: "Free remark."}
+        additionalProperties: false
+
+  cell_list:
+    description: "A value that is a list, optionally with how it is known and who fixes it."
+    anyOf:
+      - enum: [UNSET, open]
+      - type: array
+      - type: object
+        required: [value]
+        properties:
+          value: {description: "The list."}
+          status: {$ref: "#/defs/status"}
+          resolution: {$ref: "#/defs/resolution"}
+          source: {type: string, description: "Where the value comes from."}
+          note: {type: string, description: "Free remark."}
+        additionalProperties: false
+
+  equivalence_level:
+    description: "How an output relates to the reference output, from strictest to loosest: bit_exact, distribution_exact, numeric, approximate."
+    enum: [bit_exact, distribution_exact, numeric, approximate]
+
+  equivalence:
+    description: "How the output relates to the reference output. Written as a bare level, as one case (level with reference and condition), or as a list of cases when the level differs by condition."
+    anyOf:
+      - {$ref: "#/defs/equivalence_level"}
+      - {$ref: "#/defs/equivalence_case"}
+      - type: array
+        minItems: 1
+        items: {$ref: "#/defs/equivalence_case"}
+
+  equivalence_case:
+    description: "One equivalence level with the reference and the condition under which it holds. Several cases are listed when the level differs by condition, for example by sampling mode."
+    type: object
+    required: [level]
+    properties:
+      level: {$ref: "#/defs/equivalence_level"}
+      relative_to: {type: string, description: "The reference the output is compared with."}
+      holds_when: {type: string, description: "The conditions under which the level holds, such as sampling mode, batch composition or device."}
+      note: {type: string, description: "Free remark."}
+    additionalProperties: false
+
+  statement:
+    description: "One assertion about one property of one object."
+    type: object
+    required: [subject, property, value, status]
+    properties:
+      subject: {type: string, description: "The object the statement is about."}
+      property: {type: string, description: "The property of that object."}
+      value: {description: "The asserted value."}
+      unit: {type: string, description: "Unit of the value."}
+      unit_basis: {enum: [decimal, binary], description: "Whether a byte unit is decimal or binary."}
+      status: {$ref: "#/defs/status"}
+      source: {type: string, description: "Where the statement comes from."}
+      conditions: {type: object, description: "The conditions under which the statement holds."}
+    additionalProperties: false
+
+  claim:
+    description: "A result someone has stated, with where it was stated and under what conditions."
+    type: object
+    required: [text, status, source]
+    properties:
+      text: {type: string, description: "The claim in words."}
+      status: {$ref: "#/defs/status"}
+      source: {type: string, description: "Where the claim was made."}
+      conditions: {type: object, description: "The model, hardware and workload the claim was observed under."}
+      baseline: {type: string, description: "What the result was compared with."}
+    additionalProperties: false
+
+  invariant:
+    description: "A condition that must hold at every moment whatever the engine chooses to do."
+    type: object
+    required: [id, text]
+    properties:
+      id: {type: string, description: "Identifier of the invariant, shared between specs, mechanisms and components."}
+      text: {type: string, description: "The condition in words."}
+    additionalProperties: false
+
+  commit_rule:
+    description: "What happens to a piece of state when drafted tokens are accepted or rejected."
+    enum: [keep, advance, advance_by_replay, replay_records, restore, restore_then_append, set_to_snapshot,
+           recompute, invalidate, unchanged]
+
+  allocation:
+    description: "How a piece of data occupies a memory pool: pinned (stays, counts fully against the limit); reclaimable_mapping (a file mapping the operating system may drop; needs backed_by); transient (staging for one computation; needs capacity); read_through (not kept in the pool, read from backed_by at each use); elastic (a guaranteed floor that may grow to a cap). Absent means pinned."
+    enum: [pinned, reclaimable_mapping, transient, read_through, elastic]
+
+  timing:
+    description: "When something happens: offline (in a separate run before the engine serves), startup (once when the engine starts), per_request, per_window (once per verify window, that is each pass in which the full model checks one accepted token plus drafts), per_step (once per decode step), per_layer (once per layer within a step), background (alongside the main work), on_demand (when another component asks)."
+    enum: [offline, startup, per_request, per_window, per_step, per_layer, background, on_demand]
+
+  resolved_at:
+    description: "When a value becomes fixed: design (by the factory, before the engine is built), startup (by the engine, from the machine it finds), runtime (by a policy while running)."
+    enum: [design, startup, runtime]
+
+  # ------------------------------------------------------------------ the nine aspects of an engine spec
+  # In a target spec every aspect except contract may be written as open (left to the factory) or UNSET (not given).
+
+  boundary:
+    description: "Product boundary: what form the engine takes and what lies outside it."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          form: {$ref: "#/defs/cell", description: "The form of the product: library, offline_engine or service."}
+          packaging: {$ref: "#/defs/cell", description: "How it is packaged for delivery, for example container."}
+          base:
+            description: "The upstream project, when the engine is a modification of one."
+            type: object
+            properties:
+              upstream: {type: string, description: "The upstream project."}
+              version: {type: string, description: "The pinned upstream version."}
+              patches: {type: string, description: "Where the patch set is, or its identifier."}
+            additionalProperties: false
+          external: {type: array, items: {type: string}, description: "Responsibilities carried by systems outside the engine."}
+        additionalProperties: false
+
+  interface:
+    description: "Service interface: how a caller uses the engine."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          input:
+            description: "What the engine accepts."
+            type: object
+            required: [modality]
+            properties:
+              modality: {type: string, description: "Input modality, for example text."}
+              status: {$ref: "#/defs/status"}
+              resolution: {$ref: "#/defs/resolution"}
+              source: {type: string, description: "Where this comes from."}
+            additionalProperties: false
+          output:
+            description: "What the engine returns."
+            type: object
+            required: [modality]
+            properties:
+              modality: {type: string, description: "Output modality, for example text."}
+              status: {$ref: "#/defs/status"}
+              resolution: {$ref: "#/defs/resolution"}
+              source: {type: string, description: "Where this comes from."}
+            additionalProperties: false
+          streaming: {$ref: "#/defs/cell", description: "Whether output is delivered incrementally."}
+          cancellation: {$ref: "#/defs/cell", description: "What happens when a request is cancelled midway."}
+          errors: {$ref: "#/defs/cell", description: "Error semantics."}
+        additionalProperties: false
+
+  execution:
+    description: "Execution structure: the stages a request passes through."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          stages:
+            description: "Request-level execution stages, in order. What happens inside a stage is described by the model's operations and is not repeated here."
+            type: array
+            items:
+              type: object
+              required: [id]
+              properties:
+                id: {type: string, description: "Name of the stage, for example load, prefill, decode."}
+                executes: {type: array, items: {type: string}, description: "The model operations run in this stage."}
+                note: {type: string, description: "Free remark."}
+              additionalProperties: false
+          overlaps:
+            description: "Pairs of activities that run at the same time so that one hides the waiting time of the other."
+            type: array
+            items:
+              type: object
+              required: [hidden, behind]
+              properties:
+                hidden: {type: string, description: "The activity whose waiting time is hidden."}
+                behind: {type: string, description: "The activity that runs meanwhile."}
+              additionalProperties: false
+        additionalProperties: false
+
+  state:
+    description: "Run state: what the engine must remember while it runs, and the rules that keep it correct."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          states:
+            description: "The individual pieces of state."
+            type: array
+            items:
+              type: object
+              required: [id]
+              properties:
+                id: {type: string, description: "Name of the state."}
+                of: {type: string, description: "The model_state in the model description this corresponds to. Absent for the engine's own bookkeeping."}
+                scope: {enum: [request, batch, engine], description: "How widely one instance applies: one request, one batch, or the whole engine."}
+                produced_by: {type: string, description: "The stage that first produces it."}
+                consumed_by: {type: array, items: {type: string}, description: "The stages that read it."}
+                on_accept: {$ref: "#/defs/commit_rule", description: "What happens for drafted tokens the full model agreed with."}
+                on_reject: {$ref: "#/defs/commit_rule", description: "What happens for drafted tokens the full model did not agree with."}
+                checkpoint:
+                  description: "A saved copy of the state kept so that a later request can continue from it."
+                  type: object
+                  properties:
+                    interval: {type: string, description: "How often a checkpoint is taken, for example every 4096 tokens."}
+                    identity: {type: array, items: {type: string}, description: "What must be identical for the checkpoint to be reused."}
+                    stored_in: {type: string, description: "The memory pool it is kept in."}
+                  additionalProperties: false
+                note: {type: string, description: "Free remark."}
+              additionalProperties: false
+          invariants: {type: array, items: {$ref: "#/defs/invariant"}, description: "The invariants the engine must uphold."}
+        additionalProperties: false
+
+  composition:
+    description: "Composition: which components make up the engine on this target, what each occupies here, and which are idle."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          components:
+            description: "One entry per component as it appears on this target."
+            type: array
+            items:
+              type: object
+              required: [id]
+              properties:
+                id: {type: string, description: "Short name of the entry within this spec."}
+                component_ref: {type: string, description: "The component file that defines it."}
+                implements: {type: array, items: {type: string}, description: "The execution stages it carries out."}
+                active: {type: boolean, description: "False when the component has nothing to do on this target."}
+                inactive_reason: {type: string, description: "Why it has nothing to do here."}
+                manages:
+                  description: "The residency entries of the binding this component is responsible for."
+                  type: array
+                  items:
+                    type: object
+                    required: [data, pool]
+                    properties:
+                      data: {type: string, description: "The data of the residency entry."}
+                      pool: {type: string, description: "The memory pool of the residency entry."}
+                    additionalProperties: false
+                uses:
+                  description: "Resources it occupies on this target, other than the residency entries it manages."
+                  type: array
+                  items:
+                    type: object
+                    required: [where, purpose]
+                    properties:
+                      where: {type: string, description: "A memory pool or compute unit of the target hardware."}
+                      purpose: {type: string, description: "What the resource is used for."}
+                      allocation: {$ref: "#/defs/allocation"}
+                      amount: {$ref: "#/defs/cell", description: "How much."}
+                      resolved_at: {$ref: "#/defs/resolved_at"}
+                      note: {type: string, description: "Free remark."}
+                    additionalProperties: false
+                observation_points: {type: array, items: {type: string}, description: "The events, counters and timers it exposes on this target."}
+                requires_capabilities: {type: array, items: {type: string}, description: "Features of the hardware or software it needs here."}
+                note: {type: string, description: "Free remark."}
+              additionalProperties: false
+        additionalProperties: false
+
+  budget:
+    description: "The upper limit of a resource a policy may occupy. A value, or a formula evaluated when the engine starts."
+    anyOf:
+      - {$ref: "#/defs/cell"}
+      - type: object
+        required: [derive]
+        properties:
+          derive:
+            description: "The formula: base times fraction, minus what is pinned in the pool, minus reserve. The base is the memory budget if there is one, else the allocatable capacity."
+            type: object
+            properties:
+              fraction: {type: number, description: "The fraction of the base."}
+              reserve: {$ref: "#/defs/cell", description: "An extra amount kept free."}
+            additionalProperties: false
+          resolved_at: {$ref: "#/defs/resolved_at"}
+          source: {type: string, description: "Where the formula comes from."}
+        additionalProperties: false
+
+  policy:
+    description: "Policy: the rules by which the engine changes its own binding or work amount while it runs."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          policies:
+            description: "The individual policies."
+            type: array
+            items:
+              type: object
+              required: [id, controls, signals]
+              properties:
+                id: {type: string, description: "Name of the policy."}
+                controls:
+                  description: "What the policy is allowed to change."
+                  type: object
+                  required: [aspect, item]
+                  properties:
+                    aspect: {enum: [binding, execution], description: "The aspect it changes."}
+                    item: {type: string, description: "The item of that aspect: residency, assignment or stages."}
+                    data: {type: string, description: "The data concerned, when it controls residency."}
+                    pool: {type: string, description: "The memory pool concerned, when it controls residency."}
+                    operation: {type: string, description: "The operation concerned, when it controls assignment."}
+                    stage: {type: string, description: "The stage concerned."}
+                    work: {type: string, description: "When it controls an amount of work: what is counted, for example drafted tokens per window."}
+                  additionalProperties: false
+                signals:
+                  description: "The observed values the policy reads."
+                  type: array
+                  items:
+                    type: object
+                    required: [id]
+                    properties:
+                      id: {type: string, description: "Name of the signal."}
+                      per: {type: array, items: {type: string}, description: "The dimensions it is kept separately for."}
+                      update: {type: string, description: "How it is updated."}
+                      decay: {type: string, description: "How it fades."}
+                      freshness: {type: string, description: "How recent it is when read, for example one step behind."}
+                      note: {type: string, description: "Free remark."}
+                    additionalProperties: false
+                actions:
+                  description: "What the policy may do."
+                  type: array
+                  items:
+                    type: object
+                    required: [id, steps]
+                    properties:
+                      id: {type: string, description: "Name of the action."}
+                      steps: {type: string, description: "What is done, in the order that keeps the invariants."}
+                      via: {type: string, description: "The access path of the hardware the action goes through."}
+                    additionalProperties: false
+                trigger: {type: string, description: "When the policy runs or acts."}
+                scope: {enum: [request, batch, engine], description: "How widely one decision applies."}
+                budget: {$ref: "#/defs/budget"}
+                prior:
+                  description: "What the policy starts from before it has observations of its own."
+                  type: object
+                  properties:
+                    workload_profile_property: {type: string, description: "The property of a workload profile used as the starting point."}
+                    note: {type: string, description: "Free remark."}
+                  additionalProperties: false
+                parameters:
+                  description: "The tunable numbers of the policy. Each is a value, or open."
+                  type: object
+                  additionalProperties: {$ref: "#/defs/cell"}
+              additionalProperties: false
+        additionalProperties: false
+
+  binding:
+    description: "Binding: the mapping from what the model needs to what the machine has."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          implementations:
+            description: "The available ways to run an operation."
+            type: array
+            items:
+              type: object
+              required: [id, of, runs_on]
+              properties:
+                id: {type: string, description: "Name of the implementation."}
+                of: {type: string, description: "The model operation it implements."}
+                runs_on: {type: string, description: "The compute unit it runs on."}
+                reads_from: {type: array, items: {type: string}, description: "The memory pools it can read data from."}
+              additionalProperties: false
+          residency:
+            description: "Where copies of data are kept."
+            type: array
+            items:
+              type: object
+              required: [data, pool]
+              properties:
+                data: {type: string, description: "The data, as named in the model description."}
+                pool: {type: string, description: "The memory pool it is kept in."}
+                portion: {type: string, description: "Which part is kept there, for example all."}
+                by_policy: {type: string, description: "The policy that chooses which part is kept there while the engine runs."}
+                allocation: {$ref: "#/defs/allocation"}
+                backed_by: {type: string, description: "The memory pool the data really lives in, for a mapping or a read-through."}
+                capacity: {$ref: "#/defs/cell", description: "Size of a transient staging area."}
+                floor: {$ref: "#/defs/cell", description: "Guaranteed amount of an elastic allocation."}
+                cap: {$ref: "#/defs/cell", description: "Upper limit of an elastic allocation."}
+                when_work: {type: string, description: "The work condition under which this entry applies."}
+                note: {type: string, description: "Free remark."}
+              additionalProperties: false
+          assignment:
+            description: "Which implementation computes an operation, under which condition. Entries for one operation are tried in the order written; the first whose condition holds is used; one must be marked otherwise."
+            type: array
+            items:
+              type: object
+              required: [operation]
+              properties:
+                operation: {type: string, description: "The model operation."}
+                stage: {type: string, description: "The stage this entry is limited to."}
+                when:
+                  description: "The condition under which this entry applies."
+                  type: object
+                  properties:
+                    copy_ready_in: {type: string, description: "The needed data is present and readable in this memory pool."}
+                    transient_fetch:
+                      description: "The data is brought into a staging area for this computation only."
+                      type: object
+                      required: [via, into]
+                      properties:
+                        via: {type: string, description: "The access path used."}
+                        into: {type: string, description: "The memory pool it is brought into."}
+                        share_by_policy: {type: string, description: "The policy that decides how much goes this way."}
+                      additionalProperties: false
+                    held_by: {type: string, description: "Another compute unit already holds the data."}
+                    all_ranks_at_least: {type: number, description: "Every token of the window selected this object at this rank or lower."}
+                  additionalProperties: false
+                otherwise: {type: boolean, description: "Marks the default assignment, used when no earlier condition holds."}
+                use: {type: string, description: "The implementation to use."}
+                omit: {type: boolean, description: "The operation is not executed and contributes zero. Changes the output."}
+                because: {type: string, description: "The adopted mechanism, of approximate level, that permits omitting."}
+                note: {type: string, description: "Free remark."}
+              additionalProperties: false
+          precision:
+            description: "Data stored at a different number of bits per parameter than in the model description."
+            type: array
+            items:
+              type: object
+              required: [data, bits]
+              properties:
+                data: {type: string, description: "The data."}
+                bits: {type: number, description: "Bits per parameter."}
+                note: {type: string, description: "Free remark."}
+              additionalProperties: false
+        additionalProperties: false
+
+  contract:
+    description: "Behavior contract: what counts as meeting the request for this engine."
+    type: object
+    required: [requirements]
+    properties:
+      requirements:
+        description: "The individual conditions. Besides the fields below, a requirement on a quantity must carry the fields registered for that quantity in quantities.yaml."
+        type: array
+        items:
+          type: object
+          required: [id, kind]
+          properties:
+            id: {type: string, description: "Name of the requirement."}
+            quantity: {type: string, description: "The registered quantity it is about. Absent for a behavior requirement."}
+            kind: {enum: [pass_fail, objective, report, behavior], description: "pass_fail: must be met. objective: make as good as possible. report: only measure and report. behavior: stated in words."}
+            text: {type: string, description: "The requirement in words, for a behavior requirement."}
+            status: {$ref: "#/defs/status"}
+            source: {type: string, description: "Where the requirement comes from."}
+            candidates: {type: array, items: {type: object}, description: "Several values put forward while the requirement is undecided."}
+      allowed_transformations: {$ref: "#/defs/cell_list", description: "The kinds of change to the computation the requester permits."}
+      equivalence_floor: {$ref: "#/defs/cell", description: "The loosest equivalence level accepted. When absent it is derived from allowed_transformations."}
+      workload: {$ref: "#/defs/cell", description: "The fixed pattern of use the requirements are judged on."}
+    additionalProperties: false
+
+  delivery:
+    description: "Delivery: what is handed over for this engine."
+    anyOf:
+      - enum: [open, UNSET]
+      - type: object
+        properties:
+          model_checkpoint: {$ref: "#/defs/cell", description: "Which published set of model weights the engine uses."}
+          image_digest: {$ref: "#/defs/cell", description: "Content hash of the built engine image. Filled in after the build."}
+          deliverables:
+            description: "The things that must be handed over."
+            type: array
+            items:
+              type: object
+              required: [item]
+              properties:
+                item: {type: string, description: "The thing to hand over."}
+                resolution: {$ref: "#/defs/resolution"}
+              additionalProperties: false
+          offline_prepared:
+            description: "Model files that must be produced before the engine runs."
+            type: array
+            items:
+              type: object
+              required: [item]
+              properties:
+                item: {type: string, description: "The file to produce."}
+                made_from: {type: string, description: "What it is produced from."}
+                resolution: {$ref: "#/defs/resolution"}
+              additionalProperties: false
+        additionalProperties: false
+
+  template:
+    description: "The fragment of an engine spec a mechanism variant contributes. Same structure as the aspects, with names written as placeholders: $data, $operation, $fast_pool, $slow_pool, $path_slow_to_fast, $impl_fast, $impl_slow."
+    type: object
+    properties:
+      execution: {$ref: "#/defs/execution"}
+      state: {$ref: "#/defs/state"}
+      composition: {$ref: "#/defs/composition"}
+      policy: {$ref: "#/defs/policy"}
+      binding: {$ref: "#/defs/binding"}
+      delivery: {$ref: "#/defs/delivery"}
+    additionalProperties: false
+
+kinds:
+  # ------------------------------------------------------------------ layer 1: system
+  system:
+    description: "System-level description: one inference engine as a whole."
+    type: object
+    required: [kind, id, summary, components]
+    properties:
+      kind: {const: system}
+      id: {type: string, description: "Identifier of the system."}
+      title: {type: string, description: "Display name."}
+      summary: {type: string, description: "One paragraph: what the engine does and where its efficiency comes from."}
+      product:
+        description: "Identity of the product described."
+        type: object
+        properties:
+          name: {type: string, description: "Product name."}
+          revision: {type: string, description: "The source revision described."}
+          upstream: {type: string, description: "Where the source is."}
+          form: {type: string, description: "How it was made: written from scratch, patches on an upstream, and so on."}
+        additionalProperties: false
+      targets:
+        description: "The model and hardware combinations this description covers."
+        type: array
+        items:
+          type: object
+          required: [model, hardware]
+          properties:
+            model: {type: string, description: "The model description."}
+            hardware: {type: string, description: "The hardware description."}
+            spec: {type: string, description: "The resolved engine spec for this combination."}
+            input_modalities: {type: array, items: {type: string}, description: "The kinds of input this target serves, such as text. A model operation that serves only other kinds needs no component on this target. When absent, every operation of the model must be performed."}
+            note: {type: string, description: "Free remark."}
+          additionalProperties: false
+      components: {type: array, items: {type: string}, description: "The top-level components, roughly in the order data passes through them."}
+      flows:
+        description: "What passes between components. Declared once here; a component's inputs and outputs are the flows that name it."
+        type: array
+        items:
+          type: object
+          required: [id, sender, receiver, carries]
+          properties:
+            id: {type: string, description: "Name of the flow."}
+            sender: {type: string, description: "Where it leaves from: the full id of a component of this system, or external (anything outside the engine: a client, another machine, the operating system), or model_files (the model's files on storage)."}
+            receiver: {type: string, description: "Where it arrives: the full id of a component of this system, or external, or model_files."}
+            carries:
+              description: "What is passed."
+              type: object
+              required: [content]
+              properties:
+                content: {enum: [weights, model_state, engine_state, activations, tokens, request, response, plan, signal, metrics, control], description: "The kind of thing passed. weights: model weights or table rows. model_state: state defined by the model. engine_state: the engine's own bookkeeping. activations: intermediate results of the forward pass, including routing choices. tokens: token ids. request and response: what crosses the engine's outer boundary. plan: budgets, sizes and other settings decided for another component. signal: an observation a policy reads. metrics: measurements for outside. control: an instruction to do something."}
+                refs: {type: array, items: {type: string}, description: "The data or states concerned, by the names used in the model description (for weights and model_state) or declared for the engine (for engine_state). Expected whenever the content is weights, model_state or engine_state."}
+              additionalProperties: false
+            timing: {$ref: "#/defs/timing"}
+            description: {type: string, description: "The flow in words."}
+          additionalProperties: false
+      mechanisms: {type: array, items: {type: string}, description: "The mechanisms the engine uses, each the id of an existing mechanism file (mech/...)."}
+      uncatalogued_mechanisms:
+        description: "Mechanisms the engine uses for which no mechanism file exists yet."
+        type: array
+        items:
+          type: object
+          required: [family, summary]
+          properties:
+            family: {type: string, description: "A short name for the mechanism family."}
+            summary: {type: string, description: "The mechanism in one or two sentences."}
+          additionalProperties: false
+      declares:
+        description: "Names that components refer to. Normally these come from the resolved engine spec of a target; list them here when no target has a spec."
+        type: object
+        properties:
+          stages: {type: array, items: {type: string}, description: "Execution stages."}
+          states: {type: array, items: {type: string}, description: "States, both model states and the engine's own."}
+          policies: {type: array, items: {type: string}, description: "Policies."}
+        additionalProperties: false
+      resource_expectations:
+        description: "System-wide summary of what must be held where."
+        type: array
+        items:
+          type: object
+          required: [holding, held_on]
+          properties:
+            holding: {type: string, description: "What occupies the resource."}
+            held_on: {type: string, description: "The kind of memory or processor it sits on, in words, for example VRAM or host RAM."}
+            amount: {$ref: "#/defs/cell", description: "How much."}
+            note: {type: string, description: "Free remark."}
+          additionalProperties: false
+      claims: {type: array, items: {$ref: "#/defs/claim"}, description: "System-level results the project states."}
+      coverage: {type: string, description: "What this description was written from, and what it does not cover."}
+      derived_from:
+        description: "For an engine that is being designed: the existing engines its components were taken from, and which of their components were not carried over."
+        type: array
+        items:
+          type: object
+          required: [system]
+          properties:
+            system: {type: string, description: "The system description of the existing engine."}
+            consulted_for: {type: string, description: "What this engine was used for in the derivation."}
+            not_carried:
+              description: "Components of that engine with no counterpart here. Every leaf component of a main source engine is either carried or listed."
+              type: array
+              items:
+                type: object
+                required: [component, why, note]
+                properties:
+                  component: {type: string, description: "The component of the existing engine."}
+                  why: {enum: [does_not_apply, postponed], description: "does_not_apply: the model or hardware gives it nothing to do. postponed: it could apply, and is left out of the first version."}
+                  note: {type: string, description: "The reason, specific to this model and hardware."}
+                additionalProperties: false
+            main_source: {type: boolean, description: "True when every leaf component of that engine must be accounted for. False for an engine consulted for a few components only."}
+          additionalProperties: false
+    additionalProperties: false
+
+  # ------------------------------------------------------------------ layer 2: component
+  # A component is a part of an engine with one responsibility. Its file holds only what is true on every target.
+  # What it occupies on a particular machine is written in the composition aspect of the engine spec for that target.
+  # A leaf component must own a state, run a policy, perform a model operation, implement a stage, or be an end of a
+  # flow that crosses the engine's boundary. Otherwise it is not a component in its own right.
+  component:
+    description: "Component-level description: one part of an engine with a single responsibility, independent of the target machine. A component that has no parts must do at least one of: own a state, run a policy, perform a model operation, implement a stage, be an end of a flow that crosses the engine's boundary, or send a plan or control flow. Otherwise it belongs inside another component."
+    type: object
+    required: [kind, id, system, role, responsibility, runs, sources]
+    properties:
+      kind: {const: component}
+      id: {type: string, description: "Identifier of the component."}
+      title: {type: string, description: "Display name."}
+      system: {type: string, description: "The system it belongs to."}
+      parent: {type: string, description: "The component it is a part of. Absent for a top-level component."}
+      parts: {type: array, items: {type: string}, description: "The components it consists of."}
+      role:
+        description: "What kind of job the component does, from a fixed set, so that components of different engines can be compared."
+        enum: [subsystem, file_reader, model_preparer, weight_loader, memory_planner, memory_governor, data_source, cache,
+               assigner, executor, policy_runner, data_mover, host_loop, kernel_set, graph_runner, state_manager,
+               table_reader, tokenizer, sampler, drafter, speculation_controller, draft_verifier, prompt_reader,
+               conversation_store, scheduler, distributed_coordinator, api_server, supervisor, configuration, telemetry]
+      responsibility: {type: string, description: "The one thing the component guarantees, in one sentence."}
+      not_responsible_for: {type: array, items: {type: string}, description: "Things easily mistaken for its job that belong elsewhere."}
+      runs: {type: array, minItems: 1, items: {$ref: "#/defs/timing"}, description: "When the component does its work. For a subsystem, the timings of its parts taken together."}
+      implements_stages: {type: array, items: {type: string}, description: "The execution stages it carries out, by the stage names of the resolved engine spec or of the system's declares."}
+      performs: {type: array, items: {type: string}, description: "The model operations it computes, by the operation names of the model description. A set of kernels lists every operation it computes."}
+      state:
+        description: "Its relation to run state."
+        type: object
+        properties:
+          owns: {type: array, items: {type: string}, description: "States it is responsible for keeping consistent, by the state names of the resolved engine spec or of the system's declares. A state has exactly one owner."}
+          reads: {type: array, items: {type: string}, description: "States it reads without owning."}
+          writes: {type: array, items: {type: string}, description: "States it modifies without owning."}
+        additionalProperties: false
+      needs_resources:
+        description: "The kinds of resource it needs on any target, without naming a machine."
+        type: array
+        items:
+          type: object
+          required: [resource, purpose]
+          properties:
+            resource: {enum: [fast_memory, slow_memory, storage, accelerator, cpu], description: "fast_memory: memory the main compute unit uses directly. slow_memory: memory that holds more but costs more to use. storage: persistent storage. accelerator: the main compute unit. cpu: general-purpose processor time."}
+            purpose: {type: string, description: "What it is needed for."}
+            note: {type: string, description: "Free remark."}
+          additionalProperties: false
+      policies: {type: array, items: {type: string}, description: "The policies it runs, by the policy names of the resolved engine spec or of the system's declares."}
+      decisions:
+        description: "The choices that shape its behavior, whether tunable or fixed by design. resolved_at is design for a constant, startup for a value computed or read from flags when the engine starts, runtime for a value that changes while running or per request."
+        type: array
+        items:
+          type: object
+          required: [id, text]
+          properties:
+            id: {type: string, description: "Name of the decision."}
+            text: {type: string, description: "What is decided."}
+            value: {$ref: "#/defs/cell", description: "The value in the engine described."}
+            resolved_at: {$ref: "#/defs/resolved_at"}
+            source: {type: string, description: "Where this comes from."}
+          additionalProperties: false
+      invariants: {type: array, items: {$ref: "#/defs/invariant"}, description: "The invariants it upholds."}
+      calls:
+        description: "Its callable surface: what other components ask of it."
+        type: array
+        items:
+          type: object
+          required: [name, does]
+          properties:
+            name: {type: string, description: "Name of the call."}
+            takes: {type: string, description: "What the caller passes."}
+            returns: {type: string, description: "What comes back."}
+            does: {type: string, description: "What the call guarantees."}
+          additionalProperties: false
+      verification:
+        description: "How the component can be checked on its own."
+        type: array
+        items:
+          type: object
+          required: [method, checks]
+          properties:
+            method: {enum: [parity_with_reference, invariant_test, unit_test, measurement, end_to_end_only, none_found], description: "parity_with_reference: same result as a reference implementation. invariant_test: a test that tries to break an invariant. unit_test: a test of its calls. measurement: a timing or memory measurement. end_to_end_only: cannot be checked alone. none_found: the source names no check for it."}
+            checks: {type: string, description: "What is checked."}
+            against: {type: string, description: "The reference it is compared with."}
+            invariants: {type: array, items: {type: string}, description: "The invariants this covers."}
+            source: {type: string, description: "Where the check is, in the engine described."}
+          additionalProperties: false
+      requires_capabilities: {type: array, items: {type: string}, description: "Features of hardware or software it needs."}
+      provides_capabilities: {type: array, items: {type: string}, description: "Features it offers to other components."}
+      observation_points: {type: array, items: {type: string}, description: "The events, counters and timers it exposes."}
+      equivalence: {$ref: "#/defs/equivalence"}
+      costs: {type: array, items: {$ref: "#/defs/claim"}, description: "Stated costs of its work: time, memory or data moved."}
+      claims: {type: array, items: {$ref: "#/defs/claim"}, description: "Other stated results about it, such as gains or rates."}
+      mechanisms: {type: array, items: {type: string}, description: "The mechanisms it implements, each the id of an existing mechanism file (mech/...)."}
+      sources:
+        description: "What the description was written from."
+        type: array
+        items:
+          type: object
+          required: [ref, basis]
+          properties:
+            ref: {type: string, description: "A location in the engine's code or documents."}
+            basis: {enum: [code, header_comment, docs, proposal], description: "How far the source was checked by whoever read it first. code: the implementation was read. header_comment: only a comment in the file was read. docs: documents only. proposal: there is no implementation yet; the component is proposed, and the source names what it was derived from. When writing from someone else's notes, keep the basis the notes give."}
+          additionalProperties: false
+      not_read: {type: string, description: "What the author did not read."}
+      derived_from:
+        description: "For a component of an engine that is being designed: the components of existing engines it was taken from."
+        type: array
+        items:
+          type: object
+          required: [component, carried_as]
+          properties:
+            component: {type: string, description: "The component of an existing engine."}
+            carried_as: {enum: [reused, adapted], description: "reused: taken over with the same responsibility and behavior. adapted: the same job, changed for this model or hardware."}
+            adaptation: {type: string, description: "What was changed and why. Required when carried_as is adapted."}
+          additionalProperties: false
+    additionalProperties: false
+
+  # ------------------------------------------------------------------ given
+  hardware:
+    description: "Hardware description: the physical capabilities of one machine."
+    type: object
+    required: [kind, id, compute_units, memory_pools, access_paths]
+    properties:
+      kind: {const: hardware}
+      id: {type: string, description: "Identifier of the hardware."}
+      title: {type: string, description: "Display name."}
+      compute_units:
+        description: "The parts that can execute operations."
+        type: array
+        items:
+          type: object
+          required: [id, kind]
+          properties:
+            id: {type: string, description: "Name of the compute unit."}
+            kind: {enum: [cpu, gpu, npu], description: "Which variety of compute unit."}
+            properties: {type: object, description: "Named properties of the unit, each a value."}
+          additionalProperties: false
+      memory_pools:
+        description: "Storage spaces, each with one capacity limit."
+        type: array
+        items:
+          type: object
+          required: [id, kind, capacity_nominal]
+          properties:
+            id: {type: string, description: "Name of the memory pool."}
+            kind: {enum: [device_ram, host_ram, unified_ram, nvme], description: "device_ram: memory of one accelerator. host_ram: main memory beside a separate accelerator. unified_ram: one pool used directly by CPU and GPU. nvme: solid-state storage."}
+            capacity_nominal: {$ref: "#/defs/cell", description: "Capacity as the maker states it."}
+            allocatable: {$ref: "#/defs/cell", description: "What an engine can actually obtain. Usually given in the environment description instead."}
+            properties: {type: object, description: "Named properties of the pool, for example bandwidth."}
+          additionalProperties: false
+      access_paths:
+        description: "Ways for data in a memory pool to reach a compute unit."
+        type: array
+        items:
+          type: object
+          required: [id, kind]
+          properties:
+            id: {type: string, description: "Name of the access path."}
+            kind: {enum: [direct, direct_read, transfer, page_in], description: "direct: a unit uses a pool as its working memory. direct_read: a unit can read a pool without copying, more slowly. transfer: data is copied from one pool to another. page_in: data moves from storage into memory when touched."}
+            unit: {type: string, description: "The compute unit, for direct and direct_read."}
+            pool: {type: string, description: "The memory pool, for direct and direct_read."}
+            origin: {type: string, description: "The pool data leaves, for transfer and page_in."}
+            destination: {type: string, description: "The pool data arrives in, for transfer and page_in."}
+            properties: {type: object, description: "Named properties of the path, for example read_bandwidth."}
+            note: {type: string, description: "Free remark."}
+          additionalProperties: false
+      statements: {type: array, items: {$ref: "#/defs/statement"}, description: "Further statements, for example where sources disagree."}
+    additionalProperties: false
+
+  model:
+    description: "Model description: the computation to be run and the data it reads and writes."
+    type: object
+    required: [kind, id, operations, data]
+    properties:
+      kind: {const: model}
+      id: {type: string, description: "Identifier of the model."}
+      title: {type: string, description: "Display name."}
+      default_status: {$ref: "#/defs/status", description: "How the facts in this file are known where not marked individually."}
+      note: {type: string, description: "Free remark."}
+      operations:
+        description: "The units of computation in the model."
+        type: array
+        items:
+          type: object
+          required: [id, kind]
+          properties:
+            id: {type: string, description: "Name of the operation."}
+            kind: {enum: [compute, selection, draft], description: "compute: transforms inputs to outputs. selection: its result decides which other operations run this time. draft: cheaply proposes later outputs that are tentative until verified."}
+            reads: {type: array, items: {type: string}, description: "The data it needs."}
+            writes: {type: array, items: {type: string}, description: "The data it produces or updates."}
+            note: {type: string, description: "Free remark."}
+            serves_modality: {type: array, items: {type: string}, description: "The input modalities it exists for. Absent means always needed."}
+            selects:
+              description: "For a selection: what it chooses among."
+              type: object
+              required: [out_of, pick, per]
+              properties:
+                operation: {type: string, description: "The operation whose instances are chosen among. Give this or data."}
+                data: {type: string, description: "The data whose pieces are chosen among, when the choice is of rows or blocks to read. Give this or operation."}
+                known: {type: string, description: "When the choice is known, for example before any computation of the step or after the router has run."}
+                out_of: {type: number, description: "How many instances exist."}
+                pick: {type: number, description: "How many are chosen each time."}
+                per: {type: string, description: "How often a choice is made, for example per token per layer."}
+              additionalProperties: false
+            drafts:
+              description: "For a draft: what it proposes."
+              type: object
+              properties:
+                up_to: {type: number, description: "The most outputs it proposes at once."}
+                proposes: {type: string, description: "What it proposes, for example the next tokens."}
+              additionalProperties: false
+          additionalProperties: false
+      data:
+        description: "What operations read and write."
+        type: array
+        items:
+          type: object
+          required: [id, kind]
+          properties:
+            id: {type: string, description: "Name of the data."}
+            kind: {enum: [weight, model_state], description: "weight: does not change while the model runs. model_state: changes as tokens are generated."}
+            partitioned_by: {type: array, items: {type: string}, description: "The dimensions along which it can be stored and loaded in separate pieces."}
+            size: {$ref: "#/defs/cell", description: "Its size, in the encoding given by encoded_bits."}
+            encoded_bits: {type: number, description: "Bits per parameter the stated size corresponds to."}
+            note: {type: string, description: "Free remark."}
+          additionalProperties: false
+      statements: {type: array, items: {$ref: "#/defs/statement"}, description: "Statements about the model as a whole, such as layer count."}
+    additionalProperties: false
+
+  environment:
+    description: "Environment description: what one machine actually offers at the time of a run."
+    type: object
+    required: [kind, id, hardware]
+    properties:
+      kind: {const: environment}
+      id: {type: string, description: "Identifier of the environment."}
+      hardware: {type: string, description: "The hardware description it is an environment of."}
+      software: {type: object, description: "Operating system, drivers, frameworks and the like, each a value."}
+      allocatable:
+        description: "What can actually be obtained from each memory pool."
+        type: array
+        items:
+          type: object
+          required: [pool, value, unit]
+          properties:
+            pool: {type: string, description: "The memory pool."}
+            value: {type: number, description: "The amount."}
+            unit: {type: string, description: "Unit of the amount."}
+            unit_basis: {enum: [decimal, binary], description: "Whether the byte unit is decimal or binary."}
+            status: {$ref: "#/defs/status"}
+            source: {type: string, description: "Where the figure comes from."}
+          additionalProperties: false
+      statements: {type: array, items: {$ref: "#/defs/statement"}, description: "Measured or reported properties, for example the read bandwidth of an access path."}
+    additionalProperties: false
+
+  # ------------------------------------------------------------------ knowledge
+  workload_profile:
+    description: "Workload profile: data about a model or engine gathered from a workload."
+    type: object
+    required: [kind, id, of, property, value, method, status]
+    properties:
+      kind: {const: workload_profile}
+      id: {type: string, description: "Identifier of the profile."}
+      of: {type: string, description: "The model it is about."}
+      property: {type: string, description: "What was gathered."}
+      value: {description: "The result."}
+      workload: {type: string, description: "The workload it was gathered on."}
+      method: {enum: [offline, online, simulated], description: "offline: gathered in a separate run. online: gathered while serving. simulated: produced by a model of the system."}
+      status: {$ref: "#/defs/status"}
+      source: {type: string, description: "Where it comes from."}
+    additionalProperties: false
+
+  mechanism:
+    description: "Mechanism: a way of making an engine more efficient, written as a checkable optimization hypothesis."
+    type: object
+    required: [kind, id, equivalence, because, do, needs, expect, cost, validate_by]
+    properties:
+      kind: {const: mechanism}
+      id: {type: string, description: "Identifier of the mechanism."}
+      family: {type: string, description: "Short name of the mechanism family."}
+      summary: {type: string, description: "The mechanism in one sentence."}
+      equivalence: {$ref: "#/defs/equivalence"}
+      conflicts_with: {type: array, items: {type: string}, description: "Mechanisms that may not be adopted together with this one."}
+      requires: {type: array, items: {type: string}, description: "Mechanisms that must be adopted together with this one."}
+      because:
+        description: "The preconditions. Each is evaluated by program against the given part."
+        type: array
+        items:
+          type: object
+          required: [id, predicate, text]
+          properties:
+            id: {type: string, description: "Name of the precondition."}
+            predicate: {type: string, description: "The registered predicate that tests it."}
+            args: {type: object, description: "Arguments of the predicate."}
+            text: {type: string, description: "The precondition in words."}
+            essential: {type: boolean, description: "False when the mechanism still applies, in a different form, if this precondition fails."}
+            effect_if_fails: {type: string, description: "How the mechanism changes form when a non-essential precondition fails."}
+            measure: {type: string, description: "How to obtain the measurement this precondition is waiting for."}
+          additionalProperties: false
+      do:
+        description: "Which open items of the engine the mechanism fills in."
+        type: array
+        items:
+          type: object
+          required: [aspect, item, text]
+          properties:
+            aspect: {enum: [execution, state, composition, policy, binding], description: "The aspect changed."}
+            item: {type: string, description: "The item of that aspect."}
+            text: {type: string, description: "The change in words."}
+          additionalProperties: false
+      needs:
+        description: "What adopting the mechanism obliges the engine to have."
+        type: object
+        properties:
+          invariants: {type: array, items: {$ref: "#/defs/invariant"}, description: "Invariants that must be written into the spec."}
+          observation_points: {type: array, items: {type: string}, description: "Observation points some component must provide."}
+          state_rules: {type: array, items: {type: string}, description: "Rule fields every model state must declare, such as on_accept and on_reject."}
+        additionalProperties: false
+      expect:
+        description: "Which quantities are expected to move."
+        type: array
+        items:
+          type: object
+          required: [quantity, direction]
+          properties:
+            quantity: {type: string, description: "The registered quantity."}
+            direction: {enum: [increase, decrease, uncertain], description: "Which way it is expected to move."}
+            where: {type: string, description: "Where the effect occurs, for example the fast memory pool."}
+          additionalProperties: false
+      cost: {type: array, items: {type: string}, description: "What adopting the mechanism consumes or risks."}
+      validate_by: {type: string, description: "How to find out whether the mechanism delivered what was expected."}
+      variants:
+        description: "The different ways engines implement the mechanism."
+        type: array
+        items:
+          type: object
+          required: [id, summary, seen_in, template]
+          properties:
+            id: {type: string, description: "Name of the variant."}
+            summary: {type: string, description: "The variant in one sentence."}
+            seen_in:
+              description: "The engines it has been observed in."
+              type: array
+              items:
+                type: object
+                required: [engine, source]
+                properties:
+                  engine: {type: string, description: "The engine."}
+                  source: {type: string, description: "Where in that engine."}
+                  note: {type: string, description: "Free remark."}
+                additionalProperties: false
+            applies_when:
+              description: "The predicate results under which this variant is the one to use."
+              type: array
+              items:
+                type: object
+                required: [predicate, expect]
+                properties:
+                  predicate: {type: string, description: "The registered predicate."}
+                  args: {type: object, description: "Arguments of the predicate."}
+                  expect: {enum: [holds, fails], description: "The result required."}
+                additionalProperties: false
+            template: {$ref: "#/defs/template"}
+          additionalProperties: false
+      claims: {type: array, items: {$ref: "#/defs/claim"}, description: "Results others have stated for this mechanism."}
+    additionalProperties: false
+
+  # ------------------------------------------------------------------ the engine for one target
+  engine_spec:
+    description: "Engine spec: one engine for one model on one hardware, in nine aspects."
+    type: object
+    required: [kind, id, spec_level, ontology_version, given, boundary, interface, execution,
+               state, composition, policy, binding, contract, delivery]
+    properties:
+      kind: {const: engine_spec}
+      id: {type: string, description: "Identifier of the spec."}
+      title: {type: string, description: "Display name."}
+      spec_level: {enum: [target, resolved], description: "target: what is wanted and what is left to the factory. resolved: what the factory chose."}
+      target_spec: {type: string, description: "On a resolved spec, the target spec it answers."}
+      mechanisms: {type: array, items: {type: string}, description: "On a resolved spec, the mechanisms adopted."}
+      ontology_version: {type: string, description: "The ontology version the spec is written for."}
+      given:
+        description: "The model, hardware and environment descriptions the spec is for."
+        type: object
+        required: [model, hardware, environment]
+        properties:
+          model: {type: string, description: "The model description."}
+          hardware: {type: string, description: "The hardware description."}
+          environment: {type: string, description: "The environment description, or UNSET."}
+        additionalProperties: false
+      boundary: {$ref: "#/defs/boundary"}
+      interface: {$ref: "#/defs/interface"}
+      execution: {$ref: "#/defs/execution"}
+      state: {$ref: "#/defs/state"}
+      composition: {$ref: "#/defs/composition"}
+      policy: {$ref: "#/defs/policy"}
+      binding: {$ref: "#/defs/binding"}
+      contract: {$ref: "#/defs/contract"}
+      delivery: {$ref: "#/defs/delivery"}
+    additionalProperties: false
+
+  evidence:
+    description: "Evidence: a result from a measurement or simulation, tied to the build it was obtained on."
+    type: object
+    required: [kind, id, verifies, engine_build_digest, measured_under, baseline, results]
+    properties:
+      kind: {const: evidence}
+      id: {type: string, description: "Identifier of the evidence."}
+      verifies: {type: array, items: {type: string}, description: "The requirements it speaks to, written as spec id, #, requirement id."}
+      engine_build_digest: {type: string, description: "The built engine it was obtained on."}
+      measured_under: {type: object, description: "The model, hardware, environment and measurement definitions in force."}
+      workload: {type: string, description: "The workload used."}
+      baseline: {type: string, description: "What the result is compared with."}
+      quality: {enum: [single_run, median_of_n, simulated], description: "How much the result can be trusted."}
+      results: {type: object, description: "The results. A gain may be negative."}
+      known_bad_combination: {type: array, items: {type: string}, description: "Mechanisms known to give wrong results when adopted together."}
+    additionalProperties: false

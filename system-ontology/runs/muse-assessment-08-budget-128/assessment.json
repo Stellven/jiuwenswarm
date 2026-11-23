@@ -1,0 +1,342 @@
+{
+  "system": "sys/muse-on-spark",
+  "spec": "spec/muse-spark-open-on-dgx-spark/target",
+  "environment": "env/dgx-spark-measured-20261119",
+  "model": "model/muse-spark-open-ud-iq2-xxs",
+  "hardware": "hw/dgx-spark",
+  "assessed": "bounds and estimates for the model on the machine within the target's budget, for an engine keeping part of the experts in memory; the design contributes its node types only",
+  "design_numbers_used": [],
+  "nodes_absent": {},
+  "nodes_stale": [],
+  "per_expert_bytes": 12976310.483870968,
+  "per_token_expert_bytes": 6436250000.0,
+  "bytes_per_token_lower_bound": 25106254602.866646,
+  "bytes_per_token_estimate": 25106254602.866646,
+  "memory_bound_tok_per_s": 10.873784414216397,
+  "memory_estimate_tok_per_s": 10.873784414216397,
+  "all_from_storage_tok_per_s": 0.7415808894931055,
+  "budget_bytes": 128000000000.0,
+  "allocatable_bytes": 127250000000.0,
+  "max_skew": 0.8992993132237704,
+  "skews": [
+    0.0,
+    0.45,
+    0.899
+  ],
+  "contexts": [
+    8192,
+    32768,
+    131072
+  ],
+  "storage": {
+    "prepared_bytes": 225560000000.0,
+    "capacity_bytes": 2014600000000.0,
+    "rows": [
+      {
+        "checkpoint": "Muse-Spark-Open-816B-A42B, Unsloth UD-IQ2_XXS conversion to GGUF: six files, 225.6 GB, pinned by hash",
+        "bytes": 225560000000.0,
+        "both_fit": true,
+        "how": "taken as the weights of the target's model, `model/muse-spark-open-ud-iq2-xxs`, as its description sizes them; no field of the target gives the checkpoint a size"
+      }
+    ],
+    "verdict": "yes"
+  },
+  "plans": [
+    {
+      "context": 8192,
+      "kv_case": "every layer keeps every token",
+      "kv_bytes": 2080374784,
+      "cache_bytes": 104112004248.25807,
+      "feasible": true,
+      "experts_cached": 8023.236217849835,
+      "share": 0.5054962334834826,
+      "shortfall": 0
+    },
+    {
+      "context": 8192,
+      "kv_case": "the 46 windowed layers keep their last 2,048 tokens only",
+      "kv_bytes": 922746880.0,
+      "cache_bytes": 105269632152.25807,
+      "feasible": true,
+      "experts_cached": 8112.447084485531,
+      "share": 0.5111168778027678,
+      "shortfall": 0
+    },
+    {
+      "context": 32768,
+      "kv_case": "every layer keeps every token",
+      "kv_bytes": 8321499136,
+      "cache_bytes": 97870879896.25807,
+      "feasible": true,
+      "experts_cached": 7542.273284683472,
+      "share": 0.4751936293273357,
+      "shortfall": 0
+    },
+    {
+      "context": 32768,
+      "kv_case": "the 46 windowed layers keep their last 2,048 tokens only",
+      "kv_bytes": 2533359616.0,
+      "cache_bytes": 103659019416.25807,
+      "feasible": true,
+      "experts_cached": 7988.327617861954,
+      "share": 0.5032968509237622,
+      "shortfall": 0
+    },
+    {
+      "context": 131072,
+      "kv_case": "every layer keeps every token",
+      "kv_bytes": 33285996544,
+      "cache_bytes": 72906382488.25807,
+      "feasible": true,
+      "experts_cached": 5618.421552018023,
+      "share": 0.35398321270274846,
+      "shortfall": 0
+    },
+    {
+      "context": 131072,
+      "kv_case": "the 46 windowed layers keep their last 2,048 tokens only",
+      "kv_bytes": 8975810560.0,
+      "cache_bytes": 97216568472.25807,
+      "feasible": true,
+      "experts_cached": 7491.849751367645,
+      "share": 0.4720167434077397,
+      "shortfall": 0
+    }
+  ],
+  "decode": [
+    {
+      "plan": "largest cache",
+      "context": 8192,
+      "kv_case": "the 46 windowed layers keep their last 2,048 tokens only",
+      "share": 0.5111168778027678,
+      "skew": 0.0,
+      "hit": 0.5111168778027678,
+      "miss_bytes": 3146573995.2419357,
+      "tok_per_s": [
+        1.5168878936956354
+      ]
+    },
+    {
+      "plan": "largest cache",
+      "context": 8192,
+      "kv_case": "the 46 windowed layers keep their last 2,048 tokens only",
+      "share": 0.5111168778027678,
+      "skew": 0.45,
+      "hit": 0.6814071105108893,
+      "miss_bytes": 2050543484.9742887,
+      "tok_per_s": [
+        2.3276755820956643
+      ]
+    },
+    {
+      "plan": "largest cache",
+      "context": 8192,
+      "kv_case": "the 46 windowed layers keep their last 2,048 tokens only",
+      "share": 0.5111168778027678,
+      "skew": 0.899,
+      "hit": 0.8584580603278447,
+      "miss_bytes": 910999309.2149098,
+      "tok_per_s": [
+        5.239301448113418
+      ]
+    },
+    {
+      "plan": "smallest cache",
+      "context": 131072,
+      "kv_case": "every layer keeps every token",
+      "share": 0.35398321270274846,
+      "skew": 0.0,
+      "hit": 0.35398321270274846,
+      "miss_bytes": 4157925547.2419353,
+      "tok_per_s": [
+        1.1479282026023916
+      ]
+    },
+    {
+      "plan": "smallest cache",
+      "context": 131072,
+      "kv_case": "every layer keeps every token",
+      "share": 0.35398321270274846,
+      "skew": 0.45,
+      "hit": 0.5509773401121428,
+      "miss_bytes": 2890022094.703221,
+      "tok_per_s": [
+        1.65154446699486
+      ]
+    },
+    {
+      "plan": "smallest cache",
+      "context": 131072,
+      "kv_case": "every layer keeps every token",
+      "share": 0.35398321270274846,
+      "skew": 0.899,
+      "hit": 0.7850748841224834,
+      "miss_bytes": 1383311777.0666664,
+      "tok_per_s": [
+        3.4504152130629717
+      ]
+    }
+  ],
+  "prefill": [
+    {
+      "prompt": 100,
+      "chunks": 1,
+      "skew": 0.0,
+      "bytes": 96481556314.359,
+      "share_of_uncached_read": 0.9582004552833965,
+      "seconds": [
+        20.214028140448143
+      ]
+    },
+    {
+      "prompt": 100,
+      "chunks": 1,
+      "skew": 0.899,
+      "bytes": 59612912265.08762,
+      "share_of_uncached_read": 0.592041856031659,
+      "seconds": [
+        12.489610782545071
+      ]
+    },
+    {
+      "prompt": 1000,
+      "chunks": 1,
+      "skew": 0.0,
+      "bytes": 100690367847.7403,
+      "share_of_uncached_read": 0.9999999999999837,
+      "seconds": [
+        21.095823978156357
+      ]
+    },
+    {
+      "prompt": 1000,
+      "chunks": 1,
+      "skew": 0.899,
+      "bytes": 100662564276.05035,
+      "share_of_uncached_read": 0.999723870591737,
+      "seconds": [
+        21.089998800764793
+      ]
+    },
+    {
+      "prompt": 10000,
+      "chunks": 1,
+      "skew": 0.0,
+      "bytes": 100690367847.74194,
+      "share_of_uncached_read": 1.0,
+      "seconds": [
+        21.0958239781567
+      ]
+    },
+    {
+      "prompt": 10000,
+      "chunks": 1,
+      "skew": 0.899,
+      "bytes": 100690367847.74194,
+      "share_of_uncached_read": 1.0,
+      "seconds": [
+        21.0958239781567
+      ]
+    }
+  ],
+  "required_hit_rate": {
+    "0.5": [
+      0.0
+    ],
+    "1": [
+      0.2584191105068946
+    ],
+    "2": [
+      0.6292095552534474
+    ],
+    "5": [
+      0.8516838221013789
+    ]
+  },
+  "decode_estimate_range": [
+    1.1479282026023916,
+    5.239301448113418
+  ],
+  "ttft_estimate_range_s": [
+    12.489610782545071,
+    21.0958239781567
+  ],
+  "spreads": {
+    "skew": 3.4539806599344427,
+    "rate": null,
+    "plan": 1.5184553523523425
+  },
+  "can_run": "**No**: the budget, 128 GB, is above the 127.2 GB the environment reports allocatable.",
+  "target_spec_blocking_gaps": 7,
+  "backtest": {
+    "verdict": "PASS",
+    "per_pass_ratio": [
+      0.2911569088337582,
+      0.46472627094314417
+    ],
+    "token_ratio": [
+      0.9317021082680264,
+      1.115343050263546
+    ],
+    "hardware": "hw/dgx-spark"
+  },
+  "node_types_draft": "0.9",
+  "changes_to_output": [
+    {
+      "lever": "Fewer bytes per expert: the expert weights stored at a lower precision",
+      "quantity": "bytes per expert",
+      "node_type": "model-conversion",
+      "levels": [
+        "bit_exact",
+        "numeric",
+        "distribution_exact",
+        "approximate",
+        "defines"
+      ],
+      "in_design": [
+        "comp/muse/preparation"
+      ],
+      "allowed": null
+    },
+    {
+      "lever": "Fewer experts computed per token: low-ranked routed experts that are not cached are omitted",
+      "quantity": "experts read per token",
+      "node_type": "expert-dispatch",
+      "levels": [
+        "bit_exact",
+        "numeric",
+        "approximate"
+      ],
+      "in_design": [
+        "comp/muse/expert-dispatch"
+      ],
+      "allowed": null
+    },
+    {
+      "lever": "More than one token per pass over the weights: drafted tokens checked in one pass",
+      "quantity": "tokens per pass",
+      "node_type": "draft-proposal",
+      "levels": [
+        "bit_exact",
+        "numeric",
+        "distribution_exact",
+        "approximate"
+      ],
+      "in_design": [],
+      "allowed": null
+    },
+    {
+      "lever": "More than one token per pass over the weights: drafted tokens checked in one pass",
+      "quantity": "tokens per pass",
+      "node_type": "draft-verification",
+      "levels": [
+        "bit_exact",
+        "numeric",
+        "distribution_exact",
+        "approximate"
+      ],
+      "in_design": [],
+      "allowed": null
+    }
+  ]
+}

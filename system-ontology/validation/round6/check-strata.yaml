@@ -1,0 +1,75 @@
+engine: strata
+decision_coverage:
+  totals: {decisions: 255, covered: 235, loosely: 10, not_covered: 1, engine_specific: 9}
+  per_type:
+    - {type: "expert-cache", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 4, covered: 3, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "residency-policy", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 18, covered: 15, loosely: 0, not_covered: 0, engine_specific: 3}
+    - {type: "memory-planning", decisions: 22, covered: 20, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 11, covered: 11, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 11, covered: 11, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 9, covered: 8, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "replica-routing", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 18, covered: 17, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "session-persistence", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 17, covered: 14, loosely: 2, not_covered: 0, engine_specific: 1}
+    - {type: "calibration", decisions: 8, covered: 8, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 12, covered: 12, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 17, covered: 17, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 6, covered: 3, loosely: 2, not_covered: 0, engine_specific: 1}
+    - {type: "step-execution", decisions: 9, covered: 8, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 10, covered: 8, loosely: 0, not_covered: 0, engine_specific: 2}
+    - {type: "graph-capture", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 6, covered: 4, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "sampling", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+  # Notes on counting:
+  # - expert-dispatch includes the decision added by strata.corrections.yaml (round4): the conditional default of the tail skip.
+  # - http-front includes the decision added by the corrections (round3): who may call (covered by "who is allowed and how").
+  # - dflash2-drafter's "skip the draft round when the lookup match is long enough" is counted under draft-policy, per the
+  #   corrections (round3); dflash2-drafter keeps 3 decisions, draft-policy has 7.
+  # - engine-command-loop: "how many sequences the engine keeps open" is counted under sequence-lifecycle (also type), its
+  #   other 5 decisions under step-scheduler. host-memory-admission: all 9 under memory-planning. layer-kernels: all 5 under
+  #   layer-compute. kv-store: all 6 under positional-state-store.
+  # - engine_specific: model-file-reader (only the first items of a metadata array kept; upper limit on experts per token),
+  #   expert-layout (canonical blob byte size), slot-scheduler (engine defaults repeated by hand in the server, no code link),
+  #   launch-argument-resolver (card naming by bus order and library search path), draft-verifier (commit grouped into two
+  #   plus one launches), layer-kernels (the model's own operation order of a layer and of its attention block, two
+  #   decisions), ngram-reader (the model's hash that defines row numbers).
+  loosely:
+    - {part: "prompt-path", type: "prompt-reading", decision: "which experts of a chunk may go to the CPU (routed here, not cached, not on a second accelerator, few enough tokens, readable in place) and fewest-tokens-first order", nearest_choice: "how the work of a chunk is shared with a second device, and when sharing is abandoned"}
+    - {part: "startup-memory-sizing", type: "memory-planning", decision: "lowest value the reserve is lowered to so that the minimum cache fits", nearest_choice: "the order in which things are given up when memory is short, and when starting is refused"}
+    - {part: "host-memory-admission", type: "memory-planning", decision: "the engine may replace the arena by the file source on its own unless the operator fixed the RAM mode, named a shared arena or disabled the fallback", nearest_choice: "an operator's explicit size against the computed one"}
+    - {part: "resume-decision", type: "prefix-reuse", decision: "reuse of any kind needs a checkpoint capacity above zero", nearest_choice: "how many are kept and where"}
+    - {part: "run-config-generator", type: "configuration", decision: "the speculative window and confidence floor written by default", nearest_choice: "which settings that change output are on by default, and in which profile"}
+    - {part: "run-config-generator", type: "configuration", decision: "an option that differs from what setup last wrote is taken as a hand edit and kept, except options setup re-decides", nearest_choice: "operator values, presets, measured values and defaults"}
+    - {part: "draft-verifier", type: "draft-verification", decision: "the exact gated rule is used only under a list of conditions; otherwise an older rule runs with a warning that its distribution is off", nearest_choice: "the acceptance rule under sampling"}
+    - {part: "draft-verifier", type: "draft-verification", decision: "the commit graph is launched without waiting; readers elsewhere wait for it first", nearest_choice: "commit at once or with the next step"}
+    - {part: "window-loop", type: "step-execution", decision: "per window, a device-planned graph when every expert of the stage is cached, else a graph that signals the host per layer", nearest_choice: "one step as a whole, or driven layer by layer"}
+    - {part: "ngram-reader", type: "row-source", decision: "in direct mode, read one random page after a quiet interval until a time after the last request (storage keep-alive)", nearest_choice: "warming the table in the background and when to stop"}
+  not_covered:
+    - {part: "expert-dispatch", type: "expert-dispatch", decision: "omission of low-ranked misses is on by default only below a share of cached experts and never for one expert format (from the corrections)", kind: "threshold", missing_choice: "the share of selected blocks already in fast memory above which omitting low-ranked selections is not on by default, and the weight formats for which it is never on by default"}
+contradictions:
+  - {part: "startup-memory-sizing", type: "memory-planning", claim: "effect_on_output: exact (in itself); rounding (what it places where decides which device computes something, or a size it sets changes how the computation is cut)", evidence: "The cache size it sets decides whether the default route tail skip (omitting low-ranked missed experts, an approximation) is on: the skip is off by default when at least 90% of experts are in the GPU cache (src/program/generate.cpp:12785-12817). A different slot count can therefore turn a default approximation on or off, which is the approximate level, not listed.", fix: "add approximate: when a size it sets decides whether a default approximation of another node is in effect, such as omitting low-ranked selected blocks when few enough are cached"}
+  - {part: "adaptive-tier", type: "residency-policy", claim: "effect_on_output: exact (in itself); rounding (what is resident decides which device computes a block)", evidence: "With the tail skip on (the CUDA serving default), a missed expert routed only at rank 7 or lower is neither fetched nor computed (expert-dispatch decisions; generate.cpp:12776-12822). What the adaptive tier keeps resident decides which selected experts are missed and hence omitted, so its swaps change which experts the output omits, beyond rounding.", fix: "add approximate: when the dispatch omits low-ranked blocks that are not resident, what it keeps resident decides which are omitted"}
+  - {part: "engine-client", type: "engine-supervision", claim: "effect_on_output: exact (it passes requests on unchanged); defines (it rewrites request settings on the way to the engine)", evidence: "On a failed start it starts the engine again with no drafter after an out-of-memory error, or with the MTP drafter when DFlash2 did not start (engine-client decisions). Dropping or swapping the drafter changes the verify window widths, which the inventory records as numeric for this engine (draft-verifier, mtp-drafter, dflash2-drafter output_effect_when), and under STRATA_SPEC_PROB another draw: rounding and resampled, not listed.", fix: "add rounding and resampled: when a start retried with a reduced configuration drops or swaps a setting whose own effect is rounding or another draw, such as speculation or the proposal source"}
+new_causes:
+  - {part: "native-weight-loader", type: "model-loading", level: "approximate", cause: "by default it selects a lower-precision stored copy of some weights the full model computes with, when the files carry one, instead of the higher-precision copy", evidence: "STRATA_HC_Q8 is on by default on CUDA when the shards carry the hyper-connection projections as Q8_0 (inventory decision; data/settings-register.json:12969); it reads Q8_0 instead of BF16 and changes tokens (docs/STRIX_HALO.md:191, 309: 94 of 250 tokens differ). The listed approximate condition names reduction while loading and the rounding condition names choosing among stored encodings; neither names choosing a lower-precision stored copy."}
+  - {part: "engine-command-loop", type: "sequence-lifecycle", level: "approximate", cause: "the number of sequences kept open turns a default approximation of another node off, because that approximation would make one sequence's output depend on another's tokens", evidence: "The route tail skip default requires o.batch == 0 and is off with batch slots (src/program/generate.cpp:12779-12780, 12806); the slot count is this part's decision."}
+  - {part: "speed-calibration", type: "calibration", level: "approximate", cause: "its measured choice of residency settings decides which selected blocks a default omission skips", evidence: "The calibration sweeps adaptive-tier settings (speed-calibration decisions) and the tail skip omits missed experts by default (generate.cpp:12776-12822); the listed approximate condition names only lossy conversion and reduced-precision paths."}
+relaxations: []
+wrong_assignments: []
+inventory_errors:
+  - {part: "native-weight-loader", field: "output_effect_when", recorded: "bit_exact when a tensor uploaded unchanged; numeric when native head or projections; approximate when a BF16 projection is converted to Q8_0 at load", source_shows: "The default STRATA_HC_Q8 read of the shards' Q8_0 hyper-connection copies changes tokens beyond rounding (docs/STRIX_HALO.md:191-192, 309; data/settings-register.json:12969); it is on by default on CUDA for such files and is not listed as approximate."}
+  - {part: "startup-memory-sizing", field: "output_effect_when", recorded: "bit_exact when the sizing only moves where bytes are read from; numeric when the slot count changes which experts the GPU computes", source_shows: "The slot count also decides whether the route tail skip is on by default (off when at least 90% of experts are cached), which changes output beyond rounding (src/program/generate.cpp:12785-12817)."}
+  - {part: "engine-command-loop", field: "output_effect_when", recorded: "bit_exact when batch slots off", source_shows: "With batch slots off the tail skip is on by default on CUDA (unless nearly all experts are cached or experts are NVFP4), so the default solo path is not bit_exact; with slots on it is off (src/program/generate.cpp:12776-12822, condition o.batch == 0)."}
+  - {part: "adaptive-tier", field: "output_effect", recorded: "none; bit_exact when the GPU and CPU expert kernels round identically", source_shows: "Under the default tail skip, residency decides which low-ranked experts are omitted (src/program/generate.cpp:12776-12822; src/core/expert_source.cpp:4964), so swaps change the output beyond rounding."}

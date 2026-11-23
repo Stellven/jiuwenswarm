@@ -1,0 +1,127 @@
+engine: splash
+decision_coverage:
+  totals: {decisions: 136, covered: 64, loosely: 39, not_covered: 24, engine_specific: 9}
+  per_type:
+    - {type: "model-conversion", decisions: 3, covered: 0, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "model-loading", decisions: 8, covered: 5, loosely: 0, not_covered: 2, engine_specific: 1}
+    - {type: "configuration", decisions: 3, covered: 1, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "resource-governing", decisions: 11, covered: 5, loosely: 4, not_covered: 2, engine_specific: 0}
+    - {type: "memory-planning", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 5, covered: 2, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 0, loosely: 3, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 8, covered: 4, loosely: 1, not_covered: 0, engine_specific: 3}
+    - {type: "layer-compute", decisions: 4, covered: 0, loosely: 0, not_covered: 1, engine_specific: 3}
+    - {type: "modality-encoding", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 6, covered: 2, loosely: 2, not_covered: 2, engine_specific: 0}
+    - {type: "row-source", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 4, covered: 2, loosely: 0, not_covered: 2, engine_specific: 0}
+    - {type: "recurrent-state-store", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 1, loosely: 2, not_covered: 1, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 7, covered: 5, loosely: 1, not_covered: 1, engine_specific: 0}
+    - {type: "state-tiering", decisions: 12, covered: 5, loosely: 5, not_covered: 2, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 3, covered: 1, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 3, covered: 0, loosely: 1, not_covered: 2, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 1, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "draft-verification", decisions: 1, covered: 0, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 4, covered: 3, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 7, covered: 3, loosely: 1, not_covered: 2, engine_specific: 1}
+    - {type: "sequence-lifecycle", decisions: 5, covered: 2, loosely: 1, not_covered: 2, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 2, loosely: 0, not_covered: 1, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+  # Per-decision judgments (part: decision -> verdict)
+  # model-installer: draft per target family -> loosely; include vision tower -> loosely; follow Hub vs pinned -> not_covered
+  # model-inspection: which family a config describes -> engine_specific; YaRN stretch -> not_covered
+  # weight-layout-planner: formats native vs converted -> covered; widen/recast tensors -> covered; parts left out to stream -> covered
+  # weight-image-loader: bypass page cache -> not_covered; GPU repack via fixed staging -> covered; quantize draft at load -> covered
+  # device-probe: GPU class mapping -> engine_specific; assumed core count -> loosely
+  # configuration: flag defaults -> covered
+  # weight-residency: idle time before release -> covered; one part per tick -> loosely; abandon restore -> loosely
+  # memory-governor: host memory estimate -> not_covered; per-class host rule -> covered; critical refuses all -> covered; net-change growth -> loosely
+  # memory-ledger: reclaim order -> covered; take rights -> loosely; claim rank -> covered; quiet period before regrow -> not_covered
+  # streamed-parts-planner: KV first then experts then PLE -> covered; expert floor share -> covered; replan with fewer streamed -> loosely
+  # memory-plan: working-set margin -> covered; host reserves -> covered; context bound -> loosely
+  # bootstrap-sequencer: retry window -> covered; warm up on runway -> loosely
+  # engine-supervisor: permanent vs memory failures -> loosely; backoff -> covered; request-caused exits -> not_covered
+  # ane-ffn-calibrator: minimum gain -> loosely; chunk-noise tolerance -> loosely; remember no-gain -> loosely
+  # ane-ffn-split: program function size per chunk -> loosely; stop on failure -> covered; stop on no gain -> loosely
+  # kernel-selector: all four -> covered
+  # metal-command-backend: bound vs addressed reach -> engine_specific; per-encoder residency -> engine_specific; spin GPU through host steps -> loosely; residency heartbeat -> engine_specific
+  # target-forward: router weighting -> engine_specific; verify rows routed -> not_covered; GDN value-head order -> engine_specific
+  # block-sparse-indexer: top blocks (model-defined) -> engine_specific
+  # vision-encoder: arena on demand -> loosely; patch cap -> covered
+  # image-embedding-cache: LRU -> covered; held entries form floor -> loosely
+  # image-preparation: pixel budget -> covered; document-renderer: render limits -> covered
+  # expert-store: which size's chunk -> covered; one chunk or all to floor -> loosely; single-block size in floor -> loosely
+  # slot-recycler: both -> covered
+  # expert-loader: rounds/staging -> covered; straight from file vs build rows -> not_covered
+  # expert-read-ahead: which experts and order -> covered; piece size -> loosely
+  # ssd-reader-pool: foreground first -> loosely; hold writes back -> not_covered
+  # ple-row-store: both -> covered
+  # kv-page-pool: KV format -> covered; extent size -> covered; release extents between commands -> not_covered; compact by moving pages -> not_covered
+  # gdn-state-cells: both -> covered
+  # draft-state: cache window not ring -> loosely; rebuild ring after restore -> loosely
+  # draft-proposer: candidates per position -> not_covered; greedy or temperature walk -> covered
+  # prefix-block-cache: block key -> covered; root subtree -> loosely; Slim trimming -> not_covered
+  # composite-state-cache: all four -> covered
+  # ssd-cache-tier: quota -> covered; write share per kind -> loosely; drop states when budget spent -> loosely; empty after failed starts -> not_covered
+  # write-behind: depth and delay -> covered; temporary tier only under demand -> covered; pause while claim waits -> loosely
+  # kv-spill-controller: spill at admission -> covered; convert on refused growth -> loosely; keep history/tail/prefill Full -> covered
+  # spilled-kv-reader: hot cache floor/target -> not_covered; one or two staging buffers -> loosely
+  # prefill-runner: group or single chunk -> loosely; number of layer passes -> loosely; abandon paused command -> covered
+  # verify-row-budget: refit parameters -> loosely; periodic full verification -> not_covered; joint allotment -> not_covered
+  # token-selector: sampling policy -> covered; residual clamp -> not_covered
+  # acceptance-commit: emit forced token without target cycle -> loosely
+  # thinking-budget: where end starts in rows -> covered
+  # grammar-constraint: mask rows past invalid -> covered; overlap with forward -> covered; matcher cache -> not_covered
+  # request-scheduler: decode share -> covered; overdue threshold -> covered; prefill cut rows -> covered; layer-pass groups -> loosely
+  # native-loop: input queue bound -> engine_specific; control rerun point -> not_covered; flush on clean stop -> not_covered
+  # lane-admission: memory rank -> covered; which lane yields -> loosely; wait limit and backoff -> not_covered; projected output for admission -> covered; wait for shared prefix -> not_covered
+  # http-front: priority and cache salt -> not_covered; queue and timeout -> covered; origins -> covered
+  # prompt-builder: native or patched template -> covered; token reuse at boundary -> loosely
+  # output-parser: hold stop prefix -> covered; option-scoring: single-token slots -> covered
+  # telemetry: log transitions -> covered; status read never moves admission -> loosely
+  not_covered_examples:
+    - {type: "model-conversion", part: "model-installer", decision: "when to follow the Hub versus use pinned snapshots", missing_choice: "which revision of the published sources is used and whether it is pinned or followed", kind: "policy"}
+    - {type: "model-loading", part: "model-inspection", decision: "whether to stretch context with YaRN (static factor)", missing_choice: "whether and how the model's positional range is extended beyond its trained length", kind: "policy"}
+    - {type: "model-loading", part: "weight-image-loader", decision: "bypass the page cache for reads", missing_choice: "whether model files are read through the operating system's file cache or around it", kind: "policy"}
+    - {type: "resource-governing", part: "memory-governor", decision: "estimate host available memory with a capped compression credit", missing_choice: "how free memory and pressure are estimated from what the system reports", kind: "policy"}
+    - {type: "resource-governing", part: "memory-ledger", decision: "wait a quiet period before regrowing pools", missing_choice: "when holders that gave memory back may grow again", kind: "timing"}
+    - {type: "engine-supervision", part: "engine-supervisor", decision: "which exits count as request-caused (quarantine)", missing_choice: "how a request suspected of causing engine failures is identified and refused", kind: "failure"}
+    - {type: "layer-compute", part: "target-forward", decision: "verify rows routed for MoE", missing_choice: "which rows of a step are carried through every part of the model (e.g. only rows that will be checked)", kind: "policy"}
+    - {type: "expert-fetch", part: "expert-loader", decision: "read straight from file versus build rows", missing_choice: "whether fetched blocks are copied as stored or transformed on the way", kind: "format"}
+    - {type: "expert-fetch", part: "ssd-reader-pool", decision: "hold drive writes back while a foreground batch runs", missing_choice: "how reads and writes that share one storage device are prioritised", kind: "precedence"}
+    - {type: "positional-state-store", part: "kv-page-pool", decision: "release empty extents only between commands", missing_choice: "when emptied backing memory is returned", kind: "timing"}
+    - {type: "positional-state-store", part: "kv-page-pool", decision: "compact by moving pages", missing_choice: "whether held state is moved to compact memory so that backing memory can be freed", kind: "policy"}
+    - {type: "draft-proposal", part: "draft-proposer", decision: "number of candidates kept per position", missing_choice: "how many candidates are kept per proposed position", kind: "sizing"}
+    - {type: "prefix-reuse", part: "prefix-block-cache", decision: "trim windowed layers' K/V from pages no window reaches", missing_choice: "whether stored state is trimmed to what later steps can still read", kind: "policy"}
+    - {type: "state-tiering", part: "ssd-cache-tier", decision: "empty the persistent cache after repeated failed starts", missing_choice: "whether the slower tier survives a restart, and when a persisted tier is discarded", kind: "failure"}
+    - {type: "state-tiering", part: "spilled-kv-reader", decision: "per-lane hot cache floor and target", missing_choice: "size of the fast-memory cache for state read back from the slower tier", kind: "sizing"}
+    - {type: "draft-policy", part: "verify-row-budget", decision: "periodic full verification to explore", missing_choice: "whether and how often it departs from its estimate to explore", kind: "policy"}
+    - {type: "draft-policy", part: "verify-row-budget", decision: "allot rows jointly across lanes", missing_choice: "whether the round size is set per sequence or jointly across sequences sharing a step", kind: "policy"}
+    - {type: "sampling", part: "token-selector", decision: "residual weights clamp at zero; with nothing left the draw follows the distribution", missing_choice: "how the draw is formed when speculation needs a residual distribution, including the degenerate case", kind: "policy"}
+    - {type: "output-constraint", part: "grammar-constraint", decision: "cache compiled matchers by grammar text within a byte budget", missing_choice: "whether compiled rules are cached, under what key and within what budget", kind: "sizing"}
+    - {type: "step-scheduler", part: "native-loop", decision: "rerun control at the next command-free point while landings are awaited", missing_choice: "where in the loop housekeeping between steps (such as memory control) runs", kind: "timing"}
+    - {type: "step-scheduler", part: "native-loop", decision: "flush newest restore points on clean stop within a budget", missing_choice: "what is saved on a clean stop and within what time", kind: "timing"}
+    - {type: "sequence-lifecycle", part: "lane-admission", decision: "resource wait limit and retry backoff", missing_choice: "how long a sequence may wait for resources before failing, and how it retries", kind: "threshold"}
+    - {type: "sequence-lifecycle", part: "lane-admission", decision: "whether a request waits for another's shared prefix", missing_choice: "whether a request waits for state another request is producing instead of computing its own", kind: "policy"}
+    - {type: "request-front", part: "http-front", decision: "request priority and cache salt fields", missing_choice: "which per-request controls (priority, cache isolation) a caller may set", kind: "policy"}
+contradictions:
+  - {type: "layer-compute", claim: "effect_on_output: numeric, always", part: "block-sparse-indexer", evidence: "inventory gives output_effect none for a part of the model's own computation (top-block selection)", fix: "allow none for exact index or selection steps, or condition the case; note that a top-k over rounded scores can flip, so the inventory's none may itself be wrong"}
+  - {type: "prompt-reading", claim: "effect_on_output: numeric, always (compared with the token-by-token path, not bit for bit)", part: "prefill-runner", evidence: "inventory gives output_effect none; yet kernel-selector picks a prefill tile versus a staged tile by chunk rows, so the record conflicts with the engine's own evidence", fix: "keep numeric but condition it on the chunk path using different kernels or state rounding than single-token decoding; correct the inventory if it is the inventory that is wrong"}
+  - {type: "prompt-reading", claim: "must_never: the state it leaves is the state of that prompt, whatever the chunking", part: "prefill-runner", evidence: "gdn-state-cells: '--state-format bf16 rounds state at each chunk end and capture point, so where chunks end and states are captured changes last bits'", fix: "the state of that prompt up to rounding; with reduced-precision state, chunk boundaries may change the last bits"}
+  - {type: "draft-proposal", claim: "effect_on_output: none (a proposal is never output unchecked)", part: "draft-proposer", evidence: "output_effect_when: 'for sampled lanes the draft changes which tokens appear though not their distribution'", fix: "add a case: changes_output under sampled acceptance (different tokens for a fixed seed, same distribution); none only under greedy"}
+  - {type: "draft-verification", claim: "effect_on_output: changes_output only when an acceptance rule does not preserve the sampling distribution", part: "acceptance-commit", evidence: "changes_output with 'sampled lanes: same distribution as non-speculative sampling but different tokens for the same seed'", fix: "add a case: changes_output under sampling even with a distribution-preserving rule, since tokens for a fixed seed differ from non-speculative sampling"}
+  - {type: "sampling", claim: "must_never: with a fixed seed and fixed logits it returns the same token", part: "token-selector", evidence: "'for a sampled row with a draft draws from the residual distribution the acceptance rule needs'; acceptance-commit: different tokens for the same seed", fix: "with a fixed seed, fixed logits and fixed proposals (and draft probabilities) it returns the same token"}
+  - {type: "expert-cache", claim: "not: it does not choose its own contents", part: "expert-store", evidence: "gives its last chunk back 'compacting experts below it', and 'a size used by only one block holds all its experts in its floor'", fix: "allow the cache to decide placement, compaction and pinning by size class, or move those decisions to residency-policy"}
+  - {type: "state-tiering", claim: "must_never: state brought back is the state that left", part: "spilled-kv-reader", evidence: "'an unreadable block leaves zeros and fails the lanes that listed it, not the command; their cycle commits nothing'", fix: "state brought back is the state that left, or the read is reported failed and nothing computed from it is committed"}
+  - {type: "step-scheduler", claim: "must_never: every admitted sequence is eventually served", part: "request-scheduler", evidence: "scheduler serves the most urgent priority first and lane-admission ends waiting requests: 'a request waits for memory and fails with resource_timeout at its limit'; lower-priority lanes are suspended", fix: "every admitted sequence is eventually served or ended with an error within its wait limit"}
+wrong_assignments:
+  - {part: "ssd-reader-pool", assigned: "expert-fetch", better: "none", why: "a shared storage-read service for experts, PLE rows, spilled KV and tier restores, with foreground/background priority; not specific to selectively used weights; no type describes a shared I/O service"}
+  - {part: "native-loop", assigned: "step-scheduler", better: "engine-supervision", why: "it does not decide step contents (request-scheduler does); it is the engine process's loop, transport, exception-to-exit conversion and clean-stop flush, i.e. the in-process half of supervision; arguably none"}
+  - {part: "kv-page-pool", assigned: "positional-state-store", better: "state-pool", why: "it allocates pages in extents, shares cached pages, releases empty extents and compacts pages, which are state-pool jobs; only its KV-format decision is positional-state-store; Splash otherwise has no state-pool instance"}

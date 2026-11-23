@@ -1,0 +1,52 @@
+kind: engine_spec
+id: spec/qwen-flash-on-pc/target
+spec_level: target
+ontology_version: 0.6.1
+given:
+  model: model/qwen3.8-flash-125b-a6b
+  hardware: hw/pc-12g-64g
+  environment: UNSET
+boundary:
+  form:
+    value: offline_engine
+    status: assumed
+interface:
+  input:
+    modality: text
+    status: assumed
+  output:
+    modality: text
+    status: assumed
+  streaming:
+    value: true
+    status: assumed
+contract:
+  requirements:
+  - id: c-mem
+    quantity: memory_budget
+    kind: pass_fail
+    status: reported
+    value: 12
+    unit: GB
+    unit_basis: decimal
+    pool: vram
+    accounting_boundary: gpu_allocator
+  - id: c-equiv
+    kind: behavior
+    text: 权重放置和缓存内容的变化不得改变输出
+    status: assumed
+  allowed_transformations:
+    value:
+    - placement
+    - caching
+    - scheduling
+    - numeric
+    - approximate
+    status: assumed
+  workload:
+    value: single_stream_text
+    status: assumed
+delivery:
+  model_checkpoint:
+    value: qwen3.8-flash-next-iq3_s
+    status: reported

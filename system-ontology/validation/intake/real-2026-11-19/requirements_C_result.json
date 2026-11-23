@@ -1,0 +1,701 @@
+{
+  "outputs": {
+    "brief": {
+      "acceptance_expectations": [
+        {
+          "description": "The delivered custom engine runs the selected Meta Muse Spark Open checkpoint on the specified NVIDIA DGX Spark. Checkpoint selection and execution environment must be resolved before acceptance.",
+          "id": "acceptance.engine",
+          "requirement_ids": [
+            "requirement.engine"
+          ]
+        },
+        {
+          "description": "Conformance is assessed against the supplied descriptions after their blocking omissions and contradictions are resolved. The 80 GB decimal memory budget, its accounting boundary and the conditional quality comparison remain proposals; normalization of the memory equation does not confirm that limit.",
+          "id": "acceptance.specification",
+          "requirement_ids": [
+            "requirement.specification"
+          ]
+        },
+        {
+          "description": "The delivered interface accepts text and produces text within the resolved product boundary.",
+          "id": "acceptance.text-interface",
+          "requirement_ids": [
+            "requirement.text-interface"
+          ]
+        },
+        {
+          "description": "Delivery includes the reproducible container, clean rebuild, benchmark report and replayable run artifacts. Benchmark acceptance remains blocked by unresolved workload and judgment decisions.",
+          "id": "acceptance.delivery",
+          "requirement_ids": [
+            "requirement.delivery"
+          ]
+        },
+        {
+          "description": "First-version functionality respects the stated exclusions, with an explicit disposition for conflicting draft, batching, parked-state and multi-device references.",
+          "id": "acceptance.first-version-boundary",
+          "requirement_ids": [
+            "requirement.first-version-boundary"
+          ]
+        }
+      ],
+      "assumptions": [],
+      "confirmation": {
+        "basis": "user_request",
+        "source_refs": [
+          {
+            "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+            "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+          }
+        ]
+      },
+      "constraints": [
+        {
+          "category": "specification",
+          "id": "constraint.specification-authority",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+              "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+            }
+          ],
+          "text": "Take the attached System Ontology descriptions of the model, machine, judgment target, whole engine and engine nodes as the statement of what is wanted.",
+          "unit": null
+        },
+        {
+          "category": "deployment",
+          "id": "constraint.model-and-machine",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "scientific_execution",
+          "source_refs": [
+            {
+              "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+              "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+            }
+          ],
+          "text": "The engine must run Meta Muse Spark Open on NVIDIA DGX Spark.",
+          "unit": null
+        },
+        {
+          "category": "packaging",
+          "id": "constraint.container",
+          "normalized_value": "container",
+          "operator": "eq",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Container packaging is required.",
+          "unit": null
+        },
+        {
+          "category": "proposed-resource-acceptance",
+          "id": "constraint.proposed-memory-accounting",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "scientific_execution",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "The proposed memory pass/fail rule covers everything the engine container holds in the unified memory pool at any moment: CPU and GPU process allocations and page cache attributable to files it reads. The operating system and other processes are outside that boundary. The budget choice, decimal units and accounting boundary remain proposals to confirm.",
+          "unit": null
+        },
+        {
+          "category": "proposed-quality-acceptance",
+          "id": "constraint.proposed-quality-comparison",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "scientific_execution",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "The proposed quality baseline is the published reference implementation with NVFP4 weights, the published tokenizer and greedy sampling. If computation changes are disallowed, the proposed comparison requires the same output tokens as that baseline; otherwise it requires a task score not below a threshold. The task set, threshold and permission for transformations remain UNSET.",
+          "unit": null
+        },
+        {
+          "category": "delivery",
+          "id": "constraint.delivery",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Required deliverables are a reproducible container, clean rebuild, benchmark report and replayable run artifacts. The checkpoint selection remains UNSET.",
+          "unit": null
+        },
+        {
+          "category": "implementation-discretion",
+          "id": "constraint.open-implementation-fields",
+          "normalized_value": null,
+          "operator": "qualitative",
+          "origin": "user",
+          "scope": "research_run",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "The target leaves execution, state, composition, policy and binding open; these fields do not independently select implementation methods.",
+          "unit": null
+        }
+      ],
+      "context_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        },
+        {
+          "id": "blob:120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+          "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+        },
+        {
+          "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+          "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+        },
+        {
+          "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+          "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+        },
+        {
+          "id": "blob:6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c",
+          "sha256": "6de4ce9b20e626d4272e7cc243ca8462d1714353979191d59af90a3237a8b68c"
+        }
+      ],
+      "deliverables": [
+        {
+          "artifact_type": "container",
+          "description": "Container packaging of the custom engine for the specified model and machine, subject to unresolved checkpoint and product-boundary decisions.",
+          "id": "deliverable.container",
+          "name": "Reproducible engine container"
+        },
+        {
+          "artifact_type": "rebuild_artifacts",
+          "description": "A clean rebuild of the delivered engine container with the materials needed to reproduce it.",
+          "id": "deliverable.clean-rebuild",
+          "name": "Clean rebuild"
+        },
+        {
+          "artifact_type": "report",
+          "description": "Benchmark report for the workload and acceptance rules once resolved. TTFT, decode rate excluding the first token and peak-memory reporting retain their proposed definitions pending confirmation.",
+          "id": "deliverable.benchmark-report",
+          "name": "Benchmark report"
+        },
+        {
+          "artifact_type": "run_artifacts",
+          "description": "Artifacts permitting replay of the reported runs for the selected checkpoint and resolved execution boundary.",
+          "id": "deliverable.run-artifacts",
+          "name": "Replayable run artifacts"
+        }
+      ],
+      "domain_lane": "scientific_research",
+      "evidence_obligations": [
+        {
+          "description": "Provide run artifacts identifying the delivered engine, selected model checkpoint and actual NVIDIA DGX Spark execution environment; supplied hardware descriptions do not establish observed machine availability.",
+          "id": "evidence.engine",
+          "requirement_ids": [
+            "requirement.engine"
+          ]
+        },
+        {
+          "description": "Provide traceability to the supplied target, model, hardware, system and node descriptions, including explicit dispositions of all unresolved decisions and contradictions. Distinguish confirmed acceptance rules from proposals and derived size estimates from verified model facts.",
+          "id": "evidence.specification",
+          "requirement_ids": [
+            "requirement.specification"
+          ]
+        },
+        {
+          "description": "Provide replayable text-input and text-output records for the delivered interface.",
+          "id": "evidence.text-interface",
+          "requirement_ids": [
+            "requirement.text-interface"
+          ]
+        },
+        {
+          "description": "Provide the container and rebuild materials, clean-rebuild evidence, benchmark report and associated replayable run artifacts. Identify the workload and judgment definitions used without inventing missing thresholds or procedures.",
+          "id": "evidence.delivery",
+          "requirement_ids": [
+            "requirement.delivery"
+          ]
+        },
+        {
+          "description": "Provide a documented disposition of excluded functionality and conflicting inherited machinery, showing how the delivered first version respects the resolved boundary.",
+          "id": "evidence.first-version-boundary",
+          "requirement_ids": [
+            "requirement.first-version-boundary"
+          ]
+        }
+      ],
+      "in_scope": [
+        {
+          "id": "scope.engine",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+              "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+            }
+          ],
+          "text": "Implement the custom engine for the specified model and machine using the attached target, system and node descriptions as the statement of what is wanted, subject to clarification of their unresolved decisions and contradictions."
+        },
+        {
+          "id": "scope.text-interface",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Provide text input and text output."
+        },
+        {
+          "id": "scope.measurement-reports",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "The target proposes reporting time to first token, decode rate excluding the first token and peak memory. Proposed TTFT timing starts at request admission, excludes model loading and ends at production of the first output token. Peak memory uses the proposed memory-budget accounting boundary. Workloads remain undefined."
+        }
+      ],
+      "input_bindings": [],
+      "intake_ref": {
+        "id": "blob:e6400f2d0522d2766585c06f0c6260fa56c1a31f75622f80af2d86883c5d39e8",
+        "sha256": "e6400f2d0522d2766585c06f0c6260fa56c1a31f75622f80af2d86883c5d39e8"
+      },
+      "intent_ref": {
+        "id": "blob:e6574df5d52dc778596e46e137f770184463a4edd708113089d52d0e062534b1",
+        "sha256": "e6574df5d52dc778596e46e137f770184463a4edd708113089d52d0e062534b1"
+      },
+      "mandatory_requirements": [
+        {
+          "id": "requirement.engine",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+              "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+            }
+          ],
+          "text": "Deliver a custom inference engine for Meta Muse Spark Open running on NVIDIA DGX Spark."
+        },
+        {
+          "id": "requirement.specification",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+              "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+            },
+            {
+              "id": "blob:e6574df5d52dc778596e46e137f770184463a4edd708113089d52d0e062534b1",
+              "sha256": "e6574df5d52dc778596e46e137f770184463a4edd708113089d52d0e062534b1"
+            }
+          ],
+          "text": "Use the attached System Ontology descriptions as the statement of what is wanted, preserving required versus proposed status and resolving their blocking omissions and contradictions before claiming conformance."
+        },
+        {
+          "id": "requirement.text-interface",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Provide text input and text output."
+        },
+        {
+          "id": "requirement.delivery",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "text": "Deliver a reproducible container, clean rebuild, benchmark report and replayable run artifacts. The exact checkpoint, workload and delivery boundary remain unresolved."
+        },
+        {
+          "id": "requirement.first-version-boundary",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+              "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+            }
+          ],
+          "text": "Respect the first-version exclusions of image, video and audio input, drafting, more than one conversation in memory at a time and more than one machine; reconcile inherited machinery that conflicts with these exclusions."
+        }
+      ],
+      "objective": {
+        "id": "intent.desired-change",
+        "origin": "user",
+        "source_refs": [
+          {
+            "id": "blob:0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2",
+            "sha256": "0b5f9323d42a242b87751943a9d8de8017849b149971bfee4bf37c951e32eec2"
+          }
+        ],
+        "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."
+      },
+      "optional_preferences": [],
+      "out_of_scope": [
+        {
+          "id": "scope.excluded-media",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+              "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+            }
+          ],
+          "text": "The first version does not load the perception encoder for image, video or audio input."
+        },
+        {
+          "id": "scope.excluded-first-version-features",
+          "origin": "user",
+          "source_refs": [
+            {
+              "id": "blob:929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a",
+              "sha256": "929bf8cf48b79129a9ede51b899442a3bf2067fba9ba81088291a1073143889a"
+            }
+          ],
+          "text": "The supplied first-version coverage excludes drafting, more than one conversation in memory at a time and more than one machine. Conflicting inherited machinery remains subject to explicit reconciliation."
+        }
+      ],
+      "resource_refs": [],
+      "schema_version": "3.0.0",
+      "target_metrics": [
+        {
+          "comparison": {
+            "comparator": "le",
+            "factor": 0,
+            "offset": 80,
+            "reference": "constant"
+          },
+          "comparison_status": "quantitative",
+          "id": "target.proposed-memory-budget",
+          "metric": "memory_budget",
+          "origin": "user",
+          "requirement_ids": [
+            "requirement.specification"
+          ],
+          "source_refs": [
+            {
+              "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+              "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+            }
+          ],
+          "target_text": "Proposed pass/fail budget: 80 GB, decimal, in unified pool mem0, using the proposed container accounting boundary. This is not a confirmed acceptance limit; nominal machine memory and the separately mentioned GPU working-set figure are not substituted for it.",
+          "unit": "GB (decimal)"
+        }
+      ],
+      "unresolved_items": [
+        {
+          "affected_fields": [
+            "/in_scope/0",
+            "/constraints/0",
+            "/mandatory_requirements/1"
+          ],
+          "blocking": true,
+          "clarification": "Identify the authoritative routing geometry and reconcile the router, routing flows, compiled shapes and cache-sizing assumptions.",
+          "description": "The model description and system summary select 8 of 256 experts per token per layer. The node router instead produces 512 logits and chooses 10 experts, and a system flow carries 10 expert IDs. These routing geometries are incompatible.",
+          "id": "uncertainty.routing-conflict",
+          "kind": "conflicting"
+        },
+        {
+          "affected_fields": [
+            "/constraints",
+            "/target_metrics",
+            "/in_scope/0"
+          ],
+          "blocking": true,
+          "clarification": "Specify the context length the delivered engine must support.",
+          "description": "The delivered engine's context length is UNSET and required for sizing. Neither the model maximum of 1,000,000 tokens nor the node generator's recommended 131072 tokens establishes an accepted engine context length.",
+          "id": "uncertainty.context-length",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/target_metrics/0",
+            "/constraints/3",
+            "/acceptance_expectations/1"
+          ],
+          "blocking": true,
+          "clarification": "Confirm or replace the proposed memory budget, decimal unit basis and accounting boundary covering CPU and GPU process allocations plus attributable file page cache, excluding the operating system and other processes.",
+          "description": "For target.proposed-memory-budget, the 80 GB decimal upper budget and container accounting boundary are explicitly proposed rather than confirmed. Its quantitative equation preserves the proposed limit without authorizing acceptance against it.",
+          "id": "uncertainty.memory-rule",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/0",
+            "/constraints/4",
+            "/constraints/6"
+          ],
+          "blocking": true,
+          "clarification": "Specify permitted computation-changing transformations, including applicable weight and attention-state precision changes.",
+          "description": "Allowed computation-changing transformations are UNSET, including quantisation below NVFP4 and approximations that change outputs. Node-level precision choices cannot independently settle this acceptance decision.",
+          "id": "uncertainty.computation-transformations",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/constraints/4",
+            "/target_metrics",
+            "/acceptance_expectations/1"
+          ],
+          "blocking": true,
+          "clarification": "Confirm the reference baseline and applicable comparison; if task-score comparison applies, identify the task set, score and pass threshold.",
+          "description": "The NVFP4 published-reference baseline with published tokenizer and greedy sampling, and the conditional token-equality or task-score comparison, are proposed. The held-out task set, score and pass threshold are UNSET; the applicable branch depends on transformation permission.",
+          "id": "uncertainty.quality-rule",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/2",
+            "/deliverables/2",
+            "/acceptance_expectations/3"
+          ],
+          "blocking": true,
+          "clarification": "Define the benchmark workload, including prompt and generation lengths and request or concurrency conditions, and confirm or replace the proposed reporting definitions.",
+          "description": "The fixed benchmark workload and workloads for TTFT, decode rate and peak memory are UNSET. A required benchmark report does not define the requests to measure. The proposed timing and accounting definitions remain proposals.",
+          "id": "uncertainty.workload",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/constraints/5",
+            "/deliverables/0",
+            "/acceptance_expectations/0"
+          ],
+          "blocking": true,
+          "clarification": "Identify the exact model checkpoint and weight variant to implement and evaluate.",
+          "description": "The target requires one checkpoint but leaves selection UNSET. The model description offers BF16 and NVFP4; feasibility discussion and NVFP4 use in the proposed baseline do not select the delivered checkpoint. Configuration and weight-file sizes have not been verified by the supplied model description.",
+          "id": "uncertainty.checkpoint",
+          "kind": "missing"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/0",
+            "/in_scope/1",
+            "/deliverables/0",
+            "/mandatory_requirements/2"
+          ],
+          "blocking": true,
+          "clarification": "Resolve the required product form, execution environment and streaming behavior against the supplied serving design.",
+          "description": "Execution environment, product form and streaming are UNSET in the target, while the supplied design includes an HTTP server, engine subprocess and streamed or JSON responses. Whether that complete serving boundary is required remains unresolved.",
+          "id": "uncertainty.product-boundary",
+          "kind": "ambiguous"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/0",
+            "/out_of_scope",
+            "/mandatory_requirements/4"
+          ],
+          "blocking": true,
+          "clarification": "Preserve the stated exclusions and identify which inherited draft, batching, parked-state and multi-device references must be removed or narrowed.",
+          "description": "First-version coverage excludes drafting, more than one conversation in memory at a time, more than one machine, and image, video and audio input. Other descriptions retain draft-window and draft-state references, parked conversation images, batching-related flows and configuration rules for absent features. The boundary between excluded functionality and permissible retained machinery is unresolved.",
+          "id": "uncertainty.first-version-exclusions",
+          "kind": "conflicting"
+        },
+        {
+          "affected_fields": [
+            "/in_scope/0",
+            "/out_of_scope",
+            "/constraints/0",
+            "/mandatory_requirements/1",
+            "/mandatory_requirements/4"
+          ],
+          "blocking": true,
+          "clarification": "Reconcile inherited component details with every supplied omission and postponement reason, explicitly retaining or revising each decision without silently reinstating omitted functionality.",
+          "description": "Carry forward every supplied derivation reason pending reconciliation: Strata supplies the overall decomposition and ds4 supplies storage preparation, demand-reading and eviction. The native-weight loader was omitted because Muse has one prepared format and loader. Host-memory admission was omitted because a full expert copy exceeds memory and the model has no lookup table. The slot scheduler was postponed because another conversation consumes attention-state memory otherwise available to experts. Replica routing was omitted for one machine. Checkpoint chaining was omitted because only truncatable attention state is described. Speed calibration was postponed until this engine has measurements. MTP drafting was omitted because no draft head is named. dflash2 drafting was omitted because it is a separate model trained for Strata. Lookup drafting was postponed pending miss-cost and acceptance-rate measurements, with draft policy and verification postponed alongside it. The session loop was omitted as specific to a Strata weight pack. Window graphs were postponed because layers may wait for storage and require miss-rate measurements. The n-gram reader was omitted because no lookup table is named. CPU expert computation was omitted because CPU and GPU share memory and uncached experts reside on storage. Supplied node and flow details do not consistently implement these decisions.",
+          "id": "uncertainty.prior-design-reasons",
+          "kind": "ambiguous"
+        }
+      ]
+    }
+  },
+  "receipt": {
+    "admitted": true,
+    "capability_id": "requirements.compiler",
+    "check_verdict": "PASS",
+    "checks": [
+      {
+        "check_id": "brief_schema",
+        "outcome": "PASS",
+        "reason": "Exact compiler structure/source/coverage invariant satisfied"
+      },
+      {
+        "check_id": "source_identity",
+        "outcome": "PASS",
+        "reason": "Exact compiler structure/source/coverage invariant satisfied"
+      },
+      {
+        "check_id": "requirement_coverage",
+        "outcome": "PASS",
+        "reason": "Exact compiler structure/source/coverage invariant satisfied"
+      }
+    ],
+    "declaration_sha256": "b3780fe0945eaf7c365c27337c259e3eefd17b9728fc032ee6d09f070e8e33df",
+    "declared_effects": {
+      "effect_class": "read_only",
+      "effects": [
+        {
+          "assurance": "protected bridge enforces scope and limits",
+          "id": "model-disclosure",
+          "idempotent": false,
+          "op": "model_invoke",
+          "resource_key": "approved_model_bridge",
+          "reversibility": "none",
+          "risk": {
+            "blast_radius": "one approved context",
+            "irreversibility": true,
+            "severity": "bounded"
+          },
+          "scope": "bound permitted request context",
+          "undo": null
+        }
+      ]
+    },
+    "finished_at": "2026-11-19T19:52:46.145129Z",
+    "halt": null,
+    "input_sha256": "c181982d5fa916f43a61cb54046b49b44ecb71cfa0dbceddf0af86c5156537ae",
+    "model_calls": [
+      {
+        "index": 1,
+        "model": null,
+        "prompt_sha256": "4aa833dcc91236a6e4f2ed068c9ef76d10b21d43cd712b42a96af8404193d58d",
+        "provider_kind": "cmd",
+        "reply_sha256": "aa8b199706a51042b6122750de37811c8e764912c7916521585deb1578ad88ec",
+        "system_sha256": "67e733f0b178394de994200ac7ee0fe252bc5a398a69a0dd1536383e7d6acee2",
+        "tokens": null
+      }
+    ],
+    "not_applicable_outside_pipeline": [
+      {
+        "check": "accepted_intent_input",
+        "status": "not_applicable_outside_pipeline",
+        "why": "the pipeline feeds only an Intent that passed its internal acceptance (checks and semantic review); here the supplied Intent is re-checked mechanically (schema, source spans, identity against the request) but its earlier review cannot be evidenced"
+      },
+      {
+        "check": "host_contract, host_identity, host_limits, host_authority",
+        "status": "not_applicable_outside_pipeline",
+        "why": "host checks read run records, library standing and the sealed subnode contract"
+      },
+      {
+        "check": "internal_acceptance, external_output, aggregate_limits",
+        "status": "not_applicable_outside_pipeline",
+        "why": "node finalization and gate decisions belong to the run store"
+      }
+    ],
+    "output_sha256": {
+      "brief": "162015e1df4cd2c4c12d96afe3cd08403d7fee21f613180455c52133fe4d58fd"
+    },
+    "packet_review": null,
+    "receipt_sha256": "8ebbc7be8b8471c8805a6737cbed2196610ce4a978b84f00bf441f29939c3f02",
+    "release_hash": "28d0a62be3881f57c133cbf67489e15d02ab172f136373bb78b832b557ce2286",
+    "schema": "capsule-runtime-receipt:1",
+    "semantic_verifier": {
+      "calls": [
+        {
+          "index": 1,
+          "model": null,
+          "prompt_sha256": "20b72819fcca0bcf952547132dcd54b53f73811e83b4da2056e99d6bf21077a7",
+          "provider_kind": "cmd",
+          "reply_sha256": "9a73f5f7ef17a7faeb3aea2da4c0655006030f67d31253efc6d5926c5759888b",
+          "system_sha256": null,
+          "tokens": null
+        }
+      ],
+      "reviews": {
+        "brief": {
+          "findings": [
+            {
+              "criterion_id": "declared_output_conformance",
+              "outcome": "PASS",
+              "reason": "All required brief fields are present with the declared shapes and permitted values. schema_version and domain_lane match their constants; target_metrics[0].comparison uses constant reference, zero factor and a nonnull unit as required."
+            },
+            {
+              "criterion_id": "internal_consistency",
+              "outcome": "PASS",
+              "reason": "requirement_ids in acceptance_expectations, evidence_obligations and target_metrics resolve to mandatory_requirements IDs. unresolved_items.affected_fields identify existing fields. target_metrics[0].comparison agrees with its proposed 80 GB upper limit in target_text."
+            },
+            {
+              "criterion_id": "limitations_consistency",
+              "outcome": "PASS",
+              "reason": "unresolved_items consistently mark unresolved decisions as blocking. acceptance_expectations, constraints, deliverables and target_metrics[0].target_text retain the stated provisional status; quantitative normalization does not contradict uncertainty.memory-rule."
+            },
+            {
+              "criterion_id": "requirement_link_completeness",
+              "outcome": "PASS",
+              "reason": "Each of the five mandatory_requirements IDs appears in both acceptance_expectations.requirement_ids and evidence_obligations.requirement_ids."
+            }
+          ],
+          "limitations": [
+            "Assessment is limited to the supplied declaration and subject_output; source_refs and context_refs were not resolved.",
+            "The blocking entries in unresolved_items remain unresolved; these findings do not establish downstream readiness."
+          ],
+          "output_sha256": "162015e1df4cd2c4c12d96afe3cd08403d7fee21f613180455c52133fe4d58fd",
+          "predicates": {
+            "assessment_schema": true,
+            "criterion_coverage_exact": true,
+            "declaration_pin_matches": true,
+            "output_hash_matches": true,
+            "verdict_follows_findings": true,
+            "verifier_assessment_schema": true
+          },
+          "required_correction": null,
+          "uncertainties": [],
+          "verdict": "PASS_WITH_KNOWN_LIMITATIONS"
+        }
+      },
+      "status": "reviewed"
+    },
+    "started_at": "2026-11-19T19:50:04.296812Z",
+    "status": "delivered",
+    "trace": null,
+    "verifier_independent": true,
+    "verifiers": {
+      "deterministic": "pass",
+      "packet_review": "not_applicable (output is not a science review packet)",
+      "semantic": "pass",
+      "trace": "not_applicable (no output port carries a trace manifest)"
+    },
+    "version": "m1-9",
+    "worker_model": {
+      "calls": 1,
+      "identity": "cmd:C:\\Users\\<user>\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -B <work>\\real-compiler\\codex_call.py worker-requirements-C",
+      "limit": 1,
+      "provider_kind": "cmd"
+    }
+  },
+  "status": "delivered"
+}

@@ -1,0 +1,12 @@
+kind: environment
+id: env/dgx-spark-strata-reported
+hardware: hw/dgx-spark
+# The environment of one DGX Spark as the Strata document reports it (docs/DGX_SPARK_LINUX.md). It is a third party's report, not my measurement,
+# and not the environment of the first use case.
+software:
+  os: {value: Ubuntu 24.04, status: reported, source: "strata docs/DGX_SPARK_LINUX.md:5"}
+  gpu_driver: {value: "580.173", status: reported, source: "strata docs/DGX_SPARK_LINUX.md:5"}
+  cuda: {value: "13.0", status: reported, source: "strata docs/DGX_SPARK_LINUX.md:5"}
+allocatable:
+  - {pool: mem0, value: 121.6, unit: GB, unit_basis: binary, status: reported,
+     source: "strata docs/DGX_SPARK_LINUX.md:70. The document writes GB; my probe of a DGX Spark on 2026-11-13 read 130.59 GB decimal as total memory, which is 121.62 GiB, so the document's figure is binary."}

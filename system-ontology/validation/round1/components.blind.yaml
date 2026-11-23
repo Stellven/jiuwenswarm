@@ -1,0 +1,248 @@
+- component: comp/strata/http-front
+  title: HTTP front and admission bound
+  responsibility: Accept OpenAI- and Anthropic-shaped HTTP requests, bound how many inference calls are pending, answer every
+    failure class with a defined status code, and cancel a request whose client has hung up.
+- component: comp/ds4/api-server
+  title: Server
+  responsibility: Accepts client requests and returns generated output.
+- component: comp/strata/host-memory-admission
+  title: Host memory admission and page-locked headroom
+  responsibility: Decide at startup, from host memory readings taken before the allocations, whether the n-gram table is locked
+    in RAM and whether the expert arena is loaded or replaced by the file source, and hold back page-locked memory while the
+    arena registers so that later small page-locked buffers succeed.
+- component: comp/ds4/kv-state
+  title: Compressed attention state
+  responsibility: Keeps the attention state of a session as recent raw rows plus compressed rows of older history, with row
+    counters that say which rows are valid.
+- component: comp/ds4/engram-prewarm
+  title: Engram table prewarm
+  responsibility: When memory allows, reads the whole table once in the background so that later row reads find it in the
+    page cache, and stops under memory pressure.
+- component: comp/ds4/expert-cache
+  title: Expert cache
+  responsibility: Keeps a bounded set of experts in locked memory the GPU reads and answers whether a selected expert is there
+    with the right file offset and size.
+- component: comp/strata/lookup-drafter
+  title: Lookup (suffix) drafter
+  responsibility: Propose the tokens that followed the longest earlier occurrence of the text's current ending, with the match
+    length, using no model weights.
+- component: comp/strata/engine-command-loop
+  title: Engine command loop and batch slots
+  responsibility: Inside the engine process, read one command at a time, run one prompt read at a time, advance every active
+    batch slot one window at a time between commands, and report each generation's tokens and end figures as text lines.
+- component: comp/strata/expert-cache
+  title: Expert cache
+  responsibility: Hold a fixed number of experts in fast memory and answer, for any expert, whether it is there and in which
+    slot.
+- component: comp/strata/resume-decision
+  title: Resume decision
+  responsibility: For each request, choose the stored state that shares the longest valid prefix with the prompt, make the
+    session hold exactly that state, and report the prefix length.
+- component: comp/strata/launch-argument-resolver
+  title: Launch and start-time argument resolver
+  responsibility: Turn the stored run configuration into the argument list and environment the engine process actually receives,
+    at every launch and every engine start, so that standing choices kept outside the list cannot be undone by whoever last
+    rewrote it.
+- component: comp/strata/expert-source
+  title: Expert source
+  responsibility: Make the bytes of every routed expert of every layer addressable in host memory for the whole run, either
+    as one arena filled at startup or as mappings of the files that hold them, and say for each expert whether the GPU can
+    read it in place.
+- component: comp/strata/native-weight-loader
+  title: Native-form weight loaders
+  responsibility: Upload selected tensors in their unchanged GGUF block form (per-layer projections, output head, token embedding)
+    and attach them to the matching entries of the weight table, so that the pack copy of each can be skipped.
+- component: comp/strata/dflash2-drafter
+  title: DFlash2 block drafter
+  responsibility: Produce 7 draft tokens in one forward pass of a separate 5-layer drafter model that reads the target model's
+    hidden states at five layers, and keep its context ring to committed rows only.
+- component: comp/ds4/distributed-tp
+  title: Two machines each holding half the experts
+  responsibility: Splits the routed experts of each layer by id range between two directly linked machines that process the
+    same token and exchange partial results.
+- component: comp/ds4/expert-eviction
+  title: Expert heat and victim choice
+  responsibility: Chooses which cached expert leaves when room is needed, from a decaying count of how often each expert was
+    selected.
+- component: comp/strata/parked-conversations
+  title: Parked conversation cache
+  responsibility: Hold whole images of other conversations, including their attention K/V, within a host memory budget, find
+    the one with the longest valid prefix for a prompt, and evict.
+- component: comp/strata/output-head
+  title: Output head
+  responsibility: 'Turn the residual after the last layer into one row of vocabulary logits per position: a final residual
+    read, then the vocabulary projection.'
+- component: comp/strata/session-files
+  title: Session files
+  responsibility: On an explicit command, write the session's current conversation to one file or read one back, refusing
+    any file that does not belong to this model, configuration and engine version before any state changes.
+- component: comp/ds4/prefill-driver
+  title: Layer by layer prefill
+  responsibility: Passes each chunk of prompt tokens through the layers one layer at a time, building the session state once.
+- component: comp/strata/replica-router
+  title: Replica router
+  responsibility: Present several independent engine processes, each on its own group of cards, as one engine, and choose
+    a process for each generation.
+- component: comp/strata/draft-policy
+  title: Draft policy
+  responsibility: Choose, for each round, where the verify window's drafts come from and how wide the window is, so that committed
+    tokens per measured millisecond is highest; and under automatic drafter selection, which neural drafter a request uses.
+- component: comp/strata/mtp-drafter
+  title: MTP drafter
+  responsibility: From the verify window's final hidden rows and the tokens that followed them, produce draft tokens with
+    a probability each, and keep the draft layer's own attention K/V complete for every accepted position.
+- component: comp/ds4/model-preparation
+  title: Offline GGUF conversion
+  responsibility: Produces the project's own GGUF files, with the compression spent mainly on the routed experts, in the tensor
+    layout the kernels read.
+- component: comp/ds4/prefix-reuse
+  title: Session prefix reuse and disk checkpoints
+  responsibility: Finds the longest already computed prefix of an incoming conversation, in memory or on disk, so that only
+    the new suffix is prefilled.
+- component: comp/ds4/dspark-drafter
+  title: DSpark draft module
+  responsibility: Proposes up to 5 following tokens one after another, each with a confidence, and stops when the confidence
+    falls below a threshold.
+- component: comp/strata/cpu-expert-pool
+  title: CPU expert pool
+  responsibility: Compute a batch of expert evaluations on CPU cores, reading each expert's bytes in place, and return only
+    when every job is done and every worker is parked again.
+- component: comp/strata/kv-store
+  title: Key and value store
+  responsibility: Hold the attention keys and values of every position of each attention layer in the configured format, reachable
+    through a page table, and when streaming is on make every block a selection names resident in fast memory before the attention
+    reads it.
+- component: comp/strata/slot-scheduler
+  title: Server-side slot scheduler
+  responsibility: With batch slots on, decide for each request whether it runs alone or in a slot, which slot, and in what
+    order requests get the single prompt-reading channel, and keep the server's record of slots consistent with the engine's.
+- component: comp/strata/expert-dispatch
+  title: Expert dispatch
+  responsibility: For one layer of one window, decide for every routed expert which path computes it, and publish the accelerator's
+    share before the CPU's share starts.
+- component: comp/strata/ngram-reader
+  title: N-gram hash and table reader
+  responsibility: For each token, compute its 16 row numbers from the token and its two predecessors and deliver those 16
+    rows of the n-gram table as 2560 floats before layer 1 needs them.
+- component: comp/strata/window-loop
+  title: Window loop
+  responsibility: Run one window of 1 to max_t tokens through the layers and the output head as a single replayed graph, and
+    serve each layer's host-side expert work when the GPU signals that the layer's routing is known.
+- component: comp/ds4/dspark-scheduler
+  title: DSpark scheduler
+  responsibility: Decides for each round whether drafting is attempted, pausing it for some rounds when recent acceptance
+    shows it does not pay.
+- component: comp/ds4/engram-row-reader
+  title: Engram table row reader
+  responsibility: Delivers the table rows a token needs, read directly from SSD by row, without keeping the table in memory.
+- component: comp/strata/request-runner
+  title: Request runner
+  responsibility: Drive one API request through one or more engine generations and turn the token ids into reasoning, content
+    and tool-call events with a final finish record.
+- component: comp/strata/weight-loader
+  title: Pack weight loader
+  responsibility: Copy every tensor the pack index lists, except those in a skip set, into one device memory range at its
+    recorded offset, applying the byte transform the index names for each plane, and return a table from tensor name to location.
+- component: comp/strata/expert-router
+  title: Expert router
+  responsibility: For each token in each layer, turn the feed-forward input into 512 logits and choose 10 experts with renormalised
+    weights, on the device inside the recorded graph.
+- component: comp/ds4/decode-loop
+  title: Decode loop
+  responsibility: Produces one output token per step in a fixed order of work, starting table row reads as soon as the token
+    is known and choosing between a drafted round and an ordinary step.
+- component: comp/ds4/weight-mapping
+  title: Model file mapping shared with the GPU
+  responsibility: Makes the tensors of the model file readable by the GPU from the same mapped pages, without a second copy.
+- component: comp/strata/layer-kernels
+  title: Layer kernels and their order
+  responsibility: Compute the part of each layer every token needs, in a fixed order, and keep the per-sequence state those
+    kernels read and write at fixed device addresses.
+- component: comp/ds4/memory-plan
+  title: Expert cache budget at startup
+  responsibility: Computes at startup how many expert cache slots the machine actually present can hold.
+- component: comp/strata/engine-client
+  title: Engine process client and supervisor
+  responsibility: 'Keep one engine child process resident and in step with the server: send each generation as one text command,
+    deliver its token lines to the caller, and end and restart a process that is dead, silent, frozen or fatally broken.'
+- component: comp/ds4/expert-stream-reader
+  title: Expert reads from SSD
+  responsibility: Copies the gate, up and down blocks of an expert from the model file on SSD into a cache buffer, with several
+    threads.
+- component: comp/strata/engine-diagnostics
+  title: Engine diagnostics
+  responsibility: Inside the engine process, count which kernel variants and window graphs were chosen, record what the run
+    selected at start, and sample batch windows, writing each only when asked by an environment variable.
+- component: comp/strata/server-metrics
+  title: Request accounting and metric exporters
+  responsibility: In the server process, turn the engine's end-of-request figures and the server's own clocks into per-request
+    records, running totals and a live rate, fill the usage and timings of each response, sample the machine once a second,
+    and render all of it for outside monitors.
+- component: comp/strata/model-file-reader
+  title: Model file reader and architecture guard
+  responsibility: Map a GGUF v3 shard read-only, expose its metadata, tensor directory and tensor bytes unchanged, and refuse
+    a file whose declared shape the compiled kernels cannot run.
+- component: comp/strata/adaptive-tier
+  title: Adaptive tier
+  responsibility: Keep the expert cache filled with the experts the current conversation uses most, by swapping a bounded
+    number of them at fixed intervals.
+- component: comp/strata/prompt-builder
+  title: Prompt builder
+  responsibility: Produce the exact prompt token ids and the token limit for a request from its messages, or refuse the request.
+- component: comp/strata/draft-verifier
+  title: Draft verifier
+  responsibility: Given the full model's target token for every row of a window, accept the longest prefix of drafts that
+    agree, and make exactly that prefix permanent in indexer keys, recurrent state, convolution history and n-gram history.
+- component: comp/ds4/gpu-kernels
+  title: GPU kernels
+  responsibility: Computes all model operations on the GPU, with kernels specific to each tensor format the engine accepts.
+- component: comp/strata/window-graphs
+  title: Recorded graphs
+  responsibility: Record the fixed sequence of device work once and keep the recorded graphs available for replay, freeing
+    and re-recording them when fast memory for a new one runs out.
+- component: comp/strata/run-config-generator
+  title: Run configuration generator and store
+  responsibility: Produce a complete run configuration file for one model on this machine from machine facts and the person's
+    answers, and rewrite it without losing what the person added by hand.
+- component: comp/strata/expert-layout
+  title: Expert layout table
+  responsibility: Read the pack's native_experts.txt once and answer, for the whole process, how many bytes each layer's expert
+    blob has, where it starts, and where each layer's gate, up and down tensors lie in the GGUF shards.
+- component: comp/strata/session-loop
+  title: Session loop
+  responsibility: For one token on a canonical Q2_0 pack, launch the layers in order and place the CPU's expert rows between
+    each layer's routing and its combine, so that a layer's experts meet that layer's router weights.
+- component: comp/ds4/expert-split-dispatch
+  title: Resident and missing expert split
+  responsibility: Decides for each layer whether the selected experts are computed in one submission or in two, resident ones
+    first and just-read ones second, while keeping the final summation order the same.
+- component: comp/strata/prompt-path
+  title: Prompt path
+  responsibility: Read the prompt in large chunks, layer by layer, and leave behind the model state that generation continues
+    from.
+- component: comp/strata/host-to-device-transfer
+  title: Host-to-device transfer
+  responsibility: Copy expert bytes from slow memory to fast memory in an order the accelerator work that follows can rely
+    on.
+- component: comp/strata/sampler
+  title: Sampler
+  responsibility: 'Turn each position''s logits into one token id by a fixed chain: logit bias, penalties, top-k, top-p, min-p,
+    temperature, pick.'
+- component: comp/strata/speed-calibration
+  title: Speed calibration and tuning presets
+  responsibility: Measure on this machine, with the real engine and on demand, which of a bounded set of settings is faster,
+    keep a non-default value only when it beats the default by more than measurement noise, and store the result for later
+    starts.
+- component: comp/strata/startup-memory-sizing
+  title: Startup memory sizing
+  responsibility: Give the expert cache the device memory that remains after weights, session, drafter and output head, minus
+    a reserve and minus later allocations priced in advance; and when that is too little, step down through fixed last resort
+    before ending the start.
+- component: comp/ds4/draft-verify-commit
+  title: Draft check and prefix commit
+  responsibility: Checks the drafted tokens in one pass of the full model and leaves the session state exactly as that of
+    the accepted prefix.
+- component: comp/strata/checkpoint-chain
+  title: Checkpoint chain
+  responsibility: Keep a bounded set of snapshots of the running state at chosen token positions of the conversation the session
+    currently holds, so a later request on the same history can rewind to one.

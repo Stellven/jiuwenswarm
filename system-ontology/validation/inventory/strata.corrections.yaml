@@ -1,0 +1,157 @@
+# Entries of the inventory that a later reader found wrong and confirmed against the engine's source.
+# The inventory itself is left as first written; read it together with this file.
+engine: strata
+corrections:
+- part: prompt-builder
+  field: output_effect
+  recorded: none
+  source_shows: The opt-in effort_position puts a non-default reasoning effort in an injected system turn and the effort
+    sentence of the first system message can be replaced (serve/server.py:270, 4745, 5745-5778); a shipped template replaces
+    a missing pack template. The prompt changes, so not none.
+  found_in: round3
+- part: engine-client
+  field: output_effect
+  recorded: none
+  source_shows: 'keys += top_k={tk if 1 <= tk <= 64 else 64} (serve/server.py:1659): a requested top_k of 0 or above 64
+    is sent as 64, changing sampled output.'
+  found_in: round3
+- part: dflash2-drafter
+  field: decisions
+  recorded: Skip the draft round when the lookup match is at least this many tokens.
+  source_shows: The skip is decided by the draft-policy rule skip_draft_for_lookup in include/strata/spec/window_rule.hpp,
+    called from the host loop (src/program/generate.cpp:18893-18905, 20899-20913); it belongs to draft-policy.
+  found_in: round3
+- part: http-front
+  field: decisions
+  recorded: five admission and timeout decisions; nothing on who may call
+  source_shows: An API key (Bearer or x-api-key), allowed host names and CORS origins gate /v1/* (serve/server.py:7605-7744,
+    9906-9911); the who-is-allowed decision is missing.
+  found_in: round3
+- part: output-head
+  field: output_effect
+  recorded: numeric (not established)
+  source_shows: On the pack path the mixed activation is quantised to 8-bit q8_K before the vocabulary projection (src/core/layer.cpp:1425);
+    that is a reduced activation precision, not last-bit rounding.
+  found_in: round3
+- part: window-loop
+  field: output_effect_when
+  recorded: bit_exact when default configuration; approximate when ... a route tail skip rank is set
+  source_shows: The route tail skip is on by default on CUDA serving (rank 7) unless at least 90% of experts are in the
+    GPU cache or the experts are NVFP4, and it changes the output (src/program/generate.cpp:12776-12822; src/core/expert_source.cpp:4964;
+    docs/QUANTS.md:158). The default configuration is not bit_exact.
+  found_in: round4
+- part: expert-dispatch
+  field: decisions
+  recorded: A missed expert that every token of the window routes only at this rank or lower is neither fetched nor computed;
+    tail skip described as default on the CUDA serving path
+  source_shows: 'The default is conditional: off when the share of experts in the GPU cache reaches STRATA_TAIL_SKIP_MAX_CACHED
+    (default 90%, 60 on a HIP layer split) and off for NVFP4 experts; the start-up message says which applies (src/program/generate.cpp:12787-12822).
+    That condition is a decision of its own.'
+  found_in: round4
+- part: engine-command-loop
+  field: output_effect_when
+  recorded: approximate when Batch slots on, sampled decoding, with a move between the solo path and a slot
+  source_shows: Sampled rows in batch slots use the solo window's counter-based draw Philox(seed, position) (docs/BATCHING.md:623-624);
+    a move changes only the logits' rounding, which can flip a draw. Nothing approximates the computation.
+  found_in: round4
+- part: slot-scheduler
+  field: output_effect_when
+  recorded: approximate when Sampled decoding with a move between the solo path and a slot
+  source_shows: 'Same as engine-command-loop: the draw is keyed by seed and position on both paths (docs/BATCHING.md:623-624);
+    the difference is rounding of the logits, not an approximation.'
+  found_in: round4
+- part: startup-memory-sizing
+  field: output_effect_when
+  recorded: bit_exact when the sizing only moves where bytes are read from (output head on host, smaller prompt chunks);
+    inferred
+  source_shows: A smaller prompt chunk changes the chunking and with it the rounding (docs/RESEARCH_RUNS.md:60, docs/MESSAGE_BOUNDARY_CACHE.md:65).
+    Smaller chunks are numeric, not bit_exact.
+  found_in: round5
+- part: host-memory-admission
+  field: output_effect
+  recorded: none; bit_exact for arena or file source, per the startup message, not verified
+  source_shows: A missed expert is fetched to the GPU only when its source bytes are page-locked (src/core/expert_source.cpp:5056-5063,
+    d.src->pinned); otherwise it stays with the CPU. Choosing the file source instead of the registered arena moves uncached
+    experts from GPU to CPU computation, which the inventory's expert-source entry records as numeric. The choice is numeric,
+    not none.
+  found_in: round5
+- part: native-weight-loader
+  field: output_effect_when
+  recorded: bit_exact when a tensor uploaded unchanged; numeric when native head or projections; approximate when a BF16
+    projection is converted to Q8_0 at load
+  source_shows: The default STRATA_HC_Q8 read of the shards' Q8_0 hyper-connection copies changes tokens beyond rounding
+    (docs/STRIX_HALO.md:191-192, 309; data/settings-register.json:12969); it is on by default on CUDA for such files and
+    is not listed as approximate.
+  found_in: round6
+- part: startup-memory-sizing
+  field: output_effect_when
+  recorded: bit_exact when the sizing only moves where bytes are read from; numeric when the slot count changes which experts
+    the GPU computes
+  source_shows: The slot count also decides whether the route tail skip is on by default (off when at least 90% of experts
+    are cached), which changes output beyond rounding (src/program/generate.cpp:12785-12817).
+  found_in: round6
+- part: engine-command-loop
+  field: output_effect_when
+  recorded: bit_exact when batch slots off
+  source_shows: With batch slots off the tail skip is on by default on CUDA (unless nearly all experts are cached or experts
+    are NVFP4), so the default solo path is not bit_exact; with slots on it is off (src/program/generate.cpp:12776-12822,
+    condition o.batch == 0).
+  found_in: round6
+- part: adaptive-tier
+  field: output_effect
+  recorded: none; bit_exact when the GPU and CPU expert kernels round identically
+  source_shows: Under the default tail skip, residency decides which low-ranked experts are omitted (src/program/generate.cpp:12776-12822;
+    src/core/expert_source.cpp:4964), so swaps change the output beyond rounding.
+  found_in: round6
+- part: expert-cache
+  field: output_effect
+  recorded: none; bit_exact when the GPU and CPU expert kernels round identically
+  source_shows: Under the default route tail skip a missed expert is omitted only when not resident (src/core/expert_source.cpp:4963-4982;
+    default set in src/program/generate.cpp:12776-12822), so what the cache holds changes output beyond rounding, as the
+    correction records for adaptive-tier.
+  found_in: round7
+- part: mtp-drafter
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the
+    arithmetic conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch
+    slots are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the
+    default solo CUDA path, not bit_exact or numeric.'
+  found_in: round7
+- part: dflash2-drafter
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the
+    arithmetic conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch
+    slots are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the
+    default solo CUDA path, not bit_exact or numeric.'
+  found_in: round7
+- part: lookup-drafter
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the
+    arithmetic conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch
+    slots are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the
+    default solo CUDA path, not bit_exact or numeric.'
+  found_in: round7
+- part: draft-policy
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the
+    arithmetic conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch
+    slots are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the
+    default solo CUDA path, not bit_exact or numeric.'
+  found_in: round7
+- part: draft-verifier
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the
+    arithmetic conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch
+    slots are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the
+    default solo CUDA path, not bit_exact or numeric.'
+  found_in: round7

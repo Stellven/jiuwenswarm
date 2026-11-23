@@ -1,0 +1,27 @@
+# What I measured for Strata on the DGX Spark on 2026-11-20: the engine built there from the project's source, with
+# its Qwen3.8-Flash-Next IQ3_S pack and the run configuration its own setup wrote. The records are in
+# runs/strata-measured-2026-11-20/. Used to test my arithmetic against a real engine with figures of my own.
+kind: evidence
+id: evidence/strata-on-spark/measured-20261120
+verifies: []
+engine_build_digest: "Strata engine 0.1.59.1 built on the machine from source revision 504b143 (spark/build_engine.sh, text only) + Qwen3.8-Flash-Next IQ3_S (two files, 83.6 GB) and the MTP draft layer; configuration strata-iq3_s.json as written by setup"
+quality: median_of_n
+measured_under:
+  model: model/qwen3.8-flash-125b-a6b
+  hardware: hw/dgx-spark
+  environment: env/dgx-spark-measured-20261119
+  status: measured
+  source: "runs/strata-measured-2026-11-20/iq3s (engine.log, the engine's own line per request; evidence-iq3s-2k.yaml and evidence-iq3s-4k.yaml, timed by the client)"
+  note: "One start of the engine, nothing else running on the machine. Per prompt length 4 requests after 2 warm-up requests, new prompts, temperature 0, one request at a time. Context 64K, 8-bit attention state, drafting on, as its setup configures this machine. Prompts of 2,034 to 2,616 tokens with 128 tokens out, and of 4,480 to 5,394 tokens with 256 tokens out."
+baseline: "none; these are the engine's own speeds, not a comparison"
+results:
+  packs:
+    - pack: IQ3_S
+      expert_bytes: {value: 50.3, unit: GB, unit_basis: decimal}
+      decode_tok_per_s: {at_2k_lowest: 52.9, at_2k_highest: 60.6, at_4k_lowest: 57.0, at_4k_highest: 58.6}
+      prompt_tok_per_s: {at_2k_lowest: 1064, at_2k_highest: 1422, at_4k_lowest: 1562, at_4k_highest: 1612}
+      first_token_s: {at_2k_lowest: 1.80, at_2k_highest: 2.12, at_4k_lowest: 2.96, at_4k_highest: 3.41}
+      expert_cache: {slots: 24576, of: 24576, size: {value: 46.84, unit: GiB, unit_basis: binary}}
+      lookup_table: {size: {value: 28.8, unit: GB, unit_basis: decimal}, held: "locked in memory"}
+      free_memory_at_start: {value: 2.1, unit: GB, unit_basis: decimal}
+  drafting: {tokens_per_pass: "2.25 to 2.84", source: "runs/strata-measured-2026-11-20/iq3s/engine.log, drafts accepted per request", note: "Derived: tokens generated over the tokens that were not accepted drafts, taking every pass to give one token of the model besides the drafts it accepts. The engine's line gives 71 to 83 accepted drafts in 128 tokens and 151 to 157 in 256."}

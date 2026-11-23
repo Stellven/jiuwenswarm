@@ -1,0 +1,91 @@
+engine: ninfer
+# Inventory read together with validation/inventory/ninfer.corrections.yaml; corrected entries judged by the correction.
+# Decisions of parts with an `also` type are counted once, under the part's assigned type.
+decision_coverage:
+  totals: {decisions: 104, covered: 96, loosely: 8, not_covered: 0, engine_specific: 0}
+  per_type:
+    - {type: "model-conversion", decisions: 9, covered: 8, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "configuration", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 4, covered: 3, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "memory-planning", decisions: 8, covered: 8, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "graph-capture", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-source", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "secondary-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 7, covered: 7, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sampling", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-constraint", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-pool", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "state-tiering", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 6, covered: 5, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "scoring", decisions: 0, covered: 0, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "media-preparation", decisions: 2, covered: 1, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "engine-supervision", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  loosely:
+    - {part: "checkpoint-converter", type: "model-conversion", decision: "storage format and encoding method per role (import encoded, grouped absmax, FP8 maxabs, stored-scale MSE search, direct cast)", nearest_choice: "precision per kind of weight (names the target precision, not the algorithm that fits codes and scales)"}
+    - {part: "offload-mode-switch", type: "residency-policy", decision: "refill pace of the extra cache after returning to small work (bytes and batches per call)", nearest_choice: "the gain a change must bring, and a limit on changes per round"}
+    - {part: "shard-materializer", type: "model-loading", decision: "whether a per-rank slice can be expressed value-preservingly in its stored format, else it is rejected", nearest_choice: "whether weights are re-encoded at load and how"}
+    - {part: "hybrid-moe-dispatch", type: "expert-dispatch", decision: "large work (stream whole layer) versus small work (split with CPU) by a per-layer token threshold", nearest_choice: "the share of misses fetched now against left to another device"}
+    - {part: "model-session", type: "sequence-lifecycle", decision: "a full permit reserved before verify that covers the later commit peak", nearest_choice: "a sequence's state allocated up front or grown on demand"}
+    - {part: "rank-program", type: "step-execution", decision: "where host handoffs (grammar mask, CPU experts, final acceptance) split device work", nearest_choice: "cutting a step into parts so that work on two devices overlaps"}
+    - {part: "context-resource-manager", type: "prefix-reuse", decision: "attention-owner rank under attention data parallelism: load balance bound, then longest local prefix", nearest_choice: "which device restored state is placed on"}
+    - {part: "media-preparer", type: "media-preparation", decision: "preprocess cache capacity and live payload budget", nearest_choice: "caching of prepared media and its key"}
+  not_covered: []
+contradictions:
+  - part: "draft-head-builder"
+    type: "model-conversion"
+    claim: "effect: exact, when: it only re-arranges bytes, or changes only pieces used for proposals under greedy decoding"
+    evidence: "Under greedy decoding the proposals decide how many tokens each verify round accepts, so they decide where the next verify block starts. Greedy output follows the verify block shape (corrections, mtp-drafter), and committed recurrent state is bit-identical to the same physical verify block, not to token-by-token decoding (state-commit output_effect_when; include/ninfer/ops/speculative_accept.h 22-44). A different draft head therefore moves block boundaries and changes rounding of later tokens."
+    fix: "exact under greedy decoding only where checked blocks are computed exactly as single-token decoding; otherwise rounding, because proposals move the boundaries of checked blocks"
+  - part: "mtp-drafter"
+    type: "draft-proposal"
+    claim: "effect: exact, when: greedy decoding with exact acceptance"
+    evidence: "Greedy acceptance is exact agreement with the verify block's argmax, but which positions fall in which verify block depends on how many proposals were accepted earlier; verify-block arithmetic and the folded recurrent state differ from token-by-token decoding (mtp-drafter correction; state-commit output_effect_when). The draft count is fixed, so the width condition under rounding does not apply; the cause is the placement of block boundaries."
+    fix: "exact: greedy decoding with exact acceptance and checked blocks computed as single-token decoding would; rounding: the proposals decide where checked blocks begin and end, and block arithmetic differs from single-token decoding"
+  - part: "block-drafter"
+    type: "draft-proposal"
+    claim: "effect: exact, when: greedy decoding with exact acceptance"
+    evidence: "Same as mtp-drafter: with a fixed block width of 1 to 15, the accepted length under greedy acceptance decides the start of the next checked block, and checked-block arithmetic and committed state differ from single-token decoding (state-commit output_effect_when; draft-acceptance output_effect_when 'greedy matches the target argmax of the verify batch shape')."
+    fix: "as for mtp-drafter: add to rounding 'the proposals decide where checked blocks begin, and checked-block arithmetic differs from single-token decoding'"
+  - part: "causal-scorer"
+    type: "scoring"
+    claim: "effect_on_output levels: exact; rounding when the scored sequence is read in steps of another width than generation uses"
+    evidence: "Scoring submits ExecutionUnitKind::Prefill units over windows of the sequence (src/models/qwen4_exp/session/scoring.cpp 40-70). Projections with an AllowA4 permit run 4-bit activations for steps of 5 or more tokens and 16-bit for 1 to 4 (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 22-36), so scores are computed at another activation precision than token-by-token generation: approximate, a level the type does not list."
+    fix: "add approximate: the width of the scoring steps selects a reduced activation precision that the weights permit or the kernels choose"
+  - part: "causal-scorer"
+    type: "scoring"
+    claim: "must: A score is computed by the same model, weights and kernels as generation. Where precision depends on the width of a step, the width the score was computed at is stated."
+    evidence: "Precision depends on step width (dispatch.cpp 22-36), but the scoring result is only the vector of log-probabilities (src/runtime/engine/causal_score_core.h 236-259; ScoreComplete.logprobs); no step width or activation precision is reported with it. Kernels also differ from decode (prefill route versus DecodeFusedA16)."
+    fix: "make the width statement a should rule ('the width or activation precision a score was computed at is stated'), relaxed: one engine returns scores without it"
+  - part: "startup-memory-planner"
+    type: "memory-planning"
+    claim: "effect_on_output levels: exact; rounding when ... a size it sets ... changes how the computation is cut"
+    evidence: "It sizes the shared context backing per rank (gives context-pool capacity). Admission and pausing follow that capacity (request-scheduler, context-pool 'admission uses placement'), so it bounds how many lanes share a decode or verify round; the rows in a round select 16-bit or 4-bit activations for AllowA4 projections (request-scheduler correction). By the type's own rounding condition and output principle 2, that reaches approximate, which the type does not list."
+    fix: "add approximate: a capacity it sets bounds the number of rows in a step, and that number selects a reduced activation precision that the weights permit or the kernels choose"
+new_causes:
+  - {part: "hybrid-moe-dispatch", type: "expert-dispatch", level: "rounding", cause: "the split between devices follows which fetches have completed when the layer starts, so the same request can round differently from run to run", evidence: "GPU/CPU mask built from a snapshot of ready experts; output 'depends on which experts are ready at that moment' (inventory hybrid-moe-dispatch output_effect_when; offload-mode-switch output_effect_when)"}
+  - {part: "model-session", type: "sequence-lifecycle", level: "approximate", cause: "a paused sequence released and replayed has its generated tokens re-read in wide chunks, so its rebuilt state is computed at another activation precision than the decode steps that first produced it", evidence: "pause action 'release and replay' (model-session decisions); chunked-prefill replays committed tokens in chunks; AllowA4 projections use 4-bit activations at 5 or more tokens per step (dispatch.cpp 22-36)"}
+relaxations:
+  - {part: "layer-compute", type: "layer-compute", rule: "An approximation that is in effect is stated with the run's settings.", how: "4-bit activations for AllowA4 uses are permitted only in the converted artifact and taken whenever a step has 5 or more tokens; no run setting, option or log states it, and it cannot be turned off without reconverting (permits in src/artifact/schema.cpp and src/models/common/bindings.cpp; no reference in src/product/config or observability)."}
+wrong_assignments: []
+inventory_errors:
+  - {part: "expert-priority-table", field: "output_effect", recorded: "none", source_shows: "its per-layer order is the fixed GPU-resident set for offload (src/models/common/moe/offload/plan.cpp 228-234 spec.priority) and assigns experts to ranks under EP2 (src/models/qwen4_exp/parallel/plan.cpp 34-37), so it decides which device computes an expert: numeric"}

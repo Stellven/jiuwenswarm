@@ -1,0 +1,1621 @@
+# Written by tools/so_nodetypes_experiments.py packets. Read validation/choices/BRIEF.md first.
+engine: hyperqwen
+decisions: 125
+parts:
+- part: model-dir-publisher
+  does: Commits every offline rewrite of the model directory crash-safely and refuses a checkpoint the rewrites cannot extend,
+    so a killed or wrong preparation never leaves a half-written model.
+  types:
+  - model-conversion
+  decisions:
+  - d: D001
+    text: 'Order of writes: shards, then config.json, then the index last as the commit point'
+  - d: D002
+    text: Whether a checkpoint is an extendable compressed-tensors pack-quantized schema, checked before any read
+  - d: D003
+    text: Backup suffix per step so two steps sharing a shard do not overwrite each other's pristine copy
+- part: offline-weight-requantizer
+  does: Requantizes the tensors the published quant left in bf16 (output head, input embedding, MTP draft module) to symmetric
+    group-128 int8 (MTP optionally int4) by round-to-nearest, with an error bound.
+  types:
+  - model-conversion
+  decisions:
+  - d: D004
+    text: Bit width per tensor group and group size
+  - d: D005
+    text: Whether mtp.fc is kept in bf16
+  - d: D006
+    text: Read whole shards or stream a single huge shard
+- part: draft-vocab-builder
+  does: Chooses the token ids the MTP drafter may propose and slices those rows out of the already-quantized output head
+    into a separate draft head.
+  types:
+  - model-conversion
+  decisions:
+  - d: D007
+    text: Number of rows kept
+  - d: D008
+    text: Which corpus the counts come from
+  - d: D009
+    text: Which extra scripts (CJK, Cyrillic) are appended and under what row budget
+  - d: D010
+    text: Only whole-UTF-8 rows are eligible
+- part: calibration-data-capture
+  does: Runs the served model offline over a prompt mix to produce self-distillation outputs, target hidden states and per-layer
+    Hessians of the drafters' own inputs.
+  types:
+  - calibration
+  decisions:
+  - d: D011
+    text: Prompt mix and thinking on/off share
+  - d: D012
+    text: Number of calibration rows
+  - d: D013
+    text: Run eagerly so module hooks see inputs (graphs bypass hooks)
+- part: gptq-requantizer
+  does: Quantizes the output head, the MTP module and the DFlash2 drafter to int4 group-128 with GPTQ using captured Hessians,
+    writing a new model-directory variant.
+  types:
+  - model-conversion
+  decisions:
+  - d: D014
+    text: Bits and group size; no act-order so Marlin needs no index
+  - d: D015
+    text: Which drafter modules stay bf16 (convolution projections, selector, norms)
+  - d: D016
+    text: Width of the DFlash2 fc projection
+  corrections:
+  - field: decisions
+    recorded: Width of the DFlash2 fc projection
+    source_shows: The choice is the bit width of the fc projection (--fc-bits 4|8|16, default int4 GPTQ), not its dimension
+      (drafter/quant_dflash2.py:5,9,29,59)
+- part: chat-template-rewriter
+  does: Rewrites the model's chat template so array-shaped tool arguments and unknown reasoning-effort names no longer fail
+    rendering.
+  types:
+  - model-conversion
+  decisions:
+  - d: D017
+    text: Which effort names map to which template level; unknown ones fall through to no instruction
+- part: launch-profile-resolver
+  does: Turns the operator's profile choices and the detected GPU, platform and parallel size into the vLLM flags and environment
+    knobs of one engine instance, and predicts how many requests the pool will hold.
+  types:
+  - configuration
+  decisions:
+  - d: D018
+    text: Profile (batch or single-user) and context class (fast, long, huge)
+  - d: D019
+    text: KV format and attention backend from context class and compute capability
+  - d: D020
+    text: Drafter kind and number of draft tokens
+  - d: D021
+    text: Pin the pool by bytes or by utilisation; skip the pin under tensor parallelism
+  - d: D022
+    text: Which layers run int8 activations
+  - d: D023
+    text: Allocator mode (expandable segments off under WSL2, KV connector, or TP>1)
+  - d: D024
+    text: Prefix caching on with align-mode Mamba state, and the snapshot retention interval
+- part: correctness-pins
+  does: Turns off, at boot, feature combinations measured to corrupt output, and refuses combinations the kernels do not
+    support.
+  types:
+  - configuration
+  decisions:
+  - d: D025
+    text: Which combinations are pinned and to what
+  - d: D026
+    text: Whether an explicit operator override is honoured
+- part: compile-and-warmup
+  does: Compiles the model graph and every Triton kernel variant the deployment can reach before the first request, keyed
+    so a cached compile is reused only for the same knob settings.
+  types:
+  - graph-capture
+  decisions:
+  - d: D027
+    text: Which knobs enter the cache key and which are excluded as runtime-only
+  - d: D028
+    text: Which kernel rungs and spec-shaped dummy verifies to run at boot
+  - d: D029
+    text: Which Triton kernels must not specialise on batch size
+- part: graph-capture
+  does: Captures CUDA graphs for each batch size up to the capture limit and for each verify-block length the drafting path
+    can schedule, fixing buffer addresses for replay.
+  types:
+  - graph-capture
+  decisions:
+  - d: D030
+    text: FULL, PIECEWISE or FULL_AND_PIECEWISE per profile
+  - d: D031
+    text: Capture both verify lengths when the lookup can lengthen the block
+  - d: D032
+    text: Largest captured batch size
+- part: weight-loader
+  does: Loads target and drafter weights from the model directory onto the GPU and re-encodes them for the kernels that
+    will run them.
+  types:
+  - model-loading
+  decisions:
+  - d: D033
+    text: Fold the sign of negative AutoRound scales into int4 codes for the int8-activation kernel
+  - d: D034
+    text: Accept asymmetric zero-point int4 weights on the int8-activation path
+  - d: D035
+    text: Stage repack transients through one grow-only buffer (opt-in)
+  - d: D036
+    text: Load a bf16 drafter beside a quantized target
+- part: memory-budget-planner
+  does: Decides at startup how many bytes the state pool gets, from a profiling forward pass or from an operator-pinned
+    byte count, after charging weights, activation peak, graph memory and fixed scratch.
+  types:
+  - memory-planning
+  decisions:
+  - d: D037
+    text: Measure after an uncounted warm profile pass, and empty the allocator cache before allocating the pool
+  - d: D038
+    text: Measure graph memory by allocator reserved bytes, not the driver's free-memory delta
+  - d: D039
+    text: Pin by bytes for fixed-context profiles
+- part: pool-layout-planner
+  does: Splits the pool into equal-size pages shared by attention KV, recurrent state and drafter window layers, choosing
+    group size, per-kind block size and padding, and computes how many requests can be admitted and resident.
+  types:
+  - state-pool
+  - memory-planning
+  decisions:
+  - d: D040
+    text: Group size when the smallest bucket is the drafter's sliding-window layers (common divisor of the others instead)
+  - d: D041
+    text: Promote a draft layer's block to a divisor of the primary block when its page does not divide the maximum
+  - d: D042
+    text: Charge recurrent-state pages for every in-flight async batch, plus speculative scratch and prefill checkpoints
+  - d: D043
+    text: Exclude the null block from displayed concurrency
+- part: paged-block-pool
+  does: Hands out, reference-counts and frees fixed-size pages per request and per group, keeping a free queue whose order
+    decides eviction.
+  types:
+  - state-pool
+  decisions:
+  - d: D044
+    text: Order in which freed blocks enter the free queue
+  - d: D045
+    text: Free sliding-window blocks behind the window
+- part: recurrent-state-store
+  does: Keeps each request's fixed-size GDN recurrent state and convolution history in pool pages, with extra slots per
+    draft position so the state after any accepted prefix of a verify block can be continued.
+  types:
+  - recurrent-state-store
+  decisions:
+  - d: D046
+    text: State dtype (fp16 chosen over bf16 for mantissa bits)
+  - d: D047
+    text: Copy state across a block boundary during chunked prefill only when the column changes
+  - d: D048
+    text: Bound the spec-decode state lookup by the previous step's row width, not this step's query length
+- part: attention-kv-store
+  does: Holds the full-attention layers' keys and values for every context position in pool pages, in the storage format
+    chosen at boot.
+  types:
+  - positional-state-store
+  decisions:
+  - d: D049
+    text: Format per context class and compute capability (fp8 needs FlashInfer, the fa2 port, or sm89+ Triton)
+  - d: D050
+    text: Padded-page views when another group's promoted page is larger
+- part: kvarn-staging-quantizer
+  does: Buffers each block's new K/V in an fp16 staging pool and, when a 128-token tile is full, rotates, variance-normalises
+    and packs it to 4-bit keys and 2-bit values in the cache; keeps finished requests' first blocks in fp16 until slots
+    run short.
+  types:
+  - positional-state-store
+  decisions:
+  - d: D051
+    text: Flush a finished request's full block (a later prefix hit may read it) but discard a partial one
+  - d: D052
+    text: Keep retired sinks resident; evict oldest first only when slots run dry
+  - d: D053
+    text: Drop, never flush, anything held for a page another group now owns
+  - d: D054
+    text: Draft passes after the first only allocate slots, never flush
+  - d: D055
+    text: Size of the staging pool as a share of memory
+- part: prefix-cache
+  does: Lets a new request reuse pages of any earlier or concurrent request with the same prompt prefix, resuming attention
+    KV at block hashes and recurrent state from the nearest retained snapshot at or below the attention match.
+  types:
+  - prefix-reuse
+  decisions:
+  - d: D056
+    text: Retention interval of state snapshots (dense, every 6th, boundaries only)
+  - d: D057
+    text: Hold the snapshot a turn resumed from and the last prompt-boundary snapshots until request end, freed last
+  - d: D058
+    text: Hash unit (128 on KVarN)
+  - d: D059
+    text: Export several interior GDN states per prefill (opt-in, Triton path only)
+- part: kv-offload-tier
+  does: Copies evicted prefix blocks to a pinned host-memory tier and loads them back over PCIe on a later hit or after
+    preemption instead of recomputing.
+  types:
+  - state-tiering
+  decisions:
+  - d: D060
+    text: Which groups count as draft attention (only the drafter's sliding-window groups)
+  - d: D061
+    text: Retain the sliding-window history at the recurrent state's replay boundary under sparse retention
+  - d: D062
+    text: Device pointers on WSL2
+- part: api-server
+  does: Accepts chat and completion requests over HTTP and streams results back as SSE, plus model listing, tokenize and
+    Ollama-style discovery routes.
+  types:
+  - request-front
+  decisions:
+  - d: D063
+    text: Accept a model name equal to the served name, the root path or its basename (exact only)
+  - d: D064
+    text: Mount /tokenize under /v1 too
+  - d: D065
+    text: Serve /, /api/status and /api/show for Ollama clients
+  - d: D066
+    text: SSE keep-alive interval
+- part: access-guard
+  does: Requires the bearer key on every path except the liveness paths and chooses the listening interface so an unkeyed
+    server is not exposed.
+  types:
+  - request-front
+  decisions:
+  - d: D067
+    text: Deny by default; allow /health, /ping, /load, /version and discovery routes
+  - d: D068
+    text: Ignore a trailing slash on the allowlist
+  - d: D069
+    text: Let only a real CORS preflight skip the token
+  - d: D070
+    text: Bind to loopback when no key is set (outside containers)
+- part: prompt-renderer
+  does: Turns a request's messages, tools and reasoning-effort setting into prompt token ids.
+  types:
+  - prompt-preparation
+  decisions:
+  - d: D071
+    text: Which chat template (the offline-hardened one)
+- part: output-parser
+  does: Turns generated tokens into text and separates reasoning, content and XML tool calls while streaming, keeping usage
+    updates flowing.
+  types:
+  - output-interpretation
+  decisions:
+  - d: D072
+    text: Parser must match the template's XML call format (qwen3_coder, not hermes)
+- part: engine-core-loop
+  does: Runs the engine in its own process, taking requests from the frontend, calling the scheduler and model runner once
+    per step, and returning outputs.
+  types:
+  - engine-supervision
+  decisions:
+  - d: D073
+    text: Async scheduling overlaps planning of step N+1 with execution of step N
+- part: request-scheduler
+  does: Each step chooses which requests run and how many tokens of each (prefill chunks within the 2048-token budget, one
+    decode or verify block per running request), admits, preempts and finishes requests.
+  types:
+  - step-scheduler
+  decisions:
+  - d: D074
+    text: Token budget per step
+  - d: D075
+    text: Admission count (max-num-seqs) versus residency (pages)
+  - d: D076
+    text: Preempt and recompute when the pool is full
+  - d: D077
+    text: Synchronous scheduling when the worker must choose the draft count
+- part: model-runner
+  does: Prepares the step's inputs, block tables and attention metadata on the GPU and runs target forward, sampling, acceptance
+    and drafting for the whole batch, replaying a captured graph when the shape has one.
+  types:
+  - step-execution
+  decisions:
+  - d: D078
+    text: Keep FlashInfer's blocking sequence-length read as the barrier between steps under async scheduling
+  - d: D079
+    text: Truncate the draft tokens handed for verification to the controller's count
+- part: token-embedding
+  does: Looks up and dequantises the embedding row of each input token, from VRAM or from pinned host memory through a UVA
+    view.
+  types:
+  - layer-compute
+  decisions:
+  - d: D080
+    text: Keep the table in host memory (opt-in)
+  - d: D081
+    text: Skip host placement for tied embeddings and for an unquantised table
+- part: linear-gemm
+  does: Computes every quantised linear layer of the target and drafters, optionally quantising activations to int8 per
+    token for the layers selected by name.
+  types:
+  - layer-compute
+  decisions:
+  - d: D082
+    text: Which layers use int8 activations (batch default MLP only; head and MTP excluded)
+  - d: D083
+    text: Tuned tile table (opt-in extension)
+  - d: D084
+    text: Pad 2-4 row batches of the unquantised GDN in_proj_ba GEMM to 5 rows to avoid a cuBLAS slow kernel
+- part: gdn-recurrence-compute
+  does: 'Computes the 48 linear-attention layers: the short convolution and the gated delta-rule recurrence, chunked over
+    a prefill or step by step over a verify block, writing the state after each position.'
+  types:
+  - layer-compute
+  decisions:
+  - d: D085
+    text: Kernel per compute capability (Triton/FLA, CUDA on sm75)
+  - d: D086
+    text: Mask partial boundary chunks before exponentials
+- part: full-attention-compute
+  does: Computes the 16 full-attention layers over the paged KV cache for prefill chunks and single-token decode, with the
+    kernel chosen by KV format, compute capability and step shape.
+  types:
+  - layer-compute
+  decisions:
+  - d: D087
+    text: Backend per KV format and card (FlashInfer for fp8 on sm86, fa2 port, pth-flash-attn for int8, sm75 opt-ins)
+  - d: D088
+    text: int8-QK prefill only for one-request chunks over 16 tokens on the exact 24/4/256 geometry with bf16 KV
+  - d: D089
+    text: Sparse attention budget when LSA is on
+- part: verify-attention
+  does: Computes attention for steps where each request has several query tokens (the verify block), splitting each request's
+    KV into segments with online-softmax partials and a combine.
+  types:
+  - layer-compute
+  decisions:
+  - d: D090
+    text: Query-row tile size by row count and register budget
+  - d: D091
+    text: Halve the KV tile when shared memory is short (sm75)
+  - d: D092
+    text: Scratch capacity in tokens, shared by builders of one geometry
+- part: image-encoder
+  does: Encodes one image per prompt into image tokens, with the tower's weights bulk-copied from host RAM per forward.
+  types:
+  - modality-encoding
+  decisions:
+  - d: D093
+    text: 'Load the tower at all (default: language-model only)'
+  - d: D094
+    text: Bulk-copy per module rather than UVA zero-copy, which re-reads tiles over PCIe
+  - d: D095
+    text: Pixel cap of 2048 image tokens and one image per prompt
+- part: sampler
+  does: Turns target logits into a token per request with temperature, top-k and top-p, and provides the truncated distributions
+    drafting and acceptance use.
+  types:
+  - sampling
+  decisions:
+  - d: D096
+    text: Use one topk instead of a full-vocabulary sort when every request's top-k is at most 64 (known on host, no sync)
+  - d: D097
+    text: Multi-block row softmax for up to 16 rows
+- part: grammar-constraint
+  does: Holds a per-request grammar state for tool calls and masks the tokens the grammar forbids at each position.
+  types:
+  - output-constraint
+  decisions:
+  - d: D098
+    text: Hold every tool to its schema, not only strict ones
+  - d: D099
+    text: Use a source build of xgrammar so bounded string parameters stay on the fast path
+- part: mtp-drafter
+  does: Proposes k tokens per request by chaining the model's own one-layer draft module, scoring only the draft vocabulary
+    and sampling from the request's truncated support.
+  types:
+  - draft-proposal
+  decisions:
+  - d: D100
+    text: Number of drafts (3 or 4)
+  - d: D101
+    text: Use the truncated head when the id list exists
+  - d: D102
+    text: Draft from the target's top-k/top-p support; optional draft temperature scale
+  - d: D103
+    text: Probabilistic draft sampling rather than argmax
+- part: dflash2-drafter
+  does: Proposes a block of 7 tokens per request in one non-autoregressive pass over target hidden states, picking each
+    position from a small candidate set by a seeded selector walk.
+  types:
+  - draft-proposal
+  decisions:
+  - d: D104
+    text: Draft block equals the trained block even when the verify block is longer (the grouped convolution resets on block
+      boundaries)
+  - d: D105
+    text: Truncate the candidate walk to the request's top-k/top-p
+  - d: D106
+    text: Carry the residual at 1/32 scale under fp16 (Turing)
+  - d: D107
+    text: Refuse a target context whose length plus the lookahead exceeds the drafter's positional capacity
+- part: context-lookup-proposer
+  does: Finds, per request, the most recent occurrence of the longest suffix of its token history and fuses the tokens that
+    followed it into the draft block, rewriting the draft distribution to a point mass wherever it supplied the token.
+  types:
+  - draft-proposal
+  decisions:
+  - d: D108
+    text: Minimum and maximum match length, ties broken by recency
+  - d: D109
+    text: 'Head positions: take a match of at least NSTRONG alone, shorter only if the drafter agrees on the first AGREE
+      tokens'
+  - d: D110
+    text: 'Tail positions: lower threshold, must be consistent with the head'
+  - d: D111
+    text: Search distance
+- part: drafter-free-chains
+  does: While a single request keeps reproducing its context, proposes whole verify blocks from the lookup alone and skips
+    the drafter's forward until the first rejection.
+  types:
+  - draft-policy
+  - draft-proposal
+  decisions:
+  - d: D112
+    text: Entry needs a fresh match from a normal step; first miss ends the chain
+  - d: D113
+    text: Single request only; greedy only by default (point mass under sampling displaced better drafts, -8 percent)
+- part: verify-length-controller
+  does: Once per step on the host, decides whether the next step verifies the drafter's own block or the long block, requiring
+    two consecutive qualifying steps agreed by every request.
+  types:
+  - draft-policy
+  decisions:
+  - d: D114
+    text: Unanimity across the batch
+  - d: D115
+    text: Two qualifying steps to enter, STICKY steps to leave (single request only)
+  - d: D116
+    text: Take the long block unconditionally below a context length (off by default)
+  - d: D117
+    text: Read the flags one step stale rather than synchronise (synchronous read cost 5 percent)
+- part: draft-acceptance
+  does: Accepts the longest prefix of the proposed tokens the target agrees with (argmax under greedy, rejection sampling
+    against q under sampling), emits a corrected or bonus token, and reports how many were accepted so state can be committed.
+  types:
+  - draft-verification
+  decisions:
+  - d: D118
+    text: Draft sample method must be probabilistic so q is passed (otherwise acceptance is strictly stricter)
+  - d: D119
+    text: Kernels must not specialise on batch size
+- part: tensor-parallel
+  does: Splits the model's layers' weights and heads across 2 or 4 GPUs (or pipelines layers across GPUs) and keeps them
+    in step with collectives.
+  types:
+  - model-partitioning
+  - device-communication
+  decisions:
+  - d: D120
+    text: Allocator without expandable segments so graph buffers can be exported over CUDA IPC
+  - d: D121
+    text: Size the pool from utilisation rather than the single-card pin
+- part: telemetry
+  does: 'Reports what the engine is doing: metrics including spec-decode acceptance, one line per finished request, per-request
+    progress lines, prefill progress in SSE, and the pool''s resident-request capacity at boot.'
+  types:
+  - telemetry
+  decisions:
+  - d: D122
+    text: Progress lines opt-in; no CUDA synchronisation
+  - d: D123
+    text: Prompt progress only for requests that asked
+- part: stall-watchdog
+  does: A daemon thread warns once per episode when no step has completed for a threshold while the scheduler still holds
+    requests.
+  types:
+  - engine-supervision
+  decisions:
+  - d: D124
+    text: Threshold (off by default)
+  - d: D125
+    text: No lock shared with the main loop
+candidates:
+  model-conversion:
+  - id: model-conversion#01
+    kind: format
+    what: file layout, alignment and ordering of weights
+  - id: model-conversion#02
+    kind: format
+    what: precision per kind of weight
+  - id: model-conversion#03
+    kind: policy
+    what: which derived pieces are built (draft head, shortlist vocabulary, extra copies)
+  - id: model-conversion#04
+    kind: policy
+    what: whether conversion is one step or resumable stages
+  - id: model-conversion#05
+    kind: failure
+    what: what happens to a conversion that is interrupted or does not match its source
+  - id: model-conversion#06
+    kind: precedence
+    what: which source wins when several checkpoints supply the same tensor
+  - id: model-conversion#07
+    kind: sizing
+    what: 'memory used while converting: whole files or piece by piece'
+  - id: model-conversion#08
+    kind: policy
+    what: the data a derived piece is selected or fitted from, and what is eligible for it
+  - id: model-conversion#09
+    kind: format
+    what: which reduced activation precisions each weight permits at run time, recorded with the weight
+  - id: model-conversion#10
+    kind: policy
+    what: which revision of the published sources is used, and whether it is pinned
+  - id: model-conversion#11
+    kind: sizing
+    what: the size of a derived piece
+  - id: model-conversion#12
+    kind: policy
+    what: 'how a derived template is corrected: which inputs it accepts and what each maps to'
+  - id: model-conversion#13
+    kind: policy
+    what: which optional parts of the published model are included
+  - id: model-conversion#14
+    kind: policy
+    what: precision per layer as well as per kind of weight
+  - id: model-conversion#15
+    kind: format
+    what: whether a tensor's stored shape is padded for the kernels
+  - id: model-conversion#16
+    kind: timing
+    what: the order of writes, and which write marks the conversion complete
+  - id: model-conversion#17
+    kind: policy
+    what: which source formats and architecture constants a recipe accepts
+  - id: model-conversion#18
+    kind: policy
+    what: which separately trained pieces are paired with which model
+  - id: model-conversion#19
+    kind: policy
+    what: whether files are rewritten in place, and how the originals are kept
+  calibration:
+  - id: calibration#01
+    kind: policy
+    what: what is measured and on which prompts
+  - id: calibration#02
+    kind: policy
+    what: the rule that accepts or rejects a measured result
+  - id: calibration#03
+    kind: timing
+    what: offline, at install, or at every start
+  - id: calibration#04
+    kind: precedence
+    what: when a recorded result is trusted over a default or an operator setting
+  - id: calibration#05
+    kind: failure
+    what: what is used when no valid record exists
+  - id: calibration#06
+    kind: threshold
+    what: when a stored record is considered stale
+  - id: calibration#07
+    kind: sizing
+    what: time budget of a measurement run
+  - id: calibration#08
+    kind: policy
+    what: which settings a measurement may choose on its own, by their effect on output
+  - id: calibration#09
+    kind: policy
+    what: the key that states which model, machine and build a result is valid for
+  - id: calibration#10
+    kind: policy
+    what: how measured counts are turned into a ranking
+  - id: calibration#11
+    kind: policy
+    what: the form of the model fitted to the measurements
+  - id: calibration#12
+    kind: policy
+    what: whether a negative result is recorded and reused
+  - id: calibration#13
+    kind: sizing
+    what: how much data a measurement collects
+  - id: calibration#14
+    kind: threshold
+    what: the noise tolerated when a result is accepted
+  - id: calibration#15
+    kind: policy
+    what: which capacities or settings a profile simulates
+  - id: calibration#16
+    kind: policy
+    what: whether a measurement runs the serving path or a slower instrumented path that exposes internal values
+  - id: calibration#17
+    kind: threshold
+    what: the least gain a measured result must predict before the setting it supports is turned on
+  configuration:
+  - id: configuration#01
+    kind: precedence
+    what: operator values, presets, measured values and defaults
+  - id: configuration#02
+    kind: policy
+    what: which combinations are refused
+  - id: configuration#03
+    kind: policy
+    what: whether an operator value is a hard limit or a target
+  - id: configuration#04
+    kind: policy
+    what: which settings are fixed per machine class
+  - id: configuration#05
+    kind: policy
+    what: rules that derive a setting's default from other settings and machine facts
+  - id: configuration#06
+    kind: policy
+    what: whether and where the resolved settings are recorded
+  - id: configuration#07
+    kind: policy
+    what: which settings that change output are on by default, and in which profile
+  - id: configuration#08
+    kind: failure
+    what: what is assumed when a fact about the machine cannot be read
+  - id: configuration#09
+    kind: policy
+    what: named profiles and what each fixes
+  - id: configuration#10
+    kind: policy
+    what: 'how a known-bad combination is handled: refused, or one member replaced'
+  - id: configuration#11
+    kind: policy
+    what: the conditions under which a recorded calibration is applied
+  - id: configuration#12
+    kind: policy
+    what: how machine facts are mapped to a machine class
+  - id: configuration#13
+    kind: policy
+    what: which settings are left to the engine's own rule
+  - id: configuration#14
+    kind: placement
+    what: which of the machine's devices the engine may use, and how they are identified to it
+  graph-capture:
+  - id: graph-capture#01
+    kind: policy
+    what: which step shapes are recorded ahead and which on first use
+  - id: graph-capture#02
+    kind: sizing
+    what: the memory recorded graphs may take
+  - id: graph-capture#03
+    kind: timing
+    what: recorded at startup or lazily
+  - id: graph-capture#04
+    kind: failure
+    what: what is done when recording runs out of memory
+  - id: graph-capture#05
+    kind: policy
+    what: where a graph must be split so that host work can run between its parts
+  - id: graph-capture#06
+    kind: policy
+    what: the key that decides whether a stored compiled artifact may be reused
+  - id: graph-capture#07
+    kind: policy
+    what: which step dimensions compiled kernels may be specialised on
+  - id: graph-capture#08
+    kind: sizing
+    what: upper bound on the number of recorded layouts
+  - id: graph-capture#09
+    kind: policy
+    what: whole-step or piecewise recording, per profile
+  - id: graph-capture#10
+    kind: sizing
+    what: ranges of context length that graphs are recorded for
+  model-loading:
+  - id: model-loading#01
+    kind: placement
+    what: map the file in place or copy into memory
+  - id: model-loading#02
+    kind: placement
+    what: which tensors go to which memory or device
+  - id: model-loading#03
+    kind: format
+    what: whether weights are re-encoded at load and how
+  - id: model-loading#04
+    kind: timing
+    what: what is loaded at start and what on first use
+  - id: model-loading#05
+    kind: failure
+    what: what is done when a file is the wrong version, incomplete or of an unsupported shape
+  - id: model-loading#06
+    kind: sizing
+    what: staging buffers and reader threads used while loading
+  - id: model-loading#07
+    kind: format
+    what: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept it
+  - id: model-loading#08
+    kind: precedence
+    what: a load option turned on from what the files carry against an operator value
+  - id: model-loading#09
+    kind: placement
+    what: whether resident weights are locked in memory
+  - id: model-loading#10
+    kind: policy
+    what: which optional parts of the model are loaded at all
+  - id: model-loading#11
+    kind: policy
+    what: whether parts in different precisions may be loaded together
+  - id: model-loading#12
+    kind: policy
+    what: reading files through the operating system's cache or around it
+  - id: model-loading#13
+    kind: policy
+    what: whether the model's positional range is extended beyond its trained length
+  - id: model-loading#14
+    kind: policy
+    what: how file reads are aligned and shared when several destinations need the same bytes
+  - id: model-loading#15
+    kind: policy
+    what: how the model's architecture is recognised from its files and matched to what the kernels support
+  - id: model-loading#16
+    kind: policy
+    what: which metadata must be present, and which falls back to built-in values
+  - id: model-loading#17
+    kind: policy
+    what: which parts are left out at load to be streamed later
+  memory-planning:
+  - id: memory-planning#01
+    kind: sizing
+    what: the reserve left free
+  - id: memory-planning#02
+    kind: sizing
+    what: what is priced before caches get the remainder
+  - id: memory-planning#03
+    kind: policy
+    what: how the remainder is split between cache, state and concurrency
+  - id: memory-planning#04
+    kind: failure
+    what: the order in which things are given up when memory is short, and when starting is refused
+  - id: memory-planning#05
+    kind: timing
+    what: whether free memory is read again after allocating
+  - id: memory-planning#06
+    kind: precedence
+    what: an operator's explicit size against the computed one
+  - id: memory-planning#07
+    kind: policy
+    what: whether a figure is measured by a trial run or computed
+  - id: memory-planning#08
+    kind: policy
+    what: whether memories that share one physical capacity are accounted as one budget or separately
+  - id: memory-planning#09
+    kind: sizing
+    what: capacity planned per device or pooled across devices
+  - id: memory-planning#10
+    kind: sizing
+    what: workers given to a second compute device, and what is left free
+  - id: memory-planning#11
+    kind: policy
+    what: a hard limit against a soft figure that may be exceeded with a warning
+  - id: memory-planning#12
+    kind: sizing
+    what: whether a cache's share is counted in uniform units or in bytes of blocks of different sizes
+  - id: memory-planning#13
+    kind: sizing
+    what: how cache capacity is divided between layers, and between fixed and reusable regions
+  - id: memory-planning#14
+    kind: sizing
+    what: staging slots and streaming space, sized from the largest blocks, and what is used when they do not fit
+  - id: memory-planning#15
+    kind: policy
+    what: which large parts stream instead of staying resident, and whether alternative sets are compared
+  - id: memory-planning#16
+    kind: sizing
+    what: the least a cache may be and still work
+  - id: memory-planning#17
+    kind: failure
+    what: whether a failed allocation is retried smaller, and by how much
+  - id: memory-planning#18
+    kind: timing
+    what: when memory is locked or held back during startup, and when it is released
+  - id: memory-planning#19
+    kind: policy
+    what: what bounds the context length
+  - id: memory-planning#20
+    kind: policy
+    what: 'how a figure is measured: after which warm-up and from which counter'
+  - id: memory-planning#21
+    kind: failure
+    what: what is assumed when a figure cannot be read
+  state-pool:
+  - id: state-pool#01
+    kind: sizing
+    what: page size and how the pool is split between kinds of state
+  - id: state-pool#02
+    kind: policy
+    what: sharing and copy-on-write
+  - id: state-pool#03
+    kind: policy
+    what: the order in which free pages are reused
+  - id: state-pool#04
+    kind: failure
+    what: what is done when the pool is exhausted
+  - id: state-pool#05
+    kind: sizing
+    what: page geometry shared by kinds of state of different sizes
+  - id: state-pool#06
+    kind: policy
+    what: whether pages that fall out of the model's view are released before the sequence ends
+  - id: state-pool#07
+    kind: threshold
+    what: when fragmented space is compacted and emptied memory returned
+  - id: state-pool#08
+    kind: policy
+    what: whether holders of content and in-flight readers of its address are counted separately
+  - id: state-pool#09
+    kind: format
+    what: precision and layout of the state the pages hold, where the pool fixes it
+  - id: state-pool#10
+    kind: sizing
+    what: 'what the pool is charged for beyond live sequences: batches in flight, speculative scratch, checkpoints'
+  - id: state-pool#11
+    kind: sizing
+    what: target size of a contiguous run of pages
+  recurrent-state-store:
+  - id: recurrent-state-store#01
+    kind: policy
+    what: 'how rejected steps are undone: snapshots, one slot per draft position, or late commit'
+  - id: recurrent-state-store#02
+    kind: sizing
+    what: how many snapshots are kept
+  - id: recurrent-state-store#03
+    kind: format
+    what: precision of stored state
+  - id: recurrent-state-store#04
+    kind: timing
+    what: when a snapshot is taken
+  - id: recurrent-state-store#05
+    kind: placement
+    what: state held per sequence or drawn from a shared pool
+  - id: recurrent-state-store#06
+    kind: timing
+    what: when state is copied across a block boundary while a prompt is read
+  positional-state-store:
+  - id: positional-state-store#01
+    kind: format
+    what: precision and layout of stored state
+  - id: positional-state-store#02
+    kind: sizing
+    what: page size and growth
+  - id: positional-state-store#03
+    kind: policy
+    what: whether going back is by truncation, and when it is not possible
+  - id: positional-state-store#04
+    kind: failure
+    what: what is done when a sequence outgrows its allowance
+  - id: positional-state-store#05
+    kind: placement
+    what: how many positions stay in fast memory, and the least that must
+  - id: positional-state-store#06
+    kind: placement
+    what: where a secondary model's per-position state is kept
+  - id: positional-state-store#07
+    kind: timing
+    what: when state held in a staging precision is converted to its stored format
+  - id: positional-state-store#08
+    kind: policy
+    what: which positions are kept at higher precision than the stored format
+  - id: positional-state-store#09
+    kind: failure
+    what: what is done with pending writes for memory that has changed owner
+  - id: positional-state-store#10
+    kind: sizing
+    what: a staging area for state not yet in its stored format
+  - id: positional-state-store#11
+    kind: format
+    what: how pages of different sizes are presented to the kernels
+  - id: positional-state-store#12
+    kind: policy
+    what: whether derived per-position state is kept for reuse, or only the inputs it is recomputed from
+  - id: positional-state-store#13
+    kind: timing
+    what: when derived per-position state is rebuilt after a restore
+  prefix-reuse:
+  - id: prefix-reuse#01
+    kind: policy
+    what: the key that decides whether stored state may be reused
+  - id: prefix-reuse#02
+    kind: policy
+    what: where restore points exist when state cannot be truncated
+  - id: prefix-reuse#03
+    kind: sizing
+    what: how many are kept and where
+  - id: prefix-reuse#04
+    kind: policy
+    what: what is evicted first
+  - id: prefix-reuse#05
+    kind: threshold
+    what: when restoring is refused in favour of reading again
+  - id: prefix-reuse#06
+    kind: policy
+    what: whether a hit takes the stored state or copies it
+  - id: prefix-reuse#07
+    kind: precedence
+    what: which store is used when several hold a match
+  - id: prefix-reuse#08
+    kind: timing
+    what: when state is stored for later reuse
+  - id: prefix-reuse#09
+    kind: policy
+    what: storing all of a sequence's state or only what changed
+  - id: prefix-reuse#10
+    kind: placement
+    what: which device restored state is placed on
+  - id: prefix-reuse#11
+    kind: policy
+    what: whether stored state is trimmed to what later steps can still read
+  - id: prefix-reuse#12
+    kind: threshold
+    what: memory that must stay free on the tier holding stored state after a store or restore
+  - id: prefix-reuse#13
+    kind: policy
+    what: how the memory available to the store is measured, and when a store is refused
+  - id: prefix-reuse#14
+    kind: policy
+    what: whether stored prefixes are found through a kept index or by scanning the store
+  - id: prefix-reuse#15
+    kind: policy
+    what: whether a request may pin stored state against eviction
+  - id: prefix-reuse#16
+    kind: sizing
+    what: the unit in which prefixes are hashed
+  - id: prefix-reuse#17
+    kind: policy
+    what: 'what earns stored state its retention: recency, cost to rebuild, or actual reuse'
+  - id: prefix-reuse#18
+    kind: policy
+    what: 'how stored state is organised: independent entries, a chain, or a tree whose resident part stays connected'
+  - id: prefix-reuse#19
+    kind: placement
+    what: which device owns a sequence's state when that work is divided between devices by sequence, weighed against where
+      reusable state already lies
+  state-tiering:
+  - id: state-tiering#01
+    kind: placement
+    what: 'the slower tier: host memory, storage, another device'
+  - id: state-tiering#02
+    kind: policy
+    what: what leaves first
+  - id: state-tiering#03
+    kind: timing
+    what: copying ahead of need
+  - id: state-tiering#04
+    kind: sizing
+    what: the tier's size and write budget
+  - id: state-tiering#05
+    kind: failure
+    what: what is done when the tier is full or a read fails
+  - id: state-tiering#06
+    kind: policy
+    what: which kinds of state the slower tier holds
+  - id: state-tiering#07
+    kind: failure
+    what: whether the slower tier survives a restart, and when a persisted tier is discarded
+  - id: state-tiering#08
+    kind: sizing
+    what: the fast-memory cache for state read back
+  - id: state-tiering#09
+    kind: policy
+    what: which pieces of different kinds of state are kept together so that a restored state is usable
+  - id: state-tiering#10
+    kind: sizing
+    what: chunking and staging of copies between tiers
+  - id: state-tiering#11
+    kind: timing
+    what: whether copying to the slower tier yields to work waiting for memory
+  - id: state-tiering#12
+    kind: timing
+    what: what event moves a sequence's state to the slower tier, and which sequences start there
+  - id: state-tiering#13
+    kind: sizing
+    what: share of writes in flight per kind of state
+  - id: state-tiering#14
+    kind: policy
+    what: whether state not in use is dropped when the write budget is spent
+  request-front:
+  - id: request-front#01
+    kind: policy
+    what: protocols offered
+  - id: request-front#02
+    kind: policy
+    what: who is allowed and how
+  - id: request-front#03
+    kind: sizing
+    what: limits on connections, body size and queue
+  - id: request-front#04
+    kind: failure
+    what: what is done on disconnect, timeout or overload
+  - id: request-front#05
+    kind: policy
+    what: whether earlier responses are stored for later requests to refer to
+  - id: request-front#06
+    kind: policy
+    what: the names a request may use for the served model
+  - id: request-front#07
+    kind: policy
+    what: which per-request controls a caller may set
+  - id: request-front#08
+    kind: timing
+    what: keep-alive for a response stream with nothing to send
+  - id: request-front#09
+    kind: timing
+    what: how often a closed connection is looked for
+  - id: request-front#10
+    kind: policy
+    what: 'what the engine exposes about itself: health, metrics, or nothing'
+  - id: request-front#11
+    kind: policy
+    what: what is exposed by default when no credential is set
+  - id: request-front#12
+    kind: sizing
+    what: limits on stored responses
+  prompt-preparation:
+  - id: prompt-preparation#01
+    kind: policy
+    what: the template used and how it is corrected
+  - id: prompt-preparation#02
+    kind: policy
+    what: what happens when prompt plus output exceed the context
+  - id: prompt-preparation#03
+    kind: sizing
+    what: caches of rendered or tokenized prompts
+  - id: prompt-preparation#04
+    kind: policy
+    what: keeping the start of the prompt stable so that stored state can be reused
+  - id: prompt-preparation#05
+    kind: precedence
+    what: defaults against the request's settings
+  - id: prompt-preparation#06
+    kind: policy
+    what: which tokenizer implementation is used, and how it is held to the reference tokenizer's output
+  - id: prompt-preparation#07
+    kind: policy
+    what: whether the prompt is tokenized whole or in pieces joined at a reuse boundary
+  - id: prompt-preparation#08
+    kind: threshold
+    what: tokens kept free between prompt plus output and the context length
+  - id: prompt-preparation#09
+    kind: policy
+    what: what an absent output limit means
+  - id: prompt-preparation#10
+    kind: policy
+    what: which earlier content is dropped from history when rendering
+  - id: prompt-preparation#11
+    kind: policy
+    what: where restore points may be placed in the prompt
+  output-interpretation:
+  - id: output-interpretation#01
+    kind: policy
+    what: stop conditions and their order
+  - id: output-interpretation#02
+    kind: policy
+    what: how tool calls are parsed, repaired or retried
+  - id: output-interpretation#03
+    kind: threshold
+    what: guards against degenerate output
+  - id: output-interpretation#04
+    kind: policy
+    what: how the generation is driven and continued for one request
+  - id: output-interpretation#05
+    kind: failure
+    what: what is returned when parsing fails
+  - id: output-interpretation#06
+    kind: precedence
+    what: which source of a generation setting wins
+  - id: output-interpretation#07
+    kind: policy
+    what: how requests take turns when the engine serves one at a time
+  - id: output-interpretation#08
+    kind: policy
+    what: what happens to held state when output is cut by a stop condition
+  - id: output-interpretation#09
+    kind: policy
+    what: which generation features are used when several requests are served together
+  - id: output-interpretation#10
+    kind: threshold
+    what: a budget on the reasoning part, and what is done when it is reached
+  - id: output-interpretation#11
+    kind: failure
+    what: whether a generation that fails before anything was returned is run again
+  - id: output-interpretation#12
+    kind: format
+    what: reasoning and tool formats per model family
+  - id: output-interpretation#13
+    kind: timing
+    what: keep-alive for a response stream with nothing to send
+  engine-supervision:
+  - id: engine-supervision#01
+    kind: policy
+    what: the engine in the serving process or in its own
+  - id: engine-supervision#02
+    kind: timing
+    what: the stages of a start and what is retried
+  - id: engine-supervision#03
+    kind: threshold
+    what: when the engine counts as stalled or failed
+  - id: engine-supervision#04
+    kind: failure
+    what: restart, and what happens to requests in flight
+  - id: engine-supervision#05
+    kind: timing
+    what: when an idle engine is unloaded
+  - id: engine-supervision#06
+    kind: failure
+    what: whether a failed start is retried with a reduced configuration, and what is dropped first
+  - id: engine-supervision#07
+    kind: failure
+    what: how a request suspected of causing failures is identified and refused
+  - id: engine-supervision#08
+    kind: policy
+    what: the transport between the serving side and the engine
+  - id: engine-supervision#09
+    kind: policy
+    what: whether request settings are rewritten on the way to the engine, and how values the engine does not support are
+      handled
+  - id: engine-supervision#10
+    kind: policy
+    what: whether the stall monitor is independent of the loop it watches
+  - id: engine-supervision#11
+    kind: policy
+    what: where warm-up gets its memory, and whether it may take memory serving will need
+  - id: engine-supervision#12
+    kind: timing
+    what: where the process loop runs housekeeping between steps
+  - id: engine-supervision#13
+    kind: timing
+    what: what is saved on a clean stop, and within what time
+  - id: engine-supervision#14
+    kind: threshold
+    what: after how many failures in what time the engine is not started again, and the wait between restarts
+  - id: engine-supervision#15
+    kind: failure
+    what: which failures are treated as permanent and which as caused by memory
+  - id: engine-supervision#16
+    kind: sizing
+    what: limit on input waiting at the transport
+  - id: engine-supervision#17
+    kind: format
+    what: message encoding of the transport, and whether versions must match
+  - id: engine-supervision#18
+    kind: timing
+    what: whether the process loop prepares the next step while the current one runs on the device
+  step-scheduler:
+  - id: step-scheduler#01
+    kind: policy
+    what: whether prompt reading and generation share a step
+  - id: step-scheduler#02
+    kind: policy
+    what: order and fairness between sequences
+  - id: step-scheduler#03
+    kind: sizing
+    what: sequences and rows per step
+  - id: step-scheduler#04
+    kind: timing
+    what: how a long prompt yields to generation in progress
+  - id: step-scheduler#05
+    kind: policy
+    what: which sequence is paused when resources run short
+  - id: step-scheduler#06
+    kind: threshold
+    what: when a sequence is overdue
+  - id: step-scheduler#07
+    kind: timing
+    what: how long a step waits to gather sequences
+  - id: step-scheduler#08
+    kind: sizing
+    what: limit on waiting work
+  - id: step-scheduler#09
+    kind: timing
+    what: whether the next step is planned while the current one runs
+  - id: step-scheduler#10
+    kind: timing
+    what: how the loop waits when idle, and where housekeeping runs
+  - id: step-scheduler#11
+    kind: policy
+    what: how sequences are grouped to flow through devices a model is split over
+  - id: step-scheduler#12
+    kind: timing
+    what: what is saved on a clean stop
+  - id: step-scheduler#13
+    kind: timing
+    what: when waiting work is reconsidered for admission
+  - id: step-scheduler#14
+    kind: policy
+    what: the order of work within one cycle
+  - id: step-scheduler#15
+    kind: sizing
+    what: the time slice a sequence gets before others are considered
+  - id: step-scheduler#16
+    kind: policy
+    what: 'what admission is counted in: sequences or memory pages'
+  - id: step-scheduler#17
+    kind: failure
+    what: whether a sequence is paused and recomputed when shared memory is full
+  - id: step-scheduler#18
+    kind: threshold
+    what: the fewest sequences for which batching is used
+  - id: step-scheduler#19
+    kind: policy
+    what: whether prompt chunks of several sequences are grouped into one step that runs layer by layer
+  step-execution:
+  - id: step-execution#01
+    kind: policy
+    what: one step as a whole, or driven layer by layer
+  - id: step-execution#02
+    kind: sizing
+    what: sequences and rows per step
+  - id: step-execution#03
+    kind: threshold
+    what: how long a layer may wait for something it needs
+  - id: step-execution#04
+    kind: failure
+    what: what is done when a step cannot complete
+  - id: step-execution#05
+    kind: policy
+    what: multi-row or per-row kernels for the rows of a step
+  - id: step-execution#06
+    kind: timing
+    what: cutting a step into parts so that work on two devices overlaps
+  - id: step-execution#07
+    kind: timing
+    what: when side inputs a layer needs are gathered within the step
+  - id: step-execution#08
+    kind: policy
+    what: whether proposing runs inside the same step as the token it follows
+  - id: step-execution#09
+    kind: policy
+    what: the conditions a sequence must meet to share a batched path, and what is done otherwise
+  - id: step-execution#10
+    kind: policy
+    what: which kinds of step are replayed from a recorded graph and which are launched directly
+  - id: step-execution#11
+    kind: timing
+    what: how long the host waits for a device signal before it checks for a fault
+  - id: step-execution#12
+    kind: sizing
+    what: how many proposed rows are passed on for checking
+  - id: step-execution#13
+    kind: timing
+    what: 'how host-side inputs of consecutive steps are kept apart: a barrier before reuse, or one buffer per step in flight'
+  layer-compute:
+  - id: layer-compute#01
+    kind: format
+    what: kernel variant per weight precision
+  - id: layer-compute#02
+    kind: policy
+    what: which operations are fused
+  - id: layer-compute#03
+    kind: policy
+    what: activation precision inside kernels
+  - id: layer-compute#04
+    kind: policy
+    what: any deliberate change to the model's arithmetic (it changes output and needs permission)
+  - id: layer-compute#05
+    kind: policy
+    what: kernel variant per device class, step shape and stored-state format
+  - id: layer-compute#06
+    kind: timing
+    what: how independent operations are ordered to overlap with work on another device
+  - id: layer-compute#07
+    kind: sizing
+    what: working space a kernel may hold, allocated ahead or during steps
+  - id: layer-compute#08
+    kind: failure
+    what: whether results are checked for non-finite values, and what is done then
+  - id: layer-compute#09
+    kind: placement
+    what: how a block's computation is divided when the model is split over devices
+  - id: layer-compute#10
+    kind: placement
+    what: conditions under which a weight may be read from slower memory
+  - id: layer-compute#11
+    kind: policy
+    what: which rows of a step are carried through every part of the model
+  - id: layer-compute#12
+    kind: format
+    what: precision and layout in which the computation writes the per-position state it appends
+  - id: layer-compute#13
+    kind: format
+    what: the order of heads or channels the kernels compute in, where it differs from the published order
+  modality-encoding:
+  - id: modality-encoding#01
+    kind: sizing
+    what: memory window for the encoder
+  - id: modality-encoding#02
+    kind: policy
+    what: whether encoder weights stay resident
+  - id: modality-encoding#03
+    kind: policy
+    what: caching of encoded media and its key
+  - id: modality-encoding#04
+    kind: placement
+    what: how encoding work is split across devices
+  - id: modality-encoding#05
+    kind: policy
+    what: whether state that contains encoded media may be stored or reused
+  - id: modality-encoding#06
+    kind: threshold
+    what: the largest input the encoder accepts, and how many embedding rows one prompt may carry
+  - id: modality-encoding#07
+    kind: placement
+    what: how encoder weights that are not resident are brought to the device
+  - id: modality-encoding#08
+    kind: policy
+    what: whether the encoder is loaded at all, and whether its working memory is built only when media waits
+  - id: modality-encoding#09
+    kind: policy
+    what: which complete units are encoded in one execution
+  - id: modality-encoding#10
+    kind: policy
+    what: what the cache of encoded media evicts first and what it must keep
+  sampling:
+  - id: sampling#01
+    kind: policy
+    what: the chain of steps and their order
+  - id: sampling#02
+    kind: policy
+    what: 'where it runs: with the computation or outside it'
+  - id: sampling#03
+    kind: policy
+    what: the source of randomness and what it is keyed on
+  - id: sampling#04
+    kind: sizing
+    what: limits on candidates considered
+  - id: sampling#05
+    kind: precedence
+    what: default settings against the request's
+  - id: sampling#06
+    kind: policy
+    what: whether settings change per position, for example greedy on structure and sampled on content
+  - id: sampling#07
+    kind: policy
+    what: which tokens penalties count
+  - id: sampling#08
+    kind: policy
+    what: how ties are broken
+  - id: sampling#09
+    kind: policy
+    what: how the draw is formed when speculation needs a residual distribution
+  - id: sampling#10
+    kind: policy
+    what: what is done with accepted proposed tokens when the per-position settings change inside them
+  - id: sampling#11
+    kind: policy
+    what: the kernel used for the sampling arithmetic, and how it changes with the number of rows
+  - id: sampling#12
+    kind: failure
+    what: how non-finite logits are handled
+  - id: sampling#13
+    kind: policy
+    what: the default values of the settings
+  output-constraint:
+  - id: output-constraint#01
+    kind: policy
+    what: which rules are offered
+  - id: output-constraint#02
+    kind: timing
+    what: where the mask is computed relative to the step
+  - id: output-constraint#03
+    kind: policy
+    what: how it applies to proposed tokens that are not yet accepted
+  - id: output-constraint#04
+    kind: failure
+    what: what is done when the rule leaves no legal token
+  - id: output-constraint#05
+    kind: sizing
+    what: caching of compiled rules, its key and budget
+  - id: output-constraint#06
+    kind: policy
+    what: which requests a rule is applied to, and which constraint languages may be combined
+  draft-proposal:
+  - id: draft-proposal#01
+    kind: policy
+    what: the source of proposals
+  - id: draft-proposal#02
+    kind: sizing
+    what: how many per round
+  - id: draft-proposal#03
+    kind: threshold
+    what: when a chain of proposals stops
+  - id: draft-proposal#04
+    kind: policy
+    what: greedy or sampled proposals
+  - id: draft-proposal#05
+    kind: policy
+    what: how its own state is kept in step after checking
+  - id: draft-proposal#06
+    kind: policy
+    what: the set of tokens proposals are restricted to, and whether a cheaper reduced output head is used
+  - id: draft-proposal#07
+    kind: sizing
+    what: how much context and history the proposer's own state covers
+  - id: draft-proposal#08
+    kind: placement
+    what: where the proposer's own state is kept
+  - id: draft-proposal#09
+    kind: failure
+    what: what the proposer needs before it may propose, and what is done when it cannot cover the context
+  - id: draft-proposal#10
+    kind: timing
+    what: how the proposer's state is built while the prompt is read
+  - id: draft-proposal#11
+    kind: threshold
+    what: how a lookup source matches earlier text, and how far back it searches
+  - id: draft-proposal#12
+    kind: precedence
+    what: how several sources are combined at each position
+  - id: draft-proposal#13
+    kind: sizing
+    what: candidates kept per proposed position
+  - id: draft-proposal#14
+    kind: policy
+    what: whether proposing is offered in modes that require output equal to non-speculative decoding
+  - id: draft-proposal#15
+    kind: sizing
+    what: rows the proposer's recorded graphs hold
+  - id: draft-proposal#16
+    kind: policy
+    what: how the proposed block relates to the block length the proposer was trained on
+  - id: draft-proposal#17
+    kind: threshold
+    what: the shortest match a lookup extends on, and how many tokens it may append
+  - id: draft-proposal#18
+    kind: policy
+    what: whether the number proposed adapts to recent acceptance
+  draft-policy:
+  - id: draft-policy#01
+    kind: policy
+    what: what it optimises
+  - id: draft-policy#02
+    kind: threshold
+    what: when drafting pauses and resumes
+  - id: draft-policy#03
+    kind: timing
+    what: how often it re-decides
+  - id: draft-policy#04
+    kind: sizing
+    what: limits on the round
+  - id: draft-policy#05
+    kind: policy
+    what: the rule for choosing among sources
+  - id: draft-policy#06
+    kind: policy
+    what: whether the proposer is skipped when another source suffices
+  - id: draft-policy#07
+    kind: policy
+    what: decisions per sequence or jointly across sequences sharing a step
+  - id: draft-policy#08
+    kind: timing
+    what: how fresh the signals it decides from must be
+  - id: draft-policy#09
+    kind: policy
+    what: whether it departs from its estimate to explore
+  - id: draft-policy#10
+    kind: threshold
+    what: the probability below which a round ends
+  - id: draft-policy#11
+    kind: policy
+    what: whether the round's width is chosen from each proposal's probability and the measured cost of each width
+  - id: draft-policy#12
+    kind: policy
+    what: 'in which modes drafting is offered: single request only, greedy only'
+  - id: draft-policy#13
+    kind: timing
+    what: whether its estimates persist across requests
+  - id: draft-policy#14
+    kind: threshold
+    what: how many qualifying steps enter and leave a mode
+  - id: draft-policy#15
+    kind: policy
+    what: whether its decisions may use measured time or only counts, since decisions from timing make runs differ
+  - id: draft-policy#16
+    kind: threshold
+    what: a context length below which the larger round is taken whatever the other signals say
+  draft-verification:
+  - id: draft-verification#01
+    kind: policy
+    what: the acceptance rule under sampling
+  - id: draft-verification#02
+    kind: policy
+    what: how each kind of state is committed or undone
+  - id: draft-verification#03
+    kind: timing
+    what: commit at once or with the next step
+  - id: draft-verification#04
+    kind: policy
+    what: who may shorten the accepted prefix afterwards (stop conditions, limits)
+  - id: draft-verification#05
+    kind: policy
+    what: how the random draws for acceptance and correction are keyed
+  - id: draft-verification#06
+    kind: policy
+    what: whether the commit runs from a recorded graph or directly
+  - id: draft-verification#07
+    kind: policy
+    what: 'how a corrected token is evaluated: in the same step or as an ordinary next step'
+  - id: draft-verification#08
+    kind: policy
+    what: whether a stop or last permitted token is returned without a further check by the full model
+  - id: draft-verification#09
+    kind: policy
+    what: which step dimensions the acceptance kernels may be specialised on
+  model-partitioning:
+  - id: model-partitioning#01
+    kind: policy
+    what: split by layers, by parts of each layer, or by selectively used weights
+  - id: model-partitioning#02
+    kind: sizing
+    what: per-device budgets
+  - id: model-partitioning#03
+    kind: failure
+    what: what is done when a device or link is lost
+  - id: model-partitioning#04
+    kind: policy
+    what: which devices may hold a part of the model
+  - id: model-partitioning#05
+    kind: failure
+    what: what the parts must agree on before they run together
+  - id: model-partitioning#06
+    kind: timing
+    what: where the parts synchronise on control events such as cancellation
+  - id: model-partitioning#07
+    kind: policy
+    what: how work outside the layers is divided between the parts
+  - id: model-partitioning#08
+    kind: format
+    what: precision of activations exchanged
+  - id: model-partitioning#09
+    kind: sizing
+    what: how much may be in flight between stages
+  - id: model-partitioning#10
+    kind: placement
+    what: which parts are replicated on every device instead of split
+  - id: model-partitioning#11
+    kind: policy
+    what: which other engine features may be combined with splitting the model, and which are refused
+  - id: model-partitioning#12
+    kind: policy
+    what: how parts are packed onto devices within their budgets
+  - id: model-partitioning#13
+    kind: policy
+    what: for which models and device counts each kind of split is offered
+  - id: model-partitioning#14
+    kind: policy
+    what: 'how speculation is divided: who proposes, who checks, and how a commit is applied across the parts'
+  - id: model-partitioning#15
+    kind: placement
+    what: where auxiliary tables live under each deployment
+  device-communication:
+  - id: device-communication#01
+    kind: policy
+    what: the transport
+  - id: device-communication#02
+    kind: sizing
+    what: buffers registered for transfer
+  - id: device-communication#03
+    kind: failure
+    what: what is done when a transfer fails or a peer falls out of step
+  - id: device-communication#04
+    kind: policy
+    what: whether the transport is chosen automatically or fixed by the operator
+  telemetry:
+  - id: telemetry#01
+    kind: policy
+    what: what is recorded by default and what on request
+  - id: telemetry#02
+    kind: policy
+    what: where records go
+  - id: telemetry#03
+    kind: threshold
+    what: when something is reported as abnormal
+  - id: telemetry#04
+    kind: format
+    what: 'how each reported rate and latency is defined: which clock, interval and sample'
+  - id: telemetry#05
+    kind: sizing
+    what: sampling interval and how much history is kept
+  - id: telemetry#06
+    kind: policy
+    what: whether reading status may affect the engine's decisions

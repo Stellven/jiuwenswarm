@@ -1,0 +1,388 @@
+# Independent check of node types draft 0.7 against the strata inventory (round7).
+# Corrections applied: http-front gains the who-may-call decision; the lookup-skip decision of dflash2-drafter is judged
+# under draft-policy; expert-dispatch gains the conditional tail-skip default as its own decision.
+# Decisions of parts with `also` types are counted under the type whose choice they were judged against.
+engine: strata
+decision_coverage:
+  totals:
+    decisions: 255
+    covered: 234
+    loosely: 13
+    not_covered: 1
+    engine_specific: 7
+  per_type:
+  - type: expert-cache
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-dispatch
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-reading
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 18
+    covered: 14
+    loosely: 2
+    not_covered: 0
+    engine_specific: 2
+  - type: memory-planning
+    decisions: 22
+    covered: 20
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-source
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: request-front
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 9
+    covered: 7
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: step-scheduler
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: replica-routing
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 18
+    covered: 17
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: session-persistence
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: configuration
+    decisions: 17
+    covered: 14
+    loosely: 2
+    not_covered: 1
+    engine_specific: 0
+  - type: calibration
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: telemetry
+    decisions: 12
+    covered: 12
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 17
+    covered: 16
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-policy
+    decisions: 7
+    covered: 6
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 6
+    covered: 4
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: step-execution
+    decisions: 9
+    covered: 8
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 9
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 2
+  - type: positional-state-store
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: graph-capture
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 6
+    covered: 4
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: sampling
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: secondary-compute
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: model-file-reader
+    type: model-loading
+    decision: only one container version is read
+    nearest_choice: 'failure: what is done when a file is the wrong version, incomplete or of an unsupported shape'
+  - part: expert-layout
+    type: model-loading
+    decision: native layout table when present, else canonical layout
+    nearest_choice: 'format: which stored encoding of a tensor is loaded when the files carry more than one'
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: lowest value the reserve is lowered to
+    nearest_choice: 'failure: the order in which things are given up when memory is short, and when starting is refused'
+  - part: host-memory-admission
+    type: memory-planning
+    decision: whether the engine may swap the arena for the file source on its own
+    nearest_choice: 'precedence: an operator''s explicit size against the computed one'
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: how often a prompt read gives way to a much shorter waiting one
+    nearest_choice: 'policy: the order in which waiting prompts are read, and whether several are read together'
+  - part: resume-decision
+    type: prefix-reuse
+    decision: reuse of any kind needs a checkpoint capacity above zero
+    nearest_choice: 'sizing: how many are kept and where'
+  - part: run-config-generator
+    type: configuration
+    decision: hand edits detected as differences from setup's last write and kept
+    nearest_choice: 'precedence: operator values, presets, measured values and defaults'
+  - part: launch-argument-resolver
+    type: configuration
+    decision: one drafter per run; drafter options rewritten to match
+    nearest_choice: 'policy: how a known-bad combination is handled: refused, or one member replaced'
+  - part: lookup-drafter
+    type: draft-proposal
+    decision: end positions kept per trigram
+    nearest_choice: 'threshold: how a lookup source matches earlier text, and how far back it searches'
+  - part: draft-policy
+    type: draft-policy
+    decision: window sizes a lookup window may use; a size whose graph finds no memory dropped
+    nearest_choice: 'sizing: limits on the round'
+  - part: draft-verifier
+    type: draft-verification
+    decision: conditions under which the exact gated rule is used, else the older rule with a warning
+    nearest_choice: 'policy: the acceptance rule under sampling'
+  - part: window-loop
+    type: step-execution
+    decision: zero-doorbell or doorbell graph per window by residency
+    nearest_choice: 'policy: one step as a whole, or driven layer by layer'
+  - part: ngram-reader
+    type: row-source
+    decision: keep-alive reads in direct mode
+    nearest_choice: 'policy: warming the table in the background and when to stop'
+  not_covered:
+  - part: launch-argument-resolver
+    type: configuration
+    decision: devices the engine process may see and how they are enumerated
+    kind: placement
+    missing_choice: which of the machine's devices the engine may use, and how they are identified to it
+contradictions:
+- part: session-files
+  type: session-persistence
+  claim: 'effect_on_output: exact when loaded into the model and settings it was written for; approximate when loaded into
+    other weights or settings (no rounding level)'
+  evidence: The file's configuration identity leaves out the prompt chunk and the expert tier (session-files decisions), so
+    a file written under one chunking or expert placement is accepted under another; the restored state then carries the rounding
+    of the run that wrote it, which differs from a fresh read by rounding only (prompt-path, checkpoint-chain and resume-decision
+    record chunking and placement as numeric).
+  fix: 'Add rounding: when it is loaded under settings its identity leaves out that change only rounding, such as the prompt
+    chunk or where blocks are computed.'
+- part: mtp-drafter
+  type: draft-proposal
+  claim: 'output_principles: ''A change to pieces used only for proposals is exact under greedy decoding with exact acceptance
+    only where ... Otherwise it is rounding, because proposals move the boundaries of checked blocks.'''
+  evidence: The default route tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822). The drafts in
+    a window therefore decide which experts are omitted for the accepted rows, so under greedy decoding a change to the drafter
+    changes output beyond rounding.
+  fix: Otherwise it is at least rounding, and approximate where a default omission is decided over all rows of the checked
+    block, so that the proposals decide what is omitted for accepted rows.
+new_causes:
+- part: prompt-path
+  type: prompt-reading
+  kind: through
+  level: rounding
+  cause: the share of a chunk's work it hands to a second device is set from running averages of measured times, so the same
+    prompt can be split, and rounded, differently from run to run
+  evidence: 'prompt-path decisions: the CPU share is the accelerator''s time per expert over the sum of both times, as running
+    averages; sharing is switched off when the measured time does not improve. Principle 2 names which device computes, not
+    that the choice follows timing. Cannot tell cleanly whether this is the node''s own effect (it decides the share) or through
+    the second device that computes it.'
+- part: adaptive-tier
+  type: residency-policy
+  kind: through
+  level: approximate
+  cause: where an opt-in routing change favours resident blocks, what it keeps resident changes which blocks are selected,
+    not only where they are computed
+  evidence: 'expert-router decisions: STRATA_ROUTE_PRIOR re-picks the top 10 with a bonus for experts resident in fast memory;
+    STRATA_ROUTE_RESIDENT swaps a non-resident tail expert for a resident one. Opt-in, so principle 4 (default omission) does
+    not name it; the same holds for the cache size set by startup-memory-sizing.'
+- part: prompt-builder
+  type: prompt-preparation
+  kind: own
+  level: defines
+  cause: control-token text written inside a message is encoded as plain text, so the tokens differ from encoding the rendered
+    text whole with the model's tokenizer
+  evidence: 'prompt-builder must_never: only the template''s own control tokens become control tokens; control-token text
+    inside a message is encoded as plain text.'
+- part: mtp-drafter
+  type: draft-proposal
+  kind: own
+  level: approximate
+  cause: under an acceptance rule that does not preserve the distribution, the proposer's own probabilities (a masked, unnormalised
+    measure) enter acceptance and shift the output distribution
+  evidence: 'draft-verifier decisions: with STRATA_SPEC_PROB=1 the pick gate uses the draft measure; where the gated rule
+    is not usable the older rule runs and the engine warns that its distribution is off (src/program/generate.cpp:3152-3175).
+    The type''s approximate condition names only how many positions are taken greedily.'
+- part: draft-policy
+  type: draft-policy
+  kind: through
+  level: approximate
+  cause: under an acceptance rule that does not preserve the distribution, the source and width it chooses each round change
+    the distribution of the output
+  evidence: Same older acceptance rule (src/program/generate.cpp:3152-3175); the policy chooses source and width per round.
+    affects_output_through item 4 names only drafting versus not drafting deciding greedy versus sampled positions.
+- part: cpu-expert-pool
+  type: secondary-compute
+  kind: own
+  level: rounding
+  cause: its arithmetic for one row depends on how many rows share the job, because grouped kernels carry every token routed
+    to an expert
+  evidence: 'draft-verifier output_effect_when: numeric with a native IQ pack and experts computed on the CPU, because grouped
+    kernels round differently by window width; cpu-expert-pool records a window-invariant arithmetic option. The type''s rounding
+    condition names only rounding differently from the main device.'
+relaxations:
+- part: speed-calibration
+  type: calibration
+  rule: A recorded result is used only where its validity key matches the model, machine and build.
+  how: The calibration record is applied at launch when the model name, context length and image setting equal the configuration's
+    (launch-argument-resolver), so the model is identified by name, not by its files; a preset whose driver or tuning epoch
+    changed is still applied, with a re-check offered.
+- part: output-head
+  type: layer-compute
+  rule: An approximation that is in effect is stated with the run's settings.
+  how: On the pack path the activation is quantised to 8-bit q8_K before the vocabulary projection by default (src/core/layer.cpp:1425;
+    avoided only by loading the head natively); no run-time statement of it is recorded, and the run manifest that lists tensor
+    formats is off unless a file is named.
+wrong_assignments: []
+inventory_errors:
+- part: expert-cache
+  field: output_effect
+  recorded: none; bit_exact when the GPU and CPU expert kernels round identically
+  source_shows: Under the default route tail skip a missed expert is omitted only when not resident (src/core/expert_source.cpp:4963-4982;
+    default set in src/program/generate.cpp:12776-12822), so what the cache holds changes output beyond rounding, as the correction
+    records for adaptive-tier.
+- part: mtp-drafter
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the arithmetic
+    conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch slots
+    are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the default
+    solo CUDA path, not bit_exact or numeric.'
+- part: dflash2-drafter
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the arithmetic
+    conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch slots
+    are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the default
+    solo CUDA path, not bit_exact or numeric.'
+- part: lookup-drafter
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the arithmetic
+    conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch slots
+    are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the default
+    solo CUDA path, not bit_exact or numeric.'
+- part: draft-policy
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the arithmetic
+    conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch slots
+    are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the default
+    solo CUDA path, not bit_exact or numeric.'
+- part: draft-verifier
+  field: output_effect_when
+  recorded: bit_exact when the verifier's result for a token does not depend on which window it was verified in (and the arithmetic
+    conditions hold); otherwise numeric
+  source_shows: 'The default tail skip omits a missed expert only when every token of the verify window routes it at rank
+    7 or lower (src/core/expert_source.cpp:4963-4982; default set in src/program/generate.cpp:12776-12822, on when batch slots
+    are off), so the drafts and the window width decide what is omitted for the accepted rows: approximate on the default
+    solo CUDA path, not bit_exact or numeric.'

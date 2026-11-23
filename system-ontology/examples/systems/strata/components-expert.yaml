@@ -1,0 +1,219 @@
+# Strata, expert subsystem and prompt path. Written from the implementation at revision 504b143.
+# Source paths are relative to the Strata repository.
+kind: component
+id: comp/strata/expert-subsystem
+system: sys/strata
+title: "Expert subsystem"
+role: subsystem
+responsibility: "For every layer of every window, get each routed expert computed by whichever path can produce it soonest, and keep the fast memory filled with the experts in most use."
+parts:
+  - comp/strata/expert-source
+  - comp/strata/expert-cache
+  - comp/strata/expert-dispatch
+  - comp/strata/cpu-expert-pool
+  - comp/strata/adaptive-tier
+  - comp/strata/host-to-device-transfer
+runs: [startup, per_layer, background, on_demand]
+mechanisms: [mech/hot-expert-residency, mech/route-tail-skip]
+sources:
+  - {ref: "src/core/expert_source.cpp:4925-5079", basis: code}
+  - {ref: "src/program/generate.cpp:13142-13314", basis: code}
+---
+kind: component
+id: comp/strata/expert-cache
+system: sys/strata
+parent: comp/strata/expert-subsystem
+title: "Expert cache"
+role: cache
+responsibility: "Hold a fixed number of experts in fast memory and answer, for any expert, whether it is there and in which slot."
+not_responsible_for:
+  - "Choosing which experts to hold; the adaptive tier does that"
+  - "Evicting on its own; its basic admit operation never evicts"
+  - "Deciding its own size; startup memory sizing does that"
+runs: [startup, on_demand]
+state:
+  owns: [residency_table]
+needs_resources:
+  - {resource: fast_memory, purpose: "one slot per cached expert", note: "takes what remains after dense weights, session state and the drafter"}
+decisions:
+  - id: slot-count
+    text: "How many slots the cache has. The automatic value is the free fast memory minus a reserve, divided by the largest expert; after opening, free memory is read again and the cache is shrunk if the reserve was not really left."
+    resolved_at: startup
+    source: "engines/strata-notes/loading.md, startup sizing"
+invariants:
+  - {id: inv/read-ready, text: "A slot is reported as holding an expert only after that expert's bytes have fully arrived."}
+  - {id: inv/no-overwrite-while-read, text: "A slot is not written while any launched computation may still read it."}
+calls:
+  - {name: lookup, takes: "layer and expert number", returns: "slot number, or absent", does: "Reads the residency table; never reports an expert whose copy is still in flight."}
+  - {name: admit, takes: "layer, expert number and a free slot", returns: "nothing", does: "Records the expert as resident in that slot. Does not evict."}
+  - {name: device_slot, takes: "slot number", returns: "the address of the slot in fast memory", does: "Gives the destination for an upload."}
+verification:
+  - {method: none_found, checks: "No isolated test of the cache was identified in the code read."}
+equivalence:
+  - {level: bit_exact, holds_when: "the GPU and CPU expert kernels round identically", note: "The cache itself does not change arithmetic. The project's own text is inconsistent on whether GPU-computed and CPU-computed experts are bit-identical; see engines/strata-notes/loading.md."}
+costs:
+  - {text: "Without the cache the CPU reads 663.6 MB of expert bytes per token at about 40 GB/s, 16.2 ms of a token of about 53 ms", status: reported, source: "include/strata/core/expert_cache.hpp (header comment)"}
+claims:
+  - {text: "Each extra GB of fast memory holds about 700 more experts", status: reported, source: "docs/HOW_IT_WORKS.md:25"}
+mechanisms: [mech/hot-expert-residency]
+sources:
+  - {ref: "src/program/generate.cpp:13204-13263", basis: code}
+  - {ref: "include/strata/core/expert_cache.hpp", basis: header_comment}
+not_read: "The cache's own implementation file. Its behaviour here is taken from how the dispatch and the adaptive tier use it."
+---
+kind: component
+id: comp/strata/expert-dispatch
+system: sys/strata
+parent: comp/strata/expert-subsystem
+title: "Expert dispatch"
+role: assigner
+responsibility: "For one layer of one window, decide for every routed expert which path computes it, and publish the accelerator's share before the CPU's share starts."
+not_responsible_for:
+  - "Changing what the cache holds; the adaptive tier does that"
+  - "Summing the experts' outputs; a combine kernel on the accelerator does that"
+runs: [per_layer]
+performs: [expert_ffn]
+state:
+  reads: [residency_table]
+  writes: [expert_heat]
+needs_resources:
+  - {resource: accelerator, purpose: "experts found in the cache and experts fetched for this window"}
+  - {resource: fast_memory, purpose: "a staging area for experts fetched for this window only"}
+decisions:
+  - id: path-order
+    text: "The order in which paths are tried for a routed expert: cached in fast memory; omitted because it ranks low for every token of the window; held by a second accelerator; fetched for this window only; computed by the CPU."
+    resolved_at: design
+    source: "src/core/expert_source.cpp:5032-5070"
+  - id: tail-skip-rank
+    text: "A missed expert that every token of the window routes only at this rank or lower is neither fetched nor computed."
+    value: {value: 7, status: reported, source: "src/core/expert_source.cpp:4964"}
+    resolved_at: design
+  - id: fetch-share
+    text: "How many of a layer's missed experts are fetched for this window instead of being left to the CPU. A fixed share, or a count from measured CPU and accelerator costs when that option is on."
+    resolved_at: runtime
+    source: "src/core/expert_source.cpp:5002-5009"
+invariants:
+  - {id: inv/always-served, text: "Every routed expert that is not omitted is computed by exactly one path."}
+  - {id: inv/gpu-first, text: "The accelerator's share is decided and published before the CPU's share starts, so the two overlap."}
+calls:
+  - {name: dispatch_window, takes: "for one layer, the routed expert numbers and weights of every token in the window, and the normed activations", returns: "per routed entry, the path chosen", does: "Counts usage, classifies every distinct routed expert, publishes the accelerator plan, then starts CPU work."}
+verification:
+  - {method: none_found, checks: "No isolated test of the classification was identified. A route dump option writes one line per layer and window for replaying placement policies offline.", source: "src/core/expert_source.cpp:4987-5001"}
+observation_points: [cache_hit_count, cache_miss_count, tail_skipped_count, route_dump]
+equivalence:
+  - {level: approximate, holds_when: "the tail skip is on, which is the default on the CUDA serving path", note: "The code comment states it changes the output; other experts' weights are not renormalised."}
+  - {level: bit_exact, holds_when: "the tail skip is off"}
+mechanisms: [mech/hot-expert-residency, mech/route-tail-skip]
+sources:
+  - {ref: "src/core/expert_source.cpp:4925-5079", basis: code}
+---
+kind: component
+id: comp/strata/adaptive-tier
+system: sys/strata
+parent: comp/strata/expert-subsystem
+title: "Adaptive tier"
+role: policy_runner
+responsibility: "Keep the expert cache filled with the experts the current conversation uses most, by swapping a bounded number of them at fixed intervals."
+not_responsible_for:
+  - "The size of the cache"
+  - "Where a missed expert is computed in the current window"
+runs: [background]
+state:
+  owns: [expert_heat, pending_swaps]
+  reads: [residency_table]
+  writes: [residency_table]
+needs_resources:
+  - {resource: cpu, purpose: "choosing swaps, on a thread beside the commit and the next draft"}
+policies: [expert-cache]
+decisions:
+  - {id: interval, text: "Run once every this many verify windows.", value: {value: 4, status: reported, source: "src/program/generate.cpp:887"}, resolved_at: design}
+  - {id: max-swaps, text: "At most this many swaps per run, taken in order of gain across all layers.", value: {value: 96, status: reported, source: "src/program/generate.cpp:923"}, resolved_at: design}
+  - {id: decay, text: "After each run every usage count is multiplied by this.", value: {value: 0.7, status: reported, source: "src/program/generate.cpp:892"}, resolved_at: design}
+  - {id: min-gain, text: "A swap is made only if the entering expert's count exceeds the leaving expert's by at least this.", value: {value: 1.5, status: reported, source: "src/program/generate.cpp:895"}, resolved_at: design}
+  - {id: min-usage, text: "An expert is a candidate to enter only if its count is at least this.", value: {value: 2, status: reported, source: "src/program/generate.cpp:13158"}, resolved_at: design}
+invariants:
+  - {id: inv/read-ready, text: "An entering expert is marked resident only after its copy has landed."}
+  - {id: inv/no-overwrite-while-read, text: "A leaving expert is marked absent first; the copy into its slot waits until all work launched before that has completed."}
+  - {id: inv/one-batch-in-flight, text: "A run does nothing while the previous run's copies are still in flight."}
+  - {id: inv/swap-within-layer, text: "An expert is only swapped with another expert of the same layer."}
+calls:
+  - {name: adapt, takes: "nothing; reads the usage counts and the residency table", returns: "whether it succeeded", does: "Pairs the hottest absent experts with the coldest resident ones per layer, keeps pairs above the gain threshold, takes the best across layers up to the limit, and issues the copies."}
+verification:
+  - {method: none_found, checks: "No isolated test was identified. A test hook slows the copy link to make windows wait for copies.", source: "src/program/generate.cpp:13227-13231"}
+observation_points: [swap_count, swap_time]
+equivalence:
+  - {level: bit_exact, holds_when: "the GPU and CPU expert kernels round identically", note: "Which experts are resident decides which device computes them. The project's documents say adaptive-tier timing can change rounding with some model files; see engines/strata-notes/speculation.md."}
+mechanisms: [mech/hot-expert-residency]
+sources:
+  - {ref: "src/program/generate.cpp:13142-13314", basis: code}
+  - {ref: "src/program/generate.cpp:885-923", basis: code}
+---
+kind: component
+id: comp/strata/host-to-device-transfer
+system: sys/strata
+parent: comp/strata/expert-subsystem
+title: "Host-to-device transfer"
+role: data_mover
+responsibility: "Copy expert bytes from slow memory to fast memory in an order the accelerator work that follows can rely on."
+runs: [on_demand]
+state:
+  owns: [staged_experts]
+needs_resources:
+  - {resource: slow_memory, purpose: "page-locked bounce slots for uploads whose source memory is pageable"}
+  - {resource: fast_memory, purpose: "the destination slots and the staging area"}
+decisions:
+  - {id: batch-mode, text: "Whether the adaptive tier's copies are issued one by one or as one batched copy.", resolved_at: startup, source: "src/program/generate.cpp:13219-13287"}
+  - {id: staging-limit, text: "The most experts that can be fetched for one window, bounded by the staging area and by 64.", resolved_at: startup, source: "src/core/expert_source.cpp:5056"}
+invariants:
+  - {id: inv/ordered-upload, text: "An upload is ordered before the accelerator work that reads its destination."}
+  - {id: inv/pinned-source, text: "Only an expert whose source bytes are page-locked is fetched for a window; otherwise it stays with the CPU."}
+verification:
+  - {method: none_found, checks: "No isolated test was identified in the code read."}
+equivalence: bit_exact
+sources:
+  - {ref: "src/program/generate.cpp:13219-13287", basis: code}
+  - {ref: "src/core/expert_source.cpp:5052-5066", basis: code}
+  - {ref: "include/strata/core/pinned_ring.hpp", basis: header_comment}
+not_read: "The pinned ring's implementation."
+---
+kind: component
+id: comp/strata/prompt-path
+system: sys/strata
+title: "Prompt path"
+role: prompt_reader
+responsibility: "Read the prompt in large chunks, layer by layer, and leave behind the model state that generation continues from."
+not_responsible_for:
+  - "Producing output tokens"
+  - "Reusing an earlier conversation; conversation reuse decides where reading starts"
+runs: [per_request]
+implements_stages: [prefill]
+state:
+  writes: [attention_kv, indexer_keys, gdn_state, ple_history]
+needs_resources:
+  - {resource: accelerator, purpose: "batched computation of a chunk, one layer at a time"}
+  - {resource: fast_memory, purpose: "chunk buffers; it may borrow expert cache slots for the duration of the prompt"}
+  - {resource: cpu, purpose: "experts that few of the chunk's tokens route to, when the CPU share is armed"}
+policies: [prefill-cpu-share]
+decisions:
+  - {id: chunk-size, text: "Tokens per prompt chunk.", value: {value: 8192, status: reported, source: "docs/HOW_IT_WORKS.md:50"}, resolved_at: startup}
+  - {id: cpu-share-bounds, text: "The CPU's share of the experts not in fast memory is the accelerator's time per expert over the sum of both times, as running averages, kept between these bounds.", value: {value: "0.05 to 0.9", status: reported, source: "src/prefill/prefill.cpp:4954"}, resolved_at: runtime}
+  - {id: cpu-share-gate, text: "Sharing is switched off for following layers when the measured time with sharing is not lower than without.", resolved_at: runtime, source: "src/prefill/prefill.cpp:4957-4980"}
+  - {id: cpu-candidates, text: "An expert may go to the CPU only if it is routed in this chunk, is not in fast memory, is not taken by a second accelerator, is routed by no more tokens than the CPU kernel's batch limit, and its weights can be read from slow memory without assembling a short-lived buffer. Candidates are taken in order of fewest tokens first.", resolved_at: runtime, source: "src/prefill/prefill.cpp:5008-5041"}
+invariants:
+  - {id: inv/stable-source, text: "An expert handed to the CPU must have weights in slow memory that stay readable for the duration of its computation; the pointers are taken before the CPU thread starts."}
+verification:
+  - {method: none_found, checks: "Not established; most of the prompt path was not read."}
+observation_points: [per_object_time_cpu, per_object_time_gpu, tokens_per_object]
+equivalence:
+  - {level: numeric, holds_when: "the CPU share is armed", note: "The project's documents say the output changes in the last bits."}
+  - {level: approximate, holds_when: "the optional approximate late-layer read is on; it is off by default"}
+  - {level: bit_exact, holds_when: "neither is on", note: "Stated relative to the same engine's own chunked reading, not to token-by-token decoding."}
+mechanisms: [mech/work-based-prefill-split]
+claims:
+  - {text: "In a streamed chunk, 47 percent of streamed experts at 1,045 tokens, 35 percent at 2K and 15 percent at 8,192 tokens are experts no token routes to", status: reported, source: "include/strata/prefill/routed_stream.hpp (header comment)", conditions: {hardware: "RTX 3090", model: "IQ3_XXS"}}
+sources:
+  - {ref: "src/prefill/prefill.cpp:4946-5041", basis: code}
+  - {ref: "include/strata/prefill/share_rules.hpp", basis: header_comment}
+  - {ref: "include/strata/prefill/routed_stream.hpp", basis: header_comment}
+  - {ref: "include/strata/program/prefill_plan.hpp", basis: header_comment}
+not_read: "Most of src/prefill/ (about 28,000 lines). Read in code: the per-expert token count, the CPU candidate selection, the share formula and the gate."

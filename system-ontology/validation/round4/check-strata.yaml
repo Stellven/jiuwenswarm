@@ -1,0 +1,332 @@
+engine: strata
+notes: 'Judged with validation/inventory/strata.corrections.yaml: http-front gains the who-may-call decision the correction
+  records (one decision more than the inventory lists); the dflash2-drafter lookup-skip decision is judged under draft-policy,
+  where the correction places it. Decisions are compared with the assigned type and, for layer-kernels, host-memory-admission
+  and engine-command-loop, also with their ''also'' type.'
+decision_coverage:
+  totals:
+    decisions: 254
+    covered: 230
+    loosely: 15
+    not_covered: 1
+    engine_specific: 8
+  per_type:
+  - type: expert-cache
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-dispatch
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-reading
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 18
+    covered: 14
+    loosely: 1
+    not_covered: 0
+    engine_specific: 3
+  - type: memory-planning
+    decisions: 22
+    covered: 20
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-source
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: request-front
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 7
+    covered: 6
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 11
+    covered: 11
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 8
+    covered: 6
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: replica-routing
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 18
+    covered: 16
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: session-persistence
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: configuration
+    decisions: 17
+    covered: 15
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: calibration
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: telemetry
+    decisions: 12
+    covered: 12
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 17
+    covered: 16
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-policy
+    decisions: 7
+    covered: 6
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 6
+    covered: 3
+    loosely: 2
+    not_covered: 0
+    engine_specific: 1
+  - type: step-execution
+    decisions: 9
+    covered: 8
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 10
+    covered: 7
+    loosely: 2
+    not_covered: 0
+    engine_specific: 1
+  - type: graph-capture
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: positional-state-store
+    decisions: 6
+    covered: 6
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 6
+    covered: 4
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: sampling
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: secondary-compute
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: expert-layout
+    type: model-loading
+    decision: native per-layer layout when its table file exists, else the canonical layout with one blob size
+    nearest_choice: which stored encoding of a tensor is loaded when the files carry more than one, and which kernels accept
+      it
+  - part: startup-memory-sizing
+    type: memory-planning
+    decision: lowest value the reserve may be lowered to so that the minimum cache fits
+    nearest_choice: the order in which things are given up when memory is short, and when starting is refused
+  - part: host-memory-admission
+    type: memory-planning
+    decision: the engine may swap the expert arena for the file source on its own unless the operator fixed the RAM choice
+      by hand
+    nearest_choice: an operator's explicit size against the computed one
+  - part: slot-scheduler
+    type: sequence-lifecycle
+    decision: how often a running prompt read gives way to a waiting request with a much shorter prompt
+    nearest_choice: the order in which waiting prompts are read, and whether several are read together
+  - part: resume-decision
+    type: prefix-reuse
+    decision: reuse of any kind is enabled only when checkpoint capacity is above zero
+    nearest_choice: how many are kept and where
+  - part: parked-conversations
+    type: prefix-reuse
+    decision: 'host memory budget of the parked store: operator value or a computed share of available memory with cap, rounding
+      and floor'
+    nearest_choice: how many are kept and where
+  - part: run-config-generator
+    type: configuration
+    decision: an argument that differs from what setup last wrote counts as a hand edit and is kept across rewrites, except
+      options setup re-decides
+    nearest_choice: operator values, presets, measured values and defaults
+  - part: lookup-drafter
+    type: draft-proposal
+    decision: most recent end positions kept per trigram in the lookup index
+    nearest_choice: how a lookup source matches earlier text, and how far back it searches
+  - part: draft-policy
+    type: draft-policy
+    decision: which window sizes a lookup or chained window may use, and dropping a size for the rest of the process when
+      its graph finds no device memory
+    nearest_choice: limits on the round
+  - part: draft-verifier
+    type: draft-verification
+    decision: the exact gated acceptance rule is used only under listed configuration conditions; otherwise an older rule
+      runs with a warning that the distribution is off
+    nearest_choice: the acceptance rule under sampling
+  - part: draft-verifier
+    type: draft-verification
+    decision: a one-row window advances state inside the window graph and launches no separate commit
+    nearest_choice: how each kind of state is committed or undone
+  - part: window-loop
+    type: step-execution
+    decision: per window, a device-only plan variant when every expert of the stage is resident, else a variant that consults
+      the host each layer
+    nearest_choice: which kinds of step are replayed from a recorded graph and which are launched directly
+  - part: layer-kernels
+    type: layer-compute
+    decision: order of kernels within a layer, split into halves around the host-supplied expert rows
+    nearest_choice: how independent operations are ordered to overlap with work on another device
+  - part: output-head
+    type: layer-compute
+    decision: the head runs inside the window graph in column chunks for long windows, or after the layer loop followed by
+      a sync, full logits read-back and non-finite scan
+    nearest_choice: whether results are checked for non-finite values, and what is done then
+  - part: ngram-reader
+    type: row-source
+    decision: keep-alive reads of one random page while idle in direct mode, until a time after the last request
+    nearest_choice: warming the table in the background and when to stop
+  not_covered:
+  - part: request-runner
+    type: output-interpretation
+    decision: a ping is sent on the response stream when nothing has gone out for a set time
+    kind: timing
+    missing_choice: keep-alive signal on a response stream while generation produces nothing to send (named only under request-front)
+contradictions:
+- part: host-memory-admission
+  type: resource-governing
+  claim: A grant of memory never takes the engine over its limit.
+  evidence: When available RAM (which includes the operator's --ram-keep-gib) is below the arena's need and the fallback is
+    not allowed because the operator fixed the choice by hand, the arena is loaded anyway with a warning; only a hard (cgroup)
+    limit refuses (include/strata/core/ple_residency.hpp:50-65, verdict Warn).
+  fix: A grant of memory never takes the engine over a hard limit; a soft figure (available memory, an operator's keep-free
+    amount) is exceeded only on the operator's explicit choice and with a warning.
+- part: output-head
+  type: layer-compute
+  claim: Unless an approximation that was explicitly turned on is in effect, the sequence of layers and operations the model
+    defines is kept; only the order of accumulation inside one operation may vary.
+  evidence: 'Correction (round3): on the pack path, the default when the --native preset is not given, the mixed activation
+    is quantised to 8-bit q8_K before the vocabulary projection (src/core/layer.cpp:1425). Nothing turns this on explicitly;
+    it is the path''s default.'
+  fix: Unless an approximation turned on explicitly, or as a default recorded with the run's settings, is in effect, the sequence
+    of layers and operations the model defines is kept; reduced activation precision inside a kernel counts as such an approximation,
+    and otherwise only the order of accumulation inside one operation may vary.
+- part: prompt-builder
+  type: prompt-preparation
+  claim: 'effect_on_output defines: when it corrects the template, injects text, shortens input, or tokenizes in pieces'
+  evidence: The part shortens the output limit to the room left in the context minus a margin instead of refusing, and maps
+    an absent, zero or negative limit to the rest of the context; that decides where output stops. No listed case covers setting
+    the output limit.
+  fix: 'defines: when it corrects the template, injects text, shortens input, sets or shortens the output limit, or tokenizes
+    in pieces'
+relaxations: []
+wrong_assignments:
+- part: layer-kernels
+  assigned: layer-compute (also recurrent-state-store)
+  better: layer-compute, with positional-state-store as a further also
+  why: The part owns per-position indexer keys (indexer_keys) at fixed device addresses; that is the indexed per-position
+    state positional-state-store names, and neither assigned type covers holding it.
+- part: kv-store
+  assigned: positional-state-store
+  better: positional-state-store, with state-tiering as also
+  why: With streaming on it always writes a host copy and keeps only a window of positions in fast memory, bringing selected
+    blocks back before attention reads them; that is moving per-sequence state to a slower tier and back so longer contexts
+    fit.
+inventory_errors:
+- part: window-loop
+  field: output_effect_when
+  recorded: bit_exact when default configuration; approximate when ... a route tail skip rank is set
+  source_shows: The route tail skip is on by default on CUDA serving (rank 7) unless at least 90% of experts are in the GPU
+    cache or the experts are NVFP4, and it changes the output (src/program/generate.cpp:12776-12822; src/core/expert_source.cpp:4964;
+    docs/QUANTS.md:158). The default configuration is not bit_exact.
+- part: expert-dispatch
+  field: decisions
+  recorded: A missed expert that every token of the window routes only at this rank or lower is neither fetched nor computed;
+    tail skip described as default on the CUDA serving path
+  source_shows: 'The default is conditional: off when the share of experts in the GPU cache reaches STRATA_TAIL_SKIP_MAX_CACHED
+    (default 90%, 60 on a HIP layer split) and off for NVFP4 experts; the start-up message says which applies (src/program/generate.cpp:12787-12822).
+    That condition is a decision of its own.'
+- part: engine-command-loop
+  field: output_effect_when
+  recorded: approximate when Batch slots on, sampled decoding, with a move between the solo path and a slot
+  source_shows: Sampled rows in batch slots use the solo window's counter-based draw Philox(seed, position) (docs/BATCHING.md:623-624);
+    a move changes only the logits' rounding, which can flip a draw. Nothing approximates the computation.
+- part: slot-scheduler
+  field: output_effect_when
+  recorded: approximate when Sampled decoding with a move between the solo path and a slot
+  source_shows: 'Same as engine-command-loop: the draw is keyed by seed and position on both paths (docs/BATCHING.md:623-624);
+    the difference is rounding of the logits, not an approximation.'

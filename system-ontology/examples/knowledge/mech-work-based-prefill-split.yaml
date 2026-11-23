@@ -1,0 +1,39 @@
+kind: mechanism
+id: mech/work-based-prefill-split
+family: work-dependent-assignment
+summary: "During prefill, objects that are not kept in the fast memory pool and handle very few tokens go to the compute unit that can read their weights in place; the rest go in batches to the fast compute unit"
+equivalence: numeric            # the documents of Strata: the last few digits of the output change
+because:
+  - id: sparse
+    predicate: sparse_selection
+    args: {max_pick_ratio: 0.5}
+    text: "The model selects only some of the objects each time, so within one batch of input the objects have different amounts of work"
+  - id: exceeds
+    predicate: selected_data_exceeds_direct_pool
+    text: "The weights of some objects are not in the fast memory pool and need a transfer before the fast compute unit can use them"
+  - id: split_units
+    predicate: units_with_distinct_direct_pools
+    text: "Another compute unit can read these weights in place, with no transfer"
+  - id: cost
+    predicate: measured_property
+    args: {property: per_object_time_by_unit}
+    text: "There are measured times for each of the two kinds of compute unit to process one object"
+do:
+  - {aspect: binding, item: assignment, text: "In the prefill stage, starting from the objects with the fewest tokens, assign a share of the objects not kept in the fast memory pool to the implementation that reads in place"}
+  - {aspect: policy,  item: policies,   text: "The share is the time of the fast unit / (the sum of the times of both units), kept within a lower and an upper bound; turned off when the split is measured to be slower"}
+needs:
+  invariants:
+    - {id: inv/stable-source, text: "The weights of an object handed to the other compute unit stay readable for the duration of its computation"}
+  observation_points: [per_object_time_cpu, per_object_time_gpu, tokens_per_object]
+expect:
+  - {quantity: ttft, direction: decrease}
+cost:
+  - "Uses threads of the other compute unit"
+  - "Changes the order of floating-point operations; the last few digits of the output differ"
+validate_by: "Compare with the same engine with the split turned off; on the same prompts measure the prompt reading speed and the time to first token, and compare the outputs"
+claims:
+  - text: "On by default only when the prompt block is under 1,024 tokens, with a single GPU, and not in batch mode"
+    status: reported
+    source: "strata docs/DETAILS.md:1049"
+    conditions: {model: qwen3.8-flash-next, hardware: cuda single gpu}
+    baseline: "the documents give no separate figure for the gain from this item"

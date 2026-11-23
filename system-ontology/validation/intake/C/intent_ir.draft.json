@@ -1,0 +1,527 @@
+{
+  "interpretation": {
+    "problem": {
+      "id": "int-problem",
+      "text": "No inference engine exists for Meta Muse Spark Open on NVIDIA DGX Spark. The supplied description states that the model's expert weights are about three times the machine's memory.",
+      "quotes": [
+        {"source": "request", "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."},
+        {"source": "system", "text": "A proposed engine for a mixture-of-experts model whose expert weights are about three times the machine's memory."},
+        {"source": "system", "text": "A design derived from the descriptions of Strata and ds4. No implementation exists."}
+      ]
+    },
+    "desired_change": {
+      "id": "int-change",
+      "text": "A custom inference engine for Meta Muse Spark Open is built and runs on NVIDIA DGX Spark, as described by the attached System Ontology files (system level and node level), which the user gives as the statement of what is wanted.",
+      "quotes": [
+        {"source": "request", "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."},
+        {"source": "request", "text": "Take them as the statement of what is wanted."}
+      ]
+    },
+    "requested_result": {
+      "id": "int-result",
+      "text": "A built engine, judged on the target description, delivered as a reproducible container, a clean rebuild, a benchmark report and replayable run artifacts.",
+      "quotes": [
+        {"source": "request", "text": "the target the engine is judged on"},
+        {"source": "target", "text": "{item: reproducible_container, resolution: required}"},
+        {"source": "target", "text": "item: clean_rebuild"},
+        {"source": "target", "text": "item: benchmark_report"},
+        {"source": "target", "text": "item: replayable_run_artifacts"}
+      ]
+    }
+  },
+  "context": [
+    {
+      "id": "ctx-model",
+      "name": "Meta Muse Spark Open (model/muse-spark-open)",
+      "role": "The given model the engine must run: 816B parameters in total, 42B active per token, mixture of experts selecting 8 of 256 experts per token per layer over 62 layers; vendor-stated context length 1,000,000 tokens; weights published in BF16 and NVFP4.",
+      "quotes": [
+        {"source": "model", "text": "Meta Muse Spark Open (816B parameters in total, 42B active per token)"},
+        {"source": "model", "text": "out_of: 256, pick: 8"},
+        {"source": "model", "text": "value: \"BF16, NVFP4\""},
+        {"source": "target", "text": "model: model/muse-spark-open"}
+      ]
+    },
+    {
+      "id": "ctx-machine",
+      "name": "NVIDIA DGX Spark, 128 GB configuration (hw/dgx-spark)",
+      "role": "The given hardware: GB10 Grace Blackwell, 20-core arm64 CPU, one Blackwell GPU, 128 GB nominal unified memory shared by CPU and GPU (no separate GPU memory), 273 GB/s memory bandwidth, NVMe storage up to 4 TB.",
+      "quotes": [
+        {"source": "machine", "text": "capacity_nominal: {value: 128, unit: GB"},
+        {"source": "machine", "text": "note: CPU 与 GPU 共用同一个内存池，没有独立显存"},
+        {"source": "machine", "text": "bandwidth: {value: 273, unit: GB/s"},
+        {"source": "target", "text": "hardware: hw/dgx-spark"}
+      ]
+    },
+    {
+      "id": "ctx-engine",
+      "name": "Muse engine (sys/muse-on-spark, working name)",
+      "role": "The engine to be built, described as a proposed design at system level and node level; not implemented.",
+      "quotes": [
+        {"source": "system", "text": "name: Muse engine (working name)"},
+        {"source": "system", "text": "A design derived from the descriptions of Strata and ds4. No implementation exists."},
+        {"source": "nodes", "text": "engine: muse-on-spark"}
+      ]
+    },
+    {
+      "id": "ctx-strata-ds4",
+      "name": "Strata (sys/strata) and ds4 (sys/ds4)",
+      "role": "Existing engine descriptions the proposed design is derived from: Strata for the decomposition as a whole, ds4 for the storage path.",
+      "quotes": [
+        {"source": "system", "text": "Strata component by component, with the storage path taken from ds4, and nothing of it has been built."}
+      ]
+    },
+    {
+      "id": "ctx-mem0",
+      "name": "Unified memory pool mem0",
+      "role": "The single memory pool against which the memory budget and peak memory are counted.",
+      "quotes": [
+        {"source": "machine", "text": "kind: unified_ram"},
+        {"source": "target", "text": "pool: mem0"}
+      ]
+    },
+    {
+      "id": "ctx-ssd0",
+      "name": "NVMe storage ssd0",
+      "role": "Storage on which every expert is held in the proposed design and from which missed experts are read.",
+      "quotes": [
+        {"source": "machine", "text": "kind: nvme"},
+        {"source": "system", "text": "a routed expert that is not cached is read from storage for that step and may replace a less used one."}
+      ]
+    },
+    {
+      "id": "ctx-baseline",
+      "name": "Published reference implementation",
+      "role": "Proposed quality baseline: the published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling.",
+      "quotes": [
+        {"source": "target", "text": "The published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling."}
+      ]
+    },
+    {
+      "id": "ctx-scope-page",
+      "name": "Scope page (scope-slide)",
+      "role": "Upstream source cited by the target description for its stated values; not itself supplied.",
+      "quotes": [
+        {"source": "target", "text": "What the scope page states is written with its source."},
+        {"source": "target", "text": "scope-slide#memory: Strata-Spark: 80 GB Unified Memory"}
+      ]
+    }
+  ],
+  "in_scope": [
+    {
+      "id": "is-build-engine",
+      "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark.",
+      "quotes": [
+        {"source": "request", "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."}
+      ]
+    },
+    {
+      "id": "is-text-io",
+      "text": "Text input and text output.",
+      "quotes": [
+        {"source": "target", "text": "input:  {modality: text, resolution: required"},
+        {"source": "target", "text": "output: {modality: text, resolution: required"},
+        {"source": "system", "text": "Text in, text out."}
+      ]
+    },
+    {
+      "id": "is-system-design",
+      "text": "The engine as described at system level: the weights every token needs stay in memory; all experts stay on storage in a file prepared so that one expert is one contiguous read; a cache in memory holds the most used experts; a routed expert that is not cached is read from storage for that step and may replace a less used one; reading starts as soon as routing is known and overlaps with computation of experts already in memory.",
+      "quotes": [
+        {"source": "system", "text": "The weights every token needs stay in memory."},
+        {"source": "system", "text": "in a file prepared so that one expert is one contiguous read. A cache in memory holds the most used experts;"},
+        {"source": "system", "text": "a routed expert that is not cached is read from storage for that step and may replace a less used one."},
+        {"source": "system", "text": "as soon as routing is known and overlaps with the computation of the experts already in memory."}
+      ]
+    },
+    {
+      "id": "is-components",
+      "text": "The engine's components at system level: preparation, setup, loading, serving, conversation reuse, prompt path, token path, expert subsystem and telemetry, with the stages load, prefill and decode.",
+      "quotes": [
+        {"source": "system", "text": "- comp/muse/preparation"},
+        {"source": "system", "text": "- comp/muse/expert-subsystem"},
+        {"source": "system", "text": "- comp/muse/telemetry"},
+        {"source": "system", "text": "- prefill"}
+      ]
+    },
+    {
+      "id": "is-nodes",
+      "text": "The engine's node level as described in nodes.yaml, including offline model preparation, startup memory sizing within the memory budget, prompt reading in chunks one layer at a time, expert cache, cache policy, storage reader, expert dispatch, key and value store, prefix reuse, session files, sampler, HTTP front, engine supervision, run configuration and telemetry.",
+      "quotes": [
+        {"source": "request", "text": "the engine itself at two levels: the system as a whole and its nodes"},
+        {"source": "nodes", "text": "title: Model preparation"},
+        {"source": "nodes", "text": "title: Startup memory sizing"},
+        {"source": "nodes", "text": "title: Expert cache"},
+        {"source": "nodes", "text": "title: HTTP front and admission bound"}
+      ]
+    },
+    {
+      "id": "is-deliverables",
+      "text": "Deliverables: reproducible container, clean rebuild, benchmark report, replayable run artifacts.",
+      "quotes": [
+        {"source": "target", "text": "{item: reproducible_container, resolution: required}"},
+        {"source": "target", "text": "item: clean_rebuild"},
+        {"source": "target", "text": "item: benchmark_report"},
+        {"source": "target", "text": "item: replayable_run_artifacts"}
+      ]
+    },
+    {
+      "id": "is-factory-open",
+      "text": "Execution, state, composition, policy and binding are left open to the factory.",
+      "quotes": [
+        {"source": "target", "text": "Fields left to the factory are `open`."},
+        {"source": "target", "text": "execution: open"}
+      ]
+    }
+  ],
+  "out_of_scope": [
+    {
+      "id": "oos-media",
+      "text": "Image, video and audio input are not covered in the first version; the perception encoder is not loaded.",
+      "quotes": [
+        {"source": "system", "text": "The perception encoder for image, video and audio is not loaded in the first version."},
+        {"source": "system", "text": "Not covered in the first version: image, video and audio input; drafting;"}
+      ]
+    },
+    {
+      "id": "oos-drafting",
+      "text": "Drafting is not covered in the first version.",
+      "quotes": [
+        {"source": "system", "text": "Not covered in the first version: image, video and audio input; drafting;"}
+      ]
+    },
+    {
+      "id": "oos-multi-conversation",
+      "text": "More than one conversation in memory at a time is not covered in the first version.",
+      "quotes": [
+        {"source": "system", "text": "more than one conversation in memory at a time; more than one machine."}
+      ]
+    },
+    {
+      "id": "oos-multi-machine",
+      "text": "More than one machine is not covered.",
+      "quotes": [
+        {"source": "system", "text": "more than one conversation in memory at a time; more than one machine."}
+      ]
+    },
+    {
+      "id": "oos-memory-outside",
+      "text": "The operating system and other processes are outside the memory accounting boundary.",
+      "quotes": [
+        {"source": "target", "text": "The operating system and other processes are outside."}
+      ]
+    },
+    {
+      "id": "oos-model-load-ttft",
+      "text": "Model load is excluded from time to first token.",
+      "quotes": [
+        {"source": "target", "text": "The engine admits the request. Model load is excluded."}
+      ]
+    }
+  ],
+  "constraints": [
+    {
+      "id": "con-model",
+      "text": "The engine runs the given model Meta Muse Spark Open.",
+      "category": "given_input",
+      "quotes": [
+        {"source": "target", "text": "model: model/muse-spark-open"},
+        {"source": "request", "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark."}
+      ]
+    },
+    {
+      "id": "con-hardware",
+      "text": "The engine runs on the given hardware NVIDIA DGX Spark (128 GB configuration).",
+      "category": "hardware",
+      "quotes": [
+        {"source": "target", "text": "hardware: hw/dgx-spark"},
+        {"source": "machine", "text": "capacity_nominal: {value: 128, unit: GB"}
+      ]
+    },
+    {
+      "id": "con-container",
+      "text": "Packaging is a container (required).",
+      "category": "format",
+      "quotes": [
+        {"source": "target", "text": "packaging: {value: container, resolution: required"}
+      ]
+    },
+    {
+      "id": "con-text-in",
+      "text": "Input modality is text (required).",
+      "category": "interface",
+      "quotes": [
+        {"source": "target", "text": "input:  {modality: text, resolution: required"}
+      ]
+    },
+    {
+      "id": "con-text-out",
+      "text": "Output modality is text (required).",
+      "category": "interface",
+      "quotes": [
+        {"source": "target", "text": "output: {modality: text, resolution: required"}
+      ]
+    },
+    {
+      "id": "con-memory-budget",
+      "text": "Memory budget of 80 GB (decimal) in the unified pool mem0, pass/fail, counting everything the engine's container holds in the unified pool at any moment. Status: proposed, to be confirmed.",
+      "category": "memory",
+      "quotes": [
+        {"source": "target", "text": "quantity: memory_budget"},
+        {"source": "target", "text": "scope-slide#memory: Strata-Spark: 80 GB Unified Memory"},
+        {"source": "target", "text": "Everything the engine's container holds in the unified pool at any moment"},
+        {"source": "target", "text": "The choice, the unit basis and the accounting boundary are proposals to be confirmed."}
+      ]
+    },
+    {
+      "id": "con-no-retuned-numbers",
+      "text": "Numbers tuned for another model in the reused components are open choices, not carried values.",
+      "category": "design",
+      "quotes": [
+        {"source": "system", "text": "model has been turned back into an open choice."}
+      ]
+    }
+  ],
+  "preferences": [
+    {
+      "id": "pref-reuse-strata-ds4",
+      "text": "The design is taken from Strata component by component, with the storage path taken from ds4; each component names the existing component it was reused or adapted from.",
+      "quotes": [
+        {"source": "system", "text": "Strata component by component, with the storage path taken from ds4, and nothing of it has been built."}
+      ]
+    },
+    {
+      "id": "pref-context-default",
+      "text": "The run configuration generator recommends a context length of 131072, capped by a memory rule, or the person's choice.",
+      "quotes": [
+        {"source": "nodes", "text": "The context length: 131072 recommended, capped by a memory rule"}
+      ]
+    },
+    {
+      "id": "pref-postponed",
+      "text": "Some Strata components are postponed rather than excluded: slot scheduler, speed calibration, lookup drafter, draft policy, draft verifier and window graphs.",
+      "quotes": [
+        {"source": "system", "text": "A second conversation needs its own attention state in memory, taken from the expert cache."},
+        {"source": "system", "text": "Postponed with the lookup drafter."}
+      ]
+    }
+  ],
+  "user_targets": [
+    {
+      "id": "tgt-memory-budget",
+      "metric": "memory_budget",
+      "target_text": "Pass/fail: within 80 GB (decimal) in pool mem0 under the stated accounting boundary. Proposed, to be confirmed.",
+      "quotes": [
+        {"source": "target", "text": "quantity: memory_budget"},
+        {"source": "target", "text": "scope-slide#memory: Strata-Spark: 80 GB Unified Memory"},
+        {"source": "target", "text": "The choice, the unit basis and the accounting boundary are proposals to be confirmed."}
+      ]
+    },
+    {
+      "id": "tgt-context-length",
+      "metric": "context_length",
+      "target_text": "Pass/fail on context length in tokens; value not given.",
+      "quotes": [
+        {"source": "target", "text": "quantity: context_length"}
+      ]
+    },
+    {
+      "id": "tgt-quality",
+      "metric": "quality_score",
+      "target_text": "Pass/fail against the fixed reference baseline. Proposed comparison: if no change to the computation is allowed, the same output tokens as the baseline; otherwise a task score not below a threshold. Task set and threshold not given.",
+      "quotes": [
+        {"source": "target", "text": "quantity: quality_score"},
+        {"source": "target", "text": "If no change to the computation is allowed: the same output tokens as the baseline. Otherwise: a task score not below the threshold."}
+      ]
+    },
+    {
+      "id": "tgt-ttft",
+      "metric": "ttft",
+      "target_text": "Reported, no threshold: from the engine admitting the request (model load excluded) to the first output token produced by the engine. Proposed.",
+      "quotes": [
+        {"source": "target", "text": "quantity: ttft"},
+        {"source": "target", "text": "The engine admits the request. Model load is excluded."},
+        {"source": "target", "text": "The first output token is produced by the engine."}
+      ]
+    },
+    {
+      "id": "tgt-decode-rate",
+      "metric": "decode_rate",
+      "target_text": "Reported, no threshold; excludes the first token. Proposed.",
+      "quotes": [
+        {"source": "target", "text": "quantity: decode_rate"},
+        {"source": "target", "text": "includes_first_token: false"}
+      ]
+    },
+    {
+      "id": "tgt-peak-memory",
+      "metric": "peak_memory",
+      "target_text": "Reported, no threshold; pool mem0, same accounting boundary as the memory budget. Proposed.",
+      "quotes": [
+        {"source": "target", "text": "quantity: peak_memory"},
+        {"source": "target", "text": "The same boundary as c-mem."}
+      ]
+    }
+  ],
+  "uncertainties": [
+    {
+      "id": "unc-expert-routing-conflict",
+      "kind": "conflicting",
+      "description": "The given model selects 8 of 256 experts per token per layer (model card, system summary, node startup sizing), but the node-level expert router, which the user gives as part of what is wanted, turns the feed-forward input into 512 logits and chooses 10 experts, and the system flow routed-experts carries 10 expert ids per token. The engine description contradicts the given model on the routing it must implement.",
+      "affected_fields": ["context", "in_scope", "constraints"],
+      "blocking": true,
+      "clarification": "Which routing must the engine implement: the model's 8 of 256 experts per token per layer, or the 10 of 512 stated by the expert router node and the routed-experts flow? If the model governs, confirm that the node and flow statements are to be corrected.",
+      "quotes": [
+        {"source": "model", "text": "out_of: 256, pick: 8"},
+        {"source": "system", "text": "Each token uses 8 of 256 experts in each of 62 layers."},
+        {"source": "nodes", "text": "turn the feed-forward input into 512 logits and choose 10 experts"},
+        {"source": "system", "text": "10 expert ids and weights per token, in device memory"}
+      ]
+    },
+    {
+      "id": "unc-context-length",
+      "kind": "missing",
+      "description": "The context length the engine must offer is not given; the target says the engine cannot be sized until it is. The node-level run configuration recommends 131072, which the target does not adopt.",
+      "affected_fields": ["user_targets", "preferences"],
+      "blocking": false,
+      "clarification": "What context length (tokens) must the engine offer?",
+      "quotes": [
+        {"source": "target", "text": "the engine cannot be sized until this is given. The scope page does not give it."},
+        {"source": "nodes", "text": "The context length: 131072 recommended, capped by a memory rule"}
+      ]
+    },
+    {
+      "id": "unc-memory-budget-proposed",
+      "kind": "ambiguous",
+      "description": "The 80 GB memory budget, its decimal unit basis and its accounting boundary are proposals awaiting confirmation; the scope page names three figures (128 GB, 12 GB, 80 GB).",
+      "affected_fields": ["constraints", "user_targets"],
+      "blocking": false,
+      "clarification": "Confirm or replace the 80 GB decimal budget and its accounting boundary.",
+      "quotes": [
+        {"source": "target", "text": "The choice, the unit basis and the accounting boundary are proposals to be confirmed."}
+      ]
+    },
+    {
+      "id": "unc-quality-taskset-threshold",
+      "kind": "missing",
+      "description": "The held-out task set and the pass threshold for the quality score are not given.",
+      "affected_fields": ["user_targets"],
+      "blocking": false,
+      "clarification": "Which held-out task set and which pass threshold judge quality?",
+      "quotes": [
+        {"source": "target", "text": "# scope page: held-out task set, not named"},
+        {"source": "target", "text": "# scope page: pass threshold to be decided"}
+      ]
+    },
+    {
+      "id": "unc-allowed-transformations",
+      "kind": "missing",
+      "description": "Whether quantisation below NVFP4 or approximations that change output are allowed is not stated; this also decides which quality comparison applies.",
+      "affected_fields": ["constraints", "user_targets"],
+      "blocking": false,
+      "clarification": "Are quantisation below NVFP4 or output-changing approximations allowed?",
+      "quotes": [
+        {"source": "target", "text": "# whether quantisation below NVFP4 or approximations that change output are allowed"}
+      ]
+    },
+    {
+      "id": "unc-workload",
+      "kind": "missing",
+      "description": "The fixed workload (including prompt lengths) on which time to first token, decode rate and peak memory are reported is not defined.",
+      "affected_fields": ["user_targets"],
+      "blocking": false,
+      "clarification": "What fixed workload, including prompt lengths, is used for the benchmark report?",
+      "quotes": [
+        {"source": "target", "text": "# scope page: a fixed workload, not defined. Prompt lengths decide the time to first token."}
+      ]
+    },
+    {
+      "id": "unc-checkpoint",
+      "kind": "missing",
+      "description": "The model checkpoint is not chosen; the target notes the model card offers BF16 and NVFP4 and only NVFP4 is within reach.",
+      "affected_fields": ["constraints"],
+      "blocking": false,
+      "clarification": "Which checkpoint (BF16 or NVFP4) is the engine built for?",
+      "quotes": [
+        {"source": "target", "text": "# scope page: one checkpoint. The model card offers BF16 and NVFP4; only NVFP4 is within reach."}
+      ]
+    },
+    {
+      "id": "unc-boundary-form",
+      "kind": "ambiguous",
+      "description": "The engine's form (execution library, offline engine or online service) is unset in the target, while the system and node descriptions include an HTTP front accepting OpenAI- and Anthropic-shaped requests.",
+      "affected_fields": ["in_scope", "constraints"],
+      "blocking": false,
+      "clarification": "Is the engine delivered as an execution library, an offline engine or an online service?",
+      "quotes": [
+        {"source": "target", "text": "# execution library, offline engine or online service"},
+        {"source": "nodes", "text": "title: HTTP front and admission bound"}
+      ]
+    },
+    {
+      "id": "unc-streaming-environment",
+      "kind": "missing",
+      "description": "Whether output is streamed, and the software environment, are unset in the target.",
+      "affected_fields": ["constraints"],
+      "blocking": false,
+      "clarification": "Is streaming output required, and what software environment is given?",
+      "quotes": [
+        {"source": "target", "text": "streaming: UNSET"},
+        {"source": "target", "text": "environment: UNSET"}
+      ]
+    },
+    {
+      "id": "unc-drafting-residue",
+      "kind": "conflicting",
+      "description": "Drafting is excluded from the first version, but some system flows still describe drafts (token lines per verify window when drafts are accepted; drafts counted in end-of-request figures).",
+      "affected_fields": ["in_scope", "out_of_scope"],
+      "blocking": false,
+      "clarification": "Confirm that draft-related flow behaviour is excluded together with drafting.",
+      "quotes": [
+        {"source": "system", "text": "Not covered in the first version: image, video and audio input; drafting;"},
+        {"source": "system", "text": "T <id> lines on the solo path, several per verify window when drafts are accepted"}
+      ]
+    },
+    {
+      "id": "unc-multi-card-and-ngram",
+      "kind": "ambiguous",
+      "description": "Node and flow descriptions refer to several cards and to an n-gram table, while the machine has one GPU and the model card names no lookup table.",
+      "affected_fields": ["in_scope", "context"],
+      "blocking": false,
+      "clarification": "Confirm that multi-card device selection and n-gram table handling do not apply to this engine.",
+      "quotes": [
+        {"source": "nodes", "text": "The engine's environment names the cards by bus order and restricts it to the configured cards"},
+        {"source": "nodes", "text": "Hold the n-gram table in host memory"},
+        {"source": "system", "text": "note: The model card names no lookup table."}
+      ]
+    },
+    {
+      "id": "unc-expert-arena",
+      "kind": "ambiguous",
+      "description": "The system summary keeps all experts on storage and reads missed experts on demand, but the flow expert-bytes-from-files describes every routed expert read into an arena at startup, with a file-source mode as the alternative.",
+      "affected_fields": ["in_scope"],
+      "blocking": false,
+      "clarification": "Confirm that experts are read on demand from storage (file-source mode) rather than loaded into an arena at startup.",
+      "quotes": [
+        {"source": "system", "text": "Every routed expert, read into the arena from the GGUF shards or experts.bin."},
+        {"source": "system", "text": "a routed expert that is not cached is read from storage for that step and may replace a less used one."}
+      ]
+    },
+    {
+      "id": "unc-model-unknowns",
+      "kind": "missing",
+      "description": "Model facts the engine depends on are not in the sources: per-token attention key/value size (config.json not read), separate sizes of expert and other weights (derived under an assumption), whether the output head is tied to the embedding; SSD read bandwidth of the machine is not given.",
+      "affected_fields": ["context"],
+      "blocking": false,
+      "clarification": "None needed from the user; these are facts to be read from the model files and measured on the machine.",
+      "quotes": [
+        {"source": "model", "text": "It must be read from config.json."},
+        {"source": "model", "text": "Whether it is tied to the embedding table is not stated on the card."},
+        {"source": "machine", "text": "# SSD 的读取带宽官网没有给出，需要在机器上实测后写进环境描述"}
+      ]
+    }
+  ],
+  "readiness": {
+    "status": "needs_clarification",
+    "reason": "Purpose and requested result are clear, but one required statement conflicts: the engine description the user gives as what is wanted routes 10 of 512 experts, while the given model routes 8 of 256 (unc-expert-routing-conflict). Contradictory required constraints are blocking. All other uncertainties are missing or ambiguous parameters that Requirements can carry as unresolved items."
+  }
+}

@@ -1,0 +1,175 @@
+# Measured evidence written by spark_kit/measure.py. The content is JSON, which is also valid YAML.
+{
+  "kind": "evidence",
+  "id": "evidence/iq3s-2k",
+  "verifies": [],
+  "engine_build_digest": "Strata engine {\"version\": \"0.1.59.1\", \"source\": \"spark/build_engine.sh\", \"platform\": \"linux-aarch64\", \"archs\": \"121\", \"ptx\": true, \"cuda\": \"13.0\", \"portable\": true} built from source revision 504b1433 + Qwen3.8-Flash-Next IQ3_S; run configuration as written by its setup (strata-iq3_s.json)",
+  "quality": "median_of_n",
+  "workload": "4 prompts, 1 runs each, max_tokens=128, temperature=0, one request at a time in order; 2 warm-up requests not counted; added to the request body: {\"seed\": 1234}",
+  "measured_under": {
+    "hardware": "hw/dgx-spark",
+    "environment": "env/dgx-spark-measured-20261119",
+    "endpoint": "http://127.0.0.1:8190/v1",
+    "model_name": "qwen3.8-flash-next-iq3_s",
+    "time": "2026-11-20T14:14:27-05:00",
+    "definitions": {
+      "ttft": "starts before the client sends the request; ends when the client receives the first non-empty content delta",
+      "decode_rate": "(completed tokens - 1) / (time of the last delta - time of the first delta); the first token is not counted",
+      "peak_memory": "whole machine: the largest drop in the system's MemAvailable during the measurement; not the engine process's own use",
+      "token_count_from": [
+        "usage"
+      ]
+    }
+  },
+  "baseline": "none; this is itself the baseline measurement of an off-the-shelf runtime",
+  "results": {
+    "ttft_s_median": 1.9571,
+    "decode_tok_per_s_median": 56.4884,
+    "prompt_tokens_median": 2365.0,
+    "engine_prompt_tok_per_s_median": 1263.95,
+    "engine_prompt_ms_median": 1875.8,
+    "engine_decode_tok_per_s_median": 56.1,
+    "system_memory_drop_gb": 1.07,
+    "samples": [
+      {
+        "ttft_s": 2.005856942036189,
+        "decode_tok_per_s": 60.90315952954904,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 4.091134635033086,
+        "prompt_tokens": 2034,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2034,
+          "prompt_ms": 1911.5,
+          "prompt_per_token_ms": 0.94,
+          "prompt_per_second": 1064.1,
+          "predicted_n": 128,
+          "predicted_ms": 2113.8,
+          "predicted_per_token_ms": 16.514,
+          "predicted_per_second": 60.6,
+          "draft_n": 113,
+          "draft_n_accepted": 79
+        },
+        "prompt": 0,
+        "run": 0
+      },
+      {
+        "ttft_s": 1.908368679927662,
+        "decode_tok_per_s": 53.09475909622248,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 4.300318510038778,
+        "prompt_tokens": 2616,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2616,
+          "prompt_ms": 1840.1,
+          "prompt_per_token_ms": 0.703,
+          "prompt_per_second": 1421.7,
+          "predicted_n": 128,
+          "predicted_ms": 2419.7,
+          "predicted_per_token_ms": 18.904,
+          "predicted_per_second": 52.9,
+          "draft_n": 124,
+          "draft_n_accepted": 71
+        },
+        "prompt": 1,
+        "run": 0
+      },
+      {
+        "ttft_s": 2.120318528963253,
+        "decode_tok_per_s": 57.25855355479182,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 4.338327754056081,
+        "prompt_tokens": 2442,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2442,
+          "prompt_ms": 2064.7,
+          "prompt_per_token_ms": 0.845,
+          "prompt_per_second": 1182.7,
+          "predicted_n": 128,
+          "predicted_ms": 2247.2,
+          "predicted_per_token_ms": 17.556,
+          "predicted_per_second": 57.0,
+          "draft_n": 107,
+          "draft_n_accepted": 76
+        },
+        "prompt": 2,
+        "run": 0
+      },
+      {
+        "ttft_s": 1.799585412023589,
+        "decode_tok_per_s": 55.71819863646775,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 4.0789125099545345,
+        "prompt_tokens": 2288,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2288,
+          "prompt_ms": 1700.9,
+          "prompt_per_token_ms": 0.743,
+          "prompt_per_second": 1345.2,
+          "predicted_n": 128,
+          "predicted_ms": 2320.2,
+          "predicted_per_token_ms": 18.127,
+          "predicted_per_second": 55.2,
+          "draft_n": 108,
+          "draft_n_accepted": 83
+        },
+        "prompt": 3,
+        "run": 0
+      }
+    ],
+    "warmups": [
+      {
+        "ttft_s": 2.959817076101899,
+        "decode_tok_per_s": 62.45372947043405,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 4.993322538095526,
+        "prompt_tokens": 1864,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 1864,
+          "prompt_ms": 2326.6,
+          "prompt_per_token_ms": 1.248,
+          "prompt_per_second": 801.2,
+          "predicted_n": 128,
+          "predicted_ms": 2081.5,
+          "predicted_per_token_ms": 16.262,
+          "predicted_per_second": 61.5,
+          "draft_n": 107,
+          "draft_n_accepted": 81
+        }
+      },
+      {
+        "ttft_s": 1.8640874589327723,
+        "decode_tok_per_s": 60.25130251632156,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 3.971925707999617,
+        "prompt_tokens": 2387,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2387,
+          "prompt_ms": 1735.0,
+          "prompt_per_token_ms": 0.727,
+          "prompt_per_second": 1375.8,
+          "predicted_n": 128,
+          "predicted_ms": 2136.4,
+          "predicted_per_token_ms": 16.691,
+          "predicted_per_second": 59.9,
+          "draft_n": 123,
+          "draft_n_accepted": 83
+        }
+      }
+    ],
+    "errors": [],
+    "requests_ok": 4,
+    "requests_failed": 0
+  }
+}

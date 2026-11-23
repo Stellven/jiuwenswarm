@@ -1,0 +1,163 @@
+# 由 spark_kit/measure.py 生成的实测证据。内容是 JSON，也是合法的 YAML。
+{
+  "kind": "evidence",
+  "id": "evidence/cache-48g",
+  "verifies": [],
+  "engine_build_digest": "llama.cpp version: 0.7.0-dev (build 1, commit ba3c05f) + Muse-Spark-Open-816B-A42B UD-IQ2_XXS (six files in ~/ifbench, read only); extra arguments: --moe-cache-mib 49152",
+  "quality": "median_of_n",
+  "workload": "4 个提示，每个 1 次，max_tokens=128，temperature=0，单请求顺序执行；预热 2 次不计入；请求体另加 {\"cache_prompt\": false, \"seed\": 1234}",
+  "measured_under": {
+    "hardware": "hw/dgx-spark",
+    "environment": "env/dgx-spark-measured-20261119",
+    "endpoint": "http://127.0.0.1:8189/v1",
+    "model_name": "muse-own",
+    "time": "2026-11-20T11:02:03-05:00",
+    "definitions": {
+      "ttft": "起点：客户端发出请求之前；终点：客户端收到第一个非空内容增量",
+      "decode_rate": "（完成 token 数 − 1）÷（末个增量时刻 − 首个增量时刻），不含首 token",
+      "peak_memory": "整机口径：测量期间系统 MemAvailable 的最大下降量；不是引擎进程的占用",
+      "token_count_from": [
+        "usage"
+      ]
+    }
+  },
+  "baseline": "无；这是现成运行时的基线测量本身",
+  "results": {
+    "ttft_s_median": 228.3235,
+    "decode_tok_per_s_median": 0.7322,
+    "prompt_tokens_median": 2328.0,
+    "engine_prompt_tok_per_s_median": 10.9386,
+    "engine_prompt_ms_median": 218688.284,
+    "engine_decode_tok_per_s_median": 0.7036,
+    "system_memory_drop_gb": 1.56,
+    "samples": [
+      {
+        "ttft_s": 163.6088253519265,
+        "decode_tok_per_s": 0.7266439746809666,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 338.38492537499405,
+        "prompt_tokens": 2042,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2042,
+          "prompt_ms": 155434.441,
+          "prompt_per_token_ms": 76.11872722820763,
+          "prompt_per_second": 13.13737153016171,
+          "predicted_n": 128,
+          "predicted_ms": 180843.419,
+          "predicted_per_token_ms": 1423.9639291338583,
+          "predicted_per_second": 0.7022649798497782
+        },
+        "prompt": 0,
+        "run": 0
+      },
+      {
+        "ttft_s": 232.99744641792495,
+        "decode_tok_per_s": 0.7377678059521028,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 405.13832729589194,
+        "prompt_tokens": 2398,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2398,
+          "prompt_ms": 222580.387,
+          "prompt_per_token_ms": 92.81917723102585,
+          "prompt_per_second": 10.773635684261796,
+          "predicted_n": 128,
+          "predicted_ms": 180142.416,
+          "predicted_per_token_ms": 1418.444220472441,
+          "predicted_per_second": 0.7049977613267938
+        },
+        "prompt": 1,
+        "run": 0
+      },
+      {
+        "ttft_s": 223.64955312700476,
+        "decode_tok_per_s": 0.7006887000480511,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 404.899800192914,
+        "prompt_tokens": 2385,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2385,
+          "prompt_ms": 214796.181,
+          "prompt_per_token_ms": 90.06129182389938,
+          "prompt_per_second": 11.103549368971322,
+          "predicted_n": 128,
+          "predicted_ms": 187768.283,
+          "predicted_per_token_ms": 1478.4904173228347,
+          "predicted_per_second": 0.6763655606309188
+        },
+        "prompt": 2,
+        "run": 0
+      },
+      {
+        "ttft_s": 233.13165858900174,
+        "decode_tok_per_s": 0.7534443620732406,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 401.6908865730511,
+        "prompt_tokens": 2271,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2271,
+          "prompt_ms": 223611.176,
+          "prompt_per_token_ms": 98.46374988991634,
+          "prompt_per_second": 10.15602189758172,
+          "predicted_n": 128,
+          "predicted_ms": 175794.159,
+          "predicted_per_token_ms": 1384.2059763779528,
+          "predicted_per_second": 0.7224358347423817
+        },
+        "prompt": 3,
+        "run": 0
+      }
+    ],
+    "warmups": [
+      {
+        "ttft_s": 174.8746345040854,
+        "decode_tok_per_s": 0.6656108606317279,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 365.6768096360611,
+        "prompt_tokens": 1842,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 1842,
+          "prompt_ms": 168554.288,
+          "prompt_per_token_ms": 91.50612812160695,
+          "prompt_per_second": 10.928229841295998,
+          "predicted_n": 128,
+          "predicted_ms": 196566.246,
+          "predicted_per_token_ms": 1547.7657165354333,
+          "predicted_per_second": 0.6460926155144663
+        }
+      },
+      {
+        "ttft_s": 222.03244850598276,
+        "decode_tok_per_s": 0.7113876804457107,
+        "completion_tokens": 128,
+        "token_count_from": "usage",
+        "total_s": 400.5567658239743,
+        "prompt_tokens": 2318,
+        "engine_timings": {
+          "cache_n": 0,
+          "prompt_n": 2318,
+          "prompt_ms": 213280.301,
+          "prompt_per_token_ms": 92.01048360655739,
+          "prompt_per_second": 10.86832674715702,
+          "predicted_n": 128,
+          "predicted_ms": 185456.066,
+          "predicted_per_token_ms": 1460.2839842519684,
+          "predicted_per_second": 0.6847983068938818
+        }
+      }
+    ],
+    "errors": [],
+    "requests_ok": 4,
+    "requests_failed": 0
+  }
+}

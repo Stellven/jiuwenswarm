@@ -1,0 +1,87 @@
+kind: engine_spec
+id: spec/muse-spark-open-on-dgx-spark/target
+spec_level: target
+ontology_version: 0.6.1
+given:
+  model: model/muse-spark-open
+  hardware: hw/dgx-spark
+  environment: UNSET
+boundary:
+  form: UNSET
+  packaging:
+    value: container
+    resolution: required
+interface:
+  input:
+    modality: text
+    resolution: required
+  output:
+    modality: text
+    resolution: required
+  streaming: UNSET
+contract:
+  requirements:
+  - id: c-mem
+    quantity: memory_budget
+    kind: pass_fail
+    status: proposed
+    value: 80
+    unit: GB
+    unit_basis: decimal
+    pool: mem0
+    accounting_boundary: 'Everything the engine''s container holds in the unified pool at any moment: allocations of the
+      process on CPU and GPU, and page cache attributable to the files it reads. The operating system and other processes
+      are outside.'
+    note: The scope page names three figures. 128 GB is the machine's nominal memory, of which 121.6 GB is reported allocatable,
+      so it cannot be a budget. 12 GB is called a GPU working-set figure, and this machine has no separate GPU memory to
+      apply it to. 80 GB is the one figure that is a budget for this machine. The choice, the unit basis and the accounting
+      boundary are proposals to be confirmed.
+  - id: c-context
+    quantity: context_length
+    kind: pass_fail
+    value: UNSET
+    unit: tokens
+    note: The model allows 1,000,000 tokens. The attention state for the offered context is taken from the same 80 GB as
+      the expert cache, so the engine cannot be sized until this is given. The scope page does not give it.
+  - id: c-quality
+    quantity: quality_score
+    kind: pass_fail
+    status: proposed
+    baseline: The published reference implementation with the NVFP4 weights, the published tokenizer and greedy sampling.
+    comparison: 'If no change to the computation is allowed: the same output tokens as the baseline. Otherwise: a task score
+      not below the threshold.'
+    taskset: UNSET
+    threshold: UNSET
+  - id: c-ttft
+    quantity: ttft
+    kind: report
+    status: proposed
+    timing_start: The engine admits the request. Model load is excluded.
+    timing_end: The first output token is produced by the engine.
+    workload: UNSET
+  - id: c-decode
+    quantity: decode_rate
+    kind: report
+    status: proposed
+    includes_first_token: false
+    workload: UNSET
+  - id: c-peak
+    quantity: peak_memory
+    kind: report
+    status: proposed
+    pool: mem0
+    accounting_boundary: The same boundary as c-mem.
+    workload: UNSET
+  allowed_transformations: UNSET
+  workload: UNSET
+delivery:
+  model_checkpoint: UNSET
+  deliverables:
+  - item: reproducible_container
+    resolution: required
+  - item: clean_rebuild
+    resolution: required
+  - item: benchmark_report
+    resolution: required
+  - item: replayable_run_artifacts
+    resolution: required

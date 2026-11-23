@@ -1,0 +1,52 @@
+# Registered quantities. `required_fields` are the fields any requirement on the quantity must carry;
+# a missing one, or one written UNSET, is reported as a gap. A report-only requirement need not give value or threshold.
+ontology_version: 0.6.1
+
+quantities:
+  memory_budget:
+    title: "Memory budget: the upper limit the engine may use. A requirement."
+    dimension: bytes
+    role: budget
+    required_fields: [value, unit, unit_basis, pool, accounting_boundary]
+    field_notes:
+      pool: "Which memory pool of the target hardware is limited."
+      accounting_boundary: "What is counted: the process, the container or the device allocator; whether page cache and runtime overhead are included."
+      unit_basis: "Whether GB is decimal or binary."
+
+  peak_memory:
+    title: "Peak memory: the largest amount actually used during a run. A measurement."
+    dimension: bytes
+    role: measurement
+    required_fields: [pool, accounting_boundary, workload]
+
+  ttft:
+    title: "Time to first token."
+    dimension: time
+    role: measurement
+    required_fields: [timing_start, timing_end, workload]
+    field_notes:
+      timing_start: "Where timing starts: request sent, request admitted, or prefill begins; whether model load is included."
+      timing_end: "Where timing ends: first token produced, or first non-empty increment received."
+
+  decode_rate:
+    title: "Decode rate in output tokens per second."
+    dimension: rate
+    role: measurement
+    required_fields: [includes_first_token, workload]
+
+  quality_score:
+    title: "Output quality."
+    dimension: score
+    role: measurement
+    required_fields: [baseline, taskset, comparison, threshold]
+    field_notes:
+      baseline: "The reference implementation, weights, tokenizer and sampling settings."
+      comparison: "How outputs are compared: token-by-token identity, or a task score not below a threshold."
+
+  context_length:
+    title: "Context length: the longest sequence of prompt and output tokens the engine offers. A requirement."
+    dimension: tokens
+    role: budget
+    required_fields: [value, unit]
+    field_notes:
+      value: "The engine holds attention state for this many tokens, so it is priced against the memory budget."

@@ -1,0 +1,51 @@
+# Results that are open and known. `python tools/so_run_all.py` compares each step's result line with the one
+# recorded here: the same line is shown as "open", another line or no finding at all is shown as "CHANGED" and makes
+# the run not clean. An entry is removed when the finding is settled, and its result line is changed only together
+# with what it describes. A step that reports a problem and has no entry here is a failure of the run.
+#
+# Two kinds are recorded. A target the project has not finished setting: not something this directory can settle.
+# A pass mark of 2026-11-16 (validation/criteria.yaml) that the stored reader answers do not meet: the answers are a
+# record and cannot change, and no check can be repeated with new readers here, so these stay as they are until a
+# new check is run. NODE-ONTOLOGY-revised.md, section 6, shows every figure against its mark.
+
+target-muse:
+  result: "Conclusion: cannot be finalised (blocking 7, non-blocking 3)"
+  why: "After the bench owner's answers of 2026-11-19, 7 remain: streaming; the context length the engine must offer
+    (2 lines); the quality pass threshold; the allowed transformations; the memory budget, for which the kickoff page
+    gives 128 GB and 80 GB and the project has not chosen; and 128 GB as written is more than the machine reports
+    allocatable."
+  whose: "the project and the bench owner"
+
+score-classification-first:
+  result: "RESULT: FAIL. 3 of 6 marks not met"
+  why: "First run on the thin draft. On llama.cpp the readers call fewer than 75% of the parts plainly an instance of
+    one type, and one reader gives no type to more than 5%."
+  whose: "the node types; needs a new check with new readers"
+
+score-classification:
+  result: "RESULT: FAIL. 2 of 6 marks not met"
+  why: "Confirmation on draft 0.9. On llama.cpp both readers call 30 of 47 parts plainly an instance of one type
+    (64%), against a mark of 75%."
+  whose: "the node types; needs a new check with new readers"
+
+score-selection-first:
+  result: "RESULT: FAIL. 4 of 4 marks not met"
+  why: "First run. Each reader's answers match what Strata runs for 32 to 34 of 44 types, against a mark of 90%."
+  whose: "the node types; needs a new check with new readers"
+
+score-selection:
+  result: "RESULT: FAIL. 4 of 4 marks not met"
+  why: "Confirmation. Each reader's answers match what Strata runs for 29 to 33 of 44 types, against a mark of 90%."
+  whose: "the node types; needs a new check with new readers"
+
+score-choices:
+  result: "RESULT: FAIL. 5 of 6 marks not met"
+  why: "Decisions of the engines that plainly are a choice of the draft: 79.4% on the five engines for the
+    full-detail draft, 30.5% on llama.cpp, against a mark of 80%; fewer for the choices draft 0.9 keeps."
+  whose: "the node types; needs a new check with new readers"
+
+score-heldout:
+  result: "RESULT: FAIL. 3 marks not met"
+  why: "The checker of the held-out engine on draft 0.8: 60 of 119 decisions plainly covered (mark 80%), 30 not
+    covered (mark 5%), 6 claims of the types the engine contradicts (mark 0)."
+  whose: "the node types; needs a new check with new readers"

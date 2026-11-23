@@ -1,0 +1,1094 @@
+engine: "HyperQwen"
+revision: "3d6c9543292efc17372b824071ef8d9f33366b21 (patch series cut against vLLM 0.33.0, pinned in docker/requirements.txt)"
+basis: "Read in code: PATCHES.md and patches/series in full; the preamble and touched-file list of every one of the 65 patches in patches/ and the 4 in kvarn/; the added lines of dflash2-lookup-drafting (whole lookup.py, fuse and point-mass kernels, verify-length controller, runner and cudagraph hooks), hybrid-kv-groups-v2-cudagraph, async-mamba-kv-sizing, mamba-align-checkpoint-order, qwen3_5-mtp-draft-vocab, qwen3_5-embed-uva, sampler-small-topk-fast-softmax (comments and signatures), spec-decode-attn (gate, qmax, buffer setup), dflash2-ngram-chains (comments and signatures), dflash2-z-adaptive-emitted, dflash2-prewarm, dflash-context-capacity, gdn-multi-prefill-checkpoints (comments and signatures), hybrid-sw-block-promote (comments), prefill-attn-int8 (gate), vision-tower-cpu-offload, engine-stall-sentinel, memory-profile-after-warmup, the rejection-sampler backports; kvarn/files/.../kvarn_attn.py module docstring, builder state (lines 450-650) and _flush_tail (2039-2080); prepare/ (atomic_publish.py, quant_schema.py head, quant_embed.py, quant_mtp.py, build_draft_vocab.py head, harden/translate_chat_template.py heads, README.md); drafter/ docstrings of every script and README.md head; single-user/start_qwen.sh lines 400-520 and 755-1062; launcher_common.sh header and the vision, offload and prefix-cache functions; docker/prepare.sh head; xgrammar/README.md and install.sh; scripts/ headers. Read only in documents: fa2/README.md, pthfa/README.md, lsa/README.md, docs/multi-gpu.md head, earlier notes for numbers. Upstream vLLM 0.33.0 itself was not read: the scheduler, block pool, engine core, API server, rejection sampler, GDN kernels, DFlash2 model and tensor parallelism are described from what the patches carry as context and what the documents say."
+concurrency: batched
+models: "Qwen3.8-27B (and same-architecture third-party checkpoints such as Arete-27B and an uncensored build), a dense hybrid of 64 layers: 48 Gated DeltaNet linear-attention layers with a fixed-size recurrent state (SSM state plus convolution history) and 16 full-attention layers (24 query heads, 4 KV heads, head dim 256). Untied 248,320-row input embedding and output head. Shipped as W4A16 compressed-tensors. Carries its own one-layer MTP draft module; an external 5-layer DFlash2 block drafter (sliding-window attention, reads target hidden states of 5 layers, candidate selector, grouped convolutions) is optional, as is a DSpark drafter. Optional Qwen3-VL vision tower. No experts."
+parts:
+  - id: "model-dir-publisher"
+    engine_name: "prepare/atomic_publish.py, quant_schema.py load_config, docker/prepare.sh state()"
+    does: "Commits every offline rewrite of the model directory crash-safely and refuses a checkpoint the rewrites cannot extend, so a killed or wrong preparation never leaves a half-written model."
+    not: "It does not compute any weights; the requantizers and vocabulary builder do."
+    runs: [offline]
+    takes:
+      - {from: "outside: model_files", what: "config.json quantization_config, safetensors index, shards"}
+      - {from: "offline-weight-requantizer", what: "new shards, config groups and index entries to publish"}
+      - {from: "draft-vocab-builder", what: "draft-head shard, id map file and index entries"}
+      - {from: "chat-template-rewriter", what: "rewritten chat_template.jinja"}
+    gives:
+      - {to: "outside: storage", what: "files replaced by temp-file-and-rename with fsync; pristine backups kept once"}
+      - {to: "weight-loader", what: "a model directory whose index is the commit point of each step"}
+    owns_state: ["which preparation steps are done, read only from the safetensors index", "the first (pristine) backup of every rewritten file", "a lock beside the model directory serialising concurrent preparations"]
+    exists_because: "Preparation rewrites a 20 GB model in place and runs on every container start under set -e, so a partial write would stop every later start."
+    output_effect: none
+    decisions:
+      - "Order of writes: shards, then config.json, then the index last as the commit point"
+      - "Whether a checkpoint is an extendable compressed-tensors pack-quantized schema, checked before any read"
+      - "Backup suffix per step so two steps sharing a shard do not overwrite each other's pristine copy"
+    when_things_go_wrong: ["unsupported schema: exits with one line and an untouched directory", "killed mid-step: the step stays pending and the next run completes it", "truncated config, index or shard: treated as a download", "another preparation holds the lock: waits, then refuses after a timeout"]
+    must_never: ["leave a reader seeing part of a file", "back up a modified file over the original", "point the index at a draft head whose id list is not yet on disk"]
+    evidence: ["prepare/atomic_publish.py:1-74", "prepare/quant_schema.py:1-80", "docker/prepare.sh:1-40", "prepare/README.md"]
+    read: code
+
+  - id: "offline-weight-requantizer"
+    engine_name: "prepare/quant_lm_head.py, quant_embed.py, quant_mtp.py, quant_heads_stream.py"
+    does: "Requantizes the tensors the published quant left in bf16 (output head, input embedding, MTP draft module) to symmetric group-128 int8 (MTP optionally int4) by round-to-nearest, with an error bound."
+    not: "Not calibrated quantization; GPTQ is gptq-requantizer. Not the load-time sign folding of the body weights."
+    runs: [offline]
+    takes:
+      - {from: "outside: model_files", what: "bf16 lm_head, embed_tokens and mtp.* tensors"}
+    gives:
+      - {to: "model-dir-publisher", what: "packed int tensors and scales, a cloned config group per target, index entries"}
+    owns_state: []
+    exists_because: "Two 2.5 GB untied vocabulary matrices and an 850 MB draft module do not leave room for the state pool on a 24 GB card; the head is read whole every decode step, so halving it also speeds memory-bound decode."
+    output_effect: changes_output
+    output_effect_when: "Always for head and embedding (int8 round trip error about 0.6 percent) compared with the bf16 checkpoint; the MTP module's precision changes only acceptance, not output."
+    decisions:
+      - "Bit width per tensor group and group size"
+      - "Whether mtp.fc is kept in bf16"
+      - "Read whole shards or stream a single huge shard"
+    when_things_go_wrong: ["round-trip relative error at or above the bound: aborts before writing", "MTP weights spread over several shards: refuses"]
+    must_never: ["write a group that declares a zero point when the tensors written are symmetric"]
+    evidence: ["prepare/quant_embed.py:1-78", "prepare/quant_mtp.py:1-82", "prepare/quant_schema.py:41-48", "prepare/README.md"]
+    read: code
+
+  - id: "draft-vocab-builder"
+    engine_name: "prepare/build_draft_vocab.py (mtp.draft_lm_head, mtp_draft_vocab_ids.pt)"
+    does: "Chooses the token ids the MTP drafter may propose and slices those rows out of the already-quantized output head into a separate draft head."
+    not: "Not a tokenizer change; the target still scores the full vocabulary."
+    runs: [offline]
+    takes:
+      - {from: "outside: model_files", what: "tokenizer.json and the quantized lm_head"}
+      - {from: "outside: storage", what: "a shipped id list or a text corpus to count, ideally the model's own outputs"}
+      - {from: "calibration-data-capture", what: "self-generated outputs used to count the shipped list"}
+    gives:
+      - {to: "model-dir-publisher", what: "draft-head rows, the id map, index entries"}
+    owns_state: ["the draft id list"]
+    exists_because: "The model emits only about 54k distinct tokens of a 248k vocabulary, and the MTP drafter would otherwise read the whole head once per draft token."
+    output_effect: none
+    decisions:
+      - "Number of rows kept"
+      - "Which corpus the counts come from"
+      - "Which extra scripts (CJK, Cyrillic) are appended and under what row budget"
+      - "Only whole-UTF-8 rows are eligible"
+    when_things_go_wrong: ["a token outside the list is never drafted, so that position is always rejected and ends the chain"]
+    must_never: ["slice from a head other than the one the target uses after quantization"]
+    evidence: ["prepare/build_draft_vocab.py:1-140", "drafter/README.md 'What actually mattered' item 1"]
+    read: code
+
+  - id: "calibration-data-capture"
+    engine_name: "drafter/collect_prompts.py, gen_data.py, capture.py, capture_dflash2.py"
+    does: "Runs the served model offline over a prompt mix to produce self-distillation outputs, target hidden states and per-layer Hessians of the drafters' own inputs."
+    not: "Does not change weights itself."
+    runs: [offline]
+    takes:
+      - {from: "outside: storage", what: "public prompt datasets"}
+      - {from: "outside: model_files", what: "the target and the bf16 DFlash2 drafter"}
+    gives:
+      - {to: "gptq-requantizer", what: "captured final hidden states and fp32 Hessians per module"}
+      - {to: "draft-vocab-builder", what: "the model's own generated tokens"}
+    owns_state: ["resumable generation output with an OS lock against a second generator"]
+    exists_because: "Calibrated int4 of the head and drafters needs activations of this model on realistic traffic, and the draft vocabulary is best counted over the model's own outputs."
+    output_effect: none
+    decisions:
+      - "Prompt mix and thinking on/off share"
+      - "Number of calibration rows"
+      - "Run eagerly so module hooks see inputs (graphs bypass hooks)"
+    when_things_go_wrong: ["interrupted final record is removed on resume; corruption earlier stops the run"]
+    must_never: ["delete the lock sidecar while it is in use"]
+    evidence: ["drafter/capture.py:1-12", "drafter/capture_dflash2.py:1-16", "drafter/gen_data.py:1-8", "drafter/README.md:1-45"]
+    read: docs
+
+  - id: "gptq-requantizer"
+    engine_name: "drafter/gptq_lm_head.py, requant_mtp_gptq.py, quant_dflash2.py, gptq_utils.py (the 'fast variant')"
+    does: "Quantizes the output head, the MTP module and the DFlash2 drafter to int4 group-128 with GPTQ using captured Hessians, writing a new model-directory variant."
+    not: "Not the round-to-nearest int8 path of offline-weight-requantizer."
+    runs: [offline]
+    takes:
+      - {from: "calibration-data-capture", what: "hidden states and Hessians"}
+      - {from: "outside: model_files", what: "bf16 or int8 source tensors"}
+    gives:
+      - {to: "outside: model_files", what: "a variant directory with hardlinked shards and int4 head and drafters (fetched prebuilt by prepare/fetch_fast_variant.py and fetch_dflash2.py)"}
+    owns_state: []
+    exists_because: "Round-to-nearest int4 on the head costs measurable perplexity and acceptance; GPTQ halves that, and the 3.85 GB bf16 DFlash2 drafter would not fit beside the pool."
+    output_effect: changes_output
+    output_effect_when: "int4 GPTQ head changes logits (reported perplexity +0.6 percent) compared with the int8 head; drafter quantization changes only acceptance."
+    decisions:
+      - "Bits and group size; no act-order so Marlin needs no index"
+      - "Which drafter modules stay bf16 (convolution projections, selector, norms)"
+      - "Width of the DFlash2 fc projection"
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["drafter/quant_dflash2.py:1-22", "drafter/gptq_lm_head.py:1-7", "drafter/requant_mtp_gptq.py:1-6", "drafter/README.md items 2"]
+    read: docs
+
+  - id: "chat-template-rewriter"
+    engine_name: "prepare/harden_chat_template.py, translate_chat_template.py"
+    does: "Rewrites the model's chat template so array-shaped tool arguments and unknown reasoning-effort names no longer fail rendering."
+    not: "Not run per request; prompt-renderer applies the rewritten template."
+    runs: [offline]
+    takes:
+      - {from: "outside: model_files", what: "chat_template.jinja"}
+    gives:
+      - {to: "model-dir-publisher", what: "the rewritten template (idempotent, marked)"}
+    owns_state: []
+    exists_because: "Clients send tool arguments as arrays and effort levels the template does not know, which made the template raise and the server answer 400."
+    output_effect: changes_output
+    output_effect_when: "For requests carrying array tool arguments or unknown effort names, compared with the stock template (which rejected them)."
+    decisions:
+      - "Which effort names map to which template level; unknown ones fall through to no instruction"
+    when_things_go_wrong: ["a template whose effort block matches no known shape is left alone with a warning"]
+    must_never: ["fail preparation over a ready model directory", "silently rewrite an effort to a stronger level"]
+    evidence: ["prepare/harden_chat_template.py:1-30", "prepare/translate_chat_template.py:1-30"]
+    read: code
+
+  - id: "launch-profile-resolver"
+    engine_name: "single-user/start_qwen.sh, batch/start_qwen.sh, single-user/alternative.sh, launcher_common.sh, resolve_config.sh"
+    does: "Turns the operator's profile choices and the detected GPU, platform and parallel size into the vLLM flags and environment knobs of one engine instance, and predicts how many requests the pool will hold."
+    not: "Does not size the pool itself (memory-budget-planner does); the feature refusals for correctness are correctness-pins."
+    runs: [startup]
+    takes:
+      - {from: "outside: operator", what: ".env mode, SPEC, CTX, KV format, INT8_ACT, PREFIX_CACHE, KV_OFFLOAD_GB, VISION, EMBED_UVA, DFLASH_TOKENS, EXTRA_ARGS"}
+      - {from: "outside: os", what: "compute capability, WSL detection, installed plugins"}
+    gives:
+      - {to: "memory-budget-planner", what: "pinned pool bytes (KV_MEM) or a utilisation fraction, batched-token budget"}
+      - {to: "request-scheduler", what: "max-num-seqs, max-num-batched-tokens 2048, async scheduling on or off"}
+      - {to: "attention-kv-store", what: "KV cache dtype and attention backend"}
+      - {to: "recurrent-state-store", what: "SSM state dtype float16"}
+      - {to: "graph-capture", what: "largest capture size and capture mode"}
+      - {to: "compile-and-warmup", what: "env knobs that enter the compile cache key"}
+      - {to: "verify-length-controller", what: "lookup and adaptive switches, verify block length"}
+      - {to: "access-guard", what: "API key and bind host"}
+      - {to: "telemetry", what: "a predicted resident-request count"}
+    owns_state: ["the effective configuration of one boot"]
+    exists_because: "The engine's speed and fit depend on many interacting flags whose right values differ by card, platform, context length and single-user versus batch use."
+    output_effect: changes_output
+    output_effect_when: "Choices of KV format, int8 activations and drafting differ from the bf16 reference; recorded per part."
+    decisions:
+      - "Profile (batch or single-user) and context class (fast, long, huge)"
+      - "KV format and attention backend from context class and compute capability"
+      - "Drafter kind and number of draft tokens"
+      - "Pin the pool by bytes or by utilisation; skip the pin under tensor parallelism"
+      - "Which layers run int8 activations"
+      - "Allocator mode (expandable segments off under WSL2, KV connector, or TP>1)"
+      - "Prefix caching on with align-mode Mamba state, and the snapshot retention interval"
+    when_things_go_wrong: ["a boolean knob not 0 or 1: refuses to boot", "a shadowed flag in EXTRA_ARGS: refuses or warns", "a too-small /dev/shm for the offload tier: warns"]
+    must_never: ["export an empty string for a knob vLLM validates by choice list", "print the API key"]
+    evidence: ["launcher_common.sh:1-100", "launcher_common.sh:150-230", "single-user/start_qwen.sh:215-275", "single-user/start_qwen.sh:400-520", "single-user/start_qwen.sh:755-811", "single-user/start_qwen.sh:984-1062", "batch/start_qwen.sh:109-153,263-279"]
+    read: code
+
+  - id: "correctness-pins"
+    engine_name: "launcher guards and patch defaults"
+    does: "Turns off, at boot, feature combinations measured to corrupt output, and refuses combinations the kernels do not support."
+    not: "Not a runtime monitor; nothing checks output while serving."
+    runs: [startup]
+    takes:
+      - {from: "launch-profile-resolver", what: "the requested combination of drafter, verify length, KV format, prefix caching, dtype and capture mode"}
+    gives:
+      - {to: "verify-length-controller", what: "adaptive verify length pinned off under KVarN plus prefix caching with a long block; STICKY limited to a single request"}
+      - {to: "graph-capture", what: "PIECEWISE capture forced for the huge-context profile with MTP"}
+      - {to: "sampler", what: "FlashInfer sampler off (VLLM_USE_FLASHINFER_SAMPLER=0)"}
+      - {to: "drafter-free-chains", what: "greedy-only gate"}
+    owns_state: []
+    exists_because: "Several combinations are individually correct but together corrupt output with no error (adaptive block length with KVarN and a prefix hit; FULL capture with a prefix hit at one prompt length in 128), and some kernels are bf16-only."
+    output_effect: none
+    decisions:
+      - "Which combinations are pinned and to what"
+      - "Whether an explicit operator override is honoured"
+    when_things_go_wrong: ["fp16 dtype with a speculator: refuses to boot unless overridden", "FA2_FP8KV on a launcher without that arm: refuses"]
+    must_never: ["let the adaptive verify length run on KVarN with prefix caching and a block over 8 unless explicitly asked", "capture FULL graphs for MTP at the huge-context profile"]
+    evidence: ["single-user/start_qwen.sh:437-477", "single-user/start_qwen.sh:812-898", "single-user/start_qwen.sh:954-982", "patches/dflash2-lookup-drafting.patch:921-1000", "patches/dflash2-ngram-chains.patch (greedy-only gate comment)"]
+    read: code
+
+  - id: "compile-and-warmup"
+    engine_name: "torch.compile, Triton JIT warmups, kernel_warmup(), envs.py compile_factors()"
+    does: "Compiles the model graph and every Triton kernel variant the deployment can reach before the first request, keyed so a cached compile is reused only for the same knob settings."
+    not: "Does not capture CUDA graphs (graph-capture does)."
+    runs: [startup]
+    takes:
+      - {from: "launch-profile-resolver", what: "registered env knobs that change compiled code"}
+      - {from: "outside: storage", what: "the compile cache volume"}
+    gives:
+      - {to: "graph-capture", what: "compiled graph and warmed kernels"}
+      - {to: "memory-budget-planner", what: "compiler scratch that must be released before measuring"}
+    owns_state: ["the compile cache key: every registered knob except the runtime-only ones"]
+    exists_because: "Triton and torch.compile otherwise compile inside the first request that reaches a new shape (rejection sampler, sampler, DFlash2 input rungs), costing seconds of latency and, on WSL2, wedges."
+    output_effect: none
+    decisions:
+      - "Which knobs enter the cache key and which are excluded as runtime-only"
+      - "Which kernel rungs and spec-shaped dummy verifies to run at boot"
+      - "Which Triton kernels must not specialise on batch size"
+    when_things_go_wrong: ["a knob outside the key replays a stale compiled graph and crashes (KeyError, size assert)", "a cold cache adds about 70 s of warmup once per volume"]
+    must_never: ["read a code-changing knob without registering it in envs.py"]
+    evidence: ["patches/speed-knobs-envs.patch", "patches/compile-key-runtime-knobs.patch", "patches/spec-sampler-prewarm.patch", "patches/sampler-warmup-cuda.patch", "patches/dflash2-prewarm.patch", "patches/vllm-pr64137-logits-stats-no-specialize.patch", "patches/vllm-pr66026-gather-draft-sampled-no-specialize.patch", "PATCHES.md:17-18"]
+    read: code
+
+  - id: "graph-capture"
+    engine_name: "CUDA graph capture (cudagraph_utils.py, FULL / PIECEWISE modes)"
+    does: "Captures CUDA graphs for each batch size up to the capture limit and for each verify-block length the drafting path can schedule, fixing buffer addresses for replay."
+    not: "Does not decide block lengths; it fixes which ones can run captured."
+    runs: [startup]
+    takes:
+      - {from: "compile-and-warmup", what: "compiled model"}
+      - {from: "launch-profile-resolver", what: "capture size limit and mode"}
+      - {from: "correctness-pins", what: "forced PIECEWISE where FULL corrupts output"}
+      - {from: "verify-length-controller", what: "the second (drafter's own) query length to capture"}
+    gives:
+      - {to: "model-runner", what: "replayable graphs per (batch shape, query length)"}
+      - {to: "memory-budget-planner", what: "graph pool size measured from the allocator's reserved bytes"}
+    owns_state: ["captured graphs and the addresses they hold"]
+    exists_because: "Small decode and verify steps are launch-bound; replaying a captured graph removes per-kernel launch cost, but freezes addresses and host-side Python."
+    output_effect: changes_output
+    output_effect_when: "FULL capture of the verify step with a prefix-cache hit corrupted one prompt length in 128 on the huge-context profile, compared with PIECEWISE; otherwise none."
+    decisions:
+      - "FULL, PIECEWISE or FULL_AND_PIECEWISE per profile"
+      - "Capture both verify lengths when the lookup can lengthen the block"
+      - "Largest captured batch size"
+    when_things_go_wrong: ["an uncaptured shape runs piecewise or eager, slower", "a buffer reallocated after capture leaves the graph reading freed memory"]
+    must_never: ["reallocate a buffer whose address a graph holds", "run decision logic inside a captured region expecting it to execute each step"]
+    evidence: ["patches/dflash2-lookup-drafting.patch:106-146", "patches/cudagraph-memory-from-allocator.patch", "patches/spec-decode-attn.patch preamble", "patches/flashinfer-sm75-spec-graphs.patch", "single-user/start_qwen.sh:837-898"]
+    read: code
+
+  - id: "weight-loader"
+    engine_name: "vLLM model loader, Marlin process_weights_after_loading"
+    does: "Loads target and drafter weights from the model directory onto the GPU and re-encodes them for the kernels that will run them."
+    not: "Not offline requantization; it only re-lays out and re-signs codes already in the checkpoint."
+    runs: [startup]
+    takes:
+      - {from: "outside: model_files", what: "compressed-tensors shards, config, draft head and id map"}
+      - {from: "model-dir-publisher", what: "a committed model directory"}
+    gives:
+      - {to: "linear-gemm", what: "Marlin-repacked int4 weights, sign of negative scales folded into codes, int8-activation selection per layer"}
+      - {to: "token-embedding", what: "packed int8 embedding table routed through the quantized-embedding path"}
+      - {to: "output-head", what: "int8 or int4 head"}
+      - {to: "mtp-drafter", what: "MTP module and truncated draft head"}
+      - {to: "dflash2-drafter", what: "W4A16 drafter, with K/V rows unpacked to a dense matrix for its fused context projection"}
+      - {to: "memory-budget-planner", what: "bytes taken by weights and any repack staging buffer"}
+    owns_state: ["resident weights"]
+    exists_because: "every engine needs it"
+    output_effect: numeric
+    output_effect_when: "Sign folding of negative group scales turns the rare code -8 into -7 (one step) in flipped groups, compared with the checkpoint's values."
+    decisions:
+      - "Fold the sign of negative AutoRound scales into int4 codes for the int8-activation kernel"
+      - "Accept asymmetric zero-point int4 weights on the int8-activation path"
+      - "Stage repack transients through one grow-only buffer (opt-in)"
+      - "Load a bf16 drafter beside a quantized target"
+    when_things_go_wrong: ["MTP module without the embedding quant hunk: crashes on a missing parameter", "8-bit weights on the int8-activation path: refused"]
+    must_never: ["run the int8-activation Marlin kernel on unfolded negative scales (output is garbage while benchmarks look fine)"]
+    evidence: ["patches/marlin-int8-negative-scales.patch", "patches/marlin-int8-asym-zp.patch", "patches/marlin-repack-staged-sm80.patch", "patches/qwen3_5-embed-quant.patch", "patches/dspark-draft-quant-config.patch", "patches/dflash2-lookup-drafting.patch:20-81"]
+    read: code
+
+  - id: "memory-budget-planner"
+    engine_name: "gpu_worker determine_available_memory, profile_run, kv_cache_memory_bytes (KV_MEM)"
+    does: "Decides at startup how many bytes the state pool gets, from a profiling forward pass or from an operator-pinned byte count, after charging weights, activation peak, graph memory and fixed scratch."
+    not: "Does not decide page geometry (pool-layout-planner) or which request gets pages (paged-block-pool)."
+    runs: [startup]
+    takes:
+      - {from: "launch-profile-resolver", what: "utilisation fraction or pinned byte count"}
+      - {from: "weight-loader", what: "weight bytes"}
+      - {from: "graph-capture", what: "measured graph pool"}
+      - {from: "compile-and-warmup", what: "compiler scratch to release first"}
+      - {from: "verify-attention", what: "split-KV scratch allocated at model load inside the profile window"}
+      - {from: "outside: os", what: "device free memory"}
+    gives:
+      - {to: "pool-layout-planner", what: "pool bytes"}
+    owns_state: []
+    exists_because: "On a 24 GB card the pool is what is left after weights; the profiled activation peak swings by about 1 GiB between boots and cold compile scratch inflates it, so the residual must be measured or pinned."
+    output_effect: none
+    decisions:
+      - "Measure after an uncounted warm profile pass, and empty the allocator cache before allocating the pool"
+      - "Measure graph memory by allocator reserved bytes, not the driver's free-memory delta"
+      - "Pin by bytes for fixed-context profiles"
+    when_things_go_wrong: ["pool too small for max_model_len: refuses to boot", "pool pinned too full: first real batch OOMs on Linux, or silently spills to system RAM and slows 3-28x under WSL2"]
+    must_never: ["allocate scratch outside the measured window without saying so"]
+    evidence: ["patches/memory-profile-after-warmup.patch", "patches/pinned-kv-empty-cache.patch", "patches/cudagraph-memory-from-allocator.patch", "patches/spec-decode-scratch-within-budget.patch", "patches/hybrid-kv-groups-v2-cudagraph.patch preamble", "single-user/start_qwen.sh:506-520"]
+    read: code
+
+  - id: "pool-layout-planner"
+    engine_name: "v1/core/kv_cache_planning.py (KV cache groups, unify page size, block sizes)"
+    does: "Splits the pool into equal-size pages shared by attention KV, recurrent state and drafter window layers, choosing group size, per-kind block size and padding, and computes how many requests can be admitted and resident."
+    not: "Does not hand pages to requests at run time."
+    runs: [startup]
+    takes:
+      - {from: "memory-budget-planner", what: "pool bytes"}
+      - {from: "attention-kv-store", what: "bytes per token per layer of the chosen KV format"}
+      - {from: "recurrent-state-store", what: "state page size and pages per request"}
+      - {from: "dflash2-drafter", what: "sliding-window layers and their geometry"}
+    gives:
+      - {to: "paged-block-pool", what: "number of pages, groups, block size per group, scheduler block granularity"}
+      - {to: "telemetry", what: "resident requests at 1k, 32k and max length"}
+    owns_state: []
+    exists_because: "Three kinds of state with different growth laws share one allocator whose pages must be the same size; the largest state sets the page and padding decides how much is wasted."
+    output_effect: none
+    decisions:
+      - "Group size when the smallest bucket is the drafter's sliding-window layers (common divisor of the others instead)"
+      - "Promote a draft layer's block to a divisor of the primary block when its page does not divide the maximum"
+      - "Charge recurrent-state pages for every in-flight async batch, plus speculative scratch and prefill checkpoints"
+      - "Exclude the null block from displayed concurrency"
+    when_things_go_wrong: ["no promotable block: leaves padding at block 16, expensive but boots", "a promoted block that does not divide the scheduler block: assert at engine start (fixed by rounding to a divisor)"]
+    must_never: ["produce a group block that does not divide the scheduler granularity", "admit more requests than the recurrent-state pages can hold under async scheduling"]
+    evidence: ["patches/hybrid-kv-groups-v2-cudagraph.patch:1-60 of body", "patches/hybrid-sw-block-promote.patch", "patches/async-mamba-kv-sizing.patch", "patches/kv-cache-seat-budget.patch", "single-user/start_qwen.sh:609-681"]
+    read: code
+
+  - id: "paged-block-pool"
+    engine_name: "BlockPool, KVCacheCoordinator, single_type_kv_cache_manager"
+    does: "Hands out, reference-counts and frees fixed-size pages per request and per group, keeping a free queue whose order decides eviction."
+    not: "Does not decide which requests run (request-scheduler) nor what a page holds."
+    runs: [per_step]
+    takes:
+      - {from: "pool-layout-planner", what: "page count and group geometry"}
+      - {from: "request-scheduler", what: "allocate, free and copy-on-write requests"}
+      - {from: "prefix-cache", what: "hash hits and blocks to hold until request end"}
+    gives:
+      - {to: "model-runner", what: "per-request block tables per group"}
+      - {to: "kvarn-staging-quantizer", what: "this step's scheduled block ids of every group"}
+      - {to: "request-scheduler", what: "whether a request fits; free page count"}
+    owns_state: ["page ownership and reference counts", "the free queue (eviction order)", "the null block", "sliding-window frees behind the window"]
+    exists_because: "Many requests of unknown length share one fixed pool; paging lets them grow without fragmentation and lets pages pass between state kinds."
+    output_effect: none
+    decisions:
+      - "Order in which freed blocks enter the free queue"
+      - "Free sliding-window blocks behind the window"
+    when_things_go_wrong: ["pool exhausted: the scheduler preempts and later recomputes"]
+    must_never: ["leave stale data of a previous owner readable by a new owner as valid state"]
+    evidence: ["patches/mamba-align-checkpoint-order.patch", "patches/kvarn/kvarn-recycled-pages-0.33.0.patch preamble", "patches/async-mamba-kv-sizing.patch"]
+    read: inferred
+
+  - id: "recurrent-state-store"
+    engine_name: "Mamba / GDN state cache (mamba_cache_mode align, --mamba-ssm-cache-dtype float16)"
+    does: "Keeps each request's fixed-size GDN recurrent state and convolution history in pool pages, with extra slots per draft position so the state after any accepted prefix of a verify block can be continued."
+    not: "Does not grow with context; does not hold attention KV."
+    runs: [per_step]
+    takes:
+      - {from: "paged-block-pool", what: "state pages: 1 plus async depth plus k drafts per request (more in align mode)"}
+      - {from: "gdn-recurrence-compute", what: "updated state per layer and per verify position"}
+      - {from: "draft-acceptance", what: "number of accepted tokens, which selects the state slot the next step continues from"}
+      - {from: "launch-profile-resolver", what: "state dtype"}
+    gives:
+      - {to: "gdn-recurrence-compute", what: "initial state for this step at the accepted index"}
+      - {to: "prefix-cache", what: "state snapshots at aligned block boundaries"}
+    owns_state: ["per-request SSM state (48 layers x 128 x 128) and conv history", "per-draft-position speculative state slots", "align-mode snapshots at chunk boundaries"]
+    exists_because: "Three quarters of the layers are linear attention whose state is overwritten each token; it cannot be truncated to an earlier position, so rollback after rejection and reuse across requests need stored copies."
+    output_effect: numeric
+    output_effect_when: "fp16 state instead of fp32 (reported perplexity 8.044 against 8.045)."
+    decisions:
+      - "State dtype (fp16 chosen over bf16 for mantissa bits)"
+      - "Copy state across a block boundary during chunked prefill only when the column changes"
+      - "Bound the spec-decode state lookup by the previous step's row width, not this step's query length"
+    when_things_go_wrong: ["a step verifying fewer tokens than the previous one accepted read a zeroed conv output (bound fixed)", "a stale copy during chunked prefill produced NaN (fixed)", "a late KVarN tile write into a state page made the request print token 0 forever (fixed in kvarn-staging-quantizer)"]
+    must_never: ["read state from a slot beyond the previous step's speculative row", "copy an invalid or already-current state column"]
+    evidence: ["patches/vllm-pr50021-gdn-spec-bounds.patch", "patches/mamba-chunked-prefill-align.patch", "patches/async-mamba-kv-sizing.patch", "patches/kv-cache-seat-budget.patch preamble", "single-user/start_qwen.sh:609-681,1052", "batch/start_qwen.sh:6-9"]
+    read: code
+
+  - id: "attention-kv-store"
+    engine_name: "KV cache dtype: bfloat16, fp8, int8_per_token_head, int4_per_token_head, kvarn_k4v2_g128"
+    does: "Holds the full-attention layers' keys and values for every context position in pool pages, in the storage format chosen at boot."
+    not: "The KVarN staging and flush logic is kvarn-staging-quantizer."
+    runs: [per_step]
+    takes:
+      - {from: "launch-profile-resolver", what: "KV format and backend"}
+      - {from: "paged-block-pool", what: "pages"}
+      - {from: "full-attention-compute", what: "new K/V per token"}
+    gives:
+      - {to: "full-attention-compute", what: "cached K/V (and per-token-head scales)"}
+      - {to: "verify-attention", what: "cached K/V and scales"}
+      - {to: "pool-layout-planner", what: "bytes per token per layer"}
+    owns_state: ["K/V per position per layer", "per-token-head scales stored inline after each head"]
+    exists_because: "every engine needs it; only 16 of 64 layers have it, and its format decides the reachable context (64k bf16 to 262k KVarN on one card)."
+    output_effect: changes_output
+    output_effect_when: "fp8, int8, int4 and KVarN formats compared with bf16 (KVarN reported perplexity +0.16 percent and draft acceptance -7 percent)."
+    decisions:
+      - "Format per context class and compute capability (fp8 needs FlashInfer, the fa2 port, or sm89+ Triton)"
+      - "Padded-page views when another group's promoted page is larger"
+    when_things_go_wrong: ["creating scale views used to fill the whole pool, destroying live recurrent state on shared pages (fixed: views created without filling)"]
+    must_never: ["initialise pages another group already owns"]
+    evidence: ["patches/quant-scale-view-preserve-pages.patch", "patches/int4-kv-per-token-head.patch", "patches/spec-decode-int8-kv.patch preamble", "single-user/start_qwen.sh:215-275", "pthfa/README.md", "fa2/README.md"]
+    read: code
+
+  - id: "kvarn-staging-quantizer"
+    engine_name: "KVarN (kvarn/files/vllm/v1/attention/backends/kvarn_attn.py)"
+    does: "Buffers each block's new K/V in an fp16 staging pool and, when a 128-token tile is full, rotates, variance-normalises and packs it to 4-bit keys and 2-bit values in the cache; keeps finished requests' first blocks in fp16 until slots run short."
+    not: "Not the format choice itself; it is the life cycle of one format."
+    runs: [per_step]
+    takes:
+      - {from: "full-attention-compute", what: "fp16 K/V of new tokens"}
+      - {from: "paged-block-pool", what: "this step's scheduled block ids of every group (note_scheduled_blocks)"}
+    gives:
+      - {to: "attention-kv-store", what: "packed 17,920-byte tiles per block per head"}
+      - {to: "full-attention-compute", what: "dequantised tiles plus the fp16 tail for attention"}
+    owns_state: ["fp16 staging pool slots per block", "fill count per physical block", "retired sinks (finished requests' first blocks held in fp16)", "pages another group has taken since the last flush"]
+    exists_because: "Quantising per tile needs the whole tile's statistics, so the last partial block of every request must stay in fp16 until it fills; that is also what lets 262k context fit."
+    output_effect: changes_output
+    output_effect_when: "Compared with bf16 KV; the retained fp16 sinks keep multi-turn reuse closer to unquantised."
+    decisions:
+      - "Flush a finished request's full block (a later prefix hit may read it) but discard a partial one"
+      - "Keep retired sinks resident; evict oldest first only when slots run dry"
+      - "Drop, never flush, anything held for a page another group now owns"
+      - "Draft passes after the first only allocate slots, never flush"
+      - "Size of the staging pool as a share of memory"
+    when_things_go_wrong: ["a late flush into a page reused as another request's recurrent state turned that state NaN and the request printed '!' forever (#208, now dropped instead)", "a prefix-match unit not a multiple of 128 corrupts the pool, so the launcher sets it to 128"]
+    must_never: ["free a staging slot before every layer has flushed it", "write a tile into a page owned by another group", "freeze a block holding a rejectable draft token into int4"]
+    evidence: ["kvarn/files/vllm/v1/attention/backends/kvarn_attn.py:1-35", "kvarn/files/vllm/v1/attention/backends/kvarn_attn.py:450-650", "kvarn/files/vllm/v1/attention/backends/kvarn_attn.py:2039-2080", "kvarn/kvarn-recycled-pages-0.33.0.patch", "kvarn/kvarn-v2-runner-0.33.0.patch"]
+    read: code
+
+  - id: "prefix-cache"
+    engine_name: "prefix caching with --mamba-cache-mode align, --prefix-cache-retention-interval, VLLM_MAMBA_ALIGN_KEEP_CHECKPOINTS, GDN multi-prefill checkpoints"
+    does: "Lets a new request reuse pages of any earlier or concurrent request with the same prompt prefix, resuming attention KV at block hashes and recurrent state from the nearest retained snapshot at or below the attention match."
+    not: "Not the offload tier (kv-offload-tier keeps evicted blocks in host memory)."
+    runs: [per_request]
+    takes:
+      - {from: "request-scheduler", what: "prompt token blocks of a new request"}
+      - {from: "recurrent-state-store", what: "snapshots at aligned boundaries"}
+      - {from: "gdn-recurrence-compute", what: "exact interior states exported at periodic boundaries inside a prefill (opt-in)"}
+    gives:
+      - {to: "request-scheduler", what: "number of cached prompt tokens (intersection of per-group hits)"}
+      - {to: "paged-block-pool", what: "shared blocks and snapshot blocks to hold until request end"}
+    owns_state: ["block hashes", "which state snapshots are retained (every Nth block)"]
+    exists_because: "Multi-turn chats and shared system prompts would otherwise re-prefill tens of thousands of tokens; recurrent state is only resumable where a snapshot exists."
+    output_effect: changes_output
+    output_effect_when: "Greedy text can differ between a hit and a miss (different chunking and rounding), compared with a cold prefill."
+    decisions:
+      - "Retention interval of state snapshots (dense, every 6th, boundaries only)"
+      - "Hold the snapshot a turn resumed from and the last prompt-boundary snapshots until request end, freed last"
+      - "Hash unit (128 on KVarN)"
+      - "Export several interior GDN states per prefill (opt-in, Triton path only)"
+    when_things_go_wrong: ["snapshots evicted first make the whole attention match unusable and the turn re-prefills from scratch (fixed opt-in)", "two long conversations alternating evict each other at dense retention"]
+    must_never: ["resume recurrent state from a snapshot past the attention match minus the draft margin", "write into the shared null state"]
+    evidence: ["patches/mamba-align-checkpoint-order.patch", "patches/gdn-multi-prefill-checkpoints.patch", "launcher_common.sh qwen_prefix_cache", "single-user/start_qwen.sh:755-811"]
+    read: code
+
+  - id: "kv-offload-tier"
+    engine_name: "OffloadingConnector (--kv-offloading-size, KV_OFFLOAD_GB)"
+    does: "Copies evicted prefix blocks to a pinned host-memory tier and loads them back over PCIe on a later hit or after preemption instead of recomputing."
+    not: "Not a second engine or a remote cache."
+    runs: [background, on_demand]
+    takes:
+      - {from: "paged-block-pool", what: "blocks being evicted"}
+      - {from: "prefix-cache", what: "lookups that miss on the GPU"}
+      - {from: "outside: os", what: "/dev/shm backing file, pinned host memory"}
+    gives:
+      - {to: "paged-block-pool", what: "blocks restored to GPU pages"}
+    owns_state: ["host-tier blocks keyed by hash"]
+    exists_because: "Host RAM is far larger than the 5 GiB pool, and reloading over PCIe is cheaper than re-prefilling a long prompt."
+    output_effect: none
+    decisions:
+      - "Which groups count as draft attention (only the drafter's sliding-window groups)"
+      - "Retain the sliding-window history at the recurrent state's replay boundary under sparse retention"
+      - "Device pointers on WSL2"
+    when_things_go_wrong: ["uniform host blocks sized for the largest group let small sliding-window chunks evict the whole tier, so every lookup misses (warns at boot with the arithmetic)", "a tmpfs smaller than the tier fails the boot"]
+    must_never: ["run under the VMM allocator, which can move pages under the connector's pinned copies"]
+    evidence: ["patches/offload-dflash-eagle-groups.patch", "patches/offload-mamba-swa-replay-boundaries.patch", "patches/offload-wsl2-devptr.patch", "launcher_common.sh qwen_kv_offload_args", "single-user/start_qwen.sh:1006-1014"]
+    read: code
+
+  - id: "api-server"
+    engine_name: "vllm serve OpenAI-compatible frontend (FastAPI)"
+    does: "Accepts chat and completion requests over HTTP and streams results back as SSE, plus model listing, tokenize and Ollama-style discovery routes."
+    not: "Authentication is access-guard; template rendering is prompt-renderer."
+    runs: [per_request]
+    takes:
+      - {from: "outside: client", what: "HTTP requests"}
+      - {from: "access-guard", what: "allowed requests"}
+      - {from: "output-parser", what: "content, reasoning and tool-call deltas with usage"}
+      - {from: "telemetry", what: "prompt progress for requests that asked"}
+    gives:
+      - {to: "prompt-renderer", what: "messages, tools and sampling parameters"}
+      - {to: "outside: client", what: "SSE chunks with keep-alive comments, prompt_progress, usage; JSON responses"}
+    owns_state: []
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions:
+      - "Accept a model name equal to the served name, the root path or its basename (exact only)"
+      - "Mount /tokenize under /v1 too"
+      - "Serve /, /api/status and /api/show for Ollama clients"
+      - "SSE keep-alive interval"
+    when_things_go_wrong: ["unserved model name: 404 naming only the requested model", "client disconnect: request aborted"]
+    must_never: ["reveal a served path in a 404 body"]
+    evidence: ["patches/serve-model-path-match.patch", "patches/tokenize-v1-route.patch", "patches/api-root-health.patch", "patches/vllm-pr40371-prompt-progress.patch", "patches/continuous-stream-usage.patch"]
+    read: inferred
+
+  - id: "access-guard"
+    engine_name: "AuthenticationMiddleware (--api-key), resolve_api_key.sh, resolve_bind_host"
+    does: "Requires the bearer key on every path except the liveness paths and chooses the listening interface so an unkeyed server is not exposed."
+    runs: [startup, per_request]
+    takes:
+      - {from: "outside: client", what: "HTTP request path, method and headers"}
+      - {from: "launch-profile-resolver", what: "API key and bind host"}
+    gives:
+      - {to: "api-server", what: "requests that passed"}
+      - {to: "outside: client", what: "401 for the rest"}
+    owns_state: []
+    exists_because: "/tokenize renders arbitrary text through the template and /metrics leaks state; a prefix allowlist left them open."
+    output_effect: none
+    decisions:
+      - "Deny by default; allow /health, /ping, /load, /version and discovery routes"
+      - "Ignore a trailing slash on the allowlist"
+      - "Let only a real CORS preflight skip the token"
+      - "Bind to loopback when no key is set (outside containers)"
+    when_things_go_wrong: ["key cannot be resolved: launcher refuses to boot"]
+    must_never: ["answer a guarded path without the key", "print the key"]
+    evidence: ["patches/auth-deny-default.patch", "patches/api-root-health.patch", "launcher_common.sh:7-14", "single-user/start_qwen.sh:1038-1041"]
+    read: code
+
+  - id: "prompt-renderer"
+    engine_name: "chat template (chat_template.jinja) and tokenizer"
+    does: "Turns a request's messages, tools and reasoning-effort setting into prompt token ids."
+    runs: [per_request]
+    takes:
+      - {from: "api-server", what: "messages and tools"}
+      - {from: "outside: model_files", what: "tokenizer.json and the prepared template"}
+    gives:
+      - {to: "engine-core-loop", what: "prompt token ids and sampling parameters"}
+      - {to: "image-encoder", what: "image inputs when vision is on"}
+    owns_state: []
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions:
+      - "Which chat template (the offline-hardened one)"
+    when_things_go_wrong: ["template raise: 400 to the client"]
+    must_never: []
+    evidence: ["prepare/harden_chat_template.py:1-30", "prepare/translate_chat_template.py:1-30", "docker/prepare.sh:28-35"]
+    read: inferred
+
+  - id: "output-parser"
+    engine_name: "--reasoning-parser qwen3, --tool-call-parser qwen3_coder (Qwen3EngineToolParser), detokenizer"
+    does: "Turns generated tokens into text and separates reasoning, content and XML tool calls while streaming, keeping usage updates flowing."
+    not: "Does not constrain generation; grammar-constraint does."
+    runs: [per_step]
+    takes:
+      - {from: "engine-core-loop", what: "new token ids per request"}
+    gives:
+      - {to: "api-server", what: "deltas and usage"}
+    owns_state: ["per-request parser buffer of not-yet-classified text"]
+    exists_because: "The model emits reasoning and XML-format tool calls inline; clients expect them as structured fields."
+    output_effect: none
+    decisions:
+      - "Parser must match the template's XML call format (qwen3_coder, not hermes)"
+    when_things_go_wrong: ["wrong parser: tool calls come back as plain content with no error"]
+    must_never: ["withhold continuous usage while the parser buffers"]
+    evidence: ["single-user/start_qwen.sh:909-932", "patches/continuous-stream-usage.patch"]
+    read: inferred
+
+  - id: "engine-core-loop"
+    engine_name: "EngineCoreProc"
+    does: "Runs the engine in its own process, taking requests from the frontend, calling the scheduler and model runner once per step, and returning outputs."
+    runs: [per_step]
+    takes:
+      - {from: "prompt-renderer", what: "new requests"}
+      - {from: "model-runner", what: "step outputs (sampled tokens, accepted counts)"}
+    gives:
+      - {to: "request-scheduler", what: "requests to schedule, step results"}
+      - {to: "output-parser", what: "new tokens per request"}
+      - {to: "stall-watchdog", what: "completed-step time and live request counts"}
+    owns_state: ["the request queue between frontend and core"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions:
+      - "Async scheduling overlaps planning of step N+1 with execution of step N"
+    when_things_go_wrong: ["a core that stops stepping while holding requests emits nothing by itself (stall-watchdog reports it)"]
+    must_never: []
+    evidence: ["patches/engine-stall-sentinel.patch", "patches/engine-completion-log.patch"]
+    read: inferred
+
+  - id: "request-scheduler"
+    engine_name: "v1 Scheduler (continuous batching, chunked prefill)"
+    does: "Each step chooses which requests run and how many tokens of each (prefill chunks within the 2048-token budget, one decode or verify block per running request), admits, preempts and finishes requests."
+    not: "Does not choose the verify length on its own on the lookup path; it accepts a shorter count from verify-length-controller."
+    runs: [per_step]
+    takes:
+      - {from: "engine-core-loop", what: "waiting and running requests, step results"}
+      - {from: "paged-block-pool", what: "whether a request's pages fit"}
+      - {from: "prefix-cache", what: "cached prompt length"}
+      - {from: "verify-length-controller", what: "how many draft tokens to put up next step (synchronous path only)"}
+      - {from: "draft-acceptance", what: "accepted counts to advance computed tokens"}
+      - {from: "launch-profile-resolver", what: "max-num-seqs, token budget, async on or off"}
+    gives:
+      - {to: "model-runner", what: "the step's batch: requests, token counts, block tables"}
+      - {to: "paged-block-pool", what: "allocate and free"}
+      - {to: "telemetry", what: "finish lines, prefill progress, counts"}
+    owns_state: ["running and waiting sets", "computed-token count per request"]
+    exists_because: "Several requests share one GPU; batching their tokens in one step is what makes batch throughput, and chunking prompts keeps decode latency bounded."
+    output_effect: changes_output
+    output_effect_when: "Batch composition and chunk boundaries change rounding, so greedy text can depend on which other requests are in flight."
+    decisions:
+      - "Token budget per step"
+      - "Admission count (max-num-seqs) versus residency (pages)"
+      - "Preempt and recompute when the pool is full"
+      - "Synchronous scheduling when the worker must choose the draft count"
+    when_things_go_wrong: ["pool full: preempts a request and recomputes it later", "async scheduling pads every decode step to the full draft count"]
+    must_never: ["schedule more draft tokens than the speculator produced"]
+    evidence: ["patches/dflash2-lookup-drafting.patch:174-196", "patches/vllm-pr40371-prompt-progress.patch", "patches/engine-completion-log.patch", "single-user/start_qwen.sh:900-907", "patches/kv-cache-seat-budget.patch preamble"]
+    read: inferred
+
+  - id: "model-runner"
+    engine_name: "V2 GPUModelRunner (v1/worker/gpu/model_runner.py)"
+    does: "Prepares the step's inputs, block tables and attention metadata on the GPU and runs target forward, sampling, acceptance and drafting for the whole batch, replaying a captured graph when the shape has one."
+    runs: [per_step]
+    takes:
+      - {from: "request-scheduler", what: "the step's batch"}
+      - {from: "paged-block-pool", what: "block tables"}
+      - {from: "graph-capture", what: "graphs per shape"}
+    gives:
+      - {to: "token-embedding", what: "input ids"}
+      - {to: "full-attention-compute", what: "attention metadata per group"}
+      - {to: "kvarn-staging-quantizer", what: "scheduled block ids before the forward"}
+      - {to: "sampler", what: "logits and sampling states"}
+      - {to: "context-lookup-proposer", what: "request token history (int32, UVA) and top-k/top-p buffers"}
+      - {to: "engine-core-loop", what: "sampled tokens and accepted counts"}
+    owns_state: ["per-request token history on device (all_token_ids, total_len)", "input buffers with fixed addresses"]
+    exists_because: "every engine needs it"
+    output_effect: none
+    decisions:
+      - "Keep FlashInfer's blocking sequence-length read as the barrier between steps under async scheduling"
+      - "Truncate the draft tokens handed for verification to the controller's count"
+    when_things_go_wrong: ["without the barrier, the next step's plan overwrote the current one in pinned memory and the merge kernel faulted (PP=2 under load)"]
+    must_never: ["let step N+1's host plan overwrite step N's before its copy is read"]
+    evidence: ["patches/dflash2-lookup-drafting.patch:150-196", "patches/vllm-pr61612-flashinfer-async-barrier.patch", "patches/kvarn/kvarn-recycled-pages-0.33.0.patch"]
+    read: code
+
+  - id: "token-embedding"
+    engine_name: "VocabParallelEmbedding with CompressedTensorsEmbeddingWNA16Int, VLLM_EMBED_UVA"
+    does: "Looks up and dequantises the embedding row of each input token, from VRAM or from pinned host memory through a UVA view."
+    runs: [per_step]
+    takes:
+      - {from: "model-runner", what: "input token ids"}
+      - {from: "weight-loader", what: "int8 packed table"}
+    gives:
+      - {to: "linear-gemm", what: "input hidden states for the first layer"}
+    owns_state: ["placement of the packed table (VRAM or pinned host)"]
+    exists_because: "A 248k-row table read one row per token per step is almost free to keep in host RAM, and the 1.25 GiB it frees goes to the pool."
+    output_effect: numeric
+    output_effect_when: "int8 table compared with bf16 (round trip 0.56 percent); host placement changes nothing."
+    decisions:
+      - "Keep the table in host memory (opt-in)"
+      - "Skip host placement for tied embeddings and for an unquantised table"
+    when_things_go_wrong: ["table not quantised: warns and stays in VRAM"]
+    must_never: ["move a tied table to host memory, since the head would read it whole every step"]
+    evidence: ["patches/qwen3_5-embed-quant.patch", "patches/qwen3_5-embed-uva.patch"]
+    read: code
+
+  - id: "linear-gemm"
+    engine_name: "Marlin W4A16 / W4A8 (VLLM_MARLIN_INPUT_DTYPE=int8, VLLM_MARLIN_INT8_INCLUDE_RE), cuBLAS for unquantised projections"
+    does: "Computes every quantised linear layer of the target and drafters, optionally quantising activations to int8 per token for the layers selected by name."
+    runs: [per_layer]
+    takes:
+      - {from: "weight-loader", what: "repacked weights and per-layer int8 selection"}
+      - {from: "token-embedding", what: "hidden states"}
+    gives:
+      - {to: "gdn-recurrence-compute", what: "projections"}
+      - {to: "full-attention-compute", what: "Q, K, V projections"}
+      - {to: "output-head", what: "final hidden states"}
+    owns_state: []
+    exists_because: "Weights are int4; MLP GEMMs dominate FLOPs, and in compute-bound steps (batch decode, prefill) int8 tensor cores are faster than fp16."
+    output_effect: changes_output
+    output_effect_when: "With int8 activations on the selected layers (reported perplexity +0.9 to +3.7 percent by layer set) compared with W4A16."
+    decisions:
+      - "Which layers use int8 activations (batch default MLP only; head and MTP excluded)"
+      - "Tuned tile table (opt-in extension)"
+      - "Pad 2-4 row batches of the unquantised GDN in_proj_ba GEMM to 5 rows to avoid a cuBLAS slow kernel"
+    when_things_go_wrong: ["tune extension import fails: falls back to stock"]
+    must_never: ["run W8A8 (int8 head) through the int8-activation kernel"]
+    evidence: ["patches/marlin-int8-layer-select.patch", "patches/marlin-tune-table.patch", "patches/gdn-ba-pad-small-m.patch", "launcher_common.sh:15-28"]
+    read: code
+
+  - id: "gdn-recurrence-compute"
+    engine_name: "Gated DeltaNet layers (FLA chunk prefill, fused recurrent decode, causal_conv1d; VLLM_GDN_SM75 CUDA prefill)"
+    does: "Computes the 48 linear-attention layers: the short convolution and the gated delta-rule recurrence, chunked over a prefill or step by step over a verify block, writing the state after each position."
+    runs: [per_layer]
+    takes:
+      - {from: "linear-gemm", what: "projections"}
+      - {from: "recurrent-state-store", what: "initial state at the accepted index"}
+    gives:
+      - {to: "recurrent-state-store", what: "new state per position (speculative slots during verify)"}
+      - {to: "prefix-cache", what: "exported interior states (opt-in)"}
+      - {to: "linear-gemm", what: "layer output"}
+    owns_state: []
+    exists_because: "The model's own layer type; its state replaces attention KV for three quarters of the layers."
+    output_effect: numeric
+    output_effect_when: "sm75 CUDA prefill kernel compared with Triton/FLA (relative L2 0.0005)."
+    decisions:
+      - "Kernel per compute capability (Triton/FLA, CUDA on sm75)"
+      - "Mask partial boundary chunks before exponentials"
+    when_things_go_wrong: ["unmasked partial chunk evaluated uninitialised memory to NaN (fixed)"]
+    must_never: []
+    evidence: ["patches/mamba-chunked-prefill-align.patch", "patches/vllm-pr50021-gdn-spec-bounds.patch", "patches/gdn-sm75-cuda-prefill.patch", "patches/gdn-multi-prefill-checkpoints.patch"]
+    read: inferred
+
+  - id: "full-attention-compute"
+    engine_name: "attention backends: FLASH_ATTN (FA2), FLASHINFER, TRITON_ATTN, CUSTOM (pth-flash-attn int8, LSA), KVarN, fa2_fp8kv plugin, prefill_attn_hd256"
+    does: "Computes the 16 full-attention layers over the paged KV cache for prefill chunks and single-token decode, with the kernel chosen by KV format, compute capability and step shape."
+    not: "Multi-query verify steps go to verify-attention when it is enabled."
+    runs: [per_layer]
+    takes:
+      - {from: "linear-gemm", what: "Q, K, V"}
+      - {from: "attention-kv-store", what: "cached K/V"}
+      - {from: "kvarn-staging-quantizer", what: "dequantised tiles and fp16 tail"}
+      - {from: "model-runner", what: "attention metadata"}
+    gives:
+      - {to: "attention-kv-store", what: "new K/V"}
+      - {to: "kvarn-staging-quantizer", what: "new fp16 K/V under KVarN"}
+      - {to: "linear-gemm", what: "attention output"}
+    owns_state: []
+    exists_because: "every engine needs it"
+    output_effect: changes_output
+    output_effect_when: "int8-QK prefill kernel (cosine above 0.99999 against fp32) and sparse LSA (exact only below about 4.6k tokens) compared with FA2."
+    decisions:
+      - "Backend per KV format and card (FlashInfer for fp8 on sm86, fa2 port, pth-flash-attn for int8, sm75 opt-ins)"
+      - "int8-QK prefill only for one-request chunks over 16 tokens on the exact 24/4/256 geometry with bf16 KV"
+      - "Sparse attention budget when LSA is on"
+    when_things_go_wrong: ["any condition outside the int8 prefill gate: falls back to FA2"]
+    must_never: []
+    evidence: ["patches/prefill-attn-int8.patch", "patches/flashinfer-sm75-optin.patch", "fa2/README.md", "pthfa/README.md", "lsa/README.md", "single-user/start_qwen.sh:215-275"]
+    read: code
+
+  - id: "verify-attention"
+    engine_name: "split-KV spec-decode attention (v1/attention/ops/spec_decode_attn.py, VLLM_SPEC_DECODE_ATTN; int8, fp8 and int4 mq3d variants)"
+    does: "Computes attention for steps where each request has several query tokens (the verify block), splitting each request's KV into segments with online-softmax partials and a combine."
+    not: "Not used for prefill or single-token decode."
+    runs: [per_layer]
+    takes:
+      - {from: "linear-gemm", what: "Q for every verify position"}
+      - {from: "attention-kv-store", what: "cached K/V and scales"}
+    gives:
+      - {to: "linear-gemm", what: "attention output"}
+      - {to: "memory-budget-planner", what: "scratch allocated at model load"}
+    owns_state: ["partial-result scratch sized once for the longest verify block"]
+    exists_because: "FA2 does not split KV when a request has more than one query, leaving most SMs idle; verify steps of 8 to 16 queries are the common step under speculation."
+    output_effect: numeric
+    output_effect_when: "Different floating-point summation order compared with FA2; quantised-cache variants fold scales after the dot exactly."
+    decisions:
+      - "Query-row tile size by row count and register budget"
+      - "Halve the KV tile when shared memory is short (sm75)"
+      - "Scratch capacity in tokens, shared by builders of one geometry"
+    when_things_go_wrong: ["Triton out of resources: retries with half the tile", "scratch too short for a batch: takes the 2D path (now logged)"]
+    must_never: ["grow its scratch after graph capture", "run on a sliding-window or soft-capped layer"]
+    evidence: ["patches/spec-decode-attn.patch", "patches/spec-decode-int8-kv.patch", "patches/triton-spec-attn-fp8-kv.patch", "patches/spec-decode-int4-kv-mq3d.patch", "patches/spec-decode-scratch-token-units.patch", "patches/spec-decode-scratch-within-budget.patch", "patches/spec-attn-smem-fit.patch", "patches/spec-attn-fp16.patch"]
+    read: code
+
+  - id: "output-head"
+    engine_name: "lm_head (ParallelLMHead, int8 or int4) and LogitsProcessor"
+    does: "Computes target logits over the full vocabulary for the positions that are sampled or verified."
+    runs: [per_step]
+    takes:
+      - {from: "linear-gemm", what: "final hidden states"}
+      - {from: "weight-loader", what: "quantised head"}
+    gives:
+      - {to: "sampler", what: "target logits"}
+      - {to: "draft-acceptance", what: "target logits per verify position"}
+    owns_state: []
+    exists_because: "every engine needs it; here it is a 248k-row matrix read whole each step, the largest single read of a memory-bound decode."
+    output_effect: changes_output
+    output_effect_when: "Quantised head compared with bf16 (see offline-weight-requantizer, gptq-requantizer)."
+    decisions: []
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["prepare/quant_schema.py:41-48", "patches/marlin-int8-layer-select.patch preamble"]
+    read: inferred
+
+  - id: "image-encoder"
+    engine_name: "Qwen3-VL vision tower (VISION=1, VLLM_VISION_CPU_OFFLOAD_GB)"
+    does: "Encodes one image per prompt into image tokens, with the tower's weights bulk-copied from host RAM per forward."
+    runs: [per_request]
+    takes:
+      - {from: "prompt-renderer", what: "image input"}
+      - {from: "outside: model_files", what: "vision tower weights"}
+    gives:
+      - {to: "linear-gemm", what: "image embeddings merged into the prompt"}
+    owns_state: ["host-resident tower weights within a dedicated offload budget"]
+    exists_because: "The model is multimodal, but the tower costs 0.86 GiB of VRAM most deployments need for the pool."
+    output_effect: none
+    decisions:
+      - "Load the tower at all (default: language-model only)"
+      - "Bulk-copy per module rather than UVA zero-copy, which re-reads tiles over PCIe"
+      - "Pixel cap of 2048 image tokens and one image per prompt"
+    when_things_go_wrong: ["a second image: request refused"]
+    must_never: ["accept images while answering from placeholder embeddings"]
+    evidence: ["patches/vision-tower-cpu-offload.patch", "launcher_common.sh qwen_vision_args"]
+    read: code
+
+  - id: "sampler"
+    engine_name: "v1 Sampler, apply_top_k_top_p, row_softmax_fp32"
+    does: "Turns target logits into a token per request with temperature, top-k and top-p, and provides the truncated distributions drafting and acceptance use."
+    runs: [per_step]
+    takes:
+      - {from: "output-head", what: "logits"}
+      - {from: "grammar-constraint", what: "allowed-token mask"}
+      - {from: "correctness-pins", what: "FlashInfer sampler disabled"}
+    gives:
+      - {to: "draft-acceptance", what: "target probabilities over the truncated support"}
+      - {to: "model-runner", what: "sampled tokens (no speculation)"}
+      - {to: "mtp-drafter", what: "the same top-k/top-p truncation for drafts"}
+    owns_state: ["per-request sampling states (temperature, top-k, top-p, seed)"]
+    exists_because: "every engine needs it"
+    output_effect: numeric
+    output_effect_when: "Sort-free top-k and multi-block softmax compared with full sort; exact up to floating point."
+    decisions:
+      - "Use one topk instead of a full-vocabulary sort when every request's top-k is at most 64 (known on host, no sync)"
+      - "Multi-block row softmax for up to 16 rows"
+    when_things_go_wrong: []
+    must_never: []
+    evidence: ["patches/sampler-small-topk-fast-softmax.patch", "patches/topk-honour-flashinfer-sampler-switch.patch", "patches/sampler-warmup-cuda.patch"]
+    read: code
+
+  - id: "grammar-constraint"
+    engine_name: "xgrammar structured output (qwen_3_coder structural tag, --tool-strict-level parameter)"
+    does: "Holds a per-request grammar state for tool calls and masks the tokens the grammar forbids at each position."
+    runs: [per_step]
+    takes:
+      - {from: "api-server", what: "tool schemas"}
+      - {from: "engine-core-loop", what: "accepted tokens that advance the grammar"}
+    gives:
+      - {to: "sampler", what: "allowed-token bitmask"}
+      - {to: "request-scheduler", what: "drafts trimmed to what the grammar allows"}
+    owns_state: ["per-request grammar matcher state"]
+    exists_because: "Clients rely on tool calls matching their schema; Qwen's XML call format needs a structural tag."
+    output_effect: changes_output
+    output_effect_when: "When a request carries tools, compared with unconstrained generation."
+    decisions:
+      - "Hold every tool to its schema, not only strict ones"
+      - "Use a source build of xgrammar so bounded string parameters stay on the fast path"
+    when_things_go_wrong: ["a maxLength on a string parameter in the released xgrammar made masking about 78 ms per token (decode 170 to 7 tok/s)", "trimmed drafts made a step verify fewer tokens than the previous accepted (see recurrent-state-store bound)"]
+    must_never: ["count the template's framing newlines toward a string bound"]
+    evidence: ["xgrammar/README.md", "xgrammar/install.sh", "single-user/start_qwen.sh:928-932", "patches/vllm-pr50021-gdn-spec-bounds.patch preamble"]
+    read: docs
+
+  - id: "mtp-drafter"
+    engine_name: "Qwen3.5 MTP module with truncated draft head (SPEC=mtp)"
+    does: "Proposes k tokens per request by chaining the model's own one-layer draft module, scoring only the draft vocabulary and sampling from the request's truncated support."
+    runs: [per_step]
+    takes:
+      - {from: "model-runner", what: "target hidden states and accepted tokens"}
+      - {from: "weight-loader", what: "MTP module and draft head"}
+      - {from: "sampler", what: "top-k/top-p truncation"}
+    gives:
+      - {to: "draft-acceptance", what: "draft tokens and draft probabilities (q)"}
+    owns_state: ["the draft module's own KV in the pool"]
+    exists_because: "The model ships a trained draft head; single-stream decode is memory-bound, so verifying several guessed tokens per weight read multiplies throughput."
+    output_effect: none
+    decisions:
+      - "Number of drafts (3 or 4)"
+      - "Use the truncated head when the id list exists"
+      - "Draft from the target's top-k/top-p support; optional draft temperature scale"
+      - "Probabilistic draft sampling rather than argmax"
+    when_things_go_wrong: ["no id list or MTP_DRAFT_VOCAB=0: uses the full head"]
+    must_never: ["give q a finite value outside the draft vocabulary (it must be minus infinity there)"]
+    evidence: ["patches/qwen3_5-mtp-draft-vocab.patch", "patches/sampler-small-topk-fast-softmax.patch preamble"]
+    read: code
+
+  - id: "dflash2-drafter"
+    engine_name: "DFlash2 speculator (qwen3_dflash2.py, dflash2/speculator.py), also DSpark"
+    does: "Proposes a block of 7 tokens per request in one non-autoregressive pass over target hidden states, picking each position from a small candidate set by a seeded selector walk."
+    not: "Positions past its trained block are filled by context-lookup-proposer."
+    runs: [per_step]
+    takes:
+      - {from: "model-runner", what: "target hidden states of 5 layers, positions and slot mappings"}
+      - {from: "weight-loader", what: "W4A16 drafter"}
+      - {from: "paged-block-pool", what: "pages for its sliding-window KV"}
+    gives:
+      - {to: "context-lookup-proposer", what: "drafted block and sparse candidate logit cache"}
+      - {to: "pool-layout-planner", what: "its sliding-window layer geometry"}
+    owns_state: ["its sliding-window KV in the shared pool", "sparse draft-logit cache whose finite entries are listed per row", "last emitted count per request"]
+    exists_because: "A block drafter trained for this model accepts more per step than the one-layer MTP chain, at one drafter pass per step."
+    output_effect: none
+    decisions:
+      - "Draft block equals the trained block even when the verify block is longer (the grouped convolution resets on block boundaries)"
+      - "Truncate the candidate walk to the request's top-k/top-p"
+      - "Carry the residual at 1/32 scale under fp16 (Turing)"
+      - "Refuse a target context whose length plus the lookahead exceeds the drafter's positional capacity"
+    when_things_go_wrong: ["fp16 residual overflowed to NaN and every draft was noise (fixed by scaling)", "target max length plus lookahead over capacity: refuses at config time"]
+    must_never: ["run its convolution across two requests' block boundaries", "leave a finite entry in the logit cache that the candidate list does not name (it would not be erased next step)"]
+    evidence: ["patches/dflash2-lookup-drafting.patch:84-105,197-305,642-1000", "patches/dflash2-fp16-residual-scale.patch", "patches/dflash-context-capacity.patch", "patches/dflash2-z-adaptive-emitted.patch", "drafter/README.md DFlash2 section"]
+    read: code
+
+  - id: "context-lookup-proposer"
+    engine_name: "lookup-augmented block drafting, LABD (dflash2/lookup.py, VLLM_DFLASH2_LOOKUP)"
+    does: "Finds, per request, the most recent occurrence of the longest suffix of its token history and fuses the tokens that followed it into the draft block, rewriting the draft distribution to a point mass wherever it supplied the token."
+    not: "Does not decide the next verify length (verify-length-controller)."
+    runs: [per_step]
+    takes:
+      - {from: "model-runner", what: "request token history and length"}
+      - {from: "dflash2-drafter", what: "drafted block and logit cache"}
+    gives:
+      - {to: "draft-acceptance", what: "fused draft tokens and q with point masses"}
+      - {to: "verify-length-controller", what: "per-request flag: something to put in the tail"}
+      - {to: "drafter-free-chains", what: "longest match length"}
+    owns_state: ["per-request lookup tokens, match length, valid count and which positions came from the lookup"]
+    exists_because: "Assistants often reproduce their own context (code edits, quotes); those tokens are already in the request's history and cost nothing to propose, and the lookup sees the whole history where the drafter sees a 2,048-token window."
+    output_effect: none
+    output_effect_when: "Distribution-preserving by construction; greedy text may still flip on near ties because block length changes rounding."
+    decisions:
+      - "Minimum and maximum match length, ties broken by recency"
+      - "Head positions: take a match of at least NSTRONG alone, shorter only if the drafter agrees on the first AGREE tokens"
+      - "Tail positions: lower threshold, must be consistent with the head"
+      - "Search distance"
+    when_things_go_wrong: ["a match close to the suffix supplies fewer than k tokens; the rest stay the drafter's"]
+    must_never: ["leave q at the drafter's distribution for a position the lookup filled", "let padding rows veto a batch-wide decision"]
+    evidence: ["patches/dflash2-lookup-drafting.patch:306-641", "patches/dflash2-lookup-drafting.patch:1040-1135", "single-user/start_qwen.sh:405-420"]
+    read: code
+
+  - id: "drafter-free-chains"
+    engine_name: "DFlash2 n-gram chains (VLLM_DFLASH2_CHAIN, propose override)"
+    does: "While a single request keeps reproducing its context, proposes whole verify blocks from the lookup alone and skips the drafter's forward until the first rejection."
+    runs: [per_step]
+    takes:
+      - {from: "context-lookup-proposer", what: "previous normal step's longest match, copied to pinned memory inside the graph"}
+      - {from: "correctness-pins", what: "greedy-only gate"}
+    gives:
+      - {to: "draft-acceptance", what: "a block of point-mass drafts"}
+      - {to: "dflash2-drafter", what: "skip this step's draft pass"}
+    owns_state: ["host-side chain state machine (engaged or not)"]
+    exists_because: "During a long verbatim copy the drafter's pass is wasted work."
+    output_effect: none
+    decisions:
+      - "Entry needs a fresh match from a normal step; first miss ends the chain"
+      - "Single request only; greedy only by default (point mass under sampling displaced better drafts, -8 percent)"
+    when_things_go_wrong: ["batch grows, profiling or capture: leaves the chain with no half-state"]
+    must_never: ["run decision logic inside the captured draft graph"]
+    evidence: ["patches/dflash2-ngram-chains.patch"]
+    read: code
+
+  - id: "verify-length-controller"
+    engine_name: "next_num_draft_tokens / adaptive verify length (VLLM_DFLASH2_LOOKUP_ADAPTIVE, STICKY, CHEAP_CTX, GRAPH_BOTH; DYNAMIC_K)"
+    does: "Once per step on the host, decides whether the next step verifies the drafter's own block or the long block, requiring two consecutive qualifying steps agreed by every request."
+    runs: [per_step]
+    takes:
+      - {from: "context-lookup-proposer", what: "per-request tail flags, copied asynchronously and read one step stale"}
+      - {from: "draft-acceptance", what: "tokens each request emitted last step"}
+      - {from: "launch-profile-resolver", what: "switches and long block length"}
+      - {from: "correctness-pins", what: "adaptive off for KVarN plus prefix caching; STICKY only at one request"}
+    gives:
+      - {to: "request-scheduler", what: "number of draft tokens to verify next step (can only shrink)"}
+      - {to: "graph-capture", what: "the short query length that also needs a graph"}
+    owns_state: ["previous step's want flag", "sticky countdown", "pinned host copy of the flags"]
+    exists_because: "An extra verify position costs attention time proportional to context for every request in the batch, but pays only while a copy is running."
+    output_effect: changes_output
+    output_effect_when: "Changing the block length changes rounding and so greedy text compared with a fixed length; with KVarN and a prefix hit it corrupted the second turn (root cause open), hence pinned off there."
+    decisions:
+      - "Unanimity across the batch"
+      - "Two qualifying steps to enter, STICKY steps to leave (single request only)"
+      - "Take the long block unconditionally below a context length (off by default)"
+      - "Read the flags one step stale rather than synchronise (synchronous read cost 5 percent)"
+    when_things_go_wrong: ["async scheduling on: the count is ignored, so the launcher turns async scheduling off for long blocks"]
+    must_never: ["grow the block beyond what the scheduler sized", "let one request's block length depend on other requests' arrival times (why STICKY is single-request)"]
+    evidence: ["patches/dflash2-lookup-drafting.patch:902-1000", "patches/dflash2-lookup-drafting.patch:174-196", "single-user/start_qwen.sh:437-477"]
+    read: code
+
+  - id: "draft-acceptance"
+    engine_name: "rejection sampler (v1/worker/gpu/spec_decode/rejection_sampler.py, rejection_sampler_utils.py)"
+    does: "Accepts the longest prefix of the proposed tokens the target agrees with (argmax under greedy, rejection sampling against q under sampling), emits a corrected or bonus token, and reports how many were accepted so state can be committed."
+    not: "Does not itself roll back KV; positions after the accepted prefix are simply overwritten next step, and recurrent state continues from the slot of the accepted index."
+    runs: [per_step]
+    takes:
+      - {from: "output-head", what: "target logits per verify position"}
+      - {from: "sampler", what: "target truncated probabilities"}
+      - {from: "mtp-drafter", what: "drafts and q"}
+      - {from: "context-lookup-proposer", what: "fused drafts and q"}
+      - {from: "drafter-free-chains", what: "point-mass drafts"}
+    gives:
+      - {to: "model-runner", what: "emitted tokens per request"}
+      - {to: "request-scheduler", what: "accepted counts"}
+      - {to: "recurrent-state-store", what: "accepted index for the next step's state"}
+      - {to: "verify-length-controller", what: "emitted count per request"}
+      - {to: "telemetry", what: "acceptance counters"}
+    owns_state: []
+    exists_because: "Speculation is only safe if the output distribution equals the target's; this is where that is enforced."
+    output_effect: numeric
+    output_effect_when: "Same distribution as non-speculative sampling, but not the same tokens: greedy output depends on block length, batch and cache state through rounding."
+    decisions:
+      - "Draft sample method must be probabilistic so q is passed (otherwise acceptance is strictly stricter)"
+      - "Kernels must not specialise on batch size"
+    when_things_go_wrong: ["draft_logits buffer absent: q pinned to 1, acceptance falls (2.66 vs 3.23 tok/step)"]
+    must_never: ["read a draft distribution that differs from the one the draft was sampled from"]
+    evidence: ["patches/vllm-pr64137-logits-stats-no-specialize.patch", "patches/vllm-pr66026-gather-draft-sampled-no-specialize.patch", "patches/spec-sampler-prewarm.patch", "patches/dflash2-lookup-drafting.patch:331-334", "single-user/start_qwen.sh:421-432"]
+    read: inferred
+
+  - id: "tensor-parallel"
+    engine_name: "--tensor-parallel-size / --pipeline-parallel-size (custom all-reduce)"
+    does: "Splits the model's layers' weights and heads across 2 or 4 GPUs (or pipelines layers across GPUs) and keeps them in step with collectives."
+    runs: [per_layer]
+    takes:
+      - {from: "launch-profile-resolver", what: "TP or PP size from EXTRA_ARGS"}
+    gives:
+      - {to: "linear-gemm", what: "sharded weights and reduced outputs"}
+      - {to: "memory-budget-planner", what: "a per-worker budget (a pinned pool applies per worker)"}
+    owns_state: []
+    exists_because: "Larger contexts or more cards; the 4 KV heads and 64 layers allow TP 2 or 4 and PP 2 or 4, not 3."
+    output_effect: numeric
+    output_effect_when: "Different reduction order compared with one card."
+    decisions:
+      - "Allocator without expandable segments so graph buffers can be exported over CUDA IPC"
+      - "Size the pool from utilisation rather than the single-card pin"
+    when_things_go_wrong: ["VMM segments at TP>1 with graphs: capture aborts", "TP=3: invalid for this geometry"]
+    must_never: []
+    evidence: ["docs/multi-gpu.md:1-30", "single-user/start_qwen.sh:478-505,1015-1035", "patches/vllm-pr61612-flashinfer-async-barrier.patch preamble"]
+    read: docs
+
+  - id: "telemetry"
+    engine_name: "Prometheus /metrics, completion log line, VLLM_TERMINAL_PROGRESS, seat-budget line, return_progress"
+    does: "Reports what the engine is doing: metrics including spec-decode acceptance, one line per finished request, per-request progress lines, prefill progress in SSE, and the pool's resident-request capacity at boot."
+    runs: [per_step, startup]
+    takes:
+      - {from: "request-scheduler", what: "finish reasons, token counts, prefill progress"}
+      - {from: "draft-acceptance", what: "acceptance counters"}
+      - {from: "pool-layout-planner", what: "admission caps and usable blocks"}
+      - {from: "launch-profile-resolver", what: "predicted residency"}
+    gives:
+      - {to: "outside: operator", what: "log lines and metrics (ids and counts, never text)"}
+      - {to: "api-server", what: "prompt progress for opted-in requests"}
+    owns_state: []
+    exists_because: "Stalls, aborts and capacity were indistinguishable in logs; residency is far below the admission count on this hybrid model."
+    output_effect: none
+    decisions:
+      - "Progress lines opt-in; no CUDA synchronisation"
+      - "Prompt progress only for requests that asked"
+    when_things_go_wrong: []
+    must_never: ["log request text"]
+    evidence: ["patches/engine-completion-log.patch", "patches/terminal-request-progress.patch", "patches/kv-cache-seat-budget.patch", "patches/vllm-pr40371-prompt-progress.patch"]
+    read: code
+
+  - id: "stall-watchdog"
+    engine_name: "EngineCoreStallSentinel (VLLM_ENGINE_STALL_SENTINEL_S)"
+    does: "A daemon thread warns once per episode when no step has completed for a threshold while the scheduler still holds requests."
+    runs: [background]
+    takes:
+      - {from: "engine-core-loop", what: "time of the last completed step; live request counts read directly"}
+    gives:
+      - {to: "outside: operator", what: "one warning line per stall episode"}
+    owns_state: ["time of last completed step", "whether this episode was logged"]
+    exists_because: "A core can stop stepping with requests held and print nothing; keying on completed steps avoids false alarms on long chunked prefills."
+    output_effect: none
+    decisions:
+      - "Threshold (off by default)"
+      - "No lock shared with the main loop"
+    when_things_go_wrong: ["count read fails: skips the tick, never dies"]
+    must_never: ["take a lock the stalled loop might hold"]
+    evidence: ["patches/engine-stall-sentinel.patch"]
+    read: code
+
+absent:
+  - {job: "expert routing, expert caching or expert transfer", why: "Dense model; no mixture of experts."}
+  - {job: "computation on the CPU", why: "Nothing is computed in place on the host; host-resident data (embedding table, vision tower, offloaded KV) is read or copied by the GPU."}
+  - {job: "audio or video input", why: "Only the Qwen3-VL image path exists, one image per prompt; audio appears only in the benchmark client."}
+  - {job: "spanning machines", why: "Parallelism is within one host (TP/PP over local GPUs); no multi-node or disaggregated prefill/decode. The KV connector is used only for the local host-memory tier."}
+  - {job: "per-request adapters (LoRA)", why: "Not configured by any launcher; one patch only keeps an upstream LoRA path intact."}
+  - {job: "runtime output-quality monitoring", why: "Correctness is defended by boot-time pins and offline sweeps (bench/), not checked while serving."}
+outside_engine:
+  - {name: "patch series bookkeeping", what: "patches/apply.sh, patches/series, patches/check_vllm_series.sh, _check_applied.py, scripts/export-patch.sh, patches_md.py, pin-bump.py, port-*.sh/py: compose the engine from the pinned vLLM plus patches with fuzz 0, regenerate patches and PATCHES.md, port to new pins"}
+  - {name: "install verifier and doctor", what: "verify.sh, scripts/check_verify_graded.py, scripts/hq-doctor.sh: check the install, patches, model preparation and a live server's backend and pool"}
+  - {name: "bench/", what: "quality batteries, needle and verbatim tests, residue sweeps, acceptance and throughput benchmarks, unit and property tests for patches"}
+  - {name: "scripts/check_greedy_repeatability.py, bench_turing.py, check_sm75_attention_graphs.py", what: "repeatability and Turing checks against a running server"}
+  - {name: "dashboards and terminal viewers", what: "scripts/turing_metrics.py, tui_turing*.py, watch_turing.py, bench/demo/: read metrics and progress lines for display"}
+  - {name: "MTP head fine-tuning", what: "drafter/train_mtp.py, export_mtp.py: a self-distillation trainer kept as a negative result; not used by the shipped variant"}
+  - {name: "packaging and deployment", what: "Dockerfile, docker-compose files, docker/entrypoint.sh, systemd units in batch/ and single-user/, .github workflows (patch integrity, image build)"}
+  - {name: "kernel extension build scripts", what: "fa2/build.py and install.sh, pthfa/install.sh and check_vendor.sh, lsa/install.sh, xgrammar/install.sh and check.py, and their tests"}
+  - {name: "opt-170hx/", what: "an alternative tuning patch set and probes for one mining card (CMP 170HX), applied outside the main series"}
+  - {name: "docs/", what: "install, gotchas, optimisation and reproduction notes"}
+surprises:
+  - "The engine is a pinned upstream server plus 69 patches and three kernel extensions; most parts are upstream code whose behaviour is set by patches, launch flags and env knobs, and each patch carries its own retirement condition tied to an upstream version."
+  - "One pool of equal-size pages is shared by three state kinds with different growth laws (growing attention KV, fixed recurrent state with per-draft-position slots, drafter sliding-window KV), and pages change owner between kinds; the worst bug class was one kind writing late into a page another kind had taken (KVarN tile into GDN state: output '!!!!')."
+  - "Recurrent state cannot be truncated: rollback after rejected drafts needs one state slot per draft position, and prefix reuse needs stored snapshots at aligned boundaries, so admission (max-num-seqs) and residency differ several-fold."
+  - "Correctness is a property of combinations: adaptive verify length, KVarN and a prefix hit are each fine but together corrupt the second turn; FULL graph capture plus a prefix hit broke exactly one prompt length in 128. The engine answers with boot-time pins, not runtime checks."
+  - "Drafts come from three sources fused per position (MTP head, a block drafter, and a lookup in the request's own token history), and correctness rests on the draft distribution q: point masses where the lookup filled, minus infinity outside the truncated draft vocabulary."
+  - "The decision about next step's verify length must live outside the captured CUDA graph, reads its signal one step stale on purpose, needs batch-wide unanimity, and requires turning async scheduling off; the graph set must contain both lengths."
+  - "Offline preparation is lossy and workload-statistical: requantising untied vocabulary matrices, choosing a draft vocabulary from the model's own outputs, GPTQ with captured Hessians; the draft head must be sliced from the same quantised head the target uses."
+  - "Memory planning is measured, not computed, and environment-dependent: the profiled activation peak drifts by 1 GiB, cold compile scratch inflates it, and WSL2 overcommits silently into system RAM instead of failing, so the pool is pinned by bytes."
+  - "Speculation preserves the distribution but not tokens: greedy text depends on block length, batch composition and cache hits through rounding, so equivalence must be stated as distributional."
+not_read: "Upstream vLLM 0.33.0 source (scheduler, block pool, coordinator, engine core, API server, parsers, rejection sampler, GDN/FLA kernels, DFlash2 and MTP model code, tensor parallelism), which is described only through patch context and documents; the full bodies of gdn-multi-prefill-checkpoints, gdn-sm75-cuda-prefill, spec-decode-scratch-*, int4-kv-per-token-head, triton-spec-attn-fp8-kv, prefill-attn-int8 kernel body, flashinfer-sm75-spec-graphs, sampler kernels and dflash2-ngram-chains code beyond comments; KVarN Triton decode, store and Sinkhorn kernels and most of kvarn_attn.py beyond lines 1-35, 450-650 and 2039-2080; CUDA sources of fa2/ and pthfa/ and the lsa/ Python package; drafter/ script bodies beyond docstrings; prepare/quant_lm_head.py, quant_heads_stream.py, fetch_*.py bodies; resolve_config.sh and batch/start_qwen.sh beyond the flag lines; docs/ beyond the cited heads; bench/ and opt-170hx/."

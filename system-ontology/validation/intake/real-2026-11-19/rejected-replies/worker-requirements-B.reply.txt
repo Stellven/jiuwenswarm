@@ -1,0 +1,505 @@
+{
+  "schema_version": "3.0.0",
+  "domain_lane": "scientific_research",
+  "intent_ref": {
+    "id": "blob:a76115a4a02f973df97b7f5df60cdc6ce53d6c684ede4a5117d6f4e1afb8c073",
+    "sha256": "a76115a4a02f973df97b7f5df60cdc6ce53d6c684ede4a5117d6f4e1afb8c073"
+  },
+  "intake_ref": {
+    "id": "blob:300ad0ccf9ba30832cf89e8351bc7cb72f7cd386543d0cf5483370e50ed7ef69",
+    "sha256": "300ad0ccf9ba30832cf89e8351bc7cb72f7cd386543d0cf5483370e50ed7ef69"
+  },
+  "objective": {
+    "id": "intent.desired-change",
+    "text": "Build a custom inference engine for Meta Muse Spark Open that runs on NVIDIA DGX Spark.",
+    "origin": "user",
+    "source_refs": [
+      {
+        "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+        "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+      }
+    ]
+  },
+  "in_scope": [
+    {
+      "id": "scope.text-inference",
+      "text": "The engine interface accepts text and produces text.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ]
+    },
+    {
+      "id": "scope.proposed-reporting",
+      "text": "Proposed reporting quantities are time to first token, decode rate and peak memory. Proposed time to first token runs from request admission to production of the first output token and excludes model loading; proposed decode rate excludes the first token; proposed peak memory uses the memory-budget accounting boundary. Their workloads remain UNSET. These reporting proposals require confirmation or replacement.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ]
+    }
+  ],
+  "out_of_scope": [
+    {
+      "id": "scope.nontext-interface",
+      "text": "Non-text input and output are outside the specified text-input, text-output interface.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ]
+    }
+  ],
+  "mandatory_requirements": [
+    {
+      "id": "requirement.engine",
+      "text": "Provide a custom inference engine for Meta Muse Spark Open that runs on the supplied NVIDIA DGX Spark 128 GB configuration. Execution environment and model checkpoint remain unresolved.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+          "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+        },
+        {
+          "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+          "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+        }
+      ]
+    },
+    {
+      "id": "requirement.text-interface",
+      "text": "Provide an interface accepting text and producing text. Engine boundary form and streaming behavior remain unresolved.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ]
+    },
+    {
+      "id": "intent.requested-result",
+      "text": "Deliver the engine as a reproducible container, with a clean rebuild, benchmark report and replayable run artifacts.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ]
+    },
+    {
+      "id": "requirement.judgment-contract",
+      "text": "The engine is to be judged against memory, offered context length and quality pass/fail contracts. The memory and quality contracts are proposals requiring confirmation or replacement; offered context length, permitted transformations, quality task set and applicable threshold remain unresolved. No proposed criterion is established as accepted by this Brief.",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ]
+    }
+  ],
+  "optional_preferences": [],
+  "constraints": [
+    {
+      "id": "constraint.container",
+      "text": "Container packaging is required.",
+      "category": "delivery",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "scope": "research_run",
+      "normalized_value": "container",
+      "unit": null,
+      "operator": "eq"
+    },
+    {
+      "id": "constraint.open-design",
+      "text": "Execution, state, composition, policy and binding are open factory choices.",
+      "category": "design-discretion",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": null,
+      "unit": null,
+      "operator": "qualitative"
+    },
+    {
+      "id": "constraint.proposed-memory-accounting",
+      "text": "The proposed memory pass/fail budget is 80 GB, decimal, in mem0. Its proposed accounting boundary includes everything the engine container holds in the unified pool at any moment: CPU and GPU process allocations and page cache attributable to files it reads. The operating system and other processes are outside this boundary. The budget choice, unit basis and accounting boundary require confirmation.",
+      "category": "proposed-resource-limit",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": null,
+      "unit": null,
+      "operator": "qualitative"
+    },
+    {
+      "id": "constraint.proposed-quality-comparison",
+      "text": "The proposed quality baseline is the published reference implementation with NVFP4 weights, the published tokenizer and greedy sampling. The proposed comparison requires the same output tokens as that baseline if no computational change is allowed; otherwise it requires a task score not below a threshold. The task set, threshold and allowed transformations remain UNSET. The baseline and comparison require confirmation or replacement.",
+      "category": "proposed-quality-acceptance",
+      "origin": "user",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "scope": "scientific_execution",
+      "normalized_value": null,
+      "unit": null,
+      "operator": "qualitative"
+    }
+  ],
+  "target_metrics": [
+    {
+      "id": "target.proposed-memory",
+      "metric": "memory_budget",
+      "target_text": "Proposed pass/fail budget: 80 GB decimal in unified pool mem0, subject to confirmation of the budget and its accounting boundary.",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "origin": "user",
+      "requirement_ids": [
+        "requirement.judgment-contract"
+      ],
+      "unit": "GB (decimal)",
+      "comparison": {
+        "comparator": "le",
+        "reference": "constant",
+        "factor": 0,
+        "offset": 80
+      },
+      "comparison_status": "quantitative"
+    },
+    {
+      "id": "target.context-length",
+      "metric": "context_length",
+      "target_text": "A pass/fail offered context length in tokens is required but remains UNSET. The model's stated 1,000,000-token allowance does not specify the engine's offered context.",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "origin": "user",
+      "requirement_ids": [
+        "requirement.judgment-contract"
+      ],
+      "unit": "tokens",
+      "comparison": null,
+      "comparison_status": "unsupported"
+    },
+    {
+      "id": "target.proposed-quality",
+      "metric": "quality_score",
+      "target_text": "Proposed pass/fail comparison: baseline-identical output tokens if computational changes are disallowed; otherwise a task score at or above an UNSET threshold on an UNSET held-out task set.",
+      "source_refs": [
+        {
+          "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+          "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+        }
+      ],
+      "origin": "user",
+      "requirement_ids": [
+        "requirement.judgment-contract"
+      ],
+      "unit": null,
+      "comparison": null,
+      "comparison_status": "unsupported"
+    }
+  ],
+  "deliverables": [
+    {
+      "id": "deliverable.container",
+      "name": "Reproducible engine container",
+      "description": "The custom Meta Muse Spark Open inference engine packaged as a reproducible container for the specified NVIDIA DGX Spark configuration.",
+      "artifact_type": "reproducible_container"
+    },
+    {
+      "id": "deliverable.rebuild",
+      "name": "Clean rebuild",
+      "description": "A clean rebuild of the delivered engine container.",
+      "artifact_type": "clean_rebuild"
+    },
+    {
+      "id": "deliverable.benchmark",
+      "name": "Benchmark report",
+      "description": "A benchmark report whose workload and reporting contracts remain subject to the listed blocking unresolved items.",
+      "artifact_type": "benchmark_report"
+    },
+    {
+      "id": "deliverable.replay",
+      "name": "Replayable run artifacts",
+      "description": "Run artifacts sufficient to replay the reported engine runs.",
+      "artifact_type": "replayable_run_artifacts"
+    }
+  ],
+  "acceptance_expectations": [
+    {
+      "id": "acceptance.engine",
+      "requirement_ids": [
+        "requirement.engine"
+      ],
+      "description": "The delivered custom engine runs Meta Muse Spark Open on the supplied NVIDIA DGX Spark 128 GB configuration, using the checkpoint and execution environment once those project decisions are resolved."
+    },
+    {
+      "id": "acceptance.interface",
+      "requirement_ids": [
+        "requirement.text-interface"
+      ],
+      "description": "The engine accepts text and produces text through the engine form and streaming behavior once those decisions are resolved."
+    },
+    {
+      "id": "acceptance.delivery",
+      "requirement_ids": [
+        "intent.requested-result"
+      ],
+      "description": "Delivery includes the reproducible container, clean rebuild, benchmark report and replayable run artifacts. Benchmark acceptance remains blocked by unresolved workload and reporting contracts."
+    },
+    {
+      "id": "acceptance.judgment",
+      "requirement_ids": [
+        "requirement.judgment-contract"
+      ],
+      "description": "Memory, offered context length and quality are judged against resolved pass/fail contracts. The normalized 80 GB decimal ceiling describes only the memory proposal; it is not an approved criterion. Acceptance cannot be determined until the proposed contracts and missing project decisions are resolved."
+    }
+  ],
+  "evidence_obligations": [
+    {
+      "id": "evidence.engine",
+      "requirement_ids": [
+        "requirement.engine"
+      ],
+      "description": "Provide run artifacts identifying the model checkpoint, execution environment and target machine configuration and showing the custom engine running the specified model on that configuration."
+    },
+    {
+      "id": "evidence.interface",
+      "requirement_ids": [
+        "requirement.text-interface"
+      ],
+      "description": "Provide replayable records of text inputs and text outputs for the resolved engine interface, including the resolved streaming behavior where applicable."
+    },
+    {
+      "id": "evidence.delivery",
+      "requirement_ids": [
+        "intent.requested-result"
+      ],
+      "description": "Provide the reproducible container, clean rebuild record, benchmark report and associated replayable run artifacts, with sufficient identification to associate the report and replay with the delivered build."
+    },
+    {
+      "id": "evidence.judgment",
+      "requirement_ids": [
+        "requirement.judgment-contract"
+      ],
+      "description": "Provide evidence tied to the resolved memory budget and accounting boundary, offered context length, permitted transformations and quality comparison. Identify the applicable baseline or task score, task set and threshold after resolution. Preserve proposed versus confirmed status; do not assert pass/fail from unresolved criteria."
+    }
+  ],
+  "assumptions": [],
+  "unresolved_items": [
+    {
+      "id": "uncertainty.environment",
+      "kind": "missing",
+      "description": "The target explicitly leaves the execution environment UNSET as a project decision. The supplied machine description does not resolve the execution environment.",
+      "affected_fields": [
+        "/mandatory_requirements/0",
+        "/acceptance_expectations/0",
+        "/evidence_obligations/0"
+      ],
+      "blocking": true,
+      "clarification": "Specify the intended execution environment."
+    },
+    {
+      "id": "uncertainty.engine-form",
+      "kind": "missing",
+      "description": "The engine boundary form is UNSET; execution library, offline engine and online service are listed as alternatives.",
+      "affected_fields": [
+        "/mandatory_requirements/1",
+        "/acceptance_expectations/1",
+        "/deliverables/0"
+      ],
+      "blocking": true,
+      "clarification": "Specify the required engine form."
+    },
+    {
+      "id": "uncertainty.streaming",
+      "kind": "missing",
+      "description": "Streaming behavior is explicitly UNSET.",
+      "affected_fields": [
+        "/mandatory_requirements/1",
+        "/acceptance_expectations/1",
+        "/evidence_obligations/1"
+      ],
+      "blocking": true,
+      "clarification": "Specify whether streaming is required and what interface behavior is expected."
+    },
+    {
+      "id": "uncertainty.memory-proposal",
+      "kind": "ambiguous",
+      "description": "constraint.proposed-memory-accounting and target.proposed-memory retain the proposed 80 GB decimal budget and container accounting boundary. The target equation expresses the proposed ceiling only. The budget choice, decimal unit basis and boundary are not settled acceptance criteria.",
+      "affected_fields": [
+        "/constraints/2",
+        "/target_metrics/0",
+        "/acceptance_expectations/3"
+      ],
+      "blocking": true,
+      "clarification": "Confirm or replace the proposed memory budget, unit basis and accounting boundary."
+    },
+    {
+      "id": "uncertainty.context-length",
+      "kind": "missing",
+      "description": "target.context-length requires a quantitative offered context length in tokens, but its value remains UNSET. A faithful comparison cannot be normalized without that requirement. The stated model allowance of 1,000,000 tokens is not the engine's offered-context target.",
+      "affected_fields": [
+        "/target_metrics/1/comparison",
+        "/target_metrics/1/comparison_status",
+        "/acceptance_expectations/3"
+      ],
+      "blocking": true,
+      "clarification": "Specify the engine's required offered context length in tokens and the intended pass/fail comparison."
+    },
+    {
+      "id": "uncertainty.allowed-transformations",
+      "kind": "missing",
+      "description": "Allowed transformations are UNSET, including whether quantisation below NVFP4 or approximations changing output are permitted. This prevents selection of the applicable branch of target.proposed-quality and constraint.proposed-quality-comparison.",
+      "affected_fields": [
+        "/constraints/3",
+        "/target_metrics/2/comparison",
+        "/target_metrics/2/comparison_status"
+      ],
+      "blocking": true,
+      "clarification": "Specify the permitted computational and precision transformations."
+    },
+    {
+      "id": "uncertainty.quality-proposal",
+      "kind": "ambiguous",
+      "description": "constraint.proposed-quality-comparison and target.proposed-quality retain a proposed reference implementation with NVFP4 weights, published tokenizer and greedy sampling. The proposed conditional contract requires identical output tokens when computational changes are disallowed, otherwise a task score at or above an UNSET threshold. The contract remains unconfirmed and cannot be represented faithfully as one quantitative equation while its applicable branch, score, unit and threshold remain unresolved.",
+      "affected_fields": [
+        "/constraints/3",
+        "/target_metrics/2/comparison",
+        "/target_metrics/2/unit",
+        "/target_metrics/2/comparison_status",
+        "/acceptance_expectations/3"
+      ],
+      "blocking": true,
+      "clarification": "Confirm or replace the proposed reference baseline and conditional quality comparison."
+    },
+    {
+      "id": "uncertainty.quality-taskset",
+      "kind": "missing",
+      "description": "For target.proposed-quality, the held-out quality task set is unnamed and UNSET, and the task score and its unit are consequently undefined.",
+      "affected_fields": [
+        "/target_metrics/2/metric",
+        "/target_metrics/2/unit",
+        "/target_metrics/2/comparison",
+        "/evidence_obligations/3"
+      ],
+      "blocking": true,
+      "clarification": "Identify the held-out task set and the task score used for quality judgment."
+    },
+    {
+      "id": "uncertainty.quality-threshold",
+      "kind": "missing",
+      "description": "For the task-score branch of target.proposed-quality, the pass threshold remains UNSET. The stated at-or-above comparison cannot be normalized to a constant without inventing the threshold.",
+      "affected_fields": [
+        "/target_metrics/2/comparison",
+        "/target_metrics/2/comparison_status",
+        "/acceptance_expectations/3"
+      ],
+      "blocking": true,
+      "clarification": "Specify the quality pass threshold if the task-score comparison applies."
+    },
+    {
+      "id": "uncertainty.workload",
+      "kind": "missing",
+      "description": "The fixed benchmark workload and workloads for time to first token, decode rate and peak memory in scope.proposed-reporting are UNSET.",
+      "affected_fields": [
+        "/in_scope/1",
+        "/deliverables/2",
+        "/acceptance_expectations/2",
+        "/evidence_obligations/2"
+      ],
+      "blocking": true,
+      "clarification": "Define the workload on which the engine will be benchmarked."
+    },
+    {
+      "id": "uncertainty.reporting-proposals",
+      "kind": "ambiguous",
+      "description": "scope.proposed-reporting retains proposed time-to-first-token, decode-rate and peak-memory reporting contracts. Request admission to first output token with model loading excluded, decode rate excluding the first token, and peak memory using the proposed memory-budget accounting boundary require confirmation or replacement.",
+      "affected_fields": [
+        "/in_scope/1",
+        "/deliverables/2",
+        "/acceptance_expectations/2"
+      ],
+      "blocking": true,
+      "clarification": "Confirm or replace the proposed reporting quantities and measurement conventions."
+    },
+    {
+      "id": "uncertainty.checkpoint",
+      "kind": "missing",
+      "description": "The target calls for one model checkpoint but leaves its identity UNSET. Its note mentions BF16 and NVFP4 and says only NVFP4 is within reach, without selecting a checkpoint.",
+      "affected_fields": [
+        "/mandatory_requirements/0",
+        "/deliverables/0",
+        "/acceptance_expectations/0",
+        "/evidence_obligations/0"
+      ],
+      "blocking": true,
+      "clarification": "Identify the model checkpoint to be used."
+    }
+  ],
+  "resource_refs": [],
+  "context_refs": [
+    {
+      "id": "blob:c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346",
+      "sha256": "c2d27ef06436177e7cc9e01c7bad79fd1e654a8a894604261a4e04c91a88b346"
+    },
+    {
+      "id": "blob:120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a",
+      "sha256": "120baa8e8f6bc5d80751e7908e8bb00eb4039012b8e4e37b3ea83b6fc4d9093a"
+    },
+    {
+      "id": "blob:b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4",
+      "sha256": "b88f69fbcd86abbb15e5333ffedb4e66590d90b41ee18045a159e0b4e7b2ddc4"
+    },
+    {
+      "id": "blob:a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb",
+      "sha256": "a65acca0ad5f54476bb1953fd7d79ac45059779d1a13365b4c068d5f7e6ce4fb"
+    }
+  ],
+  "input_bindings": [],
+  "confirmation": {
+    "basis": "user_request",
+    "source_refs": [
+      {
+        "id": "blob:7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc",
+        "sha256": "7a24291105c90ffa3374cd35bf75c89b26dde0075d376e7799e5805641d01fbc"
+      }
+    ]
+  }
+}

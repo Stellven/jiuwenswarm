@@ -1,0 +1,441 @@
+engine: hyperqwen
+decision_coverage:
+  totals:
+    decisions: 125
+    covered: 70
+    loosely: 32
+    not_covered: 9
+    engine_specific: 14
+  per_type:
+  - type: model-conversion
+    decisions: 14
+    covered: 8
+    loosely: 3
+    not_covered: 2
+    engine_specific: 1
+  - type: calibration
+    decisions: 3
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: configuration
+    decisions: 9
+    covered: 2
+    loosely: 6
+    not_covered: 1
+    engine_specific: 0
+  - type: graph-capture
+    decisions: 6
+    covered: 5
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: memory-planning
+    decisions: 3
+    covered: 1
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: state-pool
+    decisions: 6
+    covered: 4
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: recurrent-state-store
+    decisions: 3
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: positional-state-store
+    decisions: 7
+    covered: 5
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 4
+    covered: 3
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: state-tiering
+    decisions: 3
+    covered: 0
+    loosely: 1
+    not_covered: 1
+    engine_specific: 1
+  - type: request-front
+    decisions: 8
+    covered: 4
+    loosely: 1
+    not_covered: 1
+    engine_specific: 2
+  - type: prompt-preparation
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 5
+    covered: 3
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: step-execution
+    decisions: 2
+    covered: 0
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: layer-compute
+    decisions: 13
+    covered: 10
+    loosely: 1
+    not_covered: 0
+    engine_specific: 2
+  - type: modality-encoding
+    decisions: 3
+    covered: 0
+    loosely: 1
+    not_covered: 2
+    engine_specific: 0
+  - type: sampling
+    decisions: 2
+    covered: 0
+    loosely: 1
+    not_covered: 1
+    engine_specific: 0
+  - type: output-constraint
+    decisions: 2
+    covered: 0
+    loosely: 1
+    not_covered: 0
+    engine_specific: 1
+  - type: draft-proposal
+    decisions: 12
+    covered: 9
+    loosely: 2
+    not_covered: 0
+    engine_specific: 1
+  - type: draft-policy
+    decisions: 6
+    covered: 3
+    loosely: 3
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 1
+  - type: model-partitioning
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 1
+  - type: telemetry
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 2
+    covered: 1
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  loosely:
+  - part: model-dir-publisher
+    type: model-conversion
+    decision: 'Order of writes: shards, then config.json, then the index last as the commit point'
+    nearest_choice: whether conversion is one step or resumable stages / what happens to a conversion that is interrupted
+  - part: model-dir-publisher
+    type: model-conversion
+    decision: Whether a checkpoint is an extendable compressed-tensors pack-quantized schema, checked before any read
+    nearest_choice: what happens to a conversion that does not match its source
+  - part: draft-vocab-builder
+    type: model-conversion
+    decision: Which extra scripts (CJK, Cyrillic) are appended and under what row budget
+    nearest_choice: the data a derived piece is selected or fitted from, and what is eligible for it
+  - part: calibration-data-capture
+    type: calibration
+    decision: Number of calibration rows
+    nearest_choice: time budget of a measurement run
+  - part: launch-profile-resolver
+    type: configuration
+    decision: Profile (batch or single-user) and context class (fast, long, huge)
+    nearest_choice: rules that derive a setting's default from other settings and machine facts
+  - part: launch-profile-resolver
+    type: configuration
+    decision: Drafter kind and number of draft tokens
+    nearest_choice: rules that derive a setting's default from other settings and machine facts
+  - part: launch-profile-resolver
+    type: configuration
+    decision: Pin the pool by bytes or by utilisation; skip the pin under tensor parallelism
+    nearest_choice: whether an operator value is a hard limit or a target
+  - part: launch-profile-resolver
+    type: configuration
+    decision: Prefix caching on with align-mode Mamba state, and the snapshot retention interval
+    nearest_choice: rules that derive a setting's default from other settings and machine facts
+  - part: correctness-pins
+    type: configuration
+    decision: Which combinations are pinned and to what
+    nearest_choice: which combinations are refused
+  - part: correctness-pins
+    type: configuration
+    decision: Whether an explicit operator override is honoured
+    nearest_choice: operator values, presets, measured values and defaults
+  - part: graph-capture
+    type: graph-capture
+    decision: FULL, PIECEWISE or FULL_AND_PIECEWISE per profile
+    nearest_choice: where a graph must be split so that host work can run between its parts
+  - part: memory-budget-planner
+    type: memory-planning
+    decision: Measure after an uncounted warm profile pass, and empty the allocator cache before allocating the pool
+    nearest_choice: whether a figure is measured by a trial run or computed
+  - part: memory-budget-planner
+    type: memory-planning
+    decision: Measure graph memory by allocator reserved bytes, not the driver's free-memory delta
+    nearest_choice: whether a figure is measured by a trial run or computed
+  - part: pool-layout-planner
+    type: state-pool
+    decision: Charge recurrent-state pages for every in-flight async batch, plus speculative scratch and prefill checkpoints
+    nearest_choice: page size and how the pool is split between kinds of state
+  - part: recurrent-state-store
+    type: recurrent-state-store
+    decision: Copy state across a block boundary during chunked prefill only when the column changes
+    nearest_choice: when a snapshot is taken
+  - part: attention-kv-store
+    type: positional-state-store
+    decision: Padded-page views when another group's promoted page is larger
+    nearest_choice: precision and layout of stored state
+  - part: kvarn-staging-quantizer
+    type: positional-state-store
+    decision: Draft passes after the first only allocate slots, never flush
+    nearest_choice: when state held in a staging precision is converted to its stored format
+  - part: prefix-cache
+    type: prefix-reuse
+    decision: Hash unit (128 on KVarN)
+    nearest_choice: the key that decides whether stored state may be reused
+  - part: kv-offload-tier
+    type: state-tiering
+    decision: Which groups count as draft attention (only the drafter's sliding-window groups)
+    nearest_choice: which kinds of state the slower tier holds
+  - part: access-guard
+    type: request-front
+    decision: Bind to loopback when no key is set (outside containers)
+    nearest_choice: who is allowed and how
+  - part: request-scheduler
+    type: step-scheduler
+    decision: Admission count (max-num-seqs) versus residency (pages)
+    nearest_choice: sequences and rows per step
+  - part: request-scheduler
+    type: step-scheduler
+    decision: Preempt and recompute when the pool is full
+    nearest_choice: which sequence is paused when resources run short
+  - part: model-runner
+    type: step-execution
+    decision: Truncate the draft tokens handed for verification to the controller's count
+    nearest_choice: sequences and rows per step
+  - part: full-attention-compute
+    type: layer-compute
+    decision: Sparse attention budget when LSA is on
+    nearest_choice: any deliberate change to the model's arithmetic (it changes output and needs permission)
+  - part: image-encoder
+    type: modality-encoding
+    decision: 'Load the tower at all (default: language-model only)'
+    nearest_choice: whether encoder weights stay resident
+  - part: sampler
+    type: sampling
+    decision: Use one topk instead of a full-vocabulary sort when every request's top-k is at most 64 (known on host, no sync)
+    nearest_choice: limits on candidates considered
+  - part: grammar-constraint
+    type: output-constraint
+    decision: Hold every tool to its schema, not only strict ones
+    nearest_choice: which rules are offered
+  - part: mtp-drafter
+    type: draft-proposal
+    decision: Draft from the target's top-k/top-p support; optional draft temperature scale
+    nearest_choice: the set of tokens proposals are restricted to / greedy or sampled proposals
+  - part: dflash2-drafter
+    type: draft-proposal
+    decision: Draft block equals the trained block even when the verify block is longer (the grouped convolution resets on
+      block boundaries)
+    nearest_choice: how many per round
+  - part: drafter-free-chains
+    type: draft-policy
+    decision: Single request only; greedy only by default (point mass under sampling displaced better drafts, -8 percent)
+    nearest_choice: decisions per sequence or jointly across sequences sharing a step
+  - part: verify-length-controller
+    type: draft-policy
+    decision: Two qualifying steps to enter, STICKY steps to leave (single request only)
+    nearest_choice: when drafting pauses and resumes
+  - part: verify-length-controller
+    type: draft-policy
+    decision: Take the long block unconditionally below a context length (off by default)
+    nearest_choice: limits on the round
+  not_covered:
+  - part: draft-vocab-builder
+    type: model-conversion
+    decision: Number of rows kept
+    kind: sizing
+    missing_choice: the size of a derived piece, such as how many vocabulary rows a shortlist keeps
+  - part: chat-template-rewriter
+    type: model-conversion
+    decision: Which effort names map to which template level; unknown ones fall through to no instruction
+    kind: policy
+    missing_choice: 'how a derived template is corrected: which inputs it newly accepts and what each is mapped to'
+  - part: launch-profile-resolver
+    type: configuration
+    decision: Which layers run int8 activations
+    kind: policy
+    missing_choice: which settings that change output are on by default, and in which profile or deployment class
+  - part: kv-offload-tier
+    type: state-tiering
+    decision: Retain the sliding-window history at the recurrent state's replay boundary under sparse retention
+    kind: policy
+    missing_choice: which pieces of different kinds of state are kept together on the slower tier so that a restored state
+      is usable
+  - part: api-server
+    type: request-front
+    decision: SSE keep-alive interval
+    kind: timing
+    missing_choice: keep-alive for a response stream with nothing to send
+  - part: image-encoder
+    type: modality-encoding
+    decision: Bulk-copy per module rather than UVA zero-copy, which re-reads tiles over PCIe
+    kind: placement
+    missing_choice: 'how encoder weights that are not resident are brought to the device: copied per use or read in place'
+  - part: image-encoder
+    type: modality-encoding
+    decision: Pixel cap of 2048 image tokens and one image per prompt
+    kind: threshold
+    missing_choice: limits on how much media one prompt may carry and how many embedding rows it may become
+  - part: sampler
+    type: sampling
+    decision: Multi-block row softmax for up to 16 rows
+    kind: policy
+    missing_choice: the kernel used for the sampling arithmetic and how it changes with the number of rows
+  - part: stall-watchdog
+    type: engine-supervision
+    decision: No lock shared with the main loop
+    kind: policy
+    missing_choice: whether the stall monitor shares any lock or resource with the loop it watches
+contradictions:
+- part: calibration-data-capture
+  type: calibration
+  claim: 'state: the recorded results and the key that says what they are valid for'
+  evidence: The capture writes hidden states, token ids and seqs.json (id, src, think, offsets) and Hessians with no record
+    of which target checkpoint, quantisation or build produced them (drafter/capture.py:1-40); owns_state lists only resumable
+    output and a lock.
+  fix: 'state: the recorded results and, where the engine keeps one, the key that says what they are valid for; results without
+    a key are valid only by convention'
+- part: launch-profile-resolver
+  type: configuration
+  claim: 'effect_on_output: exact in itself; approximate when it turns on a setting that changes output'
+  evidence: Its own choice of drafter and number of draft tokens changes greedy text through block-width rounding and changes
+    the draw under sampling, which is rounding/resampled, not a deliberate change to computation or stored precision (inventory
+    output_effect_when; context-lookup-proposer and draft-acceptance records).
+  fix: 'add: rounding or resampled when it turns on speculation or another setting whose own effect is at that level; keep
+    approximate for settings that change computation or stored precision'
+- part: correctness-pins
+  type: configuration
+  claim: 'must: A combination known to give wrong output is refused by default; an operator''s override is explicit and recorded.'
+  evidence: 'Most known-bad combinations are not refused but silently replaced: adaptive verify length pinned off, FULL capture
+    forced to PIECEWISE, FlashInfer sampler switched off, STICKY limited to one request; only fp16 with a speculator refuses
+    to boot. Nothing records that a pin or an override was applied.'
+  fix: 'A combination known to give wrong output is not run by default: it is refused or one member is replaced by a safe
+    setting; an operator''s override is explicit'
+- part: memory-budget-planner
+  type: memory-planning
+  claim: 'must: The engine does not start serving on a plan that exceeds a hard limit; an estimate found over the limit is
+    corrected or refused first.'
+  evidence: 'With the pool pinned by bytes (KV_MEM) the plan is not checked: when pinned too full the first real batch OOMs
+    on Linux, or under WSL2 the allocation silently spills into system RAM and serving continues 3-28x slower.'
+  fix: A computed plan that exceeds a hard limit is corrected or refused before serving; a size fixed by the operator may
+    bypass the check only as the should rule records
+- part: request-scheduler
+  type: step-scheduler
+  claim: 'effect_on_output: rounding when which sequences share a step changes the arithmetic of a row'
+  evidence: Here the scheduler also cuts prompts into chunks within the per-step token budget, and chunk boundaries change
+    rounding (inventory output_effect_when); this engine has no separate prompt-reading part that would carry that case.
+  fix: rounding when which sequences share a step, or where a prompt is cut into chunks, changes the arithmetic of a row
+- part: full-attention-compute
+  type: layer-compute
+  claim: 'must: The sequence of layers and operations the model defines is kept; only the order of accumulation inside one
+    operation may vary.'
+  evidence: Opt-in sparse LSA attention attends to a budgeted subset of positions (exact only below about 4.6k tokens), and
+    the int8-QK prefill path quantises Q and K; both change the operation, not only its accumulation order.
+  fix: The sequence of layers and operations the model defines is kept; beyond the order of accumulation it changes only through
+    an approximation the operator or requester explicitly enabled
+- part: linear-gemm
+  type: layer-compute
+  claim: 'must: The sequence of layers and operations the model defines is kept; only the order of accumulation inside one
+    operation may vary.'
+  evidence: 'With VLLM_MARLIN_INPUT_DTYPE=int8 the selected layers quantise activations to int8 per token (batch default:
+    MLP), reported perplexity +0.9 to +3.7 percent.'
+  fix: 'same rewording as for full-attention-compute: changes beyond accumulation order only through an explicitly enabled
+    approximation'
+- part: image-encoder
+  type: modality-encoding
+  claim: 'effect_on_output: exact in itself; rounding / approximate by encoder width'
+  evidence: This part also enforces a pixel cap of 2048 image tokens and one image per prompt, which decides how an image
+    is resized before it reaches the model; the engine has no separate media-preparation part to carry the 'defines' case.
+  fix: 'add: defines when the encoding node itself sets the resolution or token count media is reduced to'
+- part: draft-acceptance
+  type: draft-verification
+  claim: 'summary: ...and make every kind of state reflect exactly that prefix; gives: state committed to the accepted prefix'
+  evidence: The rejection sampler only reports the accepted count; it does not commit or roll back anything. KV of rejected
+    positions is overwritten next step and recurrent state is selected from the per-draft slot by the store using the accepted
+    index (inventory 'not').
+  fix: 'gives: the accepted tokens and the accepted count by which each kind of state is committed, either by this node or
+    by the state''s owner'
+- part: stall-watchdog
+  type: engine-supervision
+  claim: 'summary: ...notice when it stalls or fails, and restart it.'
+  evidence: The sentinel only logs one warning per stall episode; nothing restarts the engine or handles in-flight requests.
+  fix: notice when it stalls or fails, and report it or restart it
+relaxations:
+- part: calibration-data-capture
+  type: calibration
+  rule: A recorded result is used only where its validity key matches the model, machine and build.
+  how: 'No validity key exists: captured hidden states, Hessians and self-generated tokens are reused by the GPTQ requantizer
+    and the vocabulary builder for whatever target directory they are pointed at; the type''s relaxed note (stale presets,
+    compiled-in figures) does not describe this.'
+wrong_assignments:
+- part: engine-core-loop
+  assigned: step-scheduler
+  better: engine-supervision
+  why: It runs the engine's process loop and the transport from the frontend, calling the scheduler once per step without
+    deciding what a step contains, which is exactly what step-scheduler's own 'not' gives to engine supervision; its one decision
+    (async scheduling) belongs to request-scheduler.
+inventory_errors:
+- part: gptq-requantizer
+  field: decisions
+  recorded: Width of the DFlash2 fc projection
+  source_shows: The choice is the bit width of the fc projection (--fc-bits 4|8|16, default int4 GPTQ), not its dimension
+    (drafter/quant_dflash2.py:5,9,29,59)
+- part: context-lookup-proposer
+  field: output_effect
+  recorded: none
+  source_shows: Its own output_effect_when says greedy text may flip on near ties because block length changes rounding, which
+    is the 'numeric' level of the inventory brief (patches/dflash2-lookup-drafting.patch, as cited)

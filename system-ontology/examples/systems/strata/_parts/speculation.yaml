@@ -1,0 +1,696 @@
+# Strata, speculation area: system-level parts to merge. Written from engines/strata-notes/speculation.md.
+flows:
+- id: mtp-drafts
+  sender: comp/strata/mtp-drafter
+  receiver: comp/strata/draft-policy
+  carries:
+    content: tokens
+  timing: per_window
+  description: Draft tokens for the next window with one probability each, and how many were drafted
+- id: dflash2-drafts
+  sender: comp/strata/dflash2-drafter
+  receiver: comp/strata/draft-policy
+  carries:
+    content: tokens
+  timing: per_window
+  description: Seven draft tokens with the selector's probabilities. Only when this drafter is loaded and is the
+    request's drafter
+- id: lookup-proposal
+  sender: comp/strata/lookup-drafter
+  receiver: comp/strata/draft-policy
+  carries:
+    content: tokens
+  timing: per_window
+  description: The tokens that followed an earlier occurrence of the current ending, and the match length; also
+    the chained proposal after the neural drafts when the lookup chain is on
+- id: chain-continue
+  sender: comp/strata/draft-policy
+  receiver: comp/strata/mtp-drafter
+  carries:
+    content: control
+  timing: per_window
+  description: After each draft step, whether to compute another draft. Only with the cost-aware window; otherwise
+    the drafter runs to its cap or to the probability floor
+- id: draft-cap
+  sender: comp/strata/draft-policy
+  receiver: comp/strata/mtp-drafter
+  carries:
+    content: plan
+  timing: per_request
+  description: The most drafts per round for this request (narrower for MTP requests under automatic drafter selection;
+    lowered near the context end in gated mode)
+- id: verify-window
+  sender: comp/strata/draft-policy
+  receiver: comp/strata/window-loop
+  carries:
+    content: tokens
+  timing: per_window
+  description: 'The window to verify: the last accepted token followed by the chosen drafts, at the chosen width'
+- id: draft-distributions
+  sender: comp/strata/mtp-drafter
+  receiver: comp/strata/draft-verifier
+  carries:
+    content: activations
+  timing: per_window
+  description: For each MTP draft, the distribution it was sampled from (up to 64 token and probability pairs),
+    or the gated measure built from it. Only with STRATA_SPEC_PROB=1 on a sampled request
+- id: ngram-prefetch
+  sender: comp/strata/mtp-drafter
+  receiver: comp/strata/ngram-reader
+  carries:
+    content: control
+  timing: per_window
+  description: Prefetch the n-gram table rows of the drafted tokens so the next verify window finds them warm
+- id: accepted-count
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/draft-policy
+  carries:
+    content: signal
+  timing: per_window
+  description: How many drafts were accepted in the window; the policy pairs it with the round's wall time
+- id: accepted-rows-to-mtp
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/mtp-drafter
+  carries:
+    content: tokens
+  timing: per_window
+  description: The window's target tokens, its position and the last accepted row, from which the drafter catches
+    up its own K/V and drafts again
+- id: accepted-rows-to-dflash2
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/dflash2-drafter
+  carries:
+    content: tokens
+  timing: per_window
+  description: The committed rows and their position, so the drafter's context ring holds committed rows only
+- id: accepted-tokens-to-lookup
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/lookup-drafter
+  carries:
+    content: tokens
+  timing: per_window
+  description: Emitted tokens appended to the lookup history. In the code the host loop makes the call, not the
+    verifier class
+- id: accepted-tokens
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/session-loop
+  carries:
+    content: tokens
+  timing: per_window
+  description: The accepted prefix plus the one target token after it; the last one becomes the next window's first
+    row
+- id: commit-prefix
+  sender: comp/strata/draft-verifier
+  receiver: comp/strata/window-graphs
+  carries:
+    content: control
+  timing: per_window
+  description: Launch the commit graph with the number of rows to keep and their positions (rejected rows carry
+    position -1). Not sent after a one-row window, which commits itself
+declares:
+  stages: []
+  states:
+  - mtp_kv
+  - lookup_history
+  - draft_estimates
+  - drafter_choice_stats
+  - commit_stores
+  - dflash2_context
+  policies:
+  - draft-source
+  - drafter-choice
+policies:
+- id: draft-window
+  controls:
+    aspect: execution
+    item: stages
+    stage: verify
+    work: rows in the verify window when the MTP drafter drew the candidates
+  signals:
+  - id: draft_probability
+    per:
+    - draft step
+    update: Read from the drafter after each draft step
+    freshness: current step
+  - id: acceptance_by_probability
+    per:
+    - probability bucket (8 buckets of width 1/8)
+    update: After each MTP round, each draft that was reached adds 1 to its bucket's count, and 1 to its held count
+      if it was accepted
+    decay: counts multiplied by 0.995 per update
+    note: 'Read as (held + 4 x p) / (reached + 4): before data, a draft is as likely to hold as its own probability
+      says'
+  - id: round_cost_ms
+    per:
+    - window size
+    - context bucket (below 6000, below 24000, longer positions)
+    update: Running mean of the first samples, then a moving average with weight 0.1; a sample is limited to twice
+      the known cost and the first sample of a size is replaced by the scaled guess when other sizes are known
+    freshness: one round behind
+    note: 'Wall time from before the verify window to after the next window''s draft: verify, commit, emit, next
+      draft and the adaptive-tier join. An unmeasured size is scaled from measured ones by a fixed shape table'
+  actions:
+  - id: keep_or_stop_chain
+    steps: 'After draft j: q = q x a(p_j); E = E + q; rows = j + 2. If E / cost(rows) beats the best so far by 1
+      + margin/3, rows becomes the best width. If that width has fewer than 3 cost samples and q is at least 0.15,
+      take it as the best to probe it. Continue only if a row is left and one or two more equally likely drafts
+      would beat the best by the same factor, or the next width is unmeasured and still likely to be reached'
+  - id: set_window
+    steps: Verify the best width, clamped to 1 and the drafter's cap
+  - id: cut_at_probability_floor
+    steps: 'Without the cost-aware rule: the window is the drafter''s cap, ended before the first draft whose probability
+      is below the floor. For DFlash2: ended where the product of the selector''s probabilities falls below --draft-conf'
+  trigger: Every draft step of every round whose candidates the MTP chain drew, except the first window. The cost-aware
+    rule runs only with STRATA_SPEC_COST=1
+  scope: engine
+  prior:
+    note: 'Best value starts at 1 / cost(1): one row, one token. Acceptance starts from the draft''s own probability,
+      worth 4 observations. STRATA_SPEC_COST_TABLE can seed the cost table (each entry worth 6 samples) in the command-line
+      loop only'
+  parameters:
+    enabled:
+      value: false
+      status: reported
+      source: strata src/program/generate.cpp:14109
+      note: STRATA_SPEC_COST=1; a per-card default table may set it (src/core/nv_defaults.cpp:77-80)
+    margin:
+      value: 0.03
+      status: reported
+      source: strata include/strata/spec/draft_policy.hpp:35
+      note: the step rule uses margin / 3
+    cost_ema_weight:
+      value: 0.1
+      status: reported
+      source: strata src/spec/draft_policy.cpp:16
+    calibration_decay:
+      value: 0.995
+      status: reported
+      source: strata src/spec/draft_policy.cpp:18
+    prior_weight:
+      value: 4
+      status: reported
+      source: strata src/spec/draft_policy.cpp:23
+    probes_per_unmeasured_size:
+      value: 3
+      status: reported
+      source: strata src/spec/draft_policy.cpp:24
+    probe_reach_floor:
+      value: 0.15
+      status: reported
+      source: strata src/spec/draft_policy.cpp:268,275
+    max_drafts:
+      value: min(max_t - 1, S_mtp - 1, cells left); ceiling 7
+      status: reported
+      source: strata src/core/mtp.cpp:1731; src/program/generate.cpp:14097
+      note: Replaces the earlier fixed 3, which is only the value for --spec 4
+    spec_min_p:
+      value: 0.0
+      status: reported
+      source: strata src/program/generate.cpp:904
+- id: draft-source
+  controls:
+    aspect: execution
+    item: stages
+    stage: draft
+    work: which source fills the verify window (neural drafts, a lookup proposal, or neural drafts plus a chained
+      lookup tail) and the window size
+  signals:
+  - id: lookup_acceptance
+    per:
+    - match-length bucket (below 6, below 12, below 24, 24 or more)
+    update: 'After a lookup window: accepted drafts added to the ok count; 1 added to the bad count if the window
+      was cut short'
+    decay: counts multiplied by 0.97 per lookup window
+    note: Priors 0.75, 0.88, 0.93, 0.96, each worth 4 observations. Chained drafts have their own counts with priors
+      0.45, 0.65, 0.8, 0.9, updated only when the chain was reached
+  - id: mtp_tokens_committed
+    per:
+    - window size
+    update: Moving average with weight 0.05 of accepted drafts plus 1
+    note: 'Before data: 1 + 0.7 x (size - 1)'
+  - id: round_cost_ms
+    per:
+    - window size
+    - context bucket
+    update: As in draft-window
+    freshness: one round behind; in gated mode a time is held until the committed position passes the last random
+      counter it depends on
+  - id: first_draft_agreement
+    update: Whether the lookup proposal's first token equals the neural drafter's first draft, each round
+  actions:
+  - id: take_lookup_window
+    steps: 'For k up to the proposal length: E(k) = 1 + q + .. + q^k, rate = E(k) / cost(k + 1). Take the best allowed
+      size if its rate beats the neural window''s (mean committed tokens / cost) by 1 + margin. Otherwise still
+      take the full size when its cost has fewer than 3 probes or has not been measured for 300 rounds, and q is
+      at least 0.85'
+  - id: append_chain
+    steps: Keep the k chained tokens that maximise (E_mtp + p_mtp x (c + .. + c^k)) / cost(t + k) if that beats
+      the neural window alone by 1 + margin; probe an unmeasured or stale full size when p_mtp x c is at least 0.6
+  - id: drop_size
+    steps: A window size whose graph finds no GPU memory is removed from the allowed set for the rest of the process;
+      the round takes the next smaller allowed size
+  trigger: Every round after the first window that has a lookup proposal, when no neural drafter is loaded, or the
+    proposal's first token equals the neural first draft, or the request is in probabilistic mode
+  scope: engine
+  prior:
+    note: One policy object lives for the whole engine process and learns across requests. In probabilistic mode
+      each request uses a copy taken at its start that learns committed outcomes only
+  parameters:
+    margin:
+      value: 0.03
+      status: reported
+      source: strata include/strata/spec/draft_policy.hpp:35
+    lookup_decay:
+      value: 0.97
+      status: reported
+      source: strata src/spec/draft_policy.cpp:19
+    mtp_tokens_ema_weight:
+      value: 0.05
+      status: reported
+      source: strata src/spec/draft_policy.cpp:17
+    probes_per_unmeasured_size:
+      value: 3
+      status: reported
+      source: strata src/spec/draft_policy.cpp:24
+    stale_after_rounds:
+      value: 300
+      status: reported
+      source: strata src/spec/draft_policy.cpp:27
+    confident_lookup_rate:
+      value: 0.85
+      status: reported
+      source: strata src/spec/draft_policy.cpp:157,162
+    lookup_chain:
+      value: 0
+      status: reported
+      source: strata src/program/generate.cpp:982
+      note: off by default
+- id: drafter-choice
+  controls:
+    aspect: execution
+    item: stages
+    stage: draft
+    work: which neural drafter (MTP or DFlash2) a request uses
+  signals:
+  - id: decode_tokens_per_second
+    per:
+    - drafter
+    - hash of prompt tokens 1 to 32
+    update: 'After a request of at least 48 generated tokens: 0.65 x old + 0.35 x new'
+  actions:
+  - id: pick_drafter
+    steps: 'Use the request''s own draft key if given; else the configured rule. Under the learn rule: try each
+      drafter twice, then use DFlash2 unless the MTP is more than 1% faster, and try the other one every 6th request
+      when they are within 4%, else every 12th. Swap in the policy object that holds that drafter''s learned costs'
+  trigger: Once per request, only when both drafters are loaded (--draft auto, serve, one card, no batch)
+  scope: request
+  parameters:
+    rule:
+      value: df2
+      status: reported
+      source: strata src/program/generate.cpp:1009
+    mtp_window_under_auto:
+      value: 4
+      status: reported
+      source: strata src/program/generate.cpp:1010,14094
+    min_tokens_to_learn:
+      value: 48
+      status: reported
+      source: strata src/program/generate.cpp:19447
+states:
+- id: attention_kv
+  of: attention_kv
+  scope: request
+  on_accept: keep
+  on_reject: invalidate
+  note: The window appends K and V for all rows. The commit graph contains no K/V operation. Cells of rejected rows
+    stay and are overwritten when those positions are processed again, before any query reads them (strata include/strata/core/verify.hpp:17-18;
+    src/core/verify.cpp:2918-3054). Owner is in the token path; the commit rule is recorded here.
+- id: indexer_keys
+  of: indexer_keys
+  scope: request
+  on_accept: restore_then_append
+  on_reject: restore
+  note: The window snapshots each attention layer's key tail (the up to 3 keys of the incomplete 4-cell block) and
+    appends keys for all rows. The commit restores the tail from the snapshot and re-appends the kept rows' stored
+    raw keys; rejected rows carry position -1 and the append skips them (src/core/verify.cpp:1874-1898,2964-2990;
+    src/kernels/cuda/native_qsa_indexer.cu:62,133-147). Pooled block keys written by a rejected row are not restored
+    by the commit; that they are rewritten before the next block selection is inferred, not verified.
+- id: gdn_state
+  of: gdn_state
+  scope: request
+  on_accept: advance_by_replay
+  on_reject: unchanged
+  note: 'Covers the recurrent state and the 3-entry convolution history of each recurrent layer. The window reads
+    both and writes neither. The commit re-runs the first kept rows from inputs the window stored (conv output,
+    gate, beta for the state; the layer''s input projection for the history, which becomes the last 3 of old history
+    followed by the kept rows) (src/core/verify.cpp:1668-1671,1730,1785-1786,2957-2962,3006-3013; src/kernels/cuda/verify_kernels.cu:81-96).
+    Exception: a one-row window advances both inside the window graph.'
+- id: ple_history
+  of: ple_history
+  scope: request
+  on_accept: set_to_snapshot
+  on_reject: set_to_snapshot
+  note: The window advances the device history row by row and saves a snapshot after each row. The commit overwrites
+    the history with the snapshot after the last kept row, which discards the advances of rejected rows. The host-side
+    pair of previous token ids is shifted by each kept token only (src/core/verify.cpp:1573-1586,3033,3927-3931).
+- id: commit_stores
+  scope: request
+  on_accept: unchanged
+  on_reject: unchanged
+  note: 'Engine state valid from one verify window to its commit: per attention layer the indexer tail snapshot
+    and the rows'' raw keys; per recurrent layer the rows'' input projection, conv output, gate and beta; per row
+    the n-gram history snapshot; the commit record (rows kept, index of the last kept row, positions). Written by
+    the window graph, read by the commit graph, overwritten by the next window.'
+- id: mtp_kv
+  of: mtp_kv
+  scope: request
+  on_accept: recompute
+  on_reject: invalidate
+  note: The MTP draft layer's own attention K/V. Not touched by the verifier's commit. In its next round the drafter
+    writes the cells of the accepted rows again from the window's real hidden rows and target tokens; cells written
+    by draft steps or belonging to rejected rows are left and rewritten before any read reaches them (src/core/mtp.cpp:1724-1731,1453,1091-1137).
+    Hashed and restored by conversation reuse.
+- id: dflash2_context
+  scope: request
+  on_accept: advance
+  on_reject: unchanged
+  note: The DFlash2 drafter's ring of K/V for committed rows only (2064 slots per layer). The block's own keys stay
+    outside it, so a reject changes nothing (include/strata/core/dflash2.hpp:13-14).
+- id: lookup_history
+  scope: request
+  on_accept: advance
+  on_reject: unchanged
+  note: Prompt and emitted tokens plus the trigram index. Reset per request. Drafts used for a chained proposal
+    are added without indexing and removed again.
+- id: draft_estimates
+  scope: engine
+  note: 'The draft policy''s running estimates: round cost per window size and context bucket, mean committed tokens
+    per MTP window size, lookup and chained acceptance counts per match-length bucket, MTP acceptance counts per
+    probability bucket, the allowed-size mask. Lives for the engine process; a second copy holds the other drafter''s
+    costs under automatic drafter selection.'
+- id: drafter_choice_stats
+  scope: engine
+  note: 'Per prompt-prefix hash: decode tokens per second with each neural drafter and how many requests used each.
+    Only under --draft auto with the learn rule.'
+composition_pc:
+- id: mtp_drafter
+  component_ref: comp/strata/mtp-drafter
+  implements:
+  - draft
+  uses:
+  - where: vram
+    purpose: draft-layer weights, its 512 experts, its K/V ring, draft-head subset, draft logits, buffers and graphs
+    allocation: pinned
+    amount:
+      value: 0.9
+      unit: GB
+      unit_basis: decimal
+      status: reported
+      source: strata include/strata/core/mtp.hpp:47
+      note: about; the experts are 708 MB of it and can be lent to the prompt path in place
+    resolved_at: startup
+  - where: ram
+    purpose: pinned host copy of the draft K/V ring; pinned snapshot of the experts while lent
+    allocation: pinned
+    amount: UNSET
+    resolved_at: startup
+    note: If pinned memory is short the K/V stays whole in vram
+  - where: gpu0
+    purpose: catch-up rows and one draft-layer pass per drafted token on its own stream
+  - where: cpu0
+    purpose: one host thread spin-waits for each draft token and prefetches n-gram rows
+  - where: ssd0
+    purpose: draft-layer files read once at startup
+    allocation: read_through
+  observation_points:
+  - drafts_offered
+  - draft_time_ms
+  - draft_rounds
+- id: dflash2_drafter
+  component_ref: comp/strata/dflash2-drafter
+  implements:
+  - draft
+  active: false
+  inactive_reason: Opt-in (--draft dflash2 --draft-model PACK), not loaded by default. For 12 GB NVIDIA cards the
+    engine itself says the MTP drafter measured faster (strata include/strata/core/draft_cap.hpp:27-28).
+  uses:
+  - where: vram
+    purpose: drafter pack, context ring, buffers and graphs when loaded
+    allocation: pinned
+    amount:
+      value: 0.8
+      unit: GB
+      unit_basis: decimal
+      status: reported
+      source: strata include/strata/core/dflash2.hpp:49
+      note: about
+    resolved_at: startup
+  - where: gpu0
+    purpose: one block forward pass per round when loaded
+- id: lookup_drafter
+  component_ref: comp/strata/lookup-drafter
+  implements:
+  - draft
+  uses:
+  - where: ram
+    purpose: token history and trigram table for max_context + 4096 tokens
+    allocation: pinned
+    amount:
+      value: at least 68 bytes per token of capacity
+      status: derived
+      source: strata include/strata/spec/suffix_drafter.hpp:44-48; src/spec/suffix_drafter.cpp:18-25
+      note: slot size inferred from the struct layout
+    resolved_at: startup
+  - where: cpu0
+    purpose: index update per emitted token and one proposal per round
+- id: draft_policy
+  component_ref: comp/strata/draft-policy
+  implements: []
+  uses:
+  - where: cpu0
+    purpose: a few comparisons per round and per draft step
+  observation_points:
+  - drafts_offered
+  - drafts_accepted
+  - round_time_ms
+  note: The cost-aware window is off on this target unless STRATA_SPEC_COST=1 is set (which cards get it by default
+    was not read).
+- id: draft_verifier
+  component_ref: comp/strata/draft-verifier
+  implements:
+  - verify
+  - commit
+  uses:
+  - where: vram
+    purpose: commit stores for the widest window times the layers, the commit graph, a small buffer for draft distributions
+    allocation: pinned
+    amount: UNSET
+    resolved_at: startup
+  - where: gpu0
+    purpose: commit graph after each window of more than one row; acceptance kernels for sampled requests
+  - where: cpu0
+    purpose: accept loop
+  observation_points:
+  - drafts_accepted
+  - verify_time
+  - commit_time
+composition_spark:
+- id: mtp_drafter
+  component_ref: comp/strata/mtp-drafter
+  implements:
+  - draft
+  uses:
+  - where: mem0
+    purpose: draft-layer weights, its 512 experts, its K/V, draft-head subset, draft logits, buffers and graphs
+    allocation: pinned
+    amount:
+      value: 0.9
+      unit: GB
+      unit_basis: decimal
+      status: reported
+      source: strata include/strata/core/mtp.hpp:47
+      note: about; figure from the header, not specific to this machine
+    resolved_at: startup
+  - where: gpu0
+    purpose: catch-up rows and one draft-layer pass per drafted token
+  - where: cpu0
+    purpose: one host thread spin-waits for each draft token and prefetches n-gram rows
+  - where: ssd0
+    purpose: draft-layer files read once at startup
+    allocation: read_through
+  observation_points:
+  - drafts_offered
+  - draft_time_ms
+  - draft_rounds
+  note: Whether the K/V ring's host copy and the device ring both sit in mem0 on unified memory was not read.
+- id: dflash2_drafter
+  component_ref: comp/strata/dflash2-drafter
+  implements:
+  - draft
+  active: false
+  inactive_reason: Opt-in, not loaded by default. When loaded on this card class (compute capability 12.1) its window
+    is capped at 6 rows (strata include/strata/core/draft_cap.hpp:19-24).
+- id: lookup_drafter
+  component_ref: comp/strata/lookup-drafter
+  implements:
+  - draft
+  uses:
+  - where: mem0
+    purpose: token history and trigram table for max_context + 4096 tokens
+    allocation: pinned
+    amount:
+      value: at least 68 bytes per token of capacity
+      status: derived
+      source: strata include/strata/spec/suffix_drafter.hpp:44-48
+    resolved_at: startup
+  - where: cpu0
+    purpose: index update per emitted token and one proposal per round
+- id: draft_policy
+  component_ref: comp/strata/draft-policy
+  implements: []
+  uses:
+  - where: cpu0
+    purpose: a few comparisons per round and per draft step
+  observation_points:
+  - drafts_offered
+  - drafts_accepted
+  - round_time_ms
+  note: 'The cost-aware window is reported as a default on this machine: a per-card default table sets STRATA_SPEC_COST=1
+    (strata src/core/nv_defaults.cpp:77-80; the CMake comment names the sm_121 GB10 table) and docs/DGX_SPARK_LINUX.md:125
+    reports decode +4.7%. The table''s selection condition was not read.'
+- id: draft_verifier
+  component_ref: comp/strata/draft-verifier
+  implements:
+  - verify
+  - commit
+  uses:
+  - where: mem0
+    purpose: commit stores, the commit graph, a small buffer for draft distributions
+    allocation: pinned
+    amount: UNSET
+    resolved_at: startup
+  - where: gpu0
+    purpose: commit graph after each window of more than one row; acceptance kernels for sampled requests
+  - where: cpu0
+    purpose: accept loop
+  observation_points:
+  - drafts_accepted
+  - verify_time
+  - commit_time
+model_additions:
+- target: operations
+  entry:
+    id: dflash2_draft
+    kind: draft
+    drafts:
+      up_to: 7
+      proposes: the next tokens
+    reads:
+    - dflash2_weights
+    - shared_weights
+  note: 'A second, separate drafter model (5 layers, hidden 2560) that reads the target''s hidden states after layers
+    5, 15, 25, 35 and 45. comp/strata/dflash2-drafter performs it. Source: strata include/strata/core/dflash2.hpp:1-15.'
+- target: data
+  entry:
+    id: dflash2_weights
+    kind: weight
+    note: The DFlash2 drafter pack, Q8_0. Size not read.
+  note: Read by dflash2_draft.
+- target: data
+  entry:
+    id: mtp_weights
+    kind: weight
+    size:
+      value: 0.82
+      unit: GB
+      unit_basis: decimal
+      status: derived
+      source: strata include/strata/core/mtp.hpp:19; src/core/mtp.cpp:122
+      note: 708 MB of experts plus a 111 MiB dense blob; approximate
+  note: The MTP draft layer has weights of its own (dense projections and 512 routed experts). The model description
+    has mtp_draft read shared_weights only; it should read mtp_weights, and shared_weights for the embedding table
+    and the output head rows it borrows.
+- target: data
+  entry:
+    id: mtp_kv
+    kind: model_state
+    note: The MTP draft layer's own attention keys and values, one cell per position.
+  note: mtp_draft writes it; comp/strata/mtp-drafter owns the matching state. Without it the drafter's catch-up
+    has nothing to refer to.
+- target: operations
+  entry:
+    id: mtp_draft
+    kind: draft
+    drafts:
+      up_to: 7
+      proposes: the next tokens
+    reads:
+    - mtp_weights
+    - shared_weights
+    writes:
+    - mtp_kv
+  note: 'Correction of the existing entry, not a new operation. up_to 3 is the value for --spec 4, not a property
+    of the model: the code allows up to 7 drafts per round (strata src/core/mtp.cpp:285,1731).'
+uncatalogued_mechanisms:
+- family: lookup-drafting
+  summary: Draft the tokens that followed the longest earlier occurrence of the current ending of prompt plus output,
+    found through a trigram index, optionally chained after the neural drafts in the same window.
+- family: cost-aware-draft-window
+  summary: Choose the verify window width step by step from each draft's calibrated chance of holding and the measured
+    wall time of each window width, maximising expected committed tokens per millisecond.
+- family: speculative-rejection-sampling
+  summary: For sampled requests, sample the draft from the drafter's distribution q and accept it with probability
+    min(1, p/q), else resample from the positive part of p minus q, so each output token keeps the target distribution
+    p; with a confidence gate handled as a masked proposal measure.
+- family: coupled-draft-sampling
+  summary: Sample the draft with the target's own sampler chain and the same position-keyed uniform, so an exact-match
+    check accepts it more often without changing the text.
+- family: block-drafter-from-hidden-taps
+  summary: A small separate model reads the target's hidden states at a few layers for committed rows and drafts
+    a block of tokens in one pass.
+notes:
+- 'Dead code on the CUDA path: strata::spec::Controller and CostModel (include/strata/spec/controller.hpp, src/spec/controller.cpp).
+  Compiled into the strata_spec library and unit-tested (src/spec/controller_test.cpp), but nothing in src/program/generate.cpp
+  uses them; the only other includes are in metal/src/engine/stubs*.cpp. The 5% minimum gain and per-position acceptance
+  averages in the earlier description came from this class and are not what runs.'
+- 'Folded, not components: the draft-source registry (draft_source.hpp/.cpp) is in comp/strata/lookup-drafter; no
+  code in src/ or include/ registers an extra source, so the only source is the request''s own text. window_rule.hpp,
+  spec_start.hpp, draft_vocab.hpp and core/draft_cap.hpp are in comp/strata/draft-policy. The sampled-acceptance
+  rules (spec_prob.hpp, gated_proposal.hpp, spec_proposal.hpp, coupled_draft.hpp) are in comp/strata/draft-verifier,
+  with the drafter-side sampling in comp/strata/mtp-drafter.'
+- 'Boundary with the token path: the Verifier class both runs the window (token path: window-graphs, window-loop)
+  and commits. comp/strata/draft-verifier here covers the accept decision, the acceptance rule under sampling, and
+  the commit. The accept loop itself is five lines in the host loop (src/program/generate.cpp:19258-19259). If the
+  token path also claims the commit graph, one of the two must give it up.'
+- 'State ownership to settle at merge: attention_kv, indexer_keys, gdn_state and ple_history are written by comp/strata/draft-verifier
+  but not owned by it here (read/writes only); the commit rules for them are nevertheless given under states, as
+  asked. Their owner should be a token-path component.'
+- 'Flows this area receives and does not declare (the sender''s area should): the window''s final hidden rows from
+  the window graphs to comp/strata/mtp-drafter (bound once, copied on the device each round; activations, per_window);
+  the five-layer hidden taps to comp/strata/dflash2-drafter (activations, per_window); one target token per window
+  row from the sampler or output head to comp/strata/draft-verifier (tokens, per_window); the prompt tokens to comp/strata/lookup-drafter
+  (tokens, per_request); prompt cells'' hidden rows to comp/strata/mtp-drafter during prefill (activations, per_request);
+  the request''s sampling parameters to comp/strata/mtp-drafter and comp/strata/draft-verifier (plan, per_request);
+  draft-layer weight files from model_files to comp/strata/mtp-drafter or the weight loader (weights, startup).'
+- Several flows drawn between components of this area pass through the host loop in generate.cpp (drafts to the
+  policy, accepted tokens to the lookup drafter, target tokens to the MTP drafter). They are written with the component
+  that originates the data as sender.
+- 'Format: timing has no value for once per draft step within a window; chain-continue and the draft-window trigger
+  are written per_window.'
+- 'Format: commit rules do not fit three cases well. (a) ple_history is advanced in the window and then set to a
+  snapshot for both accept and reject; set_to_snapshot on both sides says it. (b) mtp_kv is rewritten by its owner
+  one round later, not at commit; recompute is the nearest rule. (c) gdn_state covers two things (recurrent state
+  and convolution history) with the same rule, and a one-row window is an exception where the window itself advances
+  the state.'
+- 'Format: a component that is opt-in rather than idle on a target (DFlash2) has no clean expression; active: false
+  with a reason is used on both targets.'
+- 'Format: policy.controls has no way to say a policy chooses among drafters or sources; item: stages with a work
+  text is used for draft-source and drafter-choice.'
+- 'Format: equivalence levels cannot express that the result is bit-exact for the GPU arithmetic but the project''s
+  documents report width-dependent rounding in CPU expert kernels; written as two cases with holds_when. The CPU
+  kernels were not read, so the numeric case rests on docs/DETAILS.md:603-605.'
+- 'The existing draft-window parameter max_drafts: 3 and the model''s mtp_draft up_to: 3 are the value for --spec
+  4, not constants. --spec defaults to 0 (speculation off) on non-Metal builds; what setup passes was not read.'
+- composition entries use amount values that are text for the lookup drafter (bytes per token of capacity) because
+  the amount depends on the configured context length.

@@ -1,0 +1,78 @@
+engine: ds4
+# Independent check of node types draft 0.6 against validation/inventory/ds4.yaml (with ds4.corrections.yaml),
+# using the reference assignment and its `also` entries. Decisions of a part with an `also` type are counted under
+# the part's assigned type. Source consulted read-only at <refs>/ds4 where the inventory was in doubt.
+decision_coverage:
+  totals: {decisions: 124, covered: 104, loosely: 11, not_covered: 0, engine_specific: 9}
+  per_type:
+    - {type: "model-conversion", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "calibration", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "configuration", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-loading", decisions: 5, covered: 4, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "memory-planning", decisions: 6, covered: 6, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "model-partitioning", decisions: 10, covered: 10, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-cache", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "residency-policy", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "expert-fetch", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "expert-dispatch", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "row-source", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-preparation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "modality-encoding", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "sequence-lifecycle", decisions: 6, covered: 4, loosely: 2, not_covered: 0, engine_specific: 0}
+    - {type: "positional-state-store", decisions: 4, covered: 2, loosely: 1, not_covered: 0, engine_specific: 1}
+    - {type: "recurrent-state-store", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "prompt-reading", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-execution", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-backend", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "layer-compute", decisions: 7, covered: 3, loosely: 0, not_covered: 0, engine_specific: 4}
+    - {type: "model-edit", decisions: 3, covered: 2, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "resource-governing", decisions: 2, covered: 1, loosely: 0, not_covered: 0, engine_specific: 1}
+    - {type: "sampling", decisions: 5, covered: 4, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "draft-proposal", decisions: 5, covered: 5, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-policy", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "draft-verification", decisions: 2, covered: 2, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "session-persistence", decisions: 3, covered: 2, loosely: 1, not_covered: 0, engine_specific: 0}
+    - {type: "prefix-reuse", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "request-front", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "output-interpretation", decisions: 3, covered: 3, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "step-scheduler", decisions: 4, covered: 4, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "device-communication", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+    - {type: "telemetry", decisions: 1, covered: 1, loosely: 0, not_covered: 0, engine_specific: 0}
+  engine_specific_decisions:   # for the record; counted in totals
+    - {part: "expert-locality-profiler", decision: "Metal only; ignored with a warning on other backends", why: "a backend support gap, not a design choice"}
+    - {part: "model-loader", decision: "Shared mapping for GPU backends, private mapping for the CPU backend", why: "workaround for a macOS VM failure"}
+    - {part: "compressed-attention-state", decision: "Compression ratio per layer", why: "a property of the model, not of the engine"}
+    - {part: "hyper-connection-mixer", decision: "Number of streams and Sinkhorn iterations", why: "model constants"}
+    - {part: "attention-compute", decision: "Indexer top-k and raw window", why: "model constants"}
+    - {part: "expert-router", decision: "Hash-routed layer count", why: "model constant"}
+    - {part: "expert-router", decision: "V4.1 image tokens use a separate router bias", why: "a property of the model"}
+    - {part: "directional-steering", decision: "Not implemented for GLM 5.2", why: "an implementation gap"}
+    - {part: "power-throttle", decision: "Not available for Qwen; GLM requires 100", why: "an implementation gap"}
+  loosely:
+    - {part: "routed-expert-cache", type: "expert-cache", decision: "Metal cache buffers locked in memory; a lock failure lowers the effective limit", nearest_choice: "what is done when the cache cannot be allocated at its planned size (no choice names whether the cache's own memory is locked)"}
+    - {part: "expert-eviction-policy", type: "residency-policy", decision: "Heat increments on every selection, misses included, not only on hits", nearest_choice: "the replacement rule (what counts as a use is not named)"}
+    - {part: "expert-cache-preloader", type: "residency-policy", decision: "Preload cap in automatic mode", nearest_choice: "what the cache holds before any request (how much is preloaded is not named)"}
+    - {part: "engram-prewarm", type: "row-source", decision: "Warm only when model, runtime, table and a reserve fit physical memory", nearest_choice: "warming the table in the background and when to stop (names stopping, not the condition to start)"}
+    - {part: "ngram-row-reader", type: "row-source", decision: "Prefetch only for chunks above a size and with a bounded buffer", nearest_choice: "prefetching rows for coming or drafted tokens"}
+    - {part: "slot-router", type: "sequence-lifecycle", decision: "Ordered tiers of match kinds (transcript, tool bindings, rewind, token prefix, thinking-visible, rendered text)", nearest_choice: "which store is used when several hold a match (prefix-reuse, also type); the order among kinds of match is not named"}
+    - {part: "slot-router", type: "sequence-lifecycle", decision: "Continuations pinned to their slot", nearest_choice: "how a request is matched to a place: a slot or a lane"}
+    - {part: "dense-attention-cache", type: "positional-state-store", decision: "Full dense cache with a length cap versus compact latent cache", nearest_choice: "precision and layout of stored state"}
+    - {part: "gpu-backend", type: "device-backend", decision: "Prefill workspace shared between sessions in batch mode", nearest_choice: "scratch and command buffers (sharing between sequences is not named)"}
+    - {part: "tool-call-sampling-mode", type: "sampling", decision: "Which tag sets count as structure", nearest_choice: "whether settings change per position, for example greedy on structure and sampled on content"}
+    - {part: "session-payload-serializer", type: "session-persistence", decision: "Under tensor parallelism, load only tokens and re-prefill", nearest_choice: "in which configurations saving and restoring is offered (restoring by recomputation from tokens is not named)"}
+  not_covered: []
+contradictions: []
+new_causes:
+  - {part: "gpu-backend", type: "device-backend", level: "approximate", cause: "the kernel tier selects a reduced-precision path by the amount of stored context the step reads (number of stored compressed rows), not only by step width or device; it is also skipped while the work is being recorded into a graph", evidence: "ds4_cuda.cu 14787-14797: MXFP4 indexer only when n_comp >= 1024 and n_tokens >= 32, one GPU, not --quality, and not during stream capture"}
+  - {part: "dspark-scheduler", type: "draft-policy", level: "approximate", cause: "under an acceptance rule that does not preserve the distribution, the decision whether to draft in a round decides whether that round's tokens follow the sampling distribution or the greedy one", evidence: "ds4.c 88383-88384: default (non-exact) acceptance compares the draft with the argmax at any temperature; the scheduler pauses and resumes drafting from acceptance counts (ds4.c 63216-63335)"}
+  - {part: "dspark-drafter", type: "draft-proposal", level: "approximate", cause: "under an acceptance rule that does not preserve the distribution, how many tokens are proposed (the confidence stop) decides how many positions are taken greedily instead of sampled", evidence: "inventory draft-verify-commit output_effect_when; ds4.c 88383-88384 argmax comparison in default mode; drafter stops on a confidence threshold"}
+  - {part: "tool-call-codec", type: "output-interpretation", level: "defines", cause: "it substitutes remembered generated text for the client's resubmitted version of earlier output when the next prompt is built", evidence: "inventory: LRU map from tool-call id to sampled text, replayed byte-identically into rendering instead of the client's JSON"}
+relaxations:
+  - {part: "disk-kv-checkpoint-store", type: "prefix-reuse", rule: "Stored state is reused only where the model, the weights' precision, the settings and the prefix match what it was made for.", how: "Besides cross-precision reuse (named), the stored key holds only model id, routed quant bits and context; settings that change the stored state, such as directional steering and the activation-precision mode (--quality), are not keyed, so state made under one is restored under another (ds4_kvstore.h 36-58, ds4_kvstore.c 518-519, 852-858)."}
+wrong_assignments: []
+inventory_errors:
+  - {part: "request-scheduler", field: "output_effect", recorded: "none", source_shows: "ds4_server.c 12431-12439, 12473-12474: the prefill quantum, and so where a prompt is cut into chunks, is 128 tokens while any generation is active and 2048 or more otherwise; chunk boundaries depend on concurrent load, so the effect is at least numeric (and, with the CUDA Q8_1 tier, beyond last bits)."}
+  - {part: "cross-gpu-transfer", field: "output_effect", recorded: "none", source_shows: "ds4_gpu_mgpu.h 184-189: ds4_gpu_add_xdev_tensor adds partial results from two GPUs for tensor-parallel reductions, so the sum order differs from one device; numeric."}
+  - {part: "tool-call-codec", field: "output_effect", recorded: "none", source_shows: "ds4_server.c 14323-14396: repaired tool-call text replaces the generated text, and a failed parse of a non-streaming request reruns generation with a model-visible error; changes_output."}
+  - {part: "dspark-scheduler", field: "output_effect_when", recorded: "Which path advances a token changes summation order only (numeric)", source_shows: "ds4.c 88383-88384: in the default mode a draft is accepted when it equals the argmax at any temperature, so whether a round drafts changes the distribution at temperature above 0; changes_output."}
+  - {part: "(missing part)", field: "parts", recorded: "no part for recorded execution graphs", source_shows: "ds4_cuda.cu 1118-1216 (also 9923, 24567): CUDA decode steps are captured as graphs per layer and island key with a warm pass, replayed on later steps, and fall back to eager encoding when capture or replay fails; this is a graph-capture part the inventory omits."}

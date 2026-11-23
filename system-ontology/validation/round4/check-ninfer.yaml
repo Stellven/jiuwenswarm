@@ -1,0 +1,367 @@
+# Independent check of node-types draft 0.4 against the NInfer inventory (round4).
+# Types judged: reference-assignment.yaml under ninfer, plus also: executor -> step-execution,
+# expert-residency-planner -> residency-policy. The inventory corrections file was applied.
+# Relaxations: none found beyond those the types' `relaxed` texts already state. Wrong assignments: none found.
+engine: ninfer
+decision_coverage:
+  totals:
+    decisions: 104
+    covered: 94
+    loosely: 9
+    not_covered: 1
+    engine_specific: 0
+  per_type:
+  - type: model-conversion
+    decisions: 9
+    covered: 9
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: calibration
+    decisions: 5
+    covered: 5
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: configuration
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: model-loading
+    decisions: 4
+    covered: 3
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: model-partitioning
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: memory-planning
+    decisions: 8
+    covered: 8
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: graph-capture
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-source
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-cache
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-fetch
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: residency-policy
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: expert-dispatch
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: secondary-compute
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: row-source
+    decisions: 3
+    covered: 3
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: step-scheduler
+    decisions: 7
+    covered: 7
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: sequence-lifecycle
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: device-backend
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: step-execution
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: layer-compute
+    decisions: 3
+    covered: 2
+    loosely: 0
+    not_covered: 1
+    engine_specific: 0
+  - type: prompt-reading
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-proposal
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: sampling
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: draft-verification
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: output-interpretation
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: output-constraint
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: state-pool
+    decisions: 4
+    covered: 4
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: state-tiering
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prefix-reuse
+    decisions: 6
+    covered: 4
+    loosely: 2
+    not_covered: 0
+    engine_specific: 0
+  - type: scoring
+    decisions: 0
+    covered: 0
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: prompt-preparation
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: media-preparation
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: modality-encoding
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: request-front
+    decisions: 2
+    covered: 1
+    loosely: 1
+    not_covered: 0
+    engine_specific: 0
+  - type: engine-supervision
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: device-communication
+    decisions: 2
+    covered: 2
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  - type: telemetry
+    decisions: 1
+    covered: 1
+    loosely: 0
+    not_covered: 0
+    engine_specific: 0
+  loosely:
+  - part: shard-materializer
+    type: model-loading
+    decision: whether a rank's slice of an encoded tensor can be expressed value-preservingly, else the format refuses it
+    nearest_choice: whether weights are re-encoded at load and how
+  - part: offload-mode-switch
+    type: residency-policy
+    decision: refill pace of the extra cache after a return to small work (bytes and batches per call)
+    nearest_choice: the gain a change must bring, and a limit on changes per round
+  - part: hybrid-moe-dispatch
+    type: expert-dispatch
+    decision: large-work versus small-work handling of a layer (stream the whole layer or split with the CPU) by a token-count
+      threshold
+    nearest_choice: the share of misses fetched now against left to another device
+  - part: model-session
+    type: sequence-lifecycle
+    decision: a full permit reserved before verification that already covers the later commit peak
+    nearest_choice: a sequence's state allocated up front or grown on demand
+  - part: rank-program
+    type: step-execution
+    decision: where host handoffs split device work inside a unit (grammar mask, CPU experts, final acceptance)
+    nearest_choice: cutting a step into parts so that work on two devices overlaps
+  - part: context-resource-manager
+    type: prefix-reuse
+    decision: a cross-rank copy is a candidate only when recompute cost was measured and the copy is cheaper
+    nearest_choice: when restoring is refused in favour of reading again
+  - part: context-resource-manager
+    type: prefix-reuse
+    decision: choice of the attention-owner rank for a request by load balance, then longest local prefix
+    nearest_choice: which device restored state is placed on
+  - part: media-preparer
+    type: media-preparation
+    decision: preprocess cache capacity and live payload budget
+    nearest_choice: caching of prepared media and its key
+  - part: http-api
+    type: request-front
+    decision: which protocol fields are accepted or rejected (for example audio history)
+    nearest_choice: which per-request controls a caller may set
+  not_covered:
+  - part: layer-compute
+    type: layer-compute
+    decision: the encoding in which the computation writes per-position attention state (KV encoding)
+    kind: format
+    missing_choice: the precision and layout in which the computation writes the per-position state it appends
+contradictions:
+- part: configuration
+  type: configuration
+  claim: 'effect_on_output: exact in itself; rounding / resampled / approximate when it turns on a setting with that effect'
+  evidence: the inventory records that configuration supplies the sampling defaults ([generation] section) and that they change
+    output; a sampling default is a 'defines' effect and no listed case covers it
+  fix: 'add: defines, when it sets the default of a setting whose own effect is defines (sampling settings, output limits,
+    template options)'
+- part: request-scheduler
+  type: step-scheduler
+  claim: 'effect_on_output: rounding when which sequences share a step, or where it cuts a prompt into chunks, changes the
+    arithmetic of a row'
+  evidence: 'the number of tokens in a step selects the activation precision of NVFP4 projections whose weights carry the
+    AllowA4 permit (set by the official recipes): 16-bit activation kernels up to 4 or 16 tokens depending on shape, 4-bit
+    quantised activations above (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55).
+    Batching up to 8 requests, each with K+1 verify rows, can move a row from 16-bit to 4-bit activations: a precision change,
+    not last-bit rounding'
+  fix: 'add: approximate, when the number of rows it puts in a step selects a reduced activation precision that the weights
+    permit'
+- part: rank-program
+  type: step-execution
+  claim: 'effect_on_output: rounding when sequences sharing a step changes the arithmetic of a row; approximate when it runs
+    a variant that omits work or alters selection'
+  evidence: the same projection is routed to 4-bit activation quantisation above a per-shape token count and to 16-bit activations
+    below it (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55);
+    the width of the step, not an omitted operation, changes the precision
+  fix: approximate when it runs a variant that omits work or alters selection, or when the width of the step selects a reduced
+    activation precision the weights permit
+- part: layer-compute
+  type: layer-compute
+  claim: 'must: Unless an approximation that was explicitly turned on is in effect, the sequence of layers and operations
+    the model defines is kept; only the order of accumulation inside one operation may vary.'
+  evidence: without any run-time setting, AllowA4 weights quantise activations to NVFP4 when a step has more tokens than a
+    per-shape limit and keep BF16 activations below it; the permit is fixed in the model files by the converter and has no
+    run-time switch (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55),
+    so more than accumulation order varies with the step's width
+  fix: Unless an approximation that was turned on (at conversion or at run time) and recorded is in effect, the sequence of
+    layers and operations is kept; besides accumulation order only activation precision within the weights' recorded permits
+    may vary, under stated conditions
+- part: chunked-prefill
+  type: prompt-reading
+  claim: 'must: Unless an approximate path that was explicitly turned on is taken, the state it leaves is the state of that
+    prompt up to rounding, whatever the chunking.'
+  evidence: chunks above the per-shape token limit run 4-bit activations on AllowA4 weights while a final remainder of a few
+    tokens, or token-by-token reading, runs 16-bit activations, so two chunkings of one prompt differ by activation precision,
+    not only by rounding (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55)
+  fix: '...the state it leaves is the state of that prompt up to rounding, or up to the reduced activation precision the weights
+    permit for wide chunks, whatever the chunking'
+- part: mtp-drafter
+  type: draft-proposal
+  claim: 'effect_on_output: rounding when the number of proposals sets the width of the checked block and the arithmetic depends
+    on that width'
+  evidence: the checked block has K+1 rows per sequence (K up to 5; up to 15 for the block drafters); with several sequences
+    the step's token count crosses the limit above which AllowA4 weights take 4-bit activations, so the proposal count can
+    change precision, not only rounding (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55)
+  fix: rounding, or approximate where the width of the checked block selects a reduced activation precision the weights permit
+- part: draft-acceptance
+  type: draft-verification
+  claim: 'effect_on_output: rounding when the checked block is computed by another path than single-token decoding'
+  evidence: the verify block's path can quantise activations to 4 bits where single-token decoding keeps 16-bit activations
+    (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55);
+    greedy results then follow a different precision, not only different rounding
+  fix: rounding when the checked block is computed by another path; approximate when that path runs at a reduced activation
+    precision the weights permit
+relaxations: []
+wrong_assignments: []
+inventory_errors:
+- part: layer-compute
+  field: output_effect
+  recorded: numeric; activations may be quantized to 4 or 8 bits where a weight use allows it
+  source_shows: 4-bit activation quantisation changes computed precision, not last bits, so the level is changes_output, and
+    whether it happens depends on the step's token count (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39;
+    src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu 15-58; tools/convert/official_recipes.py 159, 185, 324, 427
+    (AllowA4 permits); src/models/common/bindings.cpp 43-55)
+- part: request-scheduler
+  field: output_effect
+  recorded: none
+  source_shows: the rows it puts in a decode or verify round decide whether AllowA4 projections run with 16-bit or 4-bit activations
+    (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55),
+    so round membership changes output
+- part: chunked-prefill
+  field: output_effect_when
+  recorded: state after chunked reading can differ in the last bits from a different chunking or from token-by-token reading
+  source_shows: wide chunks run 4-bit activations while token-by-token reading and small remainder chunks run 16-bit activations
+    (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55);
+    the difference is precision, not last bits

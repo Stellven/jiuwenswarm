@@ -1,0 +1,146 @@
+# Measured environment description written by spark_kit/probe.py. The content is JSON, which is also valid YAML.
+{
+  "kind": "environment",
+  "id": "env/dgx-spark-measured-20261119",
+  "hardware": "hw/dgx-spark",
+  "software": {
+    "os": {
+      "value": "Linux-7.0.0-1024-nvidia-aarch64-with-glibc2.39",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "python": {
+      "value": "3.12.3",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "machine": {
+      "value": "aarch64",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "cpu_count": {
+      "value": 20,
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "gpu_name": {
+      "value": "NVIDIA GB10",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "gpu_driver": {
+      "value": "580.178.04",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "cuda": {
+      "value": "13.0",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    "gpu_memory_total_reported": {
+      "value": "[N/A]",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    }
+  },
+  "allocatable": [
+    {
+      "pool": "mem0",
+      "value": 127.25,
+      "unit": "GB",
+      "unit_basis": "decimal",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; MemTotal and MemAvailable from /proc/meminfo; the value at the moment of the probe, which the memory use of other processes changes"
+    }
+  ],
+  "statements": [
+    {
+      "subject": "mem0",
+      "property": "capacity_reported_by_os",
+      "value": 130.59,
+      "unit": "GB",
+      "unit_basis": "decimal",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00"
+    },
+    {
+      "subject": "mem0",
+      "property": "copy_bandwidth_single_thread",
+      "value": 5.26,
+      "unit": "GB/s",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; Python bytes() copy of 1 GiB, fastest of three"
+    },
+    {
+      "subject": "ssd0-to-mem0",
+      "property": "read_bandwidth",
+      "value": 4.338,
+      "unit": "GB/s",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; O_DIRECT sequential read, 16 MiB blocks, single thread, file size 16 GiB"
+    },
+    {
+      "subject": "ssd0-to-mem0",
+      "property": "scattered_read_bandwidth",
+      "value": 4.339,
+      "unit": "GB/s",
+      "status": "measured",
+      "conditions": {
+        "concurrency": 1,
+        "object_mb": 25.2,
+        "objects": 96
+      },
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; O_DIRECT scattered read, 96 ranges of 25.2 MB each, 1 at a time, random positions"
+    },
+    {
+      "subject": "ssd0-to-mem0",
+      "property": "scattered_read_bandwidth",
+      "value": 4.773,
+      "unit": "GB/s",
+      "status": "measured",
+      "conditions": {
+        "concurrency": 8,
+        "object_mb": 25.2,
+        "objects": 96
+      },
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; O_DIRECT scattered read, 96 ranges of 25.2 MB each, 8 at a time, random positions"
+    },
+    {
+      "subject": "ssd0-to-mem0",
+      "property": "scattered_read_bandwidth",
+      "value": 4.63,
+      "unit": "GB/s",
+      "status": "measured",
+      "conditions": {
+        "concurrency": 16,
+        "object_mb": 25.2,
+        "objects": 96
+      },
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; O_DIRECT scattered read, 96 ranges of 25.2 MB each, 16 at a time, random positions"
+    },
+    {
+      "subject": "ssd0-to-mem0",
+      "property": "scattered_read_bandwidth",
+      "value": 4.761,
+      "unit": "GB/s",
+      "status": "measured",
+      "conditions": {
+        "concurrency": 32,
+        "object_mb": 25.2,
+        "objects": 96
+      },
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; O_DIRECT scattered read, 96 ranges of 25.2 MB each, 32 at a time, random positions"
+    },
+    {
+      "subject": "ssd0",
+      "property": "capacity_reported_by_os",
+      "value": 2014.6,
+      "unit": "GB",
+      "unit_basis": "decimal",
+      "status": "measured",
+      "source": "spark_kit/probe.py @ 2026-11-19T11:08:39-05:00; total size of the file system that holds --data-dir"
+    }
+  ]
+}

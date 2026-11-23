@@ -1,0 +1,34 @@
+kind: hardware
+id: hw/dgx-spark
+title: NVIDIA DGX Spark（128 GB 配置）
+# 数值于 2026-11-10 对照 NVIDIA 官网 DGX Spark 产品页的规格表核对（网址含有工厂术语表禁用的词，这里不写出）。
+# 官网另列有 64 GB 配置（仅部分 OEM 渠道）；本文件描述 128 GB 配置。
+compute_units:
+  - id: cpu0
+    kind: cpu
+    properties:
+      core_count: {value: 20, status: vendor_stated, source: nvidia-dgx-spark-specs#cpu}
+      cores: {value: "10 Cortex-X925 + 10 Cortex-A725", status: vendor_stated, source: nvidia-dgx-spark-specs#cpu}
+      isa_family: {value: arm64, status: vendor_stated, source: nvidia-dgx-spark-specs#cpu}
+  - id: gpu0
+    kind: gpu
+    properties:
+      architecture: {value: Blackwell, status: vendor_stated, source: nvidia-dgx-spark-specs#gpu}
+      soc: {value: GB10 Grace Blackwell, status: vendor_stated, source: nvidia-dgx-spark-specs#overview}
+memory_pools:
+  - id: mem0
+    kind: unified_ram
+    # 官网只写 GB，没有说明十进制还是二进制，所以不填 unit_basis
+    capacity_nominal: {value: 128, unit: GB, status: vendor_stated, source: nvidia-dgx-spark-specs#system-memory}
+    properties:
+      type: {value: LPDDR5x coherent unified system memory, status: vendor_stated, source: nvidia-dgx-spark-specs#system-memory}
+      bandwidth: {value: 273, unit: GB/s, status: vendor_stated, source: nvidia-dgx-spark-specs#memory-bandwidth}
+  - id: ssd0
+    kind: nvme
+    capacity_nominal: {value: 4, unit: TB, unit_basis: decimal, status: vendor_stated, source: nvidia-dgx-spark-specs#storage,
+                       note: 官网为"最高 4 TB"，实际容量取决于配置}
+access_paths:
+  - {id: cpu0-mem0,    kind: direct,  unit: cpu0, pool: mem0}
+  - {id: gpu0-mem0,    kind: direct,  unit: gpu0, pool: mem0, note: CPU 与 GPU 共用同一个内存池，没有独立显存}
+  # SSD 的读取带宽官网没有给出，需要在机器上实测后写进环境描述
+  - {id: ssd0-to-mem0, kind: page_in, origin: ssd0, destination: mem0}

@@ -1,0 +1,73 @@
+# Entries of the inventory that a later reader found wrong and confirmed against the engine's source.
+# The inventory itself is left as first written; read it together with this file.
+engine: ninfer
+corrections:
+- part: draft-head-builder
+  field: output_effect
+  recorded: none; changes only the acceptance rate
+  source_shows: sampled acceptance draws depend on the proposals, so a different head changes the realised tokens under
+    sampling (resampled) (include/ninfer/ops/speculative_accept.h 22-44)
+  found_in: round3
+- part: mtp-drafter
+  field: output_effect
+  recorded: none; changes only how many tokens are accepted per round
+  source_shows: under sampling the accepted draft and the correction draw depend on the proposal (include/ninfer/ops/speculative_accept.h
+    22-44); greedy results follow the verify block shape
+  found_in: round3
+- part: block-drafter
+  field: output_effect
+  recorded: none; changes acceptance rate only
+  source_shows: under sampling acceptance is min(1, p/q) and rejection resamples max(p-q,0), so the drawn tokens depend
+    on q and the proposals (include/ninfer/ops/speculative_accept.h 60-67)
+  found_in: round3
+- part: http-api
+  field: does
+  recorded: no mention of caller authorisation
+  source_shows: an optional API key is checked as a Bearer or x-api-key header on every route except /health and OPTIONS
+    (src/serve/http_server.cpp 164-191, 358-365)
+  found_in: round3
+- part: layer-compute
+  field: output_effect
+  recorded: numeric; activations may be quantized to 4 or 8 bits where a weight use allows it
+  source_shows: 4-bit activation quantisation changes computed precision, not last bits, so the level is changes_output,
+    and whether it happens depends on the step's token count (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp
+    23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu 15-58; tools/convert/official_recipes.py 159, 185,
+    324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55)
+  found_in: round4
+- part: request-scheduler
+  field: output_effect
+  recorded: none
+  source_shows: the rows it puts in a decode or verify round decide whether AllowA4 projections run with 16-bit or 4-bit
+    activations (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55),
+    so round membership changes output
+  found_in: round4
+- part: chunked-prefill
+  field: output_effect_when
+  recorded: state after chunked reading can differ in the last bits from a different chunking or from token-by-token reading
+  source_shows: wide chunks run 4-bit activations while token-by-token reading and small remainder chunks run 16-bit activations
+    (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp 23-39; src/ops/linear/swiglu/nvfp4/dgx_spark/shapes/n12288_k4096.cu
+    15-58; tools/convert/official_recipes.py 159, 185, 324, 427 (AllowA4 permits); src/models/common/bindings.cpp 43-55);
+    the difference is precision, not last bits
+  found_in: round4
+- part: context-resource-manager
+  field: output_effect
+  recorded: numeric; a restored prefix was read with different chunk boundaries than a fresh read
+  source_shows: Activation precision of AllowA4 projections follows the step's token count (src/ops/linear/swiglu/nvfp4/shapes/n34816_k5120/dispatch.cpp
+    23-39; tools/convert/official_recipes.py AllowA4 permits; src/models/common/bindings.cpp 43-55), so state captured at
+    another step width differs in precision; the level is changes_output, as already corrected for chunked-prefill.
+  found_in: round5
+- part: media-preparer
+  field: output_effect
+  recorded: none
+  source_shows: 'It selects which source frames of a video are used and permits a truncated tail after a minimum frame count,
+    and resizes and orders patches by the processing plan (src/media/decode/decode.h 30-37, 77-91; src/product/media_acquire/acquire.h),
+    so it decides the model''s input: changes_output.'
+  found_in: round5
+- part: expert-priority-table
+  field: output_effect
+  recorded: none
+  source_shows: 'its per-layer order is the fixed GPU-resident set for offload (src/models/common/moe/offload/plan.cpp 228-234
+    spec.priority) and assigns experts to ranks under EP2 (src/models/qwen4_exp/parallel/plan.cpp 34-37), so it decides
+    which device computes an expert: numeric'
+  found_in: round6

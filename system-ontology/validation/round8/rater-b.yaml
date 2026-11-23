@@ -1,0 +1,288 @@
+assignments:
+- {item: Q001, node_type: sampling, fit: clean, second: null, note: ''}
+- {item: Q002, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q003, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q004, node_type: row-source, fit: clean, second: null, note: ''}
+- {item: Q005, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q006, node_type: draft-verification, fit: clean, second: null, note: ''}
+- {item: Q007, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q008, node_type: sampling, fit: clean, second: null, note: applies a grammar mask it is given; mask production is output-constraint}
+- {item: Q009, node_type: media-preparation, fit: clean, second: null, note: ''}
+- {item: Q010, node_type: request-front, fit: partial, second: null, note: resumable SSE stream buffer; nearest is stored responses under request-front}
+- {item: Q011, node_type: sampling, fit: clean, second: null, note: ''}
+- {item: Q012, node_type: step-execution, fit: clean, second: null, note: ''}
+- {item: Q013, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q014, node_type: output-constraint, fit: clean, second: null, note: ''}
+- {item: Q015, node_type: step-execution, fit: partial, second: null, note: cuts a step into micro-batches by memory type (listed open gap)}
+- {item: Q016, node_type: prompt-reading, fit: clean, second: null, note: ''}
+- {item: Q017, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q018, node_type: prefix-reuse, fit: clean, second: state-pool, note: also shares physical pages and offers eviction victims}
+- {item: Q019, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q020, node_type: graph-capture, fit: clean, second: null, note: ''}
+- {item: Q021, node_type: residency-policy, fit: clean, second: null, note: ''}
+- {item: Q022, node_type: scoring, fit: clean, second: null, note: ''}
+- {item: Q023, node_type: model-loading, fit: partial, second: model-conversion, note: 'builds weight images and quantizes the draft at startup, conversion work done at load'}
+- {item: Q024, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q025, node_type: draft-proposal, fit: partial, second: null, note: hands target hidden features to the proposer (listed open gap)}
+- {item: Q026, node_type: device-backend, fit: clean, second: null, note: kernel variant choice by device and step shape; uses a calibration table}
+- {item: Q027, node_type: model-loading, fit: partial, second: memory-planning, note: plans weight image layout and which parts stream; neither loading nor planning alone}
+- {item: Q028, node_type: expert-fetch, fit: clean, second: null, note: ''}
+- {item: Q029, node_type: step-execution, fit: clean, second: null, note: ''}
+- {item: Q030, node_type: graph-capture, fit: clean, second: null, note: ''}
+- {item: Q031, node_type: positional-state-store, fit: partial, second: recurrent-state-store, note: composes several state stores into one interface (listed open gap)}
+- {item: Q032, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q033, node_type: prefix-reuse, fit: clean, second: session-persistence, note: saves repurposed slot state to disk first}
+- {item: Q034, node_type: expert-dispatch, fit: clean, second: null, note: ''}
+- {item: Q035, node_type: residency-policy, fit: clean, second: null, note: ''}
+- {item: Q036, node_type: output-interpretation, fit: clean, second: null, note: ''}
+- {item: Q037, node_type: configuration, fit: clean, second: null, note: ''}
+- {item: Q038, node_type: sequence-lifecycle, fit: partial, second: output-interpretation, note: 'per-request driver: token record and state machine plus stop strings and limits'}
+- {item: Q039, node_type: graph-capture, fit: clean, second: null, note: ''}
+- {item: Q040, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q041, node_type: engine-supervision, fit: partial, second: step-scheduler, note: 'task transport between HTTP threads and inference thread, deferral and idle sleep'}
+- {item: Q042, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q043, node_type: expert-fetch, fit: clean, second: null, note: ''}
+- {item: Q044, node_type: device-backend, fit: clean, second: null, note: ''}
+- {item: Q045, node_type: model-loading, fit: partial, second: configuration, note: validates sources and fixes capabilities but does not make weights readable}
+- {item: Q046, node_type: residency-policy, fit: clean, second: null, note: preloaded list form}
+- {item: Q047, node_type: prompt-preparation, fit: clean, second: null, note: ''}
+- {item: Q048, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q049, node_type: storage-reader, fit: clean, second: null, note: ''}
+- {item: Q050, node_type: calibration, fit: clean, second: model-conversion, note: statistics for lossy conversion plus distillation data for drafters}
+- {item: Q051, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q052, node_type: expert-fetch, fit: clean, second: null, note: best-effort warming form}
+- {item: Q053, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q054, node_type: prompt-preparation, fit: clean, second: null, note: ''}
+- {item: Q055, node_type: row-source, fit: clean, second: null, note: ''}
+- {item: Q056, node_type: row-source, fit: clean, second: null, note: ''}
+- {item: Q057, node_type: step-scheduler, fit: clean, second: null, note: ''}
+- {item: Q058, node_type: state-pool, fit: clean, second: positional-state-store, note: also fixes INT8 storage format of K/V}
+- {item: Q059, node_type: step-scheduler, fit: partial, second: engine-supervision, note: engine process loop advancing all active slots; little real choice of step content}
+- {item: Q060, node_type: step-scheduler, fit: clean, second: null, note: ''}
+- {item: Q061, node_type: step-execution, fit: clean, second: null, note: ''}
+- {item: Q062, node_type: device-backend, fit: clean, second: null, note: ''}
+- {item: Q063, node_type: configuration, fit: clean, second: null, note: ''}
+- {item: Q064, node_type: output-constraint, fit: clean, second: null, note: ''}
+- {item: Q065, node_type: state-tiering, fit: clean, second: session-persistence, note: optional persistence across processes}
+- {item: Q066, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q067, node_type: expert-fetch, fit: clean, second: null, note: ''}
+- {item: Q068, node_type: resource-governing, fit: partial, second: model-loading, note: 'idle release and restore of weights; release decision is governing, restore is model-loading'}
+- {item: Q069, node_type: step-scheduler, fit: partial, second: sequence-lifecycle, note: slot assignment and prompt-reading order plus slot record consistency}
+- {item: Q070, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q071, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q072, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q073, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q074, node_type: prefix-reuse, fit: clean, second: null, note: ''}
+- {item: Q075, node_type: expert-source, fit: clean, second: null, note: ''}
+- {item: Q076, node_type: sampling, fit: clean, second: null, note: ''}
+- {item: Q077, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q078, node_type: state-tiering, fit: clean, second: null, note: ''}
+- {item: Q079, node_type: step-scheduler, fit: clean, second: sequence-lifecycle, note: 'also admits, preempts and finishes requests'}
+- {item: Q080, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q081, node_type: expert-fetch, fit: clean, second: null, note: ''}
+- {item: Q082, node_type: step-scheduler, fit: clean, second: null, note: ''}
+- {item: Q083, node_type: output-constraint, fit: clean, second: null, note: ''}
+- {item: Q084, node_type: step-execution, fit: partial, second: secondary-compute, note: orders layers and inserts CPU expert rows between routing and combine}
+- {item: Q085, node_type: step-execution, fit: clean, second: null, note: ''}
+- {item: Q086, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q087, node_type: prompt-reading, fit: clean, second: null, note: ''}
+- {item: Q088, node_type: engine-supervision, fit: clean, second: null, note: ''}
+- {item: Q089, node_type: configuration, fit: clean, second: null, note: also a machine-wide instance lock}
+- {item: Q090, node_type: state-tiering, fit: clean, second: null, note: ''}
+- {item: Q091, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q092, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q093, node_type: output-interpretation, fit: clean, second: null, note: ''}
+- {item: Q094, node_type: calibration, fit: clean, second: null, note: ''}
+- {item: Q095, node_type: prefix-reuse, fit: clean, second: null, note: snapshots for rewind; could be read as recurrent-state-store snapshots but purpose is reuse by later requests}
+- {item: Q096, node_type: prompt-reading, fit: clean, second: prefix-reuse, note: keeps common prefix then reads remainder}
+- {item: Q097, node_type: positional-state-store, fit: clean, second: state-tiering, note: streams selected blocks resident before attention reads}
+- {item: Q098, node_type: draft-policy, fit: clean, second: null, note: ''}
+- {item: Q099, node_type: replica-routing, fit: partial, second: null, note: 'several different models behind one endpoint, loaded on demand (listed open gap)'}
+- {item: Q100, node_type: device-communication, fit: clean, second: null, note: ''}
+- {item: Q101, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q102, node_type: sequence-lifecycle, fit: clean, second: null, note: ''}
+- {item: Q103, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q104, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q105, node_type: prefix-reuse, fit: clean, second: null, note: ''}
+- {item: Q106, node_type: residency-policy, fit: clean, second: null, note: ''}
+- {item: Q107, node_type: model-partitioning, fit: clean, second: null, note: ''}
+- {item: Q108, node_type: engine-supervision, fit: clean, second: null, note: ''}
+- {item: Q109, node_type: draft-verification, fit: clean, second: null, note: separate commit form}
+- {item: Q110, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q111, node_type: positional-state-store, fit: clean, second: null, note: draft model per-position state}
+- {item: Q112, node_type: recurrent-state-store, fit: clean, second: null, note: ''}
+- {item: Q113, node_type: device-backend, fit: clean, second: null, note: ''}
+- {item: Q114, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q115, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q116, node_type: sequence-lifecycle, fit: clean, second: null, note: ''}
+- {item: Q117, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q118, node_type: model-edit, fit: clean, second: null, note: ''}
+- {item: Q119, node_type: output-constraint, fit: clean, second: null, note: ''}
+- {item: Q120, node_type: prefix-reuse, fit: clean, second: null, note: ''}
+- {item: Q121, node_type: draft-verification, fit: clean, second: null, note: ''}
+- {item: Q122, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q123, node_type: prefix-reuse, fit: partial, second: state-tiering, note: 'also ranks restore sources, decides checkpoints and reclaim/demotion victims'}
+- {item: Q124, node_type: session-persistence, fit: clean, second: null, note: ''}
+- {item: Q125, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q126, node_type: model-partitioning, fit: clean, second: device-communication, note: ''}
+- {item: Q127, node_type: output-interpretation, fit: partial, second: sequence-lifecycle, note: drives a request across engine generations as well as interpreting output}
+- {item: Q128, node_type: engine-supervision, fit: clean, second: null, note: worker per rank form}
+- {item: Q129, node_type: model-partitioning, fit: clean, second: null, note: ''}
+- {item: Q130, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q131, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q132, node_type: media-preparation, fit: clean, second: null, note: ''}
+- {item: Q133, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q134, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q135, node_type: draft-policy, fit: clean, second: null, note: ''}
+- {item: Q136, node_type: configuration, fit: clean, second: null, note: ''}
+- {item: Q137, node_type: modality-encoding, fit: clean, second: media-preparation, note: also decodes PNG/JPEG}
+- {item: Q138, node_type: device-communication, fit: clean, second: null, note: ''}
+- {item: Q139, node_type: state-pool, fit: clean, second: null, note: ''}
+- {item: Q140, node_type: draft-verification, fit: clean, second: recurrent-state-store, note: commit/rollback half of verification; checkpoint-restore for recurrent memories}
+- {item: Q141, node_type: draft-verification, fit: clean, second: null, note: ''}
+- {item: Q142, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q143, node_type: resource-governing, fit: clean, second: null, note: ''}
+- {item: Q144, node_type: configuration, fit: clean, second: null, note: ''}
+- {item: Q145, node_type: model-loading, fit: partial, second: expert-source, note: only the directory of where experts lie in files}
+- {item: Q146, node_type: residency-policy, fit: clean, second: null, note: ''}
+- {item: Q147, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q148, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q149, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q150, node_type: draft-policy, fit: clean, second: null, note: ''}
+- {item: Q151, node_type: secondary-compute, fit: clean, second: null, note: ''}
+- {item: Q152, node_type: sampling, fit: clean, second: null, note: ''}
+- {item: Q153, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q154, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q155, node_type: draft-verification, fit: clean, second: null, note: ''}
+- {item: Q156, node_type: positional-state-store, fit: clean, second: null, note: ''}
+- {item: Q157, node_type: positional-state-store, fit: clean, second: null, note: ''}
+- {item: Q158, node_type: recurrent-state-store, fit: clean, second: null, note: ''}
+- {item: Q159, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q160, node_type: engine-supervision, fit: clean, second: null, note: process loop that calls the scheduler; does not decide step content itself}
+- {item: Q161, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q162, node_type: secondary-compute, fit: clean, second: null, note: ''}
+- {item: Q163, node_type: engine-supervision, fit: clean, second: null, note: ''}
+- {item: Q164, node_type: draft-verification, fit: clean, second: null, note: ''}
+- {item: Q165, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q166, node_type: recurrent-state-store, fit: clean, second: null, note: ''}
+- {item: Q167, node_type: session-persistence, fit: clean, second: null, note: ''}
+- {item: Q168, node_type: resource-governing, fit: clean, second: null, note: ''}
+- {item: Q169, node_type: step-execution, fit: clean, second: null, note: ''}
+- {item: Q170, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q171, node_type: expert-dispatch, fit: partial, second: null, note: orders resident-first then late experts; scheduling within a layer more than path choice}
+- {item: Q172, node_type: expert-dispatch, fit: clean, second: null, note: ''}
+- {item: Q173, node_type: sampling, fit: clean, second: null, note: ''}
+- {item: Q174, node_type: model-partitioning, fit: clean, second: device-communication, note: ''}
+- {item: Q175, node_type: graph-capture, fit: clean, second: null, note: ''}
+- {item: Q176, node_type: scoring, fit: clean, second: null, note: ''}
+- {item: Q177, node_type: prompt-reading, fit: clean, second: null, note: ''}
+- {item: Q178, node_type: calibration, fit: clean, second: null, note: ''}
+- {item: Q179, node_type: expert-cache, fit: clean, second: resource-governing, note: gives chunks back under pressure}
+- {item: Q180, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q181, node_type: sampling, fit: clean, second: null, note: per-position settings without forbidding tokens; the not-clause of output-constraint sends it here}
+- {item: Q182, node_type: media-preparation, fit: clean, second: null, note: ''}
+- {item: Q183, node_type: prompt-preparation, fit: clean, second: null, note: ''}
+- {item: Q184, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q185, node_type: configuration, fit: partial, second: null, note: offline generation of a run configuration file rather than validating run settings}
+- {item: Q186, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q187, node_type: resource-governing, fit: clean, second: null, note: ''}
+- {item: Q188, node_type: engine-supervision, fit: clean, second: null, note: ''}
+- {item: Q189, node_type: modality-encoding, fit: clean, second: null, note: ''}
+- {item: Q190, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q191, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q192, node_type: device-backend, fit: partial, second: device-communication, note: remote devices exposed as local backends over TCP}
+- {item: Q193, node_type: memory-planning, fit: clean, second: null, note: working space reservation}
+- {item: Q194, node_type: state-tiering, fit: clean, second: null, note: ''}
+- {item: Q195, node_type: expert-cache, fit: partial, second: expert-dispatch, note: cache plus recency-frequency policy plus per-batch slot mapping and CPU share of misses}
+- {item: Q196, node_type: calibration, fit: clean, second: null, note: ''}
+- {item: Q197, node_type: prompt-preparation, fit: clean, second: null, note: ''}
+- {item: Q198, node_type: recurrent-state-store, fit: clean, second: null, note: ''}
+- {item: Q199, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q200, node_type: row-source, fit: partial, second: null, note: best-effort page-cache warming of lookup tables; no row delivery}
+- {item: Q201, node_type: expert-cache, fit: clean, second: null, note: ''}
+- {item: Q202, node_type: configuration, fit: partial, second: device-backend, note: device discovery and capability check (listed open gap)}
+- {item: Q203, node_type: prefix-reuse, fit: clean, second: null, note: ''}
+- {item: Q204, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q205, node_type: modality-encoding, fit: clean, second: null, note: cache of encoded media}
+- {item: Q206, node_type: draft-verification, fit: clean, second: null, note: ''}
+- {item: Q207, node_type: output-interpretation, fit: partial, second: sequence-lifecycle, note: 'per-job driver: sampling calls, thinking, stops, streaming'}
+- {item: Q208, node_type: state-pool, fit: clean, second: null, note: ''}
+- {item: Q209, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q210, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q211, node_type: model-partitioning, fit: clean, second: device-communication, note: ''}
+- {item: Q212, node_type: output-constraint, fit: clean, second: null, note: ''}
+- {item: Q213, node_type: row-source, fit: clean, second: null, note: ''}
+- {item: Q214, node_type: expert-fetch, fit: clean, second: null, note: ''}
+- {item: Q215, node_type: scoring, fit: clean, second: null, note: ''}
+- {item: Q216, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q217, node_type: prefix-reuse, fit: clean, second: session-persistence, note: checkpoints kept on disk}
+- {item: Q218, node_type: expert-cache, fit: clean, second: null, note: ''}
+- {item: Q219, node_type: step-scheduler, fit: clean, second: null, note: ''}
+- {item: Q220, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q221, node_type: device-backend, fit: partial, second: configuration, note: device discovery and backend loading (listed open gap)}
+- {item: Q222, node_type: sampling, fit: clean, second: null, note: ''}
+- {item: Q223, node_type: step-scheduler, fit: clean, second: step-execution, note: also runs the decode of the batch}
+- {item: Q224, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q225, node_type: output-interpretation, fit: clean, second: null, note: ''}
+- {item: Q226, node_type: telemetry, fit: clean, second: null, note: ''}
+- {item: Q227, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q228, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q229, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q230, node_type: none, fit: none, second: null, note: 'non-text output via further models (listed open gap, no nearest type)'}
+- {item: Q231, node_type: modality-encoding, fit: clean, second: media-preparation, note: ''}
+- {item: Q232, node_type: device-backend, fit: partial, second: model-partitioning, note: assigns graph nodes to backends and splits the graph; placement more than driving a device}
+- {item: Q233, node_type: sequence-lifecycle, fit: clean, second: null, note: ''}
+- {item: Q234, node_type: output-interpretation, fit: clean, second: null, note: ''}
+- {item: Q235, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q236, node_type: state-tiering, fit: clean, second: null, note: ''}
+- {item: Q237, node_type: expert-fetch, fit: clean, second: null, note: best-effort warming ahead of need}
+- {item: Q238, node_type: output-constraint, fit: clean, second: null, note: ''}
+- {item: Q239, node_type: replica-routing, fit: clean, second: null, note: ''}
+- {item: Q240, node_type: prefix-reuse, fit: clean, second: null, note: ''}
+- {item: Q241, node_type: positional-state-store, fit: clean, second: null, note: ''}
+- {item: Q242, node_type: model-edit, fit: clean, second: null, note: ''}
+- {item: Q243, node_type: secondary-compute, fit: clean, second: null, note: ''}
+- {item: Q244, node_type: prefix-reuse, fit: clean, second: sequence-lifecycle, note: slot choice by longest shared prefix}
+- {item: Q245, node_type: engine-supervision, fit: clean, second: null, note: ''}
+- {item: Q246, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q247, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q248, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q249, node_type: calibration, fit: clean, second: null, note: ''}
+- {item: Q250, node_type: prompt-preparation, fit: partial, second: output-interpretation, note: 'tokenizer in both directions, used by input and output'}
+- {item: Q251, node_type: model-partitioning, fit: clean, second: device-communication, note: ''}
+- {item: Q252, node_type: prompt-preparation, fit: clean, second: output-constraint, note: also derives the grammar for tool-call output}
+- {item: Q253, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q254, node_type: step-execution, fit: clean, second: null, note: ''}
+- {item: Q255, node_type: draft-proposal, fit: clean, second: null, note: ''}
+- {item: Q256, node_type: calibration, fit: clean, second: null, note: ''}
+- {item: Q257, node_type: row-source, fit: clean, second: null, note: ''}
+- {item: Q258, node_type: layer-compute, fit: clean, second: null, note: ''}
+- {item: Q259, node_type: positional-state-store, fit: clean, second: null, note: ''}
+- {item: Q260, node_type: memory-planning, fit: clean, second: resource-governing, note: also refuses an allocation at run time}
+- {item: Q261, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q262, node_type: draft-policy, fit: clean, second: null, note: ''}
+- {item: Q263, node_type: output-interpretation, fit: clean, second: null, note: ''}
+- {item: Q264, node_type: device-backend, fit: clean, second: null, note: 'hard to tell from layer-compute: kernels per format/shape are the backend''s encoding of the model''s ops'}
+- {item: Q265, node_type: expert-cache, fit: clean, second: null, note: ''}
+- {item: Q266, node_type: positional-state-store, fit: clean, second: null, note: ''}
+- {item: Q267, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q268, node_type: calibration, fit: clean, second: null, note: ''}
+- {item: Q269, node_type: modality-encoding, fit: clean, second: null, note: ''}
+- {item: Q270, node_type: positional-state-store, fit: clean, second: state-pool, note: cell allocation and shared cells across sequences}
+- {item: Q271, node_type: row-source, fit: clean, second: null, note: ''}
+- {item: Q272, node_type: model-partitioning, fit: clean, second: memory-planning, note: placement over devices and host buffers; overlaps memory-planning's which parts stay in memory}
+- {item: Q273, node_type: calibration, fit: clean, second: null, note: offline ranking with validity check; consumed by residency-policy}
+- {item: Q274, node_type: memory-planning, fit: clean, second: null, note: ''}
+- {item: Q275, node_type: modality-encoding, fit: clean, second: null, note: ''}
+- {item: Q276, node_type: model-loading, fit: clean, second: null, note: ''}
+- {item: Q277, node_type: draft-policy, fit: clean, second: null, note: ''}
+- {item: Q278, node_type: configuration, fit: clean, second: null, note: ''}
+- {item: Q279, node_type: state-tiering, fit: clean, second: null, note: ''}
+- {item: Q280, node_type: session-persistence, fit: clean, second: null, note: ''}
+- {item: Q281, node_type: expert-source, fit: clean, second: null, note: ''}
+- {item: Q282, node_type: state-pool, fit: partial, second: sequence-lifecycle, note: 'logical identity, copy-on-write and context transactions across ranks; broader than page handout'}
+- {item: Q283, node_type: memory-planning, fit: clean, second: state-pool, note: lays out the shared page pool}
+- {item: Q284, node_type: model-conversion, fit: clean, second: null, note: ''}
+- {item: Q285, node_type: prompt-preparation, fit: clean, second: null, note: ''}
+- {item: Q286, node_type: request-front, fit: clean, second: null, note: ''}
+- {item: Q287, node_type: layer-compute, fit: clean, second: null, note: ''}
