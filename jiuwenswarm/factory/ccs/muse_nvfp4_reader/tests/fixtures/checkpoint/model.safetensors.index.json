@@ -1,0 +1,40 @@
+{
+ "metadata": {
+  "total_size": 533010718720
+ },
+ "weight_map": {
+  "model.language_model.layers.0.mlp.experts.down_proj": "model-00004-of-00127.safetensors",
+  "model.language_model.layers.0.mlp.experts.gate_up_proj": "model-00003-of-00127.safetensors",
+  "model.language_model.layers.0.mlp.experts.post_expert_norm.weight": "model-00005-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.down_proj": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.down_proj_input_scale": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.down_proj_weight_scale": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.down_proj_weight_scale_2": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.gate_up_proj": "model-00005-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.gate_up_proj_input_scale": "model-00005-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.gate_up_proj_weight_scale": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.gate_up_proj_weight_scale_2": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.1.mlp.experts.post_expert_norm.weight": "model-00006-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.down_proj": "model-00092-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.down_proj_input_scale": "model-00091-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.down_proj_weight_scale": "model-00092-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.down_proj_weight_scale_2": "model-00092-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.gate_up_proj": "model-00091-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.gate_up_proj_input_scale": "model-00090-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.gate_up_proj_weight_scale": "model-00091-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.gate_up_proj_weight_scale_2": "model-00091-of-00127.safetensors",
+  "model.language_model.layers.49.mlp.experts.post_expert_norm.weight": "model-00092-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.down_proj": "model-00094-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.down_proj_input_scale": "model-00093-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.down_proj_weight_scale": "model-00094-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.down_proj_weight_scale_2": "model-00094-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.gate_up_proj": "model-00093-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.gate_up_proj_input_scale": "model-00092-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.gate_up_proj_weight_scale": "model-00093-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.gate_up_proj_weight_scale_2": "model-00093-of-00127.safetensors",
+  "model.language_model.layers.5.mlp.experts.post_expert_norm.weight": "model-00094-of-00127.safetensors",
+  "model.language_model.layers.61.mlp.experts.down_proj": "model-00120-of-00127.safetensors",
+  "model.language_model.layers.61.mlp.experts.gate_up_proj": "model-00119-of-00127.safetensors",
+  "model.language_model.layers.61.mlp.experts.post_expert_norm.weight": "model-00121-of-00127.safetensors"
+ }
+}

@@ -1,0 +1,168 @@
+cc: '2'
+id: weights.build_expert_scale_wiring
+version: 1.0.0
+materials:
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  validation:
+    path: VALIDATION.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  expert_scale_wiring:
+    path: components/expert_scale_wiring/component.yaml
+  sample_bind_by_name:
+    path: samples/bind_by_name.cpp
+  sample_optional_scale_loader:
+    path: samples/optional_scale_loader.cpp
+  sample_numerics_run:
+    path: samples/numerics_run.sh
+  helpers:
+    path: helpers/README.md
+  helper_parity:
+    path: helpers/parity.sh
+  helper_kld_compare:
+    path: helpers/kld_compare.py
+  helper_slice_compare:
+    path: helpers/slice_compare.py
+  wiring_verifier:
+    path: helpers/wiring_rules.py
+  roles:
+    path: roles.json
+    media_type: application/json
+defs:
+  done:
+    kind: json
+    description: True when at least one check ran and no check failed.
+    schema:
+      type: boolean
+  checks:
+    kind: json
+    schema:
+      type: array
+      items:
+        type: object
+        required:
+        - name
+        - status
+        - stage
+        - detail
+        properties:
+          name:
+            type: string
+          status:
+            enum:
+            - pass
+            - fail
+            - skipped
+            - inconclusive
+            - info
+          stage:
+            enum:
+            - fixture
+            - native CC execution
+            - compile
+            - runtime acceptance
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Gate a change that wires the per-expert weight scales into the Muse MoE block. Fixture stage - the
+      bundled good diff passes and each planted fault fails its rule on this HEAD. Static - only
+      src/models/muse-spark.cpp touched; the build_moe_ffn call, bound to its declaration by parameter name,
+      passes the layer's own ffn_up/gate/down_exps_s and nothing else moved. Compile - CPU build of llama-simple,
+      llama-perplexity and llama-eval-callback from HEAD plus the change in a scratch directory. Runtime
+      acceptance (with tiny_dir) - scale-free pack byte-identical to stock, NVFP4 pack mean KLD vs the
+      dequantized reference within kld_max, no NaN, and the first quantized layer's expert matmuls and block
+      output within slice_tol of the reference; reached only when all four ran and passed.
+    takes:
+      checkout:
+        kind: text
+        description: Root of the owned llama.cpp Git checkout.
+      diff_path:
+        kind: text
+        optional: true
+        description: Patch against the checkout's HEAD; omit to check working changes against HEAD.
+      tiny_dir:
+        kind: text
+        optional: true
+        description: Directory holding the tiny packs (default names tiny-bf16.gguf, tiny-nvfp4-f32.gguf,
+          tiny-deqref-f32.gguf); without it runtime acceptance is not reached.
+      bf16_pack:
+        kind: text
+        optional: true
+        description: File name in tiny_dir of the scale-free parity pack.
+      nvfp4_pack:
+        kind: text
+        optional: true
+        description: File name in tiny_dir of the NVFP4 pack with .scale tensors.
+      ref_pack:
+        kind: text
+        optional: true
+        description: File name in tiny_dir of the dequantized reference pack.
+      stock_bin:
+        kind: text
+        optional: true
+        description: bin directory of a stock build of the same HEAD; otherwise stock is built and cached in work_dir.
+      work_dir:
+        kind: text
+        optional: true
+        description: Scratch parent directory outside the checkout (default the system temp directory).
+      jobs:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 1
+      text:
+        kind: text
+        optional: true
+        description: Text file for the KLD runs (default README.md of the exported tree).
+      kld_max:
+        kind: json
+        optional: true
+        schema:
+          type: number
+          minimum: 0
+      slice_tol:
+        kind: json
+        optional: true
+        schema:
+          type: number
+          minimum: 0
+      mem_cap:
+        kind: text
+        optional: true
+        description: cgroup MemoryMax for every run (default 16G; none to disable).
+      build:
+        kind: json
+        optional: true
+        description: false skips compile and runtime (static stages only).
+        schema:
+          type: boolean
+      keep_work:
+        kind: json
+        optional: true
+        schema:
+          type: boolean
+      runtime_even_if_static_fails:
+        kind: json
+        optional: true
+        description: Build and run even when a static gate failed (calibration of the runtime checks).
+        schema:
+          type: boolean
+    gives:
+      done: $done
+      checks: $checks
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

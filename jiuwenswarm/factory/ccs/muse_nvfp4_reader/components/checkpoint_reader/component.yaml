@@ -1,0 +1,41 @@
+kind: builder_spec
+component: Checkpoint reader
+atlas_subcomponent: weights.checkpoint_reader
+title: Muse NVFP4 reader builder
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+  pre_integration_commit: 9048bad8d6e3a0f9f1726e238e451181c7e02613
+change:
+  touches:
+    - conversion/muse_spark.py
+  may_touch:
+    - conversion/*.py
+  protected:
+    - gguf-py/
+    - src/
+    - ggml/
+  kind: converter
+supported:
+  host: {name: dgx-spark-gb10, arch: aarch64}
+  models: Muse Spark Open (unsloth/Muse-Spark-Open-816B-A42B-NVFP4), ModelOpt NVFP4, stacked experts with per-half weight_scale_2.
+  dtype: nvfp4 routed experts; bf16 excluded modules; f32 router
+configuration:
+  source: >-
+    Extend the Muse model class's NVFP4 hook in the owned checkout as GUIDE.md and METHOD.md direct.
+    Prove it on the tiny checkpoint, time one expert, then convert the real checkpoint lazily under a
+    ~32 GiB cgroup cap with nice/ionice and --split-max-size.
+engagement_checks:
+  - 'convert log: "Repacked blk.N.ffn_{gate,up,down}_exps.weight ... NVFP4" or the override''s own line for every quantized layer'
+  - 'convert log: "+ blk.N.ffn_*_exps.scale (per-expert scale, shape [256])" for every routed expert weight'
+  - 'convert log: no "uint8 --> BF16" line'
+correctness_obligations:
+  - NVFP4 blocks move bit for bit (no dequantize and requantize); gate is rows [0, I) of gate_up_proj, up rows [I, 2I).
+  - .scale is weight_scale_2[:, 0] for gate, [:, 1] for up, the [E] vector for down; .input_scale likewise.
+  - Excluded modules (layers 0 and 61, attention, lm_head) keep their stored type.
+  - Peak memory stays under the conversion cap (lazy writer).
+rollback:
+  source: Revert the converter change in the owned checkout; the stock converter then refuses the checkpoint.
+acceptance:
+  type: correctness
+modifies_region: [W.checkpoint_layout, W.expert_precision, W.pack_layout, M.conversion_memory]

@@ -1,0 +1,1 @@
+{"__metadata__": {"format": "pt"}, "model.language_model.layers.0.mlp.experts.down_proj": {"dtype": "BF16", "shape": [256, 4096, 4096], "data_offsets": [0, 8589934592]}}

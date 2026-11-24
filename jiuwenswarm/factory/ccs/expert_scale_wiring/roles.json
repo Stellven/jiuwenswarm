@@ -1,0 +1,22 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "expert_scale_wiring": "component",
+    "guide": "skill",
+    "helper_kld_compare": "reference",
+    "helper_parity": "reference",
+    "helper_slice_compare": "reference",
+    "helpers": "reference",
+    "method": "method",
+    "ontology": "reference",
+    "sample_bind_by_name": "reference",
+    "sample_numerics_run": "reference",
+    "sample_optional_scale_loader": "reference",
+    "source_map": "reference",
+    "validation": "method",
+    "wiring_verifier": "reference"
+  }
+}

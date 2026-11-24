@@ -1,0 +1,14 @@
+{
+  "quant_method": "modelopt",
+  "quantization": {
+    "quant_algo": "NVFP4",
+    "group_size": 16,
+    "kv_cache_quant_algo": null,
+    "exclude_modules": [
+      "layers.0.",
+      "layers.61.",
+      "self_attn",
+      "lm_head"
+    ]
+  }
+}

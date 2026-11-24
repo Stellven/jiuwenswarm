@@ -25,6 +25,8 @@ ATLAS_MAP = {
     'quant_kernel_profile': ('analysis.quant_kernel_profile', 'Quantized kernel profile analysis', 'analysis'),
     'spark_gap_analysis': ('analysis.engine_gap', 'Engine gap analysis', 'analysis'),
     'weight_pack_compiler': ('weights.pack_compiler.builder', 'Pack compiler', 'tool'),
+    'muse_nvfp4_reader': ('weights.checkpoint_reader.builder', 'Muse NVFP4 reader builder', 'builder'),
+    'expert_scale_wiring': ('weights.format_toolkit.builder', 'Expert scale wiring builder', 'builder'),
 }
 
 
