@@ -568,6 +568,15 @@
       "target": null,
       "summary": "Creates a candidate profile that only toggles Strata speculative drafting."
     },
+    "weight_pack_compiler": {
+      "capsule_id": "weights.build_weight_pack_compiler",
+      "title": "Pack compiler",
+      "kind": "tool",
+      "atlas_cc_id": "weights.pack_compiler.builder",
+      "component": "Pack compiler",
+      "target": "llama.cpp",
+      "summary": "Writes a precision recipe for an existing GGUF pack, runs stock llama-quantize on it and verifies the new pack: types per tensor role, carried scale tensors, size."
+    },
     "weight_placement_planner": {
       "capsule_id": "placement.build_weight_placement_planner",
       "title": "Weight placement planner builder",

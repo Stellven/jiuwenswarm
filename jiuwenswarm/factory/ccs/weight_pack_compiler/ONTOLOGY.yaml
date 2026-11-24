@@ -1,0 +1,38 @@
+id: satay.weight-pack-compiler-ontology
+version: '0.2'
+status: provisional
+entities:
+  component: Pack compiler.
+  parts:
+    precision_allocator: Recipe - the target type of every tensor, the pins and the argv that realize it.
+    tensor_converter: One stock llama-quantize invocation (--allow-requantize, --imatrix, --tensor-type pins, --keep-split).
+    pack_writer_and_publisher: The output shards the tool writes, checked by verify_pack and named by the pack manifest.
+  source_pack: GGUF pack the recipe is planned from, named by per-file sha256.
+  recipe: factory.pack-recipe/1 document.
+  pack_manifest: factory.pack-manifest/1 document (files, census, total bytes, digest).
+  engine_revision: Pinned llama.cpp revision whose llama-quantize runs the conversion.
+  contract: Target type per role, byte range, disk grant and time limit of the node.
+  observation_point: Field of a capability result.
+  quantity: Value with a unit, phase and region.
+  regions:
+    W.pack_layout: pack_layout
+    W.expert_precision: expert_precision
+    M.disk_budget: disk_budget
+relations:
+  builds: component -> pack (from source_pack, by recipe)
+  realizes: tensor_converter -> recipe
+  measures: observation_point -> quantity
+  evaluates_under: observation -> contract
+observation_points:
+  recipe_estimate: 'plan_recipe.recipe.estimate'
+  pack_manifest: 'verify_pack.manifest'
+quantities:
+  pack.routed_expert_tensors: {unit: count, phase: build, source: {line: 'verify_pack.manifest', field: census.routed_expert}, region: W.expert_precision, distinct_from: []}
+  pack.bytes_estimated: {unit: bytes, phase: plan, source: {line: 'plan_recipe.recipe.estimate', field: output_bytes}, region: W.pack_layout, distinct_from: [pack.bytes_written]}
+  pack.bytes_written: {unit: bytes, phase: build, source: {line: 'verify_pack.manifest', field: total_bytes}, region: W.pack_layout, distinct_from: [pack.bytes_estimated]}
+  pack.temp_peak_bytes: {unit: bytes, phase: plan, source: {line: 'plan_recipe.recipe.estimate', field: temp_peak_bytes}, region: M.disk_budget, distinct_from: [pack.bytes_written]}
+slices:
+  requantized_pack:
+    purpose: Requantize the routed experts of a pack to one target type with stock llama-quantize, every other tensor and every scale carried unchanged.
+    regions: [W.pack_layout, W.expert_precision, M.disk_budget]
+    quantities: [pack.routed_expert_tensors, pack.bytes_estimated, pack.bytes_written, pack.temp_peak_bytes]
