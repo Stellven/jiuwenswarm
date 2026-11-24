@@ -1,0 +1,10 @@
+{
+  "format": "factory-job-verification/1",
+  "scope": "Lifecycle invariants; not numerical, GPU performance or generic CC certification",
+  "units": [
+    {"id": "branch-cycle-atomicity", "test": "tests/factory/test_loop.py", "claim": "Graph CAS, task-local readiness/hypothesis and bounded reservation are checked before durable cycle selection"},
+    {"id": "acknowledgement-recovery", "test": "tests/factory/test_loop.py", "claim": "Lost acknowledgement recovers one existing attempt; prune/deadline does not erase its result"},
+    {"id": "unsubmitted-abandonment", "test": "tests/factory/test_loop.py", "claim": "Only unsubmitted reservations may be abandoned; cycle budget is retained"}
+  ],
+  "limits": ["Offline tests use a fake external benchmark with real Store transactions", "Live agent/lab acceptance requires separately retained campaign evidence"]
+}

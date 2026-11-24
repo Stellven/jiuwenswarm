@@ -1,0 +1,62 @@
+{
+  "plan": {
+    "inputs": {
+      "data": "abcdefghijklmnop",
+      "ranges": [
+        [
+          0,
+          4
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          10,
+          2
+        ]
+      ],
+      "max_gap": 0
+    }
+  },
+  "evaluate": {
+    "inputs": {
+      "data": "abcdefghijklmnop",
+      "ranges": [
+        [
+          0,
+          4
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          10,
+          2
+        ]
+      ],
+      "max_gap": 0
+    }
+  },
+  "read_fixture": {
+    "inputs": {
+      "data": "abcdefghijklmnop",
+      "ranges": [
+        [
+          0,
+          4
+        ],
+        [
+          3,
+          3
+        ],
+        [
+          10,
+          2
+        ]
+      ],
+      "max_gap": 0
+    }
+  }
+}

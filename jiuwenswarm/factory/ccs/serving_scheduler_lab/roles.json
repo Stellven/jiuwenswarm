@@ -1,0 +1,18 @@
+{
+  "capabilities": {
+    "analyze": "tool",
+    "compare": "tool",
+    "schedule": "tool",
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "fixture": "reference",
+    "method": "method",
+    "skill": "skill",
+    "sources": "reference",
+    "verification_units": "reference"
+  }
+}

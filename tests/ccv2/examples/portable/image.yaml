@@ -1,0 +1,26 @@
+cc: '2'
+id: cc.examples.portable
+version: 1.0.0
+bindings:
+  default:
+    kind: image
+    # Immutable registry image, resolved but not pulled/run by this blocked probe.
+    image: docker.io/library/python@sha256:1148dbb014615300fa7e713b2f94f550c0d1c69780c0805f84f093ceee34dd0b
+    command: ['python', '/cc/bundle/tool.py']
+capabilities:
+  trim:
+    does: Remove leading and trailing ASCII whitespace from text.
+    takes: {text: text}
+    gives: {trimmed: text}
+  empty:
+    does: Complete successfully without outputs.
+    takes: {}
+    gives: {}
+  echo:
+    does: Return a JSON value unchanged.
+    takes: {value: json}
+    gives: {value: json}
+  write-text:
+    does: Write UTF-8 text to a returned artifact.
+    takes: {text: text}
+    gives: {file: {kind: artifact, media_type: text/plain}}

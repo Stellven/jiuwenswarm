@@ -1,0 +1,34 @@
+{
+  "format": "research-component-verification/1",
+  "scope": "package attached; not factory.cc_qualification trusted certificates",
+  "runtime_qualified": false,
+  "units": [
+    {
+      "id": "evaluate-component",
+      "capabilities": [
+        "evaluate"
+      ],
+      "implementation": "components/implementation.py",
+      "fixture": "fixtures/evaluate.json",
+      "verification": "verification.py",
+      "claim": "finite input reference; native capabilities need documented build and separate native experiment"
+    },
+    {
+      "id": "benchmark-component",
+      "capabilities": [
+        "benchmark"
+      ],
+      "implementation": "components/implementation.py",
+      "fixture": "fixtures/benchmark.json",
+      "verification": "verification.py",
+      "claim": "No GPU qualification from verification.py; benchmark is a separate authorized native measurement",
+      "execution_requirements": [
+        "explicit local native build",
+        "Linux ARM64 GB10 SM121",
+        "gpu.use grant",
+        "host-bound GPU handle",
+        "exclusive operator-scheduled slot"
+      ]
+    }
+  ]
+}

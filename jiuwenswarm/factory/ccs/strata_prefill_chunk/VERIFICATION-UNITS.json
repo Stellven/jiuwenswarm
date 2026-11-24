@@ -1,0 +1,26 @@
+{
+  "units": [
+    {
+      "id": "bounded-chunk-transform",
+      "command": "pytest -o addopts= tests/factory/test_strata_prefill.py",
+      "scope": "CPU pure transform and native CC transport; no model acceptance"
+    },
+    {
+      "id": "fixed-budget-preservation",
+      "check": "Only chunk changes; malformed budget and override environment rejected; input unmodified"
+    },
+    {
+      "id": "chunk-treatment-coverage",
+      "check": "Short prompts expose zero changed counts;256/257 and4096 boundaries, malformed lengths and actual Host coverage transport are tested",
+      "scope": "Static prediction only; not native engagement"
+    }
+  ],
+  "integration_requirements": [
+    "effective startup chunk",
+    "same full expert count",
+    "native safe budget",
+    "placement identity",
+    "output correctness",
+    "counterbalanced per-phase measurements"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "policy": "manual-v1-layer27",
+  "source_commit": "24dbb8309e604de8d8c97e623b78d49d0f14a736",
+  "plan_sha256": "97d217e82ef762a09223dc9865120095c04d8a32ddd6577579224ed57ce2a9f6",
+  "active_marker": "weight_placement_planner: active cap_bytes=130661142528 peak_bytes=239514023200",
+  "selected": [
+    {
+      "name": "blk.27.ffn_down_exps.weight",
+      "planned": "CUDA0",
+      "buffer": "CUDA0",
+      "bytes": 990904320
+    },
+    {
+      "name": "blk.27.ffn_gate_exps.weight",
+      "planned": "CUDA0",
+      "buffer": "CUDA0",
+      "bytes": 1309409280
+    },
+    {
+      "name": "blk.27.ffn_up_exps.weight",
+      "planned": "CUDA0",
+      "buffer": "CUDA0",
+      "bytes": 1309409280
+    }
+  ],
+  "cpu_mapped_expert_tensors": 117,
+  "native_bank": {
+    "requested_mib": 30720,
+    "allocated_mib": 30691.85,
+    "host_experts_mib": 122512.5,
+    "cpu_share_pct": 0.0
+  }
+}

@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+"""Prepare one isolated factory home and copy existing auth; never starts an agent/model."""
+import argparse
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+REPO = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO))
+from jiuwenswarm.factory.controller import Controller
+from jiuwenswarm.factory.contract import load
+
+NAMES = ['observability_event_recorder', 'weight_placement_planner', 'expert_weight_cache',
+         'expert_demand_predictor', 'batch_layout_mapper']
+ROOT = Path.home() / 'predemo-spark'
+
+
+
+def copy_auth_for_home(home):
+    """Copy existing login only into a fresh operator-owned factory-runs home."""
+    allowed = (ROOT / 'factory-runs').resolve()
+    home = Path(home).resolve()
+    if home == allowed or not home.is_relative_to(allowed):
+        raise ValueError('Auth destination must be an isolated home beneath factory-runs')
+    auth = Path.home() / '.codex/auth.json'
+    if not auth.is_file():
+        return False
+    destination = home / 'agent-data/subscription/codex-home'
+    destination.mkdir(parents=True, mode=0o700, exist_ok=True)
+    if not destination.resolve().is_relative_to(home):
+        raise ValueError('Auth destination escapes home')
+    target = destination / 'auth.json'
+    # Never overwrite an existing profile or follow a supplied symlink.
+    with target.open('xb') as stream:
+        os.fchmod(stream.fileno(), 0o600)
+        with auth.open('rb') as source:
+            shutil.copyfileobj(source, stream)
+    return True
+
+
+def prepare(name, *, copy_auth=True):
+    home = ROOT / 'factory-runs' / ('star-' + name)
+    if home.exists():
+        raise ValueError('Factory home already exists; use retained task instead of overwriting')
+    task_path = REPO / 'jiuwenswarm/factory/tasks' / ('star-spark-' + name + '.json')
+    task = json.loads(task_path.read_text())
+    workspace = home / 'agent-workspace'
+    workspace.mkdir(parents=True)
+    checkout = workspace / task['source']['subpath']
+    source = ROOT / 'llama.cpp-stock'
+    subprocess.run(['git', 'clone', '--shared', '--no-checkout', str(source), str(checkout)], check=True)
+    subprocess.run(['git', '-C', str(checkout), 'remote', 'remove', 'origin'], check=True)
+    subprocess.run(['git', '-C', str(checkout), 'checkout', '--detach', task['source']['pre_integration_commit']], check=True)
+    subprocess.run(['git', '-C', str(checkout), 'checkout', '-B', task['source']['branch'], task['source']['pre_integration_commit']], check=True)
+    # The source workbench requires its own Git metadata, not a linked worktree.
+    # The factory initializes only the already-provisioned, clean owned checkout.
+    # No agent, model, build or network call occurs here.
+    controller = Controller(home=home, grants=task['allowed_effects'])
+    task_id = controller.init_task(task_path)
+    references = [REPO / 'jiuwenswarm/factory/contracts/star-deepseek-v1.json',
+                  REPO / 'jiuwenswarm/factory/contracts/star-deepseek-v1.md',
+                  REPO / 'jiuwenswarm/factory/ccs/star-transport-migration.json',
+                  ROOT / 'inputs/ontology/SHA256SUMS']
+    references += sorted((ROOT / 'inputs/ontology').glob('*'))
+    bundle = REPO / 'jiuwenswarm/factory/ccs' / name
+    references += [p for p in sorted(bundle.rglob('*')) if p.is_file() and '__pycache__' not in p.parts]
+    refs = []
+    for index, path in enumerate(dict.fromkeys(references)):
+        artifact = controller.store.put_artifact(task_id, f'input-{index}:{path.name}', path,
+                                                'application/json' if path.suffix == '.json' else 'text/plain', None)
+        refs.append(artifact['artifact_id'])
+    controller.store.append_observation(task_id, dict(kind='spark_preparation',
+        values=dict(source_commit=task['source']['pre_integration_commit'], target='spark-gb10',
+                    agent_started=False, models_loaded=False, capsule_source_version='1.1.1',
+                    capsule_transport_version='1.1.2'), source_artifacts=refs,
+        limitations='Preparation only; no verifier, native build or runtime acceptance yet.'))
+    auth_present = copy_auth_for_home(home) if copy_auth else False
+    result = dict(home=str(home), task_id=task_id, checkout=str(checkout), auth_copied=auth_present,
+                  agent_started=False, models_loaded=False)
+    (home / 'preparation.json').write_text(json.dumps(result, indent=2) + '\n')
+    return result
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('capsule', choices=NAMES)
+    parser.add_argument('--no-auth', action='store_true')
+    args = parser.parse_args()
+    print(json.dumps(prepare(args.capsule, copy_auth=not args.no_auth), indent=2))

@@ -1,0 +1,16 @@
+{
+  "format": "task-local-json-projection/1",
+  "module": "jiuwenswarm/factory/evidence_digest.py",
+  "source_sha256": "c41ba4ac73db9f9546e9be7813955695db2f8c4bbd5b197e24319304099b5aa9",
+  "pure_components": [
+    "strict_json",
+    "pointer_tokens",
+    "select",
+    "shape",
+    "project_document"
+  ],
+  "scoped_adapter": "dispatch",
+  "source_access": "Current-task Store metadata then verified artifact_bytes; no path, task or network override",
+  "summary_generated": false,
+  "gpu_required": false
+}

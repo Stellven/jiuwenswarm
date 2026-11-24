@@ -1,0 +1,11 @@
+# Native Strata verified-drafting component
+
+This component applies Strata's existing MTP mechanism. It is not a port of a llama.cpp patch. The executable capability creates a new candidate profile by changing only `--dspark none` to `--dspark on` (or back). It performs no build, engine launch, input-contract edit or automatic promotion.
+
+Prepare the baseline before applying: all six mapped target experts, CPU threads 8, reserve 16384 MiB, expert budget 1.0, static expert cache, disabled prefix reuse, and `--dspark-conf 0.65` in both arms. Preserve the same image, model assets, tokenizer, prompts, limits and environment. `none` avoids loading the drafter; `off` and `auto` are not equivalent baselines. The application receipt records the only changed argument, input/output hashes and required evidence.
+
+Freeze correctness and speed rules independently before measuring. A pinned public ARC-Challenge sample can provide answer-label regression testing, but a short generative adaptation is not the full official likelihood-based ARC score. It does not certify all long-form behavior. Keep raw outputs and invalid answers, and report sample size and uncertainty. Existing byte-identity contracts stay unchanged; a new task-quality policy must be a separately admitted contract.
+
+Measure one mechanism at a time. Use fresh-container, counterbalanced A/B blocks with identical workload/warmup policy and no concurrent builds or agent processes. Report first-after-initialization and warm-repeat speed separately; neither establishes cold SSD. Only count fixed-length speed requests and use raw native timing plus independent artifact/cleanup verification. Report actual offered/accepted drafts: a flag alone does not prove engagement. The drafter consumes compute and memory and can alter effective placement; record those costs.
+
+Run A/A controls and retain baseline variability. If the frozen correctness gate fails, a memory guard trips, mechanism engagement is absent, or evidence is incomplete, do not promote the component or claim a qualified speedup. A statistically uncertain or negative speed result is a valid finding. Never multiply gains across separate components; compare the final stack directly with its frozen baseline.

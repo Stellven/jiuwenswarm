@@ -1,0 +1,1 @@
+expert_config: invalid LLAMA_EXPERT_PREGATE_K=48 (range 1..32)

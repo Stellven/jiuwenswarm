@@ -1,0 +1,47 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "expert_streaming/cc.yaml",
+      "from_version": "2.1.1",
+      "from_release": "10edabf64602846daf8b653c1c359294b73cb1b43c2ed141e05755fca4aa8954",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "2.1.2",
+      "to_release": "a459bd3e0a91aeaf606667998e4d2e3d50c2d7f8cb8b4e121c5144b122b8e870",
+      "changed_files": [
+        "SOURCE-MAP.md",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Host home paths in source notes replaced with neutral placeholders (~, <factory-workspace>) for the public PR; no method, verifier or component change."
+    },
+    {
+      "path": "memory_residency_lab/cc.yaml",
+      "from_version": "1.0.1",
+      "from_release": "bf1a988afa6425281e9ee3e1c4ae94cd6721c3a8a88d5dee30a7eb44301c8ed6",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "1.0.2",
+      "to_release": "1648a9d82fd02d0f8b613dcab25b37444a386cdcd6f8342817e49ef28c17ae2e",
+      "changed_files": [
+        "SOURCES.json",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Host home paths in source notes replaced with neutral placeholders (~, <factory-workspace>) for the public PR; no method, verifier or component change."
+    },
+    {
+      "path": "numerical_investigation_lab/cc.yaml",
+      "from_version": "1.0.1",
+      "from_release": "1fd4a23df45ac093096468c6af5119495a1b5fd12254d3bc4a8b86f2d177674c",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "1.0.2",
+      "to_release": "8aea632ef405aced0d7d795062e161827c60807fa8d361c41665dacead25218a",
+      "changed_files": [
+        "RETAINED-EVIDENCE.md",
+        "cc.yaml"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Host home paths in source notes replaced with neutral placeholders (~, <factory-workspace>) for the public PR; no method, verifier or component change."
+    }
+  ]
+}

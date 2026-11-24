@@ -1,0 +1,122 @@
+cc: '2'
+id: engine.build_expert_weight_cache
+version: 1.4.2
+materials:
+  direct_seed:
+    path: DIRECT-SEED.md
+  prefill_hits:
+    path: PREFILL-HITS.md
+  native_profile:
+    path: NATIVE-PROFILE.md
+  profile_residency:
+    path: PROFILE-RESIDENCY.md
+  spark_profile:
+    path: SPARK-PROFILE.md
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  expert_weight_cache:
+    path: components/expert_weight_cache/component.yaml
+  gate_sample:
+    path: samples/gate.cpp
+  info_markers_sample:
+    path: samples/info_markers.cpp
+  lease_interface_sample:
+    path: samples/lease_interface.cpp
+  budget_sample:
+    path: samples/budget.cpp
+  helpers:
+    path: helpers/README.md
+  marker_checker:
+    path: helpers/check_markers.py
+  cache_stats_checker:
+    path: helpers/check_cache_stats.py
+  parity_runner:
+    path: helpers/run_parity.py
+  task:
+    path: tasks/expert_weight_cache.json
+  verifier:
+    path: run.py
+  validation:
+    path: VALIDATION.md
+  gate_verifier:
+    path: helpers/verify_gate.py
+  churn_verifier:
+    path: helpers/verify_churn.py
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Check a candidate expert weight cache diff for applicability, source scope,
+      gate and log signatures, and best-effort C++ syntax of new files.
+    takes:
+      checkout:
+        kind: text
+        description: Path to the root of the owned Git checkout.
+      diff_path:
+        kind: text
+        optional: true
+        description: Patch against the supplied checkout; omit to check working changes
+          against HEAD.
+      env_gate:
+        kind: text
+        optional: true
+        description: LLAMA_EXPERT_CACHE for the independent cache (default), or LLAMA_EXPERT_CACHE_NATIVE_PROFILE for the separately scoped native-bank profile.
+      markers:
+        kind: json
+        optional: true
+        description: Additional required INFO marker prefixes.
+        schema:
+          type: array
+          items:
+            type: string
+            minLength: 1
+    gives:
+      done:
+        kind: json
+        description: Whether all mandatory static checks passed and no syntax error
+          was observed.
+        schema:
+          type: boolean
+      checks:
+        kind: json
+        schema:
+          type: array
+          items:
+            type: object
+            required:
+            - name
+            - status
+            - stage
+            - detail
+            properties:
+              name:
+                type: string
+              status:
+                enum:
+                - pass
+                - fail
+                - skipped
+                - inconclusive
+                - info
+              stage:
+                enum:
+                - native CC execution
+                - compile
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

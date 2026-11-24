@@ -1,0 +1,17 @@
+{
+  "capabilities": {
+    "analyze_abba": "tool",
+    "assess_transfer": "tool",
+    "design_trial": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "checker": "component",
+    "component": "component",
+    "examples": "reference",
+    "method": "method",
+    "skill": "skill",
+    "sources": "reference",
+    "verification": "reference"
+  }
+}

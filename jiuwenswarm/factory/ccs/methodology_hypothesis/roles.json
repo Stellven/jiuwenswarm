@@ -1,0 +1,9 @@
+{
+  "capabilities": {
+    "propose": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "methodology": "method"
+  }
+}

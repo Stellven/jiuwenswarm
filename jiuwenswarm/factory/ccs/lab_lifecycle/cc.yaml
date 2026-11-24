@@ -1,0 +1,37 @@
+cc: '2'
+id: factory.lab_lifecycle
+version: 1.0.1
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+materials:
+  method:
+    path: RECOVERY.md
+  roles:
+    path: roles.json
+    media_type: application/json
+capabilities:
+  status:
+    does: Read owned Strata lifecycle and evidence state through host reconciliation.
+    takes:
+      attempt_id: text
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  recover:
+    does: Reconcile a terminal owned Strata attempt and import partial failure; never
+      terminate active or unrelated work.
+    takes:
+      attempt_id: text
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec

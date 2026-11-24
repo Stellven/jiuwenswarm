@@ -1,0 +1,7 @@
+diff --git a/src/llama-moe-cache.cpp b/src/llama-moe-cache.cpp
+--- a/src/llama-moe-cache.cpp
++++ b/src/llama-moe-cache.cpp
+@@ -1,2 +1,2 @@
+ bool fixture_copy(int expert,
+-                  long bytes);
++                  long bytes, long *observed);

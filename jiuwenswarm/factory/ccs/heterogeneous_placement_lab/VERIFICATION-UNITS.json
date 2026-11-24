@@ -1,0 +1,37 @@
+{
+  "format": "research-cpu-reference-verification/1",
+  "scope": "CPU reference only; not factory.cc_qualification certificates",
+  "runtime_qualified": false,
+  "units": [
+    {
+      "id": "plan-cpu-reference",
+      "capabilities": [
+        "plan"
+      ],
+      "implementation": "components/placement.py",
+      "fixture": "fixtures/plan.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    },
+    {
+      "id": "execute_reference-cpu-reference",
+      "capabilities": [
+        "execute_reference"
+      ],
+      "implementation": "components/placement.py",
+      "fixture": "fixtures/execute_reference.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    },
+    {
+      "id": "overlap_schedule-cpu-reference",
+      "capabilities": [
+        "overlap_schedule"
+      ],
+      "implementation": "components/placement.py",
+      "fixture": "fixtures/overlap_schedule.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    }
+  ]
+}

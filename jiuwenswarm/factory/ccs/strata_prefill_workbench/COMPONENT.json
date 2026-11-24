@@ -1,0 +1,17 @@
+{
+  "format": "factory-component/1",
+  "id": "native-prefill-chunk",
+  "layer": "prefill",
+  "implementation": "jiuwenswarm.factory.strata_prefill.apply",
+  "baseline": {
+    "native_prefill_chunk": 256
+  },
+  "candidate": {
+    "native_prefill_chunk": 512
+  },
+  "allowed_change": "Only --prefill-chunk; preserve the full-six static profile and all other arguments/environment.",
+  "qualification_unit": "profile-single-change",
+  "runtime_engagement": "Must be independently observed in retained native startup counters.",
+  "correctness_scope": "Same single token and finish reason for the pinned 512-token replay; full-generation quality remains untested.",
+  "implementation_ownership": "Shared host modules; this material describes the component and does not fork its runtime."
+}

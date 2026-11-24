@@ -1,0 +1,56 @@
+cc: '2'
+id: factory.cc_qualification
+version: 1.1.1
+materials:
+  methodology:
+    path: METHOD.md
+  alignment:
+    path: ALIGNMENT.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  inspect_package:
+    does: Verify an existing sealed package and read its declared verification units
+      and known local implementation identities; no package execution.
+    takes:
+      release: json
+    gives:
+      package: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  verify_unit:
+    does: Apply one explicit allowlisted in-process domain invariant to saved task
+      evidence; persist a scoped verification result.
+    takes:
+      release: json
+      unit_id: json
+      evidence_id: json
+    gives:
+      verification: json
+      observation_id: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  assess_admission:
+    does: Assess selected package capabilities against operator task policy and current
+      verification identities; supplies no grants or runtime/scientific certification.
+    takes:
+      policy_id: json
+      verification_ids: json
+    gives:
+      eligibility: json
+      observation_id: json
+    needs:
+    - python
+    changes:
+    - process.exec

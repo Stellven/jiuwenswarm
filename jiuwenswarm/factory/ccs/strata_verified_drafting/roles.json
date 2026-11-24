@@ -1,0 +1,10 @@
+{
+  "capabilities": {
+    "apply": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "methodology": "method"
+  }
+}

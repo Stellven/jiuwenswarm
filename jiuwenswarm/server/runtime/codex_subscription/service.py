@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-from .transport import AppServerTransport, CodexError
+from .transport import AppServerTransport, CodexError, agent_mode_enabled
 from .account_telemetry import safe_limits, missing_fields, READ_SCHEMA_SHA256, UPDATE_SCHEMA_SHA256
 
 
@@ -54,6 +54,46 @@ def _validate_text_only_event(method, params):
     # Preserve text/reasoning deltas, reject every other item event family.
     if len(parts) < 3 or parts[1] not in {"userMessage", "agentMessage", "reasoning", "plan"}:
         raise CodexError("TOOLS_UNAVAILABLE")
+
+
+AGENT_INSTRUCTIONS = (
+    "You are a JiuwenSwarm agent that manages lab environments and builds code. "
+    "Capability Capsules (CCs) are your governed tools: call cc_list first, read passive materials with "
+    "cc_material before acting, run finite work with cc_call, and run services with cc_start then ALWAYS cc_stop. "
+    "A receipt state of failed, blocked or unknown is not a success; never report one as success. "
+    "Reading a material grants no authority. Use the shell and file tools only inside the working directory."
+)
+
+
+def agent_instructions() -> str:
+    extra = os.environ.get("JIUWENSWARM_CODEX_AGENT_INSTRUCTIONS", "")
+    if extra and Path(extra).is_file():
+        return AGENT_INSTRUCTIONS + chr(10) * 2 + Path(extra).read_text(encoding="utf-8")
+    return AGENT_INSTRUCTIONS
+
+
+def _tool_event(method, params, session_id):
+    """Map a Codex tool item to the chat.tool_call / chat.tool_result events."""
+    item = params.get("item")
+    if method not in {"item/started", "item/completed"} or not isinstance(item, dict):
+        return None
+    kind, ident = item.get("type"), item.get("id")
+    if kind == "mcpToolCall":
+        name, args = f"{item.get('server')}.{item.get('tool')}", item.get("arguments")
+        result = {"status": item.get("status"), "result": item.get("result"), "error": item.get("error")}
+    elif kind == "commandExecution":
+        name, args = "shell", {"command": item.get("command"), "cwd": item.get("cwd")}
+        result = {"status": item.get("status"), "exit_code": item.get("exitCode"), "output": item.get("aggregatedOutput")}
+    elif kind == "fileChange":
+        name, args = "apply_patch", {"changes": item.get("changes")}
+        result = {"status": item.get("status")}
+    else:
+        return None
+    if method == "item/started":
+        return {"event_type": "chat.tool_call", "session_id": session_id,
+                "tool_call": {"tool_call_id": ident, "name": name, "arguments": args}}
+    return {"event_type": "chat.tool_result", "session_id": session_id, "tool_call_id": ident,
+            "tool_name": name, "result": json.dumps(result, ensure_ascii=False, default=str)}
 
 
 class SubscriptionService:
@@ -182,6 +222,12 @@ class SubscriptionService:
         tmp.write_text(json.dumps(self.bindings), encoding="utf-8")
         tmp.replace(self.binding_path)
 
+    def _revoke_agent_resumes(self):
+        if any(binding.get("agent") for binding in self.bindings.values()):
+            for binding in self.bindings.values():
+                binding["agent"] = False
+            self._save()
+
     async def _status(self):
         await self.transport.start()
         generation = self._observation_generation
@@ -190,6 +236,7 @@ class SubscriptionService:
         kind = account.get("type")
         fingerprint = hashlib.sha256(str(account.get("email")).encode()).hexdigest() if kind == "chatgpt" and account.get("email") else None
         if self.account_fingerprint is not None and fingerprint != self.account_fingerprint:
+            self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
             # A changed/unknown identity is not permission to reuse old threads.
             for run in self.active.values():
@@ -219,6 +266,7 @@ class SubscriptionService:
                 raise CodexError("BUSY")
             if self.login_id:
                 raise CodexError("LOGIN_PENDING")
+            self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
             login_type = 'chatgptDeviceCode' if os.environ.get('JIUWENSWARM_M1_PROFILE') == '1' else 'chatgpt'
             result = await self.transport.request("account/login/start", {"type": login_type})
@@ -246,6 +294,7 @@ class SubscriptionService:
 
     async def logout(self):
         async with self._account_lock:
+            self._revoke_agent_resumes()
             self.epoch = uuid.uuid4().hex
             self.account_fingerprint = None
             self._observation_identity_verified = False
@@ -506,13 +555,33 @@ class SubscriptionService:
             if session_id in self.active:
                 raise CodexError("BUSY")
             binding = self.bindings.get(session_id)
+            if (binding and agent_mode_enabled()
+                    and binding.get("agent") is True and not binding.get("inflight")
+                    and binding.get("epoch") not in {self.epoch, "interrupted"}
+                    and binding.get("owner") == self.account_fingerprint
+                    and self.account_fingerprint):
+                # Factory controllers survive process restarts. Resume only a
+                # completed, same-account agent thread; never replay an
+                # interrupted/unknown-delivery turn or a text-only session.
+                agent_cwd = Path(os.environ.get("JIUWENSWARM_CODEX_AGENT_CWD") or (self.root / "agent-workspace"))
+                await self.transport.request("thread/resume", {
+                    "threadId": binding["thread"], "cwd": str(agent_cwd.resolve()),
+                    "sandbox": "workspace-write", "approvalPolicy": "never"})
+                binding["epoch"] = self.epoch
+                self._save()
             if binding and (binding.get("epoch") != self.epoch or binding.get("owner") != self.account_fingerprint):
                 raise CodexError("NEW_SESSION_REQUIRED")
             if not self.account_fingerprint:
                 raise CodexError("ACCOUNT_IDENTITY_UNAVAILABLE")
             if not binding:
-                result = await self.transport.request("thread/start", {"cwd": str(self.root / "chat-workspace"), "sandbox": "read-only", "approvalPolicy": "never", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": "Answer ordinary text conversations. Tools are unavailable in this milestone. Do not claim to have executed actions."})
-                binding = {"thread": result["thread"]["id"], "epoch": self.epoch, "owner": self.account_fingerprint}
+                if agent_mode_enabled():
+                    agent_cwd = Path(os.environ.get("JIUWENSWARM_CODEX_AGENT_CWD") or (self.root / "agent-workspace"))
+                    agent_cwd.mkdir(parents=True, exist_ok=True)
+                    result = await self.transport.request("thread/start", {"cwd": str(agent_cwd.resolve()), "sandbox": "workspace-write", "approvalPolicy": "never", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": agent_instructions()})
+                else:
+                    result = await self.transport.request("thread/start", {"cwd": str(self.root / "chat-workspace"), "sandbox": "read-only", "approvalPolicy": "never", "allowProviderModelFallback": False, "modelProvider": "openai", "model": model, "developerInstructions": "Answer ordinary text conversations. Tools are unavailable in this milestone. Do not claim to have executed actions."})
+                binding = {"thread": result["thread"]["id"], "epoch": self.epoch, "owner": self.account_fingerprint,
+                           "agent": agent_mode_enabled()}
                 self.bindings[session_id] = binding
                 self._save()
             run["thread"] = binding["thread"]
@@ -534,6 +603,9 @@ class SubscriptionService:
         parts = []
         completed = False
         try:
+            if agent_mode_enabled():
+                binding["inflight"] = True
+                self._save()
             result = await self.transport.request("turn/start", {"threadId": run["thread"], "input": [{"type": "text", "text": text}], "model": model})
             run["turn"] = result["turn"]["id"]
             if run["cancel"]:
@@ -550,7 +622,13 @@ class SubscriptionService:
                 turn_id = params.get("turnId") or (params.get("turn") or {}).get("id")
                 if turn_id != run["turn"]:
                     continue
-                _validate_text_only_event(method, params)
+                if agent_mode_enabled():
+                    tool_event = _tool_event(method, params, session_id)
+                    if tool_event is not None:
+                        yield tool_event
+                        continue
+                else:
+                    _validate_text_only_event(method, params)
                 if method == "item/agentMessage/delta":
                     delta = params.get("delta", "")
                     if isinstance(delta, str):
@@ -558,6 +636,9 @@ class SubscriptionService:
                         yield {"event_type": "chat.delta", "content": delta, "session_id": session_id}
                 elif method == "turn/completed":
                     completed = True
+                    if agent_mode_enabled():
+                        binding["inflight"] = False
+                        self._save()
                     status = params["turn"].get("status")
                     if status not in {"completed", "interrupted"}:
                         raise CodexError("TURN_FAILED")

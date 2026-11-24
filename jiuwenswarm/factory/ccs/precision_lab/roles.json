@@ -1,0 +1,17 @@
+{
+  "capabilities": {
+    "calibrate": "tool",
+    "evaluate": "tool",
+    "memory_plan": "tool",
+    "quantize": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "examples": "reference",
+    "guide": "skill",
+    "method": "method",
+    "sources": "reference",
+    "verification": "reference"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "format": "package-attached-verification/1",
+  "trusted_by_factory_cc_qualification": false,
+  "units": [
+    {
+      "id": "kv_reuse_lab-cpu-invariants",
+      "entrypoint": "verification.py:verify",
+      "scope": "stdlib CPU reference only",
+      "requires": [
+        "python"
+      ],
+      "excluded": [
+        "GPU execution",
+        "runtime integration",
+        "model accuracy",
+        "performance"
+      ]
+    }
+  ]
+}

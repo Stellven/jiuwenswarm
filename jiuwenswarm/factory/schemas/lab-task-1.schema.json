@@ -1,0 +1,303 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory.lab-task/1",
+  "title": "Lab task, format 1",
+  "description": "What a lab is asked to do with the results under test: which subjects fill which contract arms, which checks and measurements to run, and what to deliver. It is read together with the contract it names.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "lab_task_id",
+    "purpose",
+    "contract",
+    "subjects",
+    "arms",
+    "tests"
+  ],
+  "properties": {
+    "schema": {
+      "const": "factory.lab-task/1"
+    },
+    "lab_task_id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "$ref": "#/$defs/text"
+    },
+    "purpose": {
+      "$ref": "#/$defs/text",
+      "description": "The decision the result feeds."
+    },
+    "contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "subjects": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {
+        "$ref": "#/$defs/id"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "identity"
+        ],
+        "properties": {
+          "kind": {
+            "enum": [
+              "container_image",
+              "native_build",
+              "source",
+              "artifact",
+              "stock"
+            ]
+          },
+          "identity": {
+            "type": "object",
+            "minProperties": 1
+          },
+          "build_attempt_id": {
+            "$ref": "#/$defs/id"
+          },
+          "notes": {
+            "$ref": "#/$defs/text"
+          },
+          "transfer": {
+            "enum": [
+              "attach",
+              "none"
+            ],
+            "description": "attach: the factory ships the subject with the package: a container image as a docker save archive, or the stored artifact named by identity.artifact_id (for kind source, a source bundle the lab assembles). none (default): the lab obtains it by identity."
+          }
+        }
+      }
+    },
+    "arms": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "subject"
+        ],
+        "properties": {
+          "subject": {
+            "$ref": "#/$defs/id"
+          },
+          "env": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notes": {
+            "$ref": "#/$defs/text"
+          }
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "arms"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "check"
+            ]
+          },
+          {
+            "required": [
+              "measure"
+            ]
+          }
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "does": {
+            "$ref": "#/$defs/text"
+          },
+          "check": {
+            "$ref": "#/$defs/id"
+          },
+          "measure": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/id"
+            }
+          },
+          "arms": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "requests": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/id"
+            }
+          },
+          "repeats": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "compare": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "base",
+              "candidate"
+            ],
+            "properties": {
+              "base": {
+                "type": "string"
+              },
+              "candidate": {
+                "type": "string"
+              },
+              "rounds": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "component": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/text"
+      },
+      "description": "What to do, in plain words, beyond what the contract fixes."
+    },
+    "deliverables": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sections": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/filename"
+              },
+              "media_type": {
+                "type": "string"
+              },
+              "description": {
+                "$ref": "#/$defs/text"
+              }
+            }
+          }
+        },
+        "raw_samples": {
+          "type": "boolean",
+          "description": "Every repeat's value, not only a summary."
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lab_profile": {
+          "$ref": "#/$defs/id"
+        },
+        "deadline_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wall_clock_s": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "max_gpu_launches": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "questions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "allowed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+)*$"
+      }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "filename": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  }
+}

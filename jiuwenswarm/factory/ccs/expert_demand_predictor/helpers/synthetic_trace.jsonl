@@ -1,0 +1,8 @@
+{"request":"a","microbatch":0,"layer":0,"experts":[0,1,1]}
+{"request":"a","microbatch":0,"layer":1,"experts":[1,2]}
+{"request":"a","microbatch":1,"layer":0,"experts":[3,4,5]}
+{"request":"a","microbatch":1,"layer":1,"experts":[2,5]}
+{"request":"a","microbatch":2,"layer":0,"experts":[3,4,5]}
+{"request":"a","microbatch":2,"layer":1,"experts":[2,5]}
+{"request":"b","microbatch":0,"layer":0,"experts":[0]}
+{"request":"b","microbatch":0,"layer":1,"experts":[2]}

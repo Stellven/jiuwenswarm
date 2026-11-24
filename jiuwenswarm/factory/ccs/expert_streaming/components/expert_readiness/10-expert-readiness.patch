@@ -1,0 +1,331 @@
+From de9c76edd0c56891c80b372c5592f872a2ccdde7 Mon Sep 17 00:00:00 2001
+From: Codex <codex@openai.com>
+Date: Thu, 12 Nov 2026 17:49:13 +0000
+Subject: [PATCH] expert: readiness observability
+
+Assisted-by: Codex
+---
+ src/llama-context.cpp   | 46 ++++++++++++++++++++--
+ src/llama-context.h     |  2 +
+ src/llama-expert-fill.h | 85 +++++++++++++++++++++++++++++++++++++----
+ 3 files changed, 123 insertions(+), 10 deletions(-)
+
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+index 6a7ee5c51..2fff33474 100644
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -667,6 +667,7 @@ void llama_context::expert_fill_init() {
+         if (expert_fillers.empty()) { throw std::runtime_error("no mmap-backed expert tensors"); }
+         expert_prefetch_layers.resize(model.layers.size());
+         expert_fill_enabled = true;
++        if (expert_config.readiness) { fprintf(stderr, "expert_readiness: active\n"); }
+         expert_pregate_init();
+         expert_diag_enabled = expert_fillers.begin()->second->diagnostic();
+         if (expert_diag_enabled) {
+@@ -770,6 +771,9 @@ void llama_context::expert_pregate_arrive(size_t il, const std::vector<int32_t>
+         uint64_t pending = 0, running = 0;
+         for (const auto & prediction : predictions) {
+             const bool hit = std::find(selected.begin(), selected.end(), prediction.id) != selected.end();
++            if (expert_config.readiness && !hit) {
++                for (const auto & b : prediction.batches) { b.first->mark_wasted(b.second); }
++            }
+             pregate_hits += hit; pregate_hits_d[d] += hit;
+             ExpertFiller::AsyncState state;
+             for (const auto & b : prediction.batches) { state += snapshots.at(b.second.get()); }
+@@ -997,6 +1001,14 @@ void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> &
+     if (expert_fill_failed || !expert_fill_this_ubatch) { return; }
+     try {
+         std::map<size_t, std::vector<ExpertFiller::Range>> ranges;
++        std::map<size_t, std::vector<ExpertFiller::SelectedRange>> selections;
++        if (expert_config.readiness) {
++            (expert_fill_decode ? readiness_selected : readiness_prompt_selected) += selected.size();
++            if (expert_fill_decode && il < expert_pregate_layers.size()) {
++                const auto & predicted = expert_pregate_layers[il].predicted;
++                for (auto id : selected) { readiness_predicted += std::find(predicted.begin(), predicted.end(), id) != predicted.end(); }
++            }
++        }
+         const auto & layer = model.layers[il];
+         for (const ggml_tensor * w : {layer.ffn_gate_exps, layer.ffn_up_exps, layer.ffn_down_exps, layer.ffn_gate_up_exps}) {
+             if (!w) { continue; }
+@@ -1006,7 +1018,16 @@ void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> &
+                 if (id < 0 || id >= w->ne[2] || size_t(id) > (SIZE_MAX - info.offset) / w->nb[2]) {
+                     throw std::runtime_error("expert slice out of bounds");
+                 }
+-                ranges[info.file_index].push_back({info.offset + size_t(id) * w->nb[2], w->nb[2]});
++                const ExpertFiller::Range range {info.offset + size_t(id) * w->nb[2], w->nb[2]};
++                ranges[info.file_index].push_back(range);
++                if (expert_config.readiness) {
++                    bool predicted = false;
++                    if (expert_fill_decode && il < expert_pregate_layers.size()) {
++                        const auto & ids = expert_pregate_layers[il].predicted;
++                        predicted = std::find(ids.begin(), ids.end(), id) != ids.end();
++                    }
++                    selections[info.file_index].push_back({range, id, predicted});
++                }
+             }
+         }
+         const bool diag = expert_diag_enabled && expert_diag_token_active;
+@@ -1026,7 +1047,9 @@ void llama_context::expert_fill_selected(size_t il, const std::vector<int32_t> &
+             auto & filler = *expert_fillers.at(entry.first);
+             ExpertFiller::Counters a {};
+             if (diag) { a = filler.counters(); }
+-            const uint64_t sync_bytes = filler.fill(entry.second, expert_fill_decode);
++            const uint64_t sync_bytes = filler.fill(entry.second, expert_fill_decode, expert_config.readiness ?
++                (expert_fill_decode ? &expert_readiness_decode : &expert_readiness_prompt) : nullptr,
++                expert_config.readiness ? &selections.at(entry.first) : nullptr);
+             if (expert_pregate_enabled && expert_fill_decode && il < expert_pregate_layers.size()) {
+                 const bool predicted = !expert_pregate_layers[il].predicted.empty();
+                 (predicted ? pregate_sync_with : pregate_sync_without) += sync_bytes;
+@@ -1228,6 +1251,20 @@ llama_context::~llama_context() {
+ 
+ #ifdef __linux__
+     if (expert_pregate_enabled) { expert_pregate_stats(); }
++    if (expert_config.readiness) {
++        uint64_t wasted = 0;
++        for (auto & entry : expert_fillers) { entry.second->wait_async(); wasted += entry.second->wasted_bytes(); }
++        const auto & d = expert_readiness_decode;
++        const auto & p = expert_readiness_prompt;
++        fprintf(stderr, "expert_readiness: stats decode_tokens=%llu decode_selected=%llu decode_selected_predicted=%llu decode_ready_bytes_predicted=%llu decode_missing_bytes_predicted=%llu decode_ready_bytes_unpredicted=%llu decode_missing_bytes_unpredicted=%llu decode_wasted_async_bytes=%llu decode_duplicate_demand_bytes=%llu prompt_selected=%llu prompt_missing_bytes=%llu probe_ns_total=%llu\n",
++            (unsigned long long) readiness_decode_tokens,
++            (unsigned long long) readiness_selected, (unsigned long long) readiness_predicted,
++            (unsigned long long) d.ready_predicted, (unsigned long long) d.missing_predicted,
++            (unsigned long long) d.ready_unpredicted, (unsigned long long) d.missing_unpredicted,
++            (unsigned long long) wasted, (unsigned long long) d.duplicate_bytes,
++            (unsigned long long) readiness_prompt_selected, (unsigned long long) (p.missing_predicted + p.missing_unpredicted),
++            (unsigned long long) (d.probe_ns + p.probe_ns));
++    }
+     if (expert_diag_enabled) {
+         expert_diag_finish_token();
+         const auto & d = expert_diag_total;
+@@ -2339,7 +2376,10 @@ llm_graph_result * llama_context::process_ubatch(const llama_ubatch & ubatch, ll
+ #ifdef __linux__
+     expert_fill_init();
+     expert_fill_phase(ubatch.n_tokens);
+-    if (expert_fill_enabled && !expert_fill_failed && expert_fill_this_ubatch) { expert_demand_tokens += ubatch.n_tokens; }
++    if (expert_fill_enabled && !expert_fill_failed && expert_fill_this_ubatch) {
++        expert_demand_tokens += ubatch.n_tokens;
++        if (expert_config.readiness && ubatch.n_tokens == 1) { ++readiness_decode_tokens; }
++    }
+     if (expert_pregate_enabled) {
+         // Layer numbers restart for every ubatch; retire previous-token backlog.
+         for (auto & entry : expert_fillers) { entry.second->cancel_async_through(SIZE_MAX); }
+diff --git a/src/llama-context.h b/src/llama-context.h
+index c06b203f1..ce2aa8f11 100644
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -56,6 +56,8 @@ struct llama_context {
+ #ifdef __linux__
+     ExpertConfig expert_config = ExpertConfig::read();
+     uint64_t expert_demand_tokens = 0;
++    ExpertFiller::Readiness expert_readiness_decode, expert_readiness_prompt;
++    uint64_t readiness_decode_tokens = 0, readiness_selected = 0, readiness_predicted = 0, readiness_prompt_selected = 0;
+     std::map<size_t, std::unique_ptr<ExpertFiller>> expert_fillers;
+     bool expert_fill_checked = false;
+     bool expert_fill_enabled = false;
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+index 0f8be12dd..4dc7e7d44 100644
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -32,7 +32,7 @@ extern char ** environ;
+ struct ExpertConfig {
+     size_t fill = 0, threads = 8, chunk_kib = 1024, min_tokens = 0, max_tokens = 0;
+     size_t diag = 0, populate = 0, pregate = 0, k = 8, max_inflight = 4, lookahead = 1;
+-    size_t prefetch = 0, prefetch_next = 0;
++    size_t prefetch = 0, prefetch_next = 0, readiness = 0;
+     std::string random = "0", order = "after", diag_csv;
+     [[noreturn]] static void invalid(const char * name, const char * value, const std::string & range) {
+         fprintf(stderr, "expert_config: invalid %s=%s (range %s)\n", name, value, range.c_str());
+@@ -72,7 +72,7 @@ struct ExpertConfig {
+             "LLAMA_EXPERT_FILL_DIAG", "LLAMA_EXPERT_FILL_DIAG_CSV", "LLAMA_EXPERT_FILL_POPULATE",
+             "LLAMA_EXPERT_PREGATE", "LLAMA_EXPERT_PREGATE_K", "LLAMA_EXPERT_PREGATE_ORDER",
+             "LLAMA_EXPERT_PREGATE_MAX_INFLIGHT", "LLAMA_EXPERT_PREGATE_LOOKAHEAD",
+-            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT"};
++            "LLAMA_EXPERT_PREFETCH", "LLAMA_EXPERT_PREFETCH_NEXT", "LLAMA_EXPERT_READINESS"};
+         for (char ** e = environ; e && *e; ++e) {
+             const std::string entry(*e);
+             const size_t eq = entry.find('=');
+@@ -83,6 +83,7 @@ struct ExpertConfig {
+             }
+         }
+         ExpertConfig c;
++        c.readiness = integer("LLAMA_EXPERT_READINESS", 0, 0, 1);
+         c.fill = integer("LLAMA_EXPERT_FILL", 0, 0, 1);
+         c.random = choice("LLAMA_EXPERT_FILL_RANDOM", "0", {"0", "1", "decode"});
+         c.threads = integer("LLAMA_EXPERT_FILL_THREADS", 8, 1, 64);
+@@ -107,15 +108,20 @@ struct ExpertConfig {
+     void print() const {
+         fprintf(stderr, "expert_config: effective fill=%zu random=%s max_tokens=%zu threads=%zu chunk_kib=%zu "
+             "pregate=%zu k=%zu order=%s max_inflight=%zu lookahead=%zu min_tokens=%zu diag=%zu populate=%zu "
+-            "diag_csv=%s prefetch=%zu prefetch_next=%zu\n",
++            "diag_csv=%s prefetch=%zu prefetch_next=%zu readiness=%zu\n",
+             fill, random.c_str(), max_tokens, threads, chunk_kib, pregate, k, order.c_str(), max_inflight,
+-            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next);
++            lookahead, min_tokens, diag, populate, diag_csv.empty() ? "(unset)" : diag_csv.c_str(), prefetch, prefetch_next, readiness);
+     }
+ };
+ 
+ class ExpertFiller {
+ public:
+     struct Range { uint64_t offset; size_t len; };
++    struct SelectedRange { Range range; int32_t expert; bool predicted; };
++    struct Readiness {
++        uint64_t ready_predicted = 0, missing_predicted = 0, ready_unpredicted = 0, missing_unpredicted = 0;
++        uint64_t probe_ns = 0, duplicate_bytes = 0;
++    };
+     struct Counters {
+         uint64_t populate_calls = 0, populate_ns = 0, populate_errors = 0;
+         uint64_t thread_majflt = 0, thread_minflt = 0;
+@@ -127,6 +133,7 @@ public:
+     };
+     struct AsyncBatch {
+         std::atomic<uint64_t> pending {0}, running {0}, bytes_read {0}, read_syscalls {0}, errors {0};
++        bool wasted = false;
+         std::atomic<uint64_t> cancelled_jobs {0}, cancelled_bytes {0};
+     };
+     using Async = std::shared_ptr<AsyncBatch>;
+@@ -191,6 +198,7 @@ public:
+         : mapping_(static_cast<char *>(mapping)), size_(mapping_size),
+           threads_(config.threads), chunk_(config.chunk_kib * 1024) {
+         async_limit_ = std::min(threads_, config.max_inflight);
++        observe_ = config.readiness;
+         diag_ = config.diag;
+         populate_ = config.populate;
+         const long page = sysconf(_SC_PAGESIZE);
+@@ -207,7 +215,7 @@ public:
+         }
+         try {
+             // Allocate before starting workers, so allocation failures cannot kill a worker.
+-            scratch_.resize(threads_); residency_.resize(threads_);
++            scratch_.resize(threads_); residency_.resize(threads_); active_.resize(threads_);
+             for (auto & b : scratch_) { b.resize(std::max(page_, chunk_)); }
+             for (auto & b : residency_) { b.resize((std::max(page_, chunk_) + page_ - 1) / page_); }
+             for (size_t i = 0; i < threads_; ++i) { workers_.emplace_back([this, i] { worker(i); }); }
+@@ -294,6 +302,13 @@ public:
+                 async_cancelled_jobs_.load(), async_cancelled_bytes_.load(), async_max_inflight_.load()};
+     }
+ 
++    void mark_wasted(const Async & batch) {
++        if (!batch) { return; }
++        std::lock_guard<std::mutex> lock(mutex_);
++        if (!batch->wasted) { wasted_bytes_ += batch->bytes_read.load(); batch->wasted = true; }
++    }
++    uint64_t wasted_bytes() const { return wasted_bytes_.load(); }
++
+     bool diagnostic() const { return diag_; }
+     // Used by prediction-time residency and opt-in diagnostics. Counts page cache
+     // residency, not installed PTEs; errors are explicit rather than resident.
+@@ -314,7 +329,7 @@ public:
+         }
+         return count;
+     }
+-    uint64_t fill(const std::vector<Range> & ranges, bool decode = false) {
++    uint64_t fill(const std::vector<Range> & ranges, bool decode = false, Readiness * readiness = nullptr, const std::vector<SelectedRange> * selected = nullptr) {
+         std::lock_guard<std::mutex> serial(fill_mutex_);
+         // Reserve scheduling priority before residency queries/job construction,
+         // not just after demand jobs are published. In-flight async IO may finish.
+@@ -353,11 +368,45 @@ public:
+                 } else { merged.push_back(r); }
+             }
+             std::vector<Range> jobs;
++            const auto setup_start = readiness ? std::chrono::steady_clock::now() : start;
++            std::vector<uint64_t> checked_end;
++            std::vector<SelectedRange> aligned_selected;
++            if (readiness && selected) {
++                for (const auto & entry : *selected) {
++                    const auto & r = entry.range;
++                    if (r.offset > size_ || r.len > size_ - r.offset || entry.expert < 0) { throw std::out_of_range("readiness range outside mmap"); }
++                    if (!r.len) { continue; }
++                    const uint64_t first = r.offset / page_ * page_, end = r.offset + r.len;
++                    const uint64_t last = end + std::min<uint64_t>((page_ - end % page_) % page_, size_ - end);
++                    aligned_selected.push_back({{first, size_t(last - first)}, entry.expert, entry.predicted});
++                    if (size_t(entry.expert) >= checked_end.size()) { checked_end.resize(size_t(entry.expert) + 1); }
++                }
++                std::sort(aligned_selected.begin(), aligned_selected.end(), [](const SelectedRange & a, const SelectedRange & b) { return a.range.offset < b.range.offset; });
++            }
++            if (readiness) {
++                readiness->probe_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - setup_start).count();
++            }
+             for (const auto & r : merged) {
++                const auto probe_start = readiness ? std::chrono::steady_clock::now() : start;
+                 counters_.bytes_requested += r.len; // page-aligned union, once per fill
+                 const size_t pages = r.len / page_ + (r.len % page_ != 0);
+                 std::vector<unsigned char> resident(pages);
+                 if (mincore(mapping_ + r.offset, r.len, resident.data())) { throw std::runtime_error("expert mincore failed"); }
++                if (readiness) {
++                    for (const auto & entry : aligned_selected) {
++                        const auto & a = entry.range;
++                        uint64_t first = std::max({a.offset, r.offset, checked_end[entry.expert]});
++                        const uint64_t end = std::min(a.offset + a.len, r.offset + r.len);
++                        for (uint64_t at = first; at < end; at += page_) {
++                            const uint64_t bytes = std::min<uint64_t>(page_, end - at);
++                            const bool ready = resident[(at - r.offset) / page_] & 1;
++                            (entry.predicted ? (ready ? readiness->ready_predicted : readiness->missing_predicted)
++                                         : (ready ? readiness->ready_unpredicted : readiness->missing_unpredicted)) += bytes;
++                        }
++                        checked_end[entry.expert] = std::max(checked_end[entry.expert], end);
++                    }
++                    readiness->probe_ns += std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::steady_clock::now() - probe_start).count();
++                }
+                 size_t run = 0;
+                 while (run < pages) {
+                     if (resident[run] & 1) {
+@@ -375,6 +424,21 @@ public:
+             }
+             {
+                 std::unique_lock<std::mutex> lock(mutex_);
++                if (readiness) {
++                    for (const auto & r : jobs) {
++                        std::vector<Range> overlaps;
++                        for (const auto & a : active_) {
++                            const uint64_t first = std::max(r.offset, a.offset), end = std::min(r.offset + r.len, a.offset + a.len);
++                            if (first < end) { overlaps.push_back({first, size_t(end - first)}); }
++                        }
++                        std::sort(overlaps.begin(), overlaps.end(), [](const Range & a, const Range & b) { return a.offset < b.offset; });
++                        uint64_t end = 0;
++                        for (const auto & a : overlaps) {
++                            readiness->duplicate_bytes += a.offset + a.len - std::min(a.offset + a.len, std::max(end, a.offset));
++                            end = std::max(end, a.offset + a.len);
++                        }
++                    }
++                }
+                 populating_ = false;
+                 jobs_ = std::move(jobs); next_ = 0; pending_ = jobs_.size(); error_ = 0;
+                 ready_.notify_all();
+@@ -447,6 +511,7 @@ private:
+                     job = jobs_[next_++]; diagnostic = batch_diag_; populating = populating_;
+                 } else {
+                     job = async_queue_.front().range; async = async_queue_.front().batch;
++                    if (observe_) { active_[index] = job; }
+                     async_queue_.pop_front(); ++async->running;
+                     ++async_running_;
+                     async_max_inflight_.store(std::max<uint64_t>(async_max_inflight_.load(), async_running_));
+@@ -500,6 +565,10 @@ private:
+             {
+                 std::lock_guard<std::mutex> lock(mutex_);
+                 if (async) {
++                    if (observe_) {
++                        active_[index] = {};
++                        if (async->wasted) { wasted_bytes_ += bytes; }
++                    }
+                     async->bytes_read += bytes; async->read_syscalls += syscalls;
+                     async->errors += error != 0;
+                     async_bytes_ += bytes; async_syscalls_ += syscalls; async_errors_ += error != 0;
+@@ -529,12 +598,14 @@ private:
+     struct AsyncJob { Range range; Async batch; size_t layer, distance; };
+     std::list<AsyncJob> async_queue_;
+     size_t async_pending_ = 0, async_running_ = 0, async_limit_ = 4;
+-    bool demand_active_ = false;
++    bool demand_active_ = false, observe_ = false;
+     std::atomic<uint64_t> async_bytes_ {0}, async_syscalls_ {0}, async_errors_ {0}, async_dropped_ {0};
+     std::atomic<uint64_t> async_cancelled_jobs_ {0}, async_cancelled_bytes_ {0}, async_max_inflight_ {0};
+     std::vector<std::thread> workers_;
+     std::vector<std::vector<char>> scratch_;
+     std::vector<std::vector<unsigned char>> residency_;
++    std::vector<Range> active_;
++    std::atomic<uint64_t> wasted_bytes_ {0};
+     std::vector<Range> jobs_;
+     size_t next_ = 0, pending_ = 0;
+     bool stopping_ = false, diag_ = false, batch_diag_ = false, populating_ = false;
+-- 
+2.34.1
+

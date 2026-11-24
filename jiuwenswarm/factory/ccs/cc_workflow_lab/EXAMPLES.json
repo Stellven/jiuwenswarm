@@ -1,0 +1,79 @@
+{
+  "analyze_receipts": {
+    "spec": {
+      "receipts": [
+        {
+          "package": "engine.expert_cache_lab",
+          "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+          "capability": "validate",
+          "call": "c6ec4d1d-48b5-4158-8681-f87369d04a06",
+          "elapsed_s": 0.24729587696492672,
+          "state": "succeeded",
+          "completeness": "complete"
+        },
+        {
+          "package": "engine.expert_cache_lab",
+          "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+          "capability": "replay",
+          "call": "a69d7c53-527b-48be-9011-119e3bd19a26",
+          "elapsed_s": 0.16447133710607886,
+          "state": "succeeded",
+          "completeness": "complete"
+        }
+      ]
+    }
+  },
+  "design_workflow": {
+    "spec": {
+      "operation_count": 7,
+      "prepare_s": 0.02,
+      "invoke_s": 0.15,
+      "analysis_s": 0.001
+    }
+  },
+  "benchmark_fixture": {
+    "spec": {
+      "repeats": 5
+    }
+  },
+  "run_batch": {
+    "spec": {
+      "jobs": [
+        {
+          "operation": "analyze_receipts",
+          "spec": {
+            "receipts": [
+              {
+                "package": "engine.expert_cache_lab",
+                "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+                "capability": "validate",
+                "call": "c6ec4d1d-48b5-4158-8681-f87369d04a06",
+                "elapsed_s": 0.24729587696492672,
+                "state": "succeeded",
+                "completeness": "complete"
+              },
+              {
+                "package": "engine.expert_cache_lab",
+                "release": "ed624d8c82fc492f1f52417aef5ef3a26b4ddc88989fc825c8b80552e22e0edc",
+                "capability": "replay",
+                "call": "a69d7c53-527b-48be-9011-119e3bd19a26",
+                "elapsed_s": 0.16447133710607886,
+                "state": "succeeded",
+                "completeness": "complete"
+              }
+            ]
+          }
+        },
+        {
+          "operation": "design_workflow",
+          "spec": {
+            "operation_count": 2,
+            "prepare_s": 0.02,
+            "invoke_s": 0.15,
+            "analysis_s": 0.001
+          }
+        }
+      ]
+    }
+  }
+}

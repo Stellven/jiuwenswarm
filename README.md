@@ -1,6 +1,8 @@
 > **AI4Research M1:** See the [release notes and quick start](releases/AI4Research-M1.md) and [deployment operations](deploy/m1/OPERATIONS.md). The integrated release is maintained on `AI4Research-Main`.
 >
 > **AI4Research architecture:** Start at the [architecture index](docs/architecture/README.md) for the maintained [design package](docs/architecture/design-package/README.md) and [experiment registry](docs/architecture/experiments/README.md). The JiuwenSwarm documentation below describes the underlying platform.
+>
+> **Software factory with Capability Capsules:** JiuwenSwarm builds, gate-checks and measures engine changes through builder Capability Capsules. Start at the [factory docs](docs/architecture/factory/README.md); the [DGX Spark demo of 2026-11-20](ops/spark/demo-20261120/README.md) shows a full run.
 
 <p align="center">
   <img src="docs/assets/images/logo.svg" alt="JiuwenSwarm Logo" width="160" />

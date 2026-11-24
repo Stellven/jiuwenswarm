@@ -1,0 +1,299 @@
+{
+  "schema": "factory.contract/2",
+  "contract_id": "star-deepseek-v2",
+  "version": 2,
+  "title": "Five builder capsules on stock llama.cpp, DeepSeek V4.1 Flash, DGX Spark",
+  "purpose": "How much sooner does the first token come at 512 and 2048 prompt tokens when one or all five builder capsules are applied to stock llama.cpp, with output unchanged when their gates are unset?",
+  "scope": {
+    "covers": [
+      "client time to first token at 512 and 2048 rendered prompt tokens",
+      "greedy output parity with the gate unset, and the activation marker with the gate set",
+      "decode rate, sampled peak memory and load time, reported beside the primary metric"
+    ],
+    "excludes": [
+      "accuracy benchmarks",
+      "throughput under concurrent requests",
+      "any claim of runtime acceptance from a source or build check alone"
+    ]
+  },
+  "target": {
+    "profile": "spark-gb10",
+    "requires": {"machine": "DGX Spark GB10", "cuda": "13", "sm": "121", "arch": "arm64"}
+  },
+  "subject": {
+    "engine": {
+      "name": "llama.cpp",
+      "source": "https://github.com/ggml-org/llama.cpp",
+      "revision": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+    },
+    "model": {
+      "name": "DeepSeek V4.1 Flash, IQ2_XXS six-shard GGUF conversion",
+      "files": [
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00006.gguf", "size": 5780704, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00002-of-00006.gguf", "size": 39535781184, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00003-of-00006.gguf", "size": 39736712000, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00004-of-00006.gguf", "size": 39036908384, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00005-of-00006.gguf", "size": 19923784832, "sha256": null},
+        {"name": "DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00006-of-00006.gguf", "size": 110595290816, "sha256": null}
+      ],
+      "digest_status": "Shard digests are not asserted. The conversion receipt kept on the lab machine establishes the lineage; the Strata yardstick runs the same weights in its native pack."
+    }
+  },
+  "inputs": {
+    "prompt_512": {
+      "media_type": "text/plain",
+      "sha256": "e1fafe8ac4513e944626eb7de27bd04a29feaf0778ab753786bd7f291dc3a722",
+      "size": 2985,
+      "description": "Fixed text that renders to 512 tokens with the no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/512.txt"
+    },
+    "prompt_2048": {
+      "media_type": "text/plain",
+      "sha256": "61bd0ff5c00855d2469fe1f9d2bdfff947da2c20dab991c06033fd3a5582904d",
+      "size": 11997,
+      "description": "Fixed text that renders to 2048 tokens with the no-thinking chat template.",
+      "repo_path": "ops/spark/prompts/2048.txt"
+    },
+    "chat_template": {
+      "media_type": "text/plain",
+      "sha256": "4d61d22c90ea0cdf15c7e298f7215f23eeffd20f8eed8fb517fda5fb64693d99",
+      "size": 18509,
+      "description": "The chat template embedded in the model file, as rendered for the prompt manifest.",
+      "repo_path": "ops/spark/prompts/llama-embedded-template.jinja"
+    }
+  },
+  "workload": {
+    "tool": "llama-server",
+    "argv": ["-m", "{model}", "-lm", "mmap", "--cpu-moe"],
+    "env": {},
+    "requests": [
+      {
+        "id": "p512",
+        "input": "prompt_512",
+        "params": {"n_predict": 32, "temperature": 0, "seed": 1, "cache_prompt": false, "chat_template_kwargs": {"enable_thinking": false}},
+        "expect": {"rendered_prompt_tokens": 512}
+      },
+      {
+        "id": "p2048",
+        "input": "prompt_2048",
+        "params": {"n_predict": 32, "temperature": 0, "seed": 1, "cache_prompt": false, "chat_template_kwargs": {"enable_thinking": false}},
+        "expect": {"rendered_prompt_tokens": 2048}
+      }
+    ]
+  },
+  "arms": [
+    {"id": "A", "role": "baseline", "summary": "Stock llama.cpp as documented for an oversized mixture-of-experts model.", "deviations": ["-lm mmap", "--cpu-moe"]},
+    {"id": "A+", "role": "baseline", "from": "A", "summary": "A with llama.cpp's native MoE cache, sized by its tuning script.", "deviations": ["--moe-cache-mib chosen by scripts/moe-cache-tune.py"]},
+    {"id": "S", "role": "yardstick", "summary": "Strata fair profile on the same weights in its native pack."},
+    {"id": "C1", "role": "candidate", "from": "A", "summary": "Runtime event recorder build."},
+    {"id": "C2", "role": "candidate", "from": "A", "summary": "Weight placement planner build."},
+    {"id": "C3", "role": "candidate", "from": "A", "summary": "Expert weight cache build."},
+    {"id": "C4", "role": "candidate", "from": "A", "summary": "Expert demand predictor build."},
+    {"id": "C5", "role": "candidate", "from": "A", "summary": "Batch layout mapper build."},
+    {"id": "D", "role": "combined", "from": "A", "summary": "All five builds combined."}
+  ],
+  "measurement": {
+    "primary": "client_ttft_ms",
+    "metrics": {
+      "client_ttft_ms": {"unit": "ms", "better": "lower", "how": "Client clock from sending the request to the first streamed token."},
+      "decode_tokens_per_second": {"unit": "tokens/s", "better": "higher", "how": "Generated tokens after the first, over the time they took, from the server's timings."},
+      "sampled_peak_memory_bytes": {"unit": "bytes", "better": "lower", "how": "Highest sampled resident memory of the engine process group under the cap."},
+      "load_seconds": {"unit": "s", "better": "lower", "how": "From engine start to the health endpoint answering ready; cold load, recorded once per load."}
+    },
+    "protocol": {
+      "repeats": 5,
+      "order": "ABBA",
+      "discard_first_request": true,
+      "cold_load": "separate",
+      "quiet": {"max_load": 1.0, "no_builds": true},
+      "confidence": {"level": 0.95, "method": "bootstrap over paired warm repeats"},
+      "notes": "Server token counts are checked against the rendered prompt token counts before a timed cell counts."
+    },
+    "derived": {
+      "gap_closed": {"formula": "(TTFT_A - TTFT_X) / (TTFT_A - TTFT_S)", "uses": ["client_ttft_ms", "A", "S"]},
+      "inverse_ttft_ratio_vs_A": {"formula": "TTFT_A / TTFT_X", "uses": ["client_ttft_ms", "A"], "unit": "ratio"},
+      "inverse_ttft_ratio_vs_A_plus": {"formula": "TTFT_A+ / TTFT_X", "uses": ["client_ttft_ms", "A+"], "unit": "ratio"}
+    }
+  },
+  "correctness": {
+    "equivalence": "byte_identical_output",
+    "reference": {"arm": "A", "output_sha256": null, "frozen_at": null, "run_ref": null},
+    "checks": [
+      {"id": "gate_unset_parity", "does": "With the capsule's gate unset, the greedy output of each request equals arm A's output byte for byte.", "applies_to": ["candidate", "combined"]},
+      {"id": "gate_set_activation", "does": "With the gate set, the engine prints the capsule's activation marker.", "applies_to": ["candidate", "combined"]},
+      {"id": "server_token_count", "does": "The server's prompt token count equals the request's rendered prompt token count.", "applies_to": ["baseline", "candidate", "combined"]}
+    ]
+  },
+  "acceptance": {
+    "rules": [
+      "A timed cell counts only when the machine is quiet: load below 1.0 and no builds running.",
+      "A candidate's speed counts only when it passes gate_unset_parity and gate_set_activation.",
+      "Failures and no-gain results are reported, not dropped.",
+      "Speed targets are targets, not promises."
+    ]
+  },
+  "limits": {
+    "memory_bytes": 107374182400,
+    "cpus": 8,
+    "start_available_bytes": 118111600640,
+    "watchdog_available_bytes": 8589934592
+  },
+  "execution": {
+    "by": "lab_agent",
+    "lab_profile": "spark-gb10",
+    "notes": "The lab agent runs every engine under its memory-capped runner, one GPU job at a time."
+  },
+  "revisions": [],
+  "provenance": {
+    "derived_from": [
+      {"contract_id": "star-deepseek-v1", "sha256": "40c33a9fde0e8ac3cabadbedde58bf2b7c6758b0e3ca1c9ce11b8234b05474e5", "how": "The same contract in format 2: files named by digest instead of host path, arms, checks and metrics declared."}
+    ],
+    "notes": [
+      "star-deepseek-v1 is the record of the 2026-11-20 run and stays unchanged.",
+      "The five source capsules were 1.1.1; their transport copies 1.1.2 changed only manifest kind fields."
+    ]
+  },
+  "extensions": {
+    "factory.run-record": {
+      "ontology": "The owner's system ontology files were pinned for the 2026-11-20 run by inputs/ontology/SHA256SUMS in the run workspace; they are not in this repository."
+    },
+    "factory.node-contracts": {
+      "format": "factory.node-contracts/1",
+      "nodes": [
+        {
+          "node_id": "inspect_engine",
+          "kind": "inspect",
+          "objective": "Inspect the pinned stock llama.cpp checkout and record where each component will attach.",
+          "inputs": [{"name": "source", "from": "task:source"}],
+          "outputs": [{"name": "engine_map", "kind": "evidence", "criteria": ["Names the stock commit and the source anchors each builder will edit, read or protect."]}],
+          "evidence_obligations": ["captured_input_and_output"],
+          "node_limits": {"turns": 10},
+          "authority_ceiling": {"effects": ["workspace.read", "process.exec"], "workspace": "read"},
+          "work": {"helpful_ccs": ["factory.engine_inspector", "factory.source_workbench"]},
+          "verifiers": [{"output": "engine_map"}],
+          "hands_to": "integrate_recorder"
+        },
+        {
+          "node_id": "integrate_recorder",
+          "kind": "integrate",
+          "objective": "Add the runtime event recorder to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C1", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the runtime event recorder as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["observability.build_runtime_event_recorder", "factory.integration_skill", "factory.source_workbench"], "capability": "observability.build_runtime_event_recorder.verify"},
+          "verifiers": [{"output": "change", "verifier": "observability.build_runtime_event_recorder.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_placement",
+          "kind": "integrate",
+          "objective": "Add the weight placement planner to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C2", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the weight placement planner as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["placement.build_weight_placement_planner", "factory.integration_skill", "factory.source_workbench"], "capability": "placement.build_weight_placement_planner.verify"},
+          "verifiers": [{"output": "change", "verifier": "placement.build_weight_placement_planner.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_cache",
+          "kind": "integrate",
+          "objective": "Add the expert weight cache to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C3", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the expert weight cache as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["engine.build_expert_weight_cache", "factory.integration_skill", "factory.source_workbench"], "capability": "engine.build_expert_weight_cache.verify"},
+          "verifiers": [{"output": "change", "verifier": "engine.build_expert_weight_cache.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_predictor",
+          "kind": "integrate",
+          "objective": "Add the expert demand predictor to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C4", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the expert demand predictor as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["routing.build_expert_demand_predictor", "factory.integration_skill", "factory.source_workbench"], "capability": "routing.build_expert_demand_predictor.verify"},
+          "verifiers": [{"output": "change", "verifier": "routing.build_expert_demand_predictor.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "integrate_mapper",
+          "kind": "integrate",
+          "objective": "Add the batch layout mapper to the owned checkout by following its builder capsule, off by default.",
+          "requirement_ids": ["C5", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["inspect_engine"],
+          "inputs": [{"name": "engine_map", "from": "inspect_engine.engine_map"}],
+          "outputs": [{"name": "change", "kind": "diff", "criteria": ["Implements the batch layout mapper as the capsule method describes, touching only the files its source map allows.", "With its switch unset, the engine behaves exactly like stock: no new work, no changed output.", "With its switch set, it prints the activation markers the method names.", "Errors and limits fall back to stock behaviour instead of crashing."]}],
+          "evidence_obligations": ["captured_input_and_output", "mandatory_checks", "semantic_assessment"],
+          "node_limits": {"turns": 40, "build_attempts": 0},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["engine.build_batch_layout_mapper", "factory.integration_skill", "factory.source_workbench"], "capability": "engine.build_batch_layout_mapper.verify"},
+          "verifiers": [{"output": "change", "verifier": "engine.build_batch_layout_mapper.verify", "stage": "native CC execution", "review": true}],
+          "hands_to": "combine"
+        },
+        {
+          "node_id": "combine",
+          "kind": "integrate",
+          "objective": "Combine the five component changes into one checkout for the combined arm D.",
+          "requirement_ids": ["D", "gate_unset_parity", "gate_set_activation"],
+          "predecessors": ["integrate_recorder", "integrate_placement", "integrate_cache", "integrate_predictor", "integrate_mapper"],
+          "inputs": [{"name": "recorder_change", "from": "integrate_recorder.change"}, {"name": "placement_change", "from": "integrate_placement.change"}, {"name": "cache_change", "from": "integrate_cache.change"}, {"name": "predictor_change", "from": "integrate_predictor.change"}, {"name": "mapper_change", "from": "integrate_mapper.change"}],
+          "outputs": [{"name": "combined", "kind": "diff", "criteria": ["Contains all five component changes and nothing else.", "Each component keeps its own switch and stays off by default; any one can be enabled alone.", "Where two components touch the same code, the merge keeps both behaviours."]}],
+          "evidence_obligations": ["captured_input_and_output", "semantic_assessment"],
+          "node_limits": {"turns": 20},
+          "authority_ceiling": {"effects": ["workspace.read", "workspace.write", "process.exec"], "workspace": "write"},
+          "work": {"helpful_ccs": ["factory.integration_skill", "factory.source_workbench"]},
+          "verifiers": [{"output": "combined", "review": true}],
+          "hands_to": "build_candidate"
+        },
+        {
+          "node_id": "build_candidate",
+          "kind": "build",
+          "objective": "Package each candidate (C1 to C5) and the combined build (D) so the lab can build and run it.",
+          "requirement_ids": ["C1", "C2", "C3", "C4", "C5", "D"],
+          "predecessors": ["combine"],
+          "inputs": [{"name": "combined", "from": "combine.combined"}],
+          "outputs": [{"name": "sources", "kind": "source_bundle", "criteria": ["One source bundle per arm C1 to C5 and D, each against the pinned stock commit with a lab build recipe."]}, {"name": "image", "kind": "image", "required": false, "criteria": ["Optional: a factory-built image of D, with its build receipt, for labs that take images."]}],
+          "evidence_obligations": ["captured_input_and_output", "invocation_observation"],
+          "node_limits": {"turns": 15, "build_attempts": 3},
+          "authority_ceiling": {"effects": ["workspace.read", "process.exec"], "workspace": "read"},
+          "work": {"helpful_ccs": ["factory.lab_manager", "factory.builder"]},
+          "verifiers": [{"output": "sources"}, {"output": "image"}],
+          "hands_to": "deliver_to_lab"
+        },
+        {
+          "node_id": "deliver_to_lab",
+          "kind": "deliver",
+          "objective": "Send the engine builds and the lab task for this contract to the lab manager.",
+          "requirement_ids": ["A", "A+", "S", "C1", "C2", "C3", "C4", "C5", "D", "gate_unset_parity", "gate_set_activation", "server_token_count", "client_ttft_ms", "decode_tokens_per_second", "sampled_peak_memory_bytes", "load_seconds"],
+          "predecessors": ["build_candidate"],
+          "inputs": [{"name": "sources", "from": "build_candidate.sources"}],
+          "outputs": [{"name": "lab_request", "kind": "lab_request", "criteria": ["The lab task fills every candidate and combined arm with a shipped subject and names the stock and Strata arms.", "It runs every correctness check and metric of the contract."]}],
+          "evidence_obligations": ["captured_input_and_output", "invocation_observation"],
+          "node_limits": {"turns": 10},
+          "authority_ceiling": {"effects": ["process.exec"], "workspace": "none"},
+          "work": {"helpful_ccs": ["factory.lab_manager"]},
+          "verifiers": [{"output": "lab_request"}],
+          "hands_to": "lab_manager"
+        }
+      ]
+    }
+  }
+}

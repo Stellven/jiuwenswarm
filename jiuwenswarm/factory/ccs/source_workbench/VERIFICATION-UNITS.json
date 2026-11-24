@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "package": "factory.source_workbench",
+  "scope": "Task-owned source construction; no build or GPU certification",
+  "units": [
+    {
+      "id": "owned-source-boundary",
+      "command": "pytest tests/factory/test_source_workbench.py",
+      "checks": "Owned paths, bounded files, optimistic writes, local commits, no hooks or filters and native CC transport"
+    }
+  ],
+  "limitations": [
+    "Trusted local native API, not an operating-system isolation boundary",
+    "Local commits do not authorize build, GPU execution, push or promotion"
+  ]
+}

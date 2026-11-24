@@ -1,0 +1,18 @@
+{
+  "capabilities": {
+    "abandon": "tool",
+    "collect": "tool",
+    "execute": "tool",
+    "prepare_experiment": "tool",
+    "select": "tool",
+    "status": "tool",
+    "stop": "tool",
+    "prepare_comparison": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "methodology": "method",
+    "skill": "skill",
+    "verification": "reference"
+  }
+}

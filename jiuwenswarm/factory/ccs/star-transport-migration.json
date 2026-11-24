@@ -1,0 +1,30 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "batch_layout_mapper/cc.yaml",
+      "old_release": "635c39153855fbf9ffe9e71b33e3f4c4c56423c60783768000fe06ff78dc5c2c",
+      "new_release": "981521366d986e8f14c627dd00102cc27dc1b9b774743a716f34c20531ea9822"
+    },
+    {
+      "path": "expert_demand_predictor/cc.yaml",
+      "old_release": "9a6bbad7941b918251e1c6ff4a77ed9658a644832e06fa0311aca89025ecbc99",
+      "new_release": "e6dd1926050abd9c40a14a50ef1e24c1bfc278721174c897a5515a0d0835e917"
+    },
+    {
+      "path": "expert_weight_cache/cc.yaml",
+      "old_release": "8d901a951e6836fe4fadf5ef52d4f2234e74d1fc6e7ad1de336556d6f25abea3",
+      "new_release": "5ff8493b2749de3eed458952c495b2785e78d79b03bd0a4330eb927dd4cb6056"
+    },
+    {
+      "path": "observability_event_recorder/cc.yaml",
+      "old_release": "f6d18c7d51018fcd2126ab975cdbe24736b7e3a5cdbfe872b57d6dcb27b14662",
+      "new_release": "e21a0f43b435f50649dd577b30f65e168e5849f6f6bc1dff702c11121e6002a1"
+    },
+    {
+      "path": "weight_placement_planner/cc.yaml",
+      "old_release": "8647d4beaf7ad2f972e2a170ecf24e19a57d934e4db2ade4db9654752340d93b",
+      "new_release": "526203fa32a47b53d4b0a1b6da81ab01fb62ad7e9779101e9f68cc0f49fc46da"
+    }
+  ]
+}

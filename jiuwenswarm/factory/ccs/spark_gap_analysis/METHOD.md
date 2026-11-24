@@ -1,0 +1,146 @@
+# Spark TTFT and gap analysis
+
+Run `analyze` after the lab has saved immutable request, result, prompt manifest,
+load-ready and capped scope receipts. The caller resolves the artifact IDs in
+the task store and supplies their verified payloads and SHA256 values. The CC
+executes a local calculation and returns the summary and contributing artifact
+identities. `verify` recomputes the full result from those same inputs and checks
+exact equality. Neither operation launches models or decides which arm to ship.
+
+Use `p1-reconnaissance` for exploratory batches with unknown or unmatched
+conditions. Preserve exclusions and show medians, ranges and output hashes.
+Use `p4-abba` only with two mirrored launch passes under the lab's quiet
+preflight. Independent scopes have verified cgroup controls, sequential
+nonoverlapping lifetimes and a normal stop. Current launches discard three warmups per size. Each pass measures five pairs,
+numbered 1–5 and 6–10 respectively. A historical two-warmup protocol used
+two measured pairs in the first pass and three in the second.
+Both arms use the same alternating prompt order by repeat. The CC validates
+order and matched requests, including actual prompt and output token counts,
+prompt SHA256, seed, temperature and zero prompt cache reuse.
+
+An arm's inverse-TTFT ratio is the control median divided by the arm median.
+Gap closure is `(A − arm) / (A − S)`. It is undefined when A matches or beats S.
+For P4, the 95% percentile interval uses 10,000 paired bootstrap draws with fixed
+seed 20261120. Each draw samples five repeat labels with replacement within
+each launch pass. The historical 2+3 protocol enumerates all 108 draws. Arms
+share each draw. Report same-budget A+ paired TTFT seconds saved and decode
+tokens/s gained with observed ranges, pass medians, and conditional intervals.
+It is conditional on those launch windows and excludes between-launch
+uncertainty. If any draw lacks a positive A–S gap, omit the gap interval.
+
+Use `p4-build-overlap` for the 60 GiB C3 comparison whose final A+ control
+overlapped the two owner-authorized build services. All four launches require
+the original quiet preflight and retain the mirrored design. Check the systemd
+service receipts for actual onset, CPU affinity 12–19, nice 19 and idle I/O.
+Keep each final-control request that reaches a build onset in the screening set,
+even if its boundary sample misses the active service. Report the ten-pair
+matched result as screening and give observed ranges for the quiet-only ordinal
+pairs. The latter subset has incomplete reverse-pass coverage and no interval.
+
+For the C5 repair under `pooled-30-screen`, admit exactly its explicit slot,
+context, context-checkpoint and batch flags as a package against the four
+historical A+30 scopes. Preserve the actual bank allocation and greedy output
+parity. Report the observed 2048-token logical cuts and whole-launch mapper
+decisions and bypasses. Keep the earlier matched-flags functional report
+separate from the pooled treatment and estimates.
+
+Use `c5-matched-stock` only for the supplemental stock launch with the exact
+C5 arguments and native bank allocation, with the mapper gate unset. Bind the
+original verified pooled C5 input. Report stock flags versus its four pooled
+controls separately from C5 versus the new flags-matched stock run. Both
+comparisons keep four measured request positions per prompt, exact greedy
+hashes, observed paired ranges and the independent scope identities.
+
+Report client TTFT, internal prefill duration and decode rate separately.
+Load time is separately recorded per scope. Do not add phases across clocks,
+infer phase causality from their differences or assign a CC a causal effect
+without a matched gated arm with parity and activation evidence. Strata's
+ordinary stream counters can be attached from `factory.deep_profile` scope
+analysis. Aggregate worker, DMA and staging intervals can overlap.
+
+## Early timing bracket
+
+Use `early-bracket` only after each scope has shut down under the early probe
+protocol. Admit exactly one stock/candidate-on/stock sequence with one discarded
+and one measured request at each prompt size per launch. For C5, the outer
+strict A launches enclose A-matched/C5/A-matched. Report the inner candidate
+comparison and the separate effect of stock runtime settings. C2 must name the
+retained CPU-identity, all-CPU placement-policy or equivalent-placement control.
+
+Bind actual scope command and binary receipts, source conditioning, prelaunch
+quiet and request boundary checks, the pinned model receipt, prompt bytes,
+resource windows and component markers. Reclaim-only max events are allowed.
+Refuse safety stops, process contamination, mismatched flags or missing cells.
+Preserve qualified measured timings when matched greedy outputs diverge and
+mark them ineligible for candidate attribution. Cross-settings differences are
+reported separately from matched parity. The report lists absolute endpoint
+TTFT and decode values with observed drift and estimates no confidence interval.
+
+For the held-out layer-27 placement functional lab, admit three capped launch
+receipts in equivalent-stock, gate-unset, gate-enabled order. Check the pinned
+plan and flags, exact named tensor readback, all other expert placements, gate
+silence, aggregate CUDA0 model allocation and both greedy output hashes. Keep
+one discarded request per prompt and arm for phase diagnosis only.
+
+The native cache pilot compares all eight matched request positions of the two
+30 GiB warm-up launches. Keep launch-to-ready and seed upload separate, and
+keep the request positions descriptive. The full cache lab requires all six
+ordered scopes, zero sampled residency in both external pack views before each
+launch, three warmups per size, then five matched positions per size. Sum phase
+counter deltas only within a single stable engine PID. Preserve host NVMe
+counter deltas separately from process reads. Report range and residual trend
+within each launch. A same-budget native-bank control isolates the treatment
+more closely than either a plain stock engine or a different quantized pack.
+
+The direct A-matched and fair Strata reference uses the same cold and
+post-warmup admission for those two scopes. Resolve the unique Strata engine
+PID inside its capped service scope and retain its phase counters independently
+from the Python HTTP process. The direct iteration links back to the P1
+reconnaissance and contains no candidate DO attribution.
+
+The interim C3 60-GiB screening admits the completed A-matched, C3 and
+fair Strata launches. It retains the combined bank-and-profile comparison
+and defers same-budget stock attribution until that reference completes.
+Strata's native engine prefill log and parsed file, page-cache, layer reuse
+and worker-time counters remain separate from client-phase counters.
+
+For each completed post-warmup arm, retain median and observed range of
+sampled expert page residency and cgroup memory.stat file bytes immediately
+before the five requests at each size. The former describes external inodes
+in the host page cache. The latter describes file-backed charges to the
+cgroup. The planner artifact names every sample receipt.
+
+The full exploratory C3 screening also admits the owner-named iteration-2
+CPU lane in its three authorized scopes when the observed PID, service
+cgroup and affinity prove that it ran on CPUs 12–19. Preserve which source
+conditioning, launch and request boundaries observed its processes. Keep
+the affected comparisons exploratory. Strict timed P4, the prior warm-up
+pilot, the direct A/S reference and the earlier 60-GiB screening retain
+their separate quiet rules. The final A+ 60-GiB cell also admits the owner-named
+predictor iteration-2 service on CPUs 12–19.
+
+Use `c3-direct-seed-30g` for three quiet launches in A+30, 02b mmap, and
+02b direct order. Keep the same deployment and actual native bank allocation.
+The 02b launches share one ELF and the frozen ranked profile. Their admitted
+expert IDs, slots and bytes must match. Validate direct-I/O completion, exact
+returned and uploaded bytes, and zero failures or fallbacks. Compare all
+six cold positions and the five post-warmup pairs per prompt. Require greedy
+parity across the three arms.
+
+Keep launch-to-ready, client TTFT and decode separate. Classify deterministic
+source-file page samples by the actual initial seed set, excluding boundary
+pages. Use the same classes for A+ as for both 02b arms. These report host page
+cache occupancy. Device bank membership can change during later requests.
+One launch per arm gives observed paired ranges and does not establish
+between-launch repeatability.
+## Candidate-only 30 GiB screening
+
+Use `pooled-30-screen` for one new candidate and the four archived quiet
+A+30 launches from the attribution and direct-seed experiments. Verify their
+full retained request sequences, effective settings and observed cache banks.
+The candidate discards two requests per prompt size and measures four. Compare
+per-size request ordinals 3–6 across the source windows, retaining the historical
+third warmup at ordinal 3. Recompute the estimates using ordinals 4–6 alone and
+show the estimates for each control. Treat CPU overlap and any placement-induced
+allocation differences as observed conditions. This design produces descriptive
+screening estimates for each prompt size.

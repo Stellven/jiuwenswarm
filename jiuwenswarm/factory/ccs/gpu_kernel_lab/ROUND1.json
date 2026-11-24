@@ -1,0 +1,185 @@
+{
+  "format": "native-component-round/1",
+  "utc": "2026-11-15T06:26:44Z",
+  "machine": "aarch64",
+  "source_sha256": "b2cf88861df0c414229820ea2fb02097e41d8b099905670d7c0aad877146aa7b",
+  "binary_sha256": "39cb55623b6c38aaf83511fe2439116756043b8785a91932a041d2f908d1836f",
+  "scope": "single fixed-order CUDA component sweep; synthetic inputs; not model throughput",
+  "cases": [
+    {
+      "case": "small",
+      "shape": [
+        4,
+        16,
+        64,
+        4,
+        2
+      ],
+      "input_generation": "case() in measure_round.py",
+      "input_sha256": "d0e00835336f3ad2ec7a113c8f04e16ad4986c7b5f05fda7170124f9059703ec",
+      "result": {
+        "device": "NVIDIA GB10",
+        "cuda_sm": 121,
+        "serial_route_ms": 0.02910399996,
+        "best_batched_ms": 0.005123840179,
+        "speedup": 5.680114746,
+        "best_threads": 64,
+        "baseline_launches": 9,
+        "batched_launches": 2,
+        "repeats": 100,
+        "all_variants_correct": true,
+        "native_max_abs_error": 1.986336429e-08,
+        "candidate_ms": [
+          0.005151039921,
+          0.005123840179,
+          0.005135679618,
+          0.005639680196
+        ],
+        "max_abs_error_vs_python_fp64": 2.4879166699021127e-08,
+        "tolerance": 3.125e-05,
+        "correct": true,
+        "qualification": "native_cuda_component_microbenchmark_not_model_tps",
+        "weight_bytes_fp32": 16384,
+        "input_bytes_fp32": 1024,
+        "gate_bytes_fp32": 32,
+        "route_bytes_int32": 32,
+        "intermediate_bytes_fp32": 512,
+        "output_bytes_fp32": 256,
+        "device_payload_bytes": 18240
+      }
+    },
+    {
+      "case": "decode",
+      "shape": [
+        8,
+        64,
+        512,
+        1,
+        4
+      ],
+      "input_generation": "case() in measure_round.py",
+      "input_sha256": "aa3a0ac9f1eb1fdef56c9c5fdc0dde82da074204126296e624627280a444fc77",
+      "result": {
+        "device": "NVIDIA GB10",
+        "cuda_sm": 121,
+        "serial_route_ms": 0.01850944012,
+        "best_batched_ms": 0.006155840121,
+        "speedup": 3.006809711,
+        "best_threads": 64,
+        "baseline_launches": 5,
+        "batched_launches": 2,
+        "repeats": 100,
+        "all_variants_correct": true,
+        "native_max_abs_error": 2.789784048e-08,
+        "candidate_ms": [
+          0.008182079531,
+          0.006155840121,
+          0.006156160031,
+          0.006155840121
+        ],
+        "max_abs_error_vs_python_fp64": 2.981249999645108e-08,
+        "tolerance": 2.7371826171875e-05,
+        "correct": true,
+        "qualification": "native_cuda_component_microbenchmark_not_model_tps",
+        "weight_bytes_fp32": 1048576,
+        "input_bytes_fp32": 2048,
+        "gate_bytes_fp32": 16,
+        "route_bytes_int32": 16,
+        "intermediate_bytes_fp32": 1024,
+        "output_bytes_fp32": 256,
+        "device_payload_bytes": 1051936
+      }
+    },
+    {
+      "case": "prefill",
+      "shape": [
+        8,
+        64,
+        256,
+        16,
+        4
+      ],
+      "input_generation": "case() in measure_round.py",
+      "input_sha256": "707f35ea386b58d72d03d92a2a5d0ef19f39ec10965763d7b9949f0e89026e12",
+      "result": {
+        "device": "NVIDIA GB10",
+        "cuda_sm": 121,
+        "serial_route_ms": 0.2653008103,
+        "best_batched_ms": 0.01219583955,
+        "speedup": 21.75338554,
+        "best_threads": 64,
+        "baseline_launches": 65,
+        "batched_launches": 2,
+        "repeats": 100,
+        "all_variants_correct": true,
+        "native_max_abs_error": 5.686524673e-08,
+        "candidate_ms": [
+          0.01327615976,
+          0.01219583955,
+          0.0143385604,
+          0.0225497596
+        ],
+        "max_abs_error_vs_python_fp64": 7.154374992435208e-08,
+        "tolerance": 3.2315673828125e-05,
+        "correct": true,
+        "qualification": "native_cuda_component_microbenchmark_not_model_tps",
+        "weight_bytes_fp32": 524288,
+        "input_bytes_fp32": 16384,
+        "gate_bytes_fp32": 256,
+        "route_bytes_int32": 256,
+        "intermediate_bytes_fp32": 16384,
+        "output_bytes_fp32": 4096,
+        "device_payload_bytes": 561664
+      }
+    },
+    {
+      "case": "tail",
+      "shape": [
+        3,
+        19,
+        127,
+        3,
+        2
+      ],
+      "input_generation": "case() in measure_round.py",
+      "input_sha256": "dcb9fbe39eb0eb09d7879dbd94dc376d8be853b6547ef2d6bfc7432284704cd2",
+      "result": {
+        "device": "NVIDIA GB10",
+        "cuda_sm": 121,
+        "serial_route_ms": 0.02618207969,
+        "best_batched_ms": 0.006072639953,
+        "speedup": 4.31148243,
+        "best_threads": 64,
+        "baseline_launches": 7,
+        "batched_launches": 2,
+        "repeats": 100,
+        "all_variants_correct": true,
+        "native_max_abs_error": 3.028617357e-08,
+        "candidate_ms": [
+          0.006128960289,
+          0.006072639953,
+          0.006115840282,
+          0.00612543989
+        ],
+        "max_abs_error_vs_python_fp64": 2.9787500022138147e-08,
+        "tolerance": 2.9921875e-05,
+        "correct": true,
+        "qualification": "native_cuda_component_microbenchmark_not_model_tps",
+        "weight_bytes_fp32": 28956,
+        "input_bytes_fp32": 1524,
+        "gate_bytes_fp32": 24,
+        "route_bytes_int32": 24,
+        "intermediate_bytes_fp32": 456,
+        "output_bytes_fp32": 228,
+        "device_payload_bytes": 31212
+      }
+    }
+  ],
+  "environment": {
+    "os": "Linux",
+    "host_arch": "aarch64",
+    "native_build": "/usr/local/cuda/bin/nvcc -O3 -std=c++17 -arch=sm_121 native_experts.cu -o native_experts",
+    "native_binary_distribution": "external experiment artifact; excluded from portable CC package",
+    "measurement_mode": "manual operator-serialized component round; predated host-bound gpu handle declaration"
+  }
+}

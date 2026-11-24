@@ -1,0 +1,26 @@
+{
+  "format": "cc-request/2",
+  "id": "request.trim",
+  "desired": {
+    "cc": "2",
+    "id": "text.trim",
+    "version": "1.0.0",
+    "bindings": {},
+    "capabilities": {
+      "trim": {
+        "does": "Remove surrounding ASCII spaces; all-space input returns an empty string.",
+        "takes": {
+          "text": "text"
+        },
+        "gives": {
+          "trimmed": "text"
+        }
+      }
+    }
+  },
+  "open": {
+    "/bindings/default": {
+      "question": "Supply binding and tool.py."
+    }
+  }
+}

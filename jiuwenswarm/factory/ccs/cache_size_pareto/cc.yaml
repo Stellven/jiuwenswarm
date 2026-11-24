@@ -1,0 +1,43 @@
+cc: '2'
+id: analysis.cache_size_pareto
+version: 1.0.0
+materials:
+  method:
+    path: METHOD.md
+  source_map:
+    path: SOURCE-MAP.md
+  helper:
+    path: cache_size_pareto.py
+  tests:
+    path: test_cache_size_pareto.py
+  checksums:
+    path: SHA256SUMS
+    media_type: text/plain
+  analysis:
+    path: ANALYSIS.json
+    media_type: application/json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/run.py']
+capabilities:
+  analyze:
+    does: Compare measured native cache arms per prompt length using median TTFT and decode rate, retaining startup costs and missing controls.
+    takes:
+      evidence: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify:
+    does: Recompute Pareto fronts, sample ranges, startup costs and missing capacity cells from the same verified evidence.
+    takes:
+      evidence: artifact
+      report: json
+    gives:
+      verification: json
+    needs: [python]
+    changes: [process.exec]

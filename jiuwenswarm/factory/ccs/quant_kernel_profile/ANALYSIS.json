@@ -1,0 +1,14 @@
+{
+  "kind": "analysis",
+  "title": "Quantized kernel profile",
+  "report_schema": "quant-kernel-static-inventory/1",
+  "table": {
+    "rows": "rows",
+    "columns": ["quant_type", "role", "tensors", "stored_bytes"]
+  },
+  "wall_profile": {
+    "schema": "quant-kernel-wall-profile/1",
+    "rows": "rows",
+    "columns": ["phase", "target_quant_observed_fraction", "target_quant_cpu_gpu_overlap_ns", "unknown_attribution_union_ns", "unobserved_ns"]
+  }
+}

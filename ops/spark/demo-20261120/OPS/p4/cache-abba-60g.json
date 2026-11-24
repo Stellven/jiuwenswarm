@@ -1,0 +1,44 @@
+{
+  "schema": "spark-p4-admitted-launches/1",
+  "iteration_id": "spark-p4-cache60-attribution",
+  "comparison_target": "same-budget-cc",
+  "subject_arm": "C3",
+  "frozen_at": "2026-11-20T11:16:47.843904+00:00",
+  "bank_budget_mib": 61440,
+  "source_treatment": "mmap-seed",
+  "subject_source_commit": "ad2130b0126ad0c8f7ac33d966f828fc17f4528c",
+  "products_manifest_sha256": "b342f088671a6881e4bf74e94c79353370d3581892be5d3b022de6d80f3c05d5",
+  "expert_sample_detail": true,
+  "prompt_manifest_sha256": "036656eaad8ccea8e5d42da390495e239bd312b0c90d9b80cdd6599039e78608",
+  "regions_sha256": "9ea8774da2921aeccd9c2951f2f0e916480b7a7f2d93bfea369e03ce99351f7c",
+  "launches": [
+    {
+      "arm": "A+",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache60-aplus-pass-1-01",
+      "profile_sha256": "6b0f64b10c34ffac4f9cd19f11174ba2f1587f39e977c478619ada8b67ba95b8"
+    },
+    {
+      "arm": "C3",
+      "launch_pass": 1,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache60-c3-pass-1-01",
+      "profile_sha256": "e31d2d2c9d0c212641da47db825d1b3476a9f70ff1fff06518c69a6813d36388"
+    },
+    {
+      "arm": "C3",
+      "launch_pass": 2,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache60-c3-pass-2-01",
+      "profile_sha256": "e31d2d2c9d0c212641da47db825d1b3476a9f70ff1fff06518c69a6813d36388"
+    },
+    {
+      "arm": "A+",
+      "launch_pass": 2,
+      "view": "llama",
+      "scope": "OPS/runs/p4-cache60-aplus-pass-2-01",
+      "profile_sha256": "6b0f64b10c34ffac4f9cd19f11174ba2f1587f39e977c478619ada8b67ba95b8"
+    }
+  ]
+}

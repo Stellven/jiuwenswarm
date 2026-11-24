@@ -1,0 +1,202 @@
+{
+  "schema": "spark-final-headlines/1",
+  "title": "DeepSeek on Spark GB10",
+  "summary": "The quiet 60 GiB ABBA measures profile seeding against the same stock cache budget. Stock A+30 already beat fair Strata on the observed medians.",
+  "rows": [
+    {
+      "id": "s",
+      "arm": "Strata (S)",
+      "cc": null,
+      "grade": "Screening · reference",
+      "ttft": "12.31 / 26.81 s",
+      "decode": "17.20 / 17.10 tok/s",
+      "summary": "Fair Strata decoded about 17 tokens per second on both prompts.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-a-s-cold-steady/reference/report.md",
+          "sha256": "2e54df9a4075a2d142b3fced011688af1ba4211aafd8ab79c8b0c3ffee7123e6"
+        }
+      ]
+    },
+    {
+      "id": "a",
+      "arm": "Stock CPU experts (A-matched)",
+      "cc": null,
+      "grade": "Screening · reference",
+      "ttft": "4.56 / 12.05 s",
+      "decode": "3.00 / 3.01 tok/s",
+      "summary": "CPU experts returned the first token quickly, then generated about three tokens per second.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-a-s-cold-steady/reference/report.md",
+          "sha256": "2e54df9a4075a2d142b3fced011688af1ba4211aafd8ab79c8b0c3ffee7123e6"
+        }
+      ]
+    },
+    {
+      "id": "aplus",
+      "arm": "Stock native cache (A+30)",
+      "cc": null,
+      "grade": "Screening · reference",
+      "ttft": "6.60 / 14.11 s",
+      "decode": "19.29 / 17.26 tok/s",
+      "summary": "Stock A+30 beat Strata on both observed medians. The 2048-token decode margin was just 0.16 tok/s.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-c3-native-cache/full/report.md",
+          "sha256": "ebfed88d1e8ae878ee58331f5ec47390f142fefdad3af4dceeb566a694770a50"
+        }
+      ]
+    },
+    {
+      "id": "c3-original30",
+      "arm": "C3 seeded cache · 30 GiB",
+      "cc": "C3",
+      "grade": "Verified · quiet ABBA",
+      "ttft": "−1.18 / −2.84 s saved",
+      "decode": "+0.19 / +0.03 tok/s gained",
+      "summary": "The early improvement disappeared. Seeding added latency at 2048 tokens and gave no clear decode gain.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-p4-cache30-attribution/report.md",
+          "sha256": "94f44196e97827cdd1857bb999781806fca4a43967459e676a27dfb04ea78c6e"
+        }
+      ]
+    },
+    {
+      "id": "c3-direct30",
+      "arm": "C3 direct seed · 30 GiB",
+      "cc": "C3",
+      "grade": "Verified · quiet ABBA",
+      "ttft": "−0.02 / +0.20 s saved",
+      "decode": "+0.74 / −0.20 tok/s gained",
+      "summary": "Warm results were close to stock. At 512 tokens, cold-request savings were 15.83 and 12.06 s after ready; including startup saved 11.97 and 1.06 s.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-p4-cache30-direct-seed/report-v2.md",
+          "sha256": "ffc2cf8295ba18924e2f17c17add93148582faaa992405b1dd9b7c4463598d94"
+        }
+      ]
+    },
+    {
+      "id": "c3-60",
+      "arm": "C3 seeded cache · 60 GiB",
+      "cc": "C3",
+      "grade": "Verified · quiet ABBA",
+      "ttft": "+27.08 / +92.07 s saved",
+      "decode": "−0.18 / −0.15 tok/s gained",
+      "summary": "C3 returned the first token sooner in 20/20 matched pairs. The orchestrator disclosed an idle-priority file pull.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-p4-cache60-build-overlap/report-v3.md",
+          "sha256": "eb1b16d39530e161caf83cd9f8279ea6074b3555c25e4403dee7a50ba24a8547"
+        }
+      ]
+    },
+    {
+      "id": "c4",
+      "arm": "C4 demand predictor",
+      "cc": "C4",
+      "grade": "Screening · pooled A+30",
+      "ttft": "−1.91 / −2.78 s saved",
+      "decode": "−0.69 / −0.87 tok/s gained",
+      "summary": "All 96 completed prefetches went unused. Output matched stock; CPU work overlapped this screen.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-pooled30-c4-01/report.md",
+          "sha256": "0a7dc44bc87b73a04607e9c5044b73675590614da3e67e1b37871ac6e2da633a"
+        }
+      ]
+    },
+    {
+      "id": "d",
+      "arm": "D combined build",
+      "cc": null,
+      "grade": "Screening · pooled A+30",
+      "ttft": "−0.67 / −2.95 s saved",
+      "decode": "+0.53 / −0.65 tok/s gained",
+      "summary": "All five gates were requested. Recording and placement ran. The other gates declined the stock settings, and CPU work overlapped this screen.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-pooled30-d-01/report.md",
+          "sha256": "f519b104eba3d24b5ea494df6fd954feaae0f382202a2db33af09ded6f5cdd43"
+        }
+      ]
+    },
+    {
+      "id": "c5",
+      "arm": "C5 mapper + serving settings",
+      "cc": "C5",
+      "grade": "Screening · pooled A+30",
+      "ttft": "+3.18 / +7.40 s saved",
+      "decode": "+6.00 / +2.73 tok/s gained",
+      "summary": "All six long prompts split at 1536/512. Serving flags and greedy output differed from stock at both sizes; the timing covers the whole package.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-pooled30-c5-01/report.md",
+          "sha256": "0ec972dc5452ca7c2af5ae6bda848fa1a1d0257463f0710637494f30dea43413"
+        }
+      ]
+    },
+    {
+      "id": "c5-mapper-matched",
+      "arm": "C5 mapper at matched settings",
+      "cc": "C5",
+      "grade": "Screening · flags-matched A+30",
+      "ttft": "+0.06 / +0.08 s saved",
+      "decode": "−1.96 / −1.91 tok/s gained",
+      "summary": "At matched settings, TTFT differences crossed zero at both sizes and stock decoded faster at every measured position. Greedy output matched only at 512 tokens. CPU work overlapped the matched stock launch.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-pooled30-c5-01/report-v2.md",
+          "sha256": "8167de452268e2983bbf85ceaca16caa94a92cae976c67ba38f81ae1ccd97173"
+        }
+      ]
+    },
+    {
+      "id": "c5-stock-flags",
+      "arm": "Stock A+30 serving settings",
+      "cc": "C5",
+      "grade": "Screening · pooled A+30",
+      "ttft": "+3.04 / +7.63 s saved",
+      "decode": "+7.97 / +4.65 tok/s gained",
+      "summary": "Changing only the stock serving settings reproduced the apparent package gain. Greedy output matched only at 2048 tokens. CPU work overlapped the matched stock launch.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-pooled30-c5-01/report-v2.md",
+          "sha256": "8167de452268e2983bbf85ceaca16caa94a92cae976c67ba38f81ae1ccd97173"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "arm": "C2 layer-27 placement",
+      "cc": "C2",
+      "grade": "Screening · pooled A+30",
+      "ttft": "−0.14 / +1.19 s saved",
+      "decode": "+1.91 / +1.29 tok/s gained",
+      "summary": "The layer-27 package showed faster decode at both sizes. Tensor placement and actual native-bank allocation both changed.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-pooled30-c2-01/report.md",
+          "sha256": "cf3e4a5812654a7cb3a5df47928884a5f4a2ad3b0370a47a57ce01517f96151e"
+        }
+      ]
+    },
+    {
+      "id": "c1",
+      "arm": "C1 event recorder",
+      "cc": "C1",
+      "grade": "Verified · functional",
+      "ttft": "Unmeasured",
+      "decode": "Unmeasured",
+      "summary": "DeepSeek produced all 1,360 expected events. The Granite scorer passed and accounted for one lost event per fixture configuration.",
+      "sources": [
+        {
+          "path": "OPS/iterations/spark-c1-functional/report-v3.md",
+          "sha256": "6e377d2669325498bd1986310ed7eb25158e04560d8a26e3c9fd77cc3b0cef7e"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+cc: '2'
+id: factory.evidence
+version: 1.2.0
+materials:
+  skill:
+    path: SKILL.md
+  verification:
+    path: VERIFICATION-UNITS.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  plan_get:
+    does: Read a replayable work graph, ready frontier, blocked reasons and revision
+      history. Proposed work is a suggestion.
+    takes:
+      rev:
+        kind: json
+        optional: true
+    gives:
+      plan: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  plan_next:
+    does: The planned nodes that can run now, from the scheduler. For each, its objective,
+      inputs resolved to the checks of the nodes that produced them, the outputs it owes with
+      their criteria and verifiers, the capsules that help and what is left of its limits;
+      plus why the other nodes wait.
+    takes: {}
+    gives:
+      next: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  plan_patch:
+    does: Apply a task-scoped work graph patch by CAS, citing a published decision.
+      Does not start jobs or grant authority.
+    takes:
+      patch: json
+      expected_graph_rev: json
+      decision_rev: json
+    gives:
+      plan: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  query:
+    does: Query bounded task-scoped evidence summaries and cursor.
+    takes:
+      kinds:
+        kind: json
+        optional: true
+      text:
+        kind: text
+        optional: true
+      since:
+        kind: json
+        optional: true
+      limit:
+        kind: json
+        optional: true
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 50
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      items: json
+      cursor: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  read:
+    does: Read a task-scoped evidence record, with bounded artifact preview.
+    takes:
+      id: text
+      task_id:
+        kind: text
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  publish:
+    does: Publish an immutable observation/artifact or compare-and-swap decision revision.
+    takes:
+      type: text
+      record: json
+      expected_rev:
+        kind: json
+        optional: true
+    gives:
+      record: json
+    needs:
+    - python
+    changes:
+    - process.exec

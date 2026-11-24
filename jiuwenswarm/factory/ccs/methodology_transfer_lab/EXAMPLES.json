@@ -1,0 +1,178 @@
+{
+  "assess_transfer": {
+    "request": {
+      "source": {
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "revision": "e574a17b062be51b98e239ccd3d3743e3d902333",
+        "license": "MIT"
+      },
+      "target": {
+        "architecture": "aarch64",
+        "backend": "CUDA",
+        "model_family": "dsv41",
+        "shared_cpu_gpu_memory": true
+      },
+      "semantics": "routing_preserving",
+      "requires": {
+        "architecture": [
+          "aarch64"
+        ],
+        "backend": [
+          "CUDA"
+        ]
+      }
+    }
+  },
+  "design_trial": {
+    "request": {
+      "family": "expert_cache",
+      "change": {
+        "eviction_policy": {
+          "before": "LRU",
+          "after": "LFU"
+        }
+      },
+      "objective": "decode",
+      "budget": {
+        "cpu_seconds": 30,
+        "gpu_seconds": 0,
+        "max_trials": 1
+      }
+    }
+  },
+  "analyze_abba": {
+    "request": {
+      "cells": [
+        {
+          "arm": "A",
+          "requests": [
+            {
+              "case_id": "pg4096-tg16-0",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 43147.1,
+              "decode_ms": 2193.9,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-1",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 31842.6,
+              "decode_ms": 1063.5,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-2",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 27314.8,
+              "decode_ms": 1077.5,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            }
+          ]
+        },
+        {
+          "arm": "B",
+          "requests": [
+            {
+              "case_id": "pg4096-tg16-0",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 41057.2,
+              "decode_ms": 2296.9,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-1",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 31739.7,
+              "decode_ms": 1087.8,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-2",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 29198.1,
+              "decode_ms": 1095.3,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            }
+          ]
+        },
+        {
+          "arm": "B",
+          "requests": [
+            {
+              "case_id": "pg4096-tg16-0",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 38912.3,
+              "decode_ms": 2256.5,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-1",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 25872.6,
+              "decode_ms": 1112.0,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-2",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 25823.2,
+              "decode_ms": 1082.9,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            }
+          ]
+        },
+        {
+          "arm": "A",
+          "requests": [
+            {
+              "case_id": "pg4096-tg16-0",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 38892.3,
+              "decode_ms": 2136.5,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-1",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 27914.4,
+              "decode_ms": 1070.4,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            },
+            {
+              "case_id": "pg4096-tg16-2",
+              "prompt_tokens": 4096,
+              "generated_tokens": 16,
+              "prefill_ms": 25973.5,
+              "decode_ms": 1078.4,
+              "input_sha256": "a8d81ce722a18af159187f215ebda3e64bcd37f276f58b2b319b813bda288f36",
+              "output_sha256": "926517409c2739ad6f59307a67eb573b44e0b2bb684b849ede50835a1750ae08"
+            }
+          ]
+        }
+      ],
+      "warmup_requests": 1
+    }
+  }
+}

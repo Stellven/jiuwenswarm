@@ -1,0 +1,168 @@
+{
+  "contract_id": "star-deepseek-v1",
+  "engagement_checks": [],
+  "model": {
+    "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00006.gguf",
+    "sha256": null,
+    "size": 5780704
+  },
+  "pre_freeze_revisions": [],
+  "reference": {
+    "frozen_at": null,
+    "image_id": null,
+    "image_tag": null,
+    "run_ref": null,
+    "stdout_sha256": null
+  },
+  "reference_image": {
+    "image_id": null,
+    "image_tag": null
+  },
+  "scope": "Retarget of Satay star-prefill-v0: greedy continuation parity plus client TTFT at fixed 512/2048 rendered prompt tokens on DGX Spark; not an accuracy benchmark.",
+  "tolerance": "byte-identical stdout",
+  "version": 1,
+  "workload": {
+    "tool": "llama-server",
+    "argv": [
+      "-m",
+      "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00006.gguf",
+      "-lm",
+      "mmap",
+      "--cpu-moe"
+    ],
+    "env": {},
+    "requests": [
+      {
+        "prompt_file": "~/predemo-spark/jiuwenswarm/ops/spark/prompts/512.txt",
+        "rendered_prompt_tokens": 512,
+        "n_predict": 32,
+        "temperature": 0,
+        "seed": 1,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      },
+      {
+        "prompt_file": "~/predemo-spark/jiuwenswarm/ops/spark/prompts/2048.txt",
+        "rendered_prompt_tokens": 2048,
+        "n_predict": 32,
+        "temperature": 0,
+        "seed": 1,
+        "cache_prompt": false,
+        "chat_template_kwargs": {
+          "enable_thinking": false
+        }
+      }
+    ]
+  },
+  "target": "spark-gb10",
+  "external_execution_only": true,
+  "limits": {
+    "memory_bytes": 107374182400,
+    "cpus": 8,
+    "min_start_available_gib": 110,
+    "watchdog_available_gib": 8
+  },
+  "measurement": {
+    "primary": "client_ttft_ms",
+    "warm_repeats": 5,
+    "order": "ABBA",
+    "discard_first_request": true,
+    "cold_load_recorded_separately": true,
+    "gap_closed": "(TTFT_A - TTFT_X) / (TTFT_A - TTFT_S)",
+    "also": [
+      "inverse_ttft_ratio_vs_A",
+      "inverse_ttft_ratio_vs_A_plus",
+      "decode_tokens_per_second",
+      "sampled_peak_memory",
+      "load_seconds"
+    ],
+    "arms": {
+      "S": "Strata fair profile (same weights)",
+      "A": "stock -lm mmap --cpu-moe, other defaults",
+      "A+": "A plus native MoE cache selected by scripts/moe-cache-tune.py",
+      "C1-C5": "one star capsule product change at a time",
+      "D": "all five combined"
+    }
+  },
+  "provenance": {
+    "retargeted_from": "star-prefill-v0",
+    "source_contract_sha256": "a8c954b6724df2eff1bcbae3f9c2f4819e0656e9c2f148c39378011a8e24abfc",
+    "stock_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+    "prompt_manifest": "~/predemo-spark/jiuwenswarm/ops/spark/prompts/MANIFEST.json",
+    "model_shards": [
+      {
+        "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00001-of-00006.gguf",
+        "size": 5780704,
+        "sha256": null
+      },
+      {
+        "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00002-of-00006.gguf",
+        "size": 39535781184,
+        "sha256": null
+      },
+      {
+        "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00003-of-00006.gguf",
+        "size": 39736712000,
+        "sha256": null
+      },
+      {
+        "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00004-of-00006.gguf",
+        "size": 39036908384,
+        "sha256": null
+      },
+      {
+        "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00005-of-00006.gguf",
+        "size": 19923784832,
+        "sha256": null
+      },
+      {
+        "path": "<factory-workspace>/deepseek-v41-upstream-20261119/converted/DeepSeek-V4.1-Flash-1017-GSQ-RCO-IQ2_XXS-00006-of-00006.gguf",
+        "size": 110595290816,
+        "sha256": null
+      }
+    ],
+    "model_digest_status": "Existing receipts are referenced; converted shard hashes are not asserted here.",
+    "conversion_receipt": "<factory-workspace>/deepseek-v41-upstream-20261119/conversion.done"
+  },
+  "ontology": {
+    "pinned_manifest": "~/predemo-spark/inputs/ontology/SHA256SUMS",
+    "files": [
+      "~/predemo-spark/inputs/ontology/20261117 Unified overview prepresentation.mmd",
+      "~/predemo-spark/inputs/ontology/EXAMPLE.md",
+      "~/predemo-spark/inputs/ontology/SHA256SUMS",
+      "~/predemo-spark/inputs/ontology/metadata-alignment.md",
+      "~/predemo-spark/inputs/ontology/system-ontology-design.en.md",
+      "~/predemo-spark/inputs/ontology/term-alignment-for-review.md",
+      "~/predemo-spark/inputs/ontology/unified-dictionary.md"
+    ],
+    "capsule_slices": [
+      {
+        "capsule": "observability.build_runtime_event_recorder",
+        "path": "~/predemo-spark/jiuwenswarm/jiuwenswarm/factory/ccs/observability_event_recorder/ONTOLOGY.yaml"
+      },
+      {
+        "capsule": "placement.build_weight_placement_planner",
+        "path": "~/predemo-spark/jiuwenswarm/jiuwenswarm/factory/ccs/weight_placement_planner/ONTOLOGY.yaml"
+      },
+      {
+        "capsule": "engine.build_expert_weight_cache",
+        "path": "~/predemo-spark/jiuwenswarm/jiuwenswarm/factory/ccs/expert_weight_cache/ONTOLOGY.yaml"
+      },
+      {
+        "capsule": "routing.build_expert_demand_predictor",
+        "path": "~/predemo-spark/jiuwenswarm/jiuwenswarm/factory/ccs/expert_demand_predictor/ONTOLOGY.yaml"
+      },
+      {
+        "capsule": "engine.build_batch_layout_mapper",
+        "path": "~/predemo-spark/jiuwenswarm/jiuwenswarm/factory/ccs/batch_layout_mapper/ONTOLOGY.yaml"
+      }
+    ]
+  },
+  "execution": {
+    "runner": "~/predemo-spark/bin/capped",
+    "owner": "lead-engineer GPU lane after orchestrator go-ahead",
+    "factory_lab": "disabled: this contract is measured externally under bin/capped and imported as native factory evidence"
+  }
+}

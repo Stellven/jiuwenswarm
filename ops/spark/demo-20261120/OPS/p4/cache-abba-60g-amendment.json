@@ -1,0 +1,12 @@
+{
+  "schema": "spark-p4-scope-replacement/1",
+  "frozen_at": "2026-11-20T13:12:10.766871+00:00",
+  "manifest_sha256": "e40a0a7364f78c9ca2558453b1438ffe1279bf7a834f9d3960a1c71e42305695",
+  "replaced_scope": "OPS/runs/p4-cache60-c3-pass-2-01",
+  "replacement_scope": "OPS/runs/p4-cache60-c3-pass-2-retry-01",
+  "reason": "Cap monitor read ENODEV as the cgroup vanished at shutdown. The process return code was not retained. Exclude the whole scope.",
+  "monitor_journal_sha256": "c5b658b27dd80d5400a7742148952e22dfb8de9d07aaf69b5c015e4294b5ce5f",
+  "scope_journal_sha256": "c445f3b2ffde0306e2ecfee79d7da8bbb0bc2c793d071e115d4f72a9d8f02a8d",
+  "excluded_window_sha256": "445b0a283423b8fa7a80dc48192f282cdd17bb6f58633a96b7c74aab28494e7b",
+  "excluded_memory_sha256": "c1ebc488e719c2d57fa72c9405828b05c5e1f50d6a4e4f688b2f9c253618a760"
+}

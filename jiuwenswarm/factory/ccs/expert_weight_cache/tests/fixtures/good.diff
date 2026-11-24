@@ -1,0 +1,16 @@
+diff --git a/src/llama-expert-weight-cache.cpp b/src/llama-expert-weight-cache.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-expert-weight-cache.cpp
+@@ -0,0 +1,11 @@
++// Synthetic signature fixture.
++#include <cstdlib>
++#include <cstring>
++void LLAMA_LOG_INFO(const char *);
++void fixture_signatures() {
++    const char * gate = std::getenv("LLAMA_EXPERT_CACHE");
++    const bool enabled = gate != nullptr && std::strcmp(gate, "1") == 0;
++    LLAMA_LOG_INFO("expert_weight_cache: active");
++    LLAMA_LOG_INFO("expert_weight_cache: inactive (fixture)");
++    LLAMA_LOG_INFO("expert_weight_cache: stats");
++}

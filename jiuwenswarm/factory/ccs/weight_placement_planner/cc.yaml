@@ -1,0 +1,95 @@
+cc: '2'
+id: placement.build_weight_placement_planner
+version: 1.2.2
+materials:
+  tier_placement:
+    path: TIER-PLACEMENT.md
+  profile_placement:
+    path: PROFILE-PLACEMENT.md
+  spark_profile:
+    path: SPARK-PROFILE.md
+  guide:
+    path: GUIDE.md
+  method:
+    path: METHOD.md
+  ontology:
+    path: ONTOLOGY.yaml
+  source_map:
+    path: SOURCE-MAP.md
+  weight_placement_planner:
+    path: components/weight_placement_planner/component.yaml
+  sample_gate:
+    path: samples/gate.cpp
+  sample_markers:
+    path: samples/markers.cpp
+  sample_json:
+    path: samples/plan_json.cpp
+  sample_budget:
+    path: samples/budget.cpp
+  helpers:
+    path: helpers/README.md
+  helper_markers:
+    path: helpers/check_markers.py
+  helper_parity:
+    path: helpers/parity.py
+  helper_plan:
+    path: helpers/validate_plan.py
+  task:
+    path: tasks/weight_placement_planner.json
+  validation:
+    path: VALIDATION.md
+  gate_verifier:
+    path: helpers/verify_gate.py
+  churn_verifier:
+    path: helpers/verify_churn.py
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  verify:
+    does: Statically check a proposed placement planner diff or the checkout's uncommitted
+      changes against HEAD. The done flag covers the required static checks.
+    takes:
+      checkout:
+        kind: text
+        description: Absolute path to the checkout root.
+      diff_path:
+        kind: text
+        optional: true
+        description: Absolute patch path. Omit to inspect staged, unstaged and untracked
+          non-ignored changes against HEAD.
+      env_gate:
+        kind: text
+        optional: true
+        description: Defaults to LLAMA_PLACEMENT_PLAN.
+      markers:
+        kind: json
+        optional: true
+        description: Extra INFO marker substrings to check in addition to the three
+          required markers.
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            minLength: 1
+    gives:
+      checks:
+        kind: json
+        schema:
+          type: array
+      done:
+        kind: json
+        schema:
+          type: boolean
+    needs:
+    - python
+    changes:
+    - workspace.read
+    - process.exec

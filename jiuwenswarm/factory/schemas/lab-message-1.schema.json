@@ -1,0 +1,483 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory.lab-message/1",
+  "title": "Lab message, format 1",
+  "type": "object",
+  "description": "An append-only mailbox message. Thread ordering, state transitions and matching answer IDs are checked by the mailbox.",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "request_id",
+    "id",
+    "seq",
+    "sender",
+    "type",
+    "at",
+    "body",
+    "files"
+  ],
+  "properties": {
+    "schema": {
+      "const": "factory.lab-message/1",
+      "description": "Mailbox message protocol version."
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Identity of the mailbox request.",
+      "pattern": "^labreq-[0-9a-f]{16,64}$"
+    },
+    "id": {
+      "type": "string",
+      "description": "Sender and six-digit sender-local sequence.",
+      "pattern": "^(factory|lab)-[0-9]{6}$"
+    },
+    "seq": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Positive sequence number allocated separately for each sender."
+    },
+    "sender": {
+      "enum": [
+        "factory",
+        "lab"
+      ],
+      "description": "Side that posted the message."
+    },
+    "type": {
+      "enum": [
+        "request",
+        "question",
+        "cancel",
+        "accepted",
+        "rejected",
+        "progress",
+        "answer",
+        "report",
+        "failed",
+        "cancelled"
+      ],
+      "description": "Message kind permitted for this sender."
+    },
+    "at": {
+      "type": "string",
+      "description": "UTC posting timestamp in ISO 8601 format.",
+      "format": "date-time"
+    },
+    "body": {
+      "type": "object",
+      "description": "Message content selected by type below."
+    },
+    "files": {
+      "type": "array",
+      "description": "Attachments uploaded before posting the message.",
+      "items": {
+        "$ref": "#/$defs/file",
+        "description": "One attachment reference."
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "description": "SHA-256 digest of the exact bytes.",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "lab": {
+      "type": "object",
+      "description": "Identity posted by the accepting or rejecting lab agent.",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Lab agent name."
+        },
+        "kind": {
+          "type": "string",
+          "description": "Lab adapter kind, such as operator, queue or command."
+        },
+        "version": {
+          "type": "string",
+          "description": "Lab agent implementation version."
+        }
+      }
+    },
+    "file": {
+      "type": "object",
+      "description": "Attachment reference checked by the mailbox.",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "size"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Safe attachment file name.",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256",
+          "description": "Digest of the attachment bytes."
+        },
+        "size": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Attachment size in bytes."
+        },
+        "media_type": {
+          "type": "string",
+          "description": "Media type of the attachment."
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "type": {
+          "const": "request"
+        },
+        "sender": {
+          "const": "factory"
+        },
+        "id": {
+          "pattern": "^factory-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Factory request announcing the sealed package.",
+          "additionalProperties": false,
+          "required": [
+            "package_id",
+            "lab_task_id",
+            "purpose",
+            "lab_profile"
+          ],
+          "properties": {
+            "package_id": {
+              "type": "string",
+              "description": "Identity derived from the canonical sealed package.",
+              "pattern": "^labpkg-[0-9a-f]{32}$"
+            },
+            "lab_task_id": {
+              "type": "string",
+              "description": "Lab task identifier."
+            },
+            "purpose": {
+              "type": "string",
+              "description": "Decision the lab task supports."
+            },
+            "lab_profile": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Requested lab profile, or null when unspecified."
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "question"
+        },
+        "sender": {
+          "const": "factory"
+        },
+        "id": {
+          "pattern": "^factory-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Factory question; questions do not change request state.",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "text": {
+              "type": "string",
+              "description": "Question text after trimming.",
+              "minLength": 1
+            },
+            "wants": {
+              "type": "object",
+              "description": "Optional named report material requested by the factory.",
+              "additionalProperties": false,
+              "required": [],
+              "properties": {
+                "files": {
+                  "type": "array",
+                  "description": "Requested files by name.",
+                  "items": {
+                    "type": "string",
+                    "description": "Requested name."
+                  }
+                },
+                "metrics": {
+                  "type": "array",
+                  "description": "Requested metrics by name.",
+                  "items": {
+                    "type": "string",
+                    "description": "Requested name."
+                  }
+                },
+                "tests": {
+                  "type": "array",
+                  "description": "Requested tests by name.",
+                  "items": {
+                    "type": "string",
+                    "description": "Requested name."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "cancel"
+        },
+        "sender": {
+          "const": "factory"
+        },
+        "id": {
+          "pattern": "^factory-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Factory request to stop lab work.",
+          "additionalProperties": false,
+          "required": [
+            "reason"
+          ],
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Reason for cancellation."
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "accepted"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab acceptance of the request.",
+          "additionalProperties": false,
+          "required": [
+            "lab"
+          ],
+          "properties": {
+            "lab": {
+              "$ref": "#/$defs/lab",
+              "description": "Accepting lab identity."
+            },
+            "note": {
+              "type": "string",
+              "description": "Optional acceptance note."
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "rejected"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab refusal of the request.",
+          "additionalProperties": false,
+          "required": [
+            "lab",
+            "reason"
+          ],
+          "properties": {
+            "lab": {
+              "$ref": "#/$defs/lab",
+              "description": "Rejecting lab identity."
+            },
+            "reason": {
+              "type": "string",
+              "description": "Reason for rejection."
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "progress"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab progress update while accepted or running.",
+          "additionalProperties": false,
+          "required": [
+            "note"
+          ],
+          "properties": {
+            "note": {
+              "type": "string",
+              "description": "Progress description."
+            },
+            "data": {
+              "description": "Optional JSON progress data supplied by the lab."
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "answer"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab answer naming a factory question in this request.",
+          "additionalProperties": false,
+          "required": [
+            "question",
+            "text"
+          ],
+          "properties": {
+            "question": {
+              "type": "string",
+              "description": "ID of the question being answered.",
+              "pattern": "^factory-[0-9]{6}$"
+            },
+            "text": {
+              "type": "string",
+              "description": "Lab answer text."
+            },
+            "data": {
+              "description": "Optional JSON answer data, including null."
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "report"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab report conforming to factory.lab-report/1 (lab-report-1.schema.json). Validate that document separately."
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "failed"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab failure ending the request.",
+          "additionalProperties": false,
+          "required": [
+            "reason"
+          ],
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Failure reason."
+            },
+            "problems": {
+              "type": "array",
+              "description": "Optional individual failure diagnostics.",
+              "items": {
+                "type": "string",
+                "description": "Failure diagnostic."
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "cancelled"
+        },
+        "sender": {
+          "const": "lab"
+        },
+        "id": {
+          "pattern": "^lab-[0-9]{6}$"
+        },
+        "body": {
+          "type": "object",
+          "description": "Lab acknowledgement that work was cancelled.",
+          "additionalProperties": false,
+          "required": [
+            "note"
+          ],
+          "properties": {
+            "note": {
+              "type": "string",
+              "description": "Cancellation acknowledgement."
+            }
+          }
+        }
+      }
+    }
+  ]
+}

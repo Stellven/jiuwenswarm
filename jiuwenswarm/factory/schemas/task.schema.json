@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Operator factory task",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "objective",
+    "constraints",
+    "allowed_effects",
+    "target",
+    "budget",
+    "contract_id",
+    "initial_run_config",
+    "component_cc",
+    "source"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "objective": {
+      "type": "string",
+      "minLength": 1
+    },
+    "constraints": {
+      "type": [
+        "object",
+        "array"
+      ]
+    },
+    "allowed_effects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "target": {
+      "oneOf": [
+        {
+          "enum": [
+            "jetson-orin",
+            "spark-gb10"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "profile"
+          ],
+          "properties": {
+            "profile": {
+              "enum": [
+                "jetson-orin",
+                "spark-gb10"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "budget": {
+      "type": "object",
+      "required": [
+        "max_turns",
+        "wall_clock_s"
+      ],
+      "properties": {
+        "max_turns": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "wall_clock_s": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        }
+      }
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "initial_run_config": {
+      "type": "object"
+    },
+    "component_cc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "subpath",
+        "pre_integration_commit"
+      ],
+      "properties": {
+        "subpath": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Relative owned checkout path under FACTORY_HOME/agent-workspace; no .. components."
+        },
+        "pre_integration_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "branch": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_-]*$"
+        }
+      }
+    },
+    "operator_labels": {
+      "type": "object",
+      "description": "Passed verbatim with the initial objective. May label controlled-invalid operator settings."
+    },
+    "resources": {
+      "type": "object"
+    },
+    "capability_cc": {
+      "type": "string",
+      "minLength": 1
+    },
+    "plan": {
+      "description": "A planner's plan (factory.plan/1): the task graph nodes, each naming a node contract of the task contract, with their order. Inline, or a file name next to the task file. Omit it to let FACTORY_PLANNER or the stand-in planner order the node contracts (see jiuwenswarm/factory/planner.py).",
+      "oneOf": [
+        {
+          "type": "string",
+          "minLength": 1
+        },
+        {
+          "type": "object",
+          "required": [
+            "format",
+            "nodes"
+          ],
+          "properties": {
+            "format": {
+              "const": "factory.plan/1"
+            },
+            "planner": {
+              "type": "string"
+            },
+            "nodes": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "node_id"
+                ],
+                "properties": {
+                  "node_id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                  },
+                  "node_contract": {
+                    "type": "string"
+                  },
+                  "depends_on": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

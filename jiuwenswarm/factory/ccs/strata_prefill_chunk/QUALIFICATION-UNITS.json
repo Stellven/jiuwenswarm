@@ -1,0 +1,25 @@
+{
+  "format": "factory-verification-units/1",
+  "implementation_modules": [
+    "jiuwenswarm.factory.strata_prefill",
+    "jiuwenswarm.factory.strata_components"
+  ],
+  "units": [
+    {
+      "id": "profile-single-change-v2",
+      "capabilities": [
+        "apply"
+      ],
+      "checker": "strata.prefill_profile.v2",
+      "parameters": {
+        "baseline_chunk": 256,
+        "candidate_chunks": [
+          512,
+          1024
+        ],
+        "allow_fixed_budget": true
+      },
+      "claim": "Only explicit prefill chunk changes from 256 to a declared 512 or 1024, preserving full-six/no-drafting/static profile and optional fixed expert budget. Configuration only; runtime support, engagement, correctness and speed remain unverified."
+    }
+  ]
+}

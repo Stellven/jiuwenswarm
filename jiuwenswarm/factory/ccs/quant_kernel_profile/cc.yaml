@@ -1,0 +1,67 @@
+cc: '2'
+id: analysis.quant_kernel_profile
+version: 1.0.0
+materials:
+  method:
+    path: METHOD.md
+  source_map:
+    path: SOURCE-MAP.md
+  pinned_sources:
+    path: SOURCES.json
+    media_type: application/json
+  helper:
+    path: quant_kernel_profile.py
+  tests:
+    path: test_quant_kernel_profile.py
+  checksums:
+    path: SHA256SUMS
+    media_type: text/plain
+  analysis:
+    path: ANALYSIS.json
+    media_type: application/json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  inventory:
+    does: Verify matched model pack index identity and report pinned static
+      IQ2_XXS and IQ4_NL source eligibility and weight storage roles.
+    takes:
+      pack_index: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify_inventory:
+    does: Recompute the exact static source and tensor inventory.
+    takes:
+      pack_index: artifact
+      report: json
+    gives:
+      verified: json
+    needs: [python]
+    changes: [process.exec]
+  profile:
+    does: Summarize retained common-clock CPU and GPU trace spans per request phase,
+      compute type, device, and operation with wall-time overlap accounting.
+    takes:
+      trace: artifact
+    gives:
+      report: json
+    needs: [python]
+    changes: [process.exec]
+  verify_profile:
+    does: Recompute the wall-time span unions and provenance against the normalized trace.
+    takes:
+      trace: artifact
+      report: json
+    gives:
+      verified: json
+    needs: [python]
+    changes: [process.exec]

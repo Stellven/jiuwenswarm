@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""run_op: record intent -> run command -> record outcome. Append-only JSONL per agent, flock-protected.
+Usage: run_op --agent A [--parent P] [--task T] [--desc D] [--campaign C] -- cmd args...
+Observes: argv, cwd, UTC times, exit code/signal, stdout/stderr (saved+sha256), process-group id, allowlisted env.
+Does NOT observe: grandchildren's own argv (only pgid membership at start/end), network, files written by the command."""
+import argparse, fcntl, hashlib, json, os, signal, subprocess, sys, time, uuid, datetime as dt
+ROOT = os.path.expanduser(os.environ.get("CAMPAIGN_ROOT") or os.environ.get("FACTORY_LAB_STATE") or "~/.jiuwenswarm-factory/lab")
+ENV_ALLOW = ["CAMPAIGN_ID", "CUDA_VISIBLE_DEVICES", "PATH", "LANG"]
+def evdir(root):
+    """D021: per-host evidence dir. Host id from FACTORY_HOST_ID or ~/.config/jiuwenswarm-factory/host_id; legacy x86 stream stays at evidence/."""
+    h = os.environ.get("FACTORY_HOST_ID", "")
+    for name in () if h else ("~/.config/jiuwenswarm-factory/host_id", "~/.config/siminfeng/host_id"):
+        try: h = open(os.path.expanduser(name)).read().strip(); break
+        except OSError: pass
+    h = h or "x86-main"
+    d = os.path.join(root, "evidence") if h in ("", "x86-main") else os.path.join(root, "evidence", h)
+    os.makedirs(d, exist_ok=True); return d, h
+def now(): return dt.datetime.now(dt.timezone.utc).isoformat()
+def emit(agent, rec):
+    d, host = evdir(ROOT); rec.setdefault("host_id", host)
+    path = os.path.join(d, f"{agent}.jsonl")
+    line = (json.dumps(rec, sort_keys=True) + "\n").encode()
+    fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX); os.write(fd, line); os.fsync(fd)
+    finally:
+        fcntl.flock(fd, fcntl.LOCK_UN); os.close(fd)
+def survivors(sid):
+    """processes still alive in the command's session (descendants that outlived the main process)"""
+    out = []
+    for d in os.listdir("/proc"):
+        if not d.isdigit(): continue
+        try:
+            st = open(f"/proc/{d}/stat").read().rsplit(")", 1)[1].split()
+            if int(st[3]) == sid and st[0] != "Z":   # session id == sid, not zombie
+                out.append(dict(pid=int(d), cmd=open(f"/proc/{d}/cmdline").read().replace("\0", " ")[:200]))
+        except Exception: pass
+    return out
+def sha(p):
+    h = hashlib.sha256()
+    with open(p, "rb") as f:
+        for b in iter(lambda: f.read(1 << 20), b""): h.update(b)
+    return h.hexdigest()
+def main():
+    ap = argparse.ArgumentParser(); ap.add_argument("--agent", required=True)
+    ap.add_argument("--parent"); ap.add_argument("--task"); ap.add_argument("--desc", default="")
+    ap.add_argument("--campaign", default=os.environ.get("CAMPAIGN_ID", "c0")); ap.add_argument("--timeout", type=float)
+    ap.add_argument("cmd", nargs=argparse.REMAINDER); a = ap.parse_args()
+    cmd = a.cmd[1:] if a.cmd and a.cmd[0] == "--" else a.cmd
+    if not cmd: sys.exit("no command")
+    op = "op-" + uuid.uuid4().hex[:12]
+    outdir = os.path.join(ROOT, "artifacts", op); os.makedirs(outdir)
+    base = dict(campaign=a.campaign, agent=a.agent, task=a.task, parent=a.parent, op=op)
+    emit(a.agent, dict(base, kind="intent", ts=now(), argv=cmd, cwd=os.getcwd(), desc=a.desc,
+         env={k: os.environ.get(k, "") for k in ENV_ALLOW if k != "PATH"}, wrapper_pid=os.getpid()))
+    t0 = time.monotonic(); outp, errp = os.path.join(outdir, "stdout"), os.path.join(outdir, "stderr")
+    status, code, sig, pgid = "unknown", None, None, None
+    try:
+        with open(outp, "wb") as o, open(errp, "wb") as e:
+            p = subprocess.Popen(cmd, stdout=o, stderr=e, start_new_session=True); pgid = p.pid
+            emit(a.agent, dict(base, kind="started", ts=now(), pid=p.pid, pgid=pgid, sid=pgid))
+            try: rc = p.wait(timeout=a.timeout)
+            except subprocess.TimeoutExpired:
+                os.killpg(pgid, signal.SIGKILL); p.wait(); rc = None; status = "timeout"
+        if rc is not None:
+            if rc < 0: status, sig = "signaled", -rc
+            else: status, code = ("ok" if rc == 0 else "failed"), rc
+    except FileNotFoundError as ex: status = "spawn_error"; open(errp, "a").write(str(ex))
+    surv = survivors(pgid) if pgid else []
+    emit(a.agent, dict(base, kind="outcome", ts=now(), status=status, survivors=surv, exit_code=code, signal=sig,
+         elapsed_s=round(time.monotonic() - t0, 3), pgid=pgid,
+         stdout=dict(path=outp, sha256=sha(outp), bytes=os.path.getsize(outp)),
+         stderr=dict(path=errp, sha256=sha(errp), bytes=os.path.getsize(errp))))
+    sys.stdout.flush(); sys.stdout.buffer.write(open(outp, 'rb').read()); sys.stdout.buffer.flush()  # D021: raw bytes, never decode
+    sys.stderr.buffer.write(open(errp, 'rb').read())
+    sys.exit(code if code is not None else 1)
+main()

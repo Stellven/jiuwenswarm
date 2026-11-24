@@ -1,0 +1,9 @@
+{
+  "format": "factory-component/1",
+  "id": "native-throughput-settings",
+  "layer": "inference",
+  "implementation": "jiuwenswarm.factory.throughput_workbench.apply",
+  "allowed_change": "One finite CPU, Engram, lookahead, drafting or chunk setting; preserve the static full-six envelope.",
+  "runtime_engagement": "Per-setting native evidence is mandatory; profile identity alone is not engagement.",
+  "qualification_scope": "Exact profile pair only; no runtime certification or promotion."
+}

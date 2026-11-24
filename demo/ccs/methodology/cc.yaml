@@ -1,0 +1,12 @@
+cc: '2'
+id: demo.methodology
+version: 1.0.0
+materials:
+  method:
+    path: METHOD.md
+    media_type: text/markdown
+    description: Agent workflow for evaluating the synthetic served compute demo.
+  limits:
+    path: LIMITS.md
+    media_type: text/markdown
+    description: Interpretation and evidence limits.

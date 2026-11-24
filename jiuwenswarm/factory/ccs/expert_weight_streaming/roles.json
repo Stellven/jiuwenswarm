@@ -1,0 +1,21 @@
+{
+  "format": "factory-roles/1",
+  "capabilities": {
+    "ranges": "tool",
+    "integration": "tool"
+  },
+  "materials": {
+    "method": "method",
+    "integration": "skill",
+    "component": "component",
+    "sources": "reference",
+    "runtime": "reference",
+    "roles": "reference",
+    "fixture": "reference",
+    "streaming_source": "reference",
+    "streaming_api": "reference",
+    "integration_patch": "reference",
+    "cpu_fixture": "reference",
+    "cpu_runner": "reference"
+  }
+}

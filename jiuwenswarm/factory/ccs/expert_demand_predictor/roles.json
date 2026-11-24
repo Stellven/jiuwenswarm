@@ -1,0 +1,29 @@
+{
+  "capabilities": {
+    "verify": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "check_markers": "reference",
+    "churn_verifier": "reference",
+    "expert_demand_prediction": "component",
+    "gate_verifier": "reference",
+    "guide": "skill",
+    "helpers": "reference",
+    "method": "method",
+    "native_bank_prefetch": "method",
+    "decode_bank_prefetch": "method",
+    "ontology": "reference",
+    "parity_template": "reference",
+    "replay_score": "reference",
+    "sample_env_gate": "reference",
+    "sample_frequency_rank": "reference",
+    "sample_info_markers": "reference",
+    "sample_outcome_counts": "reference",
+    "source_map": "reference",
+    "spark_profile": "method",
+    "synthetic_trace": "reference",
+    "task": "reference",
+    "validation": "reference"
+  }
+}

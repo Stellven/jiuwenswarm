@@ -1,0 +1,11 @@
+cc: '2'
+id: factory.components.mmap_advice
+version: 1.1.1
+materials:
+  component:
+    path: component.yaml
+  patch_01:
+    path: 01-mmap-advice-random.patch
+  roles:
+    path: roles.json
+    media_type: application/json

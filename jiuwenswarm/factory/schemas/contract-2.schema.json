@@ -1,0 +1,234 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "factory.contract/2",
+  "title": "Factory task contract, format 2",
+  "description": "What is tested, on what, how it is measured and when a result counts. A contract names files by logical name and digest; where they lie on a machine is the lab's business. Unknown data goes under extensions.<namespace>.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "contract_id", "version", "title", "purpose", "scope", "target", "subject", "workload", "arms", "measurement", "correctness", "execution"],
+  "properties": {
+    "schema": {"const": "factory.contract/2"},
+    "contract_id": {"$ref": "#/$defs/id"},
+    "version": {"type": "integer", "minimum": 1},
+    "title": {"$ref": "#/$defs/text"},
+    "purpose": {"$ref": "#/$defs/text", "description": "The question the contract answers, in one or two sentences."},
+    "scope": {
+      "type": "object", "additionalProperties": false, "required": ["covers", "excludes"],
+      "properties": {
+        "covers": {"type": "array", "items": {"$ref": "#/$defs/text"}, "minItems": 1},
+        "excludes": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+      }
+    },
+    "target": {
+      "type": "object", "additionalProperties": false, "required": ["profile"],
+      "properties": {
+        "profile": {"$ref": "#/$defs/id", "description": "Machine profile, for example spark-gb10."},
+        "requires": {"type": "object", "additionalProperties": {"type": ["string", "number", "boolean"]}}
+      }
+    },
+    "subject": {
+      "type": "object", "additionalProperties": false, "required": ["engine"],
+      "properties": {
+        "engine": {
+          "type": "object", "additionalProperties": false, "required": ["name", "revision"],
+          "properties": {
+            "name": {"$ref": "#/$defs/text"},
+            "source": {"$ref": "#/$defs/text"},
+            "revision": {"$ref": "#/$defs/text"}
+          }
+        },
+        "model": {
+          "type": "object", "additionalProperties": false, "required": ["name", "files"],
+          "properties": {
+            "name": {"$ref": "#/$defs/text"},
+            "files": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/file"}},
+            "digest_status": {"$ref": "#/$defs/text"}
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/id"},
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false, "required": ["media_type", "sha256", "size"],
+        "properties": {
+          "media_type": {"$ref": "#/$defs/text"},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "size": {"type": "integer", "minimum": 0},
+          "description": {"$ref": "#/$defs/text"},
+          "repo_path": {"type": "string", "pattern": "^[A-Za-z0-9._-][A-Za-z0-9._/-]*$", "description": "Path in this repository, when the file is kept here."}
+        }
+      }
+    },
+    "workload": {
+      "type": "object", "additionalProperties": false, "required": ["tool", "argv", "requests"],
+      "properties": {
+        "tool": {"$ref": "#/$defs/text"},
+        "argv": {"type": "array", "items": {"type": "string"}},
+        "env": {"type": "object", "additionalProperties": {"type": "string"}},
+        "requests": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "params"],
+            "properties": {
+              "id": {"$ref": "#/$defs/id"},
+              "input": {"$ref": "#/$defs/id"},
+              "params": {"type": "object", "description": "Tool parameters for the request, as the tool takes them."},
+              "expect": {"type": "object", "description": "Facts the lab must confirm, such as the rendered prompt token count."}
+            }
+          }
+        }
+      }
+    },
+    "arms": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["id", "role", "summary"],
+        "properties": {
+          "id": {"$ref": "#/$defs/arm"},
+          "role": {"enum": ["baseline", "reference", "yardstick", "candidate", "combined"]},
+          "summary": {"$ref": "#/$defs/text"},
+          "from": {"$ref": "#/$defs/arm", "description": "The arm this one differs from."},
+          "deviations": {"type": "array", "items": {"$ref": "#/$defs/text"}, "description": "Every way this arm differs from its from-arm or from stock defaults."}
+        }
+      }
+    },
+    "measurement": {
+      "type": "object", "additionalProperties": false, "required": ["primary", "metrics", "protocol"],
+      "properties": {
+        "primary": {"$ref": "#/$defs/id"},
+        "metrics": {
+          "type": "object", "minProperties": 1,
+          "propertyNames": {"$ref": "#/$defs/id"},
+          "additionalProperties": {
+            "type": "object", "additionalProperties": false, "required": ["unit", "better", "how"],
+            "properties": {
+              "unit": {"$ref": "#/$defs/text"},
+              "better": {"enum": ["lower", "higher", "none"]},
+              "how": {"$ref": "#/$defs/text", "description": "How the value is taken, in plain words."}
+            }
+          }
+        },
+        "protocol": {
+          "type": "object", "additionalProperties": false, "required": ["repeats", "order"],
+          "properties": {
+            "repeats": {"type": "integer", "minimum": 1},
+            "order": {"enum": ["ABBA", "AB", "sequential", "randomized"]},
+            "discard_first_request": {"type": "boolean"},
+            "cold_load": {"enum": ["separate", "included", "not_recorded"]},
+            "quiet": {
+              "type": "object", "additionalProperties": false,
+              "properties": {"max_load": {"type": "number"}, "no_builds": {"type": "boolean"}}
+            },
+            "confidence": {
+              "type": "object", "additionalProperties": false, "required": ["level", "method"],
+              "properties": {"level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1}, "method": {"$ref": "#/$defs/text"}}
+            },
+            "notes": {"$ref": "#/$defs/text"}
+          }
+        },
+        "derived": {
+          "type": "object",
+          "propertyNames": {"$ref": "#/$defs/id"},
+          "additionalProperties": {
+            "type": "object", "additionalProperties": false, "required": ["formula", "uses"],
+            "properties": {
+              "formula": {"$ref": "#/$defs/text"},
+              "uses": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/arm"}, "description": "Metric ids and arm ids the formula reads."},
+              "unit": {"$ref": "#/$defs/text"}
+            }
+          }
+        }
+      }
+    },
+    "correctness": {
+      "type": "object", "additionalProperties": false, "required": ["equivalence", "checks"],
+      "properties": {
+        "equivalence": {"enum": ["byte_identical_output", "bit_exact_tokens", "numeric", "distribution_exact", "approximate", "not_required"]},
+        "reference": {
+          "type": "object", "additionalProperties": false, "required": ["arm"],
+          "properties": {
+            "arm": {"$ref": "#/$defs/arm"},
+            "output_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+            "frozen_at": {"type": ["string", "null"]},
+            "run_ref": {"type": ["string", "null"]}
+          }
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "does", "applies_to"],
+            "properties": {
+              "id": {"$ref": "#/$defs/id"},
+              "does": {"$ref": "#/$defs/text"},
+              "applies_to": {"type": "array", "minItems": 1, "items": {"type": "string"}, "description": "Arm ids or arm roles."},
+              "required": {"type": "boolean", "default": true}
+            }
+          }
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object", "additionalProperties": false,
+      "properties": {"rules": {"type": "array", "items": {"$ref": "#/$defs/text"}}}
+    },
+    "limits": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "memory_bytes": {"type": "integer", "minimum": 1},
+        "cpus": {"type": "integer", "minimum": 1},
+        "start_available_bytes": {"type": "integer", "minimum": 0},
+        "watchdog_available_bytes": {"type": "integer", "minimum": 0},
+        "wall_clock_s": {"type": "integer", "minimum": 1},
+        "gpu_launches": {"type": "integer", "minimum": 0}
+      }
+    },
+    "execution": {
+      "type": "object", "additionalProperties": false, "required": ["by"],
+      "properties": {
+        "by": {"enum": ["lab_agent", "factory_lab"], "description": "lab_agent: through the lab manager. factory_lab: the factory's own queue may also run it."},
+        "lab_profile": {"$ref": "#/$defs/id"},
+        "notes": {"$ref": "#/$defs/text"}
+      }
+    },
+    "revisions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["at", "by", "change"],
+        "properties": {"at": {"type": "string"}, "by": {"type": "string"}, "change": {"$ref": "#/$defs/text"}, "evidence": {"type": "string"}}
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "derived_from": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["contract_id"],
+            "properties": {"contract_id": {"$ref": "#/$defs/id"}, "sha256": {"$ref": "#/$defs/sha256"}, "how": {"$ref": "#/$defs/text"}}
+          }
+        },
+        "notes": {"type": "array", "items": {"$ref": "#/$defs/text"}}
+      }
+    },
+    "extensions": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z][a-z0-9_-]*(\\.[a-z0-9_-]+)*$"}
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"},
+    "arm": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9+._-]{0,63}$"},
+    "text": {"type": "string", "minLength": 1},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "file": {
+      "type": "object", "additionalProperties": false, "required": ["name", "size"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[^/\\\\]+$"},
+        "size": {"type": "integer", "minimum": 0},
+        "sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+      }
+    }
+  }
+}

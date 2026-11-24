@@ -1,0 +1,426 @@
+.factory-measurement-panel {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.factory-measurement-heading,
+.factory-measurement-summary > header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 20px;
+}
+
+.factory-measurement-heading h2 {
+  margin: 3px 0 5px;
+  font-size: 1.4rem;
+  letter-spacing: -0.025em;
+}
+
+.factory-measurement-heading p,
+.factory-measurement-summary p,
+.factory-measurement-dialog header p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.82rem;
+}
+
+.factory-measurement-controls {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.factory-measurement-controls label {
+  display: grid;
+  gap: 5px;
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.factory-measurement-controls .factory-measurement-phases {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 9px;
+  background: var(--color-bg-secondary);
+}
+
+.factory-measurement-controls .factory-measurement-phases button {
+  color: var(--color-text-secondary);
+  border-color: transparent;
+  background: transparent;
+  padding: 6px 9px;
+  font-size: 0.78rem;
+}
+
+.factory-measurement-controls .factory-measurement-phases button[aria-pressed='true'] {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-default);
+  background: var(--color-bg-primary);
+  font-weight: 650;
+}
+
+.factory-measurement-controls select,
+.factory-measurement-panel .factory-measurement-chart-select {
+  padding: 6px 9px;
+  font-size: 0.78rem;
+}
+
+.factory-measurement-phase-note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 9px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.8rem;
+}
+
+.factory-measurement-phase-note > span,
+.factory-measurement-integrity {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-weight: 650;
+  font-size: 0.75rem;
+}
+
+.factory-measurement-phase-note[data-variant='reconnaissance'] > span {
+  color: var(--color-feedback-warning);
+}
+
+.factory-measurement-panel .factory-measurement-warning {
+  justify-self: start;
+  color: var(--color-text-danger);
+  border-color: var(--color-border-danger);
+  text-align: start;
+}
+
+.factory-measurement-empty,
+.factory-measurement-summary {
+  padding: 16px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  color: var(--color-text-secondary);
+}
+
+.factory-measurement-focus {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.factory-measurement-focus small {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-secondary);
+}
+
+.factory-measurement-focus code {
+  overflow-wrap: anywhere;
+}
+
+.factory-measurement-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.factory-measurement-charts > div {
+  position: relative;
+}
+
+.factory-measurement-panel .factory-measurement-chart-select {
+  position: absolute;
+  top: 11px;
+  right: 11px;
+  max-width: 42%;
+}
+
+.factory-measurement-chart {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+}
+
+.factory-measurement-chart figcaption {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 9px;
+  min-height: 35px;
+}
+
+.factory-measurement-chart figcaption span {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+}
+
+.factory-measurement-chart ul,
+.factory-measurement-dialog ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.factory-measurement-chart li {
+  display: grid;
+  grid-template-columns: 1.8rem minmax(0, 1fr) 6.4rem;
+  align-items: center;
+  gap: 7px;
+  min-height: 25px;
+}
+
+.factory-measurement-chart-arm,
+.factory-measurement-table tbody th > span {
+  color: var(--color-text-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.factory-measurement-track {
+  position: relative;
+  height: 7px;
+  border-radius: 3px;
+  background: var(--color-bg-secondary);
+}
+
+.factory-measurement-zero,
+.factory-measurement-bar,
+.factory-measurement-whisker {
+  position: absolute;
+}
+
+.factory-measurement-zero {
+  z-index: 1;
+  top: -2px;
+  bottom: -2px;
+  width: 1px;
+  background: var(--color-border-hover);
+}
+
+.factory-measurement-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-text-link);
+}
+
+.factory-measurement-chart li[data-arm='A'] .factory-measurement-bar {
+  background: var(--color-text-secondary);
+}
+
+.factory-measurement-chart li[data-arm='S'] .factory-measurement-bar {
+  background: var(--color-feedback-success);
+}
+
+.factory-measurement-whisker {
+  z-index: 2;
+  top: -2px;
+  height: 11px;
+  border-inline: 1px solid var(--color-text-primary);
+}
+
+.factory-measurement-whisker::before {
+  position: absolute;
+  inset: 5px 0 auto;
+  height: 1px;
+  content: '';
+  background: var(--color-text-primary);
+}
+
+.factory-measurement-table-container {
+  overflow: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+}
+
+.factory-measurement-table {
+  width: 100%;
+  min-width: 690px;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.factory-measurement-table th,
+.factory-measurement-table td {
+  padding: 8px 10px;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.factory-measurement-table thead th {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.factory-measurement-table tbody th {
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.factory-measurement-table tbody th > span {
+  display: inline-block;
+  min-width: 1.7rem;
+  margin-right: 4px;
+}
+
+.factory-measurement-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.factory-measurement-panel .factory-measurement-value,
+.factory-measurement-summary .factory-measurement-value {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  margin: -3px -5px;
+  padding: 3px 5px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-text-link);
+  font-size: inherit;
+  text-align: start;
+  font-variant-numeric: tabular-nums;
+}
+
+.factory-measurement-panel .factory-measurement-value:hover,
+.factory-measurement-summary .factory-measurement-value:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-bg-secondary);
+}
+
+.factory-measurement-value small,
+.factory-measurement-method p {
+  color: var(--color-text-secondary);
+  font-size: 0.72rem;
+}
+
+.factory-measurement-chart .factory-measurement-value,
+.factory-measurement-chart .factory-measurement-unavailable {
+  align-items: flex-end;
+  justify-self: end;
+  font-size: 0.77rem;
+}
+
+.factory-measurement-unavailable {
+  color: var(--color-text-secondary);
+}
+
+.factory-measurement-method p {
+  margin: 0 0 5px;
+}
+
+.factory-measurement-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.factory-measurement-summary h3 {
+  margin: 0 0 3px;
+  color: var(--color-text-primary);
+}
+
+.factory-measurement-summary-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 8px;
+}
+
+.factory-measurement-summary-tiles > div {
+  display: grid;
+  justify-items: start;
+  gap: 5px;
+  padding: 9px 12px;
+  border: 1px solid var(--color-border-default);
+  border-radius: 8px;
+  background: var(--color-bg-secondary);
+  font-size: 0.8rem;
+}
+
+.factory-measurement-summary-tiles .factory-measurement-value {
+  font-size: 1.32rem;
+}
+
+.factory-measurement-dialog {
+  width: min(640px, calc(100vw - 34px));
+  max-height: min(650px, 82vh);
+  padding: 0;
+  border: 1px solid var(--color-border-default);
+  border-radius: 12px;
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.factory-measurement-dialog::backdrop {
+  background: var(--color-overlay-cron-dialog);
+}
+
+.factory-measurement-dialog header {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-primary);
+}
+
+.factory-measurement-dialog h3 {
+  margin: 4px 0 0;
+}
+
+.factory-measurement-dialog li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.factory-measurement-dialog li > div {
+  display: grid;
+  gap: 3px;
+  overflow-wrap: anywhere;
+}
+
+.factory-measurement-dialog a {
+  color: var(--color-text-link);
+  font-size: 0.84rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.factory-measurement-integrity {
+  background: var(--color-bg-secondary);
+}
+
+.factory-measurement-integrity[data-variant='mismatch'],
+.factory-measurement-integrity[data-variant='missing'],
+.factory-measurement-integrity[data-variant='unavailable'] {
+  color: var(--color-text-danger);
+}
+
+@media (max-width: 1000px) {
+  .factory-measurement-charts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

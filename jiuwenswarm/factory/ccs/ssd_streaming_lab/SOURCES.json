@@ -1,0 +1,129 @@
+{
+  "checked_date": "2026-11-14",
+  "method": "GitHub API repository/default-branch commit metadata and pinned primary README inspection; no upstream code copied",
+  "sources": [
+    {
+      "requested": "EfficientMoE/MoE-Infinity",
+      "url": "https://github.com/EfficientMoE/MoE-Infinity",
+      "revision": "b0ac81100b6efebc46244d9446029ebf03db0d09",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "description": "PyTorch library for cost-effective, fast and easy serving of MoE models.",
+      "readme_url": "https://github.com/EfficientMoE/MoE-Infinity/blob/b0ac81100b6efebc46244d9446029ebf03db0d09/README.md",
+      "applicability": "Activation-aware cache, trace prefetch; public code differs from paper. No reproduction here.",
+      "inspected_readme_sha256": "a6260fe0ed66f5224778020c8d976859f71b795771b2916d754390a5c3021fd4"
+    },
+    {
+      "requested": "antirez/ds4",
+      "url": "https://github.com/antirez/ds4",
+      "revision": "b3f50180ec2c7324892be1f50bc83555ccb8d5e7",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "description": "DeepSeek 4 Flash and PRO local inference engine for Metal, CUDA and ROCm",
+      "readme_url": "https://github.com/antirez/ds4/blob/b3f50180ec2c7324892be1f50bc83555ccb8d5e7/README.md",
+      "applicability": "DwarfStar canonical identity. README names DGX Spark CUDA and docs/SSD_STREAMING.md; no integration here.",
+      "inspected_readme_sha256": "459c30f1fb1c994938c88520a129d6f0b7ff89594508c012a69b4ead17bd36c3"
+    },
+    {
+      "requested": "Jakevin/moe-offload",
+      "url": "https://github.com/Jakevin/moe-offload",
+      "revision": "e986f5748e9fd46afdb69d181abdd35497686360",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "description": "Experimental MoE expert offloading (SSD + per-layer LRU cache) for Apple Silicon: MLX and llama.cpp",
+      "readme_url": "https://github.com/Jakevin/moe-offload/blob/e986f5748e9fd46afdb69d181abdd35497686360/README.md",
+      "applicability": "Apple Silicon experimental per-layer LRU; MLX/Metal not GB10 backend.",
+      "inspected_readme_sha256": "7c8c9b37a0a9a93f9a548fb355e73f75beee204af5927da6ed84b86cc825be84"
+    },
+    {
+      "requested": "wici-ai/inferssd",
+      "url": "https://github.com/wici-ai/inferssd",
+      "revision": "e91c7d7a000b69ef69ee0e20fd1345254a504bd7",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "description": "Run models larger than your RAM or VRAM by streaming MoE experts from SSD. Built on llama.cpp.",
+      "readme_url": "https://github.com/wici-ai/inferssd/blob/e91c7d7a000b69ef69ee0e20fd1345254a504bd7/README.md",
+      "applicability": "llama.cpp SSD expert streaming. README includes GB10 unified-memory hardware; rates unverified here.",
+      "inspected_readme_sha256": "b3104212c9774ba21b1934822e9d87649c06e9edc8d2341e0e43847ddee5f277"
+    },
+    {
+      "requested": "kkontosis/LayerStoRm",
+      "url": "https://github.com/kkontosis/LayerStoRm",
+      "revision": "d6471c559137dcb07459012cce0de192456cf937",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "description": "Run frontier-scale MoE LLMs on a handful of VRAM-constrained consumer GPUs by streaming experts over PCIe.",
+      "readme_url": "https://github.com/kkontosis/LayerStoRm/blob/d6471c559137dcb07459012cce0de192456cf937/README.md",
+      "applicability": "Host RAM to separate GPU VRAM over PCIe; predictive prefetch listed active work, not assumed complete.",
+      "inspected_readme_sha256": "5124a5e996c550aaf22ee16630a9efe61b4122a53467b8ee1342a749e883dd00"
+    },
+    {
+      "requested": "ro99/strata",
+      "url": "https://github.com/ro99/strata",
+      "revision": "015b075079c51a7aec670ee24924f920f5e7bb2b",
+      "license": {
+        "key": "apache-2.0",
+        "name": "Apache License 2.0",
+        "spdx_id": "Apache-2.0",
+        "url": "https://api.github.com/licenses/apache-2.0",
+        "node_id": "MDc6TGljZW5zZTI="
+      },
+      "description": "C/C++ MoE inference engine for models exceeding local VRAM",
+      "readme_url": "https://github.com/ro99/strata/blob/015b075079c51a7aec670ee24924f920f5e7bb2b/README.md",
+      "applicability": "C++20/CUDA oversized-model runtime; predictor reorders work, does not change routing.",
+      "inspected_readme_sha256": "5298692dd1f85226e665c3366898e60e4dfeec4f8b40719c4a3398e43419c16c"
+    },
+    {
+      "requested": "SJTU-iBDS-Lab/awesome-inference-specialization",
+      "url": "https://github.com/SJTU-iBDS-Lab/awesome-inference-specialization",
+      "revision": "ba6b416c2a0a590574cf28bf2d58e667b41a8e0f",
+      "license": {
+        "key": "mit",
+        "name": "MIT License",
+        "spdx_id": "MIT",
+        "url": "https://api.github.com/licenses/mit",
+        "node_id": "MDc6TGljZW5zZTEz"
+      },
+      "description": "A curated, evidence-aware collection of specialized inference runtimes, execution systems, and tools that build or optimize them.",
+      "readme_url": "https://github.com/SJTU-iBDS-Lab/awesome-inference-specialization/blob/ba6b416c2a0a590574cf28bf2d58e667b41a8e0f/README.md",
+      "applicability": "Discovery only; not performance proof or complete capability truth table.",
+      "inspected_readme_sha256": "adc8cfeded05cf2e03826da0befeade6c20169878eb3e709ce43a034ea307b76"
+    }
+  ],
+  "paper": {
+    "url": "https://arxiv.org/abs/2401.14361",
+    "title": "MoE-Infinity: Offloading-Efficient MoE Model Serving",
+    "use": "request-level tracing and sparsity-aware caching motivation; not a reproduction"
+  },
+  "identity_notes": [
+    "DwarfStar resolved to antirez/ds4, not similarly named forks",
+    "moe-offload resolved through primary curated list and repository to Jakevin/moe-offload",
+    "InferSSD resolved to wici-ai/inferssd",
+    "Strata resolved to ro99/strata; no relationship inferred from name alone"
+  ]
+}

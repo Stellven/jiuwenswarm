@@ -1,0 +1,31 @@
+cc: '2'
+id: factory.methodology_out_of_core
+version: 1.0.1
+materials:
+  methodology:
+    path: METHOD.md
+  ontology:
+    path: ONTOLOGY.json
+  component_candidates:
+    path: COMPONENT-CANDIDATES.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  cache_protocol:
+    does: Describe a bounded out-of-core cache and phase protocol from retained evidence.
+    takes:
+      evidence_ids:
+        kind: json
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec

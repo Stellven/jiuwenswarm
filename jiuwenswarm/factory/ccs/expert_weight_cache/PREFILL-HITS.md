@@ -1,0 +1,9 @@
+# Native cache prefill hits and host backing
+
+Start from the verified native profile bank. Keep the same admitted allocation, decode demand path and original expert IDs. Rank the exact report-driven 15/30/45 GiB and deployment alternatives before a new source decision.
+
+For large prefill, determine selected IDs before copying. Preserve grouped device hits and copy or compute missing expert payload only. Audit the stock MMQ tail path separately. Pad from an unchanged resident representation where exact source identity and asynchronous lifetime are proved, and preserve the safe cold-boundary behavior when it cannot be substituted. Do not read a hot expert's file-backed payload solely because the scheduler needs its device-resident representation. Compare preserving the stock large-batch read-only bank with any narrower phase admission or refill policy. Respect exact mount, alignment, strides, original mixtures and output order.
+
+Measure actual per-phase device hits, misses, host payload reads, padding copies, device copy bytes and refill/eviction. Distinguish seed initialization from per-request traffic. Keep mmap and the lazy Engram path. Prefer eliminating unnecessary reads over reclaiming pages. A conditional advisory cleanup needs exact aligned file regions with no live aliases, in-flight readers or packed cold neighbors. Linux mapping advice alone cannot establish inode residency or storage savings.
+
+Exercise a resident hit with inaccessible or instrumented host backing, isolated miss, contiguous and split hit/miss runs, a mixed padding boundary, asynchronous lifetime and gate-unset stock parity. Keep synthetic regressions and verification evidence separate from the frozen scored product as needed. Retain two distinct progress records for the authentic source decision and final scoped native source commit. Full configured build and capped LAB remain separate.

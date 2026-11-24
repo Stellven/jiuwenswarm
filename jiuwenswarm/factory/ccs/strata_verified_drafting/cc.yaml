@@ -1,0 +1,35 @@
+cc: '2'
+id: engine.strata_verified_drafting
+version: 1.0.1
+materials:
+  component:
+    path: COMPONENT.json
+  methodology:
+    path: METHOD.md
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  apply:
+    does: Produce a candidate profile changing only native Strata dspark none/on.
+      Does not submit work or change a contract.
+    takes:
+      base_profile:
+        kind: json
+      enabled:
+        kind: json
+        schema:
+          type: boolean
+    gives:
+      profile: json
+      change: json
+    needs:
+    - python
+    changes:
+    - process.exec

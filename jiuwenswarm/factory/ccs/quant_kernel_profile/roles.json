@@ -1,0 +1,13 @@
+{
+  "format": "factory-roles/1",
+  "capabilities": {"inventory": "tool", "verify_inventory": "tool", "profile": "tool", "verify_profile": "tool"},
+  "materials": {
+    "method": "method",
+    "source_map": "reference",
+    "pinned_sources": "reference",
+    "helper": "reference",
+    "tests": "reference",
+    "checksums": "reference",
+    "analysis": "reference"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "arm": "C1-granite-frozen-score",
+  "command": [
+    "~/predemo-spark/jiuwenswarm/.venv/bin/python",
+    "~/predemo-spark/jiuwenswarm/tools/spark_demo/scorer_adapter.py",
+    "score",
+    "1",
+    "~/predemo-spark/factory-runs/star-observability_event_recorder/products/recorder.diff",
+    "~/predemo-spark/scorer-spark-v4-owner/out/recorder-02"
+  ],
+  "binary": "/usr/bin/python3.12",
+  "binary_sha256": "c86f21d0da9290ece2d7d49a3f7ed52aed59cb029abdf0ea25c79634f6cbe960",
+  "result_path": "~/predemo-spark/OPS/runs/c1-granite-score-02",
+  "start": "2026-11-20T08:19:55.176996+00:00",
+  "start_mem_available": 123074592768,
+  "unit": "spark-capped-2668862-1795162795172973178.scope",
+  "memory_max": 107374182400,
+  "cpus": "0-7",
+  "enforcement_test": false,
+  "launch_environment": {},
+  "event": "stop",
+  "stop": "2026-11-20T08:31:14.001676+00:00",
+  "returncode": 0,
+  "reason": null,
+  "termination_request": null,
+  "peak_memory_bytes": 2935836672,
+  "peak_rss_bytes": 2146844672,
+  "peak_method": "kernel memory.peak sampled every 50ms; final milliseconds may be missed",
+  "systemd_properties": "Result=success\nMemoryPeak=[not set]\n",
+  "memory_events": {
+    "low": "0",
+    "high": "0",
+    "max": "0",
+    "oom": "0",
+    "oom_kill": "0",
+    "oom_group_kill": "0",
+    "sock_throttled": "0"
+  },
+  "scope_verified": true,
+  "min_mem_available_bytes": 116655411200
+}

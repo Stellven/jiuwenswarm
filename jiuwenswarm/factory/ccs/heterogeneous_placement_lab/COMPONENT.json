@@ -1,0 +1,11 @@
+{
+  "implementation": "components/placement.py",
+  "runtime": "stdlib_cpu",
+  "qualification": "cpu_reference_qualified",
+  "gpu_integration": false,
+  "capabilities": [
+    "plan",
+    "execute_reference",
+    "overlap_schedule"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "checked_utc": "2026-11-15",
+  "implementation": "original; no upstream code vendored",
+  "sources": [
+    {
+      "url": "https://github.com/tensorflow/tflite-micro/blob/2c13ceb07010b642785ffb20f02e82dabb2bb435/docs/memory_management.md",
+      "pin": "2c13ceb07010b642785ffb20f02e82dabb2bb435",
+      "role": "lifetime-based arena reuse and scratch/persistent separation",
+      "license": "Apache-2.0 upstream; verify notices before copying code",
+      "unknowns": "TFLM planner is not integrated; actual Strata liveness not traced"
+    },
+    {
+      "url": "local:<factory-workspace>/sources/strata-deepseek/src/dsv41/ds4_model.cu",
+      "pin": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+      "role": "read-only local Strata integration anchor: src/dsv41/ds4_model.cu Dev scratch624+, dalloc1965+, allocations3189+",
+      "license": "local repository license governs; no code copied",
+      "unknowns": "CUDA completion liveness must still be traced"
+    }
+  ]
+}

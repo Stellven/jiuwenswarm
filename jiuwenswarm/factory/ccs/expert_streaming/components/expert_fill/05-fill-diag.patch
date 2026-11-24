@@ -1,0 +1,414 @@
+diff --git a/src/llama-context.cpp b/src/llama-context.cpp
+--- a/src/llama-context.cpp
++++ b/src/llama-context.cpp
+@@ -665,6 +665,15 @@
+         if (expert_fillers.empty()) { throw std::runtime_error("no mmap-backed expert tensors"); }
+         expert_prefetch_layers.resize(model.layers.size());
+         expert_fill_enabled = true;
++        expert_diag_enabled = expert_fillers.begin()->second->diagnostic();
++        if (expert_diag_enabled) {
++            const char * csv = getenv("LLAMA_EXPERT_FILL_DIAG_CSV");
++            if (csv && *csv) {
++                expert_diag_csv = fopen(csv, "w");
++                if (!expert_diag_csv) { throw std::runtime_error("cannot open diagnostic CSV"); }
++                fprintf(expert_diag_csv, "token_idx,fill_ns,between_ns,majflt_fill,majflt_between,post_fill_nonresident_pages,pre_use_nonresident_pages,bytes_read\n");
++            }
++        }
+         const char * random = getenv("LLAMA_EXPERT_FILL_RANDOM");
+         expert_fill_random_decode = random && strcmp(random, "decode") == 0;
+         auto token_limit = [](const char * name) -> uint64_t {
+@@ -680,12 +689,84 @@
+         LLAMA_LOG_INFO("expert_fill: active threads=%zu chunk_kib=%zu random=%s files=%zu\n",
+             filler.threads(), filler.chunk_bytes() / 1024, expert_fill_random_decode ? "decode" : (random && strcmp(random, "1") == 0 ? "1" : "0"), expert_fillers.size());
+     } catch (const std::exception & e) {
++        expert_fill_enabled = false; expert_diag_enabled = false;
++        if (expert_diag_csv) { fclose(expert_diag_csv); expert_diag_csv = nullptr; }
+         expert_fillers.clear();
+         LLAMA_LOG_INFO("expert_fill: inactive (%s)\n", e.what());
+     }
+ }
+ 
++static uint64_t expert_diag_now() {
++    return std::chrono::duration_cast<std::chrono::nanoseconds>(
++        std::chrono::steady_clock::now().time_since_epoch()).count();
++}
++void llama_context::expert_diag_close_gap() {
++    if (!expert_diag_gap) { return; }
++    struct rusage r {}; getrusage(RUSAGE_SELF, &r);
++    expert_diag_token.between_ns += expert_diag_now() - expert_diag_gap_ns;
++    expert_diag_token.majflt_between += r.ru_majflt - expert_diag_gap_maj;
++    expert_diag_token.minflt_between += r.ru_minflt - expert_diag_gap_min;
++    expert_diag_gap = false;
++}
++void llama_context::expert_diag_finish_token() {
++    if (!expert_diag_enabled || !expert_diag_token_active) { return; }
++    expert_diag_close_gap();
++    const auto & d = expert_diag_token;
++    expert_diag_total.fill_ns += d.fill_ns;
++    expert_diag_total.between_ns += d.between_ns;
++    expert_diag_total.majflt_fill += d.majflt_fill;
++    expert_diag_total.minflt_fill += d.minflt_fill;
++    expert_diag_total.majflt_between += d.majflt_between;
++    expert_diag_total.minflt_between += d.minflt_between;
++    expert_diag_total.thread_majflt += d.thread_majflt;
++    expert_diag_total.thread_minflt += d.thread_minflt;
++    expert_diag_total.post_nonresident += d.post_nonresident;
++    expert_diag_total.pre_use_nonresident += d.pre_use_nonresident;
++    expert_diag_total.next_nonresident += d.next_nonresident;
++    expert_diag_total.bytes_read += d.bytes_read;
++    expert_diag_total.post_checks += d.post_checks;
++    expert_diag_total.pre_use_checks += d.pre_use_checks;
++    expert_diag_total.next_checks += d.next_checks;
++    expert_diag_total.populate_calls += d.populate_calls;
++    expert_diag_total.populate_ns += d.populate_ns;
++    expert_diag_total.populate_errors += d.populate_errors;
++    if (expert_diag_csv) {
++        fprintf(expert_diag_csv, "%llu,%llu,%llu,%llu,%llu,%llu,%llu,%llu\n",
++            (unsigned long long)expert_diag_token_idx, (unsigned long long)d.fill_ns,
++            (unsigned long long)d.between_ns, (unsigned long long)d.majflt_fill,
++            (unsigned long long)d.majflt_between, (unsigned long long)d.post_nonresident,
++            (unsigned long long)d.pre_use_nonresident, (unsigned long long)d.bytes_read);
++        fflush(expert_diag_csv);
++    }
++    if (expert_diag_token_idx % 16 == 0) {
++        fprintf(stderr, "expert_fill: diag token=%llu fill_ns=%llu between_ns=%llu majflt_fill=%llu majflt_between=%llu post_nonresident=%llu pre_use_nonresident=%llu bytes_read=%llu\n",
++            (unsigned long long)expert_diag_token_idx, (unsigned long long)d.fill_ns,
++            (unsigned long long)d.between_ns, (unsigned long long)d.majflt_fill,
++            (unsigned long long)d.majflt_between, (unsigned long long)d.post_nonresident,
++            (unsigned long long)d.pre_use_nonresident, (unsigned long long)d.bytes_read);
++    }
++    expert_diag_token = {}; expert_diag_token_active = false;
++    expert_diag_layers.clear(); expert_diag_previous.clear();
++}
++void llama_context::expert_diag_pre_use(size_t il) {
++    if (!expert_diag_enabled || !expert_diag_token_active) { return; }
++    auto it = expert_diag_layers.find(il);
++    if (it == expert_diag_layers.end()) { return; }
++    for (const auto & entry : it->second) {
++        expert_diag_token.pre_use_nonresident += expert_fillers.at(entry.first)->nonresident(entry.second);
++        ++expert_diag_token.pre_use_checks;
++    }
++}
+ void llama_context::expert_fill_phase(uint32_t n_tokens) {
++    if (expert_diag_enabled) {
++        expert_diag_finish_token();
++        if (n_tokens == 1) {
++            ++expert_diag_token_idx; expert_diag_token_active = true;
++            struct rusage r {}; getrusage(RUSAGE_SELF, &r);
++            expert_diag_gap_maj = r.ru_majflt; expert_diag_gap_min = r.ru_minflt;
++            expert_diag_gap_ns = expert_diag_now(); expert_diag_gap = true;
++        }
++    }
+     expert_fill_decode = n_tokens == 1;
+     expert_fill_this_ubatch = n_tokens >= expert_fill_min_tokens &&
+         (!expert_fill_max_tokens || n_tokens <= expert_fill_max_tokens);
+@@ -731,7 +812,48 @@
+                 ranges[info.file_index].push_back({info.offset + size_t(id) * w->nb[2], w->nb[2]});
+             }
+         }
+-        for (const auto & entry : ranges) { expert_fillers.at(entry.first)->fill(entry.second, expert_fill_decode); }
++        const bool diag = expert_diag_enabled && expert_diag_token_active;
++        struct rusage before {}, after {}, thread_before {}, thread_after {};
++        uint64_t start = 0;
++        if (diag) {
++            // Previous layer was consumed; this is a separate, after-use eviction probe.
++            for (const auto & entry : expert_diag_previous) {
++                expert_diag_token.next_nonresident += expert_fillers.at(entry.first)->nonresident(entry.second);
++                ++expert_diag_token.next_checks;
++            }
++            expert_diag_close_gap();
++            getrusage(RUSAGE_SELF, &before); getrusage(RUSAGE_THREAD, &thread_before);
++            start = expert_diag_now();
++        }
++        for (const auto & entry : ranges) {
++            auto & filler = *expert_fillers.at(entry.first);
++            ExpertFiller::Counters a {};
++            if (diag) { a = filler.counters(); }
++            filler.fill(entry.second, expert_fill_decode);
++            if (diag) {
++                const auto b = filler.counters();
++                expert_diag_token.bytes_read += b.bytes_read - a.bytes_read;
++                expert_diag_token.thread_majflt += b.thread_majflt - a.thread_majflt;
++                expert_diag_token.thread_minflt += b.thread_minflt - a.thread_minflt;
++                expert_diag_token.populate_calls += b.populate_calls - a.populate_calls;
++                expert_diag_token.populate_ns += b.populate_ns - a.populate_ns;
++                expert_diag_token.populate_errors += b.populate_errors - a.populate_errors;
++                expert_diag_token.post_nonresident += filler.nonresident(entry.second);
++                ++expert_diag_token.post_checks;
++            }
++        }
++        if (diag) {
++            getrusage(RUSAGE_SELF, &after); getrusage(RUSAGE_THREAD, &thread_after);
++            expert_diag_token.fill_ns += expert_diag_now() - start;
++            expert_diag_token.majflt_fill += after.ru_majflt - before.ru_majflt;
++            expert_diag_token.minflt_fill += after.ru_minflt - before.ru_minflt;
++            expert_diag_token.thread_majflt += thread_after.ru_majflt - thread_before.ru_majflt;
++            expert_diag_token.thread_minflt += thread_after.ru_minflt - thread_before.ru_minflt;
++            expert_diag_layers[il] = ranges; expert_diag_previous = ranges;
++            getrusage(RUSAGE_SELF, &after);
++            expert_diag_gap_maj = after.ru_majflt; expert_diag_gap_min = after.ru_minflt;
++            expert_diag_gap_ns = expert_diag_now(); expert_diag_gap = true;
++        }
+     } catch (const std::exception & e) {
+         expert_fill_failed = true;
+         LLAMA_LOG_INFO("expert_fill: inactive (%s)\n", e.what());
+@@ -816,6 +938,14 @@
+             break;
+         }
+     }
++#ifdef __linux__
++    if (il < ctx.model.layers.size() && ctx.expert_diag_enabled && ctx.expert_diag_token_active &&
++            ctx.expert_prefetch_layers[il].observed) {
++        *observe = true;
++        if (!ask) { ctx.expert_diag_pre_use(il); }
++        return;
++    }
++#endif
+     if (il == ctx.model.layers.size() || ctx.expert_prefetch_layers[il].observed) {
+         return;
+     }
+@@ -856,6 +986,7 @@
+ #ifdef __linux__
+     if (ctx.expert_fill_enabled) {
+         ctx.expert_fill_selected(il, selected);
++        if (ctx.expert_diag_enabled) { ctx.expert_diag_pre_use(il); }
+         return;
+     }
+ #endif
+@@ -887,10 +1018,36 @@
+     synchronize();
+ 
+ #ifdef __linux__
++    if (expert_diag_enabled) {
++        expert_diag_finish_token();
++        const auto & d = expert_diag_total;
++        fprintf(stderr, "expert_fill: diag tokens=%llu", (unsigned long long)expert_diag_token_idx);
++        fprintf(stderr, " fill_ns=%llu", (unsigned long long)d.fill_ns);
++        fprintf(stderr, " between_ns=%llu", (unsigned long long)d.between_ns);
++        fprintf(stderr, " majflt_fill=%llu", (unsigned long long)d.majflt_fill);
++        fprintf(stderr, " minflt_fill=%llu", (unsigned long long)d.minflt_fill);
++        fprintf(stderr, " majflt_between=%llu", (unsigned long long)d.majflt_between);
++        fprintf(stderr, " minflt_between=%llu", (unsigned long long)d.minflt_between);
++        fprintf(stderr, " thread_majflt=%llu", (unsigned long long)d.thread_majflt);
++        fprintf(stderr, " thread_minflt=%llu", (unsigned long long)d.thread_minflt);
++        fprintf(stderr, " post_nonresident=%llu", (unsigned long long)d.post_nonresident);
++        fprintf(stderr, " pre_use_nonresident=%llu", (unsigned long long)d.pre_use_nonresident);
++        fprintf(stderr, " next_nonresident=%llu", (unsigned long long)d.next_nonresident);
++        fprintf(stderr, " bytes_read=%llu", (unsigned long long)d.bytes_read);
++        fprintf(stderr, " post_checks=%llu", (unsigned long long)d.post_checks);
++        fprintf(stderr, " pre_use_checks=%llu", (unsigned long long)d.pre_use_checks);
++        fprintf(stderr, " next_checks=%llu", (unsigned long long)d.next_checks);
++        fprintf(stderr, " populate_calls=%llu", (unsigned long long)d.populate_calls);
++        fprintf(stderr, " populate_ns=%llu", (unsigned long long)d.populate_ns);
++        fprintf(stderr, " populate_errors=%llu", (unsigned long long)d.populate_errors);
++        fprintf(stderr, "\n");
++        if (expert_diag_csv) { fclose(expert_diag_csv); expert_diag_csv = nullptr; }
++    }
+     if (!expert_fillers.empty()) {
+         ExpertFiller::Counters sum;
+         for (const auto & entry : expert_fillers) {
+             const auto s = entry.second->counters();
++            sum.populate_calls += s.populate_calls; sum.populate_ns += s.populate_ns; sum.populate_errors += s.populate_errors;
+             sum.calls += s.calls; sum.ranges += s.ranges;
+             sum.bytes_requested += s.bytes_requested; sum.bytes_skipped_resident += s.bytes_skipped_resident;
+             sum.bytes_read += s.bytes_read; sum.read_syscalls += s.read_syscalls;
+@@ -905,11 +1062,13 @@
+             " bytes_skipped_resident=%" PRIu64 " bytes_read=%" PRIu64 " read_syscalls=%" PRIu64
+             " total_fill_wall_ns=%" PRIu64 " max_single_fill_ns=%" PRIu64
+             " prompt_calls=%" PRIu64 " prompt_bytes_read=%" PRIu64 " prompt_fill_wall_ns=%" PRIu64
+-            " decode_calls=%" PRIu64 " decode_bytes_read=%" PRIu64 " decode_fill_wall_ns=%" PRIu64 "\n",
++            " decode_calls=%" PRIu64 " decode_bytes_read=%" PRIu64 " decode_fill_wall_ns=%" PRIu64
++            " populate_calls=%" PRIu64 " populate_ns=%" PRIu64 " populate_errors=%" PRIu64 "\n",
+             sum.calls, sum.ranges, sum.bytes_requested, sum.bytes_skipped_resident, sum.bytes_read,
+             sum.read_syscalls, sum.total_fill_wall_ns, sum.max_single_fill_ns,
+             sum.prompt_calls, sum.prompt_bytes_read, sum.prompt_fill_wall_ns,
+-            sum.decode_calls, sum.decode_bytes_read, sum.decode_fill_wall_ns);
++            sum.decode_calls, sum.decode_bytes_read, sum.decode_fill_wall_ns,
++            sum.populate_calls, sum.populate_ns, sum.populate_errors);
+     }
+ #endif
+     if (!expert_prefetch_layers.empty() && expert_prefetch_calls) {
+diff --git a/src/llama-context.h b/src/llama-context.h
+--- a/src/llama-context.h
++++ b/src/llama-context.h
+@@ -63,6 +63,24 @@
+     bool expert_fill_decode = false;
+     bool expert_fill_this_ubatch = true;
+     uint64_t expert_fill_min_tokens = 0, expert_fill_max_tokens = 0;
++    // All diagnostic syscalls and residency probes are behind expert_diag_enabled.
++    bool expert_diag_enabled = false, expert_diag_token_active = false, expert_diag_gap = false;
++    struct fill_diag {
++        uint64_t fill_ns=0, between_ns=0, majflt_fill=0, minflt_fill=0;
++        uint64_t majflt_between=0, minflt_between=0, thread_majflt=0, thread_minflt=0;
++        uint64_t post_nonresident=0, pre_use_nonresident=0, next_nonresident=0;
++        uint64_t bytes_read=0, post_checks=0, pre_use_checks=0, next_checks=0;
++        uint64_t populate_calls=0, populate_ns=0, populate_errors=0;
++    } expert_diag_token, expert_diag_total;
++    uint64_t expert_diag_token_idx = 0, expert_diag_gap_ns = 0;
++    long expert_diag_gap_maj = 0, expert_diag_gap_min = 0;
++    FILE * expert_diag_csv = nullptr;
++    using diag_ranges = std::map<size_t, std::vector<ExpertFiller::Range>>;
++    std::map<size_t, diag_ranges> expert_diag_layers;
++    diag_ranges expert_diag_previous;
++    void expert_diag_close_gap();
++    void expert_diag_finish_token();
++    void expert_diag_pre_use(size_t il);
+     void expert_fill_phase(uint32_t n_tokens);
+     void expert_fill_init();
+     void expert_fill_selected(size_t il, const std::vector<int32_t> & selected);
+diff --git a/src/llama-expert-fill.h b/src/llama-expert-fill.h
+--- a/src/llama-expert-fill.h
++++ b/src/llama-expert-fill.h
+@@ -1,6 +1,12 @@
+ #pragma once
+ // Linux buffered reads populate the same page cache as the model mmap.
+ #include <algorithm>
++#include <atomic>
++#include <cstdio>
++#include <sys/resource.h>
++#ifndef MADV_POPULATE_READ
++#define MADV_POPULATE_READ 22
++#endif
+ #include <cerrno>
+ #include <chrono>
+ #include <condition_variable>
+@@ -22,6 +28,8 @@
+ public:
+     struct Range { uint64_t offset; size_t len; };
+     struct Counters {
++        uint64_t populate_calls = 0, populate_ns = 0, populate_errors = 0;
++        uint64_t thread_majflt = 0, thread_minflt = 0;
+         uint64_t calls = 0, ranges = 0, bytes_requested = 0;
+         uint64_t bytes_skipped_resident = 0, bytes_read = 0, read_syscalls = 0;
+         uint64_t total_fill_wall_ns = 0, max_single_fill_ns = 0;
+@@ -33,6 +41,8 @@
+         : mapping_(static_cast<char *>(mapping)), size_(mapping_size),
+           threads_(env_size("LLAMA_EXPERT_FILL_THREADS", 8, 256)),
+           chunk_(env_size("LLAMA_EXPERT_FILL_CHUNK_KIB", 1024, 65536) * 1024) {
++        diag_ = enabled("LLAMA_EXPERT_FILL_DIAG");
++        populate_ = enabled("LLAMA_EXPERT_FILL_POPULATE");
+         const long page = sysconf(_SC_PAGESIZE);
+         if (page <= 0 || !mapping_ || reinterpret_cast<uintptr_t>(mapping_) % page || !size_) {
+             throw std::runtime_error("invalid expert mmap");
+@@ -61,9 +71,30 @@
+     size_t chunk_bytes() const { return chunk_; }
+     Counters counters() const { std::lock_guard<std::mutex> lock(fill_mutex_); return counters_; }
+ 
++    bool diagnostic() const { return diag_; }
++    // Called only under the opt-in diagnostic guard. Counts page cache residency,
++    // not installed PTEs; errors are explicit rather than counted as residency.
++    uint64_t nonresident(const std::vector<Range> & ranges) const {
++        uint64_t count = 0;
++        std::vector<Range> sorted = ranges;
++        std::sort(sorted.begin(), sorted.end(), [](const Range & a, const Range & b) { return a.offset < b.offset; });
++        uint64_t checked_end = 0;
++        for (const auto & r : sorted) {
++            if (!r.len) { continue; }
++            const size_t first = std::max<uint64_t>(r.offset / page_ * page_, checked_end);
++            if (r.offset + r.len <= first) { continue; }
++            const size_t len = r.offset + r.len - first;
++            checked_end = first + ((len + page_ - 1) / page_) * page_;
++            std::vector<unsigned char> v((len + page_ - 1) / page_);
++            if (mincore(mapping_ + first, len, v.data())) { throw std::runtime_error("diag mincore failed"); }
++            for (auto b : v) { count += !(b & 1); }
++        }
++        return count;
++    }
+     void fill(const std::vector<Range> & ranges, bool decode = false) {
+         std::lock_guard<std::mutex> serial(fill_mutex_);
+         const auto start = std::chrono::steady_clock::now();
++        batch_diag_ = diag_ && decode;
+         ++counters_.calls;
+         ++(decode ? counters_.decode_calls : counters_.prompt_calls);
+         const uint64_t bytes_before = counters_.bytes_read;
+@@ -118,17 +149,39 @@
+             }
+             {
+                 std::unique_lock<std::mutex> lock(mutex_);
++                populating_ = false;
+                 jobs_ = std::move(jobs); next_ = 0; pending_ = jobs_.size(); error_ = 0;
+                 ready_.notify_all();
+                 done_.wait(lock, [this] { return pending_ == 0; });
+                 counters_.bytes_read += batch_bytes_; counters_.read_syscalls += batch_syscalls_;
+                 batch_bytes_ = batch_syscalls_ = 0;
+                 if (error_) { throw std::runtime_error("expert pread failed: errno=" + std::to_string(error_)); }
++                // All preads finish before populate, including ranges already resident.
++                if (populate_.load() && !populate_unsupported().load()) {
++                    jobs_.clear();
++                    for (const auto & r : merged) {
++                        for (size_t pos = 0; pos < r.len;) {
++                            const size_t populate_chunk = std::max(page_, chunk_ / page_ * page_);
++                            const size_t len = std::min(populate_chunk, r.len - pos);
++                            jobs_.push_back({r.offset + pos, len}); pos += len;
++                        }
++                    }
++                    populating_ = true; next_ = 0; pending_ = jobs_.size();
++                    ready_.notify_all();
++                    done_.wait(lock, [this] { return pending_ == 0; });
++                    if (error_) { throw std::runtime_error("expert populate failed: errno=" + std::to_string(error_)); }
++                }
+             }
+         } catch (...) { finish(); throw; }
+         finish();
+     }
+ private:
++    static std::atomic<bool> & populate_unsupported() {
++        static std::atomic<bool> value {false}; return value;
++    }
++    static bool enabled(const char * name) {
++        const char * s = getenv(name); return s && std::string(s) == "1";
++    }
+     static size_t env_size(const char * name, size_t fallback, size_t maximum) {
+         const char * s = getenv(name);
+         if (!s || !*s || *s == '-') { return fallback; }
+@@ -151,15 +204,39 @@
+                 job = jobs_[next_++];
+             }
+             size_t bytes = 0; uint64_t syscalls = 0; int error = 0;
+-            while (bytes < job.len) {
++            struct rusage before {}, after {};
++            if (batch_diag_) { getrusage(RUSAGE_THREAD, &before); }
++            uint64_t populate_ns = 0, populate_calls = 0, populate_errors = 0;
++            if (populating_) {
++                if (populate_.load() && !populate_unsupported().load()) {
++                    const auto start = std::chrono::steady_clock::now();
++                    ++populate_calls;
++                    if (madvise(mapping_ + job.offset, job.len, MADV_POPULATE_READ)) {
++                        ++populate_errors;
++                        if (errno == EINVAL) {
++                            populate_.store(false);
++                            if (!populate_unsupported().exchange(true)) { fprintf(stderr, "expert_fill: populate unsupported\n"); }
++                        } else { error = errno; }
++                    }
++                    populate_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
++                        std::chrono::steady_clock::now() - start).count();
++                }
++            } else while (bytes < job.len) {
+                 ++syscalls;
+                 const ssize_t n = pread(fd_, scratch_[index].data() + bytes, job.len - bytes, off_t(job.offset + bytes));
+                 if (n < 0 && errno == EINTR) { continue; }
+                 if (n <= 0) { error = n < 0 ? errno : EIO; break; }
+                 bytes += size_t(n);
+             }
++            if (batch_diag_) { getrusage(RUSAGE_THREAD, &after); }
+             {
+                 std::lock_guard<std::mutex> lock(mutex_);
++                counters_.populate_calls += populate_calls; counters_.populate_ns += populate_ns;
++                counters_.populate_errors += populate_errors;
++                if (batch_diag_) {
++                    counters_.thread_majflt += after.ru_majflt - before.ru_majflt;
++                    counters_.thread_minflt += after.ru_minflt - before.ru_minflt;
++                }
+                 batch_bytes_ += bytes; batch_syscalls_ += syscalls;
+                 if (error && !error_) { error_ = error; }
+                 if (--pending_ == 0) { done_.notify_one(); }
+@@ -176,7 +253,8 @@
+     std::vector<std::vector<char>> scratch_;
+     std::vector<Range> jobs_;
+     size_t next_ = 0, pending_ = 0;
+-    bool stopping_ = false;
++    bool stopping_ = false, diag_ = false, batch_diag_ = false, populating_ = false;
++    std::atomic<bool> populate_ {false};
+     int error_ = 0;
+     uint64_t batch_bytes_ = 0, batch_syscalls_ = 0;
+     Counters counters_;

@@ -1,0 +1,50 @@
+{
+  "declaration": {
+    "bindings": {
+      "default": {
+        "command": [
+          "{python}",
+          "{bundle}/tool.py"
+        ],
+        "kind": "native"
+      }
+    },
+    "capabilities": {
+      "trim": {
+        "changes": [],
+        "does": "Remove surrounding ASCII spaces; all-space input returns an empty string.",
+        "gives": {
+          "trimmed": "text"
+        },
+        "guarantees": [],
+        "needs": [],
+        "takes": {
+          "text": "text"
+        },
+        "using": "default"
+      }
+    },
+    "cc": "2",
+    "defs": {},
+    "id": "text.trim",
+    "version": "1.0.0"
+  },
+  "files": [
+    {
+      "path": "cc.yaml",
+      "sha256": "743bc4381c0f26dc9d4c84327e9e94c6456a97097f11ae33eff600e55de09394",
+      "size": 278
+    },
+    {
+      "path": "inputs.json",
+      "sha256": "51290003faba55d2ccc303e9db3ba4722ff2b5b475d3ff68d0fc79e973462b35",
+      "size": 15
+    },
+    {
+      "path": "tool.py",
+      "sha256": "e857737dd99a6276cd4ba6f3ef5072b552fab09f1c97996fe4b7492b52ea3518",
+      "size": 128
+    }
+  ],
+  "format": "cc-release/2"
+}

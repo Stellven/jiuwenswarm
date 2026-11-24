@@ -1,0 +1,20 @@
+{
+  "capabilities": {
+    "evaluate": "tool",
+    "plan": "tool",
+    "read_fixture": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "component": "component",
+    "cpu_verification": "reference",
+    "examples": "reference",
+    "fixture": "reference",
+    "integration": "skill",
+    "method": "method",
+    "runtime": "reference",
+    "sources": "reference",
+    "verification": "reference",
+    "verification_units": "reference"
+  }
+}

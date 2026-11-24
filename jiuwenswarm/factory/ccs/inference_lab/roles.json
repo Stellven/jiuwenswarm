@@ -1,0 +1,39 @@
+{
+  "capabilities": {
+    "ablation": "tool",
+    "analyze_profile": "tool",
+    "apply_drafting": "tool",
+    "apply_prefill": "tool",
+    "cache_protocol": "tool",
+    "collect": "tool",
+    "diagnose": "tool",
+    "evaluate_prediction": "tool",
+    "execute": "tool",
+    "followup": "tool",
+    "inspect_evidence": "tool",
+    "lab_cancel": "tool",
+    "lab_result": "tool",
+    "lab_status": "tool",
+    "lab_submit": "tool",
+    "profile_plan": "tool",
+    "propose": "tool",
+    "publish": "tool",
+    "qualify_prefill": "tool",
+    "query": "tool",
+    "read": "tool",
+    "select": "tool",
+    "status": "tool",
+    "stop": "tool",
+    "test_scope": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "components": "component",
+    "integration": "reference",
+    "job_skill": "method",
+    "methodology": "method",
+    "references": "reference",
+    "scopes": "reference",
+    "verification_units": "reference"
+  }
+}

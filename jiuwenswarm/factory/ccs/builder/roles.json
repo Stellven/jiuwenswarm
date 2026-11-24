@@ -1,0 +1,13 @@
+{
+  "capabilities": {
+    "cancel": "tool",
+    "result": "tool",
+    "status": "tool",
+    "submit": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "methodology": "method",
+    "verification_units": "reference"
+  }
+}

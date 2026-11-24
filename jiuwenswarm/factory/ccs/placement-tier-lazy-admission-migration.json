@@ -1,0 +1,14 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "weight_placement_planner/cc.yaml",
+      "from_version": "1.2.0",
+      "from_release": "31d6f432515d4949cb1f6462ff2ad5fb3b32161e9d6d480873f2c3bb4a300347",
+      "to_version": "1.2.1",
+      "to_release": "6c6aebcf975317d083a9c23f3805e31f5240154ad01580798c8d7374298a912e",
+      "methodology_changed": true,
+      "reason": "Keep proved lazy Engram stock behavior while bounding both v2 and canonical CPU fallback."
+    }
+  ]
+}

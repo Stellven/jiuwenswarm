@@ -1,0 +1,58 @@
+cc: '2'
+id: engine.strata_prefill_chunk
+version: 1.3.1
+materials:
+  skill:
+    path: SKILL.md
+  verification_units:
+    path: QUALIFICATION-UNITS.json
+  verification:
+    path: VERIFICATION-UNITS.json
+  component:
+    path: COMPONENT.json
+  methodology:
+    path: METHOD.md
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  apply:
+    does: Produce a candidate changing only the native Strata positive prefill chunk
+      size.
+    takes:
+      base_profile:
+        kind: json
+      chunk_tokens:
+        kind: json
+        schema:
+          type: integer
+          enum:
+          - 256
+          - 512
+          - 1024
+    gives:
+      profile: json
+      change: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  coverage:
+    does: Predict whether chosen prompt lengths exercise different chunk counts before
+      running a correctness test.
+    takes:
+      prompt_lengths: json
+      baseline_chunk: json
+      candidate_chunk: json
+    gives:
+      analysis: json
+    needs:
+    - python
+    changes:
+    - process.exec

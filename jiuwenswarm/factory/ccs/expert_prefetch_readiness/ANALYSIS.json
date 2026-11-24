@@ -1,0 +1,6 @@
+{
+  "kind": "analysis",
+  "title": "Native expert prefetch readiness",
+  "report_schema": "spark-native-prefetch-readiness/1",
+  "rows": "arms.*.phases.*"
+}

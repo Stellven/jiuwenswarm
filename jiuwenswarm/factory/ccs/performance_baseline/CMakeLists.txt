@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.24)
+project(performance_baseline LANGUAGES CXX CUDA)
+find_package(CUDAToolkit REQUIRED)
+add_executable(baseline_oracle oracle.cu)
+target_link_libraries(baseline_oracle PRIVATE CUDA::cublas CUDA::cudart)
+set_target_properties(baseline_oracle PROPERTIES CXX_STANDARD 17 CUDA_STANDARD 17)

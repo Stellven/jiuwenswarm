@@ -1,0 +1,26 @@
+{
+  "implementation": "components/implementation.py",
+  "runtime": "stdlib_python_with_optional_bundled_native",
+  "qualification": "reference_and_component_microexperiments",
+  "engine_integrated": false,
+  "arbitrary_execution": false,
+  "capabilities": [
+    "evaluate",
+    "benchmark"
+  ],
+  "format": "factory-component/1",
+  "id": "gpu_kernel_lab",
+  "entrypoint": "run.py",
+  "ownership": "self-contained package-local implementation with original bundled native source",
+  "native_build_required": true,
+  "native_artifact": "ROUND1.json",
+  "integration_gate": [
+    "capture real engine lifetime/shape traces",
+    "integrate backend with original outputs preserved",
+    "measure full engine latency and unified-memory headroom",
+    "retain rollback and model-quality evidence"
+  ],
+  "native_binaries_bundled": false,
+  "measured_binary_artifacts": "external runtime-native-artifacts-20261115/gpu_kernel_lab",
+  "portable_default": "Python reference capabilities; native capabilities require explicit local build"
+}

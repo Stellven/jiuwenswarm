@@ -1,0 +1,36 @@
+id: satay.batch-layout-mapper
+version: '1.0'
+status: proposed
+entities:
+  engine_revision: llama.cpp at the pinned source commit plus the retained component diff.
+  component: Request and batch orchestration in generation runtime.
+  capabilities: [batch_layout_mapper.prompt_mapping]
+  workload: Greedy causal text, one slot, with cold and cached prefill and a mixed-slot control.
+  contract: Immutable limits and correctness obligations supplied by the task.
+  observation_point: INFO activation, layout and stats lines on stderr.
+  quantity: Effective settings or planned counts in the declared phase and region.
+  regions:
+    L3: generation_loop
+    M.memory_budget: memory_budget
+relations:
+  implements: component -> capability
+  modifies_region: component -> engine region
+  measures: observation_point -> quantity
+  evaluates_under: observation or assessment -> contract and workload
+quantities:
+  layout.length: {unit: tokens, phase: prompt, source: {line: 'batch_layout_mapper: layout', field: length}, region: L3, distinct_from: []}
+  layout.cached_prefix: {unit: tokens, phase: prompt, source: {line: 'batch_layout_mapper: layout', field: cached_prefix}, region: L3, distinct_from: []}
+  layout.begin: {unit: tokens, phase: prompt, source: {line: 'batch_layout_mapper: layout', field: begin}, region: L3, distinct_from: []}
+  layout.end: {unit: tokens, phase: prompt, source: {line: 'batch_layout_mapper: layout', field: end}, region: L3, distinct_from: []}
+  layout.max_rows: {unit: tokens, phase: prompt, source: {line: 'batch_layout_mapper: layout', field: max_rows}, region: M.memory_budget, distinct_from: []}
+  layout.bypasses: {unit: count, phase: run, source: {line: 'batch_layout_mapper: stats', field: bypasses}, region: L3, distinct_from: []}
+observation_points:
+  - 'batch_layout_mapper: active'
+  - 'batch_layout_mapper: inactive ('
+  - 'batch_layout_mapper: layout'
+  - 'batch_layout_mapper: stats'
+slices:
+  batch_layout_mapper:
+    purpose: Describe eligible prefill row mapping, its stock memory limit and evidence for bypass.
+    regions: [L3, M.memory_budget]
+    quantities: [layout.length, layout.cached_prefix, layout.begin, layout.end, layout.max_rows, layout.bypasses]

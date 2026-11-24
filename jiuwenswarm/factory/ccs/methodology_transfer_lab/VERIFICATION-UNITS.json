@@ -1,0 +1,32 @@
+{
+  "format": "package-local-verification/1",
+  "qualification": "CPU reference only; not a factory.cc_qualification admission certificate",
+  "units": [
+    {
+      "id": "transfer-boundaries",
+      "command": [
+        "python3",
+        "verification.py"
+      ],
+      "claims": [
+        "unified memory not double counted",
+        "approximate methods require separate lane"
+      ]
+    },
+    {
+      "id": "matched-abba-arithmetic",
+      "command": [
+        "python3",
+        "verification.py"
+      ],
+      "claims": [
+        "warmup excluded",
+        "input identity mismatch rejected",
+        "nonfinite timings rejected",
+        "no acceptance inferred"
+      ]
+    }
+  ],
+  "gpu_tested": false,
+  "integration_tested": false
+}

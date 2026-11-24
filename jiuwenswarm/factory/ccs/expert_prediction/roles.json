@@ -1,0 +1,10 @@
+{
+  "capabilities": {
+    "evaluate": "tool"
+  },
+  "format": "factory-roles/1",
+  "materials": {
+    "method": "method",
+    "trace_schema": "reference"
+  }
+}

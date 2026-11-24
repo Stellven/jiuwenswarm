@@ -1,0 +1,11 @@
+{
+  "schema": "spark-delivery-archive/1",
+  "archive": "spark-final-snapshot-20261120.tar.zst",
+  "bytes": 20932564,
+  "sha256": "cfd6d4243a95b79b93c7cc12facc6a2987795224a3f2c2fd8957c513070a5fe6",
+  "unpacked_manifest_sha256": "b3221159add99809ae2973648c6c5bf04ec831b7e73d786dc54c73325ca3645b",
+  "verified_manifest_files": 3047,
+  "source_report_sha256": "1e589873dc230185793c3670b27922c3cfb1940f5ab3ee43bdfa58b657a2fca9",
+  "direct_citations": 49,
+  "verified_report_links": 71
+}

@@ -1,0 +1,20 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "evidence/cc.yaml",
+      "from_version": "1.1.1",
+      "from_release": "af95b9ca3a00eb540ffdc532ea2bbea0e884f1f1cd331542b690b864eb1f83de",
+      "from_commit": "bbafdf02c8db256fa7cb12b68e0dcd296425299d",
+      "to_version": "1.2.0",
+      "to_release": "16d54285c9d229b6fdb9dd19a52bad4ee3e951ae033c0df86995e00bb862b1d1",
+      "changed_files": [
+        "SKILL.md",
+        "cc.yaml",
+        "roles.json"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Add plan_next: the scheduler view of the planned nodes that can run now"
+    }
+  ]
+}

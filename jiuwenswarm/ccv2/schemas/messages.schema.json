@@ -1,0 +1,500 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1
+        },
+        "message": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code",
+        "message"
+      ],
+      "additionalProperties": false
+    },
+    "call": {
+      "type": "object",
+      "properties": {
+        "release": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "capability": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "inputs": {
+          "type": "object"
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "grants": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "timeout": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "require_checks": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "release",
+        "capability",
+        "inputs",
+        "key"
+      ],
+      "additionalProperties": false
+    },
+    "processInput": {
+      "type": "object",
+      "properties": {
+        "call": {
+          "type": "string",
+          "minLength": 1
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "capability": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "inputs": {
+          "type": "object"
+        },
+        "output_dir": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resources": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "call",
+        "attempt",
+        "capability",
+        "inputs",
+        "output_dir",
+        "resources"
+      ],
+      "additionalProperties": false
+    },
+    "processResult": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "enum": [
+            "ok",
+            "partial",
+            "error"
+          ]
+        },
+        "outputs": {
+          "type": "object"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "error": {
+          "$ref": "#/$defs/error"
+        }
+      },
+      "required": [
+        "outcome"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "enum": [
+                  "ok",
+                  "partial"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "outputs"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "partial"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "error"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "error"
+            ]
+          }
+        }
+      ]
+    },
+    "assessment": {
+      "type": "object",
+      "properties": {
+        "verdict": {
+          "enum": [
+            "not_requested",
+            "pending",
+            "not_run",
+            "passed",
+            "failed",
+            "inconclusive"
+          ]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "verdict",
+        "checks"
+      ],
+      "additionalProperties": false
+    },
+    "receipt": {
+      "type": "object",
+      "properties": {
+        "cc": {
+          "const": "2"
+        },
+        "call": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "capability": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "attempt": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "state": {
+          "enum": [
+            "running",
+            "succeeded",
+            "failed",
+            "blocked",
+            "cancelled",
+            "unknown"
+          ]
+        },
+        "completeness": {
+          "enum": [
+            "none",
+            "partial",
+            "complete"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outputs": {
+          "type": "object"
+        },
+        "assessment": {
+          "$ref": "#/$defs/assessment"
+        },
+        "provenance": {
+          "type": "object"
+        },
+        "effects": {
+          "type": "object"
+        },
+        "diagnostics": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "reconciliations": {
+          "type": "array"
+        },
+        "late_observations": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "cc",
+        "call",
+        "key",
+        "release",
+        "capability",
+        "attempt",
+        "state",
+        "completeness",
+        "reason",
+        "outputs",
+        "assessment",
+        "provenance",
+        "effects",
+        "diagnostics"
+      ],
+      "additionalProperties": false
+    },
+    "instance": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "cc-instance/2"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "capability": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9._-]*$"
+        },
+        "state": {
+          "enum": [
+            "preparing",
+            "running",
+            "exited",
+            "stopped",
+            "failed",
+            "unknown"
+          ]
+        },
+        "readiness": {
+          "enum": [
+            "not_checked",
+            "ready",
+            "not_ready",
+            "failed"
+          ]
+        },
+        "endpoints": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "identity": {
+          "type": "object"
+        },
+        "inputs": {
+          "type": "object"
+        },
+        "effects": {
+          "type": "object"
+        },
+        "provenance": {
+          "type": "object"
+        },
+        "diagnostics": {
+          "type": "array"
+        },
+        "logs": {
+          "type": "object"
+        },
+        "reconciliations": {
+          "type": "array"
+        },
+        "late_observations": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "format",
+        "id",
+        "key",
+        "release",
+        "capability",
+        "state",
+        "readiness",
+        "endpoints",
+        "identity",
+        "inputs",
+        "effects",
+        "provenance",
+        "diagnostics"
+      ],
+      "additionalProperties": false
+    },
+    "release": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "const": "cc-release/2"
+        },
+        "declaration": {
+          "$ref": "cc.schema.json"
+        },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "properties": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "path",
+              "sha256",
+              "size"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "format",
+        "declaration",
+        "files"
+      ],
+      "additionalProperties": false
+    },
+    "transportError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "$ref": "#/$defs/error"
+        }
+      },
+      "required": [
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "stagedArtifact": {
+      "type": "object",
+      "properties": {
+        "uri": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "path"
+      ],
+      "additionalProperties": false
+    },
+    "artifactOutput": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

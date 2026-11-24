@@ -1,0 +1,26 @@
+{
+  "source_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+  "checkpoint": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "tensor": {
+    "name": "blk.0.ffn_up_exps.weight",
+    "shape": [
+      256,
+      32,
+      3
+    ],
+    "layout": "iq2_xxs",
+    "expert_stride": 2112,
+    "offset": 64,
+    "bytes": 6336,
+    "shard": {
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "size": 6400
+    }
+  },
+  "selected_ids": [
+    2,
+    0,
+    2,
+    1
+  ]
+}

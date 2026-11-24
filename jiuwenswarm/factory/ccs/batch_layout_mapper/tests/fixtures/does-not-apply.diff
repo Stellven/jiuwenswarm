@@ -1,0 +1,23 @@
+diff --git a/src/llama-batch-layout.h b/src/llama-batch-layout.h
+new file mode 100644
+--- /dev/null
++++ b/src/llama-batch-layout.h
+@@ -0,0 +1,6 @@
++#include <cstdlib>
++#include <cstring>
++inline bool fixture_gate() {
++    const char * value = std::getenv("LLAMA_BATCH_LAYOUT");
++    return value != nullptr && std::strcmp(value, "1") == 0;
++}
+diff --git a/tools/server/server-context.cpp b/tools/server/server-context.cpp
+--- a/tools/server/server-context.cpp
++++ b/tools/server/server-context.cpp
+@@ -1 +1,8 @@
+ // different fixture base
++#include <cstdio>
++void fixture_logs() {
++    std::puts("batch_layout_mapper: active");
++    std::puts("batch_layout_mapper: inactive (synthetic)");
++    std::puts("batch_layout_mapper: layout");
++    std::puts("batch_layout_mapper: stats");
++}

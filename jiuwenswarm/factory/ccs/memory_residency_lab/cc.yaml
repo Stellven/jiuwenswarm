@@ -1,0 +1,56 @@
+cc: '2'
+id: engine.memory_residency_lab
+version: 1.0.2
+materials:
+  guide:
+    path: SKILL.md
+  method:
+    path: METHOD.md
+  sources:
+    path: SOURCES.json
+  verification:
+    path: VERIFICATION-UNITS.json
+  component:
+    path: COMPONENT.json
+  examples:
+    path: EXAMPLES.json
+  roles:
+    path: roles.json
+    media_type: application/json
+bindings:
+  default:
+    kind: native
+    command:
+    - '{python}'
+    - '{bundle}/run.py'
+capabilities:
+  plan:
+    does: Plan aligned arena offsets from half-open liveness intervals.
+    takes:
+      request: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  verify:
+    does: Check overlap and replay live tensor contents in a byte arena.
+    takes:
+      request: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec
+  native_experiment:
+    does: Execute bundled native C++ touch/check experiment for a validated plan.
+    takes:
+      request: json
+    gives:
+      result: json
+    needs:
+    - python
+    changes:
+    - process.exec

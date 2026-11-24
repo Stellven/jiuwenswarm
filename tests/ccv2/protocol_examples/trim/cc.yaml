@@ -1,0 +1,12 @@
+cc: '2'
+id: text.trim
+version: 1.0.0
+bindings:
+  default:
+    kind: native
+    command: ['{python}', '{bundle}/tool.py']
+capabilities:
+  trim:
+    does: Remove surrounding ASCII spaces; all-space input returns an empty string.
+    takes: {text: text}
+    gives: {trimmed: text}

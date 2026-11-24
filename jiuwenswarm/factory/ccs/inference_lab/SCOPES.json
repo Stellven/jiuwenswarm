@@ -1,0 +1,82 @@
+{
+  "layers": [
+    "storage",
+    "placement",
+    "expert_prediction",
+    "expert_transfer",
+    "cpu_scheduling",
+    "kernels",
+    "prefill",
+    "decode",
+    "cache",
+    "drafting",
+    "runtime",
+    "telemetry"
+  ],
+  "claims": {
+    "configuration_invariant": {
+      "scope": "component",
+      "checks": [
+        "schema and applicability",
+        "exact changed fields",
+        "negative and boundary cases"
+      ],
+      "limitations": [
+        "configuration verification does not establish engine correctness or speed"
+      ]
+    },
+    "prediction_quality": {
+      "scope": "offline_replay",
+      "checks": [
+        "request-separated temporal holdout",
+        "causal availability at decision time",
+        "frequency and last-token baselines",
+        "coverage, wasted bytes and readiness/stall counters"
+      ],
+      "limitations": [
+        "replay coverage does not establish an inference speedup",
+        "synthetic traces are test fixtures only"
+      ]
+    },
+    "subsystem_performance": {
+      "scope": "subsystem",
+      "checks": [
+        "fixed model/image/workload",
+        "one changed variable",
+        "warmup positions retained",
+        "fresh-process counterbalanced confirmation",
+        "outputs and engagement compared",
+        "raw counters and failure receipts"
+      ],
+      "limitations": [
+        "subsystem gains do not establish end-to-end speed or full-generation quality"
+      ]
+    },
+    "end_to_end_performance": {
+      "scope": "integration",
+      "checks": [
+        "fixed public correctness sample and decoding",
+        "untraced paired control/candidate",
+        "TTFT, prefill, decode and combined rates reported separately",
+        "resource and cache state",
+        "uncertainty and regressions"
+      ],
+      "limitations": [
+        "component ratios cannot be multiplied into a system speedup"
+      ]
+    },
+    "recovery_reliability": {
+      "scope": "fault_recovery",
+      "checks": [
+        "bounded injected failure",
+        "durable partial evidence",
+        "lease and process cleanup",
+        "idempotent reconciliation",
+        "resume without duplicate submissions"
+      ],
+      "limitations": [
+        "a single successful recovery does not establish weeks of unattended reliability"
+      ]
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "format": "factory-cc-migration/1",
+  "releases": [
+    {
+      "path": "lab_manager/cc.yaml",
+      "from_version": "1.0.0",
+      "from_release": "012f472d73baee288a5c9a3cf8bcfbe0d8aa80a22e519357f7ef44c74f2f28fb",
+      "from_commit": "ffacbed6fb507a5b637a550c17ec404471f9e3e0",
+      "to_version": "1.1.0",
+      "to_release": "631176fc7df4d2dc88096b29e8eb82fa6ca840985a0c715c9cdf47b67a9298a1",
+      "changed_files": [
+        "LAB-MANAGER.md",
+        "cc.yaml",
+        "roles.json"
+      ],
+      "unrecorded_versions": [],
+      "reason": "Add source_bundle: ship a diff of any repository, branch or fork with its recipe and source dependencies; the lab assembles it into an image."
+    }
+  ]
+}

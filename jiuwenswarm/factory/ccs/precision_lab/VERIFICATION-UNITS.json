@@ -1,0 +1,47 @@
+{
+  "format": "research-cpu-reference-verification/1",
+  "scope": "CPU reference only; not factory.cc_qualification certificates",
+  "runtime_qualified": false,
+  "units": [
+    {
+      "id": "quantize-cpu-reference",
+      "capabilities": [
+        "quantize"
+      ],
+      "implementation": "components/precision.py",
+      "fixture": "fixtures/quantize.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    },
+    {
+      "id": "evaluate-cpu-reference",
+      "capabilities": [
+        "evaluate"
+      ],
+      "implementation": "components/precision.py",
+      "fixture": "fixtures/evaluate.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    },
+    {
+      "id": "calibrate-cpu-reference",
+      "capabilities": [
+        "calibrate"
+      ],
+      "implementation": "components/precision.py",
+      "fixture": "fixtures/calibrate.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    },
+    {
+      "id": "memory_plan-cpu-reference",
+      "capabilities": [
+        "memory_plan"
+      ],
+      "implementation": "components/precision.py",
+      "fixture": "fixtures/memory_plan.json",
+      "verification": "verification.py",
+      "claim": "Actual stdlib CPU behavior and negative-input invariants; no GPU/model speed claim"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "id": "strata.prefill_chunk",
+  "engine": "strata-dsv41",
+  "source_revision": "ffa80d73133ea5c548aefe57889a16e8085a938f",
+  "kind": "runtime_configuration_component",
+  "change": {
+    "setting": "--prefill-chunk",
+    "baseline": "256",
+    "candidate": "512",
+    "maximum_changed_variables": 1,
+    "supported_chunk_tokens": [
+      256,
+      512,
+      1024
+    ]
+  },
+  "source_map": [
+    {
+      "file": "src/dsv41/ds4_main.cpp",
+      "line": 2549
+    },
+    {
+      "file": "src/dsv41/ds4_model.cu",
+      "lines": [
+        2724,
+        2789,
+        2792,
+        2806
+      ]
+    }
+  ],
+  "expected_benefit": "unknown",
+  "promotion_status": "not_promoted",
+  "fixed_budget_extension": {
+    "optional": true,
+    "qualified_engine_revision": "89ae0ee6123597636ef162dec826230186c00f3b",
+    "changes_budget": false,
+    "admission_granted": false
+  }
+}

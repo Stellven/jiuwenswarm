@@ -1,0 +1,56 @@
+base:
+  repo: https://github.com/ggml-org/llama.cpp
+  commit: cf34d311332e362198f0a410c466d1e940287d02
+patches:
+- file: 03-expert-fill.patch
+  sha256: de969b13d381df8e43c18bb195fb215527b899978bf15549e2a2874fb21f5182
+- file: 04-fill-phase.patch
+  sha256: 0439854fc1d22d0a600c99833817425e1eec223e563180e2bc6574cd9b4a3065
+- file: 05-fill-diag.patch
+  sha256: 2bd97b511d7159cd131c66472e29e74678fad9e083e46fdd7c749557ec2583fd
+depends_on:
+- mmap_advice
+- router_prefetch
+enable_env:
+  LLAMA_EXPERT_FILL: '1'
+  LLAMA_EXPERT_FILL_RANDOM: decode
+  LLAMA_EXPERT_FILL_THREADS: '16'
+  LLAMA_EXPERT_FILL_CHUNK_KIB: '2048'
+  LLAMA_EXPERT_FILL_MIN_TOKENS: '0'
+  LLAMA_EXPERT_FILL_MAX_TOKENS: '1'
+  LLAMA_EXPERT_FILL_DIAG: '0'
+  LLAMA_EXPERT_FILL_POPULATE: '0'
+  LLAMA_EXPERT_PREFETCH: '0'
+  LLAMA_EXPERT_PREFETCH_NEXT: '0'
+  LLAMA_MMAP_ADVICE: default
+engagement_checks:
+- source: stderr
+  regex: 'expert_fill: active'
+- source: stderr
+  regex: 'expert_fill: random advice applied at decode'
+- source: stderr
+  regex: 'expert_fill: stats calls=[1-9][0-9]*'
+hypothesis: Fill nonresident selected expert ranges through buffered parallel reads
+  before demand computation.
+measure: perf
+correctness_obligation: identical greedy stdout
+rollback: Revert this component commit, rebuild, and restore the last kept image and
+  environment; retain all evidence.
+env_ranges:
+  LLAMA_EXPERT_FILL_THREADS: '03: 1..256, otherwise fallback 8; 08: strict 1..64'
+  LLAMA_EXPERT_FILL_CHUNK_KIB: '03: 1..65536, otherwise fallback 1024; 08: strict
+    64..65536'
+  LLAMA_EXPERT_FILL_RANDOM: 0|1|decode (decode added by 04)
+  LLAMA_EXPERT_FILL_MIN_TOKENS: '04: unsigned integer, 0 unlimited; 08: 0..2147483647'
+  LLAMA_EXPERT_FILL_MAX_TOKENS: '04: unsigned integer, 0 unlimited; 08: 0..2147483647'
+  LLAMA_EXPERT_FILL: 0|1
+  LLAMA_EXPERT_FILL_DIAG: 0|1
+  LLAMA_EXPERT_FILL_POPULATE: 0|1
+  LLAMA_EXPERT_FILL_DIAG_CSV: nonempty path; optional; only used with diagnostics
+
+acceptance:
+  type: performance
+
+implements: [expert_streaming.demand_fill]
+modifies_region: ["L4.selected_expert", "M.read_request"]
+quantities: ["fill.decode_bytes_read", "fill.demand_wait_ns_per_token", "faults.minflt", "decode.ms_per_token"]

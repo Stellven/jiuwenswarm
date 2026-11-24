@@ -1,0 +1,8 @@
+{
+  "release": "7b6e9c573d9141d38e438bb800b95ef82cfa133a357da94efd48b7f350fbdf32",
+  "capability": "trim",
+  "inputs": {
+    "text": "   "
+  },
+  "key": "fixture.trim"
+}

@@ -1,0 +1,17 @@
+{
+  "format": "factory-roles/1",
+  "capabilities": {
+    "plan": "tool"
+  },
+  "materials": {
+    "method": "method",
+    "integration": "skill",
+    "component": "component",
+    "sources": "reference",
+    "runtime": "reference",
+    "roles": "reference",
+    "fixture": "reference",
+    "residency_header": "reference",
+    "cpu_fixture": "reference"
+  }
+}

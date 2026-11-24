@@ -1,0 +1,54 @@
+{
+  "selected_experts": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "physical_capacity_bytes": 100000,
+  "reserved_bytes": 100,
+  "cpu_resident_bytes": 6000,
+  "gpu_resident_bytes": 0,
+  "scratch_bytes": 0,
+  "transfer_bytes_per_second": 1000000,
+  "measurements": {
+    "0": {
+      "cpu_ms": 10,
+      "gpu_ms": 1,
+      "weight_bytes": 1000,
+      "activation_bytes": 20
+    },
+    "1": {
+      "cpu_ms": 10,
+      "gpu_ms": 1,
+      "weight_bytes": 1000,
+      "activation_bytes": 20
+    },
+    "2": {
+      "cpu_ms": 10,
+      "gpu_ms": 1,
+      "weight_bytes": 1000,
+      "activation_bytes": 20
+    },
+    "3": {
+      "cpu_ms": 10,
+      "gpu_ms": 1,
+      "weight_bytes": 1000,
+      "activation_bytes": 20
+    },
+    "4": {
+      "cpu_ms": 10,
+      "gpu_ms": 1,
+      "weight_bytes": 1000,
+      "activation_bytes": 20
+    },
+    "5": {
+      "cpu_ms": 10,
+      "gpu_ms": 1,
+      "weight_bytes": 1000,
+      "activation_bytes": 20
+    }
+  }
+}

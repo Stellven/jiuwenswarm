@@ -1,0 +1,60 @@
+{
+  "cc": "2",
+  "id": "engine.expert_weight_residency_builder",
+  "version": "1.0.1",
+  "materials": {
+    "method": {
+      "path": "METHOD.md"
+    },
+    "integration": {
+      "path": "SKILL.md"
+    },
+    "component": {
+      "path": "COMPONENT.json"
+    },
+    "sources": {
+      "path": "SOURCES.json"
+    },
+    "runtime": {
+      "path": "components.py"
+    },
+    "roles": {
+      "path": "roles.json"
+    },
+    "fixture": {
+      "path": "fixtures/example.json"
+    },
+    "residency_header": {
+      "path": "native/expert-residency.hpp"
+    },
+    "cpu_fixture": {
+      "path": "native/test-residency.cpp"
+    }
+  },
+  "bindings": {
+    "default": {
+      "kind": "native",
+      "command": [
+        "{python}",
+        "{bundle}/run.py"
+      ]
+    }
+  },
+  "capabilities": {
+    "plan": {
+      "does": "Plan a bounded static expert warm set from training demand.",
+      "takes": {
+        "inputs": "json"
+      },
+      "gives": {
+        "result": "json"
+      },
+      "needs": [
+        "python"
+      ],
+      "changes": [
+        "process.exec"
+      ]
+    }
+  }
+}

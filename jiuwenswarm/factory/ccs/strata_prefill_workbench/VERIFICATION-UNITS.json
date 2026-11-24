@@ -1,0 +1,30 @@
+{
+  "format": "factory-verification-units/1",
+  "units": [
+    {
+      "id": "profile-single-change",
+      "capabilities": [
+        "apply",
+        "verify_profile"
+      ],
+      "checker": "strata.prefill_profile.v1",
+      "claim": "Only native prefill chunk changes from 256 to 512 under the fixed full-six static profile. This does not verify submit, runtime engagement or performance."
+    }
+  ],
+  "implementation_modules": [
+    "jiuwenswarm.factory.prefill_workbench",
+    "jiuwenswarm.factory.prefill_worker",
+    "jiuwenswarm.factory.strata_prefill",
+    "jiuwenswarm.factory.strata_components",
+    "jiuwenswarm.factory.benchmark",
+    "jiuwenswarm.factory.benchmark_worker",
+    "jiuwenswarm.factory.benchmark_analysis",
+    "jiuwenswarm.factory.benchmark_data",
+    "jiuwenswarm.factory.engine_adapters",
+    "jiuwenswarm.factory.strata_lab",
+    "jiuwenswarm.factory.lab_recorder",
+    "jiuwenswarm.factory.lab_lifecycle",
+    "jiuwenswarm.factory.targets",
+    "jiuwenswarm.factory.job_packages"
+  ]
+}

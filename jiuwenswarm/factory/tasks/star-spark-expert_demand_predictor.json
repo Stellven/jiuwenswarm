@@ -1,0 +1,68 @@
+{
+  "objective": "Apply builder capsule routing.build_expert_demand_predictor to the task-owned clean stock llama.cpp checkout at 9048bad8d6e3a0f9f1726e238e451181c7e02613 for DGX Spark. Read its GUIDE.md, METHOD.md, component material and ONTOLOGY.yaml slice. Follow the method using the best-scoring Satay round-1/2 candidate as prior evidence; never edit the product diff outside the capsule method. Retain capsule digest and candidate provenance. Read star-deepseek-v1.json and its readable companion. Run the capsule verify capability against the complete diff, record every failed attempt, and commit only the scoped verified change locally. Use factory.builder submit with target spark-gb10, build_target llama-server, delivery native and the pinned build_request dependency, and retain the build receipt. Never start or load any model or submit factory.lab_client model jobs: the lead engineer exclusively performs frozen S1-S5/S5L runtime fixture checks and DeepSeek gate-unset parity / gate-set activation under bin/capped and imports results. Stop after the native build and verifier evidence, or report the highest evidenced stage and unmet prerequisite. Do not claim runtime acceptance, parity or speed without the separately imported measurements. No remotes or pushes.",
+  "constraints": {
+    "owned_checkout_only": true,
+    "contract_immutable": true,
+    "local_commits_in_owned_checkout": true,
+    "push_or_publish": false,
+    "engine_slice": "expert_weight_readiness",
+    "local_commits": true,
+    "external_model_execution_only": true,
+    "model_execution": "Never start an inference/model process. Lead engineer runs all model tests under bin/capped and imports evidence after orchestrator approval.",
+    "build_request": {
+      "target": "spark-gb10",
+      "build_target": "llama-server",
+      "delivery": "native",
+      "deadline_s": 5400,
+      "dependency": {
+        "path": "${FACTORY_LLAMA_SOURCE}",
+        "commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613"
+      },
+      "native_cmake_cache": "${FACTORY_LLAMA_CMAKE_CACHE}"
+    },
+    "capsule_transport": {
+      "source_version": "1.1.1",
+      "installed_version": "1.1.4",
+      "methodology_changed": false,
+      "spark_validation_guidance_added": true
+    }
+  },
+  "allowed_effects": [
+    "process.exec",
+    "workspace.read",
+    "workspace.write"
+  ],
+  "target": "spark-gb10",
+  "budget": {
+    "max_turns": 20,
+    "wall_clock_s": 5400
+  },
+  "contract_id": "star-deepseek-v1",
+  "initial_run_config": {
+    "env": {}
+  },
+  "component_cc": "routing.build_expert_demand_predictor",
+  "source": {
+    "subpath": "llama.cpp-expert-demand-predictor",
+    "pre_integration_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+    "branch": "star-spark-expert-demand-predictor"
+  },
+  "resources": {
+    "source": {
+      "checkout": "agent-workspace/llama.cpp-expert-demand-predictor",
+      "copy_from": "${FACTORY_LLAMA_SOURCE}",
+      "base_commit": "9048bad8d6e3a0f9f1726e238e451181c7e02613",
+      "upstream": "https://github.com/ggml-org/llama.cpp"
+    },
+    "capsules": [
+      "routing.build_expert_demand_predictor@1.1.4",
+      "factory.integration_skill",
+      "factory.builder",
+      "factory.engine_inspector",
+      "factory.lab_client",
+      "factory.evidence",
+      "factory.source_workbench"
+    ]
+  },
+  "task_id": "spark-star-expert-demand-predictor"
+}

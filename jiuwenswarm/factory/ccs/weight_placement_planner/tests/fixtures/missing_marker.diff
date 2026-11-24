@@ -1,0 +1,21 @@
+diff --git a/common/arg.cpp b/common/arg.cpp
+--- a/common/arg.cpp
++++ b/common/arg.cpp
+@@ -1 +1,2 @@
+ // stock arguments
++// synthetic staged edit
+diff --git a/src/llama-placement-plan.cpp b/src/llama-placement-plan.cpp
+new file mode 100644
+--- /dev/null
++++ b/src/llama-placement-plan.cpp
+@@ -0,0 +1,10 @@
++// Synthetic verifier input. The logger discards every line.
++#include <cstdlib>
++#include <cstring>
++static void LOG_INF(const char * message) { (void) message; }
++void fixture() {
++    const char * gate = std::getenv("LLAMA_PLACEMENT_PLAN");
++    if (gate && std::strcmp(gate, "1") == 0) { LOG_INF("weight_placement_planner: active"); }
++    LOG_INF("weight_placement_planner: inactive (fixture)");
++    LOG_INF("unrelated fixture message");
++}
