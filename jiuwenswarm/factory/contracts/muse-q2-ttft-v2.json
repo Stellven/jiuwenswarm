@@ -411,7 +411,8 @@
        "kind": "diff",
        "criteria": [
         "Splits experts.gate_up_proj into gate and up halves in the source order (gate first) and keeps NVFP4 blocks bit-for-bit (no dequantize and requantize).",
-        "Writes one [n_expert] .scale tensor per routed expert weight from weight_scale_2; gate and up share their source scale.",
+        "Writes one [n_expert] .scale tensor per routed expert weight from weight_scale_2: gate takes column 0 and up column 1 of the [n_expert, 2] gate_up scale, down its [n_expert] scale.",
+        "Repacks lazily, one tensor at a time, so peak memory stays under the conversion cap (about 32 GiB) instead of holding every packed expert.",
         "Leaves the BF16 modules the checkpoint excludes (layers 0 and 61, self attention, lm_head) at their source type.",
         "Times one expert before the full conversion and prints the projected total.",
         "Touches only the files its capsule source map allows."

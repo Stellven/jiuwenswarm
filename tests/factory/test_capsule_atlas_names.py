@@ -24,6 +24,7 @@ ATLAS_MAP = {
     'request_fault_io_analysis': ('analysis.request_fault_io', 'Request fault and I/O analysis', 'analysis'),
     'quant_kernel_profile': ('analysis.quant_kernel_profile', 'Quantized kernel profile analysis', 'analysis'),
     'spark_gap_analysis': ('analysis.engine_gap', 'Engine gap analysis', 'analysis'),
+    'weight_pack_compiler': ('weights.pack_compiler.builder', 'Pack compiler', 'tool'),
 }
 
 
